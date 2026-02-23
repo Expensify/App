@@ -560,6 +560,11 @@ function Search({
             return;
         }
 
+        // Skip initial load when SearchPage already triggered it (avoids duplicate request when Search mounts after data is loaded)
+        if (offset === 0 && isSearchDataLoaded(searchResults, queryJSON)) {
+            return;
+        }
+
         handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search?.isLoading});
 
         // We don't need to run the effect on change of isFocused.

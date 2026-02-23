@@ -40,7 +40,6 @@ import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -48,7 +47,6 @@ const ANIMATION_DURATION_IN_MS = 300;
 
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
-    metadata?: SearchResultsInfo;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
@@ -69,7 +67,6 @@ function SearchPageNarrow({
     headerButtonsOptions,
     searchResults,
     isMobileSelectionModeEnabled,
-    metadata,
     footerData,
     currentSelectedPolicyID,
     currentSelectedReportID,
@@ -182,7 +179,7 @@ function SearchPageNarrow({
     }
 
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
-    const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
+    const shouldShowLoadingState = !isOffline && !isDataLoaded;
 
     return (
         <ScreenWrapper

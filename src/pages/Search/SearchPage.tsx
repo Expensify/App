@@ -21,6 +21,7 @@ import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
+import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -52,6 +53,7 @@ import {
     getReportType,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
+    openSearch,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
@@ -76,7 +78,7 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import {getSuggestedSearches, isSearchDataLoaded, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {canIOUBePaid, dismissRejectUseExplanation} from '@userActions/IOU';
@@ -113,6 +115,8 @@ function SearchPage({route}: SearchPageProps) {
         selectAllMatchingItems,
         currentSearchKey,
         currentSearchResults,
+        setCurrentSearchHashAndKey,
+        setCurrentSearchQueryJSON,
     } = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
@@ -128,6 +132,7 @@ function SearchPage({route}: SearchPageProps) {
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {accountID} = useCurrentUserPersonalDetails();
+    const {defaultCardFeed} = useCardFeedsForDisplay();
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -146,6 +151,12 @@ function SearchPage({route}: SearchPageProps) {
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
+    const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [accountID, defaultCardFeed?.id]);
+    const searchKey = useMemo(
+        () => Object.values(suggestedSearches).find((s) => s.similarSearchHash === queryJSON?.similarSearchHash)?.key,
+        [suggestedSearches, queryJSON?.similarSearchHash],
+    );
+    const shouldCalculateTotalsForInitialSearch = useSearchShouldCalculateTotals(searchKey, queryJSON?.hash, true);
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -238,6 +249,36 @@ function SearchPage({route}: SearchPageProps) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
+
+    // Sync search context with current route so the correct snapshot is used
+    useEffect(() => {
+        if (!queryJSON) {
+            return;
+        }
+        setCurrentSearchHashAndKey(queryJSON.hash, searchKey);
+        setCurrentSearchQueryJSON(queryJSON);
+    }, [queryJSON, searchKey, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON]);
+
+    const hasTriggeredOpenSearchRef = useRef(false);
+    // Trigger initial search from the page so data loads even when Search component is not mounted (early skeleton path)
+    useEffect(() => {
+        if (!queryJSON || isOffline || isSearchDataLoaded(currentSearchResults, queryJSON)) {
+            return;
+        }
+        if (!hasTriggeredOpenSearchRef.current) {
+            hasTriggeredOpenSearchRef.current = true;
+            openSearch({includePartiallySetupBankAccounts: true});
+        }
+        search({
+            queryJSON,
+            searchKey,
+            offset: 0,
+            shouldCalculateTotals: shouldCalculateTotalsForInitialSearch,
+            prevReportsLength: 0,
+            isOffline,
+            isLoading: false,
+        });
+    }, [queryJSON, searchKey, isOffline, shouldCalculateTotalsForInitialSearch, currentSearchResults]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -1241,7 +1282,6 @@ function SearchPage({route}: SearchPageProps) {
                         {PDFValidationComponent}
                         <SearchPageNarrow
                             queryJSON={queryJSON}
-                            metadata={metadata}
                             headerButtonsOptions={headerButtonsOptions}
                             searchResults={searchResults}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
