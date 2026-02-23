@@ -1,4 +1,5 @@
-import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StackNavigationState, StaticConfig, TypedNavigator} from '@react-navigation/native';
+import type {TupleToUnion} from 'type-fest';
+import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
 import {createNavigatorFactory} from '@react-navigation/native';
 import RootNavigatorExtraContent from '@components/Navigation/RootNavigatorExtraContent';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
@@ -8,26 +9,23 @@ import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, Pl
 import RootStackRouter from './RootStackRouter';
 import useCustomRootStackNavigatorState from './useCustomRootStackNavigatorState';
 
-
 function removeDuplicateNavigatorsFromState(state: PlatformStackNavigationState<ParamListBase>) {
     if (!state.routes || state.routes.length <= 1) {
         return state;
     }
 
-    const uniqueRoutesMap = new Map();
-    const lastRoute = state.routes[state.routes.length - 1];
-    const secondToLastRoute = state.routes[state.routes.length - 2];
+    const lastRoute = state.routes.at(state.routes.length - 1);
+
+    type RouteType = TupleToUnion<typeof state.routes>;
+    const uniqueRoutesMap = new Map<string, RouteType>();
 
     for (const route of state.routes) {
-        uniqueRoutesMap.set(route.name, route);
+        if (route.key !== lastRoute.key) {
+            uniqueRoutesMap.set(route.name, route);
+        }
     }
 
-
-    const uniqueRoutes = Array.from(uniqueRoutesMap.values());
-
-
-    const finalRoutes = uniqueRoutes.filter((r) => r.key !== lastRoute.key);
-    finalRoutes.push(lastRoute);
+    const finalRoutes = [...uniqueRoutesMap.values(), lastRoute];
 
     return {
         ...state,
@@ -35,7 +33,6 @@ function removeDuplicateNavigatorsFromState(state: PlatformStackNavigationState<
         index: finalRoutes.length - 1,
     };
 }
-
 
 const RootStackNavigatorComponent = createPlatformStackNavigatorComponent('RootStackNavigator', {
     createRouter: RootStackRouter,
