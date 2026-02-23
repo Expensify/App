@@ -51,7 +51,7 @@
     "shellcheck": "./scripts/shellCheck.sh",
     "spell": "cspell --color **/*",
     "spell-changed": "cspell --color --no-must-find-files",
-    "prettier": "prettier --experimental-cli --write .",
+    "prettier": "prettier --experimental-cli --no-cache --write .",
     "prettier-changed": "prettier --experimental-cli --write --ignore-unknown $(git diff --diff-filter=AMR --name-only origin/main HEAD)",
     "prettier-watch": "onchange \"**/*.{js,mjs,ts,tsx}\" -- prettier --experimental-cli --write --ignore-unknown {{changed}}",
     "print-version": "echo $npm_package_version",
