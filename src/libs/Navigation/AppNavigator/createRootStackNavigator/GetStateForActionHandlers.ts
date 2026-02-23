@@ -137,12 +137,10 @@ function handlePushFullscreenAction(
             params: {...existingRoute.params, ...params},
         };
 
-        const otherRoutes = state.routes.filter((route) => route.key !== existingRoute.key);
-
         return {
             ...state,
-            routes: [...otherRoutes, updatedRoute],
-            index: otherRoutes.length,
+            routes: [state.routes, updatedRoute],
+            index: state.routes.length,
         };
     }
 
