@@ -18,7 +18,6 @@ function HybridAppHandler() {
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const onyxHydrationStarted = useRef(false);
 
-    // Start Onyx hydration span on mount (standalone — before root transition span exists)
     useEffect(() => {
         if (!CONFIG.IS_HYBRID_APP || onyxHydrationStarted.current) {
             return;
