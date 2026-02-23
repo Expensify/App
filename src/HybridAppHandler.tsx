@@ -60,10 +60,8 @@ function HybridAppHandler() {
             return;
         }
 
-        // End Onyx hydration span — tryNewDot is now loaded
         endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_HYDRATION);
 
-        // Start getHybridAppSettings span (standalone — before root transition span exists)
         startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.GET_HYBRID_APP_SETTINGS, {
             name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.GET_HYBRID_APP_SETTINGS,
             op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.GET_HYBRID_APP_SETTINGS,
