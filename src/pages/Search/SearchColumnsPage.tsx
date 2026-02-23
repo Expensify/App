@@ -198,6 +198,10 @@ function SearchColumnsPage() {
         isActive: focusedIndex >= 0,
     });
 
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, selectFocusedItem, {
+        isActive: focusedIndex >= 0,
+    });
+
     const onGroupDragEnd = ({data}: {data: typeof allColumnsList}) => {
         const newGroupColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const existingTypeColumns = typeColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
