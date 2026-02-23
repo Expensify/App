@@ -368,7 +368,7 @@ function BaseReportActionContextMenu({
             <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
                 <View
                     ref={contentRef}
-                    style={(wrapperStyle, bottomSafeAreaPaddingStyle)}
+                    style={[wrapperStyle, bottomSafeAreaPaddingStyle]}
                 >
                     {filteredContextMenuActions.map((contextAction, index) => {
                         const closePopup = !isMini;
