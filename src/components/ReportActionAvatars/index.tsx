@@ -73,9 +73,6 @@ type ReportActionAvatarsProps = {
 
     /** chatReportID needed for the avatars logic. When provided, this will be used as a fallback if the snapshot is undefined */
     chatReportID?: string;
-
-    /** Whether avatars are displayed within a LHN */
-    isInLHN?: boolean;
 };
 
 /**
@@ -109,7 +106,6 @@ function ReportActionAvatars({
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
     chatReportID,
-    isInLHN = false,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -172,7 +168,6 @@ function ReportActionAvatars({
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
                 reportID={reportID}
-                isInLHN={isInLHN}
             />
         );
     }

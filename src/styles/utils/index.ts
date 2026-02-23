@@ -1859,12 +1859,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
      */
-    getContainerStyles: (size: string, isInReportAction = false, isInLHN = false): ViewStyle[] => {
+    getContainerStyles: (size: string, isInReportAction = false): ViewStyle[] => {
         let containerStyles: ViewStyle[];
 
         switch (size) {
             case CONST.AVATAR_SIZE.SMALL:
-                containerStyles = [styles.emptyAvatarSmall, isInLHN ? styles.emptyAvatarMargin : styles.emptyAvatarMarginSmall];
+                containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMargin];
                 break;
             case CONST.AVATAR_SIZE.SMALLER:
                 containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];

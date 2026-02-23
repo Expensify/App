@@ -173,7 +173,6 @@ function ReportActionAvatarSubscript({
     fallbackDisplayName,
     useProfileNavigationWrapper,
     reportID,
-    isInLHN = false,
 }: {
     primaryAvatar: IconType;
     secondaryAvatar: IconType;
@@ -185,7 +184,6 @@ function ReportActionAvatarSubscript({
     fallbackDisplayName?: string;
     useProfileNavigationWrapper?: boolean;
     reportID?: string;
-    isInLHN?: boolean;
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -194,7 +192,7 @@ function ReportActionAvatarSubscript({
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
-    const containerStyle = StyleUtils.getContainerStyles(size, undefined, isInLHN);
+    const containerStyle = StyleUtils.getContainerStyles(size);
 
     const subscriptAvatarStyle = useMemo(() => {
         if (size === CONST.AVATAR_SIZE.SMALL) {
