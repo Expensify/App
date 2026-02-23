@@ -1,6 +1,6 @@
+import {showSuccessAlert} from '@libs/fileDownload/FileUtils';
 import localFileCreate from '@libs/localFileCreate';
 import type LocalFileDownload from './types';
-import {showSuccessAlert} from '@libs/fileDownload/FileUtils';
 
 /**
  * Creates a Blob with the given fileName and textContent, then dynamically
