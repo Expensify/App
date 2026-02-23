@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState, useReducer} from 'react';
+import {PanResponder, StyleSheet, View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
@@ -9,7 +9,7 @@ import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useFilesValidation from '@hooks/useFilesValidation';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -26,6 +26,19 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
+import type {LayoutRectangle} from 'react-native';
+import {isMobile, isMobileWebKit} from '@libs/Browser';
+import type Webcam from 'react-webcam';
+import {useIsFocused} from '@react-navigation/native';
+import {base64ToFile} from '@libs/fileDownload/FileUtils';
+import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ActivityIndicator from '@components/ActivityIndicator';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/NavigationAwareCamera/WebCamera';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import Log from '@libs/Log';
 
 type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
 
@@ -38,7 +51,6 @@ function IOURequestStepOdometerImage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isDraggingOver} = useDragAndDropState();
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd']);
     const actionValue: IOUAction = action ?? CONST.IOU.ACTION.CREATE;
     const iouTypeValue: IOUType = iouType ?? CONST.IOU.TYPE.REQUEST;
     const isTransactionDraft = shouldUseTransactionDraft(actionValue, iouTypeValue);
@@ -48,6 +60,18 @@ function IOURequestStepOdometerImage({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
+    const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>('prompt');
+    const [isFlashLightOn, toggleFlashlight] = useReducer((state) => !state, false);
+    const [isTorchAvailable, setIsTorchAvailable] = useState(false);
+    const cameraRef = useRef<Webcam>(null);
+    const trackRef = useRef<MediaStreamTrack | null>(null);
+    const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
+    const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
+    const isTabActive = useIsFocused();
+
+    const lazyIllustrations = useMemoizedLazyIllustrations(['Hand', 'ReceiptStack', 'Shutter']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd', 'Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash', 'ReplaceReceipt', 'SmartScan']);
     const title = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
     const message = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
     const icon = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
@@ -58,15 +82,6 @@ function IOURequestStepOdometerImage({
     const navigateBack = useCallback(() => {
         Navigation.goBack(odometerRoute);
     }, [odometerRoute]);
-
-    const revokeDropBlobUrls = useCallback(() => {
-        for (const url of dropBlobUrlsRef.current) {
-            if (url.startsWith('blob:')) {
-                URL.revokeObjectURL(url);
-            }
-        }
-        dropBlobUrlsRef.current = [];
-    }, []);
 
     const handleImageSelected = useCallback(
         (file: FileObject) => {
@@ -88,6 +103,303 @@ function IOURequestStepOdometerImage({
         // For file selection, source is the blob URL
         handleImageSelected(file);
     });
+
+    /**
+     * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
+     * The last deviceId is of regular len camera.
+     */
+    const requestCameraPermission = useCallback(() => {
+        if (!isMobile()) {
+            return;
+        }
+
+        const defaultConstraints = {facingMode: {exact: 'environment'}};
+        navigator.mediaDevices
+            .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
+            .then((stream) => {
+                setCameraPermissionState('granted');
+                for (const track of stream.getTracks()) {
+                    track.stop();
+                }
+                // Only Safari 17+ supports zoom constraint
+                if (isMobileWebKit() && stream.getTracks().length > 0) {
+                    let deviceId;
+                    for (const track of stream.getTracks()) {
+                        const setting = track.getSettings();
+                        if (setting.zoom === 1) {
+                            deviceId = setting.deviceId;
+                            break;
+                        }
+                    }
+                    if (deviceId) {
+                        setVideoConstraints({deviceId});
+                        return;
+                    }
+                }
+                if (!navigator.mediaDevices.enumerateDevices) {
+                    setVideoConstraints(defaultConstraints);
+                    return;
+                }
+                navigator.mediaDevices.enumerateDevices().then((devices) => {
+                    let lastBackDeviceId = '';
+                    for (let i = devices.length - 1; i >= 0; i--) {
+                        const device = devices.at(i);
+                        if (device?.kind === 'videoinput') {
+                            lastBackDeviceId = device.deviceId;
+                            break;
+                        }
+                    }
+                    if (!lastBackDeviceId) {
+                        setVideoConstraints(defaultConstraints);
+                        return;
+                    }
+                    setVideoConstraints({deviceId: lastBackDeviceId});
+                });
+            })
+            .catch(() => {
+                setVideoConstraints(defaultConstraints);
+                setCameraPermissionState('denied');
+            });
+    }, []);
+
+    useEffect(() => {
+        if (!isMobile() || !isTabActive) {
+            setVideoConstraints(undefined);
+            return;
+        }
+        navigator.permissions
+            .query({
+                name: 'camera',
+            })
+            .then((permissionState) => {
+                setCameraPermissionState(permissionState.state);
+                if (permissionState.state === 'granted') {
+                    requestCameraPermission();
+                }
+            })
+            .catch(() => {
+                setCameraPermissionState('denied');
+            })
+            .finally(() => {
+                setIsQueriedPermissionState(true);
+            });
+        // We only want to get the camera permission status when the component is mounted
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isTabActive]);
+
+    const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
+        setCameraPermissionState('granted');
+
+        const [track] = stream.getVideoTracks();
+        const capabilities = track.getCapabilities();
+
+        if ('torch' in capabilities && capabilities.torch) {
+            trackRef.current = track;
+        }
+        setIsTorchAvailable('torch' in capabilities && !!capabilities.torch);
+    };
+
+    const viewfinderLayout = useRef<LayoutRectangle>(null);
+
+    const getScreenshot = useCallback(() => {
+        if (!cameraRef.current) {
+            requestCameraPermission();
+            return;
+        }
+
+        const imageBase64 = cameraRef.current.getScreenshot();
+
+        if (imageBase64 === null) {
+            return;
+        }
+
+        const originalFileName = `receipt_${Date.now()}.png`;
+        const originalFile = base64ToFile(imageBase64 ?? '', originalFileName);
+        const imageObject: ImageObject = {file: originalFile, filename: originalFile.name, source: URL.createObjectURL(originalFile)};
+        // Some browsers center-crop the viewfinder inside the video element (due to object-position: center),
+        // while other browsers let the video element overflow and the container crops it from the top.
+        // We crop and algin the result image the same way.
+        const videoHeight = cameraRef.current.video?.getBoundingClientRect?.()?.height ?? NaN;
+        const viewFinderHeight = viewfinderLayout.current?.height ?? NaN;
+        const shouldAlignTop = videoHeight > viewFinderHeight;
+        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop)
+        .then(({source}) => {
+            setMoneyRequestOdometerImage(transactionID, imageType, source, isTransactionDraft);
+            navigateBack();
+        })
+        .catch((error: unknown) => {
+            Log.warn('Error cropping photo', error instanceof Error ? error.message : String(error));
+        });
+    }, [requestCameraPermission]);
+
+    const clearTorchConstraints = useCallback(() => {
+        if (!trackRef.current) {
+            return;
+        }
+        trackRef.current.applyConstraints({
+            advanced: [{torch: false}],
+        });
+    }, []);
+
+    const capturePhoto = useCallback(() => {
+        if (trackRef.current && isFlashLightOn) {
+            trackRef.current
+                .applyConstraints({
+                    advanced: [{torch: true}],
+                })
+                .then(() => {
+                    getScreenshotTimeoutRef.current = setTimeout(() => {
+                        getScreenshot();
+                        clearTorchConstraints();
+                    }, 2000);
+                });
+            return;
+        }
+
+        getScreenshot();
+    }, [isFlashLightOn, getScreenshot, clearTorchConstraints]);
+
+    useEffect(
+        () => () => {
+            if (!getScreenshotTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(getScreenshotTimeoutRef.current);
+        },
+        [],
+    );
+
+    const blinkOpacity = useSharedValue(0);
+    const blinkStyle = useAnimatedStyle(() => ({
+        opacity: blinkOpacity.get(),
+    }));
+
+    const mobileCameraView = () => (
+        <>
+            <View style={[styles.cameraView]}>
+                {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={theme.textSupporting}
+                    />
+                )}
+                {cameraPermissionState !== 'granted' && isQueriedPermissionState && (
+                    <View style={[styles.flex1, styles.permissionView, styles.userSelectNone]}>
+                        <Icon
+                            src={lazyIllustrations.Hand}
+                            width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                            height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                            additionalStyles={[styles.pb5]}
+                        />
+                        <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                        {cameraPermissionState === 'denied' ? (
+                            <Text style={[styles.subTextFileUpload]}>
+                                <RenderHTML html={translate('receipt.deniedCameraAccess')} />
+                            </Text>
+                        ) : (
+                            <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                        )}
+                        <Button
+                            success
+                            text={translate('common.continue')}
+                            accessibilityLabel={translate('common.continue')}
+                            style={[styles.p9, styles.pt5]}
+                            onPress={capturePhoto}
+                        />
+                    </View>
+                )}
+                {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (
+                    <View
+                        style={styles.flex1}
+                        onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
+                    >
+                        <NavigationAwareCamera
+                            onUserMedia={setupCameraPermissionsAndCapabilities}
+                            onUserMediaError={() => setCameraPermissionState('denied')}
+                            style={{
+                                ...styles.videoContainer,
+                                display: cameraPermissionState !== 'granted' ? 'none' : 'block',
+                            }}
+                            ref={cameraRef}
+                            screenshotFormat="image/png"
+                            videoConstraints={videoConstraints}
+                            forceScreenshotSourceSize
+                            audio={false}
+                            disablePictureInPicture={false}
+                            imageSmoothing={false}
+                            mirrored={false}
+                            screenshotQuality={0}
+                        />
+                        <Animated.View
+                            pointerEvents="none"
+                            style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                        />
+                    </View>
+                )}
+            </View>
+
+            <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
+                <AttachmentPicker
+                    acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}
+                >
+                    {({openPicker}) => (
+                        <PressableWithFeedback
+                            accessibilityLabel={translate('common.chooseFile')}
+                            role={CONST.ROLE.BUTTON}
+                            onPress={() => {
+                                openPicker({
+                                    onPicked: (data) => validateFiles(data),
+                                });
+                            }}
+                        >
+                            <Icon
+                                height={32}
+                                width={32}
+                                src={lazyIcons.Gallery}
+                                fill={theme.textSupporting}
+                            />
+                        </PressableWithFeedback>
+                    )}
+                </AttachmentPicker>
+                <PressableWithFeedback
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('receipt.shutter')}
+                    style={[styles.alignItemsCenter]}
+                    onPress={capturePhoto}
+                >
+                    <Icon
+                        src={lazyIllustrations.Shutter}
+                        width={CONST.RECEIPT.SHUTTER_SIZE}
+                        height={CONST.RECEIPT.SHUTTER_SIZE}
+                    />
+                </PressableWithFeedback>
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.flash')}
+                        style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
+                        onPress={toggleFlashlight}
+                        disabled={!isTorchAvailable}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={isFlashLightOn ? lazyIcons.Bolt : lazyIcons.boltSlash}
+                            fill={theme.textSupporting}
+                        />
+                    </PressableWithFeedback>
+            </View>
+        </>
+    );
+
+    const revokeDropBlobUrls = useCallback(() => {
+        for (const url of dropBlobUrlsRef.current) {
+            if (url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
+            }
+        }
+        dropBlobUrlsRef.current = [];
+    }, []);
 
     const handleDrop = useCallback(
         (event: DragEvent) => {
@@ -118,6 +430,12 @@ function IOURequestStepOdometerImage({
         };
     }, [revokeDropBlobUrls]);
 
+    const panResponder = useRef(
+        PanResponder.create({
+            onPanResponderTerminationRequest: () => false,
+        }),
+    ).current;
+
     const desktopUploadView = () => (
         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1, styles.ph11]}>
             <Icon
@@ -126,9 +444,15 @@ function IOURequestStepOdometerImage({
                 height={variables.iconSection}
                 additionalStyles={[styles.mb5]}
             />
-            <Text style={[styles.textFileUpload, styles.mb2]}>{title}</Text>
-            <View style={styles.renderHTML}>
-                <RenderHTML html={messageHTML} />
+            <View
+                style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...panResponder.panHandlers}
+            >
+                <Text style={[styles.textFileUpload, styles.mb2]}>{title}</Text>
+                <View style={styles.renderHTML}>
+                    <RenderHTML html={messageHTML} />
+                </View>
             </View>
             <AttachmentPicker>
                 {({openPicker}) => (
@@ -158,7 +482,9 @@ function IOURequestStepOdometerImage({
         >
             {(isDraggingOverWrapper) => (
                 <View style={[styles.flex1, styles.chooseFilesView(isSmallScreenWidth)]}>
-                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>{!(isDraggingOver ?? isDraggingOverWrapper) && desktopUploadView()}</View>
+                    <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
+                    </View>
                     <DragAndDropConsumer onDrop={handleDrop}>
                         <DropZoneUI
                             icon={icon}
