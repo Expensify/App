@@ -13840,7 +13840,7 @@ function updateMultipleMoneyRequests(
             transactionChanges.tag = changes.tag;
         }
         if (changes.comment && canEditField(CONST.EDIT_REQUEST_FIELD.DESCRIPTION)) {
-            transactionChanges.comment = changes.comment;
+            transactionChanges.comment = getParsedComment(changes.comment);
         }
         if (changes.taxCode && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
             transactionChanges.taxCode = changes.taxCode;
