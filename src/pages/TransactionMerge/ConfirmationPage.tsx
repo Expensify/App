@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSelfDMReport from '@hooks/useSelfDMReport';
@@ -39,6 +40,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
     const {transactionID, isOnSearch, backTo} = route.params;
+    const {isOffline} = useNetwork();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
@@ -95,6 +97,11 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
 
+        if (isOffline) {
+            Navigation.dismissToSuperWideRHP();
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
+            return;
+        }
         // If we're on search, dismiss the modal and stay on search
         if (!isOnSearch && reportIDToDismiss && reportID !== targetTransaction.reportID) {
             // Navigate to search money report screen if we're on Reports
