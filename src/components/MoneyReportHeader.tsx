@@ -103,6 +103,7 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
+    isTransactionPendingDelete,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import type {ExportType} from '@pages/inbox/report/ReportDetailsExportPage';
@@ -141,6 +142,7 @@ import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
+import ExpenseHeaderApprovalButton, {getApprovalDropdownOptions} from './ExpenseHeaderApprovalButton';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
@@ -160,7 +162,6 @@ import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestR
 import {usePersonalDetails} from './OnyxListItemProvider';
 import type {PopoverMenuItem} from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
-import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
@@ -260,6 +261,7 @@ function MoneyReportHeader({
         'Close',
         'Location',
         'ReceiptPlus',
+        'DocumentCheck',
         'ExpenseCopy',
         'Checkmark',
     ] as const);
@@ -287,8 +289,16 @@ function MoneyReportHeader({
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
-    const transactions = useMemo(() => {
-        return Object.values(reportTransactions);
+    const {transactions, nonPendingDeleteTransactions} = useMemo(() => {
+        const all: OnyxTypes.Transaction[] = [];
+        const filtered: OnyxTypes.Transaction[] = [];
+        for (const transaction of Object.values(reportTransactions)) {
+            all.push(transaction);
+            if (!isTransactionPendingDelete(transaction)) {
+                filtered.push(transaction);
+            }
+        }
+        return {transactions: all, nonPendingDeleteTransactions: filtered};
     }, [reportTransactions]);
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
@@ -357,7 +367,6 @@ function MoneyReportHeader({
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
-    const [requestType, setRequestType] = useState<ActionHandledType>();
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const connectedIntegration = getValidConnectedIntegration(policy);
@@ -568,7 +577,6 @@ function MoneyReportHeader({
                 return;
             }
             setPaymentType(type);
-            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
@@ -662,12 +670,9 @@ function MoneyReportHeader({
             showDWEModal();
             return;
         }
-        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-        } else if (isAnyTransactionOnHold) {
-            setIsHoldMenuVisible(true);
-        } else {
+        } else if (!isAnyTransactionOnHold) {
             startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, true);
         }
@@ -851,7 +856,7 @@ function MoneyReportHeader({
             currentUserAccountID: accountID,
             report: moneyRequestReport,
             chatReport,
-            reportTransactions: transactions,
+            reportTransactions: nonPendingDeleteTransactions,
             violations,
             bankAccountList,
             policy,
@@ -870,7 +875,7 @@ function MoneyReportHeader({
         isSubmittingAnimationRunning,
         moneyRequestReport,
         chatReport,
-        transactions,
+        nonPendingDeleteTransactions,
         violations,
         policy,
         reportNameValuePairs,
@@ -1013,6 +1018,24 @@ function MoneyReportHeader({
         beginExportWithTemplate,
     ]);
 
+    const onApprove = (isFullApproval: boolean) => {
+        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
+            showDWEModal();
+            return;
+        }
+        startApprovedAnimation();
+        approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, isFullApproval);
+        if (currentSearchQueryJSON) {
+            search({
+                searchKey: currentSearchKey,
+                shouldCalculateTotals: true,
+                offset: 0,
+                queryJSON: currentSearchQueryJSON,
+                isLoading: !!currentSearchResults?.search?.isLoading,
+            });
+        }
+    };
+
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
             <AnimatedSubmitButton
@@ -1045,10 +1068,14 @@ function MoneyReportHeader({
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
-            <Button
-                success
-                onPress={confirmApproval}
-                text={translate('iou.approve')}
+            <ExpenseHeaderApprovalButton
+                isAnyTransactionOnHold={isAnyTransactionOnHold}
+                isDelegateAccessRestricted={isDelegateAccessRestricted}
+                hasOnlyHeldExpenses={hasOnlyHeldExpenses}
+                hasValidNonHeldAmount={hasValidNonHeldAmount}
+                nonHeldAmount={nonHeldAmount}
+                fullAmount={fullAmount}
+                onApprove={onApprove}
                 isDisabled={isBlockSubmitDueToPreventSelfApproval}
             />
         ),
@@ -1182,7 +1209,7 @@ function MoneyReportHeader({
             currentUserAccountID: accountID,
             report: moneyRequestReport,
             chatReport,
-            reportTransactions: transactions,
+            reportTransactions: nonPendingDeleteTransactions,
             originalTransaction: originalIOUTransaction,
             violations,
             bankAccountList,
@@ -1198,7 +1225,7 @@ function MoneyReportHeader({
         currentUserLogin,
         accountID,
         chatReport,
-        transactions,
+        nonPendingDeleteTransactions,
         originalIOUTransaction,
         violations,
         policy,
@@ -1216,6 +1243,20 @@ function MoneyReportHeader({
         }
         return getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, bankAccountList, policy, exportTemplates);
     }, [moneyRequestReport, accountID, email, policy, exportTemplates, bankAccountList]);
+
+    const shouldShowApprovalSecondaryActions = isAnyTransactionOnHold && !isDelegateAccessRestricted;
+    const secondaryApprovalActions = shouldShowApprovalSecondaryActions
+        ? getApprovalDropdownOptions({
+              nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
+              fullAmount,
+              hasValidNonHeldAmount,
+              hasOnlyHeldExpenses,
+              onPartialApprove: () => onApprove(false),
+              onFullApprove: () => onApprove(true),
+              translate,
+              illustrations: expensifyIcons,
+          })
+        : undefined;
 
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
     const unapproveWarningText = useMemo(
@@ -1236,7 +1277,7 @@ function MoneyReportHeader({
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
-        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>
+        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'shouldCallOnSelectedForSubMenuItem' | 'subMenuHeaderText'>
     > = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
@@ -1287,9 +1328,20 @@ function MoneyReportHeader({
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
             text: translate('iou.approve'),
             icon: expensifyIcons.ThumbsUp,
+            rightIcon: shouldShowApprovalSecondaryActions ? expensifyIcons.ArrowRight : undefined,
+            backButtonText: shouldShowApprovalSecondaryActions ? translate('iou.approve') : undefined,
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
-            onSelected: confirmApproval,
+            subMenuItems: secondaryApprovalActions,
+            shouldUpdateSelectedIndex: true,
+            subMenuHeaderText: shouldShowApprovalSecondaryActions ? translate('iou.confirmApprovalWithHeldAmount') : undefined,
+            onSelected: () => {
+                if (shouldShowApprovalSecondaryActions) {
+                    return;
+                }
+                confirmApproval();
+            },
+            shouldCallOnSelectedForSubMenuItem: true,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             text: translate('iou.unapprove'),
@@ -1442,6 +1494,7 @@ function MoneyReportHeader({
             icon: expensifyIcons.Buildings,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.CHANGE_WORKSPACE,
+            shouldShow: transactions.length === 0 || nonPendingDeleteTransactions.length > 0,
             onSelected: () => {
                 if (!moneyRequestReport) {
                     return;
@@ -1802,6 +1855,7 @@ function MoneyReportHeader({
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}
+                                shouldPutHeaderTextAfterBackButton
                             />
                         )}
                         {shouldShowSelectedTransactionsButton && (
@@ -1842,6 +1896,7 @@ function MoneyReportHeader({
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}
+                                shouldPutHeaderTextAfterBackButton
                             />
                         )}
                     </View>
@@ -1869,10 +1924,9 @@ function MoneyReportHeader({
             )}
 
             <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
-            {isHoldMenuVisible && requestType !== undefined && (
+            {isHoldMenuVisible && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    requestType={requestType}
                     fullAmount={fullAmount}
                     onClose={() => setIsHoldMenuVisible(false)}
                     isVisible={isHoldMenuVisible}
@@ -1880,13 +1934,7 @@ function MoneyReportHeader({
                     chatReport={chatReport}
                     moneyRequestReport={moneyRequestReport}
                     hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                    startAnimation={() => {
-                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                            startApprovedAnimation();
-                        } else {
-                            startAnimation();
-                        }
-                    }}
+                    startAnimation={startAnimation}
                     transactionCount={transactionIDs?.length ?? 0}
                 />
             )}
