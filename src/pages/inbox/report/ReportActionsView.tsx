@@ -331,7 +331,6 @@ function ReportActionsView({
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 listID={listID}
-                shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
                 hasCreatedActionAdded={shouldAddCreatedAction}
             />
             <UserTypingEventListener report={report} />

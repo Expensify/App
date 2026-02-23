@@ -5,7 +5,7 @@ import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(isInverted = true): ReportScrollManagerData {
-    const {flatListRef, setScrollPosition} = useContext(ActionListContext);
+    const {flatListRef} = useContext(ActionListContext);
 
     /**
      * Scroll to the provided index.
@@ -30,13 +30,12 @@ function useReportScrollManager(isInverted = true): ReportScrollManagerData {
         }
 
         if (isInverted) {
-            setScrollPosition({offset: 0});
             flatListRef.current.scrollToOffset({animated: false, offset: 0});
             return;
         }
 
         flatListRef.current.scrollToEnd({animated: false});
-    }, [flatListRef, isInverted, setScrollPosition]);
+    }, [flatListRef, isInverted]);
 
     /**
      * Scroll to the end of the FlatList.
