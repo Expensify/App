@@ -2,11 +2,11 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
+import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {selectFilteredReportActions} from '@libs/ReportUtils';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
@@ -42,28 +42,34 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
-    let results: Array<string | undefined> = [];
-    if (!!type && !!currentSearchResults?.data && !!currentSearchResults?.search) {
+
+    const searchResultsData = currentSearchResults?.data;
+    const searchResultsSearch = currentSearchResults?.search;
+    const currentAccountID = currentUserDetails.accountID;
+    const currentUserEmail = currentUserDetails.email ?? '';
+    const searchKey = lastSearchQuery?.searchKey;
+
+    let allReports: Array<string | undefined> = [];
+    if (!!type && !!searchResultsData && !!searchResultsSearch) {
         const [searchData] = getSections({
             type,
-            data: currentSearchResults.data,
-            currentAccountID: currentUserDetails.accountID,
-            currentUserEmail: currentUserDetails.email ?? '',
+            data: searchResultsData,
+            currentAccountID,
+            currentUserEmail,
             translate,
             formatPhoneNumber,
             bankAccountList,
             groupBy,
             reportActions: exportReportActions,
-            currentSearch: lastSearchQuery?.searchKey,
+            currentSearch: searchKey,
             archivedReportsIDList: archivedReportsIdSet,
             isActionLoadingSet,
             cardFeeds,
             allReportMetadata,
             cardList,
         });
-        results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
+        allReports = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
-    const allReports = results;
 
     const currentIndex = allReports.indexOf(reportID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
