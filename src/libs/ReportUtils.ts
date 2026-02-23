@@ -5897,9 +5897,9 @@ function getReportName(
             return report?.reportName ?? '';
         }
         if (isCardIssuedAction(parentReportAction)) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return getCardIssuedMessage({
                 reportAction: parentReportAction,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 translate: translateLocal,
             });
         }
