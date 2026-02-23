@@ -12,11 +12,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
 import type {OnyxEntry} from 'react-native-onyx';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import type {Report} from '@src/types/onyx';
+import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
 
 type IOURequestStepPerDiemWorkspaceProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>;
 
