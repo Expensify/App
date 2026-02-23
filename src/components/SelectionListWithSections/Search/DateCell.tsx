@@ -32,6 +32,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, canEdit, onSave}: Date
         <TextWithTooltip
             text={formattedDate}
             shouldShowTooltip={showTooltip}
+            ellipsizeMode="clip"
             style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
         />
     );
@@ -57,6 +58,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, canEdit, onSave}: Date
                     minDate={setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR)}
                     maxDate={setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR)}
                     inputID="EditableDateCell"
+                    showConfirmButtons
                 />
             }
         >

@@ -56,7 +56,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
             <>
                 <View
                     ref={anchorRef}
-                    style={[styles.flex1, styles.border, styles.borderColorFocus]}
+                    style={[styles.flex1, styles.editableCellBorder, styles.borderColorFocus]}
                 >
                     {children}
                 </View>
@@ -68,12 +68,12 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     return (
         <>
             <PressableWithFeedback
-                accessibilityRole="button"
+                accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel="Edit cell"
                 sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
                 onPress={onStartEditing}
-                style={[styles.flex1]}
-                hoverStyle={[styles.border]}
+                style={[styles.flex1, styles.editableCellBorder]}
+                hoverStyle={[styles.editableCellBorderHover]}
             >
                 {children}
             </PressableWithFeedback>

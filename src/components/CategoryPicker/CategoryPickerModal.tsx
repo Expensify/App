@@ -1,17 +1,13 @@
 import type {ValueOf} from 'type-fest';
 import React, {useRef, useState} from 'react';
-import type {View} from 'react-native';
-import {View as RNView} from 'react-native';
-import Button from '@components/Button';
-import CategoryPicker from '@components/CategoryPicker';
+import {View} from 'react-native';
+import ConfirmCancelButtonRow from '@components/ConfirmCancelButtonRow';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {ListItem} from '@components/SelectionList/types';
-import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-
-const BUTTON_ROW_HEIGHT = 52;
+import CategoryPicker from '.';
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -66,7 +62,6 @@ function CategoryPickerModal({
     shouldPositionFromTop = false,
 }: CategoryPickerModalProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -103,27 +98,22 @@ function CategoryPickerModal({
             shouldSkipRemeasurement
             shouldDisplayBelowModals
         >
-            <RNView style={{maxHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT - BUTTON_ROW_HEIGHT, paddingVertical: 4}}>
-                <CategoryPicker
-                    policyID={policyID}
-                    selectedCategory={pendingItem?.keyForList ?? selectedCategory}
-                    onSubmit={setPendingItem}
-                />
-            </RNView>
-            <RNView style={[styles.flexRow, styles.gap2, styles.p2, styles.borderTop, {height: BUTTON_ROW_HEIGHT}]}>
-                <Button
-                    style={[styles.flex1]}
-                    text={translate('common.cancel')}
-                    onPress={handleCancel}
-                />
-                <Button
-                    style={[styles.flex1]}
-                    success
-                    text={translate('common.confirm')}
-                    onPress={handleConfirm}
-                    isDisabled={!pendingItem}
-                />
-            </RNView>
+            <View style={[{height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT, flexDirection: 'column'}, styles.pt4]}>
+                <View style={styles.flex1}>
+                    <CategoryPicker
+                        policyID={policyID}
+                        selectedCategory={pendingItem?.keyForList ?? selectedCategory}
+                        onSubmit={setPendingItem}
+                    />
+                </View>
+                <View style={styles.p4}>
+                    <ConfirmCancelButtonRow
+                        onConfirm={handleConfirm}
+                        onCancel={handleCancel}
+                        isConfirmDisabled={!pendingItem}
+                    />
+                </View>
+            </View>
         </PopoverWithMeasuredContent>
     );
 }

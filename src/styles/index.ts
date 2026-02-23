@@ -1082,6 +1082,17 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        editableCellBorder: {
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: 'transparent',
+            padding: 4,
+        },
+
+        editableCellBorderHover: {
+            borderColor: theme.border,
+        },
+
         borderColorFocus: {
             borderColor: theme.borderFocus,
         },

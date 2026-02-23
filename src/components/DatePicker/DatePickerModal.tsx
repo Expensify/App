@@ -1,6 +1,7 @@
 import {setYear} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
-import type {View} from 'react-native';
+import {View} from 'react-native';
+import ConfirmCancelButtonRow from '@components/ConfirmCancelButtonRow';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,8 +37,9 @@ function DatePickerModal({
     shouldPositionFromTop = false,
     anchorAlignment = DEFAULT_ANCHOR_ORIGIN,
     forwardedFSClass,
+    showConfirmButtons = false,
 }: DatePickerProps) {
-    const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
+    const [pendingDate, setPendingDate] = useState(value ?? defaultValue ?? undefined);
     const anchorRef = useRef<View>(null);
     const styles = useThemeStyles();
 
@@ -45,27 +47,44 @@ function DatePickerModal({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
+    // Keep pending date in sync with external value changes
     useEffect(() => {
-        if (shouldSaveDraft && formID) {
-            setDraftValues(formID, {[inputID]: selectedDate});
-        }
-        if (selectedDate !== value) {
-            setSelectedDate(value);
-        }
-    }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
+        setPendingDate(value);
+    }, [value]);
 
-    const handleDateSelection = (newValue: string) => {
+    const commitDate = (newValue: string) => {
+        if (shouldSaveDraft && formID) {
+            setDraftValues(formID, {[inputID]: newValue});
+        }
         onSelected?.(newValue);
         onTouched?.();
         onInputChange?.(newValue);
-        setSelectedDate(newValue);
+    };
+
+    const handleDateSelection = (newValue: string) => {
+        setPendingDate(newValue);
+        if (!showConfirmButtons) {
+            commitDate(newValue);
+        }
+    };
+
+    const handleConfirm = () => {
+        if (pendingDate) {
+            commitDate(pendingDate);
+        }
+        onClose();
+    };
+
+    const handleCancel = () => {
+        setPendingDate(value);
+        onClose();
     };
 
     return (
         <PopoverWithMeasuredContent
             anchorRef={anchorRef}
             isVisible={isVisible}
-            onClose={onClose}
+            onClose={showConfirmButtons ? handleCancel : onClose}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged}
@@ -79,12 +98,23 @@ function DatePickerModal({
             forwardedFSClass={forwardedFSClass}
             shouldDisplayBelowModals
         >
-            <CalendarPicker
-                minDate={minDate}
-                maxDate={maxDate}
-                value={selectedDate}
-                onSelected={handleDateSelection}
-            />
+            <View>
+                <CalendarPicker
+                    minDate={minDate}
+                    maxDate={maxDate}
+                    value={pendingDate}
+                    onSelected={handleDateSelection}
+                />
+            </View>
+            {showConfirmButtons && (
+                <View style={[styles.p4]}>
+                    <ConfirmCancelButtonRow
+                        onConfirm={handleConfirm}
+                        onCancel={handleCancel}
+                        isConfirmDisabled={!pendingDate}
+                    />
+                </View>
+            )}
         </PopoverWithMeasuredContent>
     );
 }
