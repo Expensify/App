@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import CONST from '@src/CONST';
 import Log from './Log';
 import ConvertPolicyChatReportIDsToString from './migrations/ConvertPolicyChatReportIDsToString';
@@ -15,16 +16,24 @@ export default function () {
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX),
         });
 
-        // Add all migrations to an array so they are executed in order
-        const migrationPromises = [RenameEmojiSkinTone, ConvertPolicyChatReportIDsToString];
+        const migrations = [
+            {name: 'RenameEmojiSkinTone', migration: RenameEmojiSkinTone},
+            {name: 'ConvertPolicyChatReportIDsToString', migration: ConvertPolicyChatReportIDsToString},
+        ];
 
-        // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
-        // previous promise to finish before moving onto the next one.
         /* eslint-disable arrow-body-style */
-        migrationPromises
-            .reduce<Promise<void | void[]>>((previousPromise, migrationPromise) => {
+        migrations
+            .reduce<Promise<void | void[]>>((previousPromise, {name, migration}) => {
                 return previousPromise.then(() => {
-                    return migrationPromise();
+                    const span = Sentry.startInactiveSpan({
+                        name,
+                        op: 'migration',
+                        parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX_MIGRATIONS),
+                    });
+                    return migration().finally(() => {
+                        span?.setStatus({code: 1});
+                        span?.end();
+                    });
                 });
             }, Promise.resolve())
 
