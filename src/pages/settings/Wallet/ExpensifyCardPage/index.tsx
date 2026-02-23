@@ -26,8 +26,8 @@ import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resetValidateActionCodeSent} from '@libs/actions/User';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
+import {resetValidateActionCodeSent} from '@libs/actions/User';
 import {formatCardExpiration, getDomainCards, getTranslationKeyForLimitType, isCardFrozen, maskCard, maskPin} from '@libs/CardUtils';
 import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -47,6 +47,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
+import FrozenCardIndicator from './FrozenCardIndicator';
 
 type ExpensifyCardPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>
@@ -207,17 +208,15 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 onBackButtonPress={() => Navigation.closeRHPFlow()}
             />
             <ScrollView>
-                <View style={[styles.flex1, styles.mb9, styles.mt9]}>
-                    <CardPreview />
-                </View>
-                {canManageCardFreeze && isCardFrozen(currentCard) && (
-                    <Button
-                        medium
-                        style={[styles.mh4, styles.mb4]}
-                        text={translate('cardPage.unfreeze')}
-                        onPress={handleUnfreezePress}
-                        isDisabled={isOffline}
+                {canManageCardFreeze && isCardFrozen(currentCard) ? (
+                    <FrozenCardIndicator
+                        cardID={cardID}
+                        onUnfreezePress={handleUnfreezePress}
                     />
+                ) : (
+                    <View style={[styles.flex1, styles.mb9, styles.mt9]}>
+                        <CardPreview />
+                    </View>
                 )}
 
                 {hasDetectedDomainFraud && (
