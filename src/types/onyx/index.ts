@@ -153,6 +153,7 @@ import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
+import type TravelInvoiceStatement from './TravelInvoiceStatement';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings, WorkspaceTravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
@@ -167,7 +168,6 @@ import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAcces
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
-import type TravelInvoiceStatement from './TravelInvoiceStatement';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';

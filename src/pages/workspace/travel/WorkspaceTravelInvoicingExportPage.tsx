@@ -22,8 +22,8 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDateRangeForPreset} from '@libs/SearchUIUtils';
-import {downloadTravelInvoiceStatementPDF} from '@libs/TravelInvoicingUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+import {downloadTravelInvoiceStatementPDF} from '@libs/TravelInvoicingUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

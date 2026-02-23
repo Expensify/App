@@ -6,9 +6,9 @@ import type {BankAccountList, Card, WorkspaceCardsList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
 import {getLastFourDigits} from './BankAccountUtils';
-import fileDownload from './fileDownload';
 import {isMobileSafari} from './Browser';
 import {isDevelopment, isInternalTestBuild, isStaging} from './Environment/Environment';
+import fileDownload from './fileDownload';
 
 /**
  * Gets the Travel Invoicing settings, handling both nested (TRAVEL_US) and root-level data.
