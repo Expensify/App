@@ -35,7 +35,10 @@ import type {PersonalDetailsList, Policy, PolicyTagLists, Report, ReportAction, 
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
-type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID'> & {
+type ReportActionItemProps = Omit<
+    PureReportActionItemProps,
+    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'allTransactionDrafts'
+> & {
     /** All the data of the report collection */
     allReports: OnyxCollection<Report>;
 
@@ -65,6 +68,12 @@ type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'lin
 
     /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
     isTryNewDotNVPDismissed?: boolean;
+
+    /** Personal policy ID */
+    personalPolicyID?: string;
+
+    /** All transaction drafts */
+    allTransactionDrafts?: OnyxCollection<Transaction>;
 
     /** Policy tags for the report's workspace */
     policyTags?: OnyxEntry<PolicyTagLists>;

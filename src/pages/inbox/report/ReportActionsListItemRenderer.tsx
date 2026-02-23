@@ -265,11 +265,9 @@ function ReportActionsListItemRenderer({
                 isReportArchived={isReportArchived}
                 introSelected={introSelected}
                 allTransactionDrafts={allTransactionDrafts}
-                reportMetadata={reportMetadata}
                 cardList={cardList}
                 bankAccountList={bankAccountList}
                 personalPolicyID={personalPolicyID}
-                policyTags={policyTags}
             />
         );
     }

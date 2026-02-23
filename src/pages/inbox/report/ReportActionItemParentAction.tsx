@@ -6,6 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAncestors from '@hooks/useAncestors';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -19,6 +20,7 @@ import {
     shouldExcludeAncestorReportAction,
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     BankAccountList,
@@ -109,9 +111,6 @@ type ReportActionItemParentActionProps = {
     /** All transaction drafts */
     allTransactionDrafts?: OnyxCollection<Transaction>;
 
-    /** Report metadata */
-    reportMetadata?: OnyxEntry<ReportMetadata>;
-
     /** All cards */
     cardList?: CardList;
 
@@ -120,9 +119,6 @@ type ReportActionItemParentActionProps = {
 
     /** Personal policy ID */
     personalPolicyID?: string;
-
-    /** Policy tags for the report's workspace */
-    policyTags?: OnyxEntry<PolicyTagLists>;
 };
 
 function ReportActionItemParentAction({
@@ -147,11 +143,9 @@ function ReportActionItemParentAction({
     isReportArchived = false,
     introSelected,
     allTransactionDrafts,
-    reportMetadata,
     cardList,
     bankAccountList,
     personalPolicyID,
-    policyTags,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
@@ -203,6 +197,54 @@ function ReportActionItemParentAction({
         },
         [ancestors],
     );
+
+    const ancestorReportMetadataSelector = useCallback(
+        (allReportMetadata: OnyxCollection<ReportMetadata>) => {
+            if (!allReportMetadata) {
+                return {};
+            }
+            const result: OnyxCollection<ReportMetadata> = {};
+            for (const ancestor of ancestors) {
+                result[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${ancestor.report.reportID}`] = allReportMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${ancestor.report.reportID}`];
+            }
+            return result;
+        },
+        [ancestors],
+    );
+
+    const [ancestorsReportMetadata] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT_METADATA,
+        {
+            selector: ancestorReportMetadataSelector,
+        },
+        [ancestors],
+    );
+
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+
+    const ancestorPolicyTagsSelector = useCallback(
+        (allPolicyTags: OnyxCollection<PolicyTagLists>) => {
+            if (!allPolicyTags) {
+                return {};
+            }
+            const result: OnyxCollection<PolicyTagLists> = {};
+            for (const ancestor of ancestors) {
+                const policyID = ancestor.report.policyID === CONST.POLICY.OWNER_EMAIL_FAKE && policyForMovingExpensesID ? policyForMovingExpensesID : ancestor.report.policyID;
+                result[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] = allPolicyTags[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
+            }
+            return result;
+        },
+        [ancestors, policyForMovingExpensesID],
+    );
+
+    const [ancestorsPolicyTags] = useOnyx(
+        ONYXKEYS.COLLECTION.POLICY_TAGS,
+        {
+            selector: ancestorPolicyTagsSelector,
+        },
+        [ancestors, policyForMovingExpensesID],
+    );
+
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     return (
@@ -231,6 +273,9 @@ function ReportActionItemParentAction({
                     const matchingDraftMessage = reportDraftMessages?.[ancestorReportAction.reportActionID];
                     const matchingDraftMessageString = matchingDraftMessage?.message;
                     const actionEmojiReactions = allEmojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestorReportAction.reportActionID}`];
+                    const ancestorReportMetadata = ancestorsReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${ancestorReport.reportID}`];
+                    const ancestorPolicyID = ancestorReport.policyID === CONST.POLICY.OWNER_EMAIL_FAKE && policyForMovingExpensesID ? policyForMovingExpensesID : ancestorReport.policyID;
+                    const ancestorPolicyTags = ancestorsPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${ancestorPolicyID}`];
 
                     return (
                         <OfflineWithFeedback
@@ -276,11 +321,11 @@ function ReportActionItemParentAction({
                                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                                 introSelected={introSelected}
                                 allTransactionDrafts={allTransactionDrafts}
-                                reportMetadata={reportMetadata}
+                                reportMetadata={ancestorReportMetadata}
                                 cardList={cardList}
                                 bankAccountList={bankAccountList}
                                 personalPolicyID={personalPolicyID}
-                                policyTags={policyTags}
+                                policyTags={ancestorPolicyTags}
                             />
                         </OfflineWithFeedback>
                     );
