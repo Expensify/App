@@ -43,7 +43,7 @@ async function cacheAttachment({attachmentID, uri}: CacheAttachmentProps): Promi
 }
 
 async function getCachedAttachment({attachmentID, attachment, currentSource}: GetCachedAttachmentProps): Promise<string> {
-    const isStale = attachment && attachment?.remoteSource && attachment.remoteSource !== currentSource;
+    const isStale = attachment ? attachment?.remoteSource && attachment.remoteSource !== currentSource : false;
     if (isStale) {
         // Only re-cache the [markdown-attachment] if it is outdated (updated)
         cacheAttachment({attachmentID, uri: currentSource});
@@ -51,7 +51,7 @@ async function getCachedAttachment({attachmentID, attachment, currentSource}: Ge
     }
 
     const cachedAttachment = await CacheAPI.get(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID);
-    const isUncached = !attachment || !cachedAttachment;
+    const isUncached = !cachedAttachment;
     if (isUncached) {
         return currentSource;
     }

@@ -67,24 +67,22 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
     } catch (error) {
         Log.warn('[AttachmentCache] Failed to cache attachment', {error});
     }
-
-    return;
 }
 
 async function getCachedAttachment({attachmentID, attachment, currentSource}: GetCachedAttachmentProps) {
-    const isStale = attachment && attachment?.remoteSource && attachment.remoteSource !== currentSource;
+    const isStale = attachment ? attachment?.remoteSource && attachment.remoteSource !== currentSource : false;
     if (isStale) {
         // Only re-cache the [markdown-attachment] if it is outdated (updated)
         cacheAttachment({attachmentID, uri: currentSource});
         return currentSource;
     }
 
-    const isUncached = !attachment || !attachment?.source;
-    if (isUncached) {
-        return currentSource;
+    const localSource = attachment?.source;
+    if (localSource) {
+        return localSource;
     }
 
-    return attachment?.source;
+    return currentSource;
 }
 
 async function removeCachedAttachment({attachmentID, localSource}: RemoveCachedAttachmentProps): Promise<void> {
