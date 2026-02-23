@@ -33,10 +33,10 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionSelector});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
     const reportID = useMemo(() => generateReportID(), []);
 
     const policyChatForActivePolicySelector = useCallback(
@@ -49,7 +49,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
         },
         [activePolicy, activePolicyID, session?.accountID],
     );
-    const [policyChatForActivePolicy] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: policyChatForActivePolicySelector}, [policyChatForActivePolicySelector]);
+    const [policyChatForActivePolicy] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyChatForActivePolicySelector}, [policyChatForActivePolicySelector]);
 
     const onPress = () => {
         interceptAnonymousUser(() => {

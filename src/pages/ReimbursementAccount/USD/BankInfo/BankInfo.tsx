@@ -36,9 +36,9 @@ const plaidSubSteps: Array<React.ComponentType<BankInfoSubStepProps>> = [Plaid];
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
 function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfoProps) {
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
     const {translate} = useLocalize();
 
     const [redirectedFromPlaidToManual, setRedirectedFromPlaidToManual] = React.useState(false);

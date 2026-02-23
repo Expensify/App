@@ -65,8 +65,11 @@ import type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -529,6 +532,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: 'Taxa de câmbio',
         reimbursableTotal: 'Total reembolsável',
         nonReimbursableTotal: 'Total não reembolsável',
+        opensInNewTab: 'Abre em uma nova aba',
         locked: 'Bloqueado',
         month: 'Mês',
         week: 'Semana',
@@ -6772,6 +6776,11 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `alterou o pagador autorizado para "${newReimburser}" (anteriormente "${previousReimburser}")` : `alterou o pagador autorizado para "${newReimburser}"`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `reembolsos ${enabled ? 'ativado' : 'desativado'}`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `alterou o nome do imposto personalizado para "${newName}" (antes "${oldName}")`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
+            `alterou a taxa de imposto padrão da moeda do workspace para "${newName}" (anteriormente "${oldName}")`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
+            `alterou a alíquota de imposto padrão em moeda estrangeira para "${newName}" (anteriormente "${oldName}")`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `adicionou o imposto "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removeu o imposto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7390,6 +7399,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         scrollToNewestMessages: 'Rolar até as mensagens mais recentes',
         preStyledText: 'Texto pré-formatado',
         viewAttachment: 'Ver anexo',
+        selectAllFeatures: 'Selecionar todos os recursos',
+        selectAllTransactions: 'Selecionar todas as transações',
+        selectAllItems: 'Selecionar todos os itens',
     },
     parentReportAction: {
         deletedReport: 'Relatório excluído',
@@ -8435,6 +8447,12 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         },
         common: {settings: 'Configurações'},
         groups: {title: 'Grupos', memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membros`})},
+    },
+    proactiveAppReview: {
+        title: 'Curtindo o novo Expensify?',
+        description: 'Avise-nos para que possamos ajudar a tornar sua experiência com despesas ainda melhor.',
+        positiveButton: 'Sim!',
+        negativeButton: 'Na verdade, não',
     },
 };
 export default translations;

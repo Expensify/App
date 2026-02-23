@@ -19,9 +19,9 @@ import ROUTES from '@src/ROUTES';
 function AddDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const existingDelegates =
         account?.delegatedAccess?.delegates?.reduce(
             (prev, {email}) => {

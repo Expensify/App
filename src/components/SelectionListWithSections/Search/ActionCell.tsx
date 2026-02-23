@@ -78,8 +78,8 @@ function ActionCell({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
     const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, false);
     const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true);
     const text = isChildListItem ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);

@@ -37,26 +37,21 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {showConfirmModal} = useConfirmModal();
 
     const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: selectSecurityGroupForAccount(accountID),
     });
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
         selector: personalDetailsSelector(accountID),
     });
 
-    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: domainNameSelector});
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
 
     const [vacationDelegate] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: vacationDelegateSelector(accountID),
     });
 
-    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        canBeMissing: true,
-    });
-    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
+    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
     const memberLogin = personalDetails?.login ?? '';
 
