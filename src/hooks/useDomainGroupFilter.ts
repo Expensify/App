@@ -35,10 +35,7 @@ type UseDomainGroupFilterResult = {
 function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResult {
     const {translate} = useLocalize();
 
-    const [groups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
-        selector: groupsSelector,
-    });
+    const [groups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
 
     const [selectedGroup, setSelectedGroup] = useState<SingleSelectItem<string> | null>(null);
 
