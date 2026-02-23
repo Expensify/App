@@ -1,5 +1,5 @@
 import type {ImageContentFit} from 'expo-image';
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useLocalize from '@hooks/useLocalize';
@@ -53,14 +53,14 @@ function NewWorkspaceMenuItem({shouldUseNarrowLayout, icons, itemIndex = -1}: Ne
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    const shouldShowNewWorkspaceButton = useMemo(() => {
+    const shouldShowNewWorkspaceButton = (() => {
         if (isRestrictedPolicyCreation) {
             return false;
         }
         const isOfflineBool = !!isOffline;
         const email = session?.email;
         return Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, isOfflineBool, email));
-    }, [isRestrictedPolicyCreation, allPolicies, isOffline, session?.email]);
+    })();
 
     if (isLoading || !shouldShowNewWorkspaceButton) {
         return null;

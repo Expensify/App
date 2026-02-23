@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FocusableMenuItem from '@components/FocusableMenuItem';
@@ -57,10 +57,7 @@ function useQuickActionMenuItemVisible(): boolean {
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
-    const workspaceChatsSelector = useCallback(
-        (reports: OnyxCollection<OnyxTypes.Report>) => getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], reports),
-        [activePolicyID, session?.accountID],
-    );
+    const workspaceChatsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], reports);
     const [policyChats = getEmptyArray<OnyxTypes.Report>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: workspaceChatsSelector, canBeMissing: true});
 
     const policyChatForActivePolicy: OnyxTypes.Report =
@@ -83,10 +80,8 @@ function QuickActionMenuItem({shouldUseNarrowLayout, icons, reportID, itemIndex 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
-    const workspaceChatsSelector = useCallback(
-        (reports: OnyxCollection<OnyxTypes.Report>) => getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], reports),
-        [activePolicyID, session?.accountID],
-    );
+    const workspaceChatsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], reports);
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [policyChats = getEmptyArray<OnyxTypes.Report>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: workspaceChatsSelector, canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`, {canBeMissing: true});
@@ -111,16 +106,13 @@ function QuickActionMenuItem({shouldUseNarrowLayout, icons, reportID, itemIndex 
         !isEmptyObject(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
 
     const quickActionReportPolicyID = quickActionReport?.policyID;
-    const selectOption = useCallback(
-        (onSelected: () => void, shouldRestrictAction: boolean) => {
-            if (shouldRestrictAction && quickActionReportPolicyID && shouldRestrictUserBillableActions(quickActionReportPolicyID)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReportPolicyID));
-                return;
-            }
-            onSelected();
-        },
-        [quickActionReportPolicyID],
-    );
+    const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
+        if (shouldRestrictAction && quickActionReportPolicyID && shouldRestrictUserBillableActions(quickActionReportPolicyID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReportPolicyID));
+            return;
+        }
+        onSelected();
+    };
 
     let quickActionAvatars: ReturnType<typeof getIcons> = [];
     if (isValidReport) {

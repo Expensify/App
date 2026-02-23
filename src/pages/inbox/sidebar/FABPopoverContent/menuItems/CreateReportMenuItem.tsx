@@ -1,5 +1,5 @@
 import {groupPaidPoliciesWithExpenseChatEnabledSelector} from '@selectors/Policy';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
@@ -41,10 +41,8 @@ function useCreateReportMenuItemVisible(): boolean {
     const {shouldRedirectToExpensifyClassic} = useRedirectToExpensifyClassic();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
 
-    const groupPaidPoliciesWithChatEnabled = useCallback(
-        (policies: Parameters<typeof groupPaidPoliciesWithExpenseChatEnabledSelector>[0]) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, session?.email),
-        [session?.email],
-    );
+    const groupPaidPoliciesWithChatEnabled = (policies: Parameters<typeof groupPaidPoliciesWithExpenseChatEnabledSelector>[0]) =>
+        groupPaidPoliciesWithExpenseChatEnabledSelector(policies, session?.email);
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabled, canBeMissing: true}, [session?.email]);
 
     return shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
@@ -66,17 +64,13 @@ function CreateReportMenuItem({shouldUseNarrowLayout, icons, activePolicyID, ite
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    const groupPaidPoliciesWithChatEnabled = useCallback(
-        (policies: Parameters<typeof groupPaidPoliciesWithExpenseChatEnabledSelector>[0]) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, session?.email),
-        [session?.email],
-    );
+    const groupPaidPoliciesWithChatEnabled = (policies: Parameters<typeof groupPaidPoliciesWithExpenseChatEnabledSelector>[0]) =>
+        groupPaidPoliciesWithExpenseChatEnabledSelector(policies, session?.email);
 
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabled, canBeMissing: true}, [session?.email]);
 
-    const defaultChatEnabledPolicy = useMemo(
-        () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
-        [activePolicy, groupPoliciesWithChatEnabled],
-    );
+    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
 
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
     const hasEmptyReport = useHasEmptyReportsForPolicy(defaultChatEnabledPolicyID);
@@ -84,36 +78,33 @@ function CreateReportMenuItem({shouldUseNarrowLayout, icons, activePolicyID, ite
 
     const isReportInSearch = isOnSearchMoneyRequestReportPage();
 
-    const handleCreateWorkspaceReport = useCallback(
-        (shouldDismissEmptyReportsConfirmation?: boolean) => {
-            if (!defaultChatEnabledPolicy?.id) {
-                return;
-            }
+    const handleCreateWorkspaceReport = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!defaultChatEnabledPolicy?.id) {
+            return;
+        }
 
-            if (isReportInSearch) {
-                clearLastSearchParams();
-            }
+        if (isReportInSearch) {
+            clearLastSearchParams();
+        }
 
-            const {reportID: createdReportID} = createNewReport(
-                currentUserPersonalDetails,
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                defaultChatEnabledPolicy,
-                allBetas,
-                false,
-                shouldDismissEmptyReportsConfirmation,
+        const {reportID: createdReportID} = createNewReport(
+            currentUserPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            defaultChatEnabledPolicy,
+            allBetas,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(
+                isSearchTopmostFullScreenRoute()
+                    ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
+                    : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
+                {forceReplace: isReportInSearch},
             );
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(
-                    isSearchTopmostFullScreenRoute()
-                        ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
-                        : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
-                    {forceReplace: isReportInSearch},
-                );
-            });
-        },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, isReportInSearch, allBetas],
-    );
+        });
+    };
 
     const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,

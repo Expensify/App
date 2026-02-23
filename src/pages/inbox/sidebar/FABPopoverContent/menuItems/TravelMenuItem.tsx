@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useLocalize from '@hooks/useLocalize';
@@ -45,21 +45,21 @@ function TravelMenuItem({icons, activePolicyID, itemIndex = -1}: TravelMenuItemP
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    const isTravelEnabled = useMemo(() => {
+    const isTravelEnabled = (() => {
         if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
             return false;
         }
         const isPolicyProvisioned = activePolicy?.travelSettings?.spotnanaCompanyID ?? activePolicy?.travelSettings?.associatedTravelDomainAccountID;
         return activePolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
-    }, [activePolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings?.hasAcceptedTerms]);
+    })();
 
-    const openTravel = useCallback(() => {
+    const openTravel = () => {
         if (isTravelEnabled) {
             openTravelDotLink(activePolicy?.id);
             return;
         }
         Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
-    }, [activePolicy?.id, isTravelEnabled]);
+    };
 
     return (
         <FocusableMenuItem
