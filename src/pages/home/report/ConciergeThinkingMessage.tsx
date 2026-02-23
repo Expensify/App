@@ -45,7 +45,7 @@ function ConciergeThinkingMessage({report, action, reasoningHistory, statusLabel
     const {datetimeToCalendarTime, translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const hasReasoningHistory = useMemo(() => !!reasoningHistory && reasoningHistory.length > 0, [reasoningHistory]);
-    const [manuallyCollapsed, setManuallyCollapsed] = useState(false);
+    const [manuallyCollapsed, setManuallyCollapsed] = useState(true);
     const isExpanded = hasReasoningHistory && !manuallyCollapsed;
     const [isHovered, setIsHovered] = useState(false);
     const historyLength = (reasoningHistory ?? [])?.length;
