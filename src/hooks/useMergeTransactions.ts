@@ -43,33 +43,21 @@ function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): Us
     const {currentSearchHash, currentSearchResults} = useSearchContext();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
-    const [onyxTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(mergeTransaction?.targetTransactionID)}`, {
-        canBeMissing: true,
-    });
-    const [onyxSourceTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(mergeTransaction?.sourceTransactionID)}`, {
-        canBeMissing: true,
-    });
+    const [onyxTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(mergeTransaction?.targetTransactionID)}`);
+    const [onyxSourceTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(mergeTransaction?.sourceTransactionID)}`);
 
     const targetTransaction = getTransaction(mergeTransaction, mergeTransaction?.targetTransactionID, onyxTargetTransaction, currentSearchResults);
     const sourceTransaction = getTransaction(mergeTransaction, mergeTransaction?.sourceTransactionID, onyxSourceTransaction, currentSearchResults);
 
     const targetTransactionReportID = getReportIDForExpense(targetTransaction);
     const sourceTransactionReportID = getReportIDForExpense(sourceTransaction);
-    let [targetTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionReportID)}`, {
-        canBeMissing: true,
-    });
-    let [sourceTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceTransactionReportID)}`, {
-        canBeMissing: true,
-    });
+    let [targetTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetTransactionReportID)}`);
+    let [sourceTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceTransactionReportID)}`);
 
     const targetTransactionPolicyID = isExpenseUnreported(targetTransaction) ? policyForMovingExpensesID : targetTransactionReport?.policyID;
     const sourceTransactionPolicyID = isExpenseUnreported(sourceTransaction) ? policyForMovingExpensesID : sourceTransactionReport?.policyID;
-    let [targetTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(targetTransactionPolicyID)}`, {
-        canBeMissing: true,
-    });
-    let [sourceTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(sourceTransactionPolicyID)}`, {
-        canBeMissing: true,
-    });
+    let [targetTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(targetTransactionPolicyID)}`);
+    let [sourceTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(sourceTransactionPolicyID)}`);
 
     if (currentSearchHash && currentSearchResults?.data) {
         // If we're on search and main collection reports are not available, get them from the search snapshot

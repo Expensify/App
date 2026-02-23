@@ -86,9 +86,9 @@ function WorkspaceCompanyCardsTable({
         onyxMetadata: {cardListMetadata, lastSelectedFeedMetadata},
     } = companyCards;
 
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
 

@@ -82,7 +82,7 @@ function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const companyCardBankIcons = useCompanyCardBankIcons();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [localTypeSelected, setLocalTypeSelected] = useState<CardFeedProvider>();
     const typeSelected = localTypeSelected ?? addNewCard?.data.feedType;
     const [isError, setIsError] = useState(false);
