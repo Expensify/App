@@ -18,6 +18,7 @@ type MockSpan = {
 };
 
 jest.mock('@sentry/react-native', () => ({
+    setUser: jest.fn(),
     startInactiveSpan: jest.fn((options: {name: string; op: string; parentSpan?: unknown; attributes?: Record<string, unknown>}) => {
         const span = {
             name: options.name,

@@ -3437,7 +3437,14 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
-    const isScanRequest = isScanRequestTransactionUtils({amount, receipt});
+    const isScanRequest = isScanRequestTransactionUtils({
+        amount,
+        receipt,
+        ...(existingTransaction && {
+            iouRequestType: existingTransaction.iouRequestType,
+        }),
+    });
+
     const shouldCreateNewMoneyRequestReport = isSplitExpense ? false : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, action);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
@@ -8862,6 +8869,7 @@ function cleanUpMoneyRequest(
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatIOUReportArchived: boolean | undefined,
+    originalReportID: string | undefined,
     isSingleTransactionView = false,
 ) {
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
@@ -9019,7 +9027,7 @@ function cleanUpMoneyRequest(
     }
 
     if (!shouldDeleteIOUReport) {
-        clearAllRelatedReportActionErrors(reportID, reportAction);
+        clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
     }
 
     // First, update the reportActions to ensure related actions are not displayed.
@@ -9028,7 +9036,7 @@ function cleanUpMoneyRequest(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (shouldDeleteIOUReport) {
-                clearAllRelatedReportActionErrors(reportID, reportAction);
+                clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
             }
             // After navigation, update the remaining data.
             Onyx.update(onyxUpdates);

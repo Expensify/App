@@ -60,7 +60,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {orderedReportIDs} = useSidebarOrderedReports();
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const subscriptionPlan = useSubscriptionPlan();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox']);
 
@@ -71,7 +71,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         return getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
     });
     const lastReportRouteReportID = (lastReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportID;
-    const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {canBeMissing: true, selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
+    const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
 
     const reportAttributes = useReportAttributes();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -157,7 +157,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             accessibilityLabel={translate('common.home')}
                             accessible
                             testID="ExpensifyLogoButton"
-                            onPress={navigateToChats}
+                            onPress={navigateToNewDotHome}
                             wrapperStyle={styles.leftNavigationTabBarItem}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
                         >

@@ -53,8 +53,11 @@ import type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -982,6 +985,8 @@ const translations = {
                 cta: 'Review',
             },
         },
+        assignedCards: 'Assigned cards',
+        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
@@ -1396,12 +1401,7 @@ const translations = {
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
-        confirmApprove: 'Confirm approval amount',
-        confirmApprovalAmount: 'Approve only compliant expenses, or approve the entire report.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'This expense is on hold. Do you want to approve anyway?',
-            other: 'These expenses are on hold. Do you want to approve anyway?',
-        }),
+        confirmApprovalWithHeldAmount: 'Report contains held expenses. Approve only compliant expenses, or approve the entire report?',
         confirmPay: 'Confirm payment amount',
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: () => ({
@@ -3850,6 +3850,12 @@ const translations = {
         carRental: ' car rental',
         nightIn: 'night in',
         nightsIn: 'nights in',
+    },
+    proactiveAppReview: {
+        title: 'Enjoying New Expensify?',
+        description: 'Let us know so we can help make your expensing experience even better.',
+        positiveButton: 'Yeah!',
+        negativeButton: 'Not really',
     },
     workspace: {
         common: {
@@ -6346,7 +6352,7 @@ const translations = {
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
                 duplicateRuleTitle: 'Similar merchant rule already exists',
-                duplicateRulePrompt: (merchantName: string) => `Do you want to save a new rule for "${merchantName}" even though you already have an existing one?`,
+                duplicateRulePrompt: (merchantName: string) => `Your existing rule for "${merchantName}" will take priority over this one. Save anyway?`,
                 saveAnyway: 'Save anyway',
                 applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
             },
@@ -6893,6 +6899,10 @@ const translations = {
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `changed the authorized payer to "${newReimburser}" (previously "${previousReimburser}")` : `changed the authorized payer to "${newReimburser}"`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `changed the custom tax name to "${newName}" (previously "${oldName}")`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `changed the workspace currency default tax rate to "${newName}" (previously "${oldName}")`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
+            `changed the foreign currency default tax rate to "${newName}" (previously "${oldName}")`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7384,6 +7394,9 @@ const translations = {
         scrollToNewestMessages: 'Scroll to newest messages',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
+        selectAllFeatures: 'Select all features',
+        selectAllTransactions: 'Select all transactions',
+        selectAllItems: 'Select all items',
     },
     parentReportAction: {
         deletedReport: 'Deleted report',
