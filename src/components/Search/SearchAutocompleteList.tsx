@@ -45,7 +45,7 @@ import {
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, getUserFriendlyKey, getUserFriendlyValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
-import {endSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -184,6 +184,16 @@ function SearchAutocompleteList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
 
     const {options, areOptionsInitialized} = useOptionsList();
+
+    const computeSpanStarted = useRef(false);
+    if (!computeSpanStarted.current && getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER)) {
+        startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS, {
+            name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS,
+            op: 'function',
+        });
+        computeSpanStarted.current = true;
+    }
+
     const searchOptions = (() => {
         if (!areOptionsInitialized) {
             return defaultListOptions;
@@ -901,6 +911,14 @@ function SearchAutocompleteList({
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
 
+    if (isInitialRender && computeSpanStarted.current) {
+        endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS);
+        startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER, {
+            name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER,
+            op: 'ui.render',
+        });
+    }
+
     return (
         <SelectionListWithSections<AutocompleteListItem>
             showLoadingPlaceholder
@@ -922,6 +940,7 @@ function SearchAutocompleteList({
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
             addBottomSafeAreaPadding
             onLayout={() => {
+                endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
                 setPerformanceTimersEnd();
                 setIsInitialRender(false);
                 innerListRef.current?.updateExternalTextInputFocus(textInputRef?.current?.isFocused() ?? false);

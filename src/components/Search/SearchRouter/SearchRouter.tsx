@@ -38,6 +38,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
+import {getSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
@@ -70,6 +71,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
     const shouldShowList = isRecentSearchesDataLoaded && areOptionsInitialized;
+
+    const coldStartAttributeSet = useRef(false);
+    if (!coldStartAttributeSet.current) {
+        const parentSpan = getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
+        if (parentSpan) {
+            parentSpan.setAttribute('cold_start', !areOptionsInitialized);
+            coldStartAttributeSet.current = true;
+        }
+    }
+
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
