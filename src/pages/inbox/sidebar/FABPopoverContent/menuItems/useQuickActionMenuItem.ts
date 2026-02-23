@@ -125,6 +125,8 @@ function useQuickActionMenuItem({shouldUseNarrowLayout, icons, reportID}: UseQui
     const quickActionSubtitle = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return !hideQABSubtitle ? (getReportName(quickActionReport, quickActionPolicy, undefined, personalDetails) ?? translate('quickAction.updateDestination')) : '';
+        // Intentionally using property accessors (quickAction?.action, quickActionPolicy?.name) instead of the
+        // full objects to prevent recomputation when unrelated properties on those objects change
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hideQABSubtitle, personalDetails, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
 

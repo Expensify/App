@@ -57,7 +57,8 @@ function FloatingActionButtonAndPopover() {
             return;
         }
 
-        // Hide menu manually when other pages are opened using shortcut key
+        // Intentionally calling setState inside useEffect — we need to imperatively respond to
+        // navigation focus changes (an external event) which can't be expressed as an event handler
         // eslint-disable-next-line react-hooks/set-state-in-effect
         hideCreateMenu();
     }, [didScreenBecomeInactive, hideCreateMenu]);
