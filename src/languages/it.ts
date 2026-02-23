@@ -65,8 +65,11 @@ import type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -131,6 +134,7 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
+
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -960,6 +964,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portafoglio > Carte assegnate',
             },
         },
+        assignedCards: 'Carte assegnate',
+        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} rimanenti`,
         announcements: 'Annunci',
         discoverSection: {
             title: 'Scopri',
@@ -1378,12 +1384,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Alcuni di questi duplicati sono già stati approvati o pagati.',
         reviewDuplicates: 'Controlla i duplicati',
         keepAll: 'Mantieni tutto',
-        confirmApprove: 'Conferma l’importo approvato',
-        confirmApprovalAmount: 'Approva solo le spese conformi oppure approva l’intero rapporto.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Questa spesa è in sospeso. Vuoi approvarla comunque?',
-            other: 'Queste note spese sono in sospeso. Vuoi approvarle comunque?',
-        }),
+        confirmApprovalWithHeldAmount: "Il rapporto contiene spese in sospeso. Approvare solo le spese conformi o approvare l'intero rapporto?",
         confirmPay: 'Conferma l’importo del pagamento',
         confirmPayAmount: 'Paga le voci non in sospeso oppure paga l’intero resoconto.',
         confirmPayAllHoldAmount: () => ({
@@ -6388,7 +6389,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Corrisponde esattamente',
                 duplicateRuleTitle: "Una regola simile per l'esercente esiste già",
-                duplicateRulePrompt: (merchantName: string) => `Vuoi salvare una nuova regola per «${merchantName}» anche se ne hai già una esistente?`,
+                duplicateRulePrompt: (merchantName: string) => `La regola esistente per "${merchantName}" avrà la priorità su questa. Salvare comunque?`,
                 saveAnyway: 'Salva comunque',
                 applyToExistingUnsubmittedExpenses: 'Applica alle spese esistenti non inviate',
             },
@@ -6803,6 +6804,11 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 ? `ha modificato il pagatore autorizzato in "${newReimburser}" (in precedenza "${previousReimburser}")`
                 : `ha modificato il pagatore autorizzato in "${newReimburser}"`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `Rimborsi ${enabled ? 'abilitato' : 'disattivato'}`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `ha cambiato il nome dell'imposta personalizzata in "${newName}" (precedentemente "${oldName}")`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
+            `ha modificato l'aliquota fiscale predefinita della valuta dello spazio di lavoro in "${newName}" (in precedenza "${oldName}")`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
+            `ha modificato l'aliquota fiscale predefinita per valuta estera in "${newName}" (in precedenza "${oldName}")`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `ha aggiunto l’imposta “${taxName}”`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `ha rimosso l'imposta "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -8468,6 +8474,12 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         },
         common: {settings: 'Impostazioni'},
         groups: {title: 'Gruppi', memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membri`})},
+    },
+    proactiveAppReview: {
+        title: 'Ti piace il nuovo Expensify?',
+        description: 'Facci sapere così possiamo aiutarti a rendere ancora migliore la tua esperienza di gestione delle spese.',
+        positiveButton: 'Sì!',
+        negativeButton: 'Non proprio',
     },
 };
 export default translations;

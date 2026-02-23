@@ -196,9 +196,6 @@ PODS:
     - FirebaseAnalytics (~> 11.13.0)
   - Firebase/CoreOnly (11.13.0):
     - FirebaseCore (~> 11.13.0)
-  - Firebase/Crashlytics (11.13.0):
-    - Firebase/CoreOnly
-    - FirebaseCrashlytics (~> 11.13.0)
   - FirebaseAnalytics (11.13.0):
     - FirebaseAnalytics/AdIdSupport (= 11.13.0)
     - FirebaseCore (~> 11.13.0)
@@ -221,34 +218,13 @@ PODS:
     - FirebaseCoreInternal (~> 11.13.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/Logger (~> 8.1)
-  - FirebaseCoreExtension (11.13.0):
-    - FirebaseCore (~> 11.13.0)
   - FirebaseCoreInternal (11.13.0):
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
-  - FirebaseCrashlytics (11.13.0):
-    - FirebaseCore (~> 11.13.0)
-    - FirebaseInstallations (~> 11.0)
-    - FirebaseRemoteConfigInterop (~> 11.0)
-    - FirebaseSessions (~> 11.0)
-    - GoogleDataTransport (~> 10.0)
-    - GoogleUtilities/Environment (~> 8.1)
-    - nanopb (~> 3.30910.0)
-    - PromisesObjC (~> 2.4)
   - FirebaseInstallations (11.13.0):
     - FirebaseCore (~> 11.13.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/UserDefaults (~> 8.1)
     - PromisesObjC (~> 2.4)
-  - FirebaseRemoteConfigInterop (11.15.0)
-  - FirebaseSessions (11.13.0):
-    - FirebaseCore (~> 11.13.0)
-    - FirebaseCoreExtension (~> 11.13.0)
-    - FirebaseInstallations (~> 11.0)
-    - GoogleDataTransport (~> 10.0)
-    - GoogleUtilities/Environment (~> 8.1)
-    - GoogleUtilities/UserDefaults (~> 8.1)
-    - nanopb (~> 3.30910.0)
-    - PromisesSwift (~> 2.1)
   - fmt (11.0.2)
   - ForkInputMask (7.3.3)
   - FullStory (1.64.2)
@@ -302,9 +278,6 @@ PODS:
     - GoogleUtilities/Network (~> 8.1)
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
     - nanopb (~> 3.30910.0)
-  - GoogleDataTransport (10.1.0):
-    - nanopb (~> 3.30910.0)
-    - PromisesObjC (~> 2.4)
   - GoogleSignIn (7.1.0):
     - AppAuth (< 2.0, >= 1.7.3)
     - GTMAppAuth (< 5.0, >= 4.1.1)
@@ -448,8 +421,6 @@ PODS:
     - React
   - Plaid (6.4.2)
   - PromisesObjC (2.4.0)
-  - PromisesSwift (2.4.0):
-    - PromisesObjC (= 2.4.0)
   - pusher-websocket-react-native (1.3.1):
     - PusherSwift (~> 10.1.5)
     - React
@@ -3679,11 +3650,6 @@ PODS:
   - RNFBApp (22.2.1):
     - Firebase/CoreOnly (= 11.13.0)
     - React-Core
-  - RNFBCrashlytics (22.2.1):
-    - Firebase/Crashlytics (= 11.13.0)
-    - FirebaseCoreExtension
-    - React-Core
-    - RNFBApp
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.28.0):
@@ -4410,7 +4376,6 @@ DEPENDENCIES:
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
-  - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
@@ -4440,15 +4405,10 @@ SPEC REPOS:
     - Firebase
     - FirebaseAnalytics
     - FirebaseCore
-    - FirebaseCoreExtension
     - FirebaseCoreInternal
-    - FirebaseCrashlytics
     - FirebaseInstallations
-    - FirebaseRemoteConfigInterop
-    - FirebaseSessions
     - ForkInputMask
     - GoogleAppMeasurement
-    - GoogleDataTransport
     - GoogleSignIn
     - GoogleUtilities
     - GTMAppAuth
@@ -4467,7 +4427,6 @@ SPEC REPOS:
     - Onfido
     - Plaid
     - PromisesObjC
-    - PromisesSwift
     - PusherSwift
     - React-Codegen
     - SDWebImage
@@ -4746,8 +4705,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/analytics"
   RNFBApp:
     :path: "../node_modules/@react-native-firebase/app"
-  RNFBCrashlytics:
-    :path: "../node_modules/@react-native-firebase/crashlytics"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
@@ -4821,19 +4778,14 @@ SPEC CHECKSUMS:
   Firebase: 3435bc66b4d494c2f22c79fd3aae4c1db6662327
   FirebaseAnalytics: 630349facf4a114a0977e5d7570e104261973287
   FirebaseCore: c692c7f1c75305ab6aff2b367f25e11d73aa8bd0
-  FirebaseCoreExtension: c048485c347616dba6165358dbef765c5197597b
   FirebaseCoreInternal: 29d7b3af4aaf0b8f3ed20b568c13df399b06f68c
-  FirebaseCrashlytics: 8281e577b6f85a08ea7aeb8b66f95e1ae430c943
   FirebaseInstallations: 0ee9074f2c1e86561ace168ee1470dc67aabaf02
-  FirebaseRemoteConfigInterop: 1c6135e8a094cc6368949f5faeeca7ee8948b8aa
-  FirebaseSessions: eaa8ec037e7793769defe4201c20bd4d976f9677
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: c381e701f709f5185471800bbb626f079d93fc0d
   fullstory_react-native: f3bc7acf2533f1a1803368925cf6d50e629ee786
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
-  GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   group-ib-fp: 03efaa63a9996535431452a213ed5c7642576c55
@@ -4857,7 +4809,6 @@ SPEC CHECKSUMS:
   onfido-react-native-sdk: bb8cfd9198e2e97978461d969497d18b37e45ca7
   Plaid: 8a212ed955d480364e0deb7fed93625b29811e9d
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   pusher-websocket-react-native: 31b5fdd632bfa6d417f9ad0bceefe403ab41825d
   PusherSwift: fa3d5f6587c20ad5790de87a5c9b150367b5f0f5
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
@@ -4959,7 +4910,6 @@ SPEC CHECKSUMS:
   RNDeviceInfo: f4e8dcaba08a5d3a703d30ad41e964e21148d7e2
   RNFBAnalytics: 2f451df50833a890974d55a93557da878a85b29e
   RNFBApp: db9c2e6d36fe579ab19b82c0a4a417ff7569db7e
-  RNFBCrashlytics: 9dd481075a9bb5d95b56a567f4da33eb7707e766
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: 4db26426b6098e3d87bd26d8c9a9afa3b6674123
   RNGoogleSignin: 89877c73f0fbf6af2038fbdb7b73b5a25b8330cc

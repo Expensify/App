@@ -105,6 +105,7 @@ function PreferencesPage() {
                                 description={translate('priorityModePage.priorityMode')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PRIORITY_MODE}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
@@ -113,6 +114,7 @@ function PreferencesPage() {
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 hintText={!preferredLocale || !isFullySupportedLocale(preferredLocale) ? translate('languagePage.aiGenerated') : ''}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.LANGUAGE}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
@@ -120,6 +122,7 @@ function PreferencesPage() {
                                 description={translate('billingCurrency.paymentCurrency')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PAYMENT_CURRENCY}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
@@ -127,6 +130,7 @@ function PreferencesPage() {
                                 description={translate('themePage.theme')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.THEME}
                             />
                         </View>
                     </Section>

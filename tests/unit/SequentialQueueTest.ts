@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
-import {waitForActiveRequestsToBeEmpty} from '@libs/E2E/utils/NetworkInterceptor';
 import {getAll, getLength, getOngoingRequest} from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
@@ -217,7 +216,7 @@ describe('SequentialQueue', () => {
         });
 
         await Promise.resolve();
-        await waitForActiveRequestsToBeEmpty();
+        await Promise.resolve();
         const persistedRequests = getAll();
 
         // We know ReconnectApp is at index 9 in the queue, so we can get it to verify
