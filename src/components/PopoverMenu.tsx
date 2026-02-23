@@ -183,7 +183,7 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
 
     /** Should apply semi transparency for right icon */
     shouldDimIconRight?: boolean;
-    
+
     /** Whether to put the header text after the back button */
     shouldPutHeaderTextAfterBackButton?: boolean;
 
