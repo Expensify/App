@@ -10,7 +10,6 @@ const useCardsList = (selectedFeed: CardFeedWithDomainID | undefined): [Workspac
 
     const [cardsList, cardsListMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${splitFeedName?.domainID}_${splitFeedName?.feedName}`, {
         selector: filterInactiveCards,
-        canBeMissing: true,
     });
 
     return [cardsList, cardsListMetadata];

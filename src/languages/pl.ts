@@ -529,6 +529,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Wymagane działanie',
         duplicate: 'Duplikuj',
         duplicated: 'Zduplikowano',
+        opensInNewTab: 'Otwiera się w nowej karcie',
         locked: 'Zablokowane',
         duplicateExpense: 'Zduplikowany wydatek',
         exchangeRate: 'Kurs wymiany',
@@ -7393,6 +7394,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         scrollToNewestMessages: 'Przewiń do najnowszych wiadomości',
         preStyledText: 'Wstępnie ostylowany tekst',
         viewAttachment: 'Zobacz załącznik',
+        selectAllFeatures: 'Zaznacz wszystkie funkcje',
+        selectAllTransactions: 'Zaznacz wszystkie transakcje',
+        selectAllItems: 'Zaznacz wszystkie elementy',
     },
     parentReportAction: {
         deletedReport: 'Usunięty raport',

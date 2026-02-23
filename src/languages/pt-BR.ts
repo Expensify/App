@@ -532,6 +532,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: 'Taxa de câmbio',
         reimbursableTotal: 'Total reembolsável',
         nonReimbursableTotal: 'Total não reembolsável',
+        opensInNewTab: 'Abre em uma nova aba',
         locked: 'Bloqueado',
         month: 'Mês',
         week: 'Semana',
@@ -7398,6 +7399,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         scrollToNewestMessages: 'Rolar até as mensagens mais recentes',
         preStyledText: 'Texto pré-formatado',
         viewAttachment: 'Ver anexo',
+        selectAllFeatures: 'Selecionar todos os recursos',
+        selectAllTransactions: 'Selecionar todas as transações',
+        selectAllItems: 'Selecionar todos os itens',
     },
     parentReportAction: {
         deletedReport: 'Relatório excluído',

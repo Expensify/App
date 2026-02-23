@@ -529,6 +529,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: '汇率',
         reimbursableTotal: '可报销总额',
         nonReimbursableTotal: '不可报销总额',
+        opensInNewTab: '在新标签页中打开',
         locked: '已锁定',
         month: '月',
         week: '周',
@@ -7234,6 +7235,9 @@ ${reportName}
         scrollToNewestMessages: '滚动到最新消息',
         preStyledText: '预设样式文本',
         viewAttachment: '查看附件',
+        selectAllFeatures: '选择所有功能',
+        selectAllTransactions: '选择所有交易',
+        selectAllItems: '全选所有项目',
     },
     parentReportAction: {
         deletedReport: '已删除的报告',
