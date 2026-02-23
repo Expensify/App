@@ -46,13 +46,13 @@ function ShareTab({ref}: ShareTabProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -63,7 +63,7 @@ function ShareTab({ref}: ShareTabProps) {
 
     const {options, areOptionsInitialized} = useOptionsList();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);

@@ -69,12 +69,10 @@ function IOURequestStepDestination({
     explicitPolicyID,
     ref,
 }: IOURequestStepDestinationProps) {
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const reportPolicyID = getIOURequestPolicyID(transaction, report);
     const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
-    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`, {
-        canBeMissing: false,
-    });
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
     const {accountID} = useCurrentUserPersonalDetails();
     const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -82,7 +80,7 @@ function IOURequestStepDestination({
     const {top} = useSafeAreaInsets();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`, {canBeMissing: true});
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
 
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);

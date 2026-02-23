@@ -27,7 +27,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const {popoverAnchorRefs} = useAccountingContext();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const shouldGoToCredentialsPage = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 
     const threeDotsMenuContainerRef = popoverAnchorRefs?.current?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];

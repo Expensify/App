@@ -47,14 +47,14 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
-    const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();

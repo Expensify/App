@@ -65,8 +65,11 @@ import type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -6729,6 +6732,9 @@ ${reportName}
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `認可された支払者を「${newReimburser}」（以前は「${previousReimburser}」）に変更しました` : `承認済み支払担当者を「${newReimburser}」に変更しました`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? '有効' : '無効'}件の精算`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `カスタム税区分名を「${newName}」（以前は「${oldName}」）に変更しました`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `ワークスペースの通貨デフォルト税率を「${newName}」（以前は「${oldName}」）に変更しました`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) => `外貨のデフォルト税率を「${newName}」に変更しました（以前は「${oldName}」）。`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `税「${taxName}」を追加しました`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `税金「${taxName}」を削除しました`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -8383,6 +8389,12 @@ ${reportName}
         },
         common: {settings: '設定'},
         groups: {title: 'グループ', memberCount: () => ({one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`})},
+    },
+    proactiveAppReview: {
+        title: '新しい Expensify をお楽しみいただけていますか？',
+        description: '経費精算の体験をさらに良くできるよう、お知らせください。',
+        positiveButton: 'やった！',
+        negativeButton: 'そうでもありません',
     },
 };
 export default translations;

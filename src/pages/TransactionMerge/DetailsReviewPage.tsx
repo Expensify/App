@@ -43,7 +43,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const styles = useThemeStyles();
     const {transactionID, isOnSearch, backTo} = route.params;
 
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
         mergeTransaction,
     });
