@@ -20,7 +20,22 @@ import {
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {
+    BankAccountList,
+    CardList,
+    IntroSelected,
+    PersonalDetailsList,
+    Policy,
+    PolicyTagLists,
+    Report,
+    ReportAction,
+    ReportActionReactions,
+    ReportActions,
+    ReportActionsDrafts,
+    ReportMetadata,
+    ReportNameValuePairs,
+    Transaction,
+} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
@@ -87,6 +102,27 @@ type ReportActionItemParentActionProps = {
 
     /** Whether the report is archived */
     isReportArchived: boolean;
+
+    /** Model of onboarding selected */
+    introSelected?: OnyxEntry<IntroSelected>;
+
+    /** All transaction drafts */
+    allTransactionDrafts?: OnyxCollection<Transaction>;
+
+    /** Report metadata */
+    reportMetadata?: OnyxEntry<ReportMetadata>;
+
+    /** All cards */
+    cardList?: CardList;
+
+    /** Bank account list */
+    bankAccountList?: BankAccountList;
+
+    /** Personal policy ID */
+    personalPolicyID?: string;
+
+    /** Policy tags for the report's workspace */
+    policyTags?: OnyxEntry<PolicyTagLists>;
 };
 
 function ReportActionItemParentAction({
@@ -109,6 +145,13 @@ function ReportActionItemParentAction({
     userBillingFundID,
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
+    introSelected,
+    allTransactionDrafts,
+    reportMetadata,
+    cardList,
+    bankAccountList,
+    personalPolicyID,
+    policyTags,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
@@ -233,6 +276,13 @@ function ReportActionItemParentAction({
                                 linkedTransactionRouteError={linkedTransactionRouteError}
                                 userBillingFundID={userBillingFundID}
                                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                                introSelected={introSelected}
+                                allTransactionDrafts={allTransactionDrafts}
+                                reportMetadata={reportMetadata}
+                                cardList={cardList}
+                                bankAccountList={bankAccountList}
+                                personalPolicyID={personalPolicyID}
+                                policyTags={policyTags}
                             />
                         </OfflineWithFeedback>
                     );

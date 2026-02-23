@@ -3,7 +3,20 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts} from '@src/types/onyx';
+import type {
+    BankAccountList,
+    CardList,
+    IntroSelected,
+    PersonalDetailsList,
+    Policy,
+    PolicyTagLists,
+    Report,
+    ReportAction,
+    ReportActionReactions,
+    ReportActionsDrafts,
+    ReportMetadata,
+    Transaction,
+} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -93,6 +106,27 @@ type ReportActionsListItemRendererProps = {
 
     /** Report name value pairs originalID */
     reportNameValuePairsOriginalID?: string;
+
+    /** Model of onboarding selected */
+    introSelected?: OnyxEntry<IntroSelected>;
+
+    /** All transaction drafts */
+    allTransactionDrafts?: OnyxCollection<Transaction>;
+
+    /** Report metadata */
+    reportMetadata?: OnyxEntry<ReportMetadata>;
+
+    /** All cards */
+    cardList?: CardList;
+
+    /** Bank account list */
+    bankAccountList?: BankAccountList;
+
+    /** Personal policy ID */
+    personalPolicyID?: string;
+
+    /** Policy tags for the report's workspace */
+    policyTags?: OnyxEntry<PolicyTagLists>;
 };
 
 function ReportActionsListItemRenderer({
@@ -125,6 +159,13 @@ function ReportActionsListItemRenderer({
     isReportArchived = false,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
+    introSelected,
+    allTransactionDrafts,
+    reportMetadata,
+    cardList,
+    bankAccountList,
+    personalPolicyID,
+    policyTags,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -222,6 +263,13 @@ function ReportActionsListItemRenderer({
                 userBillingFundID={userBillingFundID}
                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                 isReportArchived={isReportArchived}
+                introSelected={introSelected}
+                allTransactionDrafts={allTransactionDrafts}
+                reportMetadata={reportMetadata}
+                cardList={cardList}
+                bankAccountList={bankAccountList}
+                personalPolicyID={personalPolicyID}
+                policyTags={policyTags}
             />
         );
     }
@@ -253,6 +301,13 @@ function ReportActionsListItemRenderer({
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             reportNameValuePairsOrigin={reportNameValuePairsOrigin}
             reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
+            introSelected={introSelected}
+            allTransactionDrafts={allTransactionDrafts}
+            reportMetadata={reportMetadata}
+            cardList={cardList}
+            bankAccountList={bankAccountList}
+            personalPolicyID={personalPolicyID}
+            policyTags={policyTags}
         />
     );
 }

@@ -16,6 +16,7 @@ import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
@@ -189,6 +190,13 @@ function ReportActionsList({
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: false});
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const policyIDForTags = report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE && policyForMovingExpensesID ? policyForMovingExpensesID : report?.policyID;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyIDForTags}`, {canBeMissing: true});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {canBeMissing: true});
@@ -718,6 +726,13 @@ function ReportActionsList({
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                     reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                    introSelected={introSelected}
+                    allTransactionDrafts={allTransactionDrafts}
+                    reportMetadata={reportMetadata}
+                    cardList={cardList}
+                    bankAccountList={bankAccountList}
+                    personalPolicyID={personalPolicyID}
+                    policyTags={policyTags}
                 />
             );
         },
@@ -746,6 +761,13 @@ function ReportActionsList({
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
             reportActionsFromOnyx,
+            introSelected,
+            allTransactionDrafts,
+            reportMetadata,
+            cardList,
+            bankAccountList,
+            personalPolicyID,
+            policyTags,
         ],
     );
 
