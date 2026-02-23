@@ -17,6 +17,7 @@ import {clearDraftRule, saveExpenseRule, updateDraftRule} from '@libs/actions/Us
 import {getAvailableNonPersonalPolicyCategories, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRatesNamesAndValues, getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -29,7 +30,6 @@ import ROUTES from '@src/ROUTES';
 import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import {hasEnabledOptions} from '@libs/OptionsListUtils';
 
 type RulePageBaseProps = {
     titleKey: TranslationPaths;
