@@ -2072,6 +2072,20 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Add personal card',
+        lookingForCompanyCards: 'Looking for company cards?',
+        lookingForCompanyCardsDescription: 'Assign cards from all major credit card providers to the entire team from workspace settings.',
+        personalCardAdded: 'Personal card added!',
+        personalCardAddedDescription: 'Congrats, we’ll begin importing transactions from your card.',
+        isPersonalCard: 'Is this a personal card?',
+        thisIsPersonalCard: 'This is a personal card',
+        thisIsCompanyCard: 'This is a company card ',
+        askAdmin: 'Ask your admin',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `You’re a member of a workspace with a company card feed. If this is a company card under that feed, adding it here could break the the company card connection.\n\nIf this is a company card, please ${isAdmin ? 'assign' : 'ask your admin to assign'} this card from your workspace.`,
+        bankConnectionError: 'Bank connection issue',
+        bankConnectionDescription: 'Please try adding your cards again. Otherwise, you can',
+        connectWithPlaid: 'connect via Plaid.',
         fixCard: 'Napraw kartę',
         brokenConnection: 'Połączenie Twojej karty jest przerwane.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>

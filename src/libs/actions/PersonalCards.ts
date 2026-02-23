@@ -5,7 +5,6 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CompanyCardFeed} from '@src/types/onyx';
 import type {AddNewPersonalCardFeedData, AddNewPersonalCardFeedStep} from '@src/types/onyx/PersonalCard';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -90,7 +89,7 @@ function updatePersonalCardConnection(cardID: string, lastScrapeResult?: number)
         cardID: Number(cardID),
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD, parameters, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.SYNC_CARD, parameters, {optimisticData, finallyData, failureData});
 }
 
 function deletePersonalCard(cardID: string) {
@@ -135,7 +134,7 @@ function deletePersonalCard(cardID: string) {
         cardID: Number(cardID),
     };
 
-    API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UNASSIGN_CARD, parameters, onyxData);
 }
 
 export {clearAddNewPersonalCardFlow, setAddNewPersonalCardStepAndData, updatePersonalCardConnection, deletePersonalCard};

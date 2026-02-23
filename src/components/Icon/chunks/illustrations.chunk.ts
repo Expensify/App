@@ -108,6 +108,7 @@ import CommentBubbles from '@assets/images/simple-illustrations/simple-illustrat
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
 import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
+import QuestionMark from '@assets/images/simple-illustrations/simple-illustration__question-mark.svg';
 import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
@@ -242,6 +243,7 @@ const Illustrations = {
     Safe,
     SaveTheWorldScale,
     SewerDino,
+    QuestionMark,
     SmartScan,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency

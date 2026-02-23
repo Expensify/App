@@ -12,17 +12,17 @@ import CONST from '@src/CONST';
 function PersonalCardsErrorConfirmation({cardID}: {cardID?: number}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection']);
+    const illustrations = useMemoizedLazyIllustrations(['QuestionMark']);
 
-    const deleteCompanyCardFeed = () => {
+    const deleteBrokenCard = () => {
         if (!cardID) {
             return;
         }
-        deletePersonalCard(cardID);
+        deletePersonalCard(cardID.toString());
     };
 
     const onButtonPress = () => {
-        deleteCompanyCardFeed();
+        deleteBrokenCard();
         Navigation.closeRHPFlow();
     };
 
@@ -40,19 +40,19 @@ function PersonalCardsErrorConfirmation({cardID}: {cardID?: number}) {
 
     return (
         <ConfirmationPage
-            heading={translate('workspace.moreFeatures.companyCards.bankConnectionError')}
+            heading={translate('personalCard.bankConnectionError')}
             description={
                 <Text style={[styles.textSupporting, styles.textAlignCenter]}>
-                    {translate('workspace.moreFeatures.companyCards.bankConnectionDescription')}{' '}
+                    {translate('personalCard.bankConnectionDescription')}{' '}
                     <TextLink
                         style={[styles.link]}
                         onPress={openPlaidLink}
                     >
-                        {translate('workspace.moreFeatures.companyCards.connectWithPlaid')}
+                        {translate('personalCard.connectWithPlaid')}
                     </TextLink>
                 </Text>
             }
-            illustration={illustrations.BrokenCompanyCardBankConnection}
+            illustration={illustrations.QuestionMark}
             shouldShowButton
             illustrationStyle={styles.errorStateCardIllustration}
             onButtonPress={onButtonPress}
