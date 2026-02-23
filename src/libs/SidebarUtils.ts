@@ -179,7 +179,11 @@ import {
 import {getTaskReportActionMessage} from './TaskUtils';
 import {getTransactionID} from './TransactionUtils';
 
-type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
+type WelcomeMessage = {
+    phrase1?: string;
+    messageText?: string;
+    messageHtml?: string;
+};
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
@@ -266,6 +270,7 @@ function shouldDisplayReportInLHN(
         draftComment,
         includeSelfDM: true,
         isReportArchived,
+        requiresAttention: reportAttributes?.[report?.reportID]?.requiresAttention,
     });
 
     return {shouldDisplay};
@@ -1013,7 +1018,11 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
-            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
+            result.alternateText = getCardIssuedMessage({
+                reportAction: lastAction,
+                expensifyCard: card,
+                translate,
+            });
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             const displayName =
                 (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails)) ||
@@ -1188,7 +1197,10 @@ function getWelcomeMessage(
             welcomeMessage.messageHtml = translate(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
                 getPolicyName({report}),
-                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
+                getDisplayNameForParticipant({
+                    accountID: report?.ownerAccountID,
+                    formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                }),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         }
@@ -1218,7 +1230,9 @@ function getWelcomeMessage(
 
     // Append additional text for plus button or Concierge
     if (shouldShowUsePlusButtonText) {
-        messageHtml += translate('reportActionsView.usePlusButton', {additionalText});
+        messageHtml += translate('reportActionsView.usePlusButton', {
+            additionalText,
+        });
     }
     if (isConciergeChatReport(report)) {
         messageHtml = translate('reportActionsView.askConcierge');
@@ -1261,7 +1275,10 @@ function getRoomWelcomeMessage(
     } else if (isInvoiceRoom(report)) {
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils})
+                ? getDisplayNameForParticipant({
+                      accountID: report?.invoiceReceiver?.accountID,
+                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                  })
                 : invoiceReceiverPolicy?.name;
         const receiver = getPolicyName({report});
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
