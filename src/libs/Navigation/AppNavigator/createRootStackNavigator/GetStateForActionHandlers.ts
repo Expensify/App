@@ -120,17 +120,40 @@ function handlePushFullscreenAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
     const navigatorName = action.payload.name;
+    const params = action.payload.params;
 
-    // If we navigate to the central screen of the split navigator, we need to filter this navigator from preloadedRoutes to remove a sidebar screen from the state
+    const targetScreen = params && 'screen' in params ? (params.screen as string) : undefined;
+
+    const existingRoute = state.routes.find((r) => r.name === navigatorName);
+
+    if (existingRoute) {
+        if (existingRoute.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)) {
+            screensWithEnteringAnimation.add(existingRoute.key);
+        }
+
+        const updatedRoute = {
+            ...existingRoute,
+            params: {...existingRoute.params, ...params},
+        };
+
+        const otherRoutes = state.routes.filter((r) => r.key !== existingRoute.key);
+
+        return {
+            ...state,
+            routes: [...otherRoutes, updatedRoute],
+            index: otherRoutes.length,
+        };
+    }
+
     const shouldFilterPreloadedRoutes =
         getIsNarrowLayout() &&
         isSplitNavigatorName(navigatorName) &&
         targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
         state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
 
-    const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
+    const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((r) => r.name !== navigatorName)} : state;
+
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {
@@ -140,7 +163,6 @@ function handlePushFullscreenAction(
 
     const lastFullScreenRoute = stateWithNavigator.routes.at(-1);
 
-    // Transitioning to all central screens in each split should be animated
     if (lastFullScreenRoute?.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)) {
         screensWithEnteringAnimation.add(lastFullScreenRoute.key);
     }
