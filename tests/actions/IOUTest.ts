@@ -9155,7 +9155,7 @@ describe('actions/IOU', () => {
                             }
 
                             deleteWorkspace({
-                                policies: {[policy.id]: policy},
+                                policies: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy},
                                 policyID: policy.id,
                                 personalPolicyID: undefined,
                                 activePolicyID: undefined,
@@ -11441,7 +11441,7 @@ describe('actions/IOU', () => {
             }
 
             const {result} = renderHook(() => {
-                const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`, {canBeMissing: true});
+                const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}`);
                 return {report};
             });
 

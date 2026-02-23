@@ -1,4 +1,3 @@
-import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
@@ -16,7 +15,7 @@ import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftInviteAccountID} from '@libs/actions/Card';
 import {searchInServer} from '@libs/actions/Report';
-import {getDefaultCardName} from '@libs/CardUtils';
+import {getCardAssignmentStartDate, getDefaultCardName} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
@@ -43,12 +42,12 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const policy = usePolicy(policyID);
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
     const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
     const excludedUsers: Record<string, boolean> = {};
@@ -92,9 +91,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
                 cardToAssign.cardName = assignCard.cardToAssign.cardName;
                 cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
-                cardToAssign.startDate = !isEditing
-                    ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)
-                    : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+                cardToAssign.startDate = getCardAssignmentStartDate(isEditing, assignCard?.cardToAssign?.startDate);
                 cardToAssign.dateOption = !isEditing
                     ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM
                     : (assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
@@ -129,9 +126,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
             cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
             cardToAssign.cardName = assignCard.cardToAssign.cardName;
             cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
-            cardToAssign.startDate = !isEditing
-                ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)
-                : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+            cardToAssign.startDate = getCardAssignmentStartDate(isEditing, assignCard?.cardToAssign?.startDate);
             cardToAssign.dateOption = !isEditing
                 ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM
                 : (assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);

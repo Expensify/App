@@ -29,9 +29,9 @@ function FrozenCardIndicator({cardID, onUnfreezePress}: FrozenCardIndicatorProps
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true, selector: cardByIdSelector(cardID)});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
 
     const frozenData = card?.nameValuePairs?.frozen;
     const frozenByAccountID = frozenData?.byAccountID;

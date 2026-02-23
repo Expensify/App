@@ -1,4 +1,4 @@
-import {fromUnixTime, isBefore} from 'date-fns';
+import {format, fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -844,6 +844,19 @@ function getDefaultCardName(cardholder?: string) {
     return `${cardholder}'s card`;
 }
 
+/**
+ * Gets the start date for a card assignment.
+ * When not editing, always returns the current date.
+ * When editing, returns the existing start date or current date as fallback.
+ *
+ * @param isEditing - Whether the card assignment is being edited
+ * @param existingStartDate - The existing start date from previous assignment
+ * @returns Formatted start date string in yyyy-MM-dd format
+ */
+function getCardAssignmentStartDate(isEditing: boolean | undefined, existingStartDate?: string): string {
+    return isEditing ? (existingStartDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)) : format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
+}
+
 function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: CompanyFeeds, plaidBank?: string) {
     const prevFeeds = Object.keys(prevFeedsData);
     const currentFeeds = Object.keys(currentFeedsData);
@@ -1272,6 +1285,7 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    getCardAssignmentStartDate,
     getDomainOrWorkspaceAccountID,
     mergeCardListWithWorkspaceFeeds,
     isCard,

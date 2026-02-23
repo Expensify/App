@@ -3675,6 +3675,12 @@ ${amount} para ${merchant} - ${date}`,
         nightIn: 'noche en',
         nightsIn: 'noches en',
     },
+    proactiveAppReview: {
+        title: '¿Te gusta New Expensify?',
+        description: 'Dínoslo para que podamos ayudarte a mejorar tu experiencia de gestión de gastos.',
+        positiveButton: '¡Sí!',
+        negativeButton: 'No mucho',
+    },
     workspace: {
         common: {
             card: 'Tarjetas',
@@ -6753,6 +6759,9 @@ ${amount} para ${merchant} - ${date}`,
             previousForwardsTo
                 ? `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados (anteriormente reenviados a ${previousForwardsTo})`
                 : `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados`,
+        updateCustomTaxName: ({oldName, newName}) => `cambió el nombre del impuesto personalizado a "${newName}" (antes "${oldName}")`,
+        updateCurrencyDefaultTax: ({oldName, newName}) => `cambió la tasa impositiva predeterminada de la moneda del espacio de trabajo a "${newName}" (anteriormente "${oldName}")`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}) => `cambió la tasa impositiva predeterminada de la moneda extranjera a "${newName}" (anteriormente "${oldName}")`,
         changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
             oldValue ? `cambió el nombre de la empresa de la factura a "${newValue}" (previamente "${oldValue}")` : `estableció el nombre de la empresa de la factura como "${newValue}"`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
@@ -7698,6 +7707,9 @@ ${amount} para ${merchant} - ${date}`,
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
         preStyledText: 'texto preestilizado',
         viewAttachment: 'Ver archivo adjunto',
+        selectAllFeatures: 'Seleccionar todas las características',
+        selectAllItems: 'Seleccionar todos los elementos',
+        selectAllTransactions: 'Seleccionar todas las transacciones',
     },
     parentReportAction: {
         deletedReport: 'Informe eliminado',

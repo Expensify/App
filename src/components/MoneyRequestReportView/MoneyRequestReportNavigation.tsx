@@ -22,48 +22,54 @@ type MoneyRequestReportNavigationProps = {
 };
 
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
-    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
+    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {localeCompare, formatPhoneNumber, translate} = useLocalize();
     const isActionLoadingSet = useActionLoadingReportIDs();
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
-        canBeMissing: true,
+
         selector: selectFilteredReportActions,
     });
 
-    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
-    let results: Array<string | undefined> = [];
-    if (!!type && !!currentSearchResults?.data && !!currentSearchResults?.search) {
+
+    const searchResultsData = currentSearchResults?.data;
+    const searchResultsSearch = currentSearchResults?.search;
+    const currentAccountID = currentUserDetails.accountID;
+    const currentUserEmail = currentUserDetails.email ?? '';
+    const searchKey = lastSearchQuery?.searchKey;
+
+    let allReports: Array<string | undefined> = [];
+    if (!!type && !!searchResultsData && !!searchResultsSearch) {
         const [searchData] = getSections({
             type,
-            data: currentSearchResults.data,
-            currentAccountID: currentUserDetails.accountID,
-            currentUserEmail: currentUserDetails.email ?? '',
+            data: searchResultsData,
+            currentAccountID,
+            currentUserEmail,
             translate,
             formatPhoneNumber,
             bankAccountList,
             groupBy,
             reportActions: exportReportActions,
-            currentSearch: lastSearchQuery?.searchKey,
+            currentSearch: searchKey,
             archivedReportsIDList: archivedReportsIdSet,
             isActionLoadingSet,
             cardFeeds,
             allReportMetadata,
             cardList,
         });
-        results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
+        allReports = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
-    const allReports = results;
 
     const currentIndex = allReports.indexOf(reportID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
