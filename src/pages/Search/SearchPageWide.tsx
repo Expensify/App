@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -9,6 +10,7 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -16,10 +18,14 @@ import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/
 import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -72,6 +78,9 @@ function SearchPageWide({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+
+    const shouldShowLoadingState = !!queryJSON && !isOffline && !isSearchDataLoaded(searchResults ?? undefined, queryJSON);
 
     const offlineIndicatorStyle = useMemo(() => {
         if (shouldShowFooter) {
@@ -116,16 +125,33 @@ function SearchPageWide({
                                 confirmPayment={onBulkPaySelected}
                                 latestBankItems={latestBankItems}
                             />
-                            <Search
-                                key={queryJSON.hash}
-                                queryJSON={queryJSON}
-                                searchResults={searchResults}
-                                handleSearch={handleSearchAction}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                onSearchListScroll={scrollHandler}
-                                onSortPressedCallback={onSortPressedCallback}
-                                searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                            />
+                            {shouldShowLoadingState ? (
+                                <Animated.View
+                                    entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                    exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                    style={styles.flex1}
+                                    onLayout={() => {
+                                        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER);
+                                        endSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS);
+                                    }}
+                                >
+                                    <SearchRowSkeleton
+                                        shouldAnimate
+                                        containerStyle={styles.mt3}
+                                    />
+                                </Animated.View>
+                            ) : (
+                                <Search
+                                    key={queryJSON.hash}
+                                    queryJSON={queryJSON}
+                                    searchResults={searchResults}
+                                    handleSearch={handleSearchAction}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                    onSearchListScroll={scrollHandler}
+                                    onSortPressedCallback={onSortPressedCallback}
+                                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                />
+                            )}
                             {shouldShowFooter && (
                                 <SearchPageFooter
                                     count={footerData.count}
