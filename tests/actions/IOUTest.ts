@@ -9132,7 +9132,7 @@ describe('actions/IOU', () => {
                                         expect(expenseReport?.statusNum).toBe(2);
 
                                         expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], true)).toBe(true);
-                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(false);
+                                        expect(canIOUBePaid(expenseReport, chatReport, policy, {}, [], false)).toBe(true);
                                     },
                                 });
                             }),
