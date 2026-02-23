@@ -2,13 +2,14 @@ import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {getValidConnectedIntegration} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, isPreferredExporter} from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getReportPrimaryAction,
     getTransactionThreadPrimaryAction,
     isApproveAction,
+    isExportAction,
     isMarkAsResolvedAction,
     isPrimaryMarkAsResolvedAction,
     isReviewDuplicatesAction,
@@ -494,6 +495,47 @@ describe('getPrimaryAction', () => {
         } as unknown as Transaction;
 
         (getValidConnectedIntegration as jest.Mock).mockReturnValue('netsuite');
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
+    });
+
+    it('should return EXPORT TO ACCOUNTING for admin who is not the preferred exporter', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            connections: {
+                intacct: {
+                    config: {
+                        export: {
+                            exporter: 'someone.else@mail.com',
+                        },
+                    },
+                },
+            },
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        (getValidConnectedIntegration as jest.Mock).mockReturnValue('intacct');
 
         expect(
             getReportPrimaryAction({
@@ -1509,5 +1551,61 @@ describe('getTransactionThreadPrimaryAction', () => {
             const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
+    });
+});
+
+describe('isExportAction and isPreferredExporter for todos filtering', () => {
+    it('isExportAction returns true for admin who is not the preferred exporter', () => {
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {
+                        autoSync: {enabled: false},
+                        export: {exporter: 'other.exporter@mail.com'},
+                    },
+                },
+            },
+        } as unknown as Policy;
+
+        const report = {
+            reportID: '1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: false,
+        } as Report;
+
+        (getValidConnectedIntegration as jest.Mock).mockReturnValue(CONST.POLICY.CONNECTIONS.NAME.QBO);
+
+        expect(isExportAction(report, CURRENT_USER_EMAIL, policy)).toBe(true);
+    });
+
+    it('isPreferredExporter returns false when user is not the configured exporter', () => {
+        const policy = {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {
+                        export: {exporter: 'other.exporter@mail.com'},
+                    },
+                },
+            },
+        } as unknown as Policy;
+
+        expect(isPreferredExporter(policy, CURRENT_USER_EMAIL)).toBe(false);
+    });
+
+    it('isPreferredExporter returns true when user is the configured exporter', () => {
+        const policy = {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {
+                        export: {exporter: CURRENT_USER_EMAIL},
+                    },
+                },
+            },
+        } as unknown as Policy;
+
+        expect(isPreferredExporter(policy, CURRENT_USER_EMAIL)).toBe(true);
     });
 });
