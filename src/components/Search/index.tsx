@@ -19,6 +19,7 @@ import type {
 } from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
+import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -65,6 +66,7 @@ import {
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import markNavigateAfterExpenseCreateEnd from '@libs/telemetry/markNavigateAfterExpenseCreateEnd';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -75,7 +77,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
 import type {OutstandingReportsByPolicyIDDerivedValue, SaveSearch, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -246,18 +247,18 @@ function Search({
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const previousTransactions = usePrevious(transactions);
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
-    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {accountID, email, login} = useCurrentUserPersonalDetails();
-    const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const isActionLoadingSet = useActionLoadingReportIDs();
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
@@ -266,12 +267,12 @@ function Search({
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
-        canBeMissing: true,
+
         selector: selectFilteredReportActions,
     });
 
-    const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
@@ -284,7 +285,7 @@ function Search({
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
-    const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true, selector: savedSearchSelector});
+    const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {selector: savedSearchSelector});
 
     const handleDEWModalOpen = useCallback(() => {
         if (onDEWModalOpen) {
@@ -1144,6 +1145,7 @@ function Search({
     const onLayout = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER);
+        markNavigateAfterExpenseCreateEnd();
         handleSelectionListScroll(sortedData, searchListRef.current);
     }, [handleSelectionListScroll, sortedData]);
 
@@ -1191,12 +1193,14 @@ function Search({
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
         return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
     }
 
     if (hasErrors) {
         const isInvalidQuery = searchRequestResponseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
@@ -1213,6 +1217,7 @@ function Search({
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
     if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType)) {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView

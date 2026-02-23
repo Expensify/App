@@ -144,7 +144,12 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
 
         return (
             // This container is necessary to hide card translation during transition. Without it the user would see un-clipped cards.
-            <View style={[styles.modalStackNavigatorContainer, styles.modalStackNavigatorContainerWidth(isSmallScreenWidth)]}>
+            <View
+                style={[styles.modalStackNavigatorContainer, styles.modalStackNavigatorContainerWidth(isSmallScreenWidth)]}
+                accessibilityViewIsModal={isSmallScreenWidth}
+                aria-modal={isSmallScreenWidth || undefined}
+                role={isSmallScreenWidth ? 'dialog' : undefined}
+            >
                 <ModalStackNavigator.Navigator>
                     {Object.keys(screens as Required<Screens>).map((name) => (
                         <ModalStackNavigator.Screen
@@ -891,6 +896,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.DOMAIN.ADD_ADMIN]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAddAdminPage').default,
     [SCREENS.DOMAIN.MEMBER_DETAILS]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMemberDetailsPage').default,
     [SCREENS.DOMAIN.RESET_DOMAIN]: () => require<ReactComponentModule>('../../../../pages/domain/DomainResetPage').default,
+    [SCREENS.DOMAIN.VACATION_DELEGATE]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMemberVacationDelegatePage').default,
     [SCREENS.DOMAIN.ADD_MEMBER]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainAddMemberPage').default,
     [SCREENS.DOMAIN.MEMBERS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMembersSettingsPage').default,
     [SCREENS.DOMAIN.MEMBERS_SETTINGS_TWO_FACTOR_AUTH]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainRequireTwoFactorAuthPage').default,

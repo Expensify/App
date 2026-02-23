@@ -12,6 +12,7 @@ import type {
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -52,8 +53,11 @@ import type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -449,6 +453,7 @@ const translations = {
         reportID: 'Report ID',
         longReportID: 'Long Report ID',
         withdrawalID: 'Withdrawal ID',
+        withdrawalStatus: 'Withdrawal status',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         chooseFiles: 'Choose files',
@@ -548,11 +553,13 @@ const translations = {
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
+        opensInNewTab: 'Opens in a new tab',
         locked: 'Locked',
         month: 'Month',
         week: 'Week',
         year: 'Year',
         quarter: 'Quarter',
+        vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
     },
     socials: {
@@ -953,6 +960,10 @@ const translations = {
                 defaultSubtitle: 'Workspace > Company cards',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Company cards`,
             },
+            fixPersonalCardConnection: {
+                title: ({cardName}: {cardName?: string}) => (cardName ? `Fix ${cardName} personal card connection` : 'Fix personal card connection'),
+                subtitle: 'Wallet > Assigned cards',
+            },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
                 defaultSubtitle: 'Workspace > Accounting',
@@ -975,6 +986,8 @@ const translations = {
                 cta: 'Review',
             },
         },
+        assignedCards: 'Assigned cards',
+        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
@@ -1389,12 +1402,7 @@ const translations = {
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
-        confirmApprove: 'Confirm approval amount',
-        confirmApprovalAmount: 'Approve only compliant expenses, or approve the entire report.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'This expense is on hold. Do you want to approve anyway?',
-            other: 'These expenses are on hold. Do you want to approve anyway?',
-        }),
+        confirmApprovalWithHeldAmount: 'Report contains held expenses. Approve only compliant expenses, or approve the entire report?',
         confirmPay: 'Confirm payment amount',
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: () => ({
@@ -2110,6 +2118,14 @@ const translations = {
             password: 'Please enter your Expensify password',
         },
     },
+    personalCard: {
+        brokenConnection: 'Your card connection is broken.',
+        fixCard: 'Fix card',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            connectionLink
+                ? `Your ${cardName} card connection is broken. <a href="${connectionLink}">Log into your bank</a> to fix the card.`
+                : `Your ${cardName} card connection is broken. Log into your bank to fix the card.`,
+    },
     walletPage: {
         balance: 'Balance',
         paymentMethodsTitle: 'Payment methods',
@@ -2230,6 +2246,7 @@ const translations = {
         unfreezeCard: 'Unfreeze card',
         freezeDescription: 'A frozen card cannot be used for purchases and transactions. You can unfreeze it at any time.',
         unfreezeDescription: "Unfreezing this card will start allowing purchases and transactions again. Only proceed if you're sure the card is safe to use.",
+        frozen: 'Frozen',
         youFroze: ({date}: {date: string}) => `You froze this card on ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} froze this card on ${date}.`,
     },
@@ -3084,7 +3101,6 @@ const translations = {
         time: 'Time',
         clearAfter: 'Clear after',
         whenClearStatus: 'When should we clear your status?',
-        vacationDelegate: 'Vacation delegate',
         setVacationDelegate: `Set a vacation delegate to approve reports on your behalf while you're out of office.`,
         cannotSetVacationDelegate: `You can't set a vacation delegate because you're currently the delegate for the following members:`,
         vacationDelegateError: 'There was an error updating your vacation delegate.',
@@ -3835,6 +3851,12 @@ const translations = {
         carRental: ' car rental',
         nightIn: 'night in',
         nightsIn: 'nights in',
+    },
+    proactiveAppReview: {
+        title: 'Enjoying New Expensify?',
+        description: 'Let us know so we can help make your expensing experience even better.',
+        positiveButton: 'Yeah!',
+        negativeButton: 'Not really',
     },
     workspace: {
         common: {
@@ -5163,8 +5185,11 @@ const translations = {
                 updateCard: 'Update card',
                 unassignCard: 'Unassign card',
                 unassign: 'Unassign',
-                unassignCardDescription: 'Unassign this card will remove all transactions on draft reports from the cardholder’s account.',
+                unassignCardDescription: 'Unassigning this card will delete all unsubmitted transactions.',
                 assignCard: 'Assign card',
+                removeCard: 'Remove card',
+                remove: 'Remove',
+                removeCardDescription: 'Removing this card will delete all unsubmitted transactions.',
                 cardFeedName: 'Card feed name',
                 cardFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others.',
                 cardFeedTransaction: 'Delete transactions',
@@ -6328,7 +6353,7 @@ const translations = {
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
                 duplicateRuleTitle: 'Similar merchant rule already exists',
-                duplicateRulePrompt: (merchantName: string) => `Do you want to save a new rule for "${merchantName}" even though you already have an existing one?`,
+                duplicateRulePrompt: (merchantName: string) => `Your existing rule for "${merchantName}" will take priority over this one. Save anyway?`,
                 saveAnyway: 'Save anyway',
                 applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
             },
@@ -6875,6 +6900,10 @@ const translations = {
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `changed the authorized payer to "${newReimburser}" (previously "${previousReimburser}")` : `changed the authorized payer to "${newReimburser}"`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `changed the custom tax name to "${newName}" (previously "${oldName}")`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `changed the workspace currency default tax rate to "${newName}" (previously "${oldName}")`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
+            `changed the foreign currency default tax rate to "${newName}" (previously "${oldName}")`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7366,6 +7395,9 @@ const translations = {
         scrollToNewestMessages: 'Scroll to newest messages',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
+        selectAllFeatures: 'Select all features',
+        selectAllTransactions: 'Select all transactions',
+        selectAllItems: 'Select all items',
     },
     parentReportAction: {
         deletedReport: 'Deleted report',
@@ -7689,9 +7721,17 @@ const translations = {
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Review required',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return "Can't auto-match receipt due to broken bank connection";
+                return "Can't auto-match receipt due to broken bank connection.";
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                if (!connectionLink) {
+                    return "Can't auto-match receipt due to broken bank connection.";
+                }
+                return isMarkAsCash
+                    ? `Can't auto-match receipt due to broken card connection. Mark as cash to ignore, or <a href="${connectionLink}">fix the card</a> to match the receipt.`
+                    : `Can't auto-match receipt due to broken card connection. <a href="${connectionLink}">Fix the card</a> to match the receipt.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
@@ -8391,12 +8431,14 @@ const translations = {
             error: {
                 addMember: 'Unable to add this member. Please try again.',
                 removeMember: 'Unable to remove this user. Please try again.',
+                vacationDelegate: 'Unable to set this user as a vacation delegate. Please try again.',
             },
             forceTwoFactorAuth: 'Force two-factor authentication',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>Please disable <a href="${samlPageUrl}">SAML</a> to force two-factor authentication.</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>Require two-factor authentication for all members of this domain. Domain members will be prompted to set up two-factor authentication on their account when they sign in.</muted-text>`,
             forceTwoFactorAuthError: "Force two-factor authentication couldn't be changed. Please try again later.",
+            cannotSetVacationDelegateForMember: (email: string) => `You can't set a vacation delegate for ${email} because they're currently the delegate for the following members:`,
         },
         common: {
             settings: 'Settings',
