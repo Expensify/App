@@ -120,6 +120,7 @@ jobs:
       PULL_REQUEST_NUMBER: ${{ inputs.APP_PR_NUMBER }}
     outputs:
       ROCK_ANDROID_ADHOC_INDEX_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
+      SENTRY_ANDROID_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
         # v6
@@ -227,6 +228,7 @@ jobs:
           validate-elf-alignment: false
 
       - name: Upload Android build to Sentry for size analysis
+        id: sentry-upload
         if: ${{ env.ARTIFACT_PATH != '' }}
         continue-on-error: true
         timeout-minutes: 5
@@ -236,6 +238,7 @@ jobs:
           SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
           if [ -n "$SENTRY_URL" ]; then
             echo "::notice::Android Sentry size analysis: $SENTRY_URL"
+            echo "SENTRY_URL=$SENTRY_URL" >> "$GITHUB_OUTPUT"
           fi
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -262,6 +265,7 @@ jobs:
     runs-on: macos-15-xlarge
     outputs:
       ROCK_IOS_ADHOC_INDEX_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
+      SENTRY_IOS_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
         # v6
@@ -381,6 +385,7 @@ jobs:
           custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
 
       - name: Upload iOS build to Sentry for size analysis
+        id: sentry-upload
         if: ${{ env.ARTIFACT_PATH != '' }}
         continue-on-error: true
         timeout-minutes: 5
@@ -390,6 +395,7 @@ jobs:
           SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
           if [ -n "$SENTRY_URL" ]; then
             echo "::notice::iOS Sentry size analysis: $SENTRY_URL"
+            echo "SENTRY_URL=$SENTRY_URL" >> "$GITHUB_OUTPUT"
           fi
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -474,6 +480,8 @@ jobs:
             const androidLink = '${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL }}' || '';
             const iosLink = '${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL }}' || '';
             const mobileExpensifySHA = '${{ steps.getMobileExpensifySHA.outputs.SHA }}' || '';
+            const androidSentryLink = '${{ needs.androidHybrid.outputs.SENTRY_ANDROID_URL }}' || '';
+            const iosSentryLink = '${{ needs.iosHybrid.outputs.SENTRY_IOS_URL }}' || '';
 
             const webStatus = webLink ? '✅ Success' : '${{ needs.web.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
             const androidStatus = androidLink ? '✅ Success' : '${{ needs.androidHybrid.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
@@ -498,6 +506,15 @@ jobs:
                   iosLink ? `<a href="${iosLink}">${iosLink}</a>` : '-'
                 ],
               ]);
+
+            if (androidSentryLink || iosSentryLink) {
+              summary.addHeading('Bundle Size Analysis', 3);
+              summary.addTable([
+                [{data: 'Platform', header: true}, {data: 'Sentry Size Analysis', header: true}],
+                ['Android', androidSentryLink ? `<a href="${androidSentryLink}">${androidSentryLink}</a>` : '-'],
+                ['iOS', iosSentryLink ? `<a href="${iosSentryLink}">${iosSentryLink}</a>` : '-'],
+              ]);
+            }
 
             if (mobileExpensifySHA) {
               const mobileExpensifyUrl = `https://github.com/Expensify/Mobile-Expensify/commit/${mobileExpensifySHA}`;
