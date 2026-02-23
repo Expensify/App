@@ -97,6 +97,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
 
+        // offline: only close merge UI so user stays on the report they started from (redirecting to destination report would show skeleton/empty — it has no data yet)
         if (isOffline) {
             Navigation.dismissToSuperWideRHP();
             return;
