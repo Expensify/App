@@ -95,23 +95,23 @@ import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsFollowupUtils from '@libs/ReportActionFollowupUtils';
 import {
-    getReportActionMessage,
+    didMessageMentionCurrentUser,
     getLastVisibleAction,
     getLastVisibleMessage as getLastVisibleActionMessage,
-    isTrackExpenseAction,
-    getReportActionText,
-    isDeletedAction,
-    isWhisperAction,
     getOneTransactionThreadReportID,
-    isThreadParentMessage,
-    didMessageMentionCurrentUser,
-    shouldReportActionBeVisible,
-    getReportActionHtml,
-    isMoneyRequestAction,
     getOriginalMessage,
-    isWhisperActionTargetedToOthers,
     getReportAction,
+    getReportActionHtml,
+    getReportActionMessage,
+    getReportActionText,
     hasRequestFromCurrentAccount,
+    isDeletedAction,
+    isMoneyRequestAction,
+    isThreadParentMessage,
+    isTrackExpenseAction,
+    isWhisperAction,
+    isWhisperActionTargetedToOthers,
+    shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
@@ -208,8 +208,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
-    Attachment,
     AnyRequest,
+    Attachment,
     BankAccountList,
     Beta,
     IntroSelected,
