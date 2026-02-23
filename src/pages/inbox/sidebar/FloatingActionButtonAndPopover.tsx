@@ -1,8 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
+import useDragoverDismiss from '@hooks/useDragoverDismiss';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -61,15 +62,8 @@ function FloatingActionButtonAndPopover() {
         hideCreateMenu();
     }, [didScreenBecomeInactive, hideCreateMenu]);
 
-    // Close menu on dragover (web only — prevents popover from staying open during file drag)
-    useEffect(() => {
-        if (Platform.OS !== 'web' || !isCreateMenuActive) {
-            return;
-        }
-        const handler = () => hideCreateMenu();
-        document.addEventListener('dragover', handler);
-        return () => document.removeEventListener('dragover', handler);
-    }, [isCreateMenuActive, hideCreateMenu]);
+    // Close menu on dragover — prevents popover from staying open during file drag
+    useDragoverDismiss(isCreateMenuActive, hideCreateMenu);
 
     const toggleCreateMenu = () => {
         if (isCreateMenuActive) {
