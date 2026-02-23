@@ -6,6 +6,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -23,7 +24,7 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
 
     const categoryItems = useMemo(() => {
         return Object.values(policyCategories ?? {})
-            .filter((category) => category.enabled)
+            .filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .map((category) => {
                 const decodedCategoryName = getDecodedCategoryName(category.name);
                 return {name: decodedCategoryName, value: category.name};

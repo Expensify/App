@@ -17,6 +17,7 @@ import {
     isValidRegistrationNumber,
     isValidRoomName,
     isValidTwoFactorCode,
+    isValidUSPhone,
     isValidWebsite,
     meetsMaximumAgeRequirement,
     meetsMinimumAgeRequirement,
@@ -549,6 +550,40 @@ describe('ValidationUtils', () => {
             ])('validates Non-EU country registration number', (country, value, expected) => {
                 expect(isValidRegistrationNumber(value, country as Country)).toBe(expected);
             });
+        });
+    });
+
+    describe('isValidUSPhone', () => {
+        test('Should return true for a standard US phone number', () => {
+            expect(isValidUSPhone('+12018675309')).toBe(true);
+        });
+
+        test('Should return true for a Puerto Rico phone number', () => {
+            expect(isValidUSPhone('+17873464732')).toBe(true);
+        });
+
+        test('Should return true for a US Virgin Islands phone number', () => {
+            expect(isValidUSPhone('+13405551234')).toBe(true);
+        });
+
+        test('Should return true for a Guam phone number', () => {
+            expect(isValidUSPhone('+16715551234')).toBe(true);
+        });
+
+        test('Should return true for a Northern Mariana Islands phone number', () => {
+            expect(isValidUSPhone('+16705551234')).toBe(true);
+        });
+
+        test('Should return false for a Canadian phone number', () => {
+            expect(isValidUSPhone('+14165551234')).toBe(false);
+        });
+
+        test('Should return false for a UK phone number', () => {
+            expect(isValidUSPhone('+442071234567')).toBe(false);
+        });
+
+        test('Should return false for an empty string', () => {
+            expect(isValidUSPhone('')).toBe(false);
         });
     });
 
