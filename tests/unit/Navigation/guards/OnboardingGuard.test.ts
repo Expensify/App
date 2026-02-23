@@ -28,6 +28,10 @@ describe('OnboardingGuard', () => {
         currentUrl: '',
     };
 
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
     beforeEach(async () => {
         await Onyx.clear();
         await waitForBatchedUpdates();

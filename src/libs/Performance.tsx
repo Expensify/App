@@ -6,7 +6,6 @@ import {Alert, InteractionManager} from 'react-native';
 import performance, {PerformanceObserver, setResourceLoggingEnabled} from 'react-native-performance';
 import type {PerformanceEntry, PerformanceMark, PerformanceMeasure} from 'react-native-performance';
 import CONST from '@src/CONST';
-import isE2ETestSession from './E2E/isE2ETestSession';
 import getComponentDisplayName from './getComponentDisplayName';
 import canCapturePerformanceMetrics from './Metrics';
 
@@ -50,10 +49,7 @@ function measureTTI(endMark?: string): void {
         requestAnimationFrame(() => {
             measureFailSafe('TTI', 'nativeLaunchStart', endMark);
 
-            // We don't want an alert to show:
-            // - on builds with performance metrics collection disabled by a feature flag
-            // - e2e test sessions
-            if (!canCapturePerformanceMetrics() || isE2ETestSession()) {
+            if (!canCapturePerformanceMetrics()) {
                 return;
             }
 

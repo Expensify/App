@@ -11,10 +11,10 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useReportAttributes from '@hooks/useReportAttributes';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
