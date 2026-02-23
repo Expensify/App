@@ -8,21 +8,21 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
-import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActionItemMessageHeaderSender';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Parser from '@libs/Parser';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import ReportActionItemMessageHeaderSender from '@pages/inbox/report/ReportActionItemMessageHeaderSender';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
-import useOnyx from '@hooks/useOnyx';
 
 type ConciergeThinkingMessageProps = {
     /** The report for this thinking message */

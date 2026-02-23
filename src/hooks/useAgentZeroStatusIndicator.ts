@@ -4,8 +4,8 @@ import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useLocalize from './useLocalize';
-import useOnyx from './useOnyx';
 import useNetwork from './useNetwork';
+import useOnyx from './useOnyx';
 
 type AgentZeroStatusState = {
     isProcessing: boolean;
