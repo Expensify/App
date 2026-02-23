@@ -8,8 +8,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type AnimatedSubmitButtonProps = {
+type AnimatedSubmitButtonProps = WithSentryLabel & {
     // Whether to show the success state
     success: boolean | undefined;
 
@@ -27,9 +28,6 @@ type AnimatedSubmitButtonProps = {
 
     // Whether the button should be disabled
     isDisabled?: boolean;
-
-    // Label for Sentry tracking
-    sentryLabel?: string;
 };
 
 function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled, sentryLabel}: AnimatedSubmitButtonProps) {

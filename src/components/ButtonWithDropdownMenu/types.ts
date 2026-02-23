@@ -14,6 +14,8 @@ type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BUL
 
 type RoomMemberBulkActionType = DeepValueOf<typeof CONST.REPORT.ROOM_MEMBERS_BULK_ACTION_TYPES>;
 
+type DomainMemberBulkActionType = DeepValueOf<typeof CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES>;
+
 type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
 
 type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
@@ -156,8 +158,14 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Whether to display the option icon when only one option is available */
     shouldUseOptionIcon?: boolean;
 
+    /** Used to apply styles specifically to the header text */
+    headerTextStyles?: StyleProp<TextStyle>;
+
     /** Reference to the outer element */
     ref?: React.Ref<ButtonWithDropdownMenuRef>;
+
+    /** Whether to put the header text after the back button */
+    shouldPutHeaderTextAfterBackButton?: boolean;
 };
 
 type ButtonWithDropdownMenuRef = {
@@ -167,6 +175,7 @@ type ButtonWithDropdownMenuRef = {
 export type {
     PaymentType,
     WorkspaceMemberBulkActionType,
+    DomainMemberBulkActionType,
     RoomMemberBulkActionType,
     WorkspaceDistanceRatesBulkActionType,
     DropdownOption,

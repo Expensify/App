@@ -59,6 +59,7 @@ export default function () {
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
+        snapshotMergeKeys: ['pendingAction', 'pendingFields'],
     });
 
     initOnyxDerivedValues();

@@ -50,14 +50,14 @@ function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageK
     paginationConfigs.set(initialCommand, {...config, type: 'initial'} as unknown as PaginationConfigMapValue);
     paginationConfigs.set(previousCommand, {...config, type: 'previous'} as unknown as PaginationConfigMapValue);
     paginationConfigs.set(nextCommand, {...config, type: 'next'} as unknown as PaginationConfigMapValue);
-    Onyx.connect<OnyxCollectionKey>({
+    Onyx.connectWithoutView<OnyxCollectionKey>({
         key: config.resourceCollectionKey,
         waitForCollectionCallback: true,
         callback: (data) => {
             resources.set(config.resourceCollectionKey, data);
         },
     });
-    Onyx.connect<OnyxPagesKey>({
+    Onyx.connectWithoutView<OnyxPagesKey>({
         key: config.pageCollectionKey,
         waitForCollectionCallback: true,
         callback: (data) => {
@@ -109,7 +109,7 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const newPage = sortedPageItems.map((item) => getItemID(item));
 
-        if (response.hasNewerActions === false || (type === 'initial' && !cursorID)) {
+        if (response.hasNewerActions === false || response.hasNewerActions === null || (type === 'initial' && !cursorID)) {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
         if (response.hasOlderActions === false || response.hasOlderActions === null) {

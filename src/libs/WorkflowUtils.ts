@@ -119,7 +119,7 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     // Add each employee to the appropriate workflow
     for (const employee of Object.values(employees)) {
         const {email, submitsTo, pendingAction} = employee;
-        if (!email || !submitsTo || !employees[submitsTo]) {
+        if (!email || !submitsTo || !employees[submitsTo] || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             // If the employee doesn't have submitsTo but has a valid email,
             // they should still be available for selection in new workflows
             if (email && !submitsTo && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
