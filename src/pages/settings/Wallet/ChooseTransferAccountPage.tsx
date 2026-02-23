@@ -30,7 +30,7 @@ type BankAccountListItem = ListItem & {
 };
 
 function ChooseTransferAccountPage() {
-    const [walletTransfer, walletTransferResult] = useOnyx(ONYXKEYS.WALLET_TRANSFER, {canBeMissing: true});
+    const [walletTransfer, walletTransferResult] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -56,7 +56,7 @@ function ChooseTransferAccountPage() {
         openPersonalBankAccountSetupView({});
     };
 
-    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const selectedAccountID = walletTransfer?.selectedAccountID;
     const bankAccountOptions = useMemo(() => {
         const options = Object.values(bankAccountsList ?? {}).map((bankAccount, index): BankAccountListItem => {

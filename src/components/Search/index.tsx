@@ -247,18 +247,18 @@ function Search({
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const previousTransactions = usePrevious(transactions);
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
-    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const isActionLoadingSet = useActionLoadingReportIDs();
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
@@ -267,12 +267,12 @@ function Search({
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
-        canBeMissing: true,
+
         selector: selectFilteredReportActions,
     });
 
-    const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
@@ -285,7 +285,7 @@ function Search({
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
-    const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true, selector: savedSearchSelector});
+    const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {selector: savedSearchSelector});
 
     const handleDEWModalOpen = useCallback(() => {
         if (onDEWModalOpen) {

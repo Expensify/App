@@ -38,8 +38,8 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch']);
     const defaultSearchQuery = useDefaultSearchQuery();
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
 
     const searchAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.SEARCH}), [selectedTab]);
     const lastQueryJSON = lastSearchParams?.queryJSON;

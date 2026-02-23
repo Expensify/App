@@ -38,9 +38,9 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
@@ -48,7 +48,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const isPopoverBottomMount = shouldUseNarrowLayout;
     const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault;
     const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
 
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
