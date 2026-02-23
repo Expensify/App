@@ -1,7 +1,20 @@
 diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
-index 9fedd7e..ffc4d83 100644
+index 9fedd7e..258a17a 100644
 --- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
 +++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+@@ -17,11 +17,11 @@ import {
+   Image,
+   Keyboard,
+   Platform,
+-  Pressable,
+   ScrollView,
+   StyleSheet,
+   Text,
+   TextInput,
++  TouchableHighlight,
+   View,
+ } from 'react-native';
+ 
 @@ -158,7 +158,7 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
    const prevQueryStringRef = useRef(JSON.stringify(query));
  
@@ -205,15 +218,39 @@ index 9fedd7e..ffc4d83 100644
    const _getRowLoader = () => {
      return <ActivityIndicator animating={true} size='small' />;
    };
-@@ -906,7 +933,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
-             },
+@@ -894,19 +921,12 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+         showsHorizontalScrollIndicator={false}
+         showsVerticalScrollIndicator={false}
+       >
+-        <Pressable
+-          style={({ hovered, pressed }) => [
++        <TouchableHighlight
++          style={[
+             isRowScrollable ? { minWidth: '100%' } : { width: '100%' },
+-            {
+-              backgroundColor: pressed
+-                ? listUnderlayColor
+-                : hovered
+-                ? listHoverColor
+-                : undefined,
+-            },
            ]}
            onPress={() => _onPress(rowData)}
 -          onBlur={_onBlur}
++          underlayColor={listUnderlayColor}
          >
            <View
              style={[
-@@ -1010,15 +1036,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -918,7 +938,7 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+             {_renderLoader(rowData)}
+             {_renderRowData(rowData, index)}
+           </View>
+-        </Pressable>
++        </TouchableHighlight>
+       </ScrollView>
+     );
+   };
+@@ -1010,15 +1030,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
        return `item_${index}`;
      };
  
@@ -236,7 +273,7 @@ index 9fedd7e..ffc4d83 100644
        (listViewDisplayed === true || (isAutoMode && !listWasDismissed));
  
      if (shouldShowList) {
-@@ -1078,11 +1106,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1078,11 +1100,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
    // Keep requestRef updated
    requestRef.current = _request;
  
@@ -248,7 +285,7 @@ index 9fedd7e..ffc4d83 100644
    useEffect(() => {
      return () => {
        // Cleanup debounced function on unmount
-@@ -1106,7 +1129,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+@@ -1106,7 +1123,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
      return () => {
        _abortRequests();
      };
