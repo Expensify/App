@@ -19,7 +19,7 @@ type AgentZeroStatusState = {
  * Subscribes to real-time reasoning updates via Pusher and manages processing state.
  */
 function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean): AgentZeroStatusState {
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const serverLabel = reportNameValuePairs?.agentZeroProcessingRequestIndicator?.trim() ?? '';
 
     const [optimisticStartTime, setOptimisticStartTime] = useState<number | null>(null);

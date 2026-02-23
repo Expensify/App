@@ -91,7 +91,7 @@ function ConciergeThinkingMessage({report, action, reasoningHistory, statusLabel
         opacity: statusLabelOpacity.get(),
     }));
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const accountID = action?.actorAccountID ?? CONST.ACCOUNT_ID.CONCIERGE;
     const displayName = action?.person?.[0]?.text ?? getDisplayNameOrDefault(personalDetails?.[accountID]) ?? CONST.CONCIERGE_DISPLAY_NAME;
     const actorIcon = personalDetails?.[accountID]?.avatar ? {source: personalDetails[accountID].avatar, name: displayName, type: CONST.ICON_TYPE_AVATAR} : undefined;
