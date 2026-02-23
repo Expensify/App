@@ -1,4 +1,4 @@
-import {useCallback, useMemo} from 'react';
+import {useCallback, useRef} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import {startMoneyRequest} from '@libs/actions/IOU';
@@ -29,14 +29,10 @@ function useScanActions() {
 
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
 
-    const reportID = useMemo(() => generateReportID(), []);
+    const reportID = useRef(generateReportID()).current;
 
-    const policyChatForActivePolicy = useMemo(() => {
-        if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
-            return {} as OnyxTypes.Report;
-        }
-        return policyChats.length > 0 ? policyChats.at(0) : ({} as OnyxTypes.Report);
-    }, [activePolicy, policyChats]);
+    const policyChatForActivePolicy: OnyxTypes.Report =
+        !isEmptyObject(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
 
     const startScan = useCallback(() => {
         interceptAnonymousUser(() => {

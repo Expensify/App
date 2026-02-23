@@ -1,4 +1,4 @@
-import {useMemo} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,29 +23,27 @@ function useInvoiceMenuItem({shouldUseNarrowLayout, icons, reportID}: UseInvoice
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
 
-    const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
+    const canSendInvoice = canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email);
 
-    return useMemo(() => {
-        if (!canSendInvoice) {
-            return [];
-        }
-        return [
-            {
-                icon: icons.InvoiceGeneric,
-                text: translate('workspace.invoices.sendInvoice'),
-                shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout,
-                onSelected: () =>
-                    interceptAnonymousUser(() => {
-                        if (shouldRedirectToExpensifyClassic) {
-                            showRedirectToExpensifyClassicModal();
-                            return;
-                        }
-                        startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts, true);
-                    }),
-                sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE,
-            },
-        ];
-    }, [canSendInvoice, icons.InvoiceGeneric, translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, showRedirectToExpensifyClassicModal, reportID, allTransactionDrafts]);
+    if (!canSendInvoice) {
+        return [];
+    }
+    return [
+        {
+            icon: icons.InvoiceGeneric,
+            text: translate('workspace.invoices.sendInvoice'),
+            shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout,
+            onSelected: () =>
+                interceptAnonymousUser(() => {
+                    if (shouldRedirectToExpensifyClassic) {
+                        showRedirectToExpensifyClassicModal();
+                        return;
+                    }
+                    startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts, true);
+                }),
+            sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE,
+        },
+    ];
 }
 
 export default useInvoiceMenuItem;

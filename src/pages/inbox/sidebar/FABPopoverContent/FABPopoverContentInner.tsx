@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import PopoverMenu from '@components/PopoverMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
@@ -61,10 +61,7 @@ function FABPopoverContentInner({
     const newWorkspaceItem = useNewWorkspaceMenuItem({shouldUseNarrowLayout, icons});
     const quickActionItem = useQuickActionMenuItem({shouldUseNarrowLayout, icons, reportID});
 
-    const menuItems = useMemo(
-        () => [...expenseItem, ...trackDistanceItem, ...createReportItem, ...newChatItem, ...invoiceItem, ...travelItem, ...testDriveItem, ...newWorkspaceItem, ...quickActionItem],
-        [expenseItem, trackDistanceItem, createReportItem, newChatItem, invoiceItem, travelItem, testDriveItem, newWorkspaceItem, quickActionItem],
-    );
+    const menuItems = [...expenseItem, ...trackDistanceItem, ...createReportItem, ...newChatItem, ...invoiceItem, ...travelItem, ...testDriveItem, ...newWorkspaceItem, ...quickActionItem];
 
     return (
         <>
