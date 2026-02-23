@@ -125,7 +125,7 @@ function handlePushFullscreenAction(
 
     const targetScreen = params && 'screen' in params ? (params.screen as string) : undefined;
 
-    const existingRoute = state.routes.find((r) => r.name === navigatorName);
+    const existingRoute = state.routes.find((route) => route.name === navigatorName);
 
     if (existingRoute) {
         if (existingRoute.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)) {
@@ -137,7 +137,7 @@ function handlePushFullscreenAction(
             params: {...existingRoute.params, ...params},
         };
 
-        const otherRoutes = state.routes.filter((r) => r.key !== existingRoute.key);
+        const otherRoutes = state.routes.filter((route) => route.key !== existingRoute.key);
 
         return {
             ...state,
@@ -146,13 +146,14 @@ function handlePushFullscreenAction(
         };
     }
 
+    // If we navigate to the central screen of the split navigator, we need to filter this navigator from preloadedRoutes to remove a sidebar screen from the state
     const shouldFilterPreloadedRoutes =
         getIsNarrowLayout() &&
         isSplitNavigatorName(navigatorName) &&
         targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
         state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
 
-    const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((r) => r.name !== navigatorName)} : state;
+    const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
 
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
@@ -163,6 +164,7 @@ function handlePushFullscreenAction(
 
     const lastFullScreenRoute = stateWithNavigator.routes.at(-1);
 
+    // Transitioning to all central screens in each split should be animated
     if (lastFullScreenRoute?.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)) {
         screensWithEnteringAnimation.add(lastFullScreenRoute.key);
     }
