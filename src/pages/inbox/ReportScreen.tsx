@@ -84,9 +84,9 @@ import {
     isMoneyRequestReportPendingDeletion,
     isOneTransactionThread,
     isPolicyExpenseChat,
+    isReportArchivedByID as isReportArchivedByIDUtil,
     isReportTransactionThread,
     isTaskReport,
-    isReportArchivedByID as isReportArchivedByIDUtil,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
