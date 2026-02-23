@@ -38,7 +38,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(AttachmentModalContext);
     const [isHidden, setIsHidden] = useState(() => (item.reportActionID && isAttachmentHidden(item.reportActionID)) ?? item.hasBeenFlagged);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const renderButton = (style: StyleProp<ViewStyle>) => (
         <Button
