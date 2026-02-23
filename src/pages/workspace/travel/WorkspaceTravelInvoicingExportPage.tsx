@@ -36,7 +36,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environment, isDevelopment} = useEnvironment();
-    const [travelInvoiceStatement] = useOnyx(ONYXKEYS.TRAVEL_INVOICE_STATEMENT, {canBeMissing: true});
+    const [travelInvoiceStatement] = useOnyx(ONYXKEYS.TRAVEL_INVOICE_STATEMENT);
 
     const isGenerating = travelInvoiceStatement?.isGenerating ?? false;
     const prevIsGenerating = usePrevious(isGenerating);
