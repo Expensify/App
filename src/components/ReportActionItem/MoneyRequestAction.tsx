@@ -23,9 +23,9 @@ import {
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
-import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import ReportActionItemContext from '@pages/home/report/ReportActionItemContext';
+import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import ReportActionItemContext from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -90,7 +90,7 @@ function MoneyRequestAction({
     const {shouldOpenReportInRHP, onPreviewPressed} = useContext(ReportActionItemContext);
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`];
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false, canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false});
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();

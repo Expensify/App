@@ -21,7 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {showContextMenu} from './home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from './inbox/report/ContextMenu/ReportActionContextMenu';
 
 type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 
@@ -31,7 +31,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['PaymentHands']);
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();
     let {contentType} = route.params;

@@ -8,7 +8,7 @@ import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
-import useHandleBackButton from '@hooks/useHandleBackButton';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -102,7 +102,7 @@ function getRenderOptions({
 
     // True, if the user has SAML required, and we haven't yet initiated SAML for their account
     const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
-    const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode && !hasValidateCode;
+    const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
 
     // SAML required users may reload the login page after having already entered their login details, in which
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
@@ -151,9 +151,9 @@ function SignInPage({ref}: SignInPageProps) {
     const loginFormRef = useRef<InputHandle>(null);
     const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountValidated = account?.validated;
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     /**
       This variable is only added to make sure the component is re-rendered
       whenever the activeClients change, so that we call the
@@ -161,7 +161,7 @@ function SignInPage({ref}: SignInPageProps) {
       every time the leader client changes.
       We use that function to prevent repeating code that checks which client is the leader.
     */
-    const [activeClients = getEmptyArray<string>()] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS, {canBeMissing: true});
+    const [activeClients = getEmptyArray<string>()] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS);
 
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
@@ -263,8 +263,8 @@ function SignInPage({ref}: SignInPageProps) {
     } else if (shouldShouldSignUpWelcomeForm) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
         welcomeText = shouldUseNarrowLayout
-            ? `${translate('welcomeText.welcomeWithoutExclamation')} ${translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay})}`
-            : translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay});
+            ? `${translate('welcomeText.welcomeWithoutExclamation')} ${translate('welcomeText.welcomeNewFace', userLoginToDisplay)}`
+            : translate('welcomeText.welcomeNewFace', userLoginToDisplay);
     } else if (!shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin) {
         Log.warn('SignInPage in unexpected state!');
     }
@@ -295,7 +295,7 @@ function SignInPage({ref}: SignInPageProps) {
     useImperativeHandle(ref, () => ({
         navigateBack,
     }));
-    useHandleBackButton(navigateBack);
+    useAndroidBackButtonHandler(navigateBack);
 
     return (
         <ColorSchemeWrapper>

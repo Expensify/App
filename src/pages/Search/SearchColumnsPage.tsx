@@ -17,7 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getCustomColumnDefault, getCustomColumns, getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +40,7 @@ function SearchColumnsPage() {
     const icons = useMemoizedLazyExpensifyIcons(['DragHandles']);
     const {translate, localeCompare} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     const groupBy = searchAdvancedFiltersForm?.groupBy;
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -61,6 +61,13 @@ function SearchColumnsPage() {
         CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER,
     ]);
 
     const sortColumns = (columnsToSort: ColumnItem[]): ColumnItem[] => {
@@ -183,7 +190,12 @@ function SearchColumnsPage() {
             columns: selectedColumnIds,
         };
 
-        const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters);
+        const currentQueryJSON = getCurrentSearchQueryJSON();
+        const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters, {
+            sortBy: currentQueryJSON?.sortBy,
+            sortOrder: currentQueryJSON?.sortOrder,
+            limit: currentQueryJSON?.limit,
+        });
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
     };

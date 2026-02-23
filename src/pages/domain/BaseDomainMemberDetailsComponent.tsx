@@ -31,9 +31,12 @@ type BaseDomainMemberDetailsComponentProps = {
 
     /** List of additional fields (e.g., force 2FA) */
     children?: React.ReactNode;
+
+    /** Button to display below avatar picture */
+    avatarButton?: React.ReactNode;
 };
 
-function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}: BaseDomainMemberDetailsComponentProps) {
+function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children, avatarButton}: BaseDomainMemberDetailsComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
@@ -42,7 +45,6 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}
     // to a static function outside the component.
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
     });
 
@@ -83,6 +85,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}
                                     {displayName}
                                 </Text>
                             )}
+                            {avatarButton}
                         </View>
                         <View style={styles.w100}>
                             <MenuItemWithTopDescription
@@ -98,6 +101,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children}
                                 icon={icons.Info}
                                 onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
                                 shouldShowRightIcon
+                                containerStyle={styles.pr2}
                             />
                         </View>
                     </View>

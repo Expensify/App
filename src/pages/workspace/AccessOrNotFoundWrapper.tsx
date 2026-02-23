@@ -37,7 +37,7 @@ const ACCESS_VARIANTS = {
         login: string,
         report: OnyxEntry<Report>,
         allPolicies: NonNullable<OnyxCollection<Policy>> | null,
-        allBetas: OnyxEntry<Beta[]>,
+        betas: OnyxEntry<Beta[]>,
         iouType?: IOUType,
         isReportArchived?: boolean,
         isRestrictedToPreferredPolicy?: boolean,
@@ -46,7 +46,7 @@ const ACCESS_VARIANTS = {
         isValidMoneyRequestType(iouType) &&
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
 
-        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, allBetas, isRestrictedToPreferredPolicy)) &&
+        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, betas, isRestrictedToPreferredPolicy)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice(allPolicies, login)),
 } as const satisfies Record<
     string,
@@ -55,7 +55,7 @@ const ACCESS_VARIANTS = {
         login: string,
         report: Report,
         allPolicies: NonNullable<OnyxCollection<Policy>> | null,
-        allBetas?: OnyxEntry<Beta[]>,
+        betas: OnyxEntry<Beta[]>,
         iouType?: IOUType,
         isArchivedReport?: boolean,
         isRestrictedToPreferredPolicy?: boolean,
@@ -141,16 +141,12 @@ function AccessOrNotFoundWrapper({
     featureName,
     ...props
 }: AccessOrNotFoundWrapperProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        canBeMissing: true,
-    });
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        canBeMissing: true,
-    });
-    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const {login = ''} = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
     const isFromGlobalCreate = !!reportID && isEmptyObject(report?.reportID);
@@ -177,9 +173,9 @@ function AccessOrNotFoundWrapper({
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
         if (variant === CONST.IOU.ACCESS_VARIANTS.CREATE) {
-            return acc && accessFunction(policy, login, report, allPolicies ?? null, allBetas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
+            return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
         }
-        return acc && accessFunction(policy, login, report, allPolicies ?? null, allBetas, iouType, isReportArchived);
+        return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived);
     }, true);
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy, login);
@@ -188,7 +184,7 @@ function AccessOrNotFoundWrapper({
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.
     useEffect(() => {
-        if (!isFocused || isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled) || shouldShowNotFoundPage) {
+        if (!isFocused || isEmptyObject(policy) || isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled) || shouldShowNotFoundPage) {
             return;
         }
 

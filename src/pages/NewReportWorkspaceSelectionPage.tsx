@@ -58,22 +58,22 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
+    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
-    const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, email ?? '');
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
 
@@ -91,7 +91,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [policiesWithEmptyReports] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
         {
-            canBeMissing: true,
             selector: policiesWithEmptyReportsSelector,
         },
         [policiesWithEmptyReportsSelector],
@@ -122,7 +121,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 isASAPSubmitBetaEnabled,
                 hasViolations,
                 policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
-                allBetas,
+                betas,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
@@ -171,10 +170,10 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             navigateToNewReport,
             allReportNextSteps,
             backTo,
-            allBetas,
             allTransactions,
             activePolicyID,
             clearSelectedTransactions,
+            betas,
         ],
     );
 
@@ -261,15 +260,19 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             return [];
         }
 
-        return Object.values(policies)
-            .filter(
-                (policy) =>
-                    shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) &&
-                    !policy?.isJoinRequestPending &&
-                    policy?.isPolicyExpenseChatEnabled &&
-                    (!hasPerDiemTransactions || canSubmitPerDiemExpenseFromWorkspace(policy)),
-            )
-            .map((policy, index) => ({
+        const result = [];
+        let index = 0;
+        for (const policy of Object.values(policies)) {
+            if (
+                policy?.isJoinRequestPending ||
+                !policy?.isPolicyExpenseChatEnabled ||
+                !shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) ||
+                (hasPerDiemTransactions && !canSubmitPerDiemExpenseFromWorkspace(policy))
+            ) {
+                continue;
+            }
+
+            result.push({
                 text: policy?.name ?? '',
                 policyID: policy?.id,
                 icons: [
@@ -284,8 +287,11 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 keyForList: `${policy?.id}-${index}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
                 shouldSyncFocus: true,
-            }))
-            .sort((a, b) => localeCompare(a.text, b.text));
+            });
+            index++;
+        }
+
+        return result.sort((a, b) => localeCompare(a.text, b.text));
     }, [policies, currentUserPersonalDetails?.login, localeCompare, hasPerDiemTransactions, icons.FallbackWorkspaceAvatar]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(

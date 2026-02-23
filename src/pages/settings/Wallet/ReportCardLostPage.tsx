@@ -7,12 +7,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SingleOptionSelector from '@components/SingleOptionSelector';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ReplacementReason} from '@libs/actions/Card';
 import {setErrors} from '@libs/actions/FormActions';
-import {filterPersonalCards} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -57,9 +57,9 @@ function ReportCardLostPage({
 
     const {translate} = useLocalize();
 
-    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, {canBeMissing: true});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
+    const cardList = useNonPersonalCardList();
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     const [reason, setReason] = useState<Option>();
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);

@@ -1,14 +1,15 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEReceipt from '@hooks/useEReceipt';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterPersonalCards, getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
+import {getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails} from '@libs/ReportUtils';
@@ -16,6 +17,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
+import EReceiptBody from './EReceiptBody';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
 import type {TransactionListItemType} from './SelectionListWithSections/types';
@@ -41,11 +43,11 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyList();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody', 'ExpensifyWordmark']);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
+    const cardList = useNonPersonalCardList();
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
 
@@ -62,7 +64,8 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
     const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
-    const cardDescription = getCompanyCardDescription(transactionCardName, transactionCardID, cardList) ?? (transactionCardID ? getCardDescription(cardList?.[transactionCardID]) : '');
+    const cardDescription =
+        getCompanyCardDescription(transactionCardName, transactionCardID, cardList) ?? (transactionCardID ? getCardDescription(cardList?.[transactionCardID], translate) : '');
     const secondaryBgcolorStyle = secondaryColor ? StyleUtils.getBackgroundColorStyle(secondaryColor) : undefined;
     const primaryTextColorStyle = primaryColor ? StyleUtils.getColorStyle(primaryColor) : undefined;
     const titleTextColorStyle = titleColor ? StyleUtils.getColorStyle(titleColor) : undefined;
@@ -89,11 +92,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                 </View>
                 <View style={styles.eReceiptContentContainer}>
                     <View>
-                        <ImageSVG
-                            src={icons.ReceiptBody}
-                            fill={theme.textColorfulBackground}
-                            contentFit="fill"
-                        />
+                        <EReceiptBody />
                         <View style={styles.eReceiptContentWrapper}>
                             <View style={[StyleUtils.getBackgroundColorStyle(theme.textColorfulBackground), styles.alignItemsCenter, styles.justifyContentCenter, styles.h100]}>
                                 <View

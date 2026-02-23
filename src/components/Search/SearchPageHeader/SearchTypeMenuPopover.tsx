@@ -3,9 +3,11 @@ import Button from '@components/Button';
 import PopoverMenu from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSearchTypeMenu from '@hooks/useSearchTypeMenu';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 type SearchTypeMenuNarrowProps = {
     queryJSON: SearchQueryJSON;
@@ -13,7 +15,8 @@ type SearchTypeMenuNarrowProps = {
 
 function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const styles = useThemeStyles();
-    const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, DeleteConfirmModal, windowHeight} = useSearchTypeMenu(queryJSON);
+    const {translate} = useLocalize();
+    const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, windowHeight} = useSearchTypeMenu(queryJSON);
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
@@ -25,6 +28,8 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
             <Button
                 icon={expensifyIcons.Menu}
                 onPress={openMenu}
+                accessibilityLabel={translate('search.filtersHeader')}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_BUTTON}
             />
             {!delayPopoverMenuFirstRender && (
                 <PopoverMenu
@@ -33,6 +38,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                     anchorPosition={styles.createMenuPositionSearchBar(windowHeight)}
                     onClose={closeMenu}
                     onItemSelected={closeMenu}
+                    badgeStyle={styles.todoBadge}
                     anchorRef={buttonRef}
                     shouldUseScrollView
                     shouldUseModalPaddingStyle={false}
@@ -41,10 +47,6 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                     scrollContainerStyle={styles.pv0}
                 />
             )}
-            {/* DeleteConfirmModal is a stable JSX element returned by the hook.
-                Returning the element directly keeps the component identity across re-renders so React
-                can play its exit animation instead of removing it instantly. */}
-            {DeleteConfirmModal}
         </>
     );
 }

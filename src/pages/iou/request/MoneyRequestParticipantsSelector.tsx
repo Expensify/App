@@ -1,6 +1,3 @@
-import reportsSelector from '@selectors/Attributes';
-import {emailSelector} from '@selectors/Session';
-import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -20,15 +17,18 @@ import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useContactImport from '@hooks/useContactImport';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionDraftValues from '@hooks/useTransactionDraftValues';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
@@ -113,14 +113,17 @@ function MoneyRequestParticipantsSelector({
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserLogin = currentUserPersonalDetails.login;
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const reportAttributesDerived = useReportAttributes();
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -130,15 +133,12 @@ function MoneyRequestParticipantsSelector({
     const activeAdminWorkspaces = useMemo(() => getActiveAdminWorkspaces(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
-    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftValuesSelector,
-        canBeMissing: true,
-    });
+    const optimisticTransactions = useTransactionDraftValues();
 
     // This is necessary to prevent showing the Manager McTest when there are multiple transactions being created
-    const hasMultipleTransactions = (optimisticTransactions ?? []).length > 1;
+    const hasMultipleTransactions = optimisticTransactions.length > 1;
     const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]) && !hasMultipleTransactions;
 
     /**
@@ -250,7 +250,7 @@ function MoneyRequestParticipantsSelector({
                 !!availableOptions?.userToInvite,
                 debouncedSearchTerm.trim(),
                 countryCode,
-                participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
+                participants.some((participant) => getPersonalDetailSearchTerms(participant, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [
@@ -263,6 +263,7 @@ function MoneyRequestParticipantsSelector({
             debouncedSearchTerm,
             participants,
             countryCode,
+            currentUserAccountID,
         ],
     );
 
@@ -287,13 +288,15 @@ function MoneyRequestParticipantsSelector({
             participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
             [],
             [],
+            currentUserAccountID,
             personalDetails,
             true,
             undefined,
             reportAttributesDerived,
         );
-
-        newSections.push(formatResults.section);
+        // Just a temporary fix to satisfy the type checker
+        // Will be fixed when migrating to use new SelectionListWithSections
+        newSections.push({...formatResults.section, title: undefined, shouldShow: true});
 
         newSections.push({
             title: translate('workspace.common.workspace'),
@@ -331,6 +334,7 @@ function MoneyRequestParticipantsSelector({
                     status: availableOptions.userToInvite?.status ?? undefined,
                 },
                 loginList,
+                currentUserEmail,
             ) &&
             !isPerDiemRequest
         ) {
@@ -338,7 +342,9 @@ function MoneyRequestParticipantsSelector({
                 title: undefined,
                 data: [availableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat
+                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -368,6 +374,8 @@ function MoneyRequestParticipantsSelector({
         isPerDiemRequest,
         showImportContacts,
         inputHelperText,
+        currentUserAccountID,
+        currentUserEmail,
     ]);
 
     /**
@@ -461,6 +469,7 @@ function MoneyRequestParticipantsSelector({
                         pressOnEnter
                         large
                         isDisabled={shouldShowSplitBillErrorMessage}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_NEXT_BUTTON}
                     />
                 )}
                 {isCategorizeOrShareAction && (
@@ -470,6 +479,7 @@ function MoneyRequestParticipantsSelector({
                         onPress={() => onFinish()}
                         pressOnEnter
                         large
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_NEW_WORKSPACE_BUTTON}
                     />
                 )}
             </>
@@ -515,6 +525,7 @@ function MoneyRequestParticipantsSelector({
                 icon={icons.UserPlus}
                 onPress={goToSettings}
                 shouldShowRightIcon
+                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.PARTICIPANTS_IMPORT_CONTACTS_ITEM}
             />
         );
     }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, translate]);

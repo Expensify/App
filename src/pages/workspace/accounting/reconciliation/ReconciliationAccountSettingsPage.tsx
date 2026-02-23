@@ -41,8 +41,8 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     const connectionName = getConnectionNameFromRouteParam(connection);
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
 
     const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID?.toString() ?? ''], [paymentBankAccountID, bankAccountList]);
@@ -92,10 +92,11 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}</Text>
             <View style={[styles.textNormal, styles.mb6, styles.ph5, styles.renderHTML, styles.flexRow]}>
                 <RenderHTML
-                    html={translate('workspace.accounting.chooseReconciliationAccount.settlementAccountReconciliation', {
-                        settlementAccountUrl: `${environmentURL}/${ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute())}`,
-                        lastFourPAN: settlementAccountEnding,
-                    })}
+                    html={translate(
+                        'workspace.accounting.chooseReconciliationAccount.settlementAccountReconciliation',
+                        `${environmentURL}/${ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute())}`,
+                        settlementAccountEnding,
+                    )}
                 />
             </View>
 

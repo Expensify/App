@@ -4,9 +4,9 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
 export default function useDefaultExpensePolicy() {
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {login = ''} = useCurrentUserPersonalDetails();
 
     if (isPaidGroupPolicy(activePolicy) && isPolicyAccessible(activePolicy, login)) {
@@ -14,10 +14,19 @@ export default function useDefaultExpensePolicy() {
     }
 
     // If there is exactly one group policy, use that as the default expense policy
-    const groupPolicies = Object.values(allPolicies ?? {}).filter((policy) => isPaidGroupPolicy(policy) && isPolicyAccessible(policy, login));
-    if (groupPolicies.length === 1) {
-        return groupPolicies.at(0);
+    let singlePolicy;
+    for (const policy of Object.values(allPolicies ?? {})) {
+        if (!policy || !isPaidGroupPolicy(policy) || !isPolicyAccessible(policy, login)) {
+            continue;
+        }
+
+        if (!singlePolicy) {
+            singlePolicy = policy;
+        } else {
+            singlePolicy = undefined;
+            break;
+        }
     }
 
-    return undefined;
+    return singlePolicy;
 }

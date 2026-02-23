@@ -36,7 +36,7 @@ import type ValidateCodeFormProps from './types';
 type BaseValidateCodeFormProps = WithToggleVisibilityViewProps &
     ValidateCodeFormProps & {
         /** Specifies autocomplete hints for the system, so it can provide autofill */
-        autoComplete: 'sms-otp' | 'one-time-code';
+        autoComplete: typeof CONST.AUTO_COMPLETE_VARIANTS.SMS_OTP | typeof CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE;
     };
 
 type BaseValidateCodeFormRef = {
@@ -48,10 +48,10 @@ type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryC
 type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
 function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible, ref}: BaseValidateCodeFormProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
@@ -352,6 +352,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                         disabled={isValidateCodeFormSubmitting}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={isUsingRecoveryCode ? translate('recoveryCodeForm.use2fa') : translate('recoveryCodeForm.useRecoveryCode')}
+                        sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.SWITCH_BETWEEN_METHODS}
                     >
                         <Text style={[styles.link]}>{isUsingRecoveryCode ? translate('recoveryCodeForm.use2fa') : translate('recoveryCodeForm.useRecoveryCode')}</Text>
                     </PressableWithFeedback>
@@ -394,6 +395,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                                 pressDimmingValue={0.2}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                                sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.RESEND_CODE}
                             >
                                 <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>
                                     {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate('validateCodeForm.magicCodeNotReceived')}
@@ -412,6 +414,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     text={translate('common.signIn')}
                     isLoading={isValidateCodeFormSubmitting}
                     onPress={validateAndSubmitForm}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.SIGN_IN_BUTTON}
                 />
                 <ChangeExpensifyLoginLink onPress={clearSignInData} />
             </View>
@@ -421,6 +424,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         </SafariFormWrapper>
     );
 }
+
+BaseValidateCodeForm.displayName = 'SignInBaseValidateCodeForm';
 
 export default withToggleVisibilityView(BaseValidateCodeForm);
 

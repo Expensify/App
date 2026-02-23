@@ -14,51 +14,26 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resetFailedWorkspaceCompanyCardAssignment} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeedWithDomainID, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
+import {getCardFeedWithDomainID, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, PersonalDetails} from '@src/types/onyx';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CardAssignmentData} from '@src/types/onyx/Card';
 
-type WorkspaceCompanyCardTableItemData = {
-    /**
-     * The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234").
-     */
-    cardName: string;
-
-    /**
-     * The card identifier sent to backend.
-     * For direct feeds (Plaid/OAuth): equals cardName
-     * For commercial feeds (Visa/Mastercard/Amex): encrypted value
-     */
-    encryptedCardNumber: string;
-
-    /** User-defined name for the card (e.g., "John's card") */
-    customCardName?: string;
-
-    /** Cardholder personal details */
-    cardholder?: PersonalDetails | null;
-
-    /** Assigned card */
-    assignedCard: Card | undefined;
-
-    /** Failed company card assignment */
-    hasFailedCardAssignment: boolean;
-
-    /** Errors */
-    errors?: Errors;
-
-    /** Pending action */
-    pendingAction?: PendingAction;
-
+type WorkspaceCompanyCardTableItemData = CardAssignmentData & {
     /** Whether the card is deleted */
     isCardDeleted: boolean;
 
     /** Whether the card is assigned */
     isAssigned: boolean;
+
+    /** Assigned card */
+    assignedCard?: Card;
+
+    /** On dismiss error callback */
+    onDismissError?: () => void;
 };
 
 type WorkspaceCompanyCardTableItemProps = {
@@ -67,12 +42,6 @@ type WorkspaceCompanyCardTableItemProps = {
 
     /** Policy ID */
     policyID: string;
-
-    /** Feed name */
-    feed: CompanyCardFeedWithDomainID | undefined;
-
-    /** Domain or workspace account ID */
-    domainOrWorkspaceAccountID: number;
 
     /** Card feed icon element */
     CardFeedIcon?: React.ReactNode;
@@ -100,8 +69,6 @@ type WorkspaceCompanyCardTableItemProps = {
 function WorkspaceCompanyCardTableItem({
     item,
     policyID,
-    feed,
-    domainOrWorkspaceAccountID,
     CardFeedIcon,
     isPlaidCardFeed,
     shouldUseNarrowTableLayout,
@@ -115,7 +82,7 @@ function WorkspaceCompanyCardTableItem({
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {isOffline} = useNetwork();
 
-    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, isCardDeleted, hasFailedCardAssignment, errors, pendingAction} = item;
+    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, isCardDeleted, errors, pendingAction, onDismissError} = item;
 
     const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
     const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? Str.removeSMSDomain(cardholder?.login ?? '') : undefined;
@@ -123,14 +90,6 @@ function WorkspaceCompanyCardTableItem({
 
     const leftColumnTitle = isAssigned ? Str.removeSMSDomain(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const leftColumnSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
-
-    const resetFailedCompanyCardAssignment = () => {
-        if (!hasFailedCardAssignment) {
-            return;
-        }
-
-        resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, feed, encryptedCardNumber);
-    };
 
     const assignCard = () => onAssignCard(cardName, encryptedCardNumber);
     const isDeleting = !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -140,7 +99,7 @@ function WorkspaceCompanyCardTableItem({
             errorRowStyles={[styles.ph5, styles.mb4]}
             errors={errors}
             pendingAction={pendingAction}
-            onClose={resetFailedCompanyCardAssignment}
+            onClose={onDismissError}
             shouldHideOnDelete={false}
         >
             {isDeleting ? (
@@ -154,6 +113,7 @@ function WorkspaceCompanyCardTableItem({
                 <PressableWithFeedback
                     role={isAssigned ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                     style={[styles.mh5, styles.flexRow, styles.br3, styles.mb2, styles.highlightBG, styles.overflowHidden]}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
                     accessibilityLabel="row"
                     hoverStyle={isAssigned && styles.hoveredComponentBG}
                     disabled={isCardDeleted}
@@ -169,9 +129,9 @@ function WorkspaceCompanyCardTableItem({
                             return;
                         }
 
-                        const feedName = getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID);
+                        const feedName = getCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID);
 
-                        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, assignedCard.cardID.toString()));
+                        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName as CompanyCardFeedWithDomainID, assignedCard.cardID.toString()));
                     }}
                 >
                     {({hovered}) => (

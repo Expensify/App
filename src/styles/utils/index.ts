@@ -725,6 +725,24 @@ function getPaddingRight(paddingRight: number): ViewStyle {
 }
 
 /**
+ * Extract horizontal padding and border widths from a flattened style object,
+ * respecting RN precedence (specific → horizontal → all).
+ */
+function getTextInputMeasurementStyles(style: ViewStyle): TextStyle {
+    const paddingLeft = style.paddingLeft ?? style.paddingHorizontal ?? style.padding;
+    const paddingRight = style.paddingRight ?? style.paddingHorizontal ?? style.padding;
+    const borderLeftWidth = style.borderLeftWidth ?? style.borderWidth;
+    const borderRightWidth = style.borderRightWidth ?? style.borderWidth;
+
+    return {
+        ...(paddingLeft && {paddingLeft}),
+        ...(paddingRight && {paddingRight}),
+        ...(borderLeftWidth && {borderLeftWidth}),
+        ...(borderRightWidth && {borderRightWidth}),
+    };
+}
+
+/**
  * Get variable padding-bottom as style
  */
 function getPaddingBottom(paddingBottom: number): ViewStyle {
@@ -1342,6 +1360,7 @@ const staticStyleUtils = {
     getCharacterWidth,
     getAmountWidth,
     getBorderRadiusStyle,
+    getTextInputMeasurementStyles,
     getHighResolutionInfoWrapperStyle,
     getItemBackgroundColorStyle,
     getNavigationBarType,
@@ -1743,6 +1762,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.STATUS:
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
+                columnWidth = {...getWidthStyle(variables.w130), ...styles.alignItemsCenter};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
                 columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w92 : variables.w72)};
                 break;
@@ -1763,7 +1785,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w96)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER:
             case CONST.SEARCH.TABLE_COLUMNS.TAG:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:

@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function FloatingGpsButton() {
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {translate} = useLocalize();
 
     const icons = useMemoizedLazyExpensifyIcons(['Location'] as const);
@@ -38,6 +38,7 @@ function FloatingGpsButton() {
             onPress={navigateToGpsScreen}
             role={CONST.ROLE.BUTTON}
             testID="floating-gps-button"
+            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_GPS_BUTTON}
         >
             <View
                 style={styles.floatingSecondaryActionButton}

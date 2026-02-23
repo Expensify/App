@@ -6,14 +6,15 @@ import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import useCurrencyList from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -24,8 +25,8 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {computeReportName} from '@libs/ReportNameUtils';
-import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportNameUtils';
+import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -124,6 +125,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if it is an odometer distance request */
     isOdometerDistanceRequest?: boolean;
+
+    /** Flag indicating if it is a GPS distance request */
+    isGPSDistanceRequest: boolean;
 
     /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
@@ -248,6 +252,7 @@ function MoneyRequestConfirmationListFooter({
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
+    isGPSDistanceRequest,
     isPerDiemRequest,
     isTimeRequest,
     isMerchantEmpty,
@@ -285,32 +290,21 @@ function MoneyRequestConfirmationListFooter({
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid']);
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyList();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const {isOffline} = useNetwork();
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {
-        canBeMissing: true,
-    });
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const reportAttributes = useReportAttributes();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
     const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
-
-    const allOutstandingReports = useMemo(() => {
-        const outstandingReports = Object.values(outstandingReportsByPolicyID ?? {}).flatMap((outstandingReportsPolicy) => Object.values(outstandingReportsPolicy ?? {}));
-
-        return outstandingReports.filter((report) => {
-            const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-            return !isArchivedReport(reportNameValuePair) && isReportOutstanding(report, report?.policyID, reportNameValuePairs, false);
-        });
-    }, [outstandingReportsByPolicyID, reportNameValuePairs]);
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const shouldShowTags = useMemo(
@@ -366,21 +360,19 @@ function MoneyRequestConfirmationListFooter({
     }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
 
     const reportName = useMemo(() => {
-        const name = computeReportName(selectedReport, allReports, allPolicies, undefined, undefined, undefined, undefined, currentUserAccountID);
+        const name = getReportName(selectedReport, reportAttributes);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
         return name;
-    }, [isUnreported, selectedReport, allReports, allPolicies, translate, currentUserAccountID]);
+    }, [isUnreported, selectedReport, reportAttributes, translate]);
 
-    const shouldReportBeEditableFromFAB = isUnreported ? allOutstandingReports.length >= 1 : allOutstandingReports.length > 1;
-
-    const isMovingCurrentTransactionFromTrackExpense = isMovingTransactionFromTrackExpense(action);
-
+    const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false);
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable =
-        (isFromGlobalCreate && !isPerDiemRequest ? shouldReportBeEditableFromFAB : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
+    const shouldReportBeEditable = (isUnreported ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
+
+    const isMovingCurrentTransactionFromTrackExpense = isMovingTransactionFromTrackExpense(action);
     const taxRates = policy?.taxRates ?? (isMovingCurrentTransactionFromTrackExpense ? policyForMovingExpenses?.taxRates : null);
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
@@ -426,6 +418,8 @@ function MoneyRequestConfirmationListFooter({
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
+    // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
+    const shouldShowTimeRequestFields = isTimeRequest && action === CONST.IOU.ACTION.CREATE;
 
     const contextMenuContextValue = useMemo(
         () => ({
@@ -461,12 +455,12 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('iou.amount')}
-                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !isTimeRequest}
+                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    interactive={!isReadOnly && !isTimeRequest}
+                    interactive={!isReadOnly && !shouldShowTimeRequestFields}
                     onPress={() => {
-                        if (isDistanceRequest || isTimeRequest || !transactionID) {
+                        if (isDistanceRequest || shouldShowTimeRequestFields || !transactionID) {
                             return;
                         }
 
@@ -479,6 +473,7 @@ function MoneyRequestConfirmationListFooter({
                     disabled={didConfirm}
                     brickRoadIndicator={shouldDisplayFieldError && isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayFieldError && isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
                 />
             ),
             shouldShow: shouldShowSmartScanFields && shouldShowAmountField,
@@ -509,6 +504,7 @@ function MoneyRequestConfirmationListFooter({
                                 interactive={!isReadOnly}
                                 numberOfLinesTitle={2}
                                 rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
                             />
                         </MentionReportContext.Provider>
                     </ShowContextMenuContext.Provider>
@@ -520,8 +516,8 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
-                    shouldShowRightIcon={!isReadOnly}
-                    title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate)}
+                    shouldShowRightIcon={!isReadOnly && !isGPSDistanceRequest}
+                    title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest)}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -543,7 +539,8 @@ function MoneyRequestConfirmationListFooter({
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     disabled={didConfirm}
-                    interactive={!isReadOnly}
+                    interactive={!isReadOnly && !isGPSDistanceRequest}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DISTANCE_FIELD}
                 />
             ),
             shouldShow: isDistanceRequest,
@@ -581,6 +578,7 @@ function MoneyRequestConfirmationListFooter({
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
                     interactive={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
                 />
             ),
             shouldShow: isDistanceRequest,
@@ -607,6 +605,7 @@ function MoneyRequestConfirmationListFooter({
                     errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
                     rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
                     numberOfLinesTitle={2}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
                 />
             ),
             shouldShow: shouldShowMerchant,
@@ -624,13 +623,14 @@ function MoneyRequestConfirmationListFooter({
                         if (!transactionID) {
                             return;
                         }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS.getRoute(action, iouType, transactionID, reportID, reportActionID));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_HOURS_EDIT.getRoute(action, iouType, transactionID, reportID, reportActionID));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.HOURS_FIELD}
                 />
             ),
-            shouldShow: isTimeRequest,
+            shouldShow: shouldShowTimeRequestFields,
         },
         {
             item: (
@@ -649,9 +649,10 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TIME_RATE_FIELD}
                 />
             ),
-            shouldShow: isTimeRequest,
+            shouldShow: shouldShowTimeRequestFields,
         },
         {
             item: (
@@ -694,6 +695,7 @@ function MoneyRequestConfirmationListFooter({
                     rightLabel={isCategoryRequired ? translate('common.required') : ''}
                     brickRoadIndicator={shouldDisplayCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayCategoryError ? translate(formError) : ''}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.CATEGORY_FIELD}
                 />
             ),
             shouldShow: shouldShowCategories,
@@ -719,6 +721,7 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!isReadOnly}
                     brickRoadIndicator={shouldDisplayFieldError && isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayFieldError && isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD}
                 />
             ),
             shouldShow: shouldShowDate,
@@ -752,6 +755,7 @@ function MoneyRequestConfirmationListFooter({
                         disabled={didConfirm}
                         interactive={!isReadOnly}
                         rightLabel={isTagRequired ? translate('common.required') : ''}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAG_FIELD}
                     />
                 ),
                 shouldShow,
@@ -777,6 +781,7 @@ function MoneyRequestConfirmationListFooter({
                     interactive={canModifyTaxFields}
                     brickRoadIndicator={shouldDisplayTaxRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayTaxRateError ? translate(formError) : ''}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
                 />
             ),
             shouldShow: shouldShowTax,
@@ -799,6 +804,7 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
                 />
             ),
             shouldShow: shouldShowTax,
@@ -825,6 +831,7 @@ function MoneyRequestConfirmationListFooter({
                     shouldRenderAsHTML
                     brickRoadIndicator={shouldDisplayAttendeesError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayAttendeesError ? translate(formError) : ''}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
                 />
             ),
             shouldShow: shouldShowAttendees,
@@ -883,6 +890,7 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     interactive={shouldReportBeEditable}
                     shouldRenderAsHTML
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
                 />
             ),
             shouldShow: isPolicyExpenseChat,
@@ -911,6 +919,7 @@ function MoneyRequestConfirmationListFooter({
             interactive={!isReadOnly}
             brickRoadIndicator={index === 0 && shouldDisplaySubrateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={index === 0 && shouldDisplaySubrateError ? translate('common.error.fieldRequired') : ''}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SUBRATE_FIELD}
         />
     ));
 
@@ -966,6 +975,7 @@ function MoneyRequestConfirmationListFooter({
                         }}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.PDF_RECEIPT_THUMBNAIL}
                         disabled={!shouldDisplayReceipt}
                         disabledStyle={styles.cursorDefault}
                         style={styles.h100}
@@ -994,6 +1004,7 @@ function MoneyRequestConfirmationListFooter({
                         disabled={!shouldDisplayReceipt || isThumbnail}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RECEIPT_THUMBNAIL}
                         disabledStyle={styles.cursorDefault}
                         style={[styles.h100, styles.flex1]}
                     >
@@ -1066,6 +1077,7 @@ function MoneyRequestConfirmationListFooter({
                     labelStyle={styles.mt2}
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SEND_FROM_FIELD}
                 />
             )}
             {shouldShowMap && (
@@ -1089,6 +1101,7 @@ function MoneyRequestConfirmationListFooter({
                         }}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESTINATION_FIELD}
                     />
                     <View style={styles.dividerLine} />
                     <MenuItemWithTopDescription
@@ -1106,6 +1119,7 @@ function MoneyRequestConfirmationListFooter({
                         disabled={didConfirm}
                         interactive={!isReadOnly}
                         numberOfLinesTitle={2}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TIME_FIELD}
                     />
                     <View style={[styles.flexRow, styles.gap1, styles.justifyContentStart, styles.mh3, styles.flexWrap, styles.pt1]}>{badgeElements}</View>
                     <View style={styles.dividerLine} />
