@@ -1,6 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -104,7 +103,6 @@ function ReportActionsView({
     );
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const prevTransactionThreadReport = usePrevious(transactionThreadReport);
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
@@ -113,7 +111,6 @@ function ReportActionsView({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
-    const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(false);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
@@ -229,12 +226,7 @@ function ReportActionsView({
         [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
     );
 
-    const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
-    const lastActionCreated = visibleReportActions.at(0)?.created;
-    const isNewestAction = (actionCreated: string | undefined, lastVisibleActionCreated: string | undefined) =>
-        actionCreated && lastVisibleActionCreated ? actionCreated >= lastVisibleActionCreated : actionCreated === lastVisibleActionCreated;
-    const hasNewestReportAction = isNewestAction(lastActionCreated, report.lastVisibleActionCreated) || isNewestAction(lastActionCreated, transactionThreadReport?.lastVisibleActionCreated);
 
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
     const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
@@ -273,33 +265,6 @@ function ReportActionsView({
 
         markOpenReportEnd(report);
     }, [report]);
-
-    // Check if the first report action in the list is the one we're currently linked to
-    const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;
-
-    useEffect(() => {
-        let timerID: NodeJS.Timeout;
-
-        if (!isTheFirstReportActionIsLinked && reportActionID) {
-            setNavigatingToLinkedMessage(true);
-            // After navigating to the linked reportAction, apply this to correctly set
-            // `autoscrollToTopThreshold` prop when linking to a specific reportAction.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                // Using a short delay to ensure the view is updated after interactions
-                timerID = setTimeout(() => setNavigatingToLinkedMessage(false), 10);
-            });
-        } else {
-            setNavigatingToLinkedMessage(false);
-        }
-
-        return () => {
-            if (!timerID) {
-                return;
-            }
-            clearTimeout(timerID);
-        };
-    }, [isTheFirstReportActionIsLinked, reportActionID]);
 
     // Show skeleton while loading initial report actions when data is incomplete/missing and online
     const shouldShowSkeletonForInitialLoad = isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
