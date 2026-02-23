@@ -8,6 +8,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
@@ -31,7 +32,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {DomainMemberErrors} from '@src/types/onyx/DomainErrors';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 
 type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS>;
 
