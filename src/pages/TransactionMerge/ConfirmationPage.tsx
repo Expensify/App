@@ -19,7 +19,6 @@ import usePermissions from '@hooks/usePermissions';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {buildMergedTransactionData, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -100,9 +99,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
         if (isOffline) {
             Navigation.dismissToSuperWideRHP();
-            if (!getIsNarrowLayout()) {
-                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
-            }
             return;
         }
         // If we're on search, dismiss the modal and stay on search
