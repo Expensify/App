@@ -36,15 +36,29 @@ function useConciergeSidePanelReportActions({
         setPrevHasUserSentMessage(hasUserSentMessage);
     }
 
-    const hasPreviousMessages = useMemo(() => {
+    // Check if the user had sent any message BEFORE this session started.
+    // Uses sessionStartActionIDs so the value is stable within a session —
+    // it won't flip when the user sends their first-ever message mid-session.
+    // On a brand-new account (no prior user messages) the original onboarding
+    // messages remain visible instead of being replaced by the custom greeting.
+    const hadUserMessageAtSessionStart = useMemo(() => {
         if (!isConciergeSidePanel || !sessionStartActionIDs) {
             return false;
         }
-        return visibleReportActions.some((action) => !isCreatedAction(action) && sessionStartActionIDs.has(action.reportActionID));
-    }, [isConciergeSidePanel, visibleReportActions, sessionStartActionIDs]);
+        return visibleReportActions.some(
+            (action) => !isCreatedAction(action) && sessionStartActionIDs.has(action.reportActionID) && action.actorAccountID === currentUserAccountID,
+        );
+    }, [isConciergeSidePanel, visibleReportActions, sessionStartActionIDs, currentUserAccountID]);
 
-    const showConciergeSidePanelWelcome = isConciergeSidePanel && !hasUserSentMessage && !showFullHistory;
-    const showConciergeGreeting = isConciergeSidePanel && !showFullHistory;
+    const hasPreviousMessages = useMemo(() => {
+        if (!isConciergeSidePanel || !sessionStartActionIDs || !hadUserMessageAtSessionStart) {
+            return false;
+        }
+        return visibleReportActions.some((action) => !isCreatedAction(action) && sessionStartActionIDs.has(action.reportActionID));
+    }, [isConciergeSidePanel, visibleReportActions, sessionStartActionIDs, hadUserMessageAtSessionStart]);
+
+    const showConciergeSidePanelWelcome = isConciergeSidePanel && hadUserMessageAtSessionStart && !hasUserSentMessage && !showFullHistory;
+    const showConciergeGreeting = isConciergeSidePanel && hadUserMessageAtSessionStart && !showFullHistory;
 
     const conciergeGreetingAction = useMemo(() => {
         if (!showConciergeGreeting) {
@@ -81,7 +95,7 @@ function useConciergeSidePanelReportActions({
                 const createdAction = actions.find(isCreatedAction);
                 return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
             }
-            if (!isConciergeSidePanel || showFullHistory) {
+            if (!isConciergeSidePanel || showFullHistory || !hadUserMessageAtSessionStart) {
                 return actions;
             }
             const filtered = actions.filter(isCurrentSessionAction);
@@ -91,7 +105,7 @@ function useConciergeSidePanelReportActions({
             }
             return filtered;
         },
-        [showConciergeSidePanelWelcome, conciergeGreetingAction, isConciergeSidePanel, showFullHistory, isCurrentSessionAction],
+        [showConciergeSidePanelWelcome, conciergeGreetingAction, isConciergeSidePanel, showFullHistory, isCurrentSessionAction, hadUserMessageAtSessionStart],
     );
 
     const filteredVisibleActions = useMemo(() => filterActions(visibleReportActions), [filterActions, visibleReportActions]);
