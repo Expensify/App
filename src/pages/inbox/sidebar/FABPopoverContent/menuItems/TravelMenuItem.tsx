@@ -1,14 +1,17 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import FocusableMenuItem from '@components/FocusableMenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import FABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABMenuItem';
+import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,11 +21,18 @@ import type * as OnyxTypes from '@src/types/onyx';
 type TravelMenuItemProps = {
     icons: MenuItemIcons;
     activePolicyID: string | undefined;
+    /** Injected by FABPopoverMenu via React.cloneElement */
+    itemIndex?: number;
 };
 
 const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => account?.primaryLogin;
 
-function TravelMenuItem({icons, activePolicyID}: TravelMenuItemProps) {
+function useTravelMenuItemVisible(activePolicyID: string | undefined): boolean {
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    return !!activePolicy?.isTravelEnabled;
+}
+
+function TravelMenuItem({icons, activePolicyID, itemIndex = -1}: TravelMenuItemProps) {
     const {translate} = useLocalize();
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
@@ -31,6 +41,9 @@ function TravelMenuItem({icons, activePolicyID}: TravelMenuItemProps) {
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
+    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
 
     const isTravelEnabled = useMemo(() => {
         if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
@@ -48,20 +61,22 @@ function TravelMenuItem({icons, activePolicyID}: TravelMenuItemProps) {
         Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
     }, [activePolicy?.id, isTravelEnabled]);
 
-    if (!activePolicy?.isTravelEnabled) {
-        return null;
-    }
-
     return (
-        <FABMenuItem
-            registryId={CONST.SENTRY_LABEL.FAB_MENU.BOOK_TRAVEL}
+        <FocusableMenuItem
+            pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.BOOK_TRAVEL}
             icon={icons.Suitcase}
-            text={translate('travel.bookTravel')}
-            rightIcon={isTravelEnabled && shouldOpenTravelDotLinkWeb() ? icons.NewWindow : undefined}
-            onSelected={() => interceptAnonymousUser(() => openTravel())}
-            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.BOOK_TRAVEL}
+            title={translate('travel.bookTravel')}
+            iconRight={isTravelEnabled && shouldOpenTravelDotLinkWeb() ? icons.NewWindow : undefined}
+            shouldShowRightIcon={!!(isTravelEnabled && shouldOpenTravelDotLinkWeb())}
+            focused={focusedIndex === itemIndex}
+            onFocus={() => setFocusedIndex(itemIndex)}
+            onPress={() => onItemPress(() => interceptAnonymousUser(() => openTravel()))}
+            shouldCheckActionAllowedOnPress={false}
+            role={CONST.ROLE.BUTTON}
+            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === itemIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
         />
     );
 }
 
+export {useTravelMenuItemVisible};
 export default TravelMenuItem;

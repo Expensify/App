@@ -1,11 +1,14 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import FocusableMenuItem from '@components/FocusableMenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {canSendInvoice as canSendInvoicePolicyUtils} from '@libs/PolicyUtils';
-import FABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABMenuItem';
+import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
@@ -16,13 +19,24 @@ type InvoiceMenuItemProps = {
     shouldUseNarrowLayout: boolean;
     icons: MenuItemIcons;
     reportID: string;
+    /** Injected by FABPopoverMenu via React.cloneElement */
+    itemIndex?: number;
 };
 
-function InvoiceMenuItem({shouldUseNarrowLayout, icons, reportID}: InvoiceMenuItemProps) {
+function useInvoiceMenuItemVisible(): boolean {
+    const {allPolicies} = useRedirectToExpensifyClassic();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    return canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email);
+}
+
+function InvoiceMenuItem({shouldUseNarrowLayout, icons, reportID, itemIndex = -1}: InvoiceMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal, allPolicies} = useRedirectToExpensifyClassic();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
 
     const canSendInvoice = canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email);
 
@@ -31,23 +45,31 @@ function InvoiceMenuItem({shouldUseNarrowLayout, icons, reportID}: InvoiceMenuIt
     }
 
     return (
-        <FABMenuItem
-            registryId={CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE}
+        <FocusableMenuItem
+            pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE}
             icon={icons.InvoiceGeneric}
-            text={translate('workspace.invoices.sendInvoice')}
-            shouldCallAfterModalHide={shouldRedirectToExpensifyClassic || shouldUseNarrowLayout}
-            onSelected={() =>
-                interceptAnonymousUser(() => {
-                    if (shouldRedirectToExpensifyClassic) {
-                        showRedirectToExpensifyClassicModal();
-                        return;
-                    }
-                    startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts, true);
-                })
+            title={translate('workspace.invoices.sendInvoice')}
+            focused={focusedIndex === itemIndex}
+            onFocus={() => setFocusedIndex(itemIndex)}
+            onPress={() =>
+                onItemPress(
+                    () =>
+                        interceptAnonymousUser(() => {
+                            if (shouldRedirectToExpensifyClassic) {
+                                showRedirectToExpensifyClassicModal();
+                                return;
+                            }
+                            startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts, true);
+                        }),
+                    {shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout},
+                )
             }
-            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE}
+            shouldCheckActionAllowedOnPress={false}
+            role={CONST.ROLE.BUTTON}
+            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === itemIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
         />
     );
 }
 
+export {useInvoiceMenuItemVisible};
 export default InvoiceMenuItem;

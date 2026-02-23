@@ -1,19 +1,16 @@
-import React, {useState} from 'react';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
-import PopoverMenu from '@components/PopoverMenu';
+import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import CONST from '@src/CONST';
-import FABMenuRegistry from './FABMenuRegistry';
-import CreateReportMenuItem from './menuItems/CreateReportMenuItem';
+import FABPopoverMenu from './FABPopoverMenu';
+import CreateReportMenuItem, {useCreateReportMenuItemVisible} from './menuItems/CreateReportMenuItem';
 import ExpenseMenuItem from './menuItems/ExpenseMenuItem';
-import InvoiceMenuItem from './menuItems/InvoiceMenuItem';
+import InvoiceMenuItem, {useInvoiceMenuItemVisible} from './menuItems/InvoiceMenuItem';
 import NewChatMenuItem from './menuItems/NewChatMenuItem';
-import NewWorkspaceMenuItem from './menuItems/NewWorkspaceMenuItem';
-import QuickActionMenuItem from './menuItems/QuickActionMenuItem';
-import TestDriveMenuItem from './menuItems/TestDriveMenuItem';
+import NewWorkspaceMenuItem, {useNewWorkspaceMenuItemVisible} from './menuItems/NewWorkspaceMenuItem';
+import QuickActionMenuItem, {useQuickActionMenuItemVisible} from './menuItems/QuickActionMenuItem';
+import TestDriveMenuItem, {useTestDriveMenuItemVisible} from './menuItems/TestDriveMenuItem';
 import TrackDistanceMenuItem from './menuItems/TrackDistanceMenuItem';
-import TravelMenuItem from './menuItems/TravelMenuItem';
+import TravelMenuItem, {useTravelMenuItemVisible} from './menuItems/TravelMenuItem';
 import type {FABPopoverContentInnerProps} from './types';
 
 type FABPopoverContentInnerExtraProps = FABPopoverContentInnerProps & {
@@ -53,72 +50,74 @@ function FABPopoverContentInner({
         'Clock',
     ] as const);
 
-    const [menuItems, setMenuItems] = useState<PopoverMenuItem[]>([]);
+    const showQuickAction = useQuickActionMenuItemVisible();
+    const showInvoice = useInvoiceMenuItemVisible();
+    const showTravel = useTravelMenuItemVisible(activePolicyID);
+    const showTestDrive = useTestDriveMenuItemVisible();
+    const showNewWorkspace = useNewWorkspaceMenuItemVisible();
+    const showCreateReport = useCreateReportMenuItemVisible();
 
     return (
-        <>
-            <FABMenuRegistry onItemsChange={setMenuItems}>
-                <ExpenseMenuItem
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                    icons={icons}
-                    reportID={reportID}
-                />
-                <TrackDistanceMenuItem
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                    icons={icons}
-                    reportID={reportID}
-                />
-                <CreateReportMenuItem
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                    icons={icons}
-                    activePolicyID={activePolicyID}
-                />
-                <NewChatMenuItem
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                    icons={icons}
-                />
-                <InvoiceMenuItem
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                    icons={icons}
-                    reportID={reportID}
-                />
-                <TravelMenuItem
-                    icons={icons}
-                    activePolicyID={activePolicyID}
-                />
-                <TestDriveMenuItem icons={icons} />
-                <NewWorkspaceMenuItem
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                    icons={icons}
-                />
+        <FABPopoverMenu
+            isVisible={isVisible}
+            onClose={onClose}
+            onItemSelected={onItemSelected}
+            onModalHide={onModalHide}
+            anchorPosition={anchorPosition}
+            anchorRef={anchorRef}
+            fromSidebarMediumScreen={!shouldUseNarrowLayout}
+            animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
+            animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
+        >
+            {showQuickAction && (
                 <QuickActionMenuItem
                     shouldUseNarrowLayout={shouldUseNarrowLayout}
                     icons={icons}
                     reportID={reportID}
                 />
-            </FABMenuRegistry>
-            <PopoverMenu
-                onClose={onClose}
-                shouldEnableMaxHeight={false}
-                isVisible={isVisible}
-                anchorPosition={anchorPosition}
-                onItemSelected={onItemSelected}
-                onModalHide={onModalHide}
-                fromSidebarMediumScreen={!shouldUseNarrowLayout}
-                animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
-                animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
-                menuItems={menuItems.map((item) => ({
-                    ...item,
-                    onSelected: () => {
-                        if (!item.onSelected) {
-                            return;
-                        }
-                        navigateAfterInteraction(item.onSelected);
-                    },
-                }))}
-                anchorRef={anchorRef}
+            )}
+            <ExpenseMenuItem
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                icons={icons}
+                reportID={reportID}
             />
-        </>
+            <TrackDistanceMenuItem
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                icons={icons}
+                reportID={reportID}
+            />
+            {showCreateReport && (
+                <CreateReportMenuItem
+                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                    icons={icons}
+                    activePolicyID={activePolicyID}
+                />
+            )}
+            <NewChatMenuItem
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                icons={icons}
+            />
+            {showInvoice && (
+                <InvoiceMenuItem
+                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                    icons={icons}
+                    reportID={reportID}
+                />
+            )}
+            {showTravel && (
+                <TravelMenuItem
+                    icons={icons}
+                    activePolicyID={activePolicyID}
+                />
+            )}
+            {showTestDrive && <TestDriveMenuItem icons={icons} />}
+            {showNewWorkspace && (
+                <NewWorkspaceMenuItem
+                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                    icons={icons}
+                />
+            )}
+        </FABPopoverMenu>
     );
 }
 

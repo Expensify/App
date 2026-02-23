@@ -1,12 +1,15 @@
 import {groupPaidPoliciesWithExpenseChatEnabledSelector} from '@selectors/Policy';
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import FocusableMenuItem from '@components/FocusableMenuItem';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -15,7 +18,7 @@ import {getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
-import FABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABMenuItem';
+import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
@@ -28,11 +31,26 @@ type CreateReportMenuItemProps = {
     shouldUseNarrowLayout: boolean;
     icons: MenuItemIcons;
     activePolicyID: string | undefined;
+    /** Injected by FABPopoverMenu via React.cloneElement */
+    itemIndex?: number;
 };
 
 const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
 
-function CreateReportMenuItem({shouldUseNarrowLayout, icons, activePolicyID}: CreateReportMenuItemProps) {
+function useCreateReportMenuItemVisible(): boolean {
+    const {shouldRedirectToExpensifyClassic} = useRedirectToExpensifyClassic();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
+
+    const groupPaidPoliciesWithChatEnabled = useCallback(
+        (policies: Parameters<typeof groupPaidPoliciesWithExpenseChatEnabledSelector>[0]) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, session?.email),
+        [session?.email],
+    );
+    const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabled, canBeMissing: true}, [session?.email]);
+
+    return shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
+}
+
+function CreateReportMenuItem({shouldUseNarrowLayout, icons, activePolicyID, itemIndex = -1}: CreateReportMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
@@ -44,6 +62,9 @@ function CreateReportMenuItem({shouldUseNarrowLayout, icons, activePolicyID}: Cr
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
 
     const groupPaidPoliciesWithChatEnabled = useCallback(
         (policies: Parameters<typeof groupPaidPoliciesWithExpenseChatEnabledSelector>[0]) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, session?.email),
@@ -51,8 +72,6 @@ function CreateReportMenuItem({shouldUseNarrowLayout, icons, activePolicyID}: Cr
     );
 
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabled, canBeMissing: true}, [session?.email]);
-
-    const shouldShowCreateReportOption = shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
 
     const defaultChatEnabledPolicy = useMemo(
         () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
@@ -104,44 +123,51 @@ function CreateReportMenuItem({shouldUseNarrowLayout, icons, activePolicyID}: Cr
 
     return (
         <>
-            {shouldShowCreateReportOption && (
-                <FABMenuItem
-                    registryId={CONST.SENTRY_LABEL.FAB_MENU.CREATE_REPORT}
-                    icon={icons.Document}
-                    text={translate('report.newReport.createReport')}
-                    shouldCallAfterModalHide={shouldUseNarrowLayout}
-                    onSelected={() => {
-                        interceptAnonymousUser(() => {
-                            if (shouldRedirectToExpensifyClassic) {
-                                showRedirectToExpensifyClassicModal();
-                                return;
-                            }
-
-                            const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
-
-                            if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
-                                Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
-                                return;
-                            }
-
-                            if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                if (shouldShowEmptyReportConfirmation) {
-                                    openCreateReportConfirmation();
-                                } else {
-                                    handleCreateWorkspaceReport(false);
+            <FocusableMenuItem
+                pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.CREATE_REPORT}
+                icon={icons.Document}
+                title={translate('report.newReport.createReport')}
+                focused={focusedIndex === itemIndex}
+                onFocus={() => setFocusedIndex(itemIndex)}
+                onPress={() =>
+                    onItemPress(
+                        () => {
+                            interceptAnonymousUser(() => {
+                                if (shouldRedirectToExpensifyClassic) {
+                                    showRedirectToExpensifyClassicModal();
+                                    return;
                                 }
-                                return;
-                            }
 
-                            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-                        });
-                    }}
-                    sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.CREATE_REPORT}
-                />
-            )}
+                                const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
+
+                                if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
+                                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                                    return;
+                                }
+
+                                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
+                                    if (shouldShowEmptyReportConfirmation) {
+                                        openCreateReportConfirmation();
+                                    } else {
+                                        handleCreateWorkspaceReport(false);
+                                    }
+                                    return;
+                                }
+
+                                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+                            });
+                        },
+                        {shouldCallAfterModalHide: shouldUseNarrowLayout},
+                    )
+                }
+                shouldCheckActionAllowedOnPress={false}
+                role={CONST.ROLE.BUTTON}
+                wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === itemIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
+            />
             {CreateReportConfirmationModal}
         </>
     );
 }
 
+export {useCreateReportMenuItemVisible};
 export default CreateReportMenuItem;

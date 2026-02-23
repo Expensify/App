@@ -1,11 +1,14 @@
 import React, {useCallback} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import FocusableMenuItem from '@components/FocusableMenuItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
@@ -22,7 +25,7 @@ import {
     isPolicyExpenseChat,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import FABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABMenuItem';
+import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,9 +41,42 @@ type QuickActionMenuItemProps = {
     shouldUseNarrowLayout: boolean;
     icons: MenuItemIcons;
     reportID: string;
+    /** Injected by FABPopoverMenu via React.cloneElement */
+    itemIndex?: number;
 };
 
-function QuickActionMenuItem({shouldUseNarrowLayout, icons, reportID}: QuickActionMenuItemProps) {
+function useQuickActionMenuItemVisible(): boolean {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`, {canBeMissing: true});
+    const quickActionPolicyID = quickAction?.action === CONST.QUICK_ACTIONS.TRACK_PER_DIEM && quickAction?.perDiemPolicyID ? quickAction?.perDiemPolicyID : quickActionReport?.policyID;
+    const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionPolicyID}`, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+
+    const workspaceChatsSelector = useCallback(
+        (reports: OnyxCollection<OnyxTypes.Report>) => getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], reports),
+        [activePolicyID, session?.accountID],
+    );
+    const [policyChats = getEmptyArray<OnyxTypes.Report>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: workspaceChatsSelector, canBeMissing: true});
+
+    const policyChatForActivePolicy: OnyxTypes.Report =
+        !isEmptyObject(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
+
+    if (quickAction?.action && quickActionReport) {
+        if (!isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, isRestrictedToPreferredPolicy)) {
+            return false;
+        }
+        return true;
+    }
+
+    return !isEmptyObject(policyChatForActivePolicy);
+}
+
+function QuickActionMenuItem({shouldUseNarrowLayout, icons, reportID, itemIndex = -1}: QuickActionMenuItemProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
@@ -62,6 +98,9 @@ function QuickActionMenuItem({shouldUseNarrowLayout, icons, reportID}: QuickActi
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
 
     const quickActionPolicyID = quickAction?.action === CONST.QUICK_ACTIONS.TRACK_PER_DIEM && quickAction?.perDiemPolicyID ? quickAction?.perDiemPolicyID : quickActionReport?.policyID;
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionPolicyID}`, {canBeMissing: true});
@@ -116,95 +155,104 @@ function QuickActionMenuItem({shouldUseNarrowLayout, icons, reportID}: QuickActi
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const quickActionSubtitle = !hideQABSubtitle ? (getReportName(quickActionReport, quickActionPolicy, undefined, personalDetails) ?? translate('quickAction.updateDestination')) : '';
 
-    const baseQuickAction = {
-        label: translate('quickAction.header'),
-        labelStyle: [styles.pt3, styles.pb2],
-        isLabelHoverable: false,
-        numberOfLinesDescription: 1,
-        tooltipAnchorAlignment: {
-            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        },
-        shouldTeleportPortalToModalLayer: true,
-    };
+    const isFocused = focusedIndex === itemIndex;
+    const focusWrapperStyle = StyleUtils.getItemBackgroundColorStyle(false, isFocused, false, theme.activeComponentBG, theme.hoverComponentBG);
 
     if (quickAction?.action && quickActionReport) {
         if (!isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, isRestrictedToPreferredPolicy)) {
             return null;
         }
-        const onSelected = () => {
-            interceptAnonymousUser(() => {
-                if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && isDelegateAccessRestricted) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                const targetAccountPersonalDetails = {
-                    ...personalDetails?.[quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID],
-                    accountID: quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                };
 
-                navigateToQuickAction({
-                    isValidReport,
-                    quickAction,
-                    selectOption,
-                    lastDistanceExpenseType,
-                    targetAccountPersonalDetails,
-                    currentUserAccountID: currentUserPersonalDetails.accountID,
-                    isFromFloatingActionButton: true,
-                });
-            });
-        };
         return (
-            <FABMenuItem
-                registryId={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
-                label={baseQuickAction.label}
-                labelStyle={baseQuickAction.labelStyle}
-                isLabelHoverable={baseQuickAction.isLabelHoverable}
-                numberOfLinesDescription={baseQuickAction.numberOfLinesDescription}
-                tooltipAnchorAlignment={baseQuickAction.tooltipAnchorAlignment}
-                shouldTeleportPortalToModalLayer={baseQuickAction.shouldTeleportPortalToModalLayer}
+            <FocusableMenuItem
+                pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
+                label={translate('quickAction.header')}
+                labelStyle={[styles.pt3, styles.pb2]}
+                isLabelHoverable={false}
+                numberOfLinesDescription={1}
+                tooltipAnchorAlignment={{
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                }}
+                shouldTeleportPortalToModalLayer
+                focused={isFocused}
+                onFocus={() => setFocusedIndex(itemIndex)}
+                shouldCheckActionAllowedOnPress={false}
+                role={CONST.ROLE.BUTTON}
+                wrapperStyle={focusWrapperStyle}
                 icon={getQuickActionIcon(icons as Parameters<typeof getQuickActionIcon>[0], quickAction?.action)}
-                text={quickActionTitle}
+                title={quickActionTitle}
                 rightIconAccountID={quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID}
                 description={quickActionSubtitle}
-                onSelected={onSelected}
-                shouldCallAfterModalHide={shouldUseNarrowLayout}
                 rightIconReportID={quickActionReport?.reportID}
-                sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
+                onPress={() =>
+                    onItemPress(
+                        () =>
+                            interceptAnonymousUser(() => {
+                                if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && isDelegateAccessRestricted) {
+                                    showDelegateNoAccessModal();
+                                    return;
+                                }
+                                const targetAccountPersonalDetails = {
+                                    ...personalDetails?.[quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID],
+                                    accountID: quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                                };
+
+                                navigateToQuickAction({
+                                    isValidReport,
+                                    quickAction,
+                                    selectOption,
+                                    lastDistanceExpenseType,
+                                    targetAccountPersonalDetails,
+                                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                                    isFromFloatingActionButton: true,
+                                });
+                            }),
+                        {shouldCallAfterModalHide: shouldUseNarrowLayout},
+                    )
+                }
             />
         );
     }
 
     if (!isEmptyObject(policyChatForActivePolicy)) {
-        const onSelected = () => {
-            interceptAnonymousUser(() => {
-                if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
-                    return;
-                }
-
-                const quickActionReportID = policyChatForActivePolicy?.reportID || reportID;
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts, true);
-            });
-        };
-
         return (
-            <FABMenuItem
-                registryId={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
-                label={baseQuickAction.label}
-                labelStyle={baseQuickAction.labelStyle}
-                isLabelHoverable={baseQuickAction.isLabelHoverable}
-                numberOfLinesDescription={baseQuickAction.numberOfLinesDescription}
-                tooltipAnchorAlignment={baseQuickAction.tooltipAnchorAlignment}
-                shouldTeleportPortalToModalLayer={baseQuickAction.shouldTeleportPortalToModalLayer}
+            <FocusableMenuItem
+                pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
+                label={translate('quickAction.header')}
+                labelStyle={[styles.pt3, styles.pb2]}
+                isLabelHoverable={false}
+                numberOfLinesDescription={1}
+                tooltipAnchorAlignment={{
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                }}
+                shouldTeleportPortalToModalLayer
+                focused={isFocused}
+                onFocus={() => setFocusedIndex(itemIndex)}
+                shouldCheckActionAllowedOnPress={false}
+                role={CONST.ROLE.BUTTON}
+                wrapperStyle={focusWrapperStyle}
                 icon={icons.ReceiptScan}
-                text={translate('quickAction.scanReceipt')}
+                title={translate('quickAction.scanReceipt')}
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 description={getReportName(policyChatForActivePolicy)}
-                shouldCallAfterModalHide={shouldUseNarrowLayout}
-                onSelected={onSelected}
                 rightIconReportID={policyChatForActivePolicy?.reportID}
-                sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
+                onPress={() =>
+                    onItemPress(
+                        () =>
+                            interceptAnonymousUser(() => {
+                                if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+                                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
+                                    return;
+                                }
+
+                                const quickActionReportID = policyChatForActivePolicy?.reportID || reportID;
+                                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts, true);
+                            }),
+                        {shouldCallAfterModalHide: shouldUseNarrowLayout},
+                    )
+                }
             />
         );
     }
@@ -212,4 +260,5 @@ function QuickActionMenuItem({shouldUseNarrowLayout, icons, reportID}: QuickActi
     return null;
 }
 
+export {useQuickActionMenuItemVisible};
 export default QuickActionMenuItem;

@@ -1,9 +1,12 @@
 import React from 'react';
+import FocusableMenuItem from '@components/FocusableMenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import {startDistanceRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import FABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABMenuItem';
+import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
@@ -13,29 +16,41 @@ type TrackDistanceMenuItemProps = {
     shouldUseNarrowLayout: boolean;
     icons: MenuItemIcons;
     reportID: string;
+    /** Injected by FABPopoverMenu via React.cloneElement */
+    itemIndex?: number;
 };
 
-function TrackDistanceMenuItem({shouldUseNarrowLayout, icons, reportID}: TrackDistanceMenuItemProps) {
+function TrackDistanceMenuItem({shouldUseNarrowLayout, icons, reportID, itemIndex = -1}: TrackDistanceMenuItemProps) {
     const {translate} = useLocalize();
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
+    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
 
     return (
-        <FABMenuItem
-            registryId={CONST.SENTRY_LABEL.FAB_MENU.TRACK_DISTANCE}
+        <FocusableMenuItem
+            pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.TRACK_DISTANCE}
             icon={icons.Location}
-            text={translate('iou.trackDistance')}
-            shouldCallAfterModalHide={shouldUseNarrowLayout}
-            onSelected={() => {
-                interceptAnonymousUser(() => {
-                    if (shouldRedirectToExpensifyClassic) {
-                        showRedirectToExpensifyClassicModal();
-                        return;
-                    }
-                    startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, lastDistanceExpenseType, undefined, undefined, true);
-                });
-            }}
-            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.TRACK_DISTANCE}
+            title={translate('iou.trackDistance')}
+            focused={focusedIndex === itemIndex}
+            onFocus={() => setFocusedIndex(itemIndex)}
+            onPress={() =>
+                onItemPress(
+                    () =>
+                        interceptAnonymousUser(() => {
+                            if (shouldRedirectToExpensifyClassic) {
+                                showRedirectToExpensifyClassicModal();
+                                return;
+                            }
+                            startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, lastDistanceExpenseType, undefined, undefined, true);
+                        }),
+                    {shouldCallAfterModalHide: shouldUseNarrowLayout},
+                )
+            }
+            shouldCheckActionAllowedOnPress={false}
+            role={CONST.ROLE.BUTTON}
+            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === itemIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
         />
     );
 }
