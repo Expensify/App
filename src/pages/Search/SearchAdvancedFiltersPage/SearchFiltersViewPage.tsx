@@ -21,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersViewPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     // Default to 'table' if no view is set
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.view ?? CONST.SEARCH.VIEW.TABLE);

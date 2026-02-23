@@ -89,7 +89,7 @@ function ReportActionItemEmojiReactions({
     const styles = useThemeStyles();
     const reactionListRef = useContext(ReactionListContext);
     const popoverReactionListAnchors = useRef<PopoverReactionListAnchors>({});
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
     const reportActionID = reportAction.reportActionID;
 

@@ -154,7 +154,7 @@ type ImportColumnProps = {
 function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowDropdownMenu = true}: ImportColumnProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const {containsHeader = true} = spreadsheet ?? {};
 
     const options: Array<DropdownOption<string>> = (columnRoles ?? []).map((item) => ({
