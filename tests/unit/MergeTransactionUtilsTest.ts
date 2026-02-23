@@ -545,6 +545,37 @@ describe('MergeTransactionUtils', () => {
             });
         });
 
+        it('should not include taxValue in conflict fields for distance requests with different tax rates', () => {
+            // Given two distance transactions with different tax values (tied to different distance rates)
+            const targetTransaction = {
+                ...createRandomDistanceRequestTransaction(0),
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Distance Rate 1',
+                modifiedMerchant: 'Distance Rate 1',
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '5%',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const sourceTransaction = {
+                ...createRandomDistanceRequestTransaction(1),
+                amount: 2000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Distance Rate 2',
+                modifiedMerchant: 'Distance Rate 2',
+                taxCode: 'id_TAX_RATE_2',
+                taxValue: '10%',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+
+            // Tax rate should not be a conflict field for distance requests because it is fixed to the distance rate
+            expect(result.conflictFields).not.toContain('taxValue');
+            // Merchant should still be a conflict since the distance rates differ
+            expect(result.conflictFields).toContain('merchant');
+        });
+
         it('auto-merges reportID and populates reportName when reportIDs match', () => {
             const sharedReportID = 'R123';
             const targetTransaction = {
@@ -991,6 +1022,8 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.USD,
                 amount: 2500,
                 receipt: {receiptID: 123, source: 'receipt.jpg'},
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '5%',
                 comment: {
                     customUnit: {
                         name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
@@ -1008,7 +1041,7 @@ describe('MergeTransactionUtils', () => {
             // When we get updated values for merchant field
             const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, mergeTransaction: undefined});
 
-            // Then it should include merchant plus all distance-specific fields
+            // Then it should include merchant plus all distance-specific fields including tax
             expect(result).toEqual({
                 merchant: 'New Distance Merchant',
                 amount: -2500,
@@ -1025,6 +1058,10 @@ describe('MergeTransactionUtils', () => {
                 },
                 routes: null,
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '5%',
+                taxName: '5%',
+                taxAmount: convertToBackendAmount(calculateTaxAmount('5%', 2500, getCurrencyDecimals(CONST.CURRENCY.USD))),
             });
         });
     });

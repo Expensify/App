@@ -167,9 +167,9 @@ function getMergeFieldTranslationKey(field: MergeFieldKey) {
 function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
     const excludeFields: MergeFieldKey[] = [];
 
-    // Distance request's amount/currency/receipt depend on merchant selection
+    // Distance request's amount/currency/receipt/tax depend on merchant selection
     if (isDistanceRequest(targetTransaction)) {
-        excludeFields.push('amount');
+        excludeFields.push('amount', 'taxValue');
     }
 
     return MERGE_FIELDS.filter((field) => !excludeFields.includes(field));
@@ -622,6 +622,13 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
         updatedValues.receipt = transaction?.receipt ?? null;
         updatedValues.waypoints = getWaypoints(transaction) ?? null;
         updatedValues.routes = transaction?.routes ?? null;
+        // Distance expense tax rate is fixed to the distance rate, so carry it over with the merchant
+        updatedValues.taxCode = transaction?.taxCode;
+        updatedValues.taxValue = transaction?.taxValue;
+        updatedValues.taxName = getTaxName(policy, transaction) ?? transaction?.taxValue ?? '';
+        if (transaction?.amount) {
+            updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(transaction?.taxValue, transaction.amount, getCurrencyDecimals(getCurrency(transaction))));
+        }
     }
 
     if (field === 'taxValue') {
