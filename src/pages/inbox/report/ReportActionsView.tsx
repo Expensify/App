@@ -94,6 +94,10 @@ function ReportActionsView({
         [canPerformWriteAction],
     );
 
+    const areCategoriesEnabledSelector = useCallback((policy: OnyxEntry<OnyxTypes.Policy>): boolean => {
+        return !!policy?.areCategoriesEnabled;
+    }, []);
+
     const [transactionThreadReportActions] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         {
@@ -109,6 +113,7 @@ function ReportActionsView({
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
     const didLayout = useRef(false);
     const {isOffline} = useNetwork();
+    const [areCategoriesEnabled] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, {canBeMissing: true, selector: areCategoriesEnabledSelector});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
@@ -222,10 +227,10 @@ function ReportActionsView({
             reportActions.filter(
                 (reportAction) =>
                     (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
-                    shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
+                    shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction, areCategoriesEnabled) &&
                     isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs),
             ),
-        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
+        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, areCategoriesEnabled],
     );
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);

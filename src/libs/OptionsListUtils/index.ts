@@ -278,6 +278,7 @@ Onyx.connect({
             } else {
                 lastReportActions[reportID] = firstReportAction;
             }
+            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
             const reportNameValuePairs = allReportNameValuePairsOnyxConnect?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const isReportArchived = !!reportNameValuePairs?.private_isArchived;
@@ -288,7 +289,7 @@ Onyx.connect({
             const reportActionsForDisplay = sortedReportActions.filter(
                 (reportAction, actionKey) =>
                     (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
-                    shouldReportActionBeVisible(reportAction, actionKey, isWriteActionAllowed) &&
+                    shouldReportActionBeVisible(reportAction, actionKey, isWriteActionAllowed, policy?.areCategoriesEnabled) &&
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
@@ -625,7 +626,7 @@ function getLastMessageTextForReport({
 }): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
-    const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
+    const lastVisibleMessage = getLastVisibleMessage(report?.reportID, undefined, undefined, undefined, policy?.areCategoriesEnabled);
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
