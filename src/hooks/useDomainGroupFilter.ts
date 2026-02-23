@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
 import {groupsSelector} from '@selectors/Domain';
@@ -51,9 +51,16 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
 
     const matchedGroup = selectedGroup && selectedGroup.value !== ALL_MEMBERS_VALUE ? groups?.find((g) => g.id === selectedGroup.value) : undefined;
 
-    // If the selected group no longer exists in Onyx data, reset to "All Members"
-    // to avoid a stale label while the filter is effectively inactive.
-    const effectiveSelection = selectedGroup && selectedGroup.value !== ALL_MEMBERS_VALUE && !matchedGroup ? null : selectedGroup;
+    // If the selected group disappears from Onyx (e.g. during rollback/refresh), clear the
+    // selection from state so it cannot silently reactivate if the same group ID reappears later.
+    useEffect(() => {
+        if (!selectedGroup || selectedGroup.value === ALL_MEMBERS_VALUE || matchedGroup) {
+            return;
+        }
+        setSelectedGroup(null);
+    }, [matchedGroup, selectedGroup]);
+
+    const effectiveSelection = matchedGroup ? selectedGroup : null;
 
     const selectedGroupMemberIDs = matchedGroup
         ? new Set(

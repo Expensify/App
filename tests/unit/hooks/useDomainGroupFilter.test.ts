@@ -299,6 +299,46 @@ describe('useDomainGroupFilter', () => {
             expect(result.current.selectedGroup).toBeNull();
             expect(result.current.groupPreFilter(buildMemberOption(100))).toBe(true);
         });
+
+        it('should not reactivate the filter when a previously removed group reappears with the same ID (rollback scenario)', async () => {
+            const domain = buildDomain({
+                '1': {members: {'100': 'read'}, name: 'Engineering'},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
+
+            const {result} = renderHook(() => useDomainGroupFilter(DOMAIN_ACCOUNT_ID));
+
+            await waitFor(() => {
+                expect(result.current.groupOptions).toHaveLength(2);
+            });
+
+            // Select the group
+            act(() => {
+                result.current.handleGroupChange({text: 'Engineering', value: '1'});
+            });
+            expect(result.current.selectedGroup).not.toBeNull();
+
+            // Group disappears from Onyx (e.g. optimistic update removed or data cleared)
+            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, buildDomain({}));
+
+            await waitFor(() => {
+                expect(result.current.selectedGroup).toBeNull();
+            });
+            expect(result.current.dropdownLabel).toBe(result.current.allMembersLabel);
+
+            // Group reappears with the same ID (rollback / re-sync)
+            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, domain);
+
+            await waitFor(() => {
+                expect(result.current.groupOptions).toHaveLength(2);
+            });
+
+            // Filter must remain inactive — the previous selection was cleared from state
+            expect(result.current.selectedGroup).toBeNull();
+            expect(result.current.dropdownLabel).toBe(result.current.allMembersLabel);
+            expect(result.current.groupPreFilter(buildMemberOption(100))).toBe(true);
+            expect(result.current.groupPreFilter(buildMemberOption(999))).toBe(true);
+        });
     });
 
     describe('groups', () => {
