@@ -507,6 +507,7 @@ jobs:
     uses: ./.github/workflows/uploadSentry.yml
     with:
       environment: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
+      release: ${{ needs.prep.outputs.TAG }}
     secrets: inherit
 
   webDeploy:
