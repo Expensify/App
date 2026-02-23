@@ -611,6 +611,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;
+        subPage: string;
     };
     [SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: undefined;
@@ -1539,6 +1540,10 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.DOMAIN.MEMBERS_SETTINGS_TWO_FACTOR_AUTH]: {
         domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.VACATION_DELEGATE]: {
+        domainAccountID: number;
+        accountID: number;
     };
 } & ReimbursementAccountNavigatorParamList;
 
@@ -2927,7 +2932,6 @@ type AuthScreensParamList = SharedScreensParamList &
             email: string;
         };
         [SCREENS.NOT_FOUND]: undefined;
-        [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: undefined;
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
         [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
         [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;

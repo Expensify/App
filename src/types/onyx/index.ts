@@ -94,6 +94,7 @@ import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type Pages from './Pages';
+import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {AddNewPersonalCard, PersonalCardDomainSettings, PersonalCardFeed, PersonalCardFeedWithDomainID} from './PersonalCard';
@@ -236,6 +237,7 @@ export type {
     OnyxUpdatesFromServer,
     AnyOnyxUpdatesFromServer,
     Pages,
+    PendingConciergeResponse,
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,

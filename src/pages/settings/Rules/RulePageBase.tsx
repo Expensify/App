@@ -17,6 +17,7 @@ import {clearDraftRule, saveExpenseRule, updateDraftRule} from '@libs/actions/Us
 import {getAvailableNonPersonalPolicyCategories, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRatesNamesAndValues, getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -101,7 +102,11 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     const categoriesSelector = useCallback(
         (allPolicyCategories: OnyxCollection<PolicyCategories>) => {
             const categories = getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID);
-            return Object.values(categories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {})).length > 0;
+            return (
+                Object.values(categories ?? {})
+                    .filter((policyCategories) => hasEnabledOptions(policyCategories ?? {}))
+                    .flatMap((policyCategories) => Object.values(policyCategories ?? {})).length > 0
+            );
         },
         [personalPolicyID],
     );
@@ -165,7 +170,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     title: form?.merchant,
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT, hash),
                 },
-                hasPolicyCategories
+                form?.category || hasPolicyCategories
                     ? {
                           key: 'category',
                           description: translate('common.category'),

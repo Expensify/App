@@ -1,6 +1,6 @@
 import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
 import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
-import {filterInactiveCards, getCardFeedWithDomainID, isCardConnectionBroken} from '@libs/CardUtils';
+import {filterInactiveCards, getCardFeedWithDomainID, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,8 +42,41 @@ export default createOnyxDerivedValueConfig({
         const allFeedsState: CardFeedErrorState = {...DEFAULT_CARD_FEED_ERROR_STATE};
         const companyCardFeedsState: CardFeedErrorState = {...DEFAULT_CARD_FEED_ERROR_STATE};
         const expensifyCardFeedStates: CardFeedErrorState = {...DEFAULT_CARD_FEED_ERROR_STATE};
+        const personalCardStates: CardFeedErrorState = {...DEFAULT_CARD_FEED_ERROR_STATE};
 
         const cardsWithBrokenFeedConnection: Record<string, Card> = {};
+        const personalCardsWithBrokenConnection: Record<string, Card> = {};
+
+        function addErrorsForPersonalCard(card: Card) {
+            const hasCardErrors = !isEmptyObject(card.errors) || !isEmptyObject(card.errorFields) || card.pendingAction;
+            const cardErrors = {
+                ...(hasCardErrors
+                    ? {
+                          [card.cardID]: {
+                              errors: card.errors,
+                              errorFields: card.errorFields,
+                              pendingAction: card.pendingAction,
+                          },
+                      }
+                    : {}),
+            } as Record<string, CardErrors>;
+
+            const isFeedConnectionBroken = isCardConnectionBroken(card);
+            // Track personal cards with broken feed connection
+            if (isFeedConnectionBroken) {
+                personalCardsWithBrokenConnection[card.cardID] = card;
+            }
+            const newFeedState: Omit<CardFeedErrorState, 'shouldShowRBR'> = {
+                isFeedConnectionBroken,
+                hasFeedErrors: !isEmptyObject(cardErrors),
+                hasWorkspaceErrors: false,
+            };
+            const shouldShowRBR = getShouldShowRBR(newFeedState);
+
+            personalCardStates.isFeedConnectionBroken ||= newFeedState.isFeedConnectionBroken;
+            personalCardStates.hasFeedErrors ||= newFeedState.hasFeedErrors;
+            personalCardStates.shouldShowRBR ||= shouldShowRBR;
+        }
 
         function addErrorsForCard(card: Card) {
             const bankName = card.bank;
@@ -122,7 +155,12 @@ export default createOnyxDerivedValueConfig({
         }
 
         for (const card of Object.values(globalCardList ?? {})) {
-            addErrorsForCard(card);
+            const isPersonal = isPersonalCard(card);
+            if (isPersonal) {
+                addErrorsForPersonalCard(card);
+            } else {
+                addErrorsForCard(card);
+            }
         }
 
         for (const [key, workspaceCardFeedCards] of Object.entries(allWorkspaceCards ?? {})) {
@@ -147,19 +185,23 @@ export default createOnyxDerivedValueConfig({
             // The errors of all card feeds.
             cardFeedErrors,
             cardsWithBrokenFeedConnection,
+            personalCardsWithBrokenConnection,
 
             // Mappings of whether to show the RBR for each workspace account ID and per feed name with domain ID
             shouldShowRbrForWorkspaceAccountID,
             shouldShowRbrForFeedNameWithDomainID,
 
-            // Whether any of the feeds has one of the below errors
+            // Whether any of the feeds have one of the below errors
             all: allFeedsState,
 
-            // Whether any of the company cards has one of the below errors
+            // Whether any of the company cards have one of the below errors
             companyCards: companyCardFeedsState,
 
-            // Whether any of the expensify cards has one of the below errors
+            // Whether any of the expensify cards have one of the below errors
             expensifyCard: expensifyCardFeedStates,
+
+            // Whether any of the personal cards have one of the below errors
+            personalCard: personalCardStates,
         };
     },
 });

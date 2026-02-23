@@ -609,6 +609,7 @@ function WalletPage() {
                                         shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
                                         wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
                                     />
                                 </View>
                             )}
@@ -698,6 +699,7 @@ function WalletPage() {
                                                             shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                                                             shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
                                                         ]}
+                                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_BALANCE}
                                                     />
                                                 );
                                             }
@@ -750,6 +752,7 @@ function WalletPage() {
                                                         shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                                                         shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
                                                     ]}
+                                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ENABLE_WALLET}
                                                 />
                                             );
                                         }}

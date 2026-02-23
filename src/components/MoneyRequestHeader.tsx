@@ -27,6 +27,7 @@ import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/a
 import {initSplitExpense} from '@libs/actions/IOU/Split';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {setNameValuePair} from '@libs/actions/User';
+import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -154,11 +155,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const {deleteTransactions} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -215,6 +218,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     targetReport: activePolicyExpenseChat,
                     betas,
                     personalDetails,
+                    recentWaypoints,
                 });
             }
         },
@@ -231,6 +235,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             isSelfTourViewed,
             betas,
             personalDetails,
+            recentWaypoints,
         ],
     );
 
@@ -259,6 +264,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
+            const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
+            const cardID = brokenConnectionError?.data?.cardID;
+            const card = cardID ? cardList?.[cardID] : undefined;
+            const isBrokenPersonalCard = isPersonalCard(card);
+
+            if (isBrokenPersonalCard && brokenConnectionError) {
+                return undefined;
+            }
             return {
                 icon: getStatusIcon(Expensicons.Hourglass),
                 description: (

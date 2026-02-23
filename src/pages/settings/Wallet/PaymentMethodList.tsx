@@ -26,6 +26,8 @@ import {
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getPlaidInstitutionIconUrl,
+    isCardConnectionBroken,
+    isCardFrozen,
     isExpensifyCard,
     isExpensifyCardPendingAction,
     isPersonalCard,
@@ -246,6 +248,10 @@ function PaymentMethodList({
                     }
                 }
 
+                if (isUserPersonalCard && (!isEmptyObject(card.errors) || isCardConnectionBroken(card))) {
+                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                }
+
                 if (!isExpensifyCard(card)) {
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
@@ -287,7 +293,7 @@ function PaymentMethodList({
                         disabled: isDisabled,
                         shouldShowRightIcon,
                         shouldShowThreeDotsMenu: !isUserPersonalCard || isCSVCard,
-                        errors: card.errors,
+                        errors: isUserPersonalCard ? undefined : card.errors,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator,
@@ -359,6 +365,7 @@ function PaymentMethodList({
                     iconStyles: [styles.cardIcon],
                     iconWidth: variables.cardIconWidth,
                     iconHeight: variables.cardIconHeight,
+                    isCardFrozen: isCardFrozen(card),
                 });
             }
 
@@ -482,7 +489,7 @@ function PaymentMethodList({
                 title={onAddPersonalCardPress ? translate('personalCard.addPersonalCard') : translate('bankAccount.addBankAccount')}
                 icon={Expensicons.Plus}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                sentryLabel={CONST.SENTRY_LABEL.WALLET.ADD_BANK_ACCOUNT}
+                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_BANK_ACCOUNT}
             />
         ),
 

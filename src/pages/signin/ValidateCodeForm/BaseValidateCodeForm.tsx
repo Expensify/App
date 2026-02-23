@@ -414,6 +414,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     text={translate('common.signIn')}
                     isLoading={isValidateCodeFormSubmitting}
                     onPress={validateAndSubmitForm}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.SIGN_IN_BUTTON}
                 />
                 <ChangeExpensifyLoginLink onPress={clearSignInData} />
             </View>
