@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
 
 function useUpdateGpsTripOnReconnect() {
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
     const updateAddressToHumanReadable = async (gpsPoint: GpsDraftDetails['gpsPoints'][number] | undefined, setAddress: typeof setStartAddress) => {
         if (!gpsPoint) {
