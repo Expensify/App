@@ -245,7 +245,10 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
 
                 if (shouldUseModalPaddingStyle) {
                     modalContainerStyle.paddingTop = variables.componentBorderRadiusLarge;
-                    modalContainerStyle.paddingBottom = variables.componentBorderRadiusLarge;
+
+                    if (!enableEdgeToEdgeBottomSafeAreaPadding) {
+                        modalContainerStyle.paddingBottom = variables.componentBorderRadiusLarge;
+                    }
                 }
 
                 shouldAddBottomSafeAreaPadding = !enableEdgeToEdgeBottomSafeAreaPadding && !safeAreaOptions?.shouldDisableBottomSafeAreaPadding;
