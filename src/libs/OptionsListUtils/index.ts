@@ -23,6 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import Permissions from '@libs/Permissions';
+import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
@@ -1527,7 +1528,7 @@ function orderReportOptions(options: SearchOptionData[]) {
 /**
  * Sort personal details by displayName or login in alphabetical order
  */
-const personalDetailsComparator = (personalDetail: SearchOptionData) => {
+const personalDetailsComparator = (personalDetail: SearchOptionData | PersonalDetailOptionData) => {
     const name = personalDetail.text ?? personalDetail.alternateText ?? personalDetail.login ?? '';
     return name.toLowerCase();
 };
@@ -1543,7 +1544,13 @@ const recentReportComparator = (option: SearchOptionData) => {
  * Sort options by a given comparator and return first sorted options.
  * Function uses a min heap to efficiently get the first sorted options.
  */
-function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option: T) => number | string, limit?: number, filter?: (option: T) => boolean | undefined, reversed = false): T[] {
+function optionsOrderBy<T = SearchOptionData | PersonalDetailOptionData>(
+    options: T[],
+    comparator: (option: T) => number | string,
+    limit?: number,
+    filter?: (option: T) => boolean | undefined,
+    reversed = false,
+): T[] {
     const heap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
 
     // If a limit is 0 or negative, return an empty array
@@ -3304,6 +3311,8 @@ export {
     shouldShowLastActorDisplayName,
     shouldUseBoldText,
     sortAlphabetically,
+    personalDetailsComparator,
+    processSearchString,
 };
 
 export type {
