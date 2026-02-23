@@ -8,6 +8,7 @@ import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -94,6 +95,7 @@ function ReportActionsView({
     conciergeStatusLabel,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
+    usePendingConciergeResponse(report.reportID);
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
