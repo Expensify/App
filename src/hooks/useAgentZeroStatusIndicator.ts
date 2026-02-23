@@ -143,7 +143,7 @@ function getFillerMessagesForLabel(statusLabel: string): string[] {
  * - Resets instantly when a new server label arrives
  */
 function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean): AgentZeroStatusState {
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const serverLabel = reportNameValuePairs?.agentZeroProcessingRequestIndicator?.trim();
     const [optimisticLabel, setOptimisticLabel] = useState<string>();
     const [displayLabel, setDisplayLabel] = useState<string>();

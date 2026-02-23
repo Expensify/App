@@ -19,7 +19,7 @@ function VacationDelegatePage() {
     const [newVacationDelegate, setNewVacationDelegate] = useState('');
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
-    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
 
     const onSelectRow = useCallback(
         (option: Participant) => {
