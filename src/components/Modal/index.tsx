@@ -65,9 +65,9 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const showModal = () => {
         if (shouldHandleNavigationBack) {
             // Preserve React Navigation's state in the guard entry so that if
-            // popstate fires for this entry, RN recognises the current route
+            // popstate fires for this entry, RN recognizes the current route
             // and does not perform an unexpected back navigation.
-            const currentState = window.history.state ?? {};
+            const currentState = (window.history.state ?? {}) as WindowState;
             window.history.pushState({...currentState, shouldGoBack: true}, '', null);
             window.addEventListener('popstate', handlePopState);
         }
