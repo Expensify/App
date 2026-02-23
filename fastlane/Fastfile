@@ -126,35 +126,6 @@ platform :android do
     setGradleOutputsInEnv()
   end
 
-  desc "Generate a new local APK for e2e testing"
-  lane :build_e2e do
-    ENV["ENVFILE"]="tests/e2e/.env.e2e"
-    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
-    ENV["E2E_TESTING"]="true"
-
-    gradle(
-      project_dir: './android',
-      task: ':app:assemble',
-      flavor: 'e2e',
-      build_type: 'Release',
-    )
-    setGradleOutputsInEnv()
-  end
-
-  lane :build_e2eDelta do
-    ENV["ENVFILE"]="tests/e2e/.env.e2edelta"
-    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
-    ENV["E2E_TESTING"]="true"
-
-    gradle(
-      project_dir: './android',
-      task: ':app:assemble',
-      flavor: 'e2edelta',
-      build_type: 'Release',
-    )
-    setGradleOutputsInEnv()
-  end
-
   desc "Build AdHoc testing build"
   lane :build_adhoc do
     ENV["ENVFILE"]=".env.adhoc"
@@ -517,17 +488,6 @@ platform :ios do
     sh("echo '{\"ipa_path\": \"#{lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../ios_paths.json")
   end
 
-  desc "Upload DSYMs to Firebase for HybridApp"
-  lane :upload_dsyms do
-    puts "dsym path: #{ENV[KEY_DSYM_PATH]}"
-    upload_symbols_to_crashlytics(
-      app_id: "1:921154746561:ios:216bd10ccc947659027c40",
-      dsym_path: ENV[KEY_DSYM_PATH],
-      gsp_path: "./ios/GoogleService-Info.plist",
-      binary_path: "./ios/Pods/FirebaseCrashlytics/upload-symbols"
-    )
-  end
-
   desc "Upload HybridApp to TestFlight"
   lane :upload_testflight_hybrid do
     upload_to_testflight(
@@ -548,18 +508,6 @@ platform :ios do
         demo_account_password: ENV["APPLE_DEMO_PASSWORD"],
         notes: "1. In the Expensify app, enter the email 'appletest.expensify@proton.me'. This will trigger a sign-in link to be sent to 'appletest.expensify@proton.me'\n                  2. Navigate to https://account.proton.me/login, log into Proton Mail using 'appletest.expensify@proton.me' as email and the password associated with 'appletest.expensify@proton.me', provided above\n                  3. Once logged into Proton Mail, navigate to your inbox and locate the email triggered in step 1. The email subject should be 'Your magic sign-in link for Expensify'\n                  4. Open the email and copy the 6-digit sign-in code provided within\n                  5. Return to the Expensify app and enter the copied 6-digit code in the designated login field"
       }
-    )
-  end
-
-  desc "Upload DSYMs to Firebase for HybridApp"
-  lane :upload_dsyms_hybrid do
-    puts "dsym path: #{ENV[KEY_DSYM_PATH]}"
-    upload_symbols_to_crashlytics(
-      app_id: ENV["FIREBASE_HYBRID_APP_ID"],
-      dsym_path: ENV[KEY_DSYM_PATH],
-      gsp_path: "./ios/GoogleService-Info.plist",
-      # Assuming we are running this from the react-native submodule directory for HybridApp
-      binary_path: "./Mobile-Expensify/iOS/Pods/FirebaseCrashlytics/upload-symbols"
     )
   end
 

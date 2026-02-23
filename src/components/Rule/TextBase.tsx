@@ -96,6 +96,7 @@ function TextBase<TFormID extends OnyxFormKey>({
                     type={isMarkdownEnabled ? 'markdown' : undefined}
                     autoGrowHeight={isMarkdownEnabled}
                     maxAutoGrowHeight={isMarkdownEnabled ? variables.textInputAutoGrowMaxHeight : undefined}
+                    shouldSubmitForm={isMarkdownEnabled}
                 />
             </View>
         </FormProvider>

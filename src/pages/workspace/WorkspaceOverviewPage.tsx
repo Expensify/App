@@ -279,10 +279,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        leaveWorkspace(policyID);
+        leaveWorkspace(currentUserPersonalDetails.accountID, policyID);
         setIsLeaveModalOpen(false);
         goBackFromInvalidPolicy();
-    }, [policyID]);
+    }, [currentUserPersonalDetails.accountID, policyID]);
 
     const hideDeleteWorkspaceErrorModal = () => {
         setIsDeleteWorkspaceErrorModalOpen(false);
