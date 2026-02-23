@@ -52,7 +52,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     useEffect(() => {
         onToggleKeyboard?.(isKeyboardShown);
