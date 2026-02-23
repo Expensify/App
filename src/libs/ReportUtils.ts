@@ -100,7 +100,6 @@ import {
 } from './actions/IOU';
 import type {IOURequestType} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
-import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {openUnreportedExpense} from './actions/Report';
@@ -1999,6 +1998,10 @@ function isProcessingReport(report: OnyxEntry<Report>): boolean {
 
 function isOpenReport(report: OnyxEntry<Report>): boolean {
     return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+}
+
+function isOpenOrProcessingReport(report: OnyxEntry<Report>): boolean {
+    return isOpenReport(report) || isProcessingReport(report);
 }
 
 /**
@@ -4766,57 +4769,6 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
 }
 
 /**
- * Checks if the user can edit multiple transactions
- */
-function canEditMultipleTransactions(
-    selectedTransactions: Transaction[],
-    reportActions: OnyxCollection<ReportActions>,
-    reports: OnyxCollection<Report>,
-    policies: OnyxCollection<Policy>,
-    areReportsSelected = false,
-): boolean {
-    if (areReportsSelected) {
-        return false;
-    }
-
-    if (selectedTransactions.length < 2) {
-        return false;
-    }
-
-    for (const transaction of selectedTransactions) {
-        const reportAction = getIOUActionForTransactionID(Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {}), transaction.transactionID);
-        const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-
-        const isApproved = isReportApproved({report});
-
-        if (isApproved || isSettled(report)) {
-            return false;
-        }
-
-        const fieldsToCheck = [
-            CONST.EDIT_REQUEST_FIELD.AMOUNT,
-            CONST.EDIT_REQUEST_FIELD.MERCHANT,
-            CONST.EDIT_REQUEST_FIELD.CATEGORY,
-            CONST.EDIT_REQUEST_FIELD.TAG,
-            CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
-            CONST.EDIT_REQUEST_FIELD.DATE,
-            CONST.EDIT_REQUEST_FIELD.BILLABLE,
-            CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
-            CONST.EDIT_REQUEST_FIELD.TAX_RATE,
-        ];
-
-        const isTransactionEditable = fieldsToCheck.some((field) => canEditFieldOfMoneyRequest(reportAction, field, undefined, undefined, undefined, transaction, report, policy));
-
-        if (!isTransactionEditable) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/**
  * Checks if the current user can edit the provided property of an expense
  *
  */
@@ -4841,7 +4793,6 @@ function canEditFieldOfMoneyRequest(
         CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
         CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
-        CONST.EDIT_REQUEST_FIELD.BILLABLE,
     ];
 
     if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, isChatReportArchived, report, policy, linkedTransaction)) {
@@ -4856,10 +4807,6 @@ function canEditFieldOfMoneyRequest(
     const iouMessage = getOriginalMessage(reportAction);
     const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
     const transaction = linkedTransaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
-
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
-        return false;
-    }
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
@@ -5234,7 +5181,7 @@ function getTransactionReportName({
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.threadExpenseReportName', {formattedAmount, comment: Parser.htmlToText(comment)});
+    return translateLocal('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment));
 }
 
 /**
@@ -5750,6 +5697,7 @@ function getReportActionMessage({
  * Get the title for a report.
  * @deprecated Moved to src/libs/ReportNameUtils.ts.
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function getReportName(
     report: OnyxEntry<Report>,
     policy?: OnyxEntry<Policy>,
@@ -5761,6 +5709,7 @@ function getReportName(
     isReportArchived?: boolean,
     reports?: Report[],
     policies?: Policy[],
+    conciergeReportID?: string,
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue =
@@ -5935,7 +5884,7 @@ function getReportName(
         });
     }
 
-    if (isConciergeChatReport(report)) {
+    if (isConciergeChatReport(report, conciergeReportID)) {
         formattedName = CONST.CONCIERGE_DISPLAY_NAME;
     }
 
@@ -6092,7 +6041,7 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, isPolicyNamePreferred = 
             return getPolicyName({report});
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', {name: subtitle ?? ''})}`;
+        return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', subtitle ?? '')}`;
     }
 
     if (isReportArchived) {
@@ -9050,7 +8999,8 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
         const transactions = getReportTransactions(potentialReport.reportID);
 
-        if (!isOpenReport(potentialReport)) {
+        // Allow both open and processing reports to show RBR for violations
+        if (!isOpenOrProcessingReport(potentialReport)) {
             return false;
         }
 
@@ -11447,7 +11397,7 @@ function prepareOnboardingOnyxData({
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
-    // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM and TRACK_WORKSPACE onboarding actions, except for emails that have a '+'.
+    // Only the MANAGE_TEAM onboarding action uses the #admins room (with a guide); TRACK_WORKSPACE uses Concierge. Excludes emails that have a '+'.
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
     // When posting to admins room and the user is in the suggestedFollowups beta, we skip tasks in favor of backend-generated followups.
     const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, allBetas, betaConfiguration);
@@ -12111,15 +12061,13 @@ function isChatUsedForOnboarding(
 
 /**
  * Whether onboarding tasks should be posted in the #admins room instead of Concierge.
- * Onboarding guides are assigned to signup with emails that do not contain a '+' and select the "Manage my team's expenses" intent.
+ * Only the "Manage my team's expenses" (MANAGE_TEAM) intent uses the #admins room with a guide;
+ * Track and budget expenses (TRACK_WORKSPACE) uses Concierge chat. Guides are assigned to users who sign up
+ * with emails that do not contain a '+' and who select MANAGE_TEAM.
  */
 function isPostingTasksInAdminsRoom(engagementChoice?: OnboardingPurpose): boolean {
     const userHasPhonePrimaryEmail = Str.endsWith(currentUserEmail ?? '', CONST.SMS.DOMAIN);
-    return (
-        engagementChoice !== undefined &&
-        [CONST.ONBOARDING_CHOICES.MANAGE_TEAM, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE].includes(engagementChoice as 'newDotManageTeam' | 'newDotTrackWorkspace') &&
-        (!currentUserEmail?.includes('+') || userHasPhonePrimaryEmail)
-    );
+    return engagementChoice !== undefined && engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && (!currentUserEmail?.includes('+') || userHasPhonePrimaryEmail);
 }
 
 /**
@@ -12571,17 +12519,14 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
-function canRejectReportAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
-    const isReportApprover = isApproverUtils(policy, currentUserLogin);
+function canRejectReportAction(currentUserLogin: string, report: Report): boolean {
     const isReportBeingProcessed = isProcessingReport(report);
     const isIOU = isIOUReport(report);
     const isInvoice = isInvoiceReport(report);
     const isCurrentUserManager = report?.managerID === currentUserAccountID;
 
-    const userCanReject = isReportApprover && isCurrentUserManager;
-
-    if (!userCanReject) {
-        return false; // must be approver or payer
+    if (!isCurrentUserManager) {
+        return false;
     }
 
     if (isIOU) {
@@ -12627,17 +12572,6 @@ function hasReportBeenRetracted(report: OnyxEntry<Report>, reportActions?: OnyxE
 
     const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
     return reportActionList.some((action) => isRetractedAction(action));
-}
-
-function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Report>, isInvoice?: boolean, reportAttributes?: ReportAttributesDerivedValue['reports']) {
-    if (isInvoice && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
-        const originalMessage = getOriginalMessage(action);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return originalMessage && translateLocal('iou.invoiceReportName', originalMessage);
-    }
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return getReportName(iouReport, undefined, undefined, undefined, undefined, reportAttributes) || action.childReportName;
 }
 
 function selectFilteredReportActions(
@@ -12975,7 +12909,6 @@ export {
     canHoldUnholdReportAction,
     canEditReportPolicy,
     canEditFieldOfMoneyRequest,
-    canEditMultipleTransactions,
     canEditMoneyRequest,
     canEditReportAction,
     canEditReportDescription,
@@ -13298,7 +13231,6 @@ export {
     canRejectReportAction,
     hasReportBeenReopened,
     hasReportBeenRetracted,
-    getMoneyReportPreviewName,
     getNextApproverAccountID,
     isWorkspaceTaskReport,
     isWorkspaceThread,

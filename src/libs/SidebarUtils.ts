@@ -36,9 +36,12 @@ import {
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
     getDeletedBudgetMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
@@ -375,7 +378,12 @@ function updateReportsToDisplayInLHN({
 /**
  * Categorizes reports into their respective LHN groups
  */
-function categorizeReportsForLHN(reportsToDisplay: ReportsToDisplayInLHN, reportsDrafts: OnyxCollection<string> | undefined, reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>) {
+function categorizeReportsForLHN(
+    reportsToDisplay: ReportsToDisplayInLHN,
+    reportsDrafts: OnyxCollection<string> | undefined,
+    conciergeReportID: string | undefined,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+) {
     const pinnedAndGBRReports: MiniReport[] = [];
     const errorReports: MiniReport[] = [];
     const draftReports: MiniReport[] = [];
@@ -401,7 +409,7 @@ function categorizeReportsForLHN(reportsToDisplay: ReportsToDisplayInLHN, report
 
         const reportID = report.reportID;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const displayName = getReportName(report);
+        const displayName = getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, conciergeReportID);
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -536,7 +544,8 @@ function sortReportsToDisplayInLHN(
     priorityMode: OnyxEntry<PriorityMode>,
     localeCompare: LocaleContextProps['localeCompare'],
     reportsDrafts: OnyxCollection<string> | undefined,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
+    conciergeReportID: string | undefined,
 ): string[] {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
 
@@ -554,7 +563,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportNameValuePairs);
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, conciergeReportID, reportNameValuePairs);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
@@ -660,6 +669,7 @@ function getOptionData({
     personalDetails,
     policy,
     parentReportAction,
+    conciergeReportID,
     invoiceReceiverPolicy,
     lastMessageTextFromReport: lastMessageTextFromReportProp,
     card,
@@ -679,6 +689,7 @@ function getOptionData({
     personalDetails: OnyxEntry<PersonalDetailsList>;
     policy: OnyxEntry<Policy>;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
+    conciergeReportID: string | undefined;
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     lastMessageTextFromReport?: string;
     reportAttributes: OnyxEntry<ReportAttributes>;
@@ -778,7 +789,7 @@ function getOptionData({
     result.tooltipText = getReportParticipantsTitle(visibleParticipantAccountIDs);
     result.hasOutstandingChildTask = report.hasOutstandingChildTask;
     result.hasParentAccess = report.hasParentAccess;
-    result.isConciergeChat = isConciergeChatReport(report);
+    result.isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     result.participants = report.participants;
 
     const isExpense = isExpenseReport(report);
@@ -929,6 +940,12 @@ function getOptionData({
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX)
         ) {
             result.alternateText = getWorkspaceTaxUpdateMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME)) {
+            result.alternateText = getCustomTaxNameUpdateMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX)) {
+            result.alternateText = getCurrencyDefaultTaxUpdateMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX)) {
+            result.alternateText = getForeignCurrencyDefaultTaxUpdateMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME)) {
             result.alternateText = getCleanedTagName(getTagListNameUpdatedMessage(translate, lastAction) ?? '');
         } else if (isTagModificationAction(lastAction?.actionName ?? '')) {
@@ -1115,7 +1132,7 @@ function getOptionData({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived);
+    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived, undefined, undefined, conciergeReportID);
 
     result.text = reportName;
     result.subtitle = subtitle;
