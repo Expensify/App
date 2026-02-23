@@ -194,7 +194,7 @@ function getTransactionsAndReportsFromSearch(
  * @param targetTransaction - The target transaction
  * @param sourceTransaction - The source transaction
  * @param localeCompare - The localize compare function
- * @param localeCompare - The localize compare function
+ * @param searchReports - The search reports to use for report name lookup
  * @returns mergeableData and conflictFields
  */
 function getMergeableDataAndConflictFields(
