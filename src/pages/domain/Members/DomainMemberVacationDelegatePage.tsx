@@ -25,12 +25,10 @@ function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegateP
     const currentUserEmail = getCurrentUserEmail();
 
     const [vacationDelegate] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: vacationDelegateSelector(accountID),
     });
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
         selector: personalDetailsSelector(accountID),
     });
     const memberLogin = personalDetails?.login;

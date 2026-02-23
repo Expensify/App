@@ -62,7 +62,6 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
     const [lastViewedPolicy] = useOnyx(
         ONYXKEYS.COLLECTION.POLICY,
         {
-            canBeMissing: true,
             selector: lastViewedPolicySelector,
         },
         [navigationState],
@@ -82,7 +81,6 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
     const [lastViewedDomain] = useOnyx(
         ONYXKEYS.COLLECTION.DOMAIN,
         {
-            canBeMissing: true,
             selector: lastViewedDomainSelector,
         },
         [navigationState],

@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function Disclaimer() {
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const icons = useMemoizedLazyExpensifyIcons(['Crosshair']);
     const styles = useThemeStyles();
     const theme = useTheme();
