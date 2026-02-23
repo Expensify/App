@@ -35,7 +35,6 @@ import {
     getCurrentUserEmail,
     getMoneyRequestParticipantsFromReport,
     getPolicyTags,
-    getRecentWaypoints,
     getUserAccountID,
     requestMoney,
     submitPerDiemExpense,
@@ -505,6 +504,7 @@ type DuplicateExpenseTransactionParams = {
     targetReport?: OnyxTypes.Report;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
 };
 
 function duplicateExpenseTransaction({
@@ -523,6 +523,7 @@ function duplicateExpenseTransaction({
     targetReport,
     betas,
     personalDetails,
+    recentWaypoints,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -530,7 +531,6 @@ function duplicateExpenseTransaction({
 
     const userAccountID = getUserAccountID();
     const currentUserEmail = getCurrentUserEmail();
-    const recentWaypoints = getRecentWaypoints();
 
     const participants = getMoneyRequestParticipantsFromReport(targetReport, userAccountID);
     const transactionDetails = getTransactionDetails(transaction);
