@@ -9,7 +9,6 @@ import * as ApiUtils from '@libs/ApiUtils';
 import * as Browser from '@libs/Browser';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
-import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -356,18 +355,18 @@ function getTravelInvoiceStatementPDF(policyID: string, startDate: string, endDa
  * The backend returns a direct CSV file stream.
  */
 function exportTravelInvoiceStatementCSV(policyID: string, startDate: string, endDate: string, translate: LocalizedTranslate) {
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_TRAVEL_INVOICE_STATEMENT_CSV, {
+    const parameters = {
         policyID,
         startDate,
         endDate,
-    });
+    };
 
     const formData = new FormData();
-    for (const [key, value] of Object.entries(finalParameters)) {
+    for (const [key, value] of Object.entries(parameters)) {
         formData.append(key, String(value));
     }
 
-    const commandURL = ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TRAVEL_INVOICE_STATEMENT_CSV});
+    const commandURL = ApiUtils.getCommandURL({command: READ_COMMANDS.EXPORT_TRAVEL_INVOICE_STATEMENT_CSV});
     const filename = `Travel_Statement_${startDate}_${endDate}.csv`;
 
     const onDownloadFailed = () => {

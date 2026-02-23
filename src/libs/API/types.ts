@@ -476,7 +476,6 @@ const WRITE_COMMANDS = {
     UPDATE_CARD_SETTLEMENT_ACCOUNT: 'UpdateCardSettlementAccount',
     TOGGLE_TRAVEL_INVOICING: 'ToggleTravelInvoicing',
     SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: 'SetTravelInvoicingSettlementAccount',
-    EXPORT_TRAVEL_INVOICE_STATEMENT_CSV: 'ExportTravelInvoiceStatementCSV',
     UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY: 'UpdateTravelInvoiceSettlementFrequency',
     UPDATE_XERO_IMPORT_TRACKING_CATEGORIES: 'UpdateXeroImportTrackingCategories',
     UPDATE_XERO_IMPORT_TAX_RATES: 'UpdateXeroImportTaxRates',
@@ -814,7 +813,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES]: Parameters.EnablePolicyDistanceRatesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_TRAVEL]: Parameters.EnablePolicyTravelParams;
     [WRITE_COMMANDS.SET_POLICY_TRAVEL_SETTINGS]: Parameters.SetPolicyTravelSettingsParams;
-    [WRITE_COMMANDS.EXPORT_TRAVEL_INVOICE_STATEMENT_CSV]: Parameters.ExportTravelInvoiceStatementCSVParams;
     [WRITE_COMMANDS.ENABLE_POLICY_TAGS]: Parameters.EnablePolicyTagsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_TAXES]: Parameters.EnablePolicyTaxesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS]: Parameters.EnablePolicyWorkflowsParams;
@@ -1193,6 +1191,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_EXPENSIFY_CARDS_PAGE: 'OpenPolicyExpensifyCardsPage',
     OPEN_POLICY_TRAVEL_PAGE: 'OpenPolicyTravelPage',
     GET_TRAVEL_INVOICE_STATEMENT_PDF: 'GetTravelInvoiceStatementPDF',
+    EXPORT_TRAVEL_INVOICE_STATEMENT_CSV: 'ExportTravelInvoiceStatementCSV',
     OPEN_POLICY_COMPANY_CARDS_FEED: 'OpenPolicyCompanyCardsFeed',
     OPEN_ASSIGN_FEED_CARD_PAGE: 'OpenAssignFeedCardPage',
     OPEN_POLICY_COMPANY_CARDS_PAGE: 'OpenPolicyCompanyCardsPage',
@@ -1288,6 +1287,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE]: Parameters.OpenPolicyExpensifyCardsPageParams;
     [READ_COMMANDS.OPEN_POLICY_TRAVEL_PAGE]: Parameters.OpenPolicyTravelPageParams;
     [READ_COMMANDS.GET_TRAVEL_INVOICE_STATEMENT_PDF]: Parameters.GetTravelInvoiceStatementPDFParams;
+    [READ_COMMANDS.EXPORT_TRAVEL_INVOICE_STATEMENT_CSV]: Parameters.ExportTravelInvoiceStatementCSVParams;
     [READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE]: Parameters.OpenPolicyExpensifyCardsPageParams;
     [READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED]: Parameters.OpenPolicyCompanyCardsFeedParams;
     [READ_COMMANDS.OPEN_ASSIGN_FEED_CARD_PAGE]: Parameters.OpenPolicyCompanyCardsFeedParams;
