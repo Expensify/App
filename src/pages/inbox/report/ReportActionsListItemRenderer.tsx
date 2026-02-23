@@ -3,8 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts, Transaction} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -17,9 +16,6 @@ type ReportActionsListItemRendererProps = {
 
     /** All the data of the action item */
     reportAction: ReportAction;
-
-    /** All the data of the transaction collection */
-    transactions?: Array<OnyxEntry<Transaction>>;
 
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<ReportAction>;
@@ -72,9 +68,6 @@ type ReportActionsListItemRendererProps = {
     /** User wallet tierName */
     userWalletTierName: string | undefined;
 
-    /** Linked transaction route error */
-    linkedTransactionRouteError?: OnyxEntry<Errors>;
-
     /** Whether the user is validated */
     isUserValidated: boolean | undefined;
 
@@ -106,7 +99,6 @@ function ReportActionsListItemRenderer({
     allReports,
     policies,
     reportAction,
-    transactions,
     parentReportAction,
     index,
     report,
@@ -124,7 +116,6 @@ function ReportActionsListItemRenderer({
     draftMessage,
     emojiReactions,
     userWalletTierName,
-    linkedTransactionRouteError,
     isUserValidated,
     userBillingFundID,
     personalDetails,
@@ -218,6 +209,7 @@ function ReportActionsListItemRenderer({
                 parentReportAction={parentReportAction}
                 reportID={report.reportID}
                 report={report}
+                action={action}
                 transactionThreadReport={transactionThreadReport}
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
@@ -227,7 +219,6 @@ function ReportActionsListItemRenderer({
                 personalDetails={personalDetails}
                 allDraftMessages={allDraftMessages}
                 allEmojiReactions={allEmojiReactions}
-                linkedTransactionRouteError={linkedTransactionRouteError}
                 userBillingFundID={userBillingFundID}
                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                 isReportArchived={isReportArchived}
@@ -247,7 +238,6 @@ function ReportActionsListItemRenderer({
             action={action}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
-            transactions={transactions}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
@@ -259,7 +249,6 @@ function ReportActionsListItemRenderer({
             personalDetails={personalDetails}
             draftMessage={draftMessage}
             emojiReactions={emojiReactions}
-            linkedTransactionRouteError={linkedTransactionRouteError}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             reportNameValuePairsOrigin={reportNameValuePairsOrigin}

@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       type:
-        description: 'What type of build to run. Must be one of ["release", "adhoc", "e2e", "e2eDelta"]'
+        description: 'What type of build to run. Must be one of ["release", "adhoc"]'
         type: string
         required: true
       ref:
@@ -41,8 +41,6 @@ on:
         options:
           - release
           - adhoc
-          - e2e
-          - e2eDelta
       ref:
         description: Git ref to checkout and build
         required: true
@@ -117,27 +115,11 @@ jobs:
         run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
 
       - name: Setup DotEnv
-        if: ${{ inputs.type != 'release' }}
+        if: ${{ inputs.type == 'adhoc' }}
         run: |
-          if [ '${{ inputs.type }}' == 'adhoc' ]; then
-            cp .env.staging .env.adhoc
-            sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-            echo "PULL_REQUEST_NUMBER=${{ inputs.pull_request_number }}" >> .env.adhoc
-          else
-            envFile=''
-            if [ '${{ inputs.type }}' == 'e2e' ]; then
-              envFile='tests/e2e/.env.e2e'
-            else
-              envFile=tests/e2e/.env.e2edelta
-            fi
-            {
-              echo "EXPENSIFY_PARTNER_NAME=${{ secrets.EXPENSIFY_PARTNER_NAME }}"
-              echo "EXPENSIFY_PARTNER_PASSWORD=${{ secrets.EXPENSIFY_PARTNER_PASSWORD }}"
-              echo "EXPENSIFY_PARTNER_USER_ID=${{ secrets.EXPENSIFY_PARTNER_USER_ID }}"
-              echo "EXPENSIFY_PARTNER_USER_SECRET=${{ secrets.EXPENSIFY_PARTNER_USER_SECRET }}"
-              echo "EXPENSIFY_PARTNER_PASSWORD_EMAIL=${{ secrets.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}"
-            } >> "$envFile"
-          fi
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+          echo "PULL_REQUEST_NUMBER=${{ inputs.pull_request_number }}" >> .env.adhoc
 
       - name: Build Android app (retryable)
         # v3
@@ -158,10 +140,6 @@ jobs:
                 lane='build';;
               'adhoc')
                 lane='build_adhoc';;
-              'e2e')
-                lane='build_e2e';;
-              'e2eDelta')
-                lane='build_e2eDelta';;
             esac
             bundle exec fastlane android "$lane"
 

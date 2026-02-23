@@ -7,12 +7,12 @@ import {getAvailableNonPersonalPolicyCategories, getDecodedCategoryName} from '@
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategories} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import CONST from '@src/CONST';
 
 type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_CATEGORY>;
 

@@ -157,7 +157,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             accessibilityLabel={translate('common.home')}
                             accessible
                             testID="ExpensifyLogoButton"
-                            onPress={navigateToChats}
+                            onPress={navigateToNewDotHome}
                             wrapperStyle={styles.leftNavigationTabBarItem}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
                         >

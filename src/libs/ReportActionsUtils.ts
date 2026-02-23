@@ -416,9 +416,8 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     return reportAction.originalMessage;
 }
 
-function getCardConnectionBrokenMessage(card: Card | undefined, translate: LocaleContextProps['translate'], connectionLink?: string) {
-    const cardName = card?.cardName;
-    const personalCardName = cardName ?? getBankName(card?.bank as CompanyCardFeed);
+function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName: string | undefined, translate: LocaleContextProps['translate'], connectionLink?: string) {
+    const personalCardName = originalCardName ?? card?.cardName ?? getBankName(card?.bank as CompanyCardFeed);
     return translate('personalCard.conciergeBrokenConnection', {cardName: personalCardName, connectionLink});
 }
 
