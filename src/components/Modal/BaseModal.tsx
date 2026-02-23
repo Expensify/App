@@ -70,7 +70,6 @@ function BaseModal({
     ref,
     shouldDisplayBelowModals = false,
 }: BaseModalProps) {
-    // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
