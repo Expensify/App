@@ -51,6 +51,7 @@ import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
+    canSubmitAndIsAwaitingForCurrentUser,
     getAddExpenseDropdownOptions,
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -72,7 +73,6 @@ import {
     isReportApproved,
     isSettled,
     isTripRoom as isTripRoomReportUtils,
-    canSubmitAndIsAwaitingForCurrentUser,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
