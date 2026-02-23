@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import {isSafari} from '@libs/Browser';
@@ -40,6 +41,8 @@ function FABPopoverMenu({
     children,
 }: FABPopoverMenuProps) {
     const styles = useThemeStyles();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     // React.Children.toArray filters out null/false/undefined produced by {cond && <Comp />},
     // giving us an accurate count of actually-rendered items for arrow-key focus management.
@@ -94,7 +97,14 @@ function FABPopoverMenu({
                     active={isVisible}
                     shouldReturnFocus
                 >
-                    <View style={[styles.createMenuContainer, styles.flex1]}>{childrenWithIndex}</View>
+                    {/*
+                     * Replicates PopoverMenu's layout:
+                     * - mobile: flexGrow1 outer (no fixed width), pv4 inner for item padding
+                     * - web: createMenuContainer (fixed sidebar width) + flex1 outer, pv4 inner
+                     */}
+                    <View style={isSmallScreenWidth ? styles.flexGrow1 : [styles.createMenuContainer, styles.flex1]}>
+                        <View style={styles.pv4}>{childrenWithIndex}</View>
+                    </View>
                 </FocusTrapForModal>
             </PopoverWithMeasuredContent>
         </FABMenuContext.Provider>
