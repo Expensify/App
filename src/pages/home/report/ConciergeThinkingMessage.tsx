@@ -167,7 +167,7 @@ function ConciergeThinkingMessage({report, action, reasoningHistory, statusLabel
                         {!!historyLength && (
                             <View style={styles.ml2}>
                                 <Icon
-                                    src={isExpanded ? icons.DownArrow : icons.UpArrow}
+                                    src={isExpanded ? icons.UpArrow : icons.DownArrow}
                                     fill={theme.icon}
                                     width={variables.iconSizeXXSmall}
                                     height={variables.iconSizeXXSmall}
