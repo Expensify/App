@@ -6,9 +6,9 @@ import * as API from '@libs/API';
 import type {OpenPolicyTravelPageParams, SetTravelInvoicingSettlementAccountParams, ToggleTravelInvoicingParams, UpdateTravelInvoicingSettlementFrequencyParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
-import * as Browser from '@libs/Browser';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import localFileDownload from '@libs/localFileDownload';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -372,19 +372,10 @@ function exportTravelInvoiceStatementCSV(policyID: string, startDate: string, en
     const onDownloadFailed = () => {
         // When no data exists for the selected date range, the backend returns a JSON error.
         // Download an empty CSV file in this case.
-        const blob = new Blob([translate('common.noResultsFound')], {type: CONST.SHARE_FILE_MIMETYPE.CSV});
-        const href = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = href;
-        link.download = filename;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        URL.revokeObjectURL(href);
-        link.parentNode?.removeChild(link);
+        localFileDownload(filename, translate('common.noResultsFound'), translate);
     };
 
-    fileDownload(translate, commandURL, filename, '', Browser.isMobileSafari(), formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, commandURL, filename, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 export {

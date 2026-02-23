@@ -9,9 +9,10 @@ import type LocalFileCreate from './types';
  * @returns path, filename and size of the newly created file
  */
 const localFileCreate: LocalFileCreate = (fileName, textContent) => {
-    const newFileName = FileUtils.appendTimeToFileName(fileName);
+    const fileNameWithExtension = fileName.includes('.') ? fileName : `${fileName}.txt`;
+    const newFileName = FileUtils.appendTimeToFileName(fileNameWithExtension);
     const dir = RNFetchBlob.fs.dirs.DocumentDir;
-    const path = `${dir}/${newFileName}.txt`;
+    const path = `${dir}/${newFileName}`;
 
     return RNFetchBlob.fs.writeFile(path, textContent, 'utf8').then(() => RNFetchBlob.fs.stat(path).then(({size}) => ({path, newFileName, size})));
 };

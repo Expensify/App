@@ -6,7 +6,6 @@ import type {BankAccountList, Card, WorkspaceCardsList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
 import {getLastFourDigits} from './BankAccountUtils';
-import {isMobileSafari} from './Browser';
 import {isDevelopment, isInternalTestBuild, isStaging} from './Environment/Environment';
 import fileDownload from './fileDownload';
 
@@ -176,7 +175,7 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 function downloadTravelInvoiceStatementPDF(translate: LocalizedTranslate, baseURL: string, fileName: string | true, startDate: string, endDate: string): Promise<void> {
     const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
-    return fileDownload(translate, pdfURL, downloadFileName, '', isMobileSafari());
+    return fileDownload(translate, pdfURL, downloadFileName, '');
 }
 
 /**
