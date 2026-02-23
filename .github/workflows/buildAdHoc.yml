@@ -106,12 +106,46 @@ jobs:
       pull-request-number: ${{ inputs.APP_PR_NUMBER }}
     secrets: inherit
 
+  sentryPrep:
+    name: Prepare Sentry release name
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    outputs:
+      RELEASE_NAME: ${{ steps.build-name.outputs.RELEASE_NAME }}
+    steps:
+      - name: Build descriptive release name
+        id: build-name
+        run: |
+          APP_REF="${{ inputs.APP_REF }}"
+          APP_PR="${{ inputs.APP_PR_NUMBER }}"
+          ME_REF="${{ inputs.MOBILE_EXPENSIFY_REF }}"
+          ME_PR="${{ inputs.MOBILE_EXPENSIFY_PR }}"
+
+          NAME="adhoc"
+
+          if [ -n "$APP_PR" ]; then
+            NAME="${NAME}-app${APP_PR}"
+          fi
+
+          NAME="${NAME}-${APP_REF:0:7}"
+
+          if [ -n "$ME_PR" ]; then
+            NAME="${NAME}-me${ME_PR}"
+          fi
+
+          if [ -n "$ME_REF" ] && [ "$ME_REF" != "main" ]; then
+            NAME="${NAME}-${ME_REF:0:7}"
+          fi
+
+          echo "RELEASE_NAME=$NAME" >> "$GITHUB_OUTPUT"
+          echo "Sentry release name: $NAME"
+
   uploadSentry:
-    needs: [buildAndroid, buildIOS, buildWeb]
+    needs: [sentryPrep, buildAndroid, buildIOS, buildWeb]
     if: ${{ always() && (needs.buildAndroid.result == 'success' || needs.buildIOS.result == 'success' || needs.buildWeb.result == 'success') }}
     uses: ./.github/workflows/uploadSentry.yml
     with:
       environment: adhoc
+      release: ${{ needs.sentryPrep.outputs.RELEASE_NAME }}
     secrets: inherit
 
   deployWebAdHoc:

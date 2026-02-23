@@ -7,6 +7,10 @@ on:
         description: "'adhoc', 'staging', or 'production'"
         type: string
         required: true
+      release:
+        description: 'Sentry release name (omit to auto-generate from git SHA)'
+        type: string
+        default: ''
       artifact-prefix:
         description: 'The prefix for build artifact names'
         type: string
@@ -79,6 +83,7 @@ jobs:
           SENTRY_PROJECT: app
         with:
           environment: ${{ inputs.environment }}
+          release: ${{ inputs.release || '' }}
           sourcemaps: ./sentry-sourcemaps
           set_commits: auto
           inject: false
