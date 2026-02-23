@@ -1,8 +1,26 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
-index fb40ded..67432e6 100644
+index fb40ded..ea4eba2 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/layout-managers/LinearLayoutManager.js
-@@ -115,8 +115,16 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
+@@ -92,6 +92,17 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
+      */
+     normalizeLayoutHeights(layoutInfo) {
+         var _a, _b;
++        // If the tallest item was removed from the list (e.g. item deletion),
++        // reset tracking and clear minHeight so items get re-measured naturally.
++        if (this.tallestItem && !this.layouts.includes(this.tallestItem)) {
++            for (const layout of this.layouts) {
++                layout.minHeight = 0;
++            }
++            this.tallestItem = undefined;
++            this.tallestItemHeight = 0;
++            this.requiresRepaint = true;
++            return;
++        }
+         let newTallestItem;
+         for (const info of layoutInfo) {
+             const { index } = info;
+@@ -115,8 +126,26 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
                  layout.minHeight = targetMinHeight;
              }
              newTallestItem.minHeight = 0;
@@ -17,6 +35,16 @@ index fb40ded..67432e6 100644
 +            } else {
 +                this.tallestItem = newTallestItem;
 +                this.tallestItemHeight = newTallestItem.height;
++            }
++            return;
++        }
++        // Normalize newly added items that haven't been assigned minHeight yet.
++        if (this.tallestItem) {
++            for (const layout of this.layouts) {
++                if (layout !== this.tallestItem && layout.minHeight !== this.tallestItemHeight) {
++                    layout.minHeight = this.tallestItemHeight;
++                    layout.height = this.tallestItemHeight;
++                }
 +            }
          }
      }

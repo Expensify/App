@@ -7,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
 import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -45,8 +44,14 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
 
     const loadPolicyCompanyCardsPage = useCallback(() => {
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, translate);
-    }, [domainOrWorkspaceAccountID, policyID, translate]);
+        // Skip the API call when workspaceAccountID is 0 -- Onyx discards writes to collection keys with member ID '0'.
+        if (domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID) {
+            return;
+        }
+
+        const emailList = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
+    }, [domainOrWorkspaceAccountID, policyID, policy?.employeeList, translate]);
 
     const {isOffline} = useNetwork({
         onReconnect: loadPolicyCompanyCardsPage,
@@ -60,17 +65,15 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         }
 
         loadPolicyCompanyCardsPage();
-    }, [policyID, domainOrWorkspaceAccountID, loadPolicyCompanyCardsPage, isOffline]);
+    }, [loadPolicyCompanyCardsPage, isOffline]);
 
     const loadPolicyCompanyCardsFeed = useCallback(() => {
         if (isLoading || !bankName || isFeedPending) {
             return;
         }
 
-        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
-        openWorkspaceMembersPage(policyID, clientMemberEmails);
         openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName, translate);
-    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policy?.employeeList, policyID, translate]);
+    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policyID, translate]);
 
     useEffect(() => {
         loadPolicyCompanyCardsFeed();
