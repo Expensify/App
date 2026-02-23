@@ -83,9 +83,9 @@ jobs:
           set_commits: auto
           inject: false
 
-      - name: Install sentry-cli
+      - name: Setup sentry-cli
         if: steps.download-android-proguard.outcome == 'success' || steps.download-ios-dsym.outcome == 'success'
-        run: curl -sL https://sentry.io/get-cli/ | bash
+        uses: ./.github/actions/composite/setupSentryCLI
 
       - name: Upload proguard mapping to Sentry
         if: steps.download-android-proguard.outcome == 'success'

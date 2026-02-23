@@ -1,0 +1,48 @@
+name: Setup Sentry CLI
+description: Download sentry-cli binary from GitHub releases with SHA256 checksum verification
+
+runs:
+  using: composite
+  steps:
+    - name: Download and verify sentry-cli
+      shell: bash
+      run: |
+        # To update: change VERSION and update checksums from
+        # https://github.com/getsentry/sentry-cli/releases
+        readonly VERSION="3.2.2"
+
+        declare -A CHECKSUMS=(
+          ["Linux-x86_64"]="ec5987dc83ce601fb99bbc43abbc5623832ea507c13ee13f9eab62bf77d3e55e"
+          ["Linux-aarch64"]="06d6498e48eb7c39dbf848a341689eb16ef646eace29d39fd0e4136c637b36a1"
+          ["Darwin-x86_64"]="fed5ac43d7daa7db665ea74aee1c4ba35da63d745243cf32e6c33762230aab7c"
+          ["Darwin-arm64"]="5c9fc7f3157d08bc36c9e44d199602e11da5c3135f217068da2d7c3390f0af22"
+        )
+
+        OS=$(uname -s)
+        ARCH=$(uname -m)
+        EXPECTED_SHA="${CHECKSUMS[${OS}-${ARCH}]}"
+
+        if [[ -z "$EXPECTED_SHA" ]]; then
+          echo "::error::Unsupported platform: ${OS}-${ARCH}"
+          exit 1
+        fi
+
+        INSTALL_DIR="${RUNNER_TEMP:-/tmp}/sentry-cli"
+        mkdir -p "$INSTALL_DIR"
+
+        DOWNLOAD_URL="https://github.com/getsentry/sentry-cli/releases/download/${VERSION}/sentry-cli-${OS}-${ARCH}"
+        echo "Downloading sentry-cli ${VERSION} for ${OS}-${ARCH}..."
+
+        curl --fail --location --retry 3 --retry-delay 3 \
+          "$DOWNLOAD_URL" --output "$INSTALL_DIR/sentry-cli"
+
+        ACTUAL_SHA=$(sha256sum "$INSTALL_DIR/sentry-cli" | awk '{print $1}')
+        if [[ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]]; then
+          echo "::error::Checksum mismatch for sentry-cli ${VERSION} (${OS}-${ARCH}): expected ${EXPECTED_SHA}, got ${ACTUAL_SHA}"
+          rm -f "$INSTALL_DIR/sentry-cli"
+          exit 1
+        fi
+
+        chmod +x "$INSTALL_DIR/sentry-cli"
+        echo "$INSTALL_DIR" >> "$GITHUB_PATH"
+        echo "Installed sentry-cli ${VERSION} (SHA256 verified)"
