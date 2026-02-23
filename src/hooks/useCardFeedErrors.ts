@@ -12,11 +12,13 @@ const DEFAULT_CARD_FEED_ERROR_STATE: CardFeedErrorState = {
 const DEFAULT_CARD_FEED_ERRORS: CardFeedErrors = {
     cardFeedErrors: {},
     cardsWithBrokenFeedConnection: {},
+    personalCardsWithBrokenConnection: {},
     shouldShowRbrForWorkspaceAccountID: {},
     shouldShowRbrForFeedNameWithDomainID: {},
     all: DEFAULT_CARD_FEED_ERROR_STATE,
     companyCards: DEFAULT_CARD_FEED_ERROR_STATE,
     expensifyCard: DEFAULT_CARD_FEED_ERROR_STATE,
+    personalCard: DEFAULT_CARD_FEED_ERROR_STATE,
 };
 
 function useCardFeedErrors(): CardFeedErrors {

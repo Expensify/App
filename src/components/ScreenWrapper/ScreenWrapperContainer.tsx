@@ -8,12 +8,14 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import ModalContext from '@components/Modal/ModalContext';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import getPlatform from '@libs/getPlatform';
 import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
@@ -108,8 +110,8 @@ function ScreenWrapperContainer({
     includePaddingTop = true,
     includeSafeAreaPaddingBottom = false,
     isFocused = true,
-    ref,
     forwardedFSClass,
+    ref,
 }: ScreenWrapperContainerProps) {
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
@@ -119,6 +121,8 @@ function ScreenWrapperContainer({
     const {isBlurred} = useInputBlurState();
     const {setIsBlurred} = useInputBlurActions();
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldHideFromAccessibility = shouldUseNarrowLayout && getPlatform() === CONST.PLATFORM.WEB && isMobile() && !isFocused;
 
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
     const shouldKeyboardOffsetBottomSafeAreaPadding = shouldKeyboardOffsetBottomSafeAreaPaddingProp ?? isUsingEdgeToEdgeMode;
@@ -210,6 +214,9 @@ function ScreenWrapperContainer({
             {...panResponder.panHandlers}
             testID={testID}
             fsClass={forwardedFSClass}
+            tabIndex={-1}
+            accessibilityElementsHidden={shouldHideFromAccessibility}
+            aria-hidden={shouldHideFromAccessibility}
         >
             <View
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access

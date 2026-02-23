@@ -26,7 +26,7 @@ import {saveReportActionDraft} from '@libs/actions/Report';
 import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
-import {extractEmojis, getZWNJCursorOffset, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
+import {extractEmojis, getTextVSCursorOffset, insertTextVSBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -231,15 +231,15 @@ function ReportActionItemMessageEdit({
         (newDraftInput: string) => {
             raiseIsScrollLayoutTriggered();
             const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
-            const newDraft = insertZWNJBetweenDigitAndEmoji(emojiConvertedText);
-            const zwnjOffset = getZWNJCursorOffset(emojiConvertedText, cursorPosition);
+            const newDraft = insertTextVSBetweenDigitAndEmoji(emojiConvertedText);
+            const textVSOffset = getTextVSCursorOffset(emojiConvertedText, cursorPosition);
 
             emojisPresentBefore.current = emojis;
 
             setDraft(newDraft);
 
             if (newDraftInput !== newDraft) {
-                const adjustedCursorPosition = cursorPosition !== undefined && cursorPosition !== null ? cursorPosition + zwnjOffset : undefined;
+                const adjustedCursorPosition = cursorPosition !== undefined && cursorPosition !== null ? cursorPosition + textVSOffset : undefined;
                 const position = Math.max((selection?.end ?? 0) + (newDraft.length - draftRef.current.length), adjustedCursorPosition ?? 0);
                 setSelection({
                     start: position,

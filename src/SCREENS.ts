@@ -117,8 +117,6 @@ const SCREENS = {
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: 'Settings_ReportCardLostOrDamaged_ConfirmMagicCode',
         TROUBLESHOOT: 'Settings_Troubleshoot',
-        CONSOLE: 'Settings_Console',
-        SHARE_LOG: 'Share_Log',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
 
         PROFILE: {
@@ -317,10 +315,8 @@ const SCREENS = {
         MULTIFACTOR_AUTHENTICATION: 'MultifactorAuthentication',
     },
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
-    PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     SAML_SIGN_IN: 'SAMLSignIn',
     WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
-    REQUIRE_TWO_FACTOR_AUTH: 'RequireTwoFactorAuth',
 
     MONEY_REQUEST: {
         CREATE: 'Money_Request_Create',
@@ -945,6 +941,7 @@ const SCREENS = {
         ADD_ADMIN: 'Domain_Add_Admin',
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
+        VACATION_DELEGATE: 'Vacation_Delegate',
         RESET_DOMAIN: 'Domain_Reset',
         ADD_MEMBER: 'Domain_Add_Member',
         MEMBERS_SETTINGS: 'Members_Settings',
