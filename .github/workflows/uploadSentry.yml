@@ -1,0 +1,126 @@
+name: Upload debug symbols to Sentry
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "'adhoc', 'staging', or 'production'"
+        type: string
+        required: true
+      artifact-prefix:
+        description: 'The prefix for build artifact names'
+        type: string
+        default: ''
+
+jobs:
+  uploadSentry:
+    name: Upload debug symbols to Sentry
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+
+      - name: Download Android sourcemap
+        id: download-android-sourcemap
+        continue-on-error: true
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: ${{ inputs.artifact-prefix }}android-sourcemap-artifact
+          path: ./sentry-sourcemaps
+
+      - name: Download Android proguard mapping
+        id: download-android-proguard
+        continue-on-error: true
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: ${{ inputs.artifact-prefix }}android-proguard-mapping
+          path: ./sentry-proguard
+
+      - name: Download iOS sourcemap
+        id: download-ios-sourcemap
+        continue-on-error: true
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: ${{ inputs.artifact-prefix }}ios-sourcemap-artifact
+          path: ./sentry-sourcemaps
+
+      - name: Download iOS dSYMs
+        id: download-ios-dsym
+        continue-on-error: true
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: ${{ inputs.artifact-prefix }}ios-dsym-artifact
+          path: ./sentry-dsyms
+
+      - name: Download Web sourcemaps
+        id: download-web-sourcemaps
+        continue-on-error: true
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: web-sourcemaps-artifact
+          path: ./sentry-sourcemaps
+
+      - name: Create Sentry release and upload sourcemaps
+        if: steps.download-android-sourcemap.outcome == 'success' || steps.download-ios-sourcemap.outcome == 'success' || steps.download-web-sourcemaps.outcome == 'success'
+        # v3.5.0
+        uses: getsentry/action-release@dab6548b3c03c4717878099e43782cf5be654289
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: expensify
+          SENTRY_PROJECT: app
+        with:
+          environment: ${{ inputs.environment }}
+          sourcemaps: ./sentry-sourcemaps
+          set_commits: auto
+          inject: false
+
+      - name: Install sentry-cli
+        if: steps.download-android-proguard.outcome == 'success' || steps.download-ios-dsym.outcome == 'success'
+        run: curl -sL https://sentry.io/get-cli/ | bash
+
+      - name: Upload proguard mapping to Sentry
+        if: steps.download-android-proguard.outcome == 'success'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: expensify
+          SENTRY_PROJECT: app
+        run: |
+          for attempt in 1 2 3; do
+            echo "Attempt $attempt: uploading proguard mapping..."
+            if sentry-cli upload-proguard ./sentry-proguard/mapping.txt; then
+              echo "Proguard mapping uploaded successfully"
+              exit 0
+            fi
+            echo "::warning::Upload attempt $attempt failed, retrying in 10s..."
+            sleep 10
+          done
+          echo "::error::Failed to upload proguard mapping after 3 attempts"
+          exit 1
+
+      - name: Upload iOS dSYMs to Sentry
+        if: steps.download-ios-dsym.outcome == 'success'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: expensify
+          SENTRY_PROJECT: app
+        run: |
+          for attempt in 1 2 3; do
+            echo "Attempt $attempt: uploading iOS dSYMs..."
+            if sentry-cli debug-files upload ./sentry-dsyms/; then
+              echo "iOS dSYMs uploaded successfully"
+              exit 0
+            fi
+            echo "::warning::Upload attempt $attempt failed, retrying in 10s..."
+            sleep 10
+          done
+          echo "::error::Failed to upload iOS dSYMs after 3 attempts"
+          exit 1

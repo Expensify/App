@@ -209,7 +209,7 @@ jobs:
         uses: callstackincubator/ios@dd30f7e53eee2ea6a59509793d0a30fbb5c91216
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DISABLE_AUTO_UPLOAD: 'true'
           IS_HYBRID_APP: true
           FORCE_NATIVE_BUILD: ${{ inputs.force-native-build == 'true' && github.run_id || '' }}
         with:

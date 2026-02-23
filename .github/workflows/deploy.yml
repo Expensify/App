@@ -501,6 +501,14 @@ jobs:
       environment: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
     secrets: inherit
 
+  uploadSentry:
+    needs: [prep, androidBuild, iosBuild, webBuild]
+    if: ${{ always() && (needs.androidBuild.result == 'success' || needs.iosBuild.result == 'success' || needs.webBuild.result == 'success') }}
+    uses: ./.github/workflows/uploadSentry.yml
+    with:
+      environment: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
+    secrets: inherit
+
   webDeploy:
     name: Deploy Web to S3
     needs: [prep, webBuild, buildStorybook]

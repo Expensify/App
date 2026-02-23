@@ -52,7 +52,7 @@ jobs:
             npm run build-adhoc
           fi
         env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DISABLE_AUTO_UPLOAD: 'true'
 
       - name: Upload web sourcemaps artifact
         # v6

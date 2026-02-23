@@ -106,6 +106,14 @@ jobs:
       pull-request-number: ${{ inputs.APP_PR_NUMBER }}
     secrets: inherit
 
+  uploadSentry:
+    needs: [buildAndroid, buildIOS, buildWeb]
+    if: ${{ always() && (needs.buildAndroid.result == 'success' || needs.buildIOS.result == 'success' || needs.buildWeb.result == 'success') }}
+    uses: ./.github/workflows/uploadSentry.yml
+    with:
+      environment: adhoc
+    secrets: inherit
+
   deployWebAdHoc:
     name: Deploy Web to S3 (adhoc)
     needs: [buildWeb]
