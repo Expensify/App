@@ -1009,8 +1009,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                 <Text
                     style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                    accessibilityLiveRegion={Platform.OS === CONST.PLATFORM.WEB && headerMessage === noResultsFoundText ? 'polite' : undefined}
-                    role={Platform.OS === CONST.PLATFORM.WEB && headerMessage === noResultsFoundText ? 'status' : undefined}
+                    accessibilityLiveRegion={Platform.OS === 'web' && headerMessage === translate('common.noResultsFound') ? 'polite' : undefined}
+                    role={Platform.OS === 'web' && headerMessage === translate('common.noResultsFound') ? 'status' : undefined}
                 >
                     {headerMessage}
                 </Text>

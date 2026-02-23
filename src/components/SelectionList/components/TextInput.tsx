@@ -143,8 +143,8 @@ function TextInput({
                 <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
                     <Text
                         style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                        accessibilityLiveRegion={Platform.OS === CONST.PLATFORM.WEB && headerMessage === noResultsFoundText ? 'polite' : undefined}
-                        role={Platform.OS === CONST.PLATFORM.WEB && headerMessage === noResultsFoundText ? 'status' : undefined}
+                        accessibilityLiveRegion={Platform.OS === 'web' && headerMessage === translate('common.noResultsFound') ? 'polite' : undefined}
+                        role={Platform.OS === 'web' && headerMessage === translate('common.noResultsFound') ? 'status' : undefined}
                     >
                         {headerMessage}
                     </Text>

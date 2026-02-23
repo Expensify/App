@@ -334,8 +334,8 @@ function AddressSearch({
         return (
             <Text
                 style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
-                accessibilityLiveRegion={Platform.OS === CONST.PLATFORM.WEB ? 'polite' : undefined}
-                role={Platform.OS === CONST.PLATFORM.WEB ? 'status' : undefined}
+                accessibilityLiveRegion={Platform.OS === 'web' ? 'polite' : undefined}
+                role={Platform.OS === 'web' ? 'status' : undefined}
             >
                 {noResultsFoundText}
             </Text>

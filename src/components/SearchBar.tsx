@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -47,7 +47,13 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
             </View>
             {!!shouldShowEmptyState && inputValue.length !== 0 && (
                 <View style={[styles.ph5, styles.pt3, styles.pb5]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', inputValue)}</Text>
+                    <Text
+                        style={[styles.textNormal, styles.colorMuted]}
+                        accessibilityLiveRegion={Platform.OS === 'web' ? 'polite' : undefined}
+                        role={Platform.OS === 'web' ? 'status' : undefined}
+                    >
+                        {translate('common.noResultsFoundMatching', inputValue)}
+                    </Text>
                 </View>
             )}
         </>
