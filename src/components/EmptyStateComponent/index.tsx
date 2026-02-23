@@ -127,7 +127,7 @@ function EmptyStateComponent({
                                             customText={buttonText}
                                             options={dropDownOptions}
                                             isSplitButton={false}
-                                            style={[styles.flex1, style]}
+                                            style={[styles.flex1, style, buttons.length === 1 && styles.alignItemsCenter]}
                                         />
                                     ) : (
                                         <Button
@@ -138,7 +138,7 @@ function EmptyStateComponent({
                                             icon={icon}
                                             large
                                             isDisabled={isDisabled}
-                                            style={[styles.flex1, style]}
+                                            style={[styles.flex1, style, buttons.length === 1 && styles.alignItemsCenter]}
                                         />
                                     ),
                                 )}
