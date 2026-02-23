@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {RefObject} from 'react';
 import {View} from 'react-native';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -55,20 +55,17 @@ function FABPopoverMenu({
         isActive: isVisible,
     });
 
-    const onItemPress = useCallback(
-        (onSelected: () => void, options?: {shouldCallAfterModalHide?: boolean}) => {
-            onItemSelected();
-            if (options?.shouldCallAfterModalHide && !isSafari()) {
-                close(() => {
-                    navigateAfterInteraction(onSelected);
-                });
-            } else {
+    const onItemPress = (onSelected: () => void, options?: {shouldCallAfterModalHide?: boolean}) => {
+        onItemSelected();
+        if (options?.shouldCallAfterModalHide && !isSafari()) {
+            close(() => {
                 navigateAfterInteraction(onSelected);
-            }
-            setFocusedIndex(-1);
-        },
-        [onItemSelected, setFocusedIndex],
-    );
+            });
+        } else {
+            navigateAfterInteraction(onSelected);
+        }
+        setFocusedIndex(-1);
+    };
 
     // Inject itemIndex into each child so it can interact with focus management via context
     const childrenWithIndex = childrenArray.map((child, index) => React.cloneElement(child, {itemIndex: index}));

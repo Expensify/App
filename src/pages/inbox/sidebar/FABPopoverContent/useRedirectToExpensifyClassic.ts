@@ -1,4 +1,3 @@
-import {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -21,11 +20,9 @@ function useRedirectToExpensifyClassic() {
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
     const [allPolicies] = useMappedPolicies(policyMapper);
 
-    const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
-    }, [allPolicies]);
+    const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
 
-    const showRedirectToExpensifyClassicModal = useCallback(async () => {
+    const showRedirectToExpensifyClassicModal = async () => {
         const {action} = await showConfirmModal({
             title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
             prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
@@ -40,7 +37,7 @@ function useRedirectToExpensifyClassic() {
             return;
         }
         openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-    }, [showConfirmModal, translate, isTrackingGPS]);
+    };
 
     return {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal, allPolicies};
 }
