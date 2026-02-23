@@ -2211,6 +2211,12 @@ type ReimbursementAccountNavigatorParamList = {
         bankAccountID?: string;
         subStep?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
     };
+    [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: {
+        page?: string;
+        subPage?: string;
+        action?: 'edit';
+        policyID?: string;
+    };
     [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: {
         // TODO this backTo comes from drilling it through bank account form screens
         // should be removed once https://github.com/Expensify/App/pull/72219 is resolved

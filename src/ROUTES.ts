@@ -271,6 +271,17 @@ const ROUTES = {
         route: 'bank-account/connect-existing-business-bank-account',
         getRoute: (policyID: string) => `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const,
     },
+    BANK_ACCOUNT_NON_USD_SETUP: {
+        route: 'bank-account/non-usd-setup/:page?/:subPage?/:action?',
+        getRoute: ({policyID, page, subPage, action}: {policyID?: string; page?: string; subPage?: string; action?: 'edit'}) => {
+            const base = 'bank-account/non-usd-setup';
+            const pagePart = page ? `/${page}` : '';
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            const policyIDPart = policyID ? `?policyID=${policyID}` : '';
+            return `${base}${pagePart}${subPagePart}${actionPart}${policyIDPart}` as const;
+        },
+    },
     SETTINGS: 'settings',
     SETTINGS_PROFILE: {
         route: 'settings/profile',

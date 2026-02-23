@@ -646,6 +646,16 @@ const CONST = {
             DOCUSIGN: 'DocusignStep',
             FINISH: 'FinishStep',
         },
+        PAGE_NAME: {
+            COUNTRY: 'country',
+            BANK_INFO: 'bank-info',
+            BUSINESS_INFO: 'business-info',
+            BENEFICIAL_OWNER_INFO: 'beneficial-owner-info',
+            SIGNER_INFO: 'signer-info',
+            AGREEMENTS: 'agreements',
+            DOCUSIGN: 'docusign',
+            FINISH: 'finish',
+        },
         BANK_INFO_STEP_ACH_DATA_INPUT_IDS: {
             ACCOUNT_HOLDER_NAME: 'addressName',
             ACCOUNT_HOLDER_REGION: 'addressState',
