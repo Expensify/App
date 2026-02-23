@@ -45,6 +45,7 @@ import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsRep
 import * as SessionUtils from '@libs/SessionUtils';
 import {checkIfShouldUseNewPartnerName, resetDidUserLogInDuringSession} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {confirmReadyToOpenApp, KEYS_TO_PRESERVE, openApp} from '@userActions/App';
@@ -621,6 +622,14 @@ function signUpUser(preferredLocale: Locale | undefined) {
 function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot?: TryNewDot) {
     const {hybridApp, ...newDotOnyxValues} = hybridAppSettings;
 
+    const parentTransitionSpan = getSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION) ?? getSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT);
+    startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.SETUP_NEW_DOT, {
+        name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.SETUP_NEW_DOT,
+        op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.SETUP_NEW_DOT,
+        parentSpan: parentTransitionSpan,
+    });
+    const setupSpan = getSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.SETUP_NEW_DOT);
+
     const clearOnyxIfSigningIn = () => {
         if (!hybridApp.useNewDotSignInPage) {
             return Promise.resolve();
@@ -645,8 +654,22 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
         resetDidUserLogInDuringSession();
     };
 
+    startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.CLEAR_ONYX, {
+        name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.CLEAR_ONYX,
+        op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.CLEAR_ONYX,
+        parentSpan: setupSpan,
+    });
+
     return clearOnyxIfSigningIn()
         .then(() => {
+            endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.CLEAR_ONYX);
+
+            startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ACCOUNT_SWITCH, {
+                name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ACCOUNT_SWITCH,
+                op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ACCOUNT_SWITCH,
+                parentSpan: setupSpan,
+            });
+
             // This section controls copilot changes
             const currentUserEmail = getCurrentUserEmail();
 
@@ -718,8 +741,17 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                     return openApp();
                 });
         })
-        .then(resetDidUserLoginDuringSessionIfNeeded)
         .then(() => {
+            endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ACCOUNT_SWITCH);
+            return resetDidUserLoginDuringSessionIfNeeded();
+        })
+        .then(() => {
+            startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_BATCH_UPDATE, {
+                name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_BATCH_UPDATE,
+                op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_BATCH_UPDATE,
+                parentSpan: setupSpan,
+            });
+
             const hybridAppUpdate = {
                 ...hybridApp,
                 closingReactNativeApp: false,
@@ -745,15 +777,18 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             // Batch all merges together so they're processed atomically by Onyx
             // and don't await the promise to avoid blocking on disk persistence
             Onyx.update(onyxUpdates);
+            endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_BATCH_UPDATE);
 
             return Promise.resolve();
         })
         .then(() => {
             Log.info('[HybridApp] Setup after transition from OldDot finished');
             isHybridAppSetupFinished = true;
+            endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.SETUP_NEW_DOT);
             return Promise.resolve();
         })
         .catch((error) => {
+            endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.SETUP_NEW_DOT);
             Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
         });
 }
