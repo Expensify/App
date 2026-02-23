@@ -14,7 +14,7 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainSettingsPage from '@pages/domain/BaseDomainSettingsPage';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {clearToggleTwoFactorAuthRequiredForDomainError, toggleTwoFactorAuthRequiredForDomain} from '@userActions/Domain';
+import {clearToggleTwoFactorAuthRequiredForDomainError, clearValidateDomainTwoFactorCodeError, toggleTwoFactorAuthRequiredForDomain} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -58,6 +58,7 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
 
                     if (!value && account?.requiresTwoFactorAuth) {
                         clearToggleTwoFactorAuthRequiredForDomainError(domainAccountID);
+                        clearValidateDomainTwoFactorCodeError();
                         Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS_TWO_FACTOR_AUTH.getRoute(domainAccountID));
                     } else {
                         toggleTwoFactorAuthRequiredForDomain(domainAccountID, domainName, value);

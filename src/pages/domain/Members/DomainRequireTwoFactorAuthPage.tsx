@@ -16,7 +16,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import {clearToggleTwoFactorAuthRequiredForDomainError, toggleTwoFactorAuthRequiredForDomain} from '@userActions/Domain';
+import {clearValidateDomainTwoFactorCodeError, toggleTwoFactorAuthRequiredForDomain} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -35,7 +35,7 @@ function DomainRequireTwoFactorAuthPage({route}: DomainRequireTwoFactorAuthPageP
         canBeMissing: false,
         selector: domainMemberSettingsSelector,
     });
-    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+    const [validateDomainTwoFactorCodeErrors] = useOnyx(ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE, {
         canBeMissing: true,
     });
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
@@ -43,6 +43,22 @@ function DomainRequireTwoFactorAuthPage({route}: DomainRequireTwoFactorAuthPageP
     });
 
     const baseTwoFactorAuthRef = useRef<BaseTwoFactorAuthFormRef>(null);
+    const isUnmounted = useRef(false);
+
+    useEffect(() => {
+        return () => {
+            isUnmounted.current = true;
+        };
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (!isUnmounted.current) {
+                return;
+            }
+            clearValidateDomainTwoFactorCodeError();
+        };
+    }, []);
 
     useEffect(() => {
         if (domainSettings?.twoFactorAuthRequired) {
@@ -84,12 +100,12 @@ function DomainRequireTwoFactorAuthPage({route}: DomainRequireTwoFactorAuthPageP
                             }}
                             shouldAutoFocus={false}
                             onInputChange={() => {
-                                if (isEmptyObject(domainErrors?.setTwoFactorAuthRequiredError)) {
+                                if (isEmptyObject(validateDomainTwoFactorCodeErrors?.errors)) {
                                     return;
                                 }
-                                clearToggleTwoFactorAuthRequiredForDomainError(domainAccountID);
+                                clearValidateDomainTwoFactorCodeError();
                             }}
-                            errorMessage={getLatestErrorMessage({errors: domainErrors?.setTwoFactorAuthRequiredError})}
+                            errorMessage={getLatestErrorMessage({errors: validateDomainTwoFactorCodeErrors?.errors})}
                         />
                     </View>
                 </ScrollView>

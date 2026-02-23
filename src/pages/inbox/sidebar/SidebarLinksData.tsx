@@ -30,11 +30,20 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
 
-    // IMPORTANT: Always end the telemetry navigation span for the Inbox tab when the screen gains focus.
-    // This must handle both the initial mount and all subsequent Inbox tab visits,
-    // as onLayout does not fire when navigating back to an already-mounted screen.
+    // Guards against ending the span before the first layout has completed.
+    const hasHadFirstLayout = useRef(false);
+    const onLayout = useCallback(() => {
+        hasHadFirstLayout.current = true;
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
+    }, []);
+
+    // On re-visits, react-freeze serves the cached layout — onLayout never fires.
+    // useFocusEffect fires on unfreeze, which is when the screen becomes visible.
     useFocusEffect(
         useCallback(() => {
+            if (!hasHadFirstLayout.current) {
+                return;
+            }
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
         }, []),
     );
@@ -45,6 +54,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
             collapsable={false}
             accessibilityLabel={translate('sidebarScreen.listOfChats')}
             style={[styles.flex1, styles.h100]}
+            onLayout={onLayout}
         >
             <SidebarLinks
                 // Forwarded props:

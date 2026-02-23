@@ -115,9 +115,12 @@ function WorkspaceCompanyCardsTable({
         feedErrorReloadAction = onReloadFeed;
     }
 
-    const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxValue(lastSelectedFeedMetadata) || !!selectedFeedStatus?.isLoading;
-    const isLoadingCards = (companyCardEntries ?? []).length === 0 ? isLoadingOnyxValue(cardListMetadata) : false;
-    const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
+    // If we already have fetched cards, then do not show skeleton loader (let the remaining updates refresh in the background), else show it
+    const hasCards = (companyCardEntries ?? []).length > 0;
+    const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxValue(lastSelectedFeedMetadata) || !!selectedFeedStatus?.isLoading);
+    const isLoadingCards = !hasCards ? isLoadingOnyxValue(cardListMetadata) : false;
+    const isLoadingPage = !isOffline && !hasCards && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
+
     const isLoading = isLoadingPage || isLoadingFeed;
 
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoading && !hasFeedErrors;
