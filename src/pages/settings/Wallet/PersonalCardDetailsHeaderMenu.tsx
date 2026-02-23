@@ -171,7 +171,7 @@ function PersonalCardDetailsHeaderMenu({
             )}
             <MenuItem
                 icon={expensifyIcons.RemoveMembers}
-                title={translate('workspace.moreFeatures.companyCards.unassignCard')}
+                title={translate('workspace.moreFeatures.companyCards.removeCard')}
                 style={styles.mb1}
                 onPress={onUnassignCard}
             />

@@ -126,6 +126,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
     const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
+    const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, {canBeMissing: true});
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
@@ -153,6 +154,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const {
         all: {shouldShowRBR},
+        personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
     } = useCardFeedErrors();
 
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
@@ -162,7 +164,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         !isEmptyObject(userWallet?.errors) ||
         !isEmptyObject(walletTerms?.errors) ||
         !isEmptyObject(unsharedBankAccount?.errors) ||
-        shouldShowRBR
+        shouldShowRBR ||
+        shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPendingCardAction) {
@@ -276,7 +279,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
             brickRoadIndicator:
                 !!privateSubscription?.errors ||
-                hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, ownerBillingGraceEndPeriod)
+                hasSubscriptionRedDotError(
+                    stripeCustomerId,
+                    retryBillingSuccessful,
+                    billingDisputePending,
+                    retryBillingFailed,
+                    fundList,
+                    billingStatus,
+                    amountOwed,
+                    ownerBillingGraceEndPeriod,
+                )
                     ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                     : undefined,
             badgeText: freeTrialText,
@@ -299,6 +311,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         classicRedirectMenuItem = {
             translationKey: 'exitSurvey.goToExpensifyClassic',
             icon: icons.ExpensifyLogoNew,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.GO_TO_CLASSIC,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
                       action: () => closeReactNativeApp({shouldSetNVP: true, isTrackingGPS}),
@@ -339,6 +352,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: icons.QuestionMark,
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.HELP,
                 link: CONST.NEWHELP_URL,
                 action: () => {
                     openExternalLink(CONST.NEWHELP_URL);
@@ -349,6 +363,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: icons.TreasureChest,
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.WHATS_NEW,
                 link: CONST.WHATS_NEW_URL,
                 action: () => {
                     openExternalLink(CONST.WHATS_NEW_URL);
@@ -358,23 +373,27 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 translationKey: 'initialSettingsPage.about',
                 icon: icons.Info,
                 screenName: SCREENS.SETTINGS.ABOUT,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.ABOUT,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_ABOUT),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
                 icon: icons.Lightbulb,
                 screenName: SCREENS.SETTINGS.TROUBLESHOOT,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.TROUBLESHOOT,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT),
             },
             {
                 translationKey: 'sidebarScreen.saveTheWorld',
                 icon: icons.Heart,
                 screenName: SCREENS.SETTINGS.SAVE_THE_WORLD,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.SAVE_THE_WORLD,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD),
             },
             {
                 translationKey: signOutTranslationKey,
                 icon: icons.Exit,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.SIGN_OUT,
                 action: () => {
                     signOut(false);
                 },
