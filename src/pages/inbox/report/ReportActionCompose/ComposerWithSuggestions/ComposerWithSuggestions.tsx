@@ -27,7 +27,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getZWNJCursorOffset, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
+import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getTextVSCursorOffset, insertTextVSBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
@@ -266,8 +266,10 @@ function ComposerWithSuggestions({
     const commentRef = useRef(value);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
-    // Autofocus is disabled on SearchReport when another RHP is displayed below as it causes animation issues
-    const shouldDisableAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
+    const shouldDelayAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
+    shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
@@ -280,8 +282,8 @@ function ComposerWithSuggestions({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus =
-        (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput && !shouldDisableAutoFocus;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -427,8 +429,8 @@ function ComposerWithSuggestions({
             const commentWithSpaceInserted = isEmojiInserted ? insertWhiteSpaceAtIndex(effectiveCommentValue, endIndex) : effectiveCommentValue;
             const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
 
-            const newComment = insertZWNJBetweenDigitAndEmoji(emojiConvertedText);
-            const zwnjOffset = getZWNJCursorOffset(emojiConvertedText, cursorPosition);
+            const newComment = insertTextVSBetweenDigitAndEmoji(emojiConvertedText);
+            const textVSOffset = getTextVSCursorOffset(emojiConvertedText, cursorPosition);
 
             if (emojis.length) {
                 const newEmojis = getAddedEmojis(emojis, emojisPresentBefore.current);
@@ -451,7 +453,7 @@ function ComposerWithSuggestions({
 
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
-                const adjustedCursorPosition = cursorPosition !== undefined && cursorPosition !== null ? cursorPosition + zwnjOffset : undefined;
+                const adjustedCursorPosition = cursorPosition !== undefined && cursorPosition !== null ? cursorPosition + textVSOffset : undefined;
                 const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), adjustedCursorPosition ?? 0);
 
                 if (commentWithSpaceInserted !== newComment && isIOSNative) {
@@ -635,8 +637,40 @@ function ComposerWithSuggestions({
      * @param [shouldDelay=false] Impose delay before focusing the composer
      */
     const focus = useCallback((shouldDelay = false) => {
-        focusComposerWithDelay(textInputRef.current)(shouldDelay);
+        // If we're stacked above another RHP, wait for the transition to complete before focusing.
+        const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
+        focusComposerWithDelay(textInputRef.current, delay)(shouldDelay);
     }, []);
+
+    /**
+     * In the stacked-RHP SearchReport case we disable the TextInput's immediate `autoFocus` to avoid jank.
+     * Make sure we still trigger a (delayed) manual focus on first render for that route.
+     */
+    useEffect(() => {
+        if (!shouldDelayAutoFocus) {
+            delayedAutoFocusRouteKeyRef.current = null;
+            return;
+        }
+
+        if (!shouldAutoFocus) {
+            return;
+        }
+
+        // Only attempt once per route key to avoid repeated focusing during state updates.
+        if (delayedAutoFocusRouteKeyRef.current === route.key) {
+            return;
+        }
+        delayedAutoFocusRouteKeyRef.current = route.key;
+
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const task = InteractionManager.runAfterInteractions(() => {
+            focus(true);
+        });
+
+        return () => {
+            task?.cancel?.();
+        };
+    }, [focus, route.key, shouldAutoFocus, shouldDelayAutoFocus]);
 
     /**
      * Set focus callback
@@ -898,7 +932,9 @@ function ComposerWithSuggestions({
             >
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
-                    autoFocus={!!shouldAutoFocus}
+                    // In the stacked-RHP SearchReport case, we delay focus to avoid animation/layout jank.
+                    // So we must also prevent the TextInput's immediate `autoFocus` and rely on our delayed manual focus instead.
+                    autoFocus={!!shouldAutoFocus && !shouldDelayAutoFocus}
                     multiline
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}

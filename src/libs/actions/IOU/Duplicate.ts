@@ -35,7 +35,6 @@ import {
     getCurrentUserEmail,
     getMoneyRequestParticipantsFromReport,
     getPolicyTags,
-    getRecentWaypoints,
     getUserAccountID,
     requestMoney,
     submitPerDiemExpense,
@@ -243,8 +242,12 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         },
     };
 
-    const optimisticData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [];
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
 
     optimisticData.push(
@@ -467,8 +470,8 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         },
     };
 
-    const optimisticData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
 
     optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, ...optimisticHoldActions, ...optimisticHoldTransactionActions, optimisticReportActionData);
     failureData.push(failureTransactionData, ...failureTransactionViolations, ...failureHoldActions, ...failureHoldTransactionActions, failureReportActionData);
@@ -501,6 +504,7 @@ type DuplicateExpenseTransactionParams = {
     targetReport?: OnyxTypes.Report;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
 };
 
 function duplicateExpenseTransaction({
@@ -519,6 +523,7 @@ function duplicateExpenseTransaction({
     targetReport,
     betas,
     personalDetails,
+    recentWaypoints,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -526,7 +531,6 @@ function duplicateExpenseTransaction({
 
     const userAccountID = getUserAccountID();
     const currentUserEmail = getCurrentUserEmail();
-    const recentWaypoints = getRecentWaypoints();
 
     const participants = getMoneyRequestParticipantsFromReport(targetReport, userAccountID);
     const transactionDetails = getTransactionDetails(transaction);

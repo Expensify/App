@@ -395,14 +395,14 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         duplicateTransactionViolations,
         isReportArchived,
         isChatIOUReportArchived,
+        allTransactionViolations,
+        currentUserAccountID,
         deleteTransactions,
         currentSearchHash,
         email,
         reportTransactions,
-        isOriginalReportArchived,
-        allTransactionViolations,
         bankAccountList,
-        currentUserAccountID,
+        isOriginalReportArchived,
     ]);
 
     const hideDeleteModal = () => {

@@ -1,9 +1,9 @@
-import {transactionDraftReceiptsViewSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
+import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -13,16 +13,12 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionDraftReceipts from '@hooks/useTransactionDraftReceipts';
 import Navigation from '@libs/Navigation/Navigation';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {removeDraftTransaction, removeTransactionReceipt, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type {Receipt} from '@src/types/onyx/Transaction';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
-
-type ReceiptWithTransactionIDAndSource = Receipt & ReceiptFile;
 
 type ReceiptViewProps = {
     route: {
@@ -42,10 +38,7 @@ function ReceiptView({route}: ReceiptViewProps) {
     const [page, setPage] = useState<number>(-1);
     const {showConfirmModal} = useConfirmModal();
 
-    const [receipts = getEmptyArray<ReceiptWithTransactionIDAndSource>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftReceiptsViewSelector,
-        canBeMissing: true,
-    });
+    const receipts = useTransactionDraftReceipts();
 
     // Derive currentReceipt from page - always in sync with carousel position
     const currentReceipt = page >= 0 ? receipts.at(page) : undefined;
@@ -127,7 +120,7 @@ function ReceiptView({route}: ReceiptViewProps) {
                 />
             </HeaderWithBackButton>
             <AttachmentCarouselView
-                attachments={receipts}
+                attachments={receipts as Attachment[]}
                 source={currentReceipt?.source ?? ''}
                 page={page}
                 setPage={setPage}

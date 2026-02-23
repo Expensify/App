@@ -159,6 +159,13 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                     contentContainerStyle={styles.flexGrow1}
                     addBottomSafeAreaPadding
                 >
+                    <Text
+                        style={[styles.visuallyHidden]}
+                        accessibilityRole={CONST.ROLE.HEADER}
+                        accessibilityLabel={translate('workspace.common.distanceRates')}
+                    >
+                        {translate('workspace.common.distanceRates')}
+                    </Text>
                     <OfflineWithFeedback
                         errors={getLatestErrorField(rate ?? {}, 'enabled')}
                         pendingAction={rate?.pendingFields?.enabled}

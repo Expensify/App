@@ -226,6 +226,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
                     style={[styles.flex1]}
                     text={translate('common.reset')}
                     onPress={resetChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_USER}
                 />
                 <Button
                     success
@@ -233,6 +234,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
                     style={[styles.flex1]}
                     text={translate('common.apply')}
                     onPress={applyChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_USER}
                 />
             </View>
         </View>

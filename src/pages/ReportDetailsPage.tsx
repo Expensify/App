@@ -1,5 +1,4 @@
 import {StackActions} from '@react-navigation/native';
-import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -38,6 +37,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -312,7 +312,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {currentSearchHash} = useSearchContext();
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const reportAttributes = useReportAttributes();
     const isWorkspaceChat = useMemo(() => isWorkspaceChatUtil(report?.chatType ?? ''), [report?.chatType]);
 
     useEffect(() => {
@@ -901,28 +901,28 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             removeTransaction(iouTransactionID);
         }
     }, [
-        ancestors,
         caseID,
         requestParentReportAction,
+        iouTransactionID,
         report,
+        parentReport,
         isReportArchived,
         currentUserPersonalDetails.accountID,
-        iouTransactionID,
+        hasOutstandingChildTask,
+        parentReportAction,
+        ancestors,
+        moneyRequestReport,
+        iouReport,
+        chatIOUReport,
         duplicateTransactions,
         duplicateTransactionViolations,
         isSingleTransactionView,
-        moneyRequestReport,
-        removeTransaction,
-        allTransactionViolations,
         isMoneyRequestReportArchived,
-        iouReport,
-        chatIOUReport,
+        isChatIOUReportArchived,
+        allTransactionViolations,
         deleteTransactions,
         currentSearchHash,
-        isChatIOUReportArchived,
-        hasOutstandingChildTask,
-        parentReportAction,
-        parentReport,
+        removeTransaction,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.

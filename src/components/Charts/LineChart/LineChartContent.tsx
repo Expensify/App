@@ -2,7 +2,6 @@ import {Group, Text as SkiaText, useFont, vec} from '@shopify/react-native-skia'
 import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
 import type {CartesianChartRenderArg, ChartBounds} from 'victory-native';
 import {CartesianChart, Line, Scatter} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -24,6 +23,9 @@ const DOT_RADIUS = 6;
 
 /** Extra hover area beyond the dot radius for easier touch targeting */
 const DOT_HOVER_EXTRA_RADIUS = 2;
+
+/** Minimum safe padding to avoid clipping labels/points */
+const MIN_SAFE_PADDING = DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
 
 /** Base domain padding applied to all sides */
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
@@ -96,13 +98,15 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         // How much space is wasted on each side
         const wastedLeft = geometricPadding - firstLabelNeeds;
         const wastedRight = geometricPadding - lastLabelNeeds;
-        const canReduce = Math.min(wastedLeft, wastedRight);
+        const reclaimablePadding = Math.min(wastedLeft, wastedRight);
 
         // Only reduce if both sides have excess space (labels short enough for 0°)
-        // If canReduce <= 0, labels are too long and hook will use rotation/truncation
-        const horizontalPadding = canReduce > 0 ? geometricPadding - canReduce : geometricPadding;
+        // If reclaimablePadding <= 0, labels are too long and hook will use rotation/truncation
+        const shouldUseExtraPadding = reclaimablePadding > 0;
+        const horizontalPadding = Math.max(shouldUseExtraPadding ? geometricPadding - reclaimablePadding : geometricPadding, MIN_SAFE_PADDING);
 
-        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
+        // If shouldUseExtraPadding is true then we have to add the extra padding to the right so the label is not clipped
+        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding + (shouldUseExtraPadding ? MIN_SAFE_PADDING : 0)};
     }, [chartWidth, data, font]);
 
     // For centered labels, tick spacing is evenly distributed across the plot area (same as BarChart)
@@ -129,6 +133,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
 
     const {formatYAxisLabel} = useChartLabelFormats({
         data,
+        font,
         yAxisUnit,
         yAxisUnitPosition,
     });
@@ -141,12 +146,12 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
     }, []);
 
-    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle} = useChartInteractions({
+    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handlePointPress,
         checkIsOver: checkIsOverDot,
     });
 
-    const tooltipData = useTooltipData(activeDataIndex, data, yAxisUnit, yAxisUnitPosition);
+    const tooltipData = useTooltipData(activeDataIndex, data, formatYAxisLabel);
 
     // Custom x-axis labels with hybrid positioning:
     // - At 0° (horizontal): center label under the point (like bar chart)
@@ -288,13 +293,13 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                     </CartesianChart>
                 )}
                 {isTooltipActive && !!tooltipData && (
-                    <Animated.View style={tooltipStyle}>
-                        <ChartTooltip
-                            label={tooltipData.label}
-                            amount={tooltipData.amount}
-                            percentage={tooltipData.percentage}
-                        />
-                    </Animated.View>
+                    <ChartTooltip
+                        label={tooltipData.label}
+                        amount={tooltipData.amount}
+                        percentage={tooltipData.percentage}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
                 )}
             </View>
         </View>
