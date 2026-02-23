@@ -1,10 +1,8 @@
 import React, {useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import PopoverMenu from '@components/PopoverMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import CONST from '@src/CONST';
-import type * as OnyxTypes from '@src/types/onyx';
 import useCreateReportMenuItem from './menuItems/useCreateReportMenuItem';
 import useExpenseMenuItem from './menuItems/useExpenseMenuItem';
 import useInvoiceMenuItem from './menuItems/useInvoiceMenuItem';
@@ -19,9 +17,6 @@ import type {FABPopoverContentInnerProps} from './types';
 type FABPopoverContentInnerExtraProps = FABPopoverContentInnerProps & {
     reportID: string;
     activePolicyID: string | undefined;
-    session: {email?: string; accountID?: number} | undefined;
-    policyChatForActivePolicy: OnyxTypes.Report | undefined;
-    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
 };
 
 function FABPopoverContentInner({
@@ -34,9 +29,6 @@ function FABPopoverContentInner({
     shouldUseNarrowLayout,
     reportID,
     activePolicyID,
-    session,
-    policyChatForActivePolicy,
-    allTransactionDrafts,
 }: FABPopoverContentInnerExtraProps) {
     const icons = useMemoizedLazyExpensifyIcons([
         'CalendarSolid',
@@ -63,18 +55,11 @@ function FABPopoverContentInner({
     const trackDistanceItem = useTrackDistanceMenuItem({shouldUseNarrowLayout, icons, reportID});
     const {menuItem: createReportItem, confirmationModal} = useCreateReportMenuItem({shouldUseNarrowLayout, icons, activePolicyID});
     const newChatItem = useNewChatMenuItem({shouldUseNarrowLayout, icons});
-    const invoiceItem = useInvoiceMenuItem({shouldUseNarrowLayout, icons, reportID, allTransactionDrafts});
+    const invoiceItem = useInvoiceMenuItem({shouldUseNarrowLayout, icons, reportID});
     const travelItem = useTravelMenuItem({icons, activePolicyID});
     const testDriveItem = useTestDriveMenuItem({icons});
     const newWorkspaceItem = useNewWorkspaceMenuItem({shouldUseNarrowLayout, icons});
-    const quickActionItem = useQuickActionMenuItem({
-        shouldUseNarrowLayout,
-        icons,
-        reportID,
-        session,
-        policyChatForActivePolicy,
-        allTransactionDrafts,
-    });
+    const quickActionItem = useQuickActionMenuItem({shouldUseNarrowLayout, icons, reportID});
 
     const menuItems = useMemo(
         () => [...expenseItem, ...trackDistanceItem, ...createReportItem, ...newChatItem, ...invoiceItem, ...travelItem, ...testDriveItem, ...newWorkspaceItem, ...quickActionItem],

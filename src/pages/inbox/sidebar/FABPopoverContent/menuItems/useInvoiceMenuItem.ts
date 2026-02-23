@@ -1,28 +1,27 @@
 import {useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {canSendInvoice as canSendInvoicePolicyUtils} from '@libs/PolicyUtils';
+import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
+import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
-import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 
 type UseInvoiceMenuItemParams = {
     shouldUseNarrowLayout: boolean;
     icons: MenuItemIcons;
     reportID: string;
-    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
 };
 
-function useInvoiceMenuItem({shouldUseNarrowLayout, icons, reportID, allTransactionDrafts}: UseInvoiceMenuItemParams): PopoverMenuItem[] {
+function useInvoiceMenuItem({shouldUseNarrowLayout, icons, reportID}: UseInvoiceMenuItemParams): PopoverMenuItem[] {
     const {translate} = useLocalize();
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal, allPolicies} = useRedirectToExpensifyClassic();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
 
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
 

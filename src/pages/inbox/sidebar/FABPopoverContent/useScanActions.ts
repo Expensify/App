@@ -61,7 +61,7 @@ function useScanActions() {
         });
     }, [policyChatPolicyID, policyChatReportID, reportID, allTransactionDrafts]);
 
-    return {startScan, startQuickScan, reportID, activePolicyID, session, policyChatForActivePolicy, allTransactionDrafts};
+    return {startScan, startQuickScan, reportID, activePolicyID};
 }
 
 export default useScanActions;

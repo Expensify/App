@@ -1,5 +1,5 @@
 import {useCallback, useMemo} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -19,6 +19,7 @@ import {
     // Will be fixed in https://github.com/Expensify/App/issues/76852
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
+    getWorkspaceChats,
     isPolicyExpenseChat,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -30,18 +31,22 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
+
 type UseQuickActionMenuItemParams = {
     shouldUseNarrowLayout: boolean;
     icons: MenuItemIcons;
     reportID: string;
-    session: {email?: string; accountID?: number} | undefined;
-    policyChatForActivePolicy: OnyxEntry<OnyxTypes.Report>;
-    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
 };
 
-function useQuickActionMenuItem({shouldUseNarrowLayout, icons, reportID, session, policyChatForActivePolicy, allTransactionDrafts}: UseQuickActionMenuItemParams): PopoverMenuItem[] {
+function useQuickActionMenuItem({shouldUseNarrowLayout, icons, reportID}: UseQuickActionMenuItemParams): PopoverMenuItem[] {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
@@ -57,6 +62,14 @@ function useQuickActionMenuItem({shouldUseNarrowLayout, icons, reportID, session
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionPolicyID}`, {canBeMissing: true});
 
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
+
+    const policyChatForActivePolicy = useMemo(() => {
+        if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
+            return {} as OnyxTypes.Report;
+        }
+        const policyChats = getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], allReports);
+        return policyChats.length > 0 ? policyChats.at(0) : ({} as OnyxTypes.Report);
+    }, [activePolicy, activePolicyID, session?.accountID, allReports]);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {

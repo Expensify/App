@@ -29,7 +29,7 @@ function FloatingActionButtonAndPopover() {
     const [isMenuMounted, setIsMenuMounted] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
 
-    const {startScan, startQuickScan, reportID, activePolicyID, session, policyChatForActivePolicy, allTransactionDrafts} = useScanActions();
+    const {startScan, startQuickScan, reportID, activePolicyID} = useScanActions();
 
     const showCreateMenu = useCallback(() => {
         if (!isFocused && shouldUseNarrowLayout) {
@@ -86,9 +86,6 @@ function FloatingActionButtonAndPopover() {
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
                 reportID={reportID}
                 activePolicyID={activePolicyID}
-                session={session}
-                policyChatForActivePolicy={policyChatForActivePolicy}
-                allTransactionDrafts={allTransactionDrafts}
             />
             {!shouldUseNarrowLayout && (
                 <FloatingReceiptButton
