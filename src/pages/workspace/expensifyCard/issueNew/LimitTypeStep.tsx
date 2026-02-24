@@ -22,6 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
+import KeyboardUtils from '@src/utils/keyboard';
 
 type LimitTypeStepProps = {
     // The policy that the card will be issued under
@@ -59,12 +60,14 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
-            const limit = convertToBackendAmount(Number(values?.limit));
-            setIssueNewCardStepAndData({
-                step: nextStep,
-                data: {limitType: typeSelected, limit},
-                isEditing: false,
-                policyID,
+            KeyboardUtils.dismiss().then(() => {
+                const limit = convertToBackendAmount(Number(values?.limit));
+                setIssueNewCardStepAndData({
+                    step: nextStep,
+                    data: {limitType: typeSelected, limit},
+                    isEditing: false,
+                    policyID,
+                });
             });
         },
         [nextStep, typeSelected, policyID],
