@@ -22,18 +22,17 @@ type ButtonComposedIconRightProps = {
 };
 
 function ButtonComposedIconRight({src, fill, hoverFill, style}: ButtonComposedIconRightProps) {
-    const {isHovered, success, danger, extraSmall, small, medium, large, iconFill, iconHoverFill} = useButtonComposedContext();
+    const {isHovered, success, danger, extraSmall, small, medium, large} = useButtonComposedContext();
     const theme = useTheme();
     const styles = useThemeStyles();
 
     const defaultFill = success || danger ? theme.textLight : theme.icon;
-    const resolvedFill = isHovered ? (hoverFill ?? iconHoverFill ?? defaultFill) : (fill ?? iconFill ?? defaultFill);
 
     return (
         <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, style]}>
             <Icon
                 src={src}
-                fill={resolvedFill}
+                fill={(isHovered ? hoverFill : fill) ?? defaultFill}
                 extraSmall={extraSmall}
                 small={small}
                 medium={medium}

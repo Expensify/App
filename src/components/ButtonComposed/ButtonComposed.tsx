@@ -90,12 +90,6 @@ type ButtonComposedProps = WithSentryLabel & {
     /** Any additional styles to pass to the icon wrapper container. */
     iconWrapperStyles?: StyleProp<ViewStyle>;
 
-    /** The fill color to pass into the icon. */
-    iconFill?: string;
-
-    /** The fill color to pass into the icon when the button is hovered. */
-    iconHoverFill?: string;
-
     /** Should we remove the right border radius top + bottom? */
     shouldRemoveRightBorderRadius?: boolean;
 
@@ -196,8 +190,6 @@ function KeyboardShortcutComponent({
 function ButtonComposed({
     children,
     allowBubble = false,
-    iconFill,
-    iconHoverFill,
     iconWrapperStyles = [],
     extraSmall = false,
     small = false,
@@ -252,10 +244,8 @@ function ButtonComposed({
             medium,
             large,
             link,
-            iconFill,
-            iconHoverFill,
         }),
-        [isHovered, isLoading, success, danger, extraSmall, small, medium, large, link, iconFill, iconHoverFill],
+        [isHovered, isLoading, success, danger, extraSmall, small, medium, large, link],
     );
 
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
