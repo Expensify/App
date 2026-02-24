@@ -44,7 +44,7 @@ function StatusCell({stateNum, statusNum, isPending}: StatusCellProps) {
     }
 
     return (
-        <View style={[styles.w100, styles.justifyContentCenter, isPending && styles.offlineFeedbackPending]}>
+        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, isPending && styles.offlineFeedbackPending]}>
             <View style={[styles.reportStatusContainer, backgroundColorStyle]}>
                 <Text style={[styles.reportStatusText, textColorStyle]}>{statusText}</Text>
             </View>
