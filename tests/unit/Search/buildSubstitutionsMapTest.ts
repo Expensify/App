@@ -76,6 +76,12 @@ const cardFeedsMock: OnyxCollection<OnyxTypes.CardFeeds> = {
     },
 };
 
+const policiesWithDuplicateNamesMock = {
+    [`${ONYXKEYS.COLLECTION.POLICY}1`]: {id: '1', name: 'Team'},
+    [`${ONYXKEYS.COLLECTION.POLICY}2`]: {id: '2', name: 'Team'},
+    [`${ONYXKEYS.COLLECTION.POLICY}3`]: {id: '3', name: 'Team'},
+} as unknown as OnyxCollection<OnyxTypes.Policy>;
+
 describe('buildSubstitutionsMap should return correct substitutions map', () => {
     test('when there were no substitutions', () => {
         const userQuery = 'foo bar';
@@ -116,6 +122,28 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
 
         expect(result).toStrictEqual({
             'from:me': '12345',
+        });
+    });
+
+    test('when query has duplicate workspace names, it stores indexed substitution keys', () => {
+        const userQuery = 'policyID:1,2,3';
+
+        const result = buildSubstitutionsMap(
+            userQuery,
+            personalDetailsMock,
+            reportsMock,
+            taxRatesMock,
+            cardListMock,
+            cardFeedsMock,
+            policiesWithDuplicateNamesMock,
+            12345,
+            translateLocal,
+        );
+
+        expect(result).toStrictEqual({
+            'policyID:Team': '1',
+            'policyID:Team:1': '2',
+            'policyID:Team:2': '3',
         });
     });
 });

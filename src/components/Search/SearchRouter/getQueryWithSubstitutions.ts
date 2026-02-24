@@ -5,6 +5,8 @@ import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
 type SubstitutionMap = Record<string, string>;
 
 const getSubstitutionMapKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
+const getSubstitutionMapKeyWithIndex = (filterKey: SearchFilterKey, value: string, index: number) =>
+    index === 0 ? getSubstitutionMapKey(filterKey, value) : `${getSubstitutionMapKey(filterKey, value)}:${index}`;
 
 /**
  * Given a plaintext query and a SubstitutionMap object, this function will return a transformed query where:
@@ -29,10 +31,19 @@ function getQueryWithSubstitutions(changedQuery: string, substitutions: Substitu
 
     let resultQuery = changedQuery;
     let lengthDiff = 0;
+    const substitutionKeyOccurrences = new Map<string, number>();
 
     for (const range of searchAutocompleteQueryRanges) {
-        const itemKey = getSubstitutionMapKey(range.key, range.value);
+        const substitutionMapKey = getSubstitutionMapKey(range.key, range.value);
+        const substitutionOccurrenceIndex = substitutionKeyOccurrences.get(substitutionMapKey) ?? 0;
+        substitutionKeyOccurrences.set(substitutionMapKey, substitutionOccurrenceIndex + 1);
+
+        const itemKey = getSubstitutionMapKeyWithIndex(range.key, range.value, substitutionOccurrenceIndex);
         let substitutionEntry = substitutions[itemKey];
+
+        if (!substitutionEntry && substitutionOccurrenceIndex === 0) {
+            substitutionEntry = substitutions[substitutionMapKey];
+        }
 
         if (substitutionEntry) {
             const substitutionStart = range.start + lengthDiff;
@@ -48,5 +59,5 @@ function getQueryWithSubstitutions(changedQuery: string, substitutions: Substitu
     return resultQuery;
 }
 
-export {getQueryWithSubstitutions, getSubstitutionMapKey};
+export {getQueryWithSubstitutions, getSubstitutionMapKey, getSubstitutionMapKeyWithIndex};
 export type {SubstitutionMap};

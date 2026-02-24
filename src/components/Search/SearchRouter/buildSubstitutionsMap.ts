@@ -6,6 +6,7 @@ import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
+import {getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
 
 const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
 
@@ -43,8 +44,18 @@ function buildSubstitutionsMap(
         return {};
     }
 
+    const substitutionKeyOccurrences = new Map<string, number>();
     const substitutionsMap = searchAutocompleteQueryRanges.reduce((map, range) => {
         const {key: filterKey, value: filterValue} = range;
+        const setSubstitutionMapEntry = (displayValue: string, value: string) => {
+            const substitutionMapKey = getSubstitutionsKey(filterKey, displayValue);
+            const substitutionOccurrenceIndex = substitutionKeyOccurrences.get(substitutionMapKey) ?? 0;
+            substitutionKeyOccurrences.set(substitutionMapKey, substitutionOccurrenceIndex + 1);
+
+            const substitutionKey = getSubstitutionMapKeyWithIndex(filterKey, displayValue, substitutionOccurrenceIndex);
+            // eslint-disable-next-line no-param-reassign
+            map[substitutionKey] = value;
+        };
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
             const taxRateID = filterValue;
@@ -55,10 +66,7 @@ function buildSubstitutionsMap(
             const taxRateNames = taxRates.length > 0 ? taxRates : [taxRateID];
             const uniqueTaxRateNames = [...new Set(taxRateNames)];
             for (const taxRateName of uniqueTaxRateNames) {
-                const substitutionKey = getSubstitutionsKey(filterKey, taxRateName);
-
-                // eslint-disable-next-line no-param-reassign
-                map[substitutionKey] = taxRateID;
+                setSubstitutionMapEntry(taxRateName, taxRateID);
             }
         } else if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -77,9 +85,7 @@ function buildSubstitutionsMap(
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {
-                const substitutionKey = getSubstitutionsKey(filterKey, displayValue);
-                // eslint-disable-next-line no-param-reassign
-                map[substitutionKey] = filterValue;
+                setSubstitutionMapEntry(displayValue, filterValue);
             }
         }
 

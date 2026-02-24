@@ -51,7 +51,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
+import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
+import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from './SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from './types';
 
 type AutocompleteItemData = {
@@ -101,6 +102,9 @@ type SearchAutocompleteListProps = {
 
     /** All cards */
     allCards: CardList | undefined;
+
+    /** Map of display values to autocomplete IDs */
+    autocompleteSubstitutions?: SubstitutionMap;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListWithSectionsHandle>;
@@ -164,6 +168,7 @@ function SearchAutocompleteList({
     reports,
     allFeeds,
     allCards = CONST.EMPTY_OBJECT,
+    autocompleteSubstitutions,
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
@@ -604,8 +609,27 @@ function SearchAutocompleteList({
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID: {
+                const policyRangeOccurrences = new Map<string, number>();
+                const alreadySelectedPolicyIDs = new Set(
+                    ranges
+                        .filter((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID)
+                        .map((range) => {
+                            const substitutionMapKey = getSubstitutionMapKey(range.key, range.value);
+                            const substitutionOccurrenceIndex = policyRangeOccurrences.get(substitutionMapKey) ?? 0;
+                            policyRangeOccurrences.set(substitutionMapKey, substitutionOccurrenceIndex + 1);
+
+                            return autocompleteSubstitutions?.[getSubstitutionMapKeyWithIndex(range.key, range.value, substitutionOccurrenceIndex)];
+                        })
+                        .filter((policyID): policyID is string => !!policyID),
+                );
+                const shouldFilterPoliciesByID = alreadySelectedPolicyIDs.size > 0;
+
                 const filteredPolicies = workspaceList
-                    .filter((workspace) => workspace.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(workspace.name.toLowerCase()))
+                    .filter(
+                        (workspace) =>
+                            workspace.name.toLowerCase().includes(autocompleteValue.toLowerCase()) &&
+                            (shouldFilterPoliciesByID ? !alreadySelectedPolicyIDs.has(workspace.id) : !alreadyAutocompletedKeys.has(workspace.name.toLowerCase())),
+                    )
                     .sort()
                     .slice(0, 10);
 
