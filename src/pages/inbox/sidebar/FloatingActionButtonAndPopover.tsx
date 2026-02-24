@@ -8,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import FABPopoverContent from './FABPopoverContent';
 import useScanActions from './FABPopoverContent/useScanActions';
@@ -20,7 +19,6 @@ import useScanActions from './FABPopoverContent/useScanActions';
 function FloatingActionButtonAndPopover() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
@@ -82,7 +80,6 @@ function FloatingActionButtonAndPopover() {
                 onClose={hideCreateMenu}
                 onItemSelected={hideCreateMenu}
                 onModalHide={handleMenuModalHide}
-                anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 anchorRef={fabRef}
                 reportID={reportID}
                 activePolicyID={activePolicyID}

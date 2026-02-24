@@ -1,6 +1,5 @@
 import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {AnchorPosition} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
@@ -23,7 +22,6 @@ type FABPopoverContentProps = {
     onClose: () => void;
     onItemSelected: () => void;
     onModalHide: () => void;
-    anchorPosition: AnchorPosition;
     anchorRef: RefObject<HTMLDivElement | null>;
 };
 

@@ -7,7 +7,7 @@ type FABPopoverContentExtraProps = FABPopoverContentProps & {
     activePolicyID: string | undefined;
 };
 
-function FABPopoverContent({isMenuMounted, isVisible, onClose, onItemSelected, onModalHide, anchorPosition, anchorRef, reportID, activePolicyID}: FABPopoverContentExtraProps) {
+function FABPopoverContent({isMenuMounted, isVisible, onClose, onItemSelected, onModalHide, anchorRef, reportID, activePolicyID}: FABPopoverContentExtraProps) {
     if (!isMenuMounted) {
         return null;
     }
@@ -18,7 +18,6 @@ function FABPopoverContent({isMenuMounted, isVisible, onClose, onItemSelected, o
             onClose={onClose}
             onItemSelected={onItemSelected}
             onModalHide={onModalHide}
-            anchorPosition={anchorPosition}
             anchorRef={anchorRef}
             reportID={reportID}
             activePolicyID={activePolicyID}

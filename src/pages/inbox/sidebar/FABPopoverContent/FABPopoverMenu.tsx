@@ -6,11 +6,11 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {close} from '@libs/actions/Modal';
 import {isSafari} from '@libs/Browser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import CONST from '@src/CONST';
-import type {AnchorPosition} from '@src/styles';
 import {FABMenuContext} from './FABMenuContext';
 
 // Fixed display order for all possible menu items.
@@ -23,7 +23,6 @@ type FABPopoverMenuProps = {
     onClose: () => void;
     onItemSelected: () => void;
     onModalHide: () => void;
-    anchorPosition: AnchorPosition;
     anchorRef: RefObject<View | HTMLDivElement | null>;
     fromSidebarMediumScreen?: boolean;
     animationInTiming?: number;
@@ -31,21 +30,12 @@ type FABPopoverMenuProps = {
     children: React.ReactNode;
 };
 
-function FABPopoverMenu({
-    isVisible,
-    onClose,
-    onItemSelected,
-    onModalHide,
-    anchorPosition,
-    anchorRef,
-    fromSidebarMediumScreen,
-    animationInTiming,
-    animationOutTiming,
-    children,
-}: FABPopoverMenuProps) {
+function FABPopoverMenu({isVisible, onClose, onItemSelected, onModalHide, anchorRef, fromSidebarMediumScreen, animationInTiming, animationOutTiming, children}: FABPopoverMenuProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
+    const anchorPosition = styles.createMenuPositionSidebar(windowHeight);
 
     const [registeredSet, setRegisteredSet] = useState<ReadonlySet<string>>(new Set());
 

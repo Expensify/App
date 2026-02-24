@@ -18,7 +18,7 @@ type FABPopoverContentInnerExtraProps = FABPopoverContentInnerProps & {
     activePolicyID: string | undefined;
 };
 
-function FABPopoverContentInner({isVisible, onClose, onItemSelected, onModalHide, anchorPosition, anchorRef, reportID, activePolicyID}: FABPopoverContentInnerExtraProps) {
+function FABPopoverContentInner({isVisible, onClose, onItemSelected, onModalHide, anchorRef, reportID, activePolicyID}: FABPopoverContentInnerExtraProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
@@ -27,7 +27,6 @@ function FABPopoverContentInner({isVisible, onClose, onItemSelected, onModalHide
             onClose={onClose}
             onItemSelected={onItemSelected}
             onModalHide={onModalHide}
-            anchorPosition={anchorPosition}
             anchorRef={anchorRef}
             fromSidebarMediumScreen={!shouldUseNarrowLayout}
             animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
