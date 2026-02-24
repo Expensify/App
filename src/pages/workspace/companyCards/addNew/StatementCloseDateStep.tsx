@@ -20,8 +20,8 @@ type StatementCloseDateStepProps = {
 
 function StatementCloseDateStep({policyID, workspaceAccountID}: StatementCloseDateStepProps) {
     const {translate} = useLocalize();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [cardFeeds] = useCardFeeds(policyID);
 
     const isPlaid = !!addNewCard?.data?.publicToken;

@@ -34,7 +34,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const {isOffline} = useNetwork();
 
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

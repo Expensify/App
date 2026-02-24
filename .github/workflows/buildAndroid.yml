@@ -3,75 +3,94 @@ name: Build Android app
 on:
   workflow_call:
     inputs:
-      type:
-        description: 'What type of build to run. Must be one of ["release", "adhoc"]'
-        type: string
-        required: true
       ref:
         description: Git ref to checkout and build
         type: string
         required: true
+      variant:
+        description: "'Release' or 'Adhoc'"
+        type: string
+        required: true
+      mobile-expensify-ref:
+        description: Mobile-Expensify ref to checkout (empty to use submodule at HEAD)
+        type: string
+        default: ''
+      pull-request-number:
+        description: Pull request number associated with this build
+        type: string
+        default: ''
       artifact-prefix:
         description: 'The prefix for build artifact names. This is useful if you need to call multiple builds from the same workflow'
         type: string
-        required: false
         default: ''
-      pull_request_number:
-        description: The pull request number associated with this build, if relevant.
+      force-native-build:
+        description: Force a full native build, bypassing Rock remote cache
         type: string
-        required: false
+        default: 'false'
 
     outputs:
-      AAB_FILE_NAME:
-        description: Name of the AAB file produced by this workflow.
-        value: ${{ jobs.build.outputs.AAB_FILE_NAME }}
-      APK_FILE_NAME:
-        description: Name of the APK file produced by this workflow.
-        value: ${{ jobs.build.outputs.APK_FILE_NAME }}
-      APK_ARTIFACT_NAME:
-        description: Name of the APK artifact.
-        value: ${{ jobs.build.outputs.APK_ARTIFACT_NAME }}
-
-  workflow_dispatch:
-    inputs:
-      type:
-        description: What type of build do you want to run?
-        required: true
-        type: choice
-        options:
-          - release
-          - adhoc
-      ref:
-        description: Git ref to checkout and build
-        required: true
-        type: string
-
-      pull_request_number:
-        description: The pull request number associated with this build, if relevant.
-        type: number
-        required: false
+      VERSION_CODE:
+        description: Android version code from the build
+        value: ${{ jobs.build.outputs.VERSION_CODE }}
+      ROCK_ARTIFACT_URL:
+        description: URL to download the ad-hoc build artifact (adhoc only)
+        value: ${{ jobs.build.outputs.ROCK_ARTIFACT_URL }}
 
 jobs:
   build:
     name: Build Android app
-    runs-on: blacksmith-16vcpu-ubuntu-2404
+    runs-on: blacksmith-32vcpu-ubuntu-2404
+    env:
+      PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
     outputs:
-      AAB_FILE_NAME: ${{ steps.build.outputs.AAB_FILE_NAME }}
-      APK_FILE_NAME: ${{ steps.build.outputs.APK_FILE_NAME }}
-      APK_ARTIFACT_NAME: ${{ steps.build.outputs.APK_ARTIFACT_NAME }}
-
+      VERSION_CODE: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+      ROCK_ARTIFACT_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
     steps:
       - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
+          submodules: true
           ref: ${{ inputs.ref }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Checkout Mobile-Expensify to specified branch or commit
+        if: ${{ inputs.mobile-expensify-ref != '' }}
+        run: |
+          cd Mobile-Expensify
+          git fetch origin ${{ inputs.mobile-expensify-ref }}
+          git checkout ${{ inputs.mobile-expensify-ref }}
+
+      - name: Compute custom build identifier
+        id: computeIdentifier
+        run: |
+          APP_SHORT_SHA=$(git rev-parse --short HEAD)
+          MOBILE_EXPENSIFY_SHORT_SHA=$(cd Mobile-Expensify && git rev-parse --short HEAD)
+          echo "IDENTIFIER=${APP_SHORT_SHA}-${MOBILE_EXPENSIFY_SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
+        id: setup-node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
+
+      - name: Run grunt build
+        run: |
+          cd Mobile-Expensify
+          npm run grunt:build:shared
+
+      - name: Create .env.adhoc file based on staging
+        if: ${{ inputs.variant == 'Adhoc' }}
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+
+      - name: Inject CI data into JS bundle
+        if: ${{ inputs.variant == 'Adhoc' && inputs.pull-request-number != '' }}
+        run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
 
       - name: Get Java version
         id: get-java-version
@@ -88,12 +107,6 @@ jobs:
         # v4
         uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
 
-      - name: Setup Ruby
-        # v1.229.0
-        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
-        with:
-          bundler-cache: true
-
       - name: Setup 1Password CLI and certificates
         uses: Expensify/GitHub-Actions/setup-certificate-1p@main
         with:
@@ -101,90 +114,158 @@ jobs:
           SHOULD_LOAD_SSL_CERTIFICATES: 'false'
 
       - name: Load files from 1Password
-        working-directory: android/app
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: op read "op://${{ vars.OP_VAULT }}/New Expensify my-upload-key.keystore/my-upload-key.keystore" --force --out-file ./my-upload-key.keystore
+        run: |
+          op read "op://${{ vars.OP_VAULT }}/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
+          op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
+          cp ./upload-key.keystore Mobile-Expensify/Android
 
-      - name: Get package version
-        id: getPackageVersion
-        run: echo "VERSION=$(jq -r .version < package.json)" >> "$GITHUB_OUTPUT"
+      - name: Load Android upload keystore credentials from 1Password
+        id: load-credentials
+        # v3
+        uses: 1password/load-secrets-action@8d0d610af187e78a2772c2d18d627f4c52d3fbfb
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
+          ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
 
       - name: Get Android native version
         id: getAndroidVersion
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
+        run: echo "VERSION_CODE=$(grep -oP 'android:versionCode="\K[0-9]+' Mobile-Expensify/Android/AndroidManifest.xml)" >> "$GITHUB_OUTPUT"
 
-      - name: Setup DotEnv
-        if: ${{ inputs.type == 'adhoc' }}
-        run: |
-          cp .env.staging .env.adhoc
-          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=${{ inputs.pull_request_number }}" >> .env.adhoc
+      - name: Configure AWS Credentials
+        # v6
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-      - name: Build Android app (retryable)
-        # v3
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
-        id: build
+      - name: Rock Remote Build - Android
+        uses: callstackincubator/android@4cedf4d9b5c167452c96fe67233577e0fde9a025
         env:
-          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
-          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
+          GITHUB_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          IS_HYBRID_APP: true
+          FORCE_NATIVE_BUILD: ${{ inputs.force-native-build == 'true' && github.run_id || '' }}
         with:
-          retry_on: error
-          retry_wait_seconds: 60
-          timeout_minutes: 60
-          max_attempts: 3
-          command: |
-            lane=''
-            case '${{ inputs.type }}' in
-              'release')
-                lane='build';;
-              'adhoc')
-                lane='build_adhoc';;
-            esac
-            bundle exec fastlane android "$lane"
+          variant: ${{ inputs.variant }}
+          sign: true
+          re-sign: true
+          ad-hoc: ${{ inputs.variant == 'Adhoc' }}
+          keystore-file: './upload-key.keystore'
+          keystore-store-file: 'upload-key.keystore'
+          keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          keystore-key-alias: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
+          keystore-key-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          keystore-path: '../tools/buildtools/upload-key.keystore'
+          comment-bot: false
+          rock-build-extra-params: ${{ inputs.variant == 'Adhoc' && '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"' || '--extra-params "--profile"' }}
+          custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
+          validate-elf-alignment: false
 
-            # Refresh environment variables from GITHUB_ENV that are updated when running fastlane
-            # shellcheck disable=SC1090
-            source "$GITHUB_ENV"
-
-            SHOULD_UPLOAD_SOURCEMAPS='false'
-            if [ -f ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map ]; then
-              SHOULD_UPLOAD_SOURCEMAPS='true'
-            fi
-
-            {
-              # aabPath and apkPath are environment varibles set within the Fastfile
-              echo "AAB_PATH=$aabPath"
-              echo "AAB_FILE_NAME=$(basename "$aabPath")"
-              echo "APK_PATH=$apkPath"
-              echo "APK_FILE_NAME=$(basename "$apkPath")"
-              echo "SHOULD_UPLOAD_SOURCEMAPS=$SHOULD_UPLOAD_SOURCEMAPS"
-              echo "APK_ARTIFACT_NAME=${{ inputs.artifact-prefix }}android-apk-artifact" >> "$GITHUB_OUTPUT"
-            } >> "$GITHUB_OUTPUT"    
-
-      - name: Upload Android AAB artifact
-        if: ${{ steps.build.outputs.AAB_PATH != '' }}
-        continue-on-error: true
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - name: Upload Gradle profile report
+        if: always()
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
-          name: ${{ inputs.artifact-prefix }}android-aab-artifact
-          path: ${{ steps.build.outputs.AAB_PATH }}
+          name: ${{ inputs.artifact-prefix }}gradle-profile-report
+          path: Mobile-Expensify/Android/build/reports/profile/
+          if-no-files-found: ignore
 
-      - name: Upload Android APK artifact
-        if: ${{ steps.build.outputs.APK_PATH != '' }}
-        continue-on-error: true
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: ${{ steps.build.outputs.APK_ARTIFACT_NAME }}
-          path: ${{ steps.build.outputs.APK_PATH }}
+      - name: Set artifact URL output
+        id: set-artifact-url
+        if: ${{ inputs.variant == 'Adhoc' }}
+        run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
 
-      - name: Upload Android sourcemaps artifact
-        if: ${{ steps.build.outputs.SHOULD_UPLOAD_SOURCEMAPS == 'true' }}
-        continue-on-error: true
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - name: Collect build artifacts
+        id: collectArtifacts
+        run: |
+          mkdir -p /tmp/android-artifacts
+
+          AAB_FILE=$(find Mobile-Expensify/Android -path '*/outputs/bundle/*/*.aab' -print -quit 2>/dev/null || true)
+          if [ -n "$AAB_FILE" ]; then
+            echo "Found AAB: $AAB_FILE"
+            cp "$AAB_FILE" /tmp/android-artifacts/
+            echo "HAS_AAB=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::No AAB file found (expected for remote-cache hits on Adhoc builds)"
+            echo "HAS_AAB=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          MAP_FILE=$(find Mobile-Expensify/Android -path '*/sourcemaps/react/*/index.android.bundle.map' -print -quit 2>/dev/null || true)
+          if [ -n "$MAP_FILE" ]; then
+            echo "Found sourcemap: $MAP_FILE"
+            cp "$MAP_FILE" /tmp/android-artifacts/
+          else
+            echo "::warning::No Android sourcemap found"
+          fi
+
+          MAPPING_FILE=$(find Mobile-Expensify/Android -path '*/outputs/mapping/*/mapping.txt' -print -quit 2>/dev/null || true)
+          if [ -n "$MAPPING_FILE" ]; then
+            echo "Found proguard mapping: $MAPPING_FILE"
+            cp "$MAPPING_FILE" /tmp/android-artifacts/
+          else
+            echo "::warning::No proguard mapping file found"
+          fi
+
+      - name: Find and upload AAB artifact
+        if: steps.collectArtifacts.outputs.HAS_AAB == 'true'
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
-          name: ${{ inputs.artifact-prefix }}android-sourcemaps-artifact
-          path: ./android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
+          name: ${{ inputs.artifact-prefix }}androidBuild-artifact
+          path: /tmp/android-artifacts/*.aab
+
+      - name: Upload Android sourcemap artifact
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: ${{ inputs.artifact-prefix }}android-sourcemap-artifact
+          path: /tmp/android-artifacts/index.android.bundle.map
+          if-no-files-found: warn
+
+      - name: Upload proguard mapping artifact
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: ${{ inputs.artifact-prefix }}android-proguard-mapping
+          path: /tmp/android-artifacts/mapping.txt
+          if-no-files-found: warn
+
+      - name: Install bundletool
+        if: steps.collectArtifacts.outputs.HAS_AAB == 'true'
+        run: |
+          readonly BUNDLETOOL_VERSION="1.18.1"
+          readonly BUNDLETOOL_URL="https://github.com/google/bundletool/releases/download/${BUNDLETOOL_VERSION}/bundletool-all-${BUNDLETOOL_VERSION}.jar"
+          curl -L -o bundletool.jar "$BUNDLETOOL_URL"
+          readonly EXPECTED_SHA="675786493983787ffa11550bdb7c0715679a44e1643f3ff980a529e9c822595c"
+          SHA="$(sha256sum bundletool.jar | cut -d ' ' -f1)"
+          if [[ "$SHA" != "$EXPECTED_SHA" ]]; then
+            echo "SHA mismatch: expected $EXPECTED_SHA but got $SHA"
+            exit 1
+          fi
+
+      - name: Generate APK from AAB
+        if: steps.collectArtifacts.outputs.HAS_AAB == 'true'
+        run: |
+          AAB_PATH=$(find Mobile-Expensify/Android -path '*/outputs/bundle/*/*.aab' | head -1)
+          java -jar bundletool.jar build-apks --bundle="$AAB_PATH" --output=Expensify.apks \
+            --mode=universal \
+            --ks=upload-key.keystore \
+            --ks-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} \
+            --ks-key-alias=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} \
+            --key-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          unzip -p Expensify.apks universal.apk > Expensify.apk
+
+      - name: Upload Android APK build artifact
+        if: steps.collectArtifacts.outputs.HAS_AAB == 'true'
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: ${{ inputs.artifact-prefix }}android-apk-artifact
+          path: Expensify.apk
