@@ -42,9 +42,9 @@ type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
 function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFormProps) {
     const {login, setLogin} = useLogin();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -292,6 +292,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                             isAlertVisible={shouldShowServerError}
                             buttonStyles={[shouldShowServerError ? styles.mt3 : {}]}
                             containerStyles={[styles.mh0]}
+                            sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.CONTINUE}
                         />
                         {
                             // This feature has a few behavioral differences in development mode. To prevent confusion

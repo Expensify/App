@@ -10,6 +10,7 @@ import {getActivePolicies} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session, TryNewDot} from '@src/types/onyx';
+import {cleanupMemoryTracking, initializeMemoryTracking} from './sendMemoryContext';
 
 /**
  * Connect to Onyx to retrieve information about the user's active policies.
@@ -54,6 +55,27 @@ Onyx.connectWithoutView({
 });
 
 Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        sendReportsCountTag(Object.keys(value).length);
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        sendPersonalDetailsCountTag(Object.keys(value).length);
+    },
+});
+
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (value) => {
         tryNewDot = value;
@@ -61,12 +83,80 @@ Onyx.connectWithoutView({
     },
 });
 
+/**
+ * Buckets policy count into cohorts for Sentry tagging
+ */
+function bucketPolicyCount(count: number): string {
+    if (count <= 1) {
+        return '0-1';
+    }
+    if (count <= 10) {
+        return '2-10';
+    }
+    if (count <= 50) {
+        return '11-50';
+    }
+    if (count <= 100) {
+        return '51-100';
+    }
+    if (count <= 250) {
+        return '101-250';
+    }
+    if (count <= 500) {
+        return '251-500';
+    }
+    if (count <= 1000) {
+        return '501-1000';
+    }
+    return '1000+';
+}
+
+/**
+ * Buckets report count into cohorts for Sentry tagging
+ */
+function bucketReportCount(count: number): string {
+    if (count <= 60) {
+        return '0-60';
+    }
+    if (count <= 300) {
+        return '61-300';
+    }
+    if (count <= 1000) {
+        return '301-1000';
+    }
+    if (count <= 2500) {
+        return '1001-2500';
+    }
+    if (count <= 5000) {
+        return '2501-5000';
+    }
+    if (count <= 10000) {
+        return '5001-10000';
+    }
+    return '10000+';
+}
+
 function sendPoliciesContext() {
     if (!policies || !session?.email || !activePolicyID) {
         return;
     }
     const activePolicies = getActivePolicies(policies, session.email).map((policy) => policy.id);
+
+    let userRole: string = CONST.POLICY.ROLE.USER;
+    for (const policy of Object.values(policies)) {
+        if (policy?.role === CONST.POLICY.ROLE.ADMIN) {
+            userRole = CONST.POLICY.ROLE.ADMIN;
+            break;
+        }
+        if (policy?.role === CONST.POLICY.ROLE.AUDITOR) {
+            userRole = CONST.POLICY.ROLE.AUDITOR;
+        }
+    }
+
+    const policiesCountBucket = bucketPolicyCount(activePolicies.length);
     Sentry.setTag(CONST.TELEMETRY.TAG_ACTIVE_POLICY, activePolicyID);
+    Sentry.setTag(CONST.TELEMETRY.TAG_POLICIES_COUNT, policiesCountBucket);
+    Sentry.setTag(CONST.TELEMETRY.TAG_USER_ROLE, userRole);
     Sentry.setContext(CONST.TELEMETRY.CONTEXT_POLICIES, {activePolicyID, activePolicies});
 }
 
@@ -77,3 +167,15 @@ function sendTryNewDotCohortTag() {
     }
     Sentry.setTag(CONST.TELEMETRY.TAG_NUDGE_MIGRATION_COHORT, cohort);
 }
+
+function sendReportsCountTag(reportsCount: number) {
+    const reportsCountBucket = bucketReportCount(reportsCount);
+    Sentry.setTag(CONST.TELEMETRY.TAG_REPORTS_COUNT, reportsCountBucket);
+}
+
+function sendPersonalDetailsCountTag(personalDetailsCount: number) {
+    const personalDetailsCountBucket = bucketReportCount(personalDetailsCount);
+    Sentry.setTag(CONST.TELEMETRY.TAG_PERSONAL_DETAILS_COUNT, personalDetailsCountBucket);
+}
+
+export {initializeMemoryTracking as initializeMemoryTrackingTelemetry, cleanupMemoryTracking as cleanupMemoryTrackingTelemetry};

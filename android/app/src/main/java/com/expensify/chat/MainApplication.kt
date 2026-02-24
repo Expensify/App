@@ -21,8 +21,6 @@ import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.modules.i18nmanager.I18nUtil
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
-import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.oblador.performance.RNPerformance
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
@@ -59,25 +57,16 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         ReactFontManager.getInstance().addCustomFont(this, "Expensify New Kansas", R.font.expensify_new_kansas)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify Neue", R.font.expensify_neue)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify Mono", R.font.expensify_mono)
-        RNPerformance.getInstance().mark("appCreationStart", false);
 
         if (isOnfidoProcess()) {
             return
         }
 
         loadReactNative(this)
-        if (BuildConfig.DEBUG) {
-            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false)
-        }
 
         // Force the app to LTR mode.
         val sharedI18nUtilInstance = I18nUtil.instance
         sharedI18nUtilInstance.allowRTL(applicationContext, false)
-
-        // Start the "js_load" custom performance tracing metric. This timer is stopped by a native
-        // module in the JS so we can measure total time starting in the native layer and ending in
-        // the JS layer.
-        StartupTimer.start()
 
         // Increase SQLite DB write size
         try {
