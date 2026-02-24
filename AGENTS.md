@@ -34,3 +34,10 @@ Standard commands from `package.json`:
 ### Node version
 
 Strict engine enforcement (`engine-strict=true` in `.npmrc`): must use Node `20.19.5` / npm `10.8.2`. Use `nvm use` in the workspace root to activate the correct version from `.nvmrc`.
+
+### Signing in for manual testing
+
+Use the Playwright testing skill (`.claude/skills/playwright-app-testing/SKILL.md`) for browser testing guidance. Key notes for Cursor Cloud:
+- **New accounts**: Use a random `+` suffixed Gmail address (e.g., `testuser+abc123@gmail.com`). The app shows a "Join" button instead of requiring a magic code, allowing instant account creation.
+- **Existing accounts**: The magic code `000000` documented in the skill file does **not** work when proxying to production (`www.expensify.com`). It may only work against local/staging backends.
+- After joining, the onboarding flow may crash Chrome with "Aw, Snap!" — navigating directly to `/home` recovers the session, then complete onboarding from the modal that appears.
