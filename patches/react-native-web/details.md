@@ -24,18 +24,6 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/32843
 
-### [react-native-web+0.21.2+003+image-header-support.patch](react-native-web+0.21.2+003+image-header-support.patch)
-
-- Reason:
-  
-    ```
-    Adds support for Image component with HTTP headers.
-    ```
-  
-- Upstream PR/issue: https://github.com/necolas/react-native-web/pull/2442
-- E/App issue: 🛑
-- PR introducing patch: https://github.com/Expensify/App/pull/13036
-
 ### [react-native-web+0.21.2+004+fixPointerEventDown.patch](react-native-web+0.21.2+004+fixPointerEventDown.patch)
 
 - Reason:
