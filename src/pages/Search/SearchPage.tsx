@@ -38,7 +38,6 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {initBulkEditDraftTransaction} from '@libs/actions/IOU';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
@@ -69,7 +68,6 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
-    canEditMultipleTransactions,
     getReportOrDraftReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
@@ -119,17 +117,16 @@ function SearchPage({route}: SearchPageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const allTransactions = useAllTransactions();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const selfDMReport = useSelfDMReport();
-    const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
-    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
+    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {accountID} = useCurrentUserPersonalDetails();
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
@@ -145,8 +142,8 @@ function SearchPage({route}: SearchPageProps) {
 
     const [emptyReportsCount, setEmptyReportsCount] = useState<number>(0);
 
-    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
-    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
+    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
+    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -166,7 +163,6 @@ function SearchPage({route}: SearchPageProps) {
         'SmartScan',
         'MoneyBag',
         'ArrowSplit',
-        'Pencil',
     ] as const);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
@@ -367,7 +363,7 @@ function SearchPage({route}: SearchPageProps) {
             {
                 query: status,
                 jsonQuery: JSON.stringify(queryJSON),
-                reportIDList: selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [],
+                reportIDList: selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs,
                 transactionIDList: selectedTransactionsKeys,
             },
             () => {
@@ -691,6 +687,12 @@ function SearchPage({route}: SearchPageProps) {
         ],
     );
 
+    const onBulkPaySelectedRef = useRef(onBulkPaySelected);
+    onBulkPaySelectedRef.current = onBulkPaySelected;
+    const stableOnBulkPaySelected = useCallback((paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
+        onBulkPaySelectedRef.current?.(paymentMethod, additionalData);
+    }, []);
+
     const [isSorting, setIsSorting] = useState(false);
     let searchResults: SearchResults | undefined;
     if (currentSearchResults?.data) {
@@ -730,28 +732,6 @@ function SearchPage({route}: SearchPageProps) {
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
         const typeExpenseReport = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-        const isExpenseReportSearch = typeExpenseReport || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-        const selectedTransactionsList = Object.values(selectedTransactions)
-            .map((transaction) => transaction.transaction)
-            .filter((transaction): transaction is Transaction => !!transaction);
-        const canEditMultiple = canEditMultipleTransactions(selectedTransactionsList, allReportActions, allReports, policies, isExpenseReportSearch);
-
-        if (canEditMultiple) {
-            options.push({
-                icon: expensifyIcons.Pencil,
-                text: translate('search.bulkActions.editMultiple'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.EDIT,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    const selectedTransactionIDs = Object.keys(selectedTransactions).filter((transactionID) => {
-                        const selectedTransaction = selectedTransactions[transactionID];
-                        return !!selectedTransaction?.transaction?.transactionID || !!allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-                    });
-                    initBulkEditDraftTransaction(selectedTransactionIDs);
-                    Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP);
-                },
-            });
-        }
 
         // Gets the list of options for the export sub-menu
         // Gets the list of options for the export sub-menu
@@ -995,7 +975,7 @@ function SearchPage({route}: SearchPageProps) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, reports, false, true),
+                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, reports, false, true, transactionPolicies),
                     });
                 }
             }
@@ -1101,7 +1081,6 @@ function SearchPage({route}: SearchPageProps) {
         queryJSON?.type,
         selectedPolicyIDs,
         policies,
-        allReportActions,
         integrationsExportTemplates,
         csvExportLayouts,
         clearSelectedTransactions,
@@ -1123,7 +1102,6 @@ function SearchPage({route}: SearchPageProps) {
         expensifyIcons.Exclamation,
         expensifyIcons.Export,
         expensifyIcons.MoneyBag,
-        expensifyIcons.Pencil,
         expensifyIcons.Send,
         expensifyIcons.Stopwatch,
         expensifyIcons.Table,
@@ -1270,7 +1248,7 @@ function SearchPage({route}: SearchPageProps) {
                             footerData={footerData}
                             currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
                             currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
-                            confirmPayment={onBulkPaySelected}
+                            confirmPayment={stableOnBulkPaySelected}
                             latestBankItems={latestBankItems}
                             shouldShowFooter={shouldShowFooter}
                         />
@@ -1298,7 +1276,7 @@ function SearchPage({route}: SearchPageProps) {
                         selectedTransactionReportIDs={selectedTransactionReportIDs}
                         selectedReportIDs={selectedReportIDs}
                         latestBankItems={latestBankItems}
-                        onBulkPaySelected={onBulkPaySelected}
+                        onBulkPaySelected={stableOnBulkPaySelected}
                         handleSearchAction={handleSearchAction}
                         onSortPressedCallback={onSortPressedCallback}
                         scrollHandler={scrollHandler}

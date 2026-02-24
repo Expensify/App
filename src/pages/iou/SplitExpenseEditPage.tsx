@@ -47,8 +47,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
 
-    const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: false});
-    const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`, {canBeMissing: false}, [
+    const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+    const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`, undefined, [
         splitExpenseDraftTransaction?.comment?.originalTransactionID,
     ]);
 
@@ -66,9 +66,9 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
 
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${currentReport?.policyID}`, {canBeMissing: false});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${currentReport?.policyID}`);
 
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${currentReport?.policyID}`, {canBeMissing: false});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${currentReport?.policyID}`);
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const fetchData = useCallback(() => {
@@ -88,7 +88,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const [draftTransactionWithSplitExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: false});
+    const [draftTransactionWithSplitExpenses] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const splitExpensesList = draftTransactionWithSplitExpenses?.comment?.splitExpenses;
 
     const currentAmount = Number(splitExpenseDraftTransaction?.amount);
@@ -124,10 +124,11 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction) || !isSplitAvailable}>
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
-                        title={translate('iou.splitExpenseEditTitle', {
-                            amount: convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency),
-                            merchant: splitExpenseDraftTransaction?.merchant ?? '',
-                        })}
+                        title={translate(
+                            'iou.splitExpenseEditTitle',
+                            convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency),
+                            splitExpenseDraftTransaction?.merchant ?? '',
+                        )}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <ScrollView>

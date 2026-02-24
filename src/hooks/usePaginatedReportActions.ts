@@ -21,7 +21,7 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
     const {shouldLinkToOldestUnreadReportAction = false} = options ?? {};
 
     const nonEmptyStringReportID = getNonEmptyStringOnyxID(reportID);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
 
@@ -37,11 +37,10 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         {
             canEvict: false,
             selector: getSortedAllReportActionsSelector,
-            canBeMissing: true,
         },
         [getSortedAllReportActionsSelector],
     );
-    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`, {canBeMissing: true});
+    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyStringReportID}`);
 
     const initialReportLastReadTime = useRef(report?.lastReadTime);
 

@@ -55,6 +55,7 @@ import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
+    getUserFriendlyWorkspaceType,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
@@ -136,26 +137,26 @@ function WorkspacesListPage() {
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
-    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isRestrictedPolicyCreation} = usePreferredPolicy();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
 
-    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
-    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, {canBeMissing: true});
-    const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS, {canBeMissing: false});
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
@@ -185,10 +186,9 @@ function WorkspacesListPage() {
     const [cardFeeds, , defaultCardFeeds] = useCardFeeds(policyIDToDelete);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
-        canBeMissing: true,
     });
     const flatlistRef = useRef<FlatList | null>(null);
-    const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
+    const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
 
     const prevPolicyToDelete = usePrevious(policyToDelete);
     const hasCardFeedOrExpensifyCard =
@@ -246,11 +246,11 @@ function WorkspacesListPage() {
     };
 
     const confirmLeaveAndHideModal = () => {
-        if (!policyIDToLeave) {
+        if (!policyToLeave) {
             return;
         }
 
-        leaveWorkspace(policyIDToLeave);
+        leaveWorkspace(currentUserPersonalDetails.accountID, policyToLeave);
         setIsLeaveModalOpen(false);
     };
 
@@ -438,6 +438,17 @@ function WorkspacesListPage() {
                 });
             }
 
+            const ownerDisplayName = personalDetails?.[item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
+            const workspaceType = item.type ? getUserFriendlyWorkspaceType(item.type, translate) : '';
+            const accessibilityLabel = [
+                `${translate('workspace.common.workspace')}: ${item.title}`,
+                isDefault ? translate('common.default') : '',
+                `${translate('workspace.common.workspaceOwner')}: ${ownerDisplayName}`,
+                `${translate('workspace.common.workspaceType')}: ${workspaceType}`,
+            ]
+                .filter(Boolean)
+                .join(', ');
+
             return (
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
@@ -449,12 +460,12 @@ function WorkspacesListPage() {
                     shouldShowErrorMessages={item.policyID !== policyIDToDelete}
                     shouldHideOnDelete={false}
                 >
-                    {/* accessible={false} allows child elements (workspace row and 3-dot menu) to be individually focusable.
-                        onPress is handled by WorkspacesListRow to prevent double-firing on web due to event bubbling. */}
                     <PressableWithoutFeedback
-                        accessible={false}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={accessibilityLabel}
                         style={[styles.mh5]}
                         disabled={item.disabled}
+                        onPress={item.action}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
                     >
                         {({hovered}) => (
@@ -476,7 +487,6 @@ function WorkspacesListPage() {
                                 isLoadingBill={isLoadingBill}
                                 resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
                                 isHovered={hovered}
-                                onPress={item.action}
                             />
                         )}
                     </PressableWithoutFeedback>
