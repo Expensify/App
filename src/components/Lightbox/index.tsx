@@ -16,6 +16,7 @@ import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
@@ -232,6 +233,18 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const isALocalFile = isLocalFile(uri);
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
 
+    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'Lightbox',
+            isImageLoaded,
+            isLoadingPreviousUri: previousUri !== uri,
+            isOffline,
+            isLoading,
+            isALocalFile,
+        }),
+        [isImageLoaded, previousUri, uri, isOffline, isLoading, isALocalFile],
+    );
+
     return (
         <View
             style={[StyleSheet.absoluteFill, style]}
@@ -301,6 +314,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
+                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}
