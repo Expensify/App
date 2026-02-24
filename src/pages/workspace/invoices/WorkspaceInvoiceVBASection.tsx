@@ -207,15 +207,24 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         return items;
     }, [
         isPopoverBottomMount,
-        paymentMethod.formattedSelectedPaymentMethod,
         shouldShowMakeDefaultButton,
         translate,
-        icons.Star,
         icons.Trashcan,
-        makeDefaultPaymentMethod,
+        icons.Star,
+        paymentMethod.formattedSelectedPaymentMethod.title,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth,
+        paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
+        paymentMethod.formattedSelectedPaymentMethod.description,
         styles.mb1,
         styles.ph5,
         styles.pt5,
+        makeDefaultPaymentMethod,
+        showConfirmModal,
+        deletePaymentMethod,
+        resetSelectedPaymentMethodData,
     ]);
 
     return (
