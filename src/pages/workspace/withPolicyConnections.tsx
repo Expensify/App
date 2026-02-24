@@ -38,21 +38,26 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
 
         const prevHasConnectionsDataBeenFetched = usePrevious(hasConnectionsDataBeenFetched);
 
-        useEffect(() => {
-            if (prevHasConnectionsDataBeenFetched !== undefined || !isBoolean(hasConnectionsDataBeenFetched)) {
-                return;
-            }
+        if (prevHasConnectionsDataBeenFetched === undefined && isBoolean(hasConnectionsDataBeenFetched) && isFetchingData) {
             setIsFetchingData(false);
-        }, [hasConnectionsDataBeenFetched, prevHasConnectionsDataBeenFetched]);
+        }
+
+        const [prevFetchKey, setPrevFetchKey] = useState({policyId: props.policy?.id, isConnectionDataFetchNeeded});
+        if (prevFetchKey.policyId !== props.policy?.id || prevFetchKey.isConnectionDataFetchNeeded !== isConnectionDataFetchNeeded) {
+            setPrevFetchKey({policyId: props.policy?.id, isConnectionDataFetchNeeded});
+            if (!isConnectionDataFetchNeeded || !props.policy?.id) {
+                if (isFetchingData) {
+                    setIsFetchingData(false);
+                }
+            } else {
+                setIsFetchingData(true);
+            }
+        }
 
         useEffect(() => {
-            // When the accounting feature is not enabled, or if the connections data already exists,
-            // there is no need to fetch the connections data.
             if (!isConnectionDataFetchNeeded || !props.policy?.id) {
-                setIsFetchingData(false);
                 return;
             }
-            setIsFetchingData(true);
             openPolicyAccountingPage(props.policy.id);
         }, [props.policy?.id, isConnectionDataFetchNeeded]);
 
