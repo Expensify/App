@@ -455,9 +455,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction tax value */
         taxValue?: string | undefined;
 
-        /** The transaction tax name */
-        taxName?: string;
-
         /** Whether the expense is billable */
         billable?: boolean;
 

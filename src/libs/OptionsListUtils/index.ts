@@ -21,7 +21,6 @@ import {MinHeap} from '@libs/MinHeap';
 import {getForReportAction, getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import Performance from '@libs/Performance';
 import Permissions from '@libs/Permissions';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
@@ -2558,8 +2557,6 @@ function getSearchOptions({
     reportAttributesDerived,
     personalDetails,
 }: SearchOptionsConfig): Options {
-    Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
-
     const optionList = getValidOptions(
         options,
         policyCollection,
@@ -2594,8 +2591,6 @@ function getSearchOptions({
         countryCode,
         reportAttributesDerived,
     );
-
-    Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
     return optionList;
 }
