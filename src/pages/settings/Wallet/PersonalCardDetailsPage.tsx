@@ -52,8 +52,6 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
@@ -71,7 +69,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             return;
         }
         if (isCSVImportedPersonalCard) {
-            deletePersonalCard({cardID: card.cardID, card, allTransactions: allTransactions ?? {}, allReports: allReports ?? {}});
+            deletePersonalCard({cardID: card.cardID, card});
         } else {
             unassignCard(card);
         }
