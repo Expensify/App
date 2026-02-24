@@ -5,7 +5,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -35,6 +34,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDisplayableAssignedCards, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces} from '@libs/PolicyUtils';
@@ -49,7 +49,7 @@ import {enableCompanyCards} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
@@ -98,7 +98,6 @@ function WalletPage() {
     const {showConfirmModal} = useConfirmModal();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
-    const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
     const [selectedCard, setSelectedCard] = useState<OnyxTypes.Card | undefined>(undefined);
     const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
     const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
@@ -245,7 +244,6 @@ function WalletPage() {
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
-        setShowConfirmDeleteModal(false);
         resetSelectedPaymentMethodData();
     }, [
         paymentMethod.selectedPaymentMethod.bankAccountID,
@@ -359,6 +357,22 @@ function WalletPage() {
         [paymentMethod.formattedSelectedPaymentMethod, styles.mb4, styles.ph5, styles.pt3],
     );
 
+    const showDeleteAccountModal = useCallback(async () => {
+        const result = await showConfirmModal({
+            title: translate('walletPage.deleteAccount'),
+            prompt: translate('walletPage.deleteConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+        resetSelectedPaymentMethodData();
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        deletePaymentMethod();
+    }, [showConfirmModal, translate, resetSelectedPaymentMethodData, deletePaymentMethod]);
+
     const threeDotMenuItems = useMemo(
         () => [
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
@@ -416,7 +430,9 @@ function WalletPage() {
                         closeModal(() => showLockedAccountModal());
                         return;
                     }
-                    closeModal(() => setShowConfirmDeleteModal(true));
+                    closeModal(() => {
+                        showDeleteAccountModal();
+                    });
                 },
             },
             ...(shouldShowEnableGlobalReimbursementsButton
@@ -453,6 +469,7 @@ function WalletPage() {
             makeDefaultPaymentMethod,
             showLockedAccountModal,
             paymentMethod.selectedPaymentMethod.bankAccountID,
+            showDeleteAccountModal,
         ],
     );
 
@@ -742,7 +759,7 @@ function WalletPage() {
                                                         }
 
                                                         if (!isUserValidated) {
-                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT);
+                                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
                                                             return;
                                                         }
                                                         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
@@ -764,18 +781,6 @@ function WalletPage() {
                     {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.mh4, styles.mb5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
                 </View>
             </ScrollView>
-            <ConfirmModal
-                isVisible={showConfirmDeleteModal}
-                onConfirm={deletePaymentMethod}
-                onCancel={() => setShowConfirmDeleteModal(false)}
-                title={translate('walletPage.deleteAccount')}
-                prompt={translate('walletPage.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                shouldShowCancelButton
-                danger
-                onModalHide={resetSelectedPaymentMethodData}
-            />
         </ScreenWrapper>
     );
 }
