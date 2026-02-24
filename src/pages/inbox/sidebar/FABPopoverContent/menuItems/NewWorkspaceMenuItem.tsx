@@ -2,6 +2,7 @@ import type {ImageContentFit} from 'expo-image';
 import React, {useLayoutEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMappedPolicies from '@hooks/useMappedPolicies';
 import useNetwork from '@hooks/useNetwork';
@@ -14,7 +15,6 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
-import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import {policyMapper} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -24,13 +24,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 const ITEM_ID = 'new-workspace';
 
-type NewWorkspaceMenuItemProps = {
-    icons: MenuItemIcons;
-};
-
-function NewWorkspaceMenuItem({icons}: NewWorkspaceMenuItemProps) {
+function NewWorkspaceMenuItem() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['NewWorkspace'] as const);
     const {isOffline} = useNetwork();
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});

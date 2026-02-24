@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useLayoutEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,7 +13,6 @@ import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDot
 import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
-import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,12 +23,12 @@ const ITEM_ID = 'travel';
 const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => account?.primaryLogin;
 
 type TravelMenuItemProps = {
-    icons: MenuItemIcons;
     activePolicyID: string | undefined;
 };
 
-function TravelMenuItem({icons, activePolicyID}: TravelMenuItemProps) {
+function TravelMenuItem({activePolicyID}: TravelMenuItemProps) {
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Suitcase', 'NewWindow'] as const);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountPrimaryLoginSelector, canBeMissing: true});

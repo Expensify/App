@@ -1,5 +1,6 @@
 import React, {useLayoutEffect} from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -7,18 +8,14 @@ import useTheme from '@hooks/useTheme';
 import {startNewChat} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
-import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import CONST from '@src/CONST';
 
 const ITEM_ID = 'new-chat';
 
-type NewChatMenuItemProps = {
-    icons: MenuItemIcons;
-};
-
-function NewChatMenuItem({icons}: NewChatMenuItemProps) {
+function NewChatMenuItem() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubble'] as const);
     const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();

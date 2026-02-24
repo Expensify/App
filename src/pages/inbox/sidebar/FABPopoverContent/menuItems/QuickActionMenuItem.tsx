@@ -3,6 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
@@ -27,7 +28,6 @@ import {
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
-import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,14 +41,14 @@ const ITEM_ID = 'quick-action';
 const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
 
 type QuickActionMenuItemProps = {
-    icons: MenuItemIcons;
     reportID: string;
 };
 
-function QuickActionMenuItem({icons, reportID}: QuickActionMenuItemProps) {
+function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate, formatPhoneNumber} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'ReceiptScan', 'Car', 'Task', 'Clock', 'MoneyCircle', 'Coins', 'Receipt', 'Cash', 'Transfer'] as const);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
@@ -161,7 +161,7 @@ function QuickActionMenuItem({icons, reportID}: QuickActionMenuItemProps) {
                 shouldCheckActionAllowedOnPress={false}
                 role={CONST.ROLE.BUTTON}
                 wrapperStyle={focusWrapperStyle}
-                icon={getQuickActionIcon(icons as Parameters<typeof getQuickActionIcon>[0], quickAction?.action)}
+                icon={getQuickActionIcon(icons, quickAction?.action)}
                 title={quickActionTitle}
                 rightIconAccountID={quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID}
                 description={quickActionSubtitle}

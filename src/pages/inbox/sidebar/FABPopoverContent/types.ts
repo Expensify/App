@@ -2,7 +2,6 @@ import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {AnchorPosition} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
@@ -30,7 +29,5 @@ type FABPopoverContentProps = {
 
 type FABPopoverContentInnerProps = Omit<FABPopoverContentProps, 'isMenuMounted'>;
 
-type MenuItemIcons = Record<string, IconAsset>;
-
-export type {PolicySelector, FABPopoverContentProps, FABPopoverContentInnerProps, MenuItemIcons};
+export type {PolicySelector, FABPopoverContentProps, FABPopoverContentInnerProps};
 export {policyMapper};

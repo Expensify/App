@@ -2,6 +2,7 @@ import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding'
 import React, {useLayoutEffect} from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -10,21 +11,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
-import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const ITEM_ID = 'test-drive';
 
-type TestDriveMenuItemProps = {
-    icons: MenuItemIcons;
-};
-
-function TestDriveMenuItem({icons}: TestDriveMenuItemProps) {
+function TestDriveMenuItem() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const icons = useMemoizedLazyExpensifyIcons(['Binoculars'] as const);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});

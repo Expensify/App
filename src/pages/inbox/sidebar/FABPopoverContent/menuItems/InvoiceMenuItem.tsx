@@ -1,6 +1,7 @@
 import React, {useLayoutEffect} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -10,7 +11,6 @@ import {startMoneyRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {canSendInvoice as canSendInvoicePolicyUtils} from '@libs/PolicyUtils';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
-import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,13 +19,13 @@ import type * as OnyxTypes from '@src/types/onyx';
 const ITEM_ID = 'invoice';
 
 type InvoiceMenuItemProps = {
-    icons: MenuItemIcons;
     reportID: string;
 };
 
-function InvoiceMenuItem({icons, reportID}: InvoiceMenuItemProps) {
+function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric'] as const);
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal, allPolicies} = useRedirectToExpensifyClassic();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});

@@ -1,5 +1,4 @@
 import React from 'react';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import FABPopoverMenu from './FABPopoverMenu';
@@ -21,26 +20,6 @@ type FABPopoverContentInnerExtraProps = FABPopoverContentInnerProps & {
 
 function FABPopoverContentInner({isVisible, onClose, onItemSelected, onModalHide, anchorPosition, anchorRef, reportID, activePolicyID}: FABPopoverContentInnerExtraProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons([
-        'CalendarSolid',
-        'Document',
-        'NewWorkspace',
-        'NewWindow',
-        'Binoculars',
-        'Car',
-        'Location',
-        'Suitcase',
-        'Task',
-        'InvoiceGeneric',
-        'ReceiptScan',
-        'ChatBubble',
-        'Coins',
-        'Receipt',
-        'Cash',
-        'Transfer',
-        'MoneyCircle',
-        'Clock',
-    ] as const);
 
     return (
         <FABPopoverMenu
@@ -54,33 +33,15 @@ function FABPopoverContentInner({isVisible, onClose, onItemSelected, onModalHide
             animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
             animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
         >
-            <QuickActionMenuItem
-                icons={icons}
-                reportID={reportID}
-            />
-            <ExpenseMenuItem
-                icons={icons}
-                reportID={reportID}
-            />
-            <TrackDistanceMenuItem
-                icons={icons}
-                reportID={reportID}
-            />
-            <CreateReportMenuItem
-                icons={icons}
-                activePolicyID={activePolicyID}
-            />
-            <NewChatMenuItem icons={icons} />
-            <InvoiceMenuItem
-                icons={icons}
-                reportID={reportID}
-            />
-            <TravelMenuItem
-                icons={icons}
-                activePolicyID={activePolicyID}
-            />
-            <TestDriveMenuItem icons={icons} />
-            <NewWorkspaceMenuItem icons={icons} />
+            <QuickActionMenuItem reportID={reportID} />
+            <ExpenseMenuItem reportID={reportID} />
+            <TrackDistanceMenuItem reportID={reportID} />
+            <CreateReportMenuItem activePolicyID={activePolicyID} />
+            <NewChatMenuItem />
+            <InvoiceMenuItem reportID={reportID} />
+            <TravelMenuItem activePolicyID={activePolicyID} />
+            <TestDriveMenuItem />
+            <NewWorkspaceMenuItem />
         </FABPopoverMenu>
     );
 }

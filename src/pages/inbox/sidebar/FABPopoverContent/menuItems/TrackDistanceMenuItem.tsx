@@ -1,5 +1,6 @@
 import React, {useLayoutEffect} from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -8,7 +9,6 @@ import useTheme from '@hooks/useTheme';
 import {startDistanceRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
-import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,13 +16,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 const ITEM_ID = 'track-distance';
 
 type TrackDistanceMenuItemProps = {
-    icons: MenuItemIcons;
     reportID: string;
 };
 
-function TrackDistanceMenuItem({icons, reportID}: TrackDistanceMenuItemProps) {
+function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['Location'] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
     const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();

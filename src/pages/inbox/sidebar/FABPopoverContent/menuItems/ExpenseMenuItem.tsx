@@ -1,5 +1,6 @@
 import React, {useLayoutEffect} from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -9,7 +10,6 @@ import {startMoneyRequest} from '@libs/actions/IOU';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
-import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,13 +17,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 const ITEM_ID = 'expense';
 
 type ExpenseMenuItemProps = {
-    icons: MenuItemIcons;
     reportID: string;
 };
 
-function ExpenseMenuItem({icons, reportID}: ExpenseMenuItemProps) {
+function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle'] as const);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
     const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
@@ -41,7 +41,7 @@ function ExpenseMenuItem({icons, reportID}: ExpenseMenuItemProps) {
     return (
         <FocusableMenuItem
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE}
-            icon={getIconForAction(CONST.IOU.TYPE.CREATE, icons as Parameters<typeof getIconForAction>[1])}
+            icon={getIconForAction(CONST.IOU.TYPE.CREATE, icons)}
             title={translate('iou.createExpense')}
             focused={focusedIndex === itemIndex}
             onFocus={() => setFocusedIndex(itemIndex)}
