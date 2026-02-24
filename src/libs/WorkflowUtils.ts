@@ -14,7 +14,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {convertToDisplayString} from './CurrencyUtils';
-import {getDefaultApprover} from './PolicyUtils';
+import {getDefaultApprover, isExpensifyTeam} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
@@ -103,6 +103,9 @@ type PolicyConversionParams = {
 
     /** Locale comparison function */
     localeCompare: LocaleContextProps['localeCompare'];
+
+    /** Current user's login email, used to determine if Expensify team members should be shown */
+    currentUserLogin?: string;
 };
 
 type PolicyConversionResult = {
@@ -116,11 +119,35 @@ type PolicyConversionResult = {
     usedApproverEmails: string[];
 };
 
+/**
+ * Find the first non-Expensify team member in the approval chain.
+ * Used to skip internal Expensify approvers when displaying workflows to customers.
+ * Returns undefined if no non-Expensify approver is found in the chain.
+ */
+function findFirstNonExpensifyApprover(employees: PolicyEmployeeList, startEmail: string): string | undefined {
+    let email: string | undefined = startEmail;
+    const visited = new Set<string>();
+
+    while (email && !visited.has(email)) {
+        if (!isExpensifyTeam(email)) {
+            return email;
+        }
+        visited.add(email);
+        email = employees[email]?.forwardsTo;
+    }
+
+    return undefined;
+}
+
 /** Convert a list of policy employees to a list of approval workflows */
-function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, firstApprover, localeCompare}: PolicyConversionParams): PolicyConversionResult {
+function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, firstApprover, localeCompare, currentUserLogin}: PolicyConversionParams): PolicyConversionResult {
     const employees = policy?.employeeList ?? {};
     const defaultApprover = getDefaultApprover(policy);
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
+    const policyOwner = policy?.owner;
+
+    // Determine if we should filter Expensify team members (only for non-Expensify customers)
+    const shouldFilterExpensifyTeam = !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin);
 
     // Keep track of used approver emails to display hints in the UI
     const usedApproverEmails = new Set<string>();
@@ -130,6 +157,11 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     for (const employee of Object.values(employees)) {
         const {email, submitsTo, pendingAction} = employee;
         if (!email) {
+            continue;
+        }
+
+        // Filter out Expensify team members from appearing as workflow members
+        if (shouldFilterExpensifyTeam && isExpensifyTeam(email)) {
             continue;
         }
 
@@ -143,9 +175,19 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
             continue;
         }
 
-        if (!approvalWorkflows[submitsTo]) {
-            const approvers = calculateApprovers({employees, firstEmail: submitsTo, personalDetailsByEmail});
-            if (submitsTo !== firstApprover) {
+        // If submitsTo is an Expensify team member, find the first non-Expensify approver in the chain
+        const effectiveSubmitsTo = shouldFilterExpensifyTeam ? (findFirstNonExpensifyApprover(employees, submitsTo) ?? submitsTo) : submitsTo;
+
+        if (!employees[effectiveSubmitsTo]) {
+            continue;
+        }
+
+        if (!approvalWorkflows[effectiveSubmitsTo]) {
+            let approvers = calculateApprovers({employees, firstEmail: effectiveSubmitsTo, personalDetailsByEmail});
+            if (shouldFilterExpensifyTeam) {
+                approvers = approvers.filter((approver) => !isExpensifyTeam(approver.email));
+            }
+            if (effectiveSubmitsTo !== firstApprover) {
                 for (const approver of approvers) {
                     usedApproverEmails.add(approver.email);
                 }
@@ -156,20 +198,20 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
             // should not affect the workflow's display state
             const workflowPendingAction = pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? pendingAction : undefined;
 
-            approvalWorkflows[submitsTo] = {
+            approvalWorkflows[effectiveSubmitsTo] = {
                 members: [],
                 approvers,
-                isDefault: defaultApprover === submitsTo,
+                isDefault: defaultApprover === effectiveSubmitsTo,
                 pendingAction: workflowPendingAction,
             };
         }
 
-        approvalWorkflows[submitsTo].members.push(member);
+        approvalWorkflows[effectiveSubmitsTo].members.push(member);
         // Only propagate ADD/UPDATE pending actions to the workflow, not DELETE
         // When a member is being deleted from the workspace, their DELETE pending action
         // should not affect the workflow's display state (e.g., strikethrough styling)
         if (pendingAction && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            approvalWorkflows[submitsTo].pendingAction = pendingAction;
+            approvalWorkflows[effectiveSubmitsTo].pendingAction = pendingAction;
         }
     }
 

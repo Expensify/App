@@ -10,6 +10,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +38,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const {translate, localeCompare} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
     const formRef = useRef<ScrollView>(null);
     const {showConfirmModal} = useConfirmModal();
@@ -87,6 +89,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             personalDetails,
             firstApprover,
             localeCompare,
+            currentUserLogin: currentUserPersonalDetails?.login,
         });
 
         return {
