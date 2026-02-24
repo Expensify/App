@@ -67,25 +67,33 @@ function PersonalCardDetailsHeaderMenu({
                 />
             )}
 
-            <OfflineWithFeedback
-                pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
-                errorRowStyles={[styles.ph5, styles.mb3]}
-                errors={getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
-                onClose={() => {
-                    if (!card) {
-                        return;
-                    }
-                    clearCardNameValuePairsErrorField(card.cardID, 'cardTitle');
-                }}
-            >
+            {isCSVImportedPersonalCard ? (
                 <MenuItemWithTopDescription
-                    description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                    title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME.getRoute(cardID))}
+                    description={translate('workspace.moreFeatures.companyCards.cardName')}
+                    title={card?.nameValuePairs?.cardTitle ?? card?.cardName ?? ''}
+                    interactive={false}
                 />
-            </OfflineWithFeedback>
+            ) : (
+                <OfflineWithFeedback
+                    pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
+                    errorRowStyles={[styles.ph5, styles.mb3]}
+                    errors={getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
+                    onClose={() => {
+                        if (!card) {
+                            return;
+                        }
+                        clearCardNameValuePairsErrorField(card.cardID, 'cardTitle');
+                    }}
+                >
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.moreFeatures.companyCards.cardNumber')}
+                        title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
+                        shouldShowRightIcon
+                        brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME.getRoute(cardID))}
+                    />
+                </OfflineWithFeedback>
+            )}
 
             <ToggleSettingOptionRow
                 title={translate('cardPage.markTransactionsAsReimbursable')}
