@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -45,7 +45,8 @@ function TermsStep(props: TermsStepProps) {
     const [error, setError] = useState(false);
     const {translate} = useLocalize();
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const errorMessage = error ? translate('common.error.acceptTerms') : (getLatestErrorMessage(walletTerms ?? {}) ?? '');
+    const shouldShowError = error && (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement);
+    const errorMessage = shouldShowError ? translate('common.error.acceptTerms') : (getLatestErrorMessage(walletTerms ?? {}) ?? '');
 
     const toggleDisclosure = () => {
         setHasAcceptedDisclosure(!hasAcceptedDisclosure);
@@ -54,15 +55,6 @@ function TermsStep(props: TermsStepProps) {
     const togglePrivacyPolicy = () => {
         setHasAcceptedPrivacyPolicyAndWalletAgreement(!hasAcceptedPrivacyPolicyAndWalletAgreement);
     };
-
-    /** clear error */
-    useEffect(() => {
-        if (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement) {
-            return;
-        }
-
-        setError(false);
-    }, [hasAcceptedDisclosure, hasAcceptedPrivacyPolicyAndWalletAgreement]);
 
     return (
         <>
@@ -101,7 +93,7 @@ function TermsStep(props: TermsStepProps) {
                         });
                     }}
                     message={errorMessage}
-                    isAlertVisible={error || !!errorMessage}
+                    isAlertVisible={shouldShowError || !!errorMessage}
                     isLoading={!!walletTerms?.isLoading}
                     containerStyles={[styles.mh0, styles.mv4]}
                 />
