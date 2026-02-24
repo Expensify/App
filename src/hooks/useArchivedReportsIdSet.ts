@@ -28,9 +28,7 @@ const getArchivedReportsIdSet = (reportNameValuePairs: OnyxCollection<ReportName
  * Hook that returns a Set of archived report IDs
  */
 function useArchivedReportsIdSet(): ArchivedReportsIDSet {
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-    });
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const archivedReportsIdSet = getArchivedReportsIdSet(reportNameValuePairs) ?? CONST.EMPTY_SET;
 
     // useDeepCompareRef is used here to prevent unnecessary re-renders by maintaining referential equality

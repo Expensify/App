@@ -27,6 +27,7 @@ import {
     getCardFeedWithDomainID,
     getPlaidInstitutionIconUrl,
     isCardConnectionBroken,
+    isCardFrozen,
     isExpensifyCard,
     isExpensifyCardPendingAction,
     isPersonalCard,
@@ -173,13 +174,12 @@ function PaymentMethodList({
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
-        canBeMissing: true,
     });
-    const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
-    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
     const cardDomains = shouldShowAssignedCards
         ? Object.values(isLoadingCardList ? {} : (cardList ?? {}))
@@ -187,7 +187,6 @@ function PaymentMethodList({
               .map((card) => card.domainName)
         : [];
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
         selector: createPoliciesForDomainCardsSelector(cardDomains),
     });
     // Temporarily disabled because P2P debit cards are disabled.
@@ -359,6 +358,7 @@ function PaymentMethodList({
                     iconStyles: [styles.cardIcon],
                     iconWidth: variables.cardIconWidth,
                     iconHeight: variables.cardIconHeight,
+                    isCardFrozen: isCardFrozen(card),
                 });
             }
 
@@ -478,7 +478,7 @@ function PaymentMethodList({
                 title={translate('bankAccount.addBankAccount')}
                 icon={Expensicons.Plus}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                sentryLabel={CONST.SENTRY_LABEL.WALLET.ADD_BANK_ACCOUNT}
+                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_BANK_ACCOUNT}
             />
         ),
 

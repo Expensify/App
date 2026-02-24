@@ -94,6 +94,7 @@ import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type Pages from './Pages';
+import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
@@ -160,6 +161,7 @@ import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type VacationDelegate from './VacationDelegate';
+import type ValidateDomainTwoFactorCode from './ValidateDomainTwoFactorCode';
 import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
@@ -231,6 +233,7 @@ export type {
     OnyxUpdatesFromServer,
     AnyOnyxUpdatesFromServer,
     Pages,
+    PendingConciergeResponse,
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,
@@ -329,6 +332,7 @@ export type {
     Onboarding,
     OnboardingPurpose,
     OnboardingRHPVariant,
+    ValidateDomainTwoFactorCode,
     ValidateMagicCodeAction,
     ShareTempFile,
     CorpayFields,
