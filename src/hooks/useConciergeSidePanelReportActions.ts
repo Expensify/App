@@ -45,9 +45,7 @@ function useConciergeSidePanelReportActions({
         if (!isConciergeSidePanel || !sessionStartActionIDs) {
             return false;
         }
-        return visibleReportActions.some(
-            (action) => !isCreatedAction(action) && sessionStartActionIDs.has(action.reportActionID) && action.actorAccountID === currentUserAccountID,
-        );
+        return visibleReportActions.some((action) => !isCreatedAction(action) && sessionStartActionIDs.has(action.reportActionID) && action.actorAccountID === currentUserAccountID);
     }, [isConciergeSidePanel, visibleReportActions, sessionStartActionIDs, currentUserAccountID]);
 
     const hasPreviousMessages = useMemo(() => {
