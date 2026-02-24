@@ -139,7 +139,7 @@ function handlePushFullscreenAction(
 
         return {
             ...state,
-            routes: [state.routes, updatedRoute],
+            routes: [...state.routes, updatedRoute],
             index: state.routes.length,
         };
     }
