@@ -55,7 +55,7 @@ type DebugDetailsProps = {
 function DebugDetails({formType, data, policyHasEnabledTags, policyID, children, onSave, onDelete, validate}: DebugDetailsProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const [formDraftData] = useOnyx(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT, {canBeMissing: true});
+    const [formDraftData] = useOnyx(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT);
     const booleanFields = useMemo(
         () =>
             Object.entries(data ?? {})

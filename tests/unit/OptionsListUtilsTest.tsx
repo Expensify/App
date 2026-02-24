@@ -45,7 +45,13 @@ import {
     sortAlphabetically,
 } from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getChangedApproverActionMessage, getDynamicExternalWorkflowRoutedMessage} from '@libs/ReportActionsUtils';
+import {
+    getChangedApproverActionMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
+    getDynamicExternalWorkflowRoutedMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
+} from '@libs/ReportActionsUtils';
 import {
     canCreateTaskInReport,
     canUserPerformWriteAction,
@@ -3663,6 +3669,113 @@ describe('OptionsListUtils', () => {
             expect(misterFantasticOption?.private_isArchived).toBe('2023-06-15 10:00:00');
             expect(invisibleWomanOption?.private_isArchived).toBe('2023-07-20 15:30:00');
         });
+
+        it('should set private_isArchived on report options when privateIsArchivedMap is provided', () => {
+            renderLocaleContextProvider();
+            // Given a privateIsArchivedMap with archived reports
+            const privateIsArchivedMap: PrivateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: '2023-06-15 10:00:00',
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}5`]: '2023-07-20 15:30:00',
+            };
+
+            // When we call createOptionList with this privateIsArchivedMap
+            const result = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, privateIsArchivedMap, REPORTS);
+
+            // Then the report options should have the correct private_isArchived values
+            const report3Option = result.reports.find((r) => r.item?.reportID === '3');
+            const report5Option = result.reports.find((r) => r.item?.reportID === '5');
+            const report1Option = result.reports.find((r) => r.item?.reportID === '1');
+
+            expect(report3Option?.private_isArchived).toBe('2023-06-15 10:00:00');
+            expect(report5Option?.private_isArchived).toBe('2023-07-20 15:30:00');
+            // Report 1 should not have private_isArchived since it's not in the map
+            expect(report1Option?.private_isArchived).toBeUndefined();
+        });
+    });
+
+    describe('createFilteredOptionList()', () => {
+        it('should set private_isArchived on report options when privateIsArchivedMap is provided', () => {
+            renderLocaleContextProvider();
+            // Given a privateIsArchivedMap with archived reports
+            const privateIsArchivedMap: PrivateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: '2023-06-15 10:00:00',
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}5`]: '2023-07-20 15:30:00',
+            };
+
+            // When we call createFilteredOptionList with this privateIsArchivedMap
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, privateIsArchivedMap);
+
+            // Then the report options should have the correct private_isArchived values
+            const report3Option = result.reports.find((r) => r.item?.reportID === '3');
+            const report5Option = result.reports.find((r) => r.item?.reportID === '5');
+            const report1Option = result.reports.find((r) => r.item?.reportID === '1');
+
+            expect(report3Option?.private_isArchived).toBe('2023-06-15 10:00:00');
+            expect(report5Option?.private_isArchived).toBe('2023-07-20 15:30:00');
+            // Report 1 should not have private_isArchived since it's not in the map
+            expect(report1Option?.private_isArchived).toBeUndefined();
+        });
+
+        it('should not set private_isArchived from map when privateIsArchivedMap is empty', () => {
+            renderLocaleContextProvider();
+            // Given an empty privateIsArchivedMap
+            const emptyMap: PrivateIsArchivedMap = {};
+
+            // When we call createFilteredOptionList with an empty privateIsArchivedMap
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, emptyMap);
+
+            // Then reports NOT in Onyx (like report 3, 5) should not have private_isArchived set
+            // Note: Report 10 gets private_isArchived from Onyx (set in beforeAll)
+            const report3Option = result.reports.find((r) => r.item?.reportID === '3');
+            const report5Option = result.reports.find((r) => r.item?.reportID === '5');
+            expect(report3Option?.private_isArchived).toBeUndefined();
+            expect(report5Option?.private_isArchived).toBeUndefined();
+        });
+
+        it('should correctly map multiple archived reports in privateIsArchivedMap', () => {
+            renderLocaleContextProvider();
+            // Given a privateIsArchivedMap with multiple archived reports
+            const privateIsArchivedMap: PrivateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}1`]: '2023-01-01 00:00:00',
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: '2023-06-15 10:00:00',
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}5`]: '2023-07-20 15:30:00',
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}7`]: '2023-12-31 23:59:59',
+            };
+
+            // When we call createFilteredOptionList with this privateIsArchivedMap
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, privateIsArchivedMap);
+
+            // Then the report options should have the correct private_isArchived values
+            const report1Option = result.reports.find((r) => r.item?.reportID === '1');
+            const report3Option = result.reports.find((r) => r.item?.reportID === '3');
+            const report5Option = result.reports.find((r) => r.item?.reportID === '5');
+            const report7Option = result.reports.find((r) => r.item?.reportID === '7');
+            const report2Option = result.reports.find((r) => r.item?.reportID === '2');
+
+            expect(report1Option?.private_isArchived).toBe('2023-01-01 00:00:00');
+            expect(report3Option?.private_isArchived).toBe('2023-06-15 10:00:00');
+            expect(report5Option?.private_isArchived).toBe('2023-07-20 15:30:00');
+            expect(report7Option?.private_isArchived).toBe('2023-12-31 23:59:59');
+            // Report 2 should not have private_isArchived since it's not in the map
+            expect(report2Option?.private_isArchived).toBeUndefined();
+        });
+
+        it('should respect maxRecentReports option while preserving archived status', () => {
+            renderLocaleContextProvider();
+            // Given a privateIsArchivedMap and a small maxRecentReports limit
+            const privateIsArchivedMap: PrivateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}7`]: '2023-12-31 23:59:59', // Report 7 has largest lastVisibleActionCreated
+            };
+
+            // When we call createFilteredOptionList with maxRecentReports limit
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, privateIsArchivedMap, {
+                maxRecentReports: 5,
+            });
+
+            // Then the report 7 (most recent) should still have private_isArchived set
+            const report7Option = result.reports.find((r) => r.item?.reportID === '7');
+            expect(report7Option?.private_isArchived).toBe('2023-12-31 23:59:59');
+        });
     });
 
     describe('filterSelfDMChat()', () => {
@@ -4261,6 +4374,63 @@ describe('OptionsListUtils', () => {
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
+        });
+        it('UPDATE_CUSTOM_TAX_NAME action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {oldName: 'Sales Tax', newName: 'VAT'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(lastMessage).toBe(getCustomTaxNameUpdateMessage(translateLocal, action));
+        });
+        it('UPDATE_CURRENCY_DEFAULT_TAX action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {oldName: 'Standard Rate', newName: 'Reduced Rate'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(lastMessage).toBe(getCurrencyDefaultTaxUpdateMessage(translateLocal, action));
+        });
+        it('UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {oldName: 'Foreign Tax (15%)', newName: 'Foreign Tax (10%)'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(lastMessage).toBe(getForeignCurrencyDefaultTaxUpdateMessage(translateLocal, action));
         });
         it('TAKE_CONTROL action', async () => {
             const report: Report = createRandomReport(0, undefined);

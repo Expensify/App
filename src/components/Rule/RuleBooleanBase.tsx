@@ -45,7 +45,7 @@ const booleanValues = Object.values(CONST.SEARCH.BOOLEAN);
 
 function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash, useStringValues = false}: RuleBooleanBaseProps) {
     const {translate} = useLocalize();
-    const [form] = useOnyx(formID, {canBeMissing: true});
+    const [form] = useOnyx(formID);
     const styles = useThemeStyles();
 
     const formValue = (form as Record<string, boolean | string | undefined>)?.[fieldID];

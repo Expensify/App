@@ -33,16 +33,12 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
     const {domainAccountID} = route.params;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
     const [adminPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        canBeMissing: true,
         selector: adminPendingActionSelector,
     });
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
             if (!personalDetailsList) {
                 return undefined;
@@ -57,12 +53,11 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
         },
     });
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
-        canBeMissing: false,
         selector: technicalContactSettingsSelector,
     });
-    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
     let technicalContactEmailKey: string | undefined;
     const data: AdminOption[] = [];

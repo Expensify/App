@@ -25,7 +25,7 @@ import type SCREENS from '@src/SCREENS';
 type WalletStatementPageProps = PlatformStackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
 
 function WalletStatementPage({route}: WalletStatementPageProps) {
-    const [walletStatement] = useOnyx(ONYXKEYS.WALLET_STATEMENT, {canBeMissing: true});
+    const [walletStatement] = useOnyx(ONYXKEYS.WALLET_STATEMENT);
     const themePreference = useThemePreference();
     const yearMonth = route.params.yearMonth ?? null;
     const isWalletStatementGenerating = walletStatement?.isGenerating ?? false;
