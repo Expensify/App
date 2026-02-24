@@ -154,6 +154,7 @@ jobs:
           FORCE_NATIVE_BUILD: ${{ inputs.force-native-build == 'true' && github.run_id || '' }}
         with:
           variant: ${{ inputs.variant }}
+          aab: ${{ inputs.variant == 'Release' }}
           sign: true
           re-sign: true
           ad-hoc: ${{ inputs.variant == 'Adhoc' }}
