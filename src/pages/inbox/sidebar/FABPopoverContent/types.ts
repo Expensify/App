@@ -1,4 +1,3 @@
-import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -16,12 +15,5 @@ const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         areInvoicesEnabled: policy.areInvoicesEnabled,
     }) as PolicySelector;
 
-type FABPopoverContentProps = {
-    isVisible: boolean;
-    onClose: () => void;
-    onItemSelected: () => void;
-    anchorRef: RefObject<HTMLDivElement | null>;
-};
-
-export type {PolicySelector, FABPopoverContentProps};
+export type {PolicySelector};
 export {policyMapper};

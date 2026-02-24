@@ -9,7 +9,16 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import FABPopoverContent from './FABPopoverContent';
+import FABPopoverMenu from './FABPopoverContent/FABPopoverMenu';
+import CreateReportMenuItem from './FABPopoverContent/menuItems/CreateReportMenuItem';
+import ExpenseMenuItem from './FABPopoverContent/menuItems/ExpenseMenuItem';
+import InvoiceMenuItem from './FABPopoverContent/menuItems/InvoiceMenuItem';
+import NewChatMenuItem from './FABPopoverContent/menuItems/NewChatMenuItem';
+import NewWorkspaceMenuItem from './FABPopoverContent/menuItems/NewWorkspaceMenuItem';
+import QuickActionMenuItem from './FABPopoverContent/menuItems/QuickActionMenuItem';
+import TestDriveMenuItem from './FABPopoverContent/menuItems/TestDriveMenuItem';
+import TrackDistanceMenuItem from './FABPopoverContent/menuItems/TrackDistanceMenuItem';
+import TravelMenuItem from './FABPopoverContent/menuItems/TravelMenuItem';
 import useScanActions from './FABPopoverContent/useScanActions';
 
 /**
@@ -68,14 +77,24 @@ function FloatingActionButtonAndPopover() {
 
     return (
         <View style={[styles.justifyContentCenter, styles.flexGrow1, styles.gap3, shouldUseNarrowLayout ? styles.w100 : styles.pv4]}>
-            <FABPopoverContent
+            <FABPopoverMenu
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 onClose={hideCreateMenu}
                 onItemSelected={hideCreateMenu}
                 anchorRef={fabRef}
-                reportID={reportID}
-                activePolicyID={activePolicyID}
-            />
+                animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
+                animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
+            >
+                <QuickActionMenuItem reportID={reportID} />
+                <ExpenseMenuItem reportID={reportID} />
+                <TrackDistanceMenuItem reportID={reportID} />
+                <CreateReportMenuItem activePolicyID={activePolicyID} />
+                <NewChatMenuItem />
+                <InvoiceMenuItem reportID={reportID} />
+                <TravelMenuItem activePolicyID={activePolicyID} />
+                <TestDriveMenuItem />
+                <NewWorkspaceMenuItem />
+            </FABPopoverMenu>
             {!shouldUseNarrowLayout && (
                 <FloatingReceiptButton
                     accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
