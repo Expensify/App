@@ -1,14 +1,15 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {TextInputSelectionChangeEvent} from 'react-native';
 import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
 import type {TextInputWithSymbolProps} from './types';
 
 function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: TextInputWithSymbolProps) {
     const [skipNextSelectionChange, setSkipNextSelectionChange] = useState(false);
-
-    useEffect(() => {
+    const [prevFormattedAmount, setPrevFormattedAmount] = useState(props.formattedAmount);
+    if (prevFormattedAmount !== props.formattedAmount) {
+        setPrevFormattedAmount(props.formattedAmount);
         setSkipNextSelectionChange(true);
-    }, [props.formattedAmount]);
+    }
 
     return (
         <BaseTextInputWithSymbol
