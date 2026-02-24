@@ -475,9 +475,7 @@ function Search({
         if (!validGroupBy) {
             return [];
         }
-        return (baseFilteredData as TransactionGroupListItemType[])
-            .map((item) => hashToString(item.transactionsQueryJSON?.hash))
-            .filter((hashValue): hashValue is string => !!hashValue);
+        return (baseFilteredData as TransactionGroupListItemType[]).map((item) => hashToString(item.transactionsQueryJSON?.hash)).filter((hashValue): hashValue is string => !!hashValue);
     }, [validGroupBy, baseFilteredData]);
 
     const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
