@@ -79,18 +79,15 @@ function IOURequestStepOdometerImage({
 
     const odometerRoute = ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action, iouType, transactionID, reportID);
 
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         Navigation.goBack(odometerRoute);
-    }, [odometerRoute]);
+    };
 
-    const handleImageSelected = useCallback(
-        (file: FileObject) => {
-            setMoneyRequestOdometerImage(transactionID, imageType, file as File, isTransactionDraft);
-            shouldRevokeOnUnmountRef.current = false;
-            navigateBack();
-        },
-        [transactionID, imageType, isTransactionDraft, navigateBack],
-    );
+    const handleImageSelected = (file: FileObject) => {
+        setMoneyRequestOdometerImage(transactionID, imageType, file as File, isTransactionDraft);
+        shouldRevokeOnUnmountRef.current = false;
+        navigateBack();
+    };
 
     const {validateFiles, ErrorModal} = useFilesValidation((files: FileObject[]) => {
         if (files.length === 0) {
@@ -164,7 +161,6 @@ function IOURequestStepOdometerImage({
 
     useEffect(() => {
         if (!isMobile() || !isTabActive) {
-            setVideoConstraints(undefined);
             return;
         }
         navigator.permissions
@@ -183,9 +179,10 @@ function IOURequestStepOdometerImage({
             .finally(() => {
                 setIsQueriedPermissionState(true);
             });
-        // We only want to get the camera permission status when the component is mounted
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isTabActive]);
+        return () => {
+            setVideoConstraints(undefined);
+        };
+    }, [isTabActive, requestCameraPermission]);
 
     const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
         setCameraPermissionState('granted');
@@ -201,7 +198,7 @@ function IOURequestStepOdometerImage({
 
     const viewfinderLayout = useRef<LayoutRectangle>(null);
 
-    const getScreenshot = useCallback(() => {
+    const getScreenshot = () => {
         if (!cameraRef.current) {
             requestCameraPermission();
             return;
@@ -233,18 +230,18 @@ function IOURequestStepOdometerImage({
             .catch((error: unknown) => {
                 Log.warn('Error cropping photo', error instanceof Error ? error.message : String(error));
             });
-    }, [imageType, isTransactionDraft, navigateBack, requestCameraPermission, transactionID]);
+    };
 
-    const clearTorchConstraints = useCallback(() => {
+    const clearTorchConstraints = () => {
         if (!trackRef.current) {
             return;
         }
         trackRef.current.applyConstraints({
             advanced: [{torch: false}],
         });
-    }, []);
+    };
 
-    const capturePhoto = useCallback(() => {
+    const capturePhoto = () => {
         if (trackRef.current && isFlashLightOn) {
             trackRef.current
                 .applyConstraints({
@@ -260,7 +257,7 @@ function IOURequestStepOdometerImage({
         }
 
         getScreenshot();
-    }, [isFlashLightOn, getScreenshot, clearTorchConstraints]);
+    };
 
     useEffect(
         () => () => {
@@ -410,25 +407,22 @@ function IOURequestStepOdometerImage({
         dropBlobUrlsRef.current = [];
     }, []);
 
-    const handleDrop = useCallback(
-        (event: DragEvent) => {
-            const files = Array.from(event.dataTransfer?.files ?? []);
-            if (files.length === 0) {
-                return;
-            }
-            revokeDropBlobUrls();
-            const blobUrls: string[] = [];
-            for (const file of files) {
-                const blobUrl = URL.createObjectURL(file);
-                blobUrls.push(blobUrl);
-                // eslint-disable-next-line no-param-reassign
-                file.uri = blobUrl;
-            }
-            dropBlobUrlsRef.current = blobUrls;
-            validateFiles(files as FileObject[], Array.from(event.dataTransfer?.items ?? []));
-        },
-        [revokeDropBlobUrls, validateFiles],
-    );
+    const handleDrop = (event: DragEvent) => {
+        const files = Array.from(event.dataTransfer?.files ?? []);
+        if (files.length === 0) {
+            return;
+        }
+        revokeDropBlobUrls();
+        const blobUrls: string[] = [];
+        for (const file of files) {
+            const blobUrl = URL.createObjectURL(file);
+            blobUrls.push(blobUrl);
+            // eslint-disable-next-line no-param-reassign
+            file.uri = blobUrl;
+        }
+        dropBlobUrlsRef.current = blobUrls;
+        validateFiles(files as FileObject[], Array.from(event.dataTransfer?.items ?? []));
+    };
 
     useEffect(() => {
         return () => {
