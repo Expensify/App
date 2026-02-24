@@ -86,7 +86,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      */
     const handleCallback = useCallback(
         async (isSuccessful: boolean) => {
-            const {error, scenario, scenarioResponse} = state;
+            const {error, scenario, scenarioResponse, payload} = state;
 
             if (!scenario) {
                 return;
@@ -99,7 +99,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 body: scenarioResponse?.body,
             };
 
-            const callbackResponse = await scenarioConfig.callback?.(isSuccessful, callbackInput);
+            const callbackResponse = await scenarioConfig.callback?.(isSuccessful, callbackInput, payload);
 
             // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself
             if (callbackResponse === CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN) {

@@ -74,11 +74,15 @@ describe('MultifactorAuthentication Scenarios Config', () => {
         const biometricsTestConfig = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST];
 
         // Invoke the callback with successful authentication and valid response data
-        const callbackResult = await biometricsTestConfig.callback?.(true, {
-            httpStatusCode: 200,
-            message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
-            body: {},
-        });
+        const callbackResult = await biometricsTestConfig.callback?.(
+            true,
+            {
+                httpStatusCode: 200,
+                message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
+                body: {},
+            },
+            {},
+        );
 
         // Verify that the callback returns SHOW_OUTCOME_SCREEN, indicating
         // the MFA flow should navigate to the outcome screen

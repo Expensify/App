@@ -85,7 +85,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
 
     const handleFinishStep = () => {
         if (isUKEUCard) {
-            if (isOffline) {
+            if (isOffline || !cardID) {
                 return;
             }
 
@@ -97,7 +97,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD, {
                     ...personalDetailsParams,
                     pin,
-                    cardID: cardID ?? '',
+                    cardID,
                 }),
             );
         } else {
