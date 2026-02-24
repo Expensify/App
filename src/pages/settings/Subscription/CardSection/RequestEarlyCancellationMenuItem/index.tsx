@@ -5,6 +5,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationMenuItem() {
@@ -28,6 +29,7 @@ function RequestEarlyCancellationMenuItem() {
             shouldShowRightIcon
             wrapperStyle={styles.sectionMenuItemTopDescription}
             onPress={handleRequestEarlyCancellationPress}
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.REQUEST_EARLY_CANCELLATION}
         />
     );
 }

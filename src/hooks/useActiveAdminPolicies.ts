@@ -10,7 +10,7 @@ import useOnyx from './useOnyx';
 function useActiveAdminPolicies() {
     const {login} = useCurrentUserPersonalDetails();
     const selector = useCallback((policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? ''), [login]);
-    const [activeAdminPolicies = getEmptyArray<Policy>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector}, [login]);
+    const [activeAdminPolicies = getEmptyArray<Policy>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector}, [login]);
 
     return activeAdminPolicies;
 }

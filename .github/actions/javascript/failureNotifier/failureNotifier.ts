@@ -17,7 +17,7 @@ type PullRequest = RestEndpointMethodTypes['repos']['listPullRequestsAssociatedW
  * targeting the correct base branch to avoid blaming the wrong PR.
  */
 function getMergedPR(associatedPRs: PullRequest[], targetBranch = 'main'): PullRequest | undefined {
-    return associatedPRs.find((pr) => pr.merged_at !== null && pr.base.ref === targetBranch) ?? associatedPRs.at(0);
+    return associatedPRs.find((pr) => pr.merged_at !== null && pr.base.ref === targetBranch);
 }
 
 async function run() {
