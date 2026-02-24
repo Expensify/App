@@ -1,5 +1,4 @@
 import type * as NativeNavigation from '@react-navigation/native';
-import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {fireEvent, screen} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
 import Onyx from 'react-native-onyx';
@@ -9,6 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {OptionsListContext} from '@components/OptionListContextProvider';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';

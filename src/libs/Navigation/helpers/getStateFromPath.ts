@@ -26,9 +26,10 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
         const pathWithoutDynamicSuffix = normalizedPathAfterRedirection.replace(`/${dynamicRouteSuffix}`, '');
 
         type DynamicRouteKey = keyof typeof DYNAMIC_ROUTES;
+        const dynamicRouteKeys = Object.keys(DYNAMIC_ROUTES) as DynamicRouteKey[];
 
         // Find the dynamic route key that matches the extracted suffix
-        const dynamicRoute: string = Object.keys(DYNAMIC_ROUTES).find((key) => DYNAMIC_ROUTES[key as DynamicRouteKey].path === dynamicRouteSuffix) ?? '';
+        const dynamicRoute: string = dynamicRouteKeys.find((key) => DYNAMIC_ROUTES[key].path === dynamicRouteSuffix) ?? '';
 
         // Get the currently focused route from the base path to check permissions
         const focusedRoute = findFocusedRoute(getStateFromPath(pathWithoutDynamicSuffix as Route) ?? {});
@@ -60,7 +61,6 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
     if (!state) {
         throw new Error('Failed to parse the path to a navigation state.');
     }
-
     return state;
 }
 

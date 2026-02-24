@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {isEligibleForApproveSuggestion} from '@libs/SearchUIUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+import {isEligibleForApproveSuggestion} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session} from '@src/types/onyx';
@@ -57,7 +57,7 @@ function createPolicyCollectionSelector(email: string | undefined) {
  * 3. Otherwise → return default canned search query (expenses)
  */
 function useDefaultSearchQuery(): string {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionSelector, canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionSelector});
     const email = session?.email;
     const accountID = session?.accountID;
 
@@ -65,7 +65,6 @@ function useDefaultSearchQuery(): string {
         ONYXKEYS.COLLECTION.POLICY,
         {
             selector: createPolicyCollectionSelector(email),
-            canBeMissing: true,
         },
         [email],
     );

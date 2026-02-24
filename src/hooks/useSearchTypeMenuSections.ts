@@ -9,9 +9,9 @@ import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
+import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
-import useMappedPolicies from './useMappedPolicies';
 
 const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -50,15 +50,15 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
 const useSearchTypeMenuSections = () => {
     const {translate} = useLocalize();
     const cardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => defaultExpensifyCardSelector(allCards, translate);
-    const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true, selector: cardSelector}, [cardSelector]);
+    const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: cardSelector}, [cardSelector]);
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
 
     const icons = useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']);
     const {isOffline} = useNetwork();
     const [allPolicies] = useMappedPolicies(policyMapper);
-    const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
+    const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
