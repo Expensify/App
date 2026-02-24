@@ -36,7 +36,6 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
         selector: personalDetailsByEmailSelector,
     });
 
@@ -48,13 +47,15 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
         : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
               .map((m) => Str.removeSMSDomain(m.displayName))
               .join(', ');
-
     return (
         <PressableWithoutFeedback
             accessibilityRole="button"
             style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
             onPress={onPress}
-            accessibilityLabel={translate('workflowsPage.addApprovalsTitle')}
+            accessibilityLabel={translate('workflowsPage.accessibilityLabel', {
+                members,
+                approvers: approvalWorkflow?.approvers.map((approver) => Str.removeSMSDomain(approver?.displayName ?? '')).join(', '),
+            })}
         >
             <View style={[styles.flex1]}>
                 {approvalWorkflow.isDefault && (
@@ -88,6 +89,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                     iconFill={theme.icon}
                     onPress={onPress}
                     shouldRemoveBackground
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_EXPENSES_FROM}
                 />
 
                 {approvalWorkflow.approvers.map((approver, index) => (
@@ -111,6 +113,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                             shouldRemoveBackground
                             helperText={getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail})}
                             helperTextStyle={styles.workflowApprovalLimitText}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                         />
                     </View>
                 ))}

@@ -28,17 +28,13 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
 
     const [primaryContact] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         selector: domainSettingsPrimaryContactSelector,
-        canBeMissing: true,
     });
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
 
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [adminPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
     });
 
@@ -51,7 +47,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const handleRevokeAdminAccess = async () => {
         const confirmResult = await showConfirmModal({
             title: translate('domain.admins.revokeAdminAccess'),
-            prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
+            prompt: translate('workspace.people.removeMemberPrompt', displayName),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
 
@@ -90,7 +86,5 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         </BaseDomainMemberDetailsComponent>
     );
 }
-
-DomainAdminDetailsPage.displayName = 'DomainAdminDetailsPage';
 
 export default DomainAdminDetailsPage;

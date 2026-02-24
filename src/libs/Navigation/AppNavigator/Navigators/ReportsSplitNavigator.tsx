@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
@@ -15,8 +16,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
-const loadReportScreen = () => require<ReactComponentModule>('@pages/home/ReportScreen').default;
-const loadSidebarScreen = () => require<ReactComponentModule>('@pages/home/sidebar/BaseSidebarScreen').default;
+const loadReportScreen = () => require<ReactComponentModule>('@pages/inbox/ReportScreen').default;
+const loadSidebarScreen = () => require<ReactComponentModule>('@pages/inbox/sidebar/BaseSidebarScreen').default;
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
 /**
@@ -26,6 +27,7 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
@@ -43,7 +45,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
             return '';
         }
 
-        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom());
+        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom(), undefined, archivedReportsIdSet);
         // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });
@@ -61,14 +63,14 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     return (
         <FreezeWrapper>
             <Split.Navigator
-                persistentScreens={[SCREENS.HOME]}
-                sidebarScreen={SCREENS.HOME}
+                persistentScreens={[SCREENS.INBOX]}
+                sidebarScreen={SCREENS.INBOX}
                 defaultCentralScreen={SCREENS.REPORT}
                 parentRoute={route}
                 screenOptions={splitNavigatorScreenOptions.centralScreen}
             >
                 <Split.Screen
-                    name={SCREENS.HOME}
+                    name={SCREENS.INBOX}
                     getComponent={loadSidebarScreen}
                     options={splitNavigatorScreenOptions.sidebarScreen}
                 />

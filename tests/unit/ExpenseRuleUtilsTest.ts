@@ -25,7 +25,21 @@ describe('formatExpenseRuleChanges', () => {
         };
 
         const result = formatExpenseRuleChanges(rule, translateLocal);
-        expect(result).toBe('Update expense billable, Update category to "office", Change description to "memo", Update tax rate to "5%"');
+        expect(result).toBe('Update expense billable, category to "office", description to "memo", tax rate to "5%"');
+    });
+
+    it('formats billable, category, comment, tax and report entries in order', () => {
+        const rule: ExpenseRule = {
+            merchantToMatch: 'merchant1',
+            report: 'test report',
+            tax: {field_id_TAX: {externalID: 'TAX_123', value: '5%'}},
+            comment: 'memo',
+            billable: 'true',
+            category: 'office',
+        };
+
+        const result = formatExpenseRuleChanges(rule, translateLocal);
+        expect(result).toBe('Update expense billable, category to "office", description to "memo", tax rate to "5%", add to a report named "test report"');
     });
 });
 

@@ -1,4 +1,5 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
+import {Keyboard} from 'react-native';
 import {isMobileChrome} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
@@ -10,7 +11,7 @@ import type {UseWebSelectionListBehaviorOptions, UseWebSelectionListBehaviorResu
  * - Keyboard navigation scroll debouncing
  * - Optional hover style tracking for mouse interactions
  */
-function useWebSelectionListBehavior({shouldTrackHoverStyle = false}: UseWebSelectionListBehaviorOptions = {}): UseWebSelectionListBehaviorResult {
+function useWebSelectionListBehavior({shouldTrackHoverStyle = false, shouldHideKeyboardOnScroll = true}: UseWebSelectionListBehaviorOptions = {}): UseWebSelectionListBehaviorResult {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
     const [shouldDebounceScrolling, setShouldDebounceScrolling] = useState(false);
     const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
@@ -93,11 +94,21 @@ function useWebSelectionListBehavior({shouldTrackHoverStyle = false}: UseWebSele
         };
     }, [shouldTrackHoverStyle]);
 
+    // In SearchPageBottomTab we use useAnimatedScrollHandler from reanimated(for performance reasons) and it returns object instead of function. In that case we cannot change it to a function call, that's why we have to choose between onScroll and defaultOnScroll.
+    const onScroll = useCallback(() => {
+        // Only dismiss the keyboard whenever the user scrolls the screen and `shouldHideKeyboardOnScroll` is true
+        if (!isScreenTouched || !shouldHideKeyboardOnScroll) {
+            return;
+        }
+        Keyboard.dismiss();
+    }, [isScreenTouched, shouldHideKeyboardOnScroll]);
+
     return {
         shouldIgnoreFocus: isMobileChrome() && isScreenTouched,
         shouldDebounceScrolling,
         shouldDisableHoverStyle,
         setShouldDisableHoverStyle,
+        onScroll,
     };
 }
 

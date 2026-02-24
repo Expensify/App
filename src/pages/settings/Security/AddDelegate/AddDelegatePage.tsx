@@ -1,11 +1,10 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -20,21 +19,18 @@ import ROUTES from '@src/ROUTES';
 function AddDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const existingDelegates = useMemo(
-        () =>
-            account?.delegatedAccess?.delegates?.reduce(
-                (prev, {email}) => {
-                    // eslint-disable-next-line no-param-reassign
-                    prev[email] = true;
-                    return prev;
-                },
-                {} as Record<string, boolean>,
-            ) ?? {},
-        [account?.delegatedAccess?.delegates],
-    );
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const existingDelegates =
+        account?.delegatedAccess?.delegates?.reduce(
+            (prev, {email}) => {
+                // eslint-disable-next-line no-param-reassign
+                prev[email] = true;
+                return prev;
+            },
+            {} as Record<string, boolean>,
+        ) ?? {};
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, toggleSelection} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -48,51 +44,45 @@ function AddDelegatePage() {
         },
     });
 
-    const headerMessage = useMemo(() => {
-        return getHeaderMessage(
-            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
-            !!availableOptions.userToInvite,
-            debouncedSearchTerm,
-            countryCode,
-        );
-    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, debouncedSearchTerm, countryCode]);
-
-    const sections = useMemo(() => {
-        const sectionsList = [];
-
-        sectionsList.push({
+    const headerMessage = getHeaderMessage(
+        (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
+        !!availableOptions.userToInvite,
+        debouncedSearchTerm,
+        countryCode,
+    );
+    const sectionsList = [
+        {
             title: translate('common.recents'),
+            sectionIndex: 0,
             data: availableOptions.recentReports,
-            shouldShow: availableOptions.recentReports?.length > 0,
-        });
-
-        sectionsList.push({
+        },
+        {
             title: translate('common.contacts'),
+            sectionIndex: 1,
             data: availableOptions.personalDetails,
-            shouldShow: availableOptions.personalDetails?.length > 0,
+        },
+    ];
+
+    if (availableOptions.userToInvite) {
+        sectionsList.push({
+            sectionIndex: 2,
+            title: '',
+            data: [availableOptions.userToInvite],
         });
+    }
 
-        if (availableOptions.userToInvite) {
-            sectionsList.push({
-                title: undefined,
-                data: [availableOptions.userToInvite],
-                shouldShow: true,
-            });
-        }
-
-        return sectionsList.map((section) => ({
-            ...section,
-            data: section.data.map((option) => ({
-                ...option,
-                text: option.text ?? '',
-                alternateText: option.alternateText ?? undefined,
-                keyForList: option.keyForList ?? '',
-                isDisabled: option.isDisabled ?? undefined,
-                login: option.login ?? undefined,
-                shouldShowSubscript: option.shouldShowSubscript ?? undefined,
-            })),
-        }));
-    }, [availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
+    const sections = sectionsList.map((section) => ({
+        ...section,
+        data: section.data.map((option, index) => ({
+            ...option,
+            text: option.text ?? '',
+            alternateText: option.alternateText ?? undefined,
+            keyForList: `${option.keyForList}-${index}`,
+            isDisabled: option.isDisabled ?? undefined,
+            login: option.login ?? undefined,
+            shouldShowSubscript: option.shouldShowSubscript ?? undefined,
+        })),
+    }));
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
@@ -109,17 +99,20 @@ function AddDelegatePage() {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
+                    <SelectionListWithSections
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
                         onSelectRow={toggleSelection}
                         shouldSingleExecuteRowSelect
-                        onChangeText={setSearchTerm}
-                        textInputValue={searchTerm}
-                        headerMessage={headerMessage}
-                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                        textInputOptions={{
+                            value: searchTerm,
+                            onChangeText: setSearchTerm,
+                            headerMessage,
+                            label: translate('selectionList.nameEmailOrPhoneNumber'),
+                        }}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
+                        shouldShowTextInput
                     />
                 </View>
             </DelegateNoAccessWrapper>

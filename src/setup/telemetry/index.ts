@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/react-native';
 import {Platform} from 'react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import {browserProfilingIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
+import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
 import processBeforeSendTransactions from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -10,7 +10,14 @@ import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
 export default function (): void {
-    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration].filter((integration) => !!integration);
+    // With Sentry enabled in dev mode, profiling on iOS and Android does not work
+    // If you want to enable Sentry in dev, set ENABLE_SENTRY_ON_DEV=true in .env
+    // or comment out the condition below
+    if (isDevelopment() && !CONFIG.ENABLE_SENTRY_ON_DEV) {
+        return;
+    }
+
+    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration].filter((integration) => !!integration);
 
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,

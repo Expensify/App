@@ -152,7 +152,7 @@ function BlockingView({
                 />
             )}
             <View>
-                <Text style={[titleStyles, styles.notFoundTextHeader]}>{title}</Text>
+                <Text style={[styles.notFoundTextHeader, titleStyles]}>{title}</Text>
 
                 {CustomSubtitle}
                 {!CustomSubtitle && (
