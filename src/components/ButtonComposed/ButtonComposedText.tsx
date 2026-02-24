@@ -19,7 +19,7 @@ type ButtonComposedTextProps = {
 };
 
 function ButtonComposedText({children, numberOfLines = 1, style}: ButtonComposedTextProps) {
-    const {isLoading, success, danger, extraSmall, small, medium, large, link, isHovered} = useButtonComposedContext();
+    const {isLoading, success, danger, size, link, isHovered} = useButtonComposedContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -32,10 +32,10 @@ function ButtonComposedText({children, numberOfLines = 1, style}: ButtonComposed
                 isLoading && styles.opacity0,
                 styles.pointerEventsNone,
                 styles.buttonText,
-                extraSmall && styles.buttonExtraSmallText,
-                small && styles.buttonSmallText,
-                medium && styles.buttonMediumText,
-                large && styles.buttonLargeText,
+                size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL && styles.buttonExtraSmallText,
+                size === CONST.DROPDOWN_BUTTON_SIZE.SMALL && styles.buttonSmallText,
+                size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM && styles.buttonMediumText,
+                size === CONST.DROPDOWN_BUTTON_SIZE.LARGE && styles.buttonLargeText,
                 success && styles.buttonSuccessText,
                 danger && styles.buttonDangerText,
                 link && styles.fontWeightNormal,

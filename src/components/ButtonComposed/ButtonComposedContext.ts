@@ -1,14 +1,13 @@
 import {createContext, useContext} from 'react';
+import type {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 
 type ButtonComposedContextValue = {
     isHovered: boolean;
     isLoading: boolean;
     success: boolean;
     danger: boolean;
-    extraSmall: boolean;
-    small: boolean;
-    medium: boolean;
-    large: boolean;
+    size: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
     link: boolean;
     iconFill?: string;
     iconHoverFill?: string;
@@ -19,10 +18,7 @@ const defaultButtonComposedContextValue: ButtonComposedContextValue = {
     isLoading: false,
     success: false,
     danger: false,
-    extraSmall: false,
-    small: false,
-    medium: true,
-    large: false,
+    size: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     link: false,
     iconFill: undefined,
     iconHoverFill: undefined,

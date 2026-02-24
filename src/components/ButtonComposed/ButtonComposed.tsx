@@ -3,6 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getButtonRole} from '@components/Button/utils';
 import validateSubmitShortcut from '@components/Button/validateSubmitShortcut';
@@ -97,17 +98,8 @@ type ButtonComposedStyleProps = {
     /** Additional styles to add to the component when it's disabled */
     disabledStyle?: StyleProp<ViewStyle>;
 
-    /** Extra-small sized button */
-    extraSmall?: boolean;
-
-    /** Small sized button */
-    small?: boolean;
-
-    /** Medium sized button */
-    medium?: boolean;
-
-    /** Large sized button */
-    large?: boolean;
+    /** The size of the button */
+    size?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
     /** Whether we should use the success theme color */
     success?: boolean;
@@ -198,10 +190,7 @@ function ButtonComposed({
     children,
     allowBubble = false,
     iconWrapperStyles = [],
-    extraSmall = false,
-    small = false,
-    large = false,
-    medium: mediumProp,
+    size,
     isLoading = false,
     isDisabled = false,
     onLayout = () => {},
@@ -235,7 +224,7 @@ function ButtonComposed({
     sentryLabel,
     ref,
 }: ButtonComposedProps) {
-    const medium = mediumProp ?? (!extraSmall && !small && !large);
+    const resolvedSize = size ?? CONST.DROPDOWN_BUTTON_SIZE.MEDIUM;
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
@@ -246,13 +235,10 @@ function ButtonComposed({
             isLoading,
             success,
             danger,
-            extraSmall,
-            small,
-            medium,
-            large,
+            size: resolvedSize,
             link,
         }),
-        [isHovered, isLoading, success, danger, extraSmall, small, medium, large, link],
+        [isHovered, isLoading, success, danger, resolvedSize, link],
     );
 
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
@@ -366,7 +352,7 @@ function ButtonComposed({
                     <ActivityIndicator
                         color={success || danger ? theme.textLight : theme.text}
                         style={[styles.pAbsolute, styles.l0, styles.r0]}
-                        size={extraSmall ? 12 : undefined}
+                        size={resolvedSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL ? 12 : undefined}
                     />
                 )}
             </PressableWithFeedback>

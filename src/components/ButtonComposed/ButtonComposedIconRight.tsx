@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useButtonComposedContext} from './ButtonComposedContext';
 
@@ -22,21 +23,21 @@ type ButtonComposedIconRightProps = {
 };
 
 function ButtonComposedIconRight({src, fill, hoverFill, style}: ButtonComposedIconRightProps) {
-    const {isHovered, success, danger, extraSmall, small, medium, large} = useButtonComposedContext();
+    const {isHovered, success, danger, size} = useButtonComposedContext();
     const theme = useTheme();
     const styles = useThemeStyles();
 
     const defaultFill = success || danger ? theme.textLight : theme.icon;
 
     return (
-        <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, style]}>
+        <View style={[styles.justifyContentCenter, size === CONST.DROPDOWN_BUTTON_SIZE.LARGE ? styles.ml2 : styles.ml1, style]}>
             <Icon
                 src={src}
                 fill={(isHovered ? hoverFill : fill) ?? defaultFill}
-                extraSmall={extraSmall}
-                small={small}
-                medium={medium}
-                large={large}
+                extraSmall={size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
+                small={size === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                medium={size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                large={size === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 isButtonIcon
             />
         </View>

@@ -190,10 +190,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={isSplitButton ? [styles.flex1, styles.pr0] : {}}
-                        extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
-                        large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                        medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                        small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                        size={buttonSize}
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView, isTextTooLong && shouldUseShortForm && {...styles.pl2, ...styles.pr1}]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         testID={testID}
