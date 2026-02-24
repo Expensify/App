@@ -2,13 +2,13 @@ import {createContext, useContext} from 'react';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 
+type ButtonComposedVariant = 'success' | 'danger' | 'link';
+
 type ButtonComposedContextValue = {
     isHovered: boolean;
     isLoading: boolean;
-    success: boolean;
-    danger: boolean;
+    variant?: ButtonComposedVariant;
     size: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
-    link: boolean;
     iconFill?: string;
     iconHoverFill?: string;
 };
@@ -16,10 +16,8 @@ type ButtonComposedContextValue = {
 const defaultButtonComposedContextValue: ButtonComposedContextValue = {
     isHovered: false,
     isLoading: false,
-    success: false,
-    danger: false,
+    variant: undefined,
     size: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-    link: false,
     iconFill: undefined,
     iconHoverFill: undefined,
 };
@@ -32,4 +30,4 @@ function useButtonComposedContext(): ButtonComposedContextValue {
 
 export default ButtonComposedContext;
 export {useButtonComposedContext};
-export type {ButtonComposedContextValue};
+export type {ButtonComposedContextValue, ButtonComposedVariant};

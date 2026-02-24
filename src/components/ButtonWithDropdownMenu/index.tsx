@@ -181,7 +181,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
                 <View style={[splitButtonWrapperStyle, style]}>
                     <ButtonComposed
-                        success={success}
+                        variant={success ? 'success' : undefined}
                         pressOnEnter={pressOnEnter}
                         ref={dropdownButtonRef}
                         onPress={handlePress}

@@ -17,6 +17,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import ButtonComposedContext from './ButtonComposedContext';
+import type {ButtonComposedVariant} from './ButtonComposedContext';
 
 type ButtonComposedEventsProps = {
     /** A function that is called when the button is clicked on */
@@ -101,14 +102,8 @@ type ButtonComposedStyleProps = {
     /** The size of the button */
     size?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
-    /** Whether we should use the success theme color */
-    success?: boolean;
-
-    /** Whether we should use the danger theme color */
-    danger?: boolean;
-
-    /** Whether we should display the button as a link */
-    link?: boolean;
+    /** The visual variant of the button */
+    variant?: ButtonComposedVariant;
 
     /** Should we remove the right border radius top + bottom? */
     shouldRemoveRightBorderRadius?: boolean;
@@ -206,8 +201,7 @@ function ButtonComposed({
     innerStyles = [],
     shouldUseDefaultHover = true,
     hoverStyles = undefined,
-    success = false,
-    danger = false,
+    variant,
     shouldRemoveRightBorderRadius = false,
     shouldRemoveLeftBorderRadius = false,
     shouldEnableHapticFeedback = false,
@@ -215,7 +209,6 @@ function ButtonComposed({
     id = '',
     testID = undefined,
     accessibilityLabel = '',
-    link = false,
     isContentCentered = false,
     isPressOnEnterActive,
     isNested = false,
@@ -233,28 +226,26 @@ function ButtonComposed({
         () => ({
             isHovered,
             isLoading,
-            success,
-            danger,
+            variant,
             size: resolvedSize,
-            link,
         }),
-        [isHovered, isLoading, success, danger, resolvedSize, link],
+        [isHovered, isLoading, variant, resolvedSize],
     );
 
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.button,
             styles.buttonMedium,
-            success ? styles.buttonSuccess : undefined,
-            danger ? styles.buttonDanger : undefined,
+            variant === 'success' ? styles.buttonSuccess : undefined,
+            variant === 'danger' ? styles.buttonDanger : undefined,
             isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
-            isDisabled && !danger && !success && !shouldStayNormalOnDisable ? styles.buttonDisabled : undefined,
+            isDisabled && variant !== 'danger' && variant !== 'success' && !shouldStayNormalOnDisable ? styles.buttonDisabled : undefined,
             shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
             shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
             innerStyles,
-            link && styles.bgTransparent,
+            variant === 'link' && styles.bgTransparent,
         ],
-        [danger, innerStyles, isDisabled, link, shouldRemoveLeftBorderRadius, shouldRemoveRightBorderRadius, styles, success, shouldStayNormalOnDisable],
+        [variant, innerStyles, isDisabled, shouldRemoveLeftBorderRadius, shouldRemoveRightBorderRadius, styles, shouldStayNormalOnDisable],
     );
 
     return (
@@ -318,8 +309,8 @@ function ButtonComposed({
                     !isDisabled || !shouldStayNormalOnDisable
                         ? [
                               shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
-                              success && !isDisabled ? styles.buttonSuccessHovered : undefined,
-                              danger && !isDisabled ? styles.buttonDangerHovered : undefined,
+                              variant === 'success' && !isDisabled ? styles.buttonSuccessHovered : undefined,
+                              variant === 'danger' && !isDisabled ? styles.buttonDangerHovered : undefined,
                               hoverStyles,
                           ]
                         : []
@@ -350,7 +341,7 @@ function ButtonComposed({
                 </ButtonComposedContext.Provider>
                 {isLoading && (
                     <ActivityIndicator
-                        color={success || danger ? theme.textLight : theme.text}
+                        color={variant === 'success' || variant === 'danger' ? theme.textLight : theme.text}
                         style={[styles.pAbsolute, styles.l0, styles.r0]}
                         size={resolvedSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL ? 12 : undefined}
                     />

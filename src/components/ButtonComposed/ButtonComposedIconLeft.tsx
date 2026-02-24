@@ -23,11 +23,11 @@ type ButtonComposedIconLeftProps = {
 };
 
 function ButtonComposedIconLeft({src, fill, hoverFill, style}: ButtonComposedIconLeftProps) {
-    const {isHovered, success, danger, size} = useButtonComposedContext();
+    const {isHovered, variant, size} = useButtonComposedContext();
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    const defaultFill = success || danger ? theme.textLight : theme.icon;
+    const defaultFill = variant === 'success' || variant === 'danger' ? theme.textLight : theme.icon;
 
     return (
         <View style={[size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL ? styles.mr1 : styles.mr2, style]}>

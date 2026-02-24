@@ -19,7 +19,7 @@ type ButtonComposedTextProps = {
 };
 
 function ButtonComposedText({children, numberOfLines = 1, style}: ButtonComposedTextProps) {
-    const {isLoading, success, danger, size, link, isHovered} = useButtonComposedContext();
+    const {isLoading, variant, size, isHovered} = useButtonComposedContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -36,12 +36,9 @@ function ButtonComposedText({children, numberOfLines = 1, style}: ButtonComposed
                 size === CONST.DROPDOWN_BUTTON_SIZE.SMALL && styles.buttonSmallText,
                 size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM && styles.buttonMediumText,
                 size === CONST.DROPDOWN_BUTTON_SIZE.LARGE && styles.buttonLargeText,
-                success && styles.buttonSuccessText,
-                danger && styles.buttonDangerText,
-                link && styles.fontWeightNormal,
-                link && styles.fontSizeLabel,
-                link && styles.link,
-                link && isHovered && StyleUtils.getColorStyle(theme.linkHover),
+                variant === 'success' && styles.buttonSuccessText,
+                variant === 'danger' && styles.buttonDangerText,
+                variant === 'link' && [styles.fontWeightNormal, styles.fontSizeLabel, styles.link, isHovered && StyleUtils.getColorStyle(theme.linkHover)],
                 style,
             ]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
