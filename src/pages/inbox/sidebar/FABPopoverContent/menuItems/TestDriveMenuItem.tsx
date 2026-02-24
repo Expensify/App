@@ -1,6 +1,5 @@
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import React from 'react';
-import FocusableMenuItem from '@components/FocusableMenuItem';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -9,7 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
+import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -26,25 +25,16 @@ function TestDriveMenuItem() {
     const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
     const isVisible = !hasSeenTour;
 
-    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID, isVisible);
-
-    if (!isVisible) {
-        return null;
-    }
-
     return (
-        <FocusableMenuItem
+        <FABFocusableMenuItem
+            itemId={ITEM_ID}
+            isVisible={isVisible}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.TEST_DRIVE}
             icon={icons.Binoculars}
             iconStyles={styles.popoverIconCircle}
             iconFill={theme.icon}
             title={translate('testDrive.quickAction.takeATwoMinuteTestDrive')}
-            focused={isFocused}
-            onFocus={() => setFocusedIndex(itemIndex)}
-            onPress={() => onItemPress(() => interceptAnonymousUser(() => startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember)))}
-            shouldCheckActionAllowedOnPress={false}
-            role={CONST.ROLE.BUTTON}
-            wrapperStyle={wrapperStyle}
+            onPress={() => interceptAnonymousUser(() => startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember))}
         />
     );
 }

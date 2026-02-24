@@ -1,5 +1,4 @@
 import React from 'react';
-import FocusableMenuItem from '@components/FocusableMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -7,7 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
+import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,31 +23,23 @@ function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle'] as const);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
-    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID);
 
     return (
-        <FocusableMenuItem
+        <FABFocusableMenuItem
+            itemId={ITEM_ID}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE}
             icon={getIconForAction(CONST.IOU.TYPE.CREATE, icons)}
             title={translate('iou.createExpense')}
-            focused={isFocused}
-            onFocus={() => setFocusedIndex(itemIndex)}
             onPress={() =>
-                onItemPress(
-                    () =>
-                        interceptAnonymousUser(() => {
-                            if (shouldRedirectToExpensifyClassic) {
-                                showRedirectToExpensifyClassicModal();
-                                return;
-                            }
-                            startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, allTransactionDrafts, true);
-                        }),
-                    {shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout},
-                )
+                interceptAnonymousUser(() => {
+                    if (shouldRedirectToExpensifyClassic) {
+                        showRedirectToExpensifyClassicModal();
+                        return;
+                    }
+                    startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, allTransactionDrafts, true);
+                })
             }
-            shouldCheckActionAllowedOnPress={false}
-            role={CONST.ROLE.BUTTON}
-            wrapperStyle={wrapperStyle}
+            shouldCallAfterModalHide={shouldRedirectToExpensifyClassic || shouldUseNarrowLayout}
         />
     );
 }

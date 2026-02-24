@@ -1,7 +1,6 @@
 import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import FocusableMenuItem from '@components/FocusableMenuItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -25,7 +24,7 @@ import {
     isPolicyExpenseChat,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
+import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -78,8 +77,6 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
             : false) ||
         (!quickAction?.action && !isEmptyObject(policyChatForActivePolicy));
 
-    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID, isVisible);
-
     let quickActionAvatars: ReturnType<typeof getIcons> = [];
     if (isValidReport) {
         const avatars = getIcons(quickActionReport, formatPhoneNumber, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
@@ -113,10 +110,6 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const quickActionSubtitle = !hideQABSubtitle ? (getReportName(quickActionReport, quickActionPolicy, undefined, personalDetails) ?? translate('quickAction.updateDestination')) : '';
 
-    if (!isVisible) {
-        return null;
-    }
-
     const quickActionReportPolicyID = quickActionReport?.policyID;
     const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
         if (shouldRestrictAction && quickActionReportPolicyID && shouldRestrictUserBillableActions(quickActionReportPolicyID)) {
@@ -128,7 +121,9 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     if (quickAction?.action && quickActionReport) {
         return (
-            <FocusableMenuItem
+            <FABFocusableMenuItem
+                itemId={ITEM_ID}
+                isVisible={isVisible}
                 pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
                 label={translate('quickAction.header')}
                 labelStyle={[styles.pt3, styles.pb2]}
@@ -139,48 +134,42 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                 }}
                 shouldTeleportPortalToModalLayer
-                focused={isFocused}
-                onFocus={() => setFocusedIndex(itemIndex)}
-                shouldCheckActionAllowedOnPress={false}
-                role={CONST.ROLE.BUTTON}
-                wrapperStyle={wrapperStyle}
                 icon={getQuickActionIcon(icons, quickAction?.action)}
                 title={quickActionTitle}
                 rightIconAccountID={quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID}
                 description={quickActionSubtitle}
                 rightIconReportID={quickActionReport?.reportID}
                 onPress={() =>
-                    onItemPress(
-                        () =>
-                            interceptAnonymousUser(() => {
-                                if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && isDelegateAccessRestricted) {
-                                    showDelegateNoAccessModal();
-                                    return;
-                                }
-                                const targetAccountPersonalDetails = {
-                                    ...personalDetails?.[quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID],
-                                    accountID: quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                                };
+                    interceptAnonymousUser(() => {
+                        if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && isDelegateAccessRestricted) {
+                            showDelegateNoAccessModal();
+                            return;
+                        }
+                        const targetAccountPersonalDetails = {
+                            ...personalDetails?.[quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID],
+                            accountID: quickAction.targetAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                        };
 
-                                navigateToQuickAction({
-                                    isValidReport,
-                                    quickAction,
-                                    selectOption,
-                                    lastDistanceExpenseType,
-                                    targetAccountPersonalDetails,
-                                    currentUserAccountID: currentUserPersonalDetails.accountID,
-                                    isFromFloatingActionButton: true,
-                                });
-                            }),
-                        {shouldCallAfterModalHide: shouldUseNarrowLayout},
-                    )
+                        navigateToQuickAction({
+                            isValidReport,
+                            quickAction,
+                            selectOption,
+                            lastDistanceExpenseType,
+                            targetAccountPersonalDetails,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            isFromFloatingActionButton: true,
+                        });
+                    })
                 }
+                shouldCallAfterModalHide={shouldUseNarrowLayout}
             />
         );
     }
 
     return (
-        <FocusableMenuItem
+        <FABFocusableMenuItem
+            itemId={ITEM_ID}
+            isVisible={isVisible}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
             label={translate('quickAction.header')}
             labelStyle={[styles.pt3, styles.pb2]}
@@ -191,31 +180,23 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             }}
             shouldTeleportPortalToModalLayer
-            focused={isFocused}
-            onFocus={() => setFocusedIndex(itemIndex)}
-            shouldCheckActionAllowedOnPress={false}
-            role={CONST.ROLE.BUTTON}
-            wrapperStyle={wrapperStyle}
             icon={icons.ReceiptScan}
             title={translate('quickAction.scanReceipt')}
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             description={getReportName(policyChatForActivePolicy)}
             rightIconReportID={policyChatForActivePolicy?.reportID}
             onPress={() =>
-                onItemPress(
-                    () =>
-                        interceptAnonymousUser(() => {
-                            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
-                                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
-                                return;
-                            }
+                interceptAnonymousUser(() => {
+                    if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
+                        return;
+                    }
 
-                            const quickActionReportID = policyChatForActivePolicy?.reportID || reportID;
-                            startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts, true);
-                        }),
-                    {shouldCallAfterModalHide: shouldUseNarrowLayout},
-                )
+                    const quickActionReportID = policyChatForActivePolicy?.reportID || reportID;
+                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts, true);
+                })
             }
+            shouldCallAfterModalHide={shouldUseNarrowLayout}
         />
     );
 }

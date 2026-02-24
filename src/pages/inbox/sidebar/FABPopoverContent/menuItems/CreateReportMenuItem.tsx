@@ -1,7 +1,6 @@
 import {groupPaidPoliciesWithExpenseChatEnabledSelector} from '@selectors/Policy';
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import FocusableMenuItem from '@components/FocusableMenuItem';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
@@ -18,7 +17,7 @@ import {getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
-import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
+import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
 import CONST from '@src/CONST';
@@ -56,8 +55,6 @@ function CreateReportMenuItem({activePolicyID}: CreateReportMenuItemProps) {
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabled}, [session?.email]);
 
     const isVisible = shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
-
-    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID, isVisible);
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
 
@@ -101,52 +98,41 @@ function CreateReportMenuItem({activePolicyID}: CreateReportMenuItemProps) {
         onConfirm: handleCreateWorkspaceReport,
     });
 
-    if (!isVisible) {
-        return null;
-    }
-
     return (
         <>
-            <FocusableMenuItem
+            <FABFocusableMenuItem
+                itemId={ITEM_ID}
+                isVisible={isVisible}
                 pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.CREATE_REPORT}
                 icon={icons.Document}
                 title={translate('report.newReport.createReport')}
-                focused={isFocused}
-                onFocus={() => setFocusedIndex(itemIndex)}
-                onPress={() =>
-                    onItemPress(
-                        () => {
-                            interceptAnonymousUser(() => {
-                                if (shouldRedirectToExpensifyClassic) {
-                                    showRedirectToExpensifyClassicModal();
-                                    return;
-                                }
+                onPress={() => {
+                    interceptAnonymousUser(() => {
+                        if (shouldRedirectToExpensifyClassic) {
+                            showRedirectToExpensifyClassicModal();
+                            return;
+                        }
 
-                                const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
+                        const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
-                                if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
-                                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
-                                    return;
-                                }
+                        if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
+                            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                            return;
+                        }
 
-                                if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                                    if (shouldShowEmptyReportConfirmation) {
-                                        openCreateReportConfirmation();
-                                    } else {
-                                        handleCreateWorkspaceReport(false);
-                                    }
-                                    return;
-                                }
+                        if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
+                            if (shouldShowEmptyReportConfirmation) {
+                                openCreateReportConfirmation();
+                            } else {
+                                handleCreateWorkspaceReport(false);
+                            }
+                            return;
+                        }
 
-                                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-                            });
-                        },
-                        {shouldCallAfterModalHide: shouldUseNarrowLayout},
-                    )
-                }
-                shouldCheckActionAllowedOnPress={false}
-                role={CONST.ROLE.BUTTON}
-                wrapperStyle={wrapperStyle}
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+                    });
+                }}
+                shouldCallAfterModalHide={shouldUseNarrowLayout}
             />
             {CreateReportConfirmationModal}
         </>

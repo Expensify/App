@@ -1,7 +1,6 @@
 import type {ImageContentFit} from 'expo-image';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import FocusableMenuItem from '@components/FocusableMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMappedPolicies from '@hooks/useMappedPolicies';
@@ -12,8 +11,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
+import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
 import {policyMapper} from '@pages/inbox/sidebar/FABPopoverContent/types';
-import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,14 +41,10 @@ function NewWorkspaceMenuItem() {
 
     const isVisible = !isLoading && shouldShowNewWorkspaceButton;
 
-    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID, isVisible);
-
-    if (!isVisible) {
-        return null;
-    }
-
     return (
-        <FocusableMenuItem
+        <FABFocusableMenuItem
+            itemId={ITEM_ID}
+            isVisible={isVisible}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.NEW_WORKSPACE}
             displayInDefaultIconColor
             contentFit={'contain' as ImageContentFit}
@@ -58,16 +53,8 @@ function NewWorkspaceMenuItem() {
             iconHeight={variables.h40}
             title={translate('workspace.new.newWorkspace')}
             description={translate('workspace.new.getTheExpensifyCardAndMore')}
-            focused={isFocused}
-            onFocus={() => setFocusedIndex(itemIndex)}
-            onPress={() =>
-                onItemPress(() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))), {
-                    shouldCallAfterModalHide: shouldUseNarrowLayout,
-                })
-            }
-            shouldCheckActionAllowedOnPress={false}
-            role={CONST.ROLE.BUTTON}
-            wrapperStyle={wrapperStyle}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute())))}
+            shouldCallAfterModalHide={shouldUseNarrowLayout}
         />
     );
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import FocusableMenuItem from '@components/FocusableMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -8,7 +7,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {canSendInvoice as canSendInvoicePolicyUtils} from '@libs/PolicyUtils';
-import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
+import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,35 +28,23 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
     const canSendInvoice = canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email);
 
-    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID, canSendInvoice);
-
-    if (!canSendInvoice) {
-        return null;
-    }
-
     return (
-        <FocusableMenuItem
+        <FABFocusableMenuItem
+            itemId={ITEM_ID}
+            isVisible={canSendInvoice}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE}
             icon={icons.InvoiceGeneric}
             title={translate('workspace.invoices.sendInvoice')}
-            focused={isFocused}
-            onFocus={() => setFocusedIndex(itemIndex)}
             onPress={() =>
-                onItemPress(
-                    () =>
-                        interceptAnonymousUser(() => {
-                            if (shouldRedirectToExpensifyClassic) {
-                                showRedirectToExpensifyClassicModal();
-                                return;
-                            }
-                            startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts, true);
-                        }),
-                    {shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout},
-                )
+                interceptAnonymousUser(() => {
+                    if (shouldRedirectToExpensifyClassic) {
+                        showRedirectToExpensifyClassicModal();
+                        return;
+                    }
+                    startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts, true);
+                })
             }
-            shouldCheckActionAllowedOnPress={false}
-            role={CONST.ROLE.BUTTON}
-            wrapperStyle={wrapperStyle}
+            shouldCallAfterModalHide={shouldRedirectToExpensifyClassic || shouldUseNarrowLayout}
         />
     );
 }

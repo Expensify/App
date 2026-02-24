@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import FocusableMenuItem from '@components/FocusableMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -10,7 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
+import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,8 +35,6 @@ function TravelMenuItem({activePolicyID}: TravelMenuItemProps) {
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const isVisible = !!activePolicy?.isTravelEnabled;
 
-    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID, isVisible);
-
     const isTravelEnabled = (() => {
         if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
             return false;
@@ -54,23 +51,16 @@ function TravelMenuItem({activePolicyID}: TravelMenuItemProps) {
         Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
     };
 
-    if (!isVisible) {
-        return null;
-    }
-
     return (
-        <FocusableMenuItem
+        <FABFocusableMenuItem
+            itemId={ITEM_ID}
+            isVisible={isVisible}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.BOOK_TRAVEL}
             icon={icons.Suitcase}
             title={translate('travel.bookTravel')}
             iconRight={isTravelEnabled && shouldOpenTravelDotLinkWeb() ? icons.NewWindow : undefined}
             shouldShowRightIcon={!!(isTravelEnabled && shouldOpenTravelDotLinkWeb())}
-            focused={isFocused}
-            onFocus={() => setFocusedIndex(itemIndex)}
-            onPress={() => onItemPress(() => interceptAnonymousUser(() => openTravel()))}
-            shouldCheckActionAllowedOnPress={false}
-            role={CONST.ROLE.BUTTON}
-            wrapperStyle={wrapperStyle}
+            onPress={() => interceptAnonymousUser(() => openTravel())}
         />
     );
 }
