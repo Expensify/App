@@ -44,6 +44,7 @@ import type {SuggestionsRef} from '@pages/inbox/report/ReportActionCompose/Repor
 import SilentCommentUpdater from '@pages/inbox/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/inbox/report/ReportActionCompose/Suggestions';
 import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
+import useDraftMessageVideoAttributeCache from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
@@ -57,7 +58,6 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
-import useDraftMessageVideoAttributeCache from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 
 type SyncSelection = {
     position: number;
@@ -256,7 +256,7 @@ function ComposerWithSuggestions({
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
-    const [draftComment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+    const [draftComment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const composerRef = useRef<ComposerRef | null>(null);
@@ -378,9 +378,9 @@ function ComposerWithSuggestions({
     const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
     shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
-    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+    const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
 
     const lastTextRef = useRef(value);
     useEffect(() => {

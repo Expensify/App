@@ -5,7 +5,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -58,23 +57,22 @@ const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
     Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
 
 function WalletPage() {
-    const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST);
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
-        canBeMissing: true,
         selector: fundListSelector,
     });
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -93,7 +91,6 @@ function WalletPage() {
     const {showConfirmModal} = useConfirmModal();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
-    const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
     const [selectedCard, setSelectedCard] = useState<OnyxTypes.Card | undefined>(undefined);
     const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
     const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
@@ -240,7 +237,6 @@ function WalletPage() {
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
-        setShowConfirmDeleteModal(false);
         resetSelectedPaymentMethodData();
     }, [
         paymentMethod.selectedPaymentMethod.bankAccountID,
@@ -354,6 +350,22 @@ function WalletPage() {
         [paymentMethod.formattedSelectedPaymentMethod, styles.mb4, styles.ph5, styles.pt3],
     );
 
+    const showDeleteAccountModal = useCallback(async () => {
+        const result = await showConfirmModal({
+            title: translate('walletPage.deleteAccount'),
+            prompt: translate('walletPage.deleteConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+        resetSelectedPaymentMethodData();
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        deletePaymentMethod();
+    }, [showConfirmModal, translate, resetSelectedPaymentMethodData, deletePaymentMethod]);
+
     const threeDotMenuItems = useMemo(
         () => [
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
@@ -411,7 +423,9 @@ function WalletPage() {
                         closeModal(() => showLockedAccountModal());
                         return;
                     }
-                    closeModal(() => setShowConfirmDeleteModal(true));
+                    closeModal(() => {
+                        showDeleteAccountModal();
+                    });
                 },
             },
             ...(shouldShowEnableGlobalReimbursementsButton
@@ -448,6 +462,7 @@ function WalletPage() {
             makeDefaultPaymentMethod,
             showLockedAccountModal,
             paymentMethod.selectedPaymentMethod.bankAccountID,
+            showDeleteAccountModal,
         ],
     );
 
@@ -723,18 +738,6 @@ function WalletPage() {
                     </OfflineWithFeedback>
                 </View>
             </ScrollView>
-            <ConfirmModal
-                isVisible={showConfirmDeleteModal}
-                onConfirm={deletePaymentMethod}
-                onCancel={() => setShowConfirmDeleteModal(false)}
-                title={translate('walletPage.deleteAccount')}
-                prompt={translate('walletPage.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                shouldShowCancelButton
-                danger
-                onModalHide={resetSelectedPaymentMethodData}
-            />
         </ScreenWrapper>
     );
 }

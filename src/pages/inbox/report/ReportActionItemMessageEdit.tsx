@@ -37,18 +37,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
+import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';
+import MessageEditCancelButton from './ReportActionCompose/MessageEditCancelButton';
 import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
+import SendOrSaveButton from './ReportActionCompose/SendOrSaveButton';
 import Suggestions from './ReportActionCompose/Suggestions';
-import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 import useDebouncedCommentMaxLengthValidation from './ReportActionCompose/useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './ReportActionCompose/useEditMessage';
-import MessageEditCancelButton from './ReportActionCompose/MessageEditCancelButton';
-import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
-import SendOrSaveButton from './ReportActionCompose/SendOrSaveButton';
-import useDraftMessageVideoAttributeCache from './useDraftMessageVideoAttributeCache';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
+import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
+import useDraftMessageVideoAttributeCache from './useDraftMessageVideoAttributeCache';
 
 type ReportActionItemMessageEditProps = {
     /** All the data of the action */
@@ -97,7 +97,7 @@ function ReportActionItemMessageEdit({
     shouldDisableEmojiPicker = false,
     ref,
 }: ReportActionItemMessageEditProps) {
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const containerRef = useRef<View>(null);
@@ -142,8 +142,8 @@ function ReportActionItemMessageEdit({
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
-    const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
-    const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
+    const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL);
+    const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
 
     const {isScrolling, startScrollBlock, endScrollBlock} = useScrollBlocker();
 
