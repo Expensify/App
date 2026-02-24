@@ -16,7 +16,7 @@ function SearchFiltersInPage() {
     const {translate} = useLocalize();
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const handleScreenTransitionEnd = () => {
         setIsScreenTransitionEnd(true);
     };

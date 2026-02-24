@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 type MultiSelectItem<T> = {
@@ -118,6 +119,7 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
                     style={[styles.flex1]}
                     text={translate('common.reset')}
                     onPress={resetChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_MULTI_SELECT}
                 />
                 <Button
                     success
@@ -125,6 +127,7 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
                     style={[styles.flex1]}
                     text={translate('common.apply')}
                     onPress={applyChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_MULTI_SELECT}
                 />
             </View>
         </View>

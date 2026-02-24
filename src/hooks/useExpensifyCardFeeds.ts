@@ -25,7 +25,6 @@ function useExpensifyCardFeeds(policyID: string | undefined) {
         ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS,
         {
             selector: getAllExpensifyCardFeeds,
-            canBeMissing: true,
         },
         [getAllExpensifyCardFeeds],
     );

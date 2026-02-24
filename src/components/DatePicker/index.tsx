@@ -32,6 +32,7 @@ function DatePicker({
     formID,
     autoFocus = false,
     shouldHideClearButton = false,
+    autoComplete = 'off',
     forwardedFSClass,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
@@ -153,6 +154,7 @@ function DatePicker({
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
+                    autoComplete={autoComplete}
                     disableKeyboard
                 />
             </View>

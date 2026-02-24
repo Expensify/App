@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -7,6 +7,7 @@ import ImageSize from 'react-native-image-size';
 import {interpolate, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -350,6 +351,15 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         updateImageOffset(newX, newY);
     };
 
+    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'AvatarCropModal',
+            isImageInitialized,
+            isImageContainerInitialized,
+        }),
+        [isImageInitialized, isImageContainerInitialized],
+    );
+
     return (
         <Modal
             onClose={() => onClose?.()}
@@ -382,6 +392,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                             <ActivityIndicator
                                 style={[styles.flex1]}
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={reasonAttributes}
                             />
                         ) : (
                             <>
@@ -409,6 +420,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                         onPressIn={(e) => scheduleOnUI(sliderOnPress, e.nativeEvent.locationX)}
                                         accessibilityLabel="slider"
                                         role={CONST.ROLE.SLIDER}
+                                        sentryLabel={CONST.SENTRY_LABEL.AVATAR_CROP_MODAL.ZOOM_SLIDER}
                                     >
                                         <Slider
                                             sliderValue={translateSlider}

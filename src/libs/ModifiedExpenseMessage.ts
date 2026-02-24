@@ -28,6 +28,7 @@ import {buildReportNameFromParticipantNames, getPolicyExpenseChatName} from './R
 // eslint-disable-next-line import/no-cycle
 import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
+import {isInvalidMerchantValue} from './ValidationUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 // eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
@@ -79,11 +80,11 @@ function buildMessageFragmentForValue(
     const isCategoryField = valueName.includes(translate('common.category').toLowerCase());
 
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
-    const isOldValuePartialMerchant = valueName === translate('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isOldMerchantInvalid = valueName === translate('common.merchant') && isInvalidMerchantValue(oldValue);
     const isOldCategoryMissing = isCategoryField && isCategoryMissing(oldValue);
     const isNewCategoryMissing = isCategoryField && isCategoryMissing(newValue);
 
-    if (!oldValue || isOldValuePartialMerchant || isOldCategoryMissing) {
+    if (!oldValue || isOldMerchantInvalid || isOldCategoryMissing) {
         if (!(isOldCategoryMissing && isNewCategoryMissing)) {
             const fragment = translate('iou.setTheRequest', displayValueName, newValueToDisplay);
             setFragments.push(fragment);
@@ -201,8 +202,8 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
     }
 }
 
-function getPolicyRulesModifiedMessage(translate: LocalizedTranslate, fields: PolicyRulesModifiedFields, policyID: string) {
-    const route = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
+function getPolicyRulesModifiedMessage(translate: LocalizedTranslate, fields: PolicyRulesModifiedFields, policyID: string, hasPolicyRuleAccess: boolean) {
+    const route = hasPolicyRuleAccess ? `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}` : CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL;
     const entries = ObjectUtils.typedEntries(fields);
 
     const fragments = entries.map(([key, value], i) => {
@@ -516,7 +517,10 @@ function getForReportAction({
 
         if (policyRulesModifiedFields && rulePolicyID) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return getPolicyRulesModifiedMessage(translateLocal, policyRulesModifiedFields, rulePolicyID);
+            const rulePolicy = getPolicy(rulePolicyID);
+            const hasPolicyRuleAccess = !!rulePolicy?.areRulesEnabled && isPolicyAdmin(rulePolicy, storedCurrentUserLogin);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return getPolicyRulesModifiedMessage(translateLocal, policyRulesModifiedFields, rulePolicyID, hasPolicyRuleAccess);
         }
     }
 
@@ -678,16 +682,16 @@ function getForReportActionTemp({
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
+        const policyTagsToUse = policyTags ?? CONST.POLICY.DEFAULT_TAG_LIST;
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = getTagArrayFromName(transactionTag);
         const splittedOldTag = getTagArrayFromName(oldTransactionTag);
         const localizedTagListName = translate('common.tag');
-        const sortedTagKeys = getSortedTagKeys(policyTags);
+        const sortedTagKeys = getSortedTagKeys(policyTagsToUse);
 
         for (const [index, policyTagKey] of sortedTagKeys.entries()) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const policyTagListName = policyTags?.[policyTagKey]?.name || localizedTagListName;
+            const policyTagListName = policyTagsToUse[policyTagKey].name || localizedTagListName;
 
             const newTag = splittedTag.at(index) ?? '';
             const oldTag = splittedOldTag.at(index) ?? '';
@@ -755,10 +759,11 @@ function getForReportActionTemp({
 
     const hasPolicyRulesModifiedFields = isReportActionOriginalMessageAnObject && 'policyRulesModifiedFields' in reportActionOriginalMessage && 'policyID' in reportActionOriginalMessage;
     if (hasPolicyRulesModifiedFields) {
-        const {policyRulesModifiedFields, policyID} = reportActionOriginalMessage;
+        const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
-        if (policyRulesModifiedFields && policyID) {
-            return getPolicyRulesModifiedMessage(translate, policyRulesModifiedFields, policyID);
+        if (policyRulesModifiedFields && policy?.id) {
+            const hasPolicyRuleAccess = !!policy?.areRulesEnabled && isPolicyAdmin(policy, currentUserLogin);
+            return getPolicyRulesModifiedMessage(translate, policyRulesModifiedFields, policy?.id, hasPolicyRuleAccess);
         }
     }
 

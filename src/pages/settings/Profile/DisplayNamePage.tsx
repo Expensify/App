@@ -40,7 +40,7 @@ const updateDisplayName = (
 function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const currentUserDetails = currentUserPersonalDetails ?? {};
 
@@ -105,6 +105,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             defaultValue={currentUserDetails.firstName ?? ''}
                             spellCheck={false}
                             autoCapitalize="words"
+                            autoComplete="given-name"
                         />
                     </View>
                     <View>
@@ -118,6 +119,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             defaultValue={currentUserDetails.lastName ?? ''}
                             spellCheck={false}
                             autoCapitalize="words"
+                            autoComplete="family-name"
                         />
                     </View>
                 </FormProvider>

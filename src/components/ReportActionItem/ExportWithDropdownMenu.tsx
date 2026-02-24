@@ -50,12 +50,12 @@ function ExportWithDropdownMenu({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
-    const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD, {canBeMissing: true});
+    const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare']);
 
     const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
     const canBeExported = canBeExportedUtils(report);
-    const isExported = isExportedUtils(reportActions);
+    const isExported = isExportedUtils(reportActions, report);
     const flattenedWrapperStyle = StyleSheet.flatten([styles.flex1, wrapperStyle]);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
