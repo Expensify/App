@@ -465,6 +465,20 @@ function MoneyRequestReportPreviewContent({
     // undefined makes arrow buttons react on currentIndex changes when scrolling manually
     const [optimisticIndex, setOptimisticIndex] = useState<number | undefined>(undefined);
     const carouselRef = useRef<FlashListRef<Transaction> | null>(null);
+    const prevTransactionCountForScroll = useRef(carouselTransactions.length);
+
+    // Reset carousel scroll position when transitioning from empty to non-empty data.
+    // Without this, a stale scroll offset from a previous state (e.g., after moving all
+    // expenses out) causes the newly added transaction preview to render off-screen.
+    useEffect(() => {
+        if (carouselTransactions.length > 0 && prevTransactionCountForScroll.current === 0) {
+            carouselRef.current?.scrollToOffset({offset: 0, animated: false});
+            setCurrentIndex(0);
+            setOptimisticIndex(undefined);
+        }
+        prevTransactionCountForScroll.current = carouselTransactions.length;
+    }, [carouselTransactions.length]);
+
     const visibleItemsOnEndCount = useMemo(() => {
         const lastItemWidth = transactions.length > MAX_PREVIEWS_NUMBER ? footerWidth : reportPreviewStyles.transactionPreviewCarouselStyle.width;
         const lastItemWithGap = lastItemWidth + styles.gap2.gap;
