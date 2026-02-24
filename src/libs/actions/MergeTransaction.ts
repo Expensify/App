@@ -212,14 +212,14 @@ function getOnyxTargetTransactionData({
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     // Compare mergeTransaction with targetTransaction and remove fields with same values
-    const targetTransactionDetails = getTransactionDetails(targetTransaction);
+    const transactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, true, true);
     const filteredTransactionChanges = Object.fromEntries(
         Object.entries(mergeTransaction).filter(([key, mergeValue]) => {
             if (!(MERGE_FIELDS as readonly string[]).includes(key)) {
                 return false;
             }
 
-            const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, key as MergeFieldKey);
+            const targetValue = getMergeFieldValue(targetTransaction, key as MergeFieldKey, transactionDetails);
 
             return !deepEqual(mergeValue, targetValue);
         }),
@@ -234,6 +234,7 @@ function getOnyxTargetTransactionData({
             filteredTransactionChanges,
             policy,
             shouldBuildOptimisticModifiedExpenseReportAction,
+            true,
         );
     } else {
         data = getUpdateMoneyRequestParams({
@@ -253,7 +254,7 @@ function getOnyxTargetTransactionData({
         });
     }
 
-    const onyxData = data.onyxData;
+    const {onyxData} = data;
 
     onyxData.optimisticData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -320,17 +321,13 @@ function mergeTransactionRequest({
     isASAPSubmitBetaEnabled,
     selfDMReport,
 }: MergeTransactionRequestParams) {
-    // For both unreported expenses and expense reports, negate the display amount when storing
-    // This preserves the user's chosen sign while following the storage convention
-    const finalAmount = -mergeTransaction.amount;
-
     // Call the merge transaction action
     const params = {
         transactionID: mergeTransaction.targetTransactionID,
         transactionIDList: [mergeTransaction.sourceTransactionID],
         created: mergeTransaction.created,
         merchant: mergeTransaction.merchant,
-        amount: finalAmount,
+        amount: mergeTransaction.amount,
         currency: mergeTransaction.currency,
         category: mergeTransaction.category,
         comment: JSON.stringify({
