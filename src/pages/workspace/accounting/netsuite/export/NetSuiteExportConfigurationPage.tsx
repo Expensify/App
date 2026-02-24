@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -62,9 +62,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
 
     const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
-
     const selectedReceivable = findSelectedBankAccountWithDefaultSelect(receivableList, config?.receivableAccount);
-
     const selectedItem = findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem);
 
     let invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.create.label');
@@ -76,17 +74,9 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.select.label');
     }
 
-    const filteredTaxAccountsList = useMemo(() => (taxAccountsList ?? []).filter(({country}) => country === selectedSubsidiary?.country), [taxAccountsList, selectedSubsidiary?.country]);
-
-    const selectedTaxPostingAccount = useMemo(
-        () => findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.taxPostingAccount),
-        [filteredTaxAccountsList, config?.taxPostingAccount],
-    );
-
-    const selectedProvTaxPostingAccount = useMemo(
-        () => findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.provincialTaxPostingAccount),
-        [filteredTaxAccountsList, config?.provincialTaxPostingAccount],
-    );
+    const filteredTaxAccountsList = (taxAccountsList ?? []).filter(({country}) => country === selectedSubsidiary?.country);
+    const selectedTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.taxPostingAccount);
+    const selectedProvTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.provincialTaxPostingAccount);
 
     const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem | DividerLineItem> = [
         {

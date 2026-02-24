@@ -12311,7 +12311,7 @@ describe('ReportUtils', () => {
                 await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
             });
 
-            it("should navigate to the restricted action page if the active policy's billable actions are restricted", async () => {
+            it("should navigate to the restricted action page if the policy owner's billable actions are restricted", async () => {
                 // Given a transaction and an active policy where billable actions are restricted
                 const transaction = createRandomTransaction(1);
                 const activePolicy: Policy = {
@@ -12326,7 +12326,41 @@ describe('ReportUtils', () => {
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, Math.floor(Date.now() / 1000) - 3600);
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with the restricted policy
-                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy);
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy, undefined);
+
+                // Then it should navigate to the restricted action page
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
+            });
+
+            it("should navigate to the restricted action page if the policy non-owner's billable actions are restricted", async () => {
+                // Given a transaction and an active policy where billable actions are restricted for non-owner
+                const transaction = createRandomTransaction(3);
+                const ownerAccountID = 123;
+                const activePolicy: Policy = {
+                    ...createRandomPolicy(102),
+                    ownerAccountID,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
+                const userBillingGraceEndPeriodCollection = {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
+                        value: 1,
+                    },
+                };
+
+                // When we call createDraftTransactionAndNavigateToParticipantSelector
+                createDraftTransactionAndNavigateToParticipantSelector(
+                    transaction.transactionID,
+                    '1',
+                    CONST.IOU.ACTION.CATEGORIZE,
+                    '1',
+                    undefined,
+                    undefined,
+                    activePolicy,
+                    userBillingGraceEndPeriodCollection,
+                );
 
                 // Then it should navigate to the restricted action page
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
@@ -12354,7 +12388,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseReport.reportID}`, policyExpenseReport);
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
-                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy);
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy, undefined);
 
                 // Then it should navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -12384,7 +12418,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseReport.reportID}`, policyExpenseReport);
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
-                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '2', CONST.IOU.ACTION.CATEGORIZE, '2', undefined, undefined, undefined);
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '2', CONST.IOU.ACTION.CATEGORIZE, '2', undefined, undefined, undefined, undefined);
 
                 // Then it should automatically pick the available policy and navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -12401,7 +12435,7 @@ describe('ReportUtils', () => {
                 await Onyx.setCollection(ONYXKEYS.COLLECTION.POLICY, {});
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
-                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, undefined);
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, undefined, undefined);
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
                 expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -12439,7 +12473,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy2.id}`, policy2);
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
-                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, undefined);
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, undefined, undefined);
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
                 expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -12473,7 +12507,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
-                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy);
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy, undefined);
 
                 // Then it should log a warning and not navigate
                 expect(logWarnSpy).toHaveBeenCalledWith('policyExpenseReportID is not valid during expense categorizing');

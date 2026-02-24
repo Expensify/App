@@ -341,16 +341,7 @@ function useSelectedTransactionsActions({
                     text: translate('common.merge'),
                     icon: expensifyIcons.ArrowCollapse,
                     value: MERGE,
-                    onSelected: () =>
-                        setupMergeTransactionDataAndNavigate(
-                            transactionID,
-                            selectedTransactionsList,
-                            localeCompare,
-                            [],
-                            false,
-                            isOnSearch,
-                            selectedTransactionsList.length > 1 ? [policy, policy] : undefined,
-                        ),
+                    onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, selectedTransactionsList, localeCompare, [], false, isOnSearch),
                 });
             }
         }
@@ -382,7 +373,7 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
                 onSelected: () => {
-                    initSplitExpense(allTransactions, allReports, firstTransaction);
+                    initSplitExpense(allTransactions, allReports, firstTransaction, policy);
                 },
             });
         }

@@ -394,6 +394,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Carte',
         whyDoWeAskForThis: 'Pourquoi demandons-nous cela ?',
         required: 'Obligatoire',
+        automatic: 'Automatique',
         showing: 'Affichage',
         of: 'de',
         default: 'Par défaut',
@@ -534,6 +535,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: 'Taux de change',
         reimbursableTotal: 'Total remboursable',
         nonReimbursableTotal: 'Total non remboursable',
+        opensInNewTab: 'S’ouvre dans un nouvel onglet',
         locked: 'Verrouillé',
         month: 'Mois',
         week: 'Semaine',
@@ -1180,6 +1182,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Reçu en attente de rapprochement avec une transaction par carte. Marquez comme paiement en espèces pour annuler.',
         markAsCash: 'Marquer comme espèces',
         routePending: 'Acheminement en attente...',
+        automaticallyEnterExpenseDetails: 'Concierge saisira automatiquement les détails de la dépense pour vous, ou vous pouvez les ajouter manuellement.',
         receiptScanning: () => ({
             one: 'Scan des reçus...',
             other: 'Scan des reçus...',
@@ -7462,6 +7465,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         scrollToNewestMessages: 'Aller au dernier message',
         preStyledText: 'Texte pré-stylé',
         viewAttachment: 'Afficher la pièce jointe',
+        selectAllFeatures: 'Sélectionner toutes les fonctionnalités',
+        selectAllTransactions: 'Sélectionner toutes les transactions',
+        selectAllItems: 'Sélectionner tous les éléments',
     },
     parentReportAction: {
         deletedReport: 'Note de frais supprimée',
