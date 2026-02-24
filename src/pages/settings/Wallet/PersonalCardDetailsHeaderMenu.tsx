@@ -140,6 +140,13 @@ function PersonalCardDetailsHeaderMenu({
                     );
                 }}
             />
+            {isCSVImportedPersonalCard && (
+                <MenuItem
+                    icon={expensifyIcons.Table}
+                    title={translate('spreadsheet.importSpreadsheet')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(cardID)))}
+                />
+            )}
             {!isCSVImportedPersonalCard && (
                 <OfflineWithFeedback
                     pendingAction={card?.pendingFields?.lastScrape}
