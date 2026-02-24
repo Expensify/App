@@ -38,7 +38,7 @@ function showErrorAlert(title: string, message: string) {
 }
 
 function ShareRootPage() {
-    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
 
     const {validateFiles} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';

@@ -25,7 +25,7 @@ type TransactionsImportedPageProps = PlatformStackScreenProps<SettingsNavigatorP
 function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
     const {cardID: existingCardID} = route.params ?? {};
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
 

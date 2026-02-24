@@ -94,10 +94,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const {updateCurrentReportID} = useCurrentReportIDActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
-        canBeMissing: true,
     });
 
     const previousAuthenticated = usePrevious(authenticated);
