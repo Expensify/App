@@ -447,37 +447,37 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         shouldShowRBR,
     ]);
 
-    // We only update feature states if they aren't pending.
-    // These changes are made to synchronously change feature states along with AccessOrNotFoundWrapperComponent.
-    useEffect(() => {
-        setFeatureStates((currentFeatureStates) => {
-            const newFeatureStates = {} as PolicyFeatureStates;
-            let newlyEnabledFeature: PolicyFeatureName | null = null;
-            for (const key of Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]) {
-                if (!(key in currentFeatureStates)) {
-                    continue;
-                }
-
-                const isFeatureEnabled = isPolicyFeatureEnabled(policy, key);
-                // Determine if this feature is newly enabled (wasn't enabled before but is now)
-                if (isFeatureEnabled && !currentFeatureStates[key]) {
-                    newlyEnabledFeature = key;
-                }
-                newFeatureStates[key] =
-                    prevPendingFields?.[key] !== policy?.pendingFields?.[key] || isOffline || !policy?.pendingFields?.[key] ? isFeatureEnabled : currentFeatureStates[key];
+    const [prevFeatureDeps, setPrevFeatureDeps] = useState({policy, isOffline, policyFeatureStates, prevPendingFields});
+    if (
+        prevFeatureDeps.policy !== policy ||
+        prevFeatureDeps.isOffline !== isOffline ||
+        prevFeatureDeps.policyFeatureStates !== policyFeatureStates ||
+        prevFeatureDeps.prevPendingFields !== prevPendingFields
+    ) {
+        setPrevFeatureDeps({policy, isOffline, policyFeatureStates, prevPendingFields});
+        const newFeatureStates = {} as PolicyFeatureStates;
+        let newlyEnabledFeature: PolicyFeatureName | null = null;
+        for (const key of Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]) {
+            if (!(key in featureStates)) {
+                continue;
             }
 
-            // Only highlight the newly enabled feature
-            if (newlyEnabledFeature) {
-                setHighlightedFeature(newlyEnabledFeature);
+            const isFeatureEnabled = isPolicyFeatureEnabled(policy, key);
+            if (isFeatureEnabled && !featureStates[key]) {
+                newlyEnabledFeature = key;
             }
+            newFeatureStates[key] = prevPendingFields?.[key] !== policy?.pendingFields?.[key] || isOffline || !policy?.pendingFields?.[key] ? isFeatureEnabled : featureStates[key];
+        }
 
-            return {
-                ...policyFeatureStates,
-                ...newFeatureStates,
-            };
+        if (newlyEnabledFeature) {
+            setHighlightedFeature(newlyEnabledFeature);
+        }
+
+        setFeatureStates({
+            ...policyFeatureStates,
+            ...newFeatureStates,
         });
-    }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
+    }
 
     useConfirmReadyToOpenApp();
 
