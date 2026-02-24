@@ -21,6 +21,7 @@ import type {
     OriginalMessageChangeLog,
     OriginalMessageExportIntegration,
     OriginalMessageMarkedReimbursed,
+    OriginalMessageReimbursed,
     OriginalMessageUnreportedTransaction,
     PolicyBudgetFrequency,
 } from '@src/types/onyx/OriginalMessage';
@@ -424,6 +425,77 @@ function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName
 function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageMarkedReimbursed | undefined;
     return translate('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
+}
+
+function getReimbursedMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    report: OnyxEntry<Report>,
+    personalDetails: OnyxEntry<PersonalDetails>,
+    currentUserAccountID: number,
+): string {
+    const originalMessage = getOriginalMessage(reportAction) as OriginalMessageReimbursed | undefined;
+
+    // If no structured data, fall back to message fragments from backend (old actions)
+    if (!originalMessage?.paymentMethod) {
+        const messageFragments = reportAction?.message;
+        let fallback = getReportActionMessageText(reportAction as OnyxEntry<ReportAction>);
+        if (Array.isArray(messageFragments) && messageFragments.length > 1) {
+            fallback = messageFragments
+                .slice(1)
+                .map((fragment) => fragment?.text ?? '')
+                .join('')
+                .trim();
+        }
+        return fallback;
+    }
+
+    const {paymentMethod, debitBankAccountLast4, creditBankAccountLast4, expectedDate, isInvoiceOrBill, isSubmitterAddingBankAccount, stripePaymentType} = originalMessage;
+
+    // Resolve submitter email from report owner
+    const submitterAccountID = report?.ownerAccountID ?? -1;
+    const submitterLogin = getPersonalDetailsByIDs({accountIDs: [submitterAccountID], currentUserAccountID}).at(0)?.login ?? '';
+
+    // Resolve actor email from action
+    const actorAccountID = reportAction?.actorAccountID ?? -1;
+    const actorLogin = getPersonalDetailsByIDs({accountIDs: [actorAccountID], currentUserAccountID}).at(0)?.login ?? '';
+
+    // Current user email
+    const currentUserLogin = personalDetails?.login ?? '';
+
+    const isAutomation = !!reportAction?.delegateAccountID;
+    const recipient = submitterLogin === currentUserLogin ? 'your' : `${submitterLogin}'s`;
+
+    let paymentSuffix = '';
+    if (paymentMethod === 'Fast_ACH' && expectedDate && expectedDate !== '???') {
+        const formattedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.FNS_FORMAT_STRING);
+        paymentSuffix = translate('iou.reimbursedWithFastACH', {recipient, creditBankAccount: creditBankAccountLast4 ?? '', expectedDate: formattedDate});
+    } else if (paymentMethod === 'Check') {
+        paymentSuffix = translate('iou.reimbursedWithCheck');
+    } else if (paymentMethod === 'StripeConnect') {
+        const pmType = stripePaymentType === 'card' ? 'card' : 'bank account';
+        paymentSuffix = translate('iou.reimbursedWithStripeConnect', {recipient, creditBankAccount: creditBankAccountLast4 ?? '', paymentMethod: pmType});
+    } else {
+        let formattedDate: string | undefined;
+        if (expectedDate) {
+            formattedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
+        }
+        paymentSuffix = translate('iou.reimbursedWithACH', {creditBankAccount: creditBankAccountLast4, expectedDate: formattedDate});
+    }
+
+    if (isSubmitterAddingBankAccount) {
+        return `${translate('iou.reimbursedSubmitterAddedBankAccount', submitterLogin)}${paymentSuffix}`;
+    }
+
+    const actionText = isInvoiceOrBill ? translate('iou.paidThisBill') : translate('iou.reimbursedThisReport');
+    let message = actionText;
+    if (isAutomation) {
+        message += ` ${translate('iou.reimbursedOnBehalfOf', actorLogin.toLowerCase())}`;
+    }
+    if (debitBankAccountLast4) {
+        message += ` ${translate('iou.reimbursedFromBankAccount', debitBankAccountLast4)}`;
+    }
+    return message + paymentSuffix;
 }
 
 function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
@@ -4220,6 +4292,7 @@ export {
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
     getMarkedReimbursedMessage,
+    getReimbursedMessage,
     getMemberChangeMessageFragment,
     getUpdateRoomDescriptionFragment,
     getReportActionMessageFragments,
