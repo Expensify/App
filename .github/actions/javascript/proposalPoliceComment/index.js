@@ -11596,6 +11596,28 @@ function isCommentCreatedEvent(payload) {
 function isCommentEditedEvent(payload) {
     return payload.action === CONST_1.default.ACTIONS.EDITED;
 }
+/**
+ * Checks if a comment body matches the criteria for a Proposal.
+ */
+function getIsProposal(body) {
+    if (!body) {
+        return false;
+    }
+    const lowerCaseBody = body.toLowerCase();
+    return body.includes(CONST_1.default.PROPOSAL_KEYWORD) && lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_A) && lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_B);
+}
+/**
+ * Determines if a comment author is a known bot or a bot-type account.
+ */
+function getIsBotAuthor(user) {
+    if (!user) {
+        return false;
+    }
+    const knownBotLogins = [CONST_1.default.COMMENT.NAME_MELVIN_BOT, CONST_1.default.COMMENT.NAME_MELVIN_USER, CONST_1.default.COMMENT.NAME_CODEX, CONST_1.default.COMMENT.NAME_GITHUB_ACTIONS];
+    const isBotType = user.type === CONST_1.default.COMMENT.TYPE_BOT;
+    const isKnownLogin = knownBotLogins.includes(user.login ?? '');
+    return isBotType || isKnownLogin;
+}
 // Main function to process the workflow event
 async function run() {
     // Capture the timestamp immediately at the start of the run
@@ -11650,21 +11672,22 @@ async function run() {
         core.endGroup();
         let didFindDuplicate = false;
         let originalProposal;
+        const isNewCommentAProposal = getIsProposal(newProposalBody);
+        if (!isNewCommentAProposal) {
+            console.log('New comment is not a proposal. Skipping duplicate check.');
+            return;
+        }
         for (const previousProposal of commentsResponse) {
             const body = previousProposal.body ?? '';
-            const lowerCaseBody = body.toLowerCase() ?? '';
-            const isProposal = !!body.includes(CONST_1.default.PROPOSAL_KEYWORD) && !!lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_A) && !!lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_B);
+            const isProposal = getIsProposal(body);
             const previousProposalCreatedAt = new Date(previousProposal.created_at).getTime();
             // Early continue if not a proposal or previous comment is newer than current one
             if (!isProposal || previousProposalCreatedAt >= newProposalCreatedAt) {
                 continue;
             }
-            const isAuthorBot = previousProposal.user?.login === CONST_1.default.COMMENT.NAME_MELVIN ||
-                previousProposal.user?.login === CONST_1.default.COMMENT.NAME_CODEX ||
-                previousProposal.user?.login === CONST_1.default.COMMENT.NAME_GITHUB_ACTIONS ||
-                previousProposal.user?.type === CONST_1.default.COMMENT.TYPE_BOT;
+            const isBotAuthor = getIsBotAuthor(previousProposal.user);
             // Skip prompting if comment author is the GH bot
-            if (isAuthorBot) {
+            if (isBotAuthor) {
                 continue;
             }
             const duplicateCheckPrompt = proposalPolice_1.default.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
@@ -11871,7 +11894,8 @@ const CONST = {
     },
     COMMENT: {
         TYPE_BOT: 'Bot',
-        NAME_MELVIN: 'melvin-bot',
+        NAME_MELVIN_BOT: 'melvin-bot',
+        NAME_MELVIN_USER: 'MelvinBot',
         NAME_CODEX: 'chatgpt-codex-connector',
         NAME_GITHUB_ACTIONS: 'github-actions',
     },
@@ -12088,7 +12112,7 @@ class GithubUtils {
                 PRListMobileExpensify: this.getStagingDeployCashPRListMobileExpensify(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
                 internalQAPRList: this.getStagingDeployCashInternalQA(issue),
-                isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
+                isSentryChecked: issue.body ? /-\s\[x]\sI checked \[Sentry]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
                 version,
                 tag: `${version}-staging`,
@@ -12170,7 +12194,7 @@ class GithubUtils {
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
      */
-    static generateStagingDeployCashBodyAndAssignees({ tag, PRList, PRListMobileExpensify = [], verifiedPRList = [], verifiedPRListMobileExpensify = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false, chronologicalSection = '', }) {
+    static generateStagingDeployCashBodyAndAssignees({ tag, PRList, PRListMobileExpensify = [], verifiedPRList = [], verifiedPRListMobileExpensify = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isSentryChecked = false, isGHStatusChecked = false, previousTag = '', chronologicalSection = '', }) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
             const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, isEmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
@@ -12247,9 +12271,9 @@ class GithubUtils {
                 }
                 issueBody += '**Deployer verifications:**';
                 // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                issueBody += `\r\n- [${isSentryChecked ? 'x' : ' '}] I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${tag}/?project=app&environment=staging) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
                 // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/android:org.me.mobiexpensifyg/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                issueBody += `\r\n- [${isSentryChecked ? 'x' : ' '}] I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${previousTag}/?project=app&environment=production) for **the previous release version** and verified that the release did not introduce any new crashes. Because mobile deploys use a phased rollout, completing this checklist will deploy the previous release version to 100% of users. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
                 // eslint-disable-next-line max-len
                 issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';

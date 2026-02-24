@@ -117,13 +117,7 @@ function Badge({
                 </View>
             )}
             <Text
-                style={[
-                    styles.badgeText,
-                    styles.textStrong,
-                    isCondensed && styles.condensedBadgeText,
-                    textStyles,
-                    isDeleted ? styles.offlineFeedbackDeleted : {},
-                ]}
+                style={[styles.badgeText, styles.textStrong, isCondensed && styles.condensedBadgeText, textStyles, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                 numberOfLines={1}
             >
                 {text}
