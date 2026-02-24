@@ -26,8 +26,8 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric'] as const);
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal, allPolicies} = useRedirectToExpensifyClassic();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
     const {setFocusedIndex, onItemPress} = useFABMenuContext();
     const canSendInvoice = canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email);
 

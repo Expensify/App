@@ -28,8 +28,8 @@ function NewWorkspaceMenuItem() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['NewWorkspace'] as const);
     const {isOffline} = useNetwork();
-    const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicies] = useMappedPolicies(policyMapper);
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const {setFocusedIndex, onItemPress} = useFABMenuContext();

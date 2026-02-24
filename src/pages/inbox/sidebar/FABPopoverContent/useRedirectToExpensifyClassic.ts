@@ -17,7 +17,7 @@ import {policyMapper} from './types';
 function useRedirectToExpensifyClassic() {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const [allPolicies] = useMappedPolicies(policyMapper);
 
     const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
