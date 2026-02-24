@@ -152,7 +152,6 @@ function handlePushFullscreenAction(
         state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
 
     const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
-
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {
