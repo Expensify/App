@@ -403,6 +403,7 @@ type PureReportActionItemProps = {
         introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
         allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>,
         activePolicy: OnyxEntry<OnyxTypes.Policy>,
+        userBillingGraceEndPeriodCollection: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>,
         isRestrictedToPreferredPolicy?: boolean,
         preferredPolicyID?: string,
     ) => void;
@@ -482,6 +483,9 @@ type PureReportActionItemProps = {
 
     /** Report metadata for the report */
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
+
+    /** The billing grace end period's shared NVP collection */
+    userBillingGraceEndPeriodCollection: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -557,6 +561,7 @@ function PureReportActionItem({
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
     reportMetadata,
+    userBillingGraceEndPeriodCollection,
 }: PureReportActionItemProps) {
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
@@ -955,6 +960,7 @@ function PureReportActionItem({
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
+                            undefined,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
                         );
@@ -976,6 +982,7 @@ function PureReportActionItem({
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
+                                userBillingGraceEndPeriodCollection,
                             );
                         },
                     },
@@ -991,6 +998,7 @@ function PureReportActionItem({
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
+                                undefined,
                             );
                         },
                     },
@@ -1135,6 +1143,7 @@ function PureReportActionItem({
         report,
         originalReport,
         personalPolicyID,
+        userBillingGraceEndPeriodCollection,
     ]);
 
     /**
