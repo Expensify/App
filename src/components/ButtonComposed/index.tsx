@@ -20,8 +20,7 @@
  */
 import withNavigationFallback from '@components/withNavigationFallback';
 import ButtonComposedComponent from './ButtonComposed';
-import ButtonComposedIconLeft from './ButtonComposedIconLeft';
-import ButtonComposedIconRight from './ButtonComposedIconRight';
+import {ButtonComposedIconLeft, ButtonComposedIconRight} from './ButtonComposedIcons';
 import ButtonComposedText from './ButtonComposedText';
 
 const ButtonComposed = Object.assign(withNavigationFallback(ButtonComposedComponent), {
