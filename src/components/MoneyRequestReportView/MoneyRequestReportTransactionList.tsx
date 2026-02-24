@@ -278,13 +278,18 @@ function MoneyRequestReportTransactionList({
     const {sortBy, sortOrder} = sortConfig;
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
-        return [...transactions]
-            .sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true))
-            .map((transaction) => ({
-                ...transaction,
-                shouldBeHighlighted: newTransactions?.includes(transaction),
-            }));
-    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, report]);
+        const hasViolationCheck = (t: OnyxTypes.Transaction) => (filteredViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`]?.length ?? 0) > 0;
+        const columnSort = (a: OnyxTypes.Transaction, b: OnyxTypes.Transaction) =>
+            compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true);
+
+        const withViolations = transactions.filter(hasViolationCheck).sort(columnSort);
+        const withoutViolations = transactions.filter((t) => !hasViolationCheck(t)).sort(columnSort);
+
+        return [...withViolations, ...withoutViolations].map((transaction) => ({
+            ...transaction,
+            shouldBeHighlighted: newTransactions?.includes(transaction),
+        }));
+    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, report, filteredViolations]);
 
     // Always use default columns for money request report view (don't use user-customized search columns)
     const columnsToShow = useMemo(() => {

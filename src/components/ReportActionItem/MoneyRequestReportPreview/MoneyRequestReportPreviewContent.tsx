@@ -78,7 +78,7 @@ import {
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+import {hasPendingUI, hasViolation, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
@@ -453,7 +453,14 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
-    const carouselTransactions = shouldShowAccessPlaceHolder ? [] : transactions.slice(0, 11);
+    const violationSortedTransactions = useMemo(() => {
+        const hasViolationCheck = (t: Transaction) => hasViolation(t, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, policy, true);
+        const withViolations = transactions.filter(hasViolationCheck);
+        const withoutViolations = transactions.filter((t) => !hasViolationCheck(t));
+        return [...withViolations, ...withoutViolations];
+    }, [transactions, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, policy]);
+
+    const carouselTransactions = shouldShowAccessPlaceHolder ? [] : violationSortedTransactions.slice(0, 11);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
