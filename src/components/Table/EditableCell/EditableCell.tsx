@@ -72,10 +72,10 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                 accessibilityLabel="Edit cell"
                 sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
                 onPress={onStartEditing}
-                style={[styles.editableCell]}
-                wrapperStyle={[styles.w100]}
-                focusStyle={[styles.editableCellFocus]}
-                hoverStyle={[styles.editableCellHover]}
+                style={styles.editableCell}
+                wrapperStyle={styles.w100}
+                focusStyle={styles.editableCellFocus}
+                hoverStyle={styles.editableCellHover}
             >
                 {children}
             </PressableWithFeedback>

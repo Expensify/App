@@ -1,15 +1,10 @@
 /**
  * Actions for editing transactions directly from the Search results table.
  *
- * Design:
- * - All Onyx data (reports, policies, tags, categories, session, betas) is
- *   subscribed at module level so callers only need to pass the minimal
- *   inputs: hash, transactionID, the transactionThread reportID, and the new
- *   value.
- * - Each function optimistically updates the snapshot entry (so the row
- *   reflects the new value immediately) then delegates to the corresponding
- *   IOU action which owns the canonical Onyx record, the API write, and
- *   failure rollback.
+ * Each function optimistically updates the snapshot entry (so the row
+ * reflects the new value immediately) then delegates to the corresponding
+ * IOU action which owns the canonical Onyx record, the API write, and
+ * failure rollback.
  */
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -28,14 +23,11 @@ import type {
     Report,
     ReportAction,
     ReportNextStepDeprecated,
+    SearchResults,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
 import {updateMoneyRequestAmountAndCurrency, updateMoneyRequestCategory, updateMoneyRequestDate, updateMoneyRequestDescription, updateMoneyRequestMerchant} from './IOU';
-
-// ---------------------------------------------------------------------------
-// Module-level Onyx subscriptions
-// ---------------------------------------------------------------------------
 
 let allTransactions: NonNullable<OnyxCollection<Transaction>> = {};
 Onyx.connectWithoutView({
@@ -127,27 +119,25 @@ Onyx.connectWithoutView({
     },
 });
 
-// ---------------------------------------------------------------------------
-// Private helpers
-// ---------------------------------------------------------------------------
-
 /**
+ * @private
  * Optimistically write a partial transaction update into the search snapshot so
  * the table row reflects the new value before the server responds.
  */
 function optimisticallyUpdateSnapshotTransaction(hash: number, transactionID: string, partialTransaction: Partial<Transaction>) {
-    Onyx.merge(
-        `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-        {data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: partialTransaction}} as any,
-    );
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
+        data: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: partialTransaction as Transaction} as unknown as SearchResults['data'],
+    });
 }
 
 /**
- * Build the common IOU action params that can be derived from module-level
- * Onyx caches, given only transactionID + optional transactionThreadReportID.
+ * @private
+ * Builds all params needed for IOU action calls from module-level Onyx caches.
+ * The returned object can be spread directly into any updateMoneyRequest* call
+ * (all shared fields are at the top level); field-specific extras like
+ * policyTagList, policyRecentlyUsedCategories, and transaction are also included.
  */
-function getParamsForTransaction(transactionID: string, transactionThreadReportID: string | undefined) {
+function getIouParamsForTransaction(transactionID: string, transactionThreadReportID: string | undefined) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const reportID = transaction?.reportID ?? '';
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -160,44 +150,35 @@ function getParamsForTransaction(transactionID: string, transactionThreadReportI
     const transactionThreadReport = transactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] : undefined;
 
     return {
-        transaction,
+        // Shared base fields — spread directly into any updateMoneyRequest* call
         transactionID,
-        parentReport,
         transactionThreadReport,
+        parentReport,
         policy,
-        policyTagList,
         policyCategories,
-        policyRecentlyUsedCategories,
         parentReportNextStep,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
         isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas),
+        // Field-specific extras
+        transaction,
+        policyTagList,
+        policyRecentlyUsedCategories,
     };
 }
 
-// ---------------------------------------------------------------------------
-// Public actions
-// ---------------------------------------------------------------------------
-
 /** Updates the date of an expense from the Search results table. */
 function editTransactionDateOnSearch(hash: number, transactionID: string, transactionThreadReportID: string | undefined, newDate: string) {
-    const p = getParamsForTransaction(transactionID, transactionThreadReportID);
+    const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
     optimisticallyUpdateSnapshotTransaction(hash, transactionID, {modifiedCreated: newDate});
     updateMoneyRequestDate({
-        transactionID: p.transactionID,
-        transactionThreadReport: p.transactionThreadReport,
-        parentReport: p.parentReport,
-        policy: p.policy,
+        ...iouParams,
         // updateMoneyRequestDate uses 'policyTags' (not policyTagList)
-        policyTags: p.policyTagList,
-        policyCategories: p.policyCategories,
-        currentUserAccountIDParam: p.currentUserAccountIDParam,
-        currentUserEmailParam: p.currentUserEmailParam,
-        isASAPSubmitBetaEnabled: p.isASAPSubmitBetaEnabled,
-        parentReportNextStep: p.parentReportNextStep,
+        policyTags: iouParams.policyTagList,
         value: newDate,
         transactions: allTransactions,
         transactionViolations: allTransactionViolations,
+        hash,
     });
 }
 
@@ -208,58 +189,32 @@ function editTransactionMerchantOnSearch(hash: number, transactionID: string, tr
     if (!newMerchant.trim()) {
         return;
     }
-    const p = getParamsForTransaction(transactionID, transactionThreadReportID);
+    const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
     optimisticallyUpdateSnapshotTransaction(hash, transactionID, {modifiedMerchant: newMerchant});
     updateMoneyRequestMerchant({
-        transactionID: p.transactionID,
-        transactionThreadReport: p.transactionThreadReport,
-        parentReport: p.parentReport,
-        policy: p.policy,
-        policyTagList: p.policyTagList,
-        policyCategories: p.policyCategories,
-        currentUserAccountIDParam: p.currentUserAccountIDParam,
-        currentUserEmailParam: p.currentUserEmailParam,
-        isASAPSubmitBetaEnabled: p.isASAPSubmitBetaEnabled,
-        parentReportNextStep: p.parentReportNextStep,
+        ...iouParams,
         value: newMerchant,
+        hash,
     });
 }
 
 /** Updates the description of an expense from the Search results table. */
 function editTransactionDescriptionOnSearch(hash: number, transactionID: string, transactionThreadReportID: string | undefined, newDescription: string) {
-    const p = getParamsForTransaction(transactionID, transactionThreadReportID);
+    const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
     optimisticallyUpdateSnapshotTransaction(hash, transactionID, {comment: {comment: newDescription}});
     updateMoneyRequestDescription({
-        transactionID: p.transactionID,
-        transactionThreadReport: p.transactionThreadReport,
-        parentReport: p.parentReport,
-        policy: p.policy,
-        policyTagList: p.policyTagList,
-        policyCategories: p.policyCategories,
-        currentUserAccountIDParam: p.currentUserAccountIDParam,
-        currentUserEmailParam: p.currentUserEmailParam,
-        isASAPSubmitBetaEnabled: p.isASAPSubmitBetaEnabled,
-        parentReportNextStep: p.parentReportNextStep,
+        ...iouParams,
         comment: newDescription,
+        hash,
     });
 }
 
 /** Updates the category of an expense from the Search results table. */
 function editTransactionCategoryOnSearch(hash: number, transactionID: string, transactionThreadReportID: string | undefined, newCategory: string) {
-    const p = getParamsForTransaction(transactionID, transactionThreadReportID);
+    const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
     optimisticallyUpdateSnapshotTransaction(hash, transactionID, {category: newCategory});
     updateMoneyRequestCategory({
-        transactionID: p.transactionID,
-        transactionThreadReport: p.transactionThreadReport,
-        parentReport: p.parentReport,
-        policy: p.policy,
-        policyTagList: p.policyTagList,
-        policyCategories: p.policyCategories,
-        policyRecentlyUsedCategories: p.policyRecentlyUsedCategories,
-        currentUserAccountIDParam: p.currentUserAccountIDParam,
-        currentUserEmailParam: p.currentUserEmailParam,
-        isASAPSubmitBetaEnabled: p.isASAPSubmitBetaEnabled,
-        parentReportNextStep: p.parentReportNextStep,
+        ...iouParams,
         category: newCategory,
         hash,
     });
@@ -270,42 +225,25 @@ function editTransactionAmountOnSearch(hash: number, transactionID: string, tran
     if (newAmount <= 0) {
         return;
     }
-    const p = getParamsForTransaction(transactionID, transactionThreadReportID);
+    const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
     // Keep the existing currency — only the amount is changing from the search table
-    const currency = p.transaction?.modifiedCurrency ?? p.transaction?.currency ?? CONST.CURRENCY.USD;
+    const currency = iouParams.transaction?.modifiedCurrency ?? iouParams.transaction?.currency ?? CONST.CURRENCY.USD;
     optimisticallyUpdateSnapshotTransaction(hash, transactionID, {modifiedAmount: newAmount, modifiedCurrency: currency});
     updateMoneyRequestAmountAndCurrency({
-        transactionID: p.transactionID,
-        transactionThreadReport: p.transactionThreadReport,
-        parentReport: p.parentReport,
-        policy: p.policy,
-        policyTagList: p.policyTagList,
-        policyCategories: p.policyCategories,
-        currentUserAccountIDParam: p.currentUserAccountIDParam,
-        currentUserEmailParam: p.currentUserEmailParam,
-        isASAPSubmitBetaEnabled: p.isASAPSubmitBetaEnabled,
-        parentReportNextStep: p.parentReportNextStep,
+        ...iouParams,
         amount: newAmount,
         currency,
         // Preserve existing tax values from the live transaction record
-        taxAmount: p.transaction?.taxAmount ?? 0,
-        taxCode: p.transaction?.taxCode ?? '',
+        taxAmount: iouParams.transaction?.taxAmount ?? 0,
+        taxCode: iouParams.transaction?.taxCode ?? '',
         taxValue: '',
         allowNegative: false,
         transactions: allTransactions,
         transactionViolations: allTransactionViolations,
         policyRecentlyUsedCurrencies: [],
+        hash,
     });
 }
-
-// Only editable on expense-type tabs that are not in a terminal state.
-// APPROVED / DONE / PAID are omitted; canEditFieldOfMoneyRequest also blocks them.
-const EDITABLE_STATUSES = new Set<string>([
-    CONST.SEARCH.STATUS.EXPENSE.ALL,
-    CONST.SEARCH.STATUS.EXPENSE.UNREPORTED,
-    CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-    CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
-]);
 
 /** Returns per-field edit permissions for a transaction in the Search table. */
 function getSearchTransactionEditPermissions(
@@ -315,7 +253,7 @@ function getSearchTransactionEditPermissions(
 ): {canEditDate: boolean; canEditMerchant: boolean; canEditDescription: boolean; canEditCategory: boolean; canEditAmount: boolean} {
     const noEdit = {canEditDate: false, canEditMerchant: false, canEditDescription: false, canEditCategory: false, canEditAmount: false};
 
-    const isEditableTab = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && EDITABLE_STATUSES.has((queryJSON?.status as string) ?? '');
+    const isEditableTab = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && CONST.SEARCH.INLINE_EDITABLE_EXPENSE_STATUSES.has((queryJSON?.status as string) ?? '');
     if (!isEditableTab) {
         return noEdit;
     }

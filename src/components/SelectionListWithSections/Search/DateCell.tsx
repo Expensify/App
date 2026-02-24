@@ -32,7 +32,6 @@ function DateCell({date, showTooltip, isLargeScreenWidth, canEdit, onSave}: Date
         <TextWithTooltip
             text={formattedDate}
             shouldShowTooltip={showTooltip}
-            ellipsizeMode="clip"
             style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
         />
     );
