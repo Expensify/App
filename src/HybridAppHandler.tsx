@@ -22,10 +22,12 @@ function HybridAppHandler() {
         if (!CONFIG.IS_HYBRID_APP || onyxHydrationStarted.current) {
             return;
         }
+        const transitionSpanName = CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_HYDRATION;
         onyxHydrationStarted.current = true;
         startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_HYDRATION, {
             name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_HYDRATION,
             op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_HYDRATION,
+            parentSpan: getSpan(transitionSpanName),
         });
     }, []);
 
