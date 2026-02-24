@@ -146,9 +146,10 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             return;
         }
 
-        // If no settlement account configured, navigate to settlement account setup
-        // The toggle will be enabled after settlement account is selected
-        if (!hasSettlementAccount) {
+        // If no settlement account configured, or if the settlement account is still pending
+        // confirmation from the backend (e.g. Marqeta provisioning in progress or failed),
+        // navigate to the settlement account setup page
+        if (!hasSettlementAccount || isSettlementAccountPendingAction) {
             Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
             return;
         }
