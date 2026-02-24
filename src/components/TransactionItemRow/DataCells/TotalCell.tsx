@@ -61,7 +61,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={amountToDisplay}
-            style={[styles.optionDisplayName, styles.justifyContentCenter, styles.flexShrink0]}
+            style={[styles.optionDisplayName, styles.justifyContentCenter, styles.flexShrink1, styles.textAlignRight]}
         />
     );
 
@@ -75,9 +75,6 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
             isEditing={isEditing}
             onStartEditing={startEditing}
             editContent={
-                // MoneyRequestAmountInput handles locale-aware formatting, currency display,
-                // and validates numeric input — preferred over a raw TextInput for amounts.
-                // disableKeyboard={false} uses the native keyboard (no big number pad) on desktop.
                 <MoneyRequestAmountInput
                     ref={focusOnMount}
                     autoGrow={false}
@@ -86,14 +83,17 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
                     disableKeyboard={false}
                     isCurrencyPressable={false}
                     hideCurrencySymbol
-
+                    hideFocusedState
                     shouldShowBigNumberPad={false}
                     shouldWrapInputInContainer={false}
+                    shouldApplyPaddingToContainer={false}
                     onAmountChange={handleAmountChange}
                     onBlur={handleBlur}
+                    // EditableCell is responsible for the cell's hover and focus styles (border, background).
+                    // Suppress MoneyRequestAmountInput's own border and background to avoid visual conflicts.
+                    containerStyle={[styles.editableCellInputStyle]}
                     inputStyle={[styles.textAlignRight]}
-                    touchableInputWrapperStyle={[styles.ph2, {height: 32}]}
-                    containerStyle={[styles.flex1]}
+                    touchableInputWrapperStyle={[styles.editableCellInputStyle]}
                 />
             }
         >

@@ -213,6 +213,7 @@ function TransactionItemRow({
     // On narrow mobile layouts isLargeScreenWidth is false, so canInlineEdit will be false and
     // none of the editable cells will enter edit mode.
     const canInlineEdit = isLargeScreenWidth;
+    const canEditCell = canInlineEdit && !isScanning(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -392,7 +393,7 @@ function TransactionItemRow({
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
                         shouldUseNarrowLayout={shouldUseNarrowLayout}
-                        canEdit={canInlineEdit && !isScanning(transactionItem)}
+                        canEdit={canEditCell}
                         onSave={onEditCategory}
                         policyID={report?.policyID ?? transactionItem.report?.policyID}
                     />
@@ -441,12 +442,12 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.MERCHANT}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
                 >
-                    {!!merchant && (
+                    {(!!merchant || canEditCell) && (
                         <MerchantOrDescriptionCell
-                            merchantOrDescription={merchant}
+                            merchantOrDescription={merchant ?? ''}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
-                            canEdit={canInlineEdit && !isScanning(transactionItem)}
+                            canEdit={canEditCell}
                             onSave={onEditMerchant}
                         />
                     )}
@@ -457,13 +458,13 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}
                 >
-                    {!!description && (
+                    {(!!description || canEditCell) && (
                         <MerchantOrDescriptionCell
                             merchantOrDescription={description}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
                             isDescription
-                            canEdit={canInlineEdit && !isScanning(transactionItem)}
+                            canEdit={canEditCell}
                             onSave={onEditDescription}
                         />
                     )}
@@ -529,7 +530,7 @@ function TransactionItemRow({
                     <TotalCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
-                        canEdit={canInlineEdit && !isScanning(transactionItem)}
+                        canEdit={canEditCell}
                         onSave={onEditAmount}
                     />
                 </View>
@@ -637,6 +638,7 @@ function TransactionItemRow({
             isLargeScreenWidth,
             reportActions,
             canInlineEdit,
+            canEditCell,
             onEditDate,
             onEditMerchant,
             onEditDescription,

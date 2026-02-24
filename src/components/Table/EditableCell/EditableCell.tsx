@@ -47,7 +47,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
 
     // Inline edit mode: replace display content with the edit input
     if (isEditing && editContent) {
-        return <View style={[styles.flex1]}>{editContent}</View>;
+        return <View style={[styles.editableCell, styles.editableCellFocus]}>{editContent}</View>;
     }
 
     // Popover edit mode: keep showing display content with active border
@@ -56,7 +56,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
             <>
                 <View
                     ref={anchorRef}
-                    style={[styles.flex1, styles.editableCellBorder, styles.borderColorFocus]}
+                    style={[styles.editableCell, styles.editableCellFocus]}
                 >
                     {children}
                 </View>
@@ -72,8 +72,10 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                 accessibilityLabel="Edit cell"
                 sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
                 onPress={onStartEditing}
-                style={[styles.flex1, styles.editableCellBorder]}
-                hoverStyle={[styles.editableCellBorderHover]}
+                style={[styles.editableCell]}
+                wrapperStyle={[styles.w100]}
+                focusStyle={[styles.editableCellFocus]}
+                hoverStyle={[styles.editableCellHover]}
             >
                 {children}
             </PressableWithFeedback>

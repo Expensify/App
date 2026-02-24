@@ -47,8 +47,11 @@ function MerchantOrDescriptionCell({
                     onChangeText={setLocalValue}
                     onBlur={handleBlur}
                     autoFocus
-                    touchableInputWrapperStyle={[styles.p1, {height: '32px'}]}
-                    containerStyles={[styles.flex1]}
+                    // EditableCell is responsible for the cell's hover and focus styles (border, background).
+                    // Suppress TextInput's own border and background to avoid visual conflicts.
+                    textInputContainerStyles={[styles.editableCellInputStyle]}
+                    touchableInputWrapperStyle={[styles.editableCellInputStyle]}
+                    hideFocusedState
                 />
             }
         >

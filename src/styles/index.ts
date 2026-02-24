@@ -1082,15 +1082,36 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
-        editableCellBorder: {
+        editableCell: {
+            width: '100%',
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
             padding: 4,
+            height: variables.editableCellHeight,
+            minHeight: variables.editableCellHeight,
+            maxHeight: variables.editableCellHeight,
+            overflow: 'hidden',
         },
 
-        editableCellBorderHover: {
+        editableCellHover: {
             borderColor: theme.border,
+        },
+
+        editableCellFocus: {
+            borderColor: theme.borderFocus,
+            backgroundColor: theme.appBG,
+        },
+
+        /** Suppresses all visual styling on TextInput when rendered inside EditableCell */
+        editableCellInputStyle: {
+            padding: 0,
+            borderWidth: 0,
+            borderColor: 'transparent',
+            borderRadius: 0,
+            backgroundColor: 'transparent',
+            height: '100%',
+            minHeight: 0,
         },
 
         borderColorFocus: {
