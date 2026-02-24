@@ -76,6 +76,7 @@ function HeaderWithBackButton({
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
+    shouldShowReportTitleEditButton = false,
 }: HeaderWithBackButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'Rotate', 'BackArrow', 'Close']);
     const theme = useTheme();
@@ -123,6 +124,7 @@ function HeaderWithBackButton({
                     shouldDisplayStatus={shouldDisplayStatus}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     openParentReportInCurrentTab={openParentReportInCurrentTab}
+                    shouldShowReportTitleEditButton={shouldShowReportTitleEditButton}
                 />
             );
         }
@@ -156,6 +158,7 @@ function HeaderWithBackButton({
         translate,
         openParentReportInCurrentTab,
         shouldDisplayStatus,
+        shouldShowReportTitleEditButton,
     ]);
     const ThreeDotMenuButton = useMemo(() => {
         if (shouldShowThreeDotsButton) {

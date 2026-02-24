@@ -170,6 +170,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     shouldMinimizeMenuButton?: boolean;
     /** Whether to open the parent report link in the current tab if possible */
     openParentReportInCurrentTab?: boolean;
+
+    /** Whether to show a report title edit button in AvatarWithDisplayName */
+    shouldShowReportTitleEditButton?: boolean;
 };
 
 export type {ThreeDotsMenuItem};

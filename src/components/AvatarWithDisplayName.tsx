@@ -1,8 +1,9 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
@@ -33,9 +34,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+import variables from '@styles/variables';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
 import type DisplayNamesProps from './DisplayNames/types';
+import Icon from './Icon';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from './ReportActionAvatars';
@@ -81,6 +84,9 @@ type AvatarWithDisplayNameProps = {
 
     /** The style of the parent navigation status container */
     parentNavigationStatusContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Whether to show an edit button near the report title */
+    shouldShowReportTitleEditButton?: boolean;
 };
 
 function getCustomDisplayName(
@@ -173,6 +179,7 @@ function AvatarWithDisplayName({
     customDisplayNameStyle = {},
     parentNavigationSubtitleTextStyles,
     parentNavigationStatusContainerStyles = {},
+    shouldShowReportTitleEditButton = false,
 }: AvatarWithDisplayNameProps) {
     const {localeCompare, formatPhoneNumber} = useLocalize();
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false});
@@ -201,6 +208,7 @@ function AvatarWithDisplayName({
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
     const statusText = shouldDisplayStatus ? getReportStatusTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
     const reportStatusColorStyle = shouldDisplayStatus ? getReportStatusColorStyle(theme, report?.stateNum, report?.statusNum) : {};
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil']);
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
@@ -211,11 +219,15 @@ function AvatarWithDisplayName({
         actorAccountID.current = parentReportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     }, [parentReportActions, report?.parentReportActionID]);
 
-    const goToDetailsPage = useCallback(() => {
+    const goToDetailsPage = () => {
         navigateToDetailsPage(report, Navigation.getActiveRoute());
-    }, [report]);
+    };
 
-    const showActorDetails = useCallback(() => {
+    const navigateToEditReportTitle = () => {
+        Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID, Navigation.getReportRHPActiveRoute()));
+    };
+
+    const showActorDetails = () => {
         // We should navigate to the details page if the report is a IOU/expense report
         if (shouldEnableDetailPageNavigation) {
             goToDetailsPage();
@@ -244,9 +256,21 @@ function AvatarWithDisplayName({
             // Report detail route is added as fallback but based on the current implementation this route won't be executed
             Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         }
-    }, [report, shouldEnableDetailPageNavigation, goToDetailsPage]);
+    };
 
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
+    const displayNameContent = getCustomDisplayName(
+        shouldUseCustomSearchTitleName,
+        report,
+        title,
+        displayNamesWithTooltips,
+        transactions,
+        shouldUseFullTitle,
+        [styles.headerText, styles.pre, customDisplayNameStyle],
+        [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
+        isAnonymous,
+        isMoneyRequestOrReport,
+    );
 
     const multipleAvatars = (
         <ReportActionAvatars
@@ -278,17 +302,25 @@ function AvatarWithDisplayName({
                     </View>
 
                     <View style={[styles.flex1, styles.flexColumn]}>
-                        {getCustomDisplayName(
-                            shouldUseCustomSearchTitleName,
-                            report,
-                            title,
-                            displayNamesWithTooltips,
-                            transactions,
-                            shouldUseFullTitle,
-                            [styles.headerText, styles.pre, customDisplayNameStyle],
-                            [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
-                            isAnonymous,
-                            isMoneyRequestOrReport,
+                        {shouldShowReportTitleEditButton ? (
+                            <PressableWithoutFeedback
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.DETAILS_BUTTON}
+                                onPress={navigateToEditReportTitle}
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.mw100]}
+                                accessibilityLabel={title}
+                                role={CONST.ROLE.BUTTON}
+                            >
+                                <View style={[styles.flexShrink1]}>{displayNameContent}</View>
+                                <Icon
+                                    src={icons.Pencil}
+                                    width={variables.iconSizeSmall}
+                                    height={variables.iconSizeSmall}
+                                    additionalStyles={styles.ml1}
+                                    fill={theme.icon}
+                                />
+                            </PressableWithoutFeedback>
+                        ) : (
+                            displayNameContent
                         )}
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle

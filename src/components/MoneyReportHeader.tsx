@@ -79,6 +79,7 @@ import {
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
+    canEditReportTitle,
     isCurrentUserSubmitter,
     isDM,
     isExported as isExportedUtils,
@@ -1696,6 +1697,7 @@ function MoneyReportHeader({
     }, [hasFinishedPDFDownload, reportPDFFilename, moneyRequestReport?.reportName, translate, currentUserLogin]);
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
+    const shouldShowReportTitleEditButton = !isSmallScreenWidth && canEditReportTitle(moneyRequestReport, policy);
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
@@ -1840,6 +1842,7 @@ function MoneyReportHeader({
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab
+                shouldShowReportTitleEditButton={shouldShowReportTitleEditButton}
             >
                 {shouldDisplayNarrowMoreButton && (
                     <View style={[styles.flexRow, styles.gap2]}>
