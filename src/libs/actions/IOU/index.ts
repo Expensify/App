@@ -6141,6 +6141,75 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     }
 
     if (workspaceParams) {
+        const additionalFailureData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
+        const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouParams.reportID}`];
+        const shouldClearOptimisticIOUReport = !iouReport || iouReport.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+        if (shouldClearOptimisticIOUReport) {
+            additionalFailureData.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouParams.reportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouParams.reportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouParams.reportID}`,
+                    value: null,
+                },
+            );
+        }
+
+        const reportPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatParams.reportID}`]?.[chatParams.reportPreviewReportActionID];
+        if (!reportPreviewAction || reportPreviewAction.isOptimisticAction) {
+            additionalFailureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatParams.reportID}`,
+                value: {
+                    [chatParams.reportPreviewReportActionID]: null,
+                },
+            });
+        }
+
+        additionalFailureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
+                reportID: linkedTrackedExpenseReportID,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+            },
+        });
+
+        if (transactionThreadReportID) {
+            additionalFailureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {
+                    [convertTrackedExpenseInformation.modifiedExpenseReportActionID]: null,
+                },
+            });
+        }
+
+        additionalFailureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${linkedTrackedExpenseReportID}`,
+            value: {
+                [linkedTrackedExpenseReportAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                    pendingAction: null,
+                },
+            },
+        });
+
+        // Removing the ghost IOU report on API failure which can cause unexpected errors.
+        failureData?.push(...additionalFailureData);
+
         const params = {
             amount,
             distance,
