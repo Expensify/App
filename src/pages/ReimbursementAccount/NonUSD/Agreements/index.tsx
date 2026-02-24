@@ -2,26 +2,13 @@ import React, {useEffect, useMemo} from 'react';
 import AgreementsFullStep from '@components/SubStepForms/AgreementsFullStep';
 import useOnyx from '@hooks/useOnyx';
 import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
+import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-
-type AgreementsProps = {
-    /** Handles back button press */
-    onBackButtonPress: () => void;
-
-    /** Handles submit button press */
-    onSubmit: () => void;
-
-    /** Array of step names */
-    stepNames?: readonly string[];
-
-    /** Currency of the policy */
-    policyCurrency: string;
-};
 
 const INPUT_KEYS = {
     provideTruthfulInformation: INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION,
@@ -30,7 +17,7 @@ const INPUT_KEYS = {
     authorizedToBindClientToAgreement: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
 };
 
-function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: AgreementsProps) {
+function Agreements({prevPage, onNext, stepNames, policyCurrency}: NonUSDPageProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const agreementsStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
@@ -39,7 +26,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
 
     const submit = () => {
         if (isDocusignStepRequired) {
-            onSubmit();
+            onNext();
             return;
         }
 
@@ -65,18 +52,18 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
         }
 
         if (reimbursementAccount?.isSuccess) {
-            onSubmit();
+            onNext();
             clearReimbursementAccountFinishCorpayBankAccountOnboarding();
         }
 
         return () => {
             clearReimbursementAccountFinishCorpayBankAccountOnboarding();
         };
-    }, [reimbursementAccount?.errors, reimbursementAccount?.isFinishingCorpayBankAccountOnboarding, reimbursementAccount?.isSuccess, onSubmit, policyCurrency, isDocusignStepRequired]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isFinishingCorpayBankAccountOnboarding, reimbursementAccount?.isSuccess, onNext, policyCurrency, isDocusignStepRequired]);
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-        onBackButtonPress();
+        prevPage?.();
     };
 
     return (
