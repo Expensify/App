@@ -60,7 +60,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name ?? '';
     const policyID = policy?.id;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const bankAccountConnectedToWorkspace = Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.additionalData?.policyID === policyID);
     const policyBankAccountID = policy?.achAccount?.bankAccountID;
     const bankAccountFromList = policyBankAccountID ? bankAccountList?.[policyBankAccountID] : undefined;
@@ -71,7 +71,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const [searchTerm, setSearchTerm] = useState('');
-    const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT, {canBeMissing: true});
+    const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT);
     const [selectedPayer, setSelectedPayer] = useState<string | undefined | null>(policy?.achAccount?.reimburser);
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();

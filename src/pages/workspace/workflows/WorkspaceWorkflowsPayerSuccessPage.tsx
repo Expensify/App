@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function WorkspaceWorkflowsPayerSuccessPage() {
     const {translate} = useLocalize();
-    const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT, {canBeMissing: true});
+    const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT);
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope']);
