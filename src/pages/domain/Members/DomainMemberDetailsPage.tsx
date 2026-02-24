@@ -58,7 +58,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
     const memberLogin = personalDetails?.login ?? '';
 
-    const [isAccountLocked] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: accountLockSelector(accountID)});
+    const [isAccountLocked] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: accountLockSelector(accountID)});
     const lockDomainError = getLatestError(domainErrors?.memberErrors?.[accountID]?.lockAccountErrors);
     const lockDomainErrorMessage = Object.values(lockDomainError).at(0);
 

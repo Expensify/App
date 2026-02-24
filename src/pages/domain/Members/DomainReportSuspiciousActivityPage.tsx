@@ -18,8 +18,8 @@ type DomainReportSuspiciousActivityPageProps = PlatformStackScreenProps<Settings
 function DomainReportSuspiciousActivityPage({route}: DomainReportSuspiciousActivityPageProps) {
     const {domainAccountID, accountID} = route.params;
 
-    const [memberLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true, selector: personalDetailsLoginSelector(accountID)});
-    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
+    const [memberLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(accountID)});
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
 
     const {translate} = useLocalize();
 
