@@ -1,4 +1,4 @@
-import type {StartSpanOptions} from '@sentry/core';
+import type {SpanTimeInput, StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import CONST from '@src/CONST';
 
@@ -25,7 +25,7 @@ function startSpan(spanId: string, options: StartSpanOptions, extraOptions: Star
     return span;
 }
 
-function endSpan(spanId: string) {
+function endSpan(spanId: string, endTime?: SpanTimeInput) {
     const span = activeSpans.get(spanId);
 
     if (!span) {
@@ -33,7 +33,7 @@ function endSpan(spanId: string) {
     }
     span.setStatus({code: 1});
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);
-    span.end();
+    span.end(endTime);
     activeSpans.delete(spanId);
 }
 

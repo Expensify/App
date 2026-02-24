@@ -1777,6 +1777,7 @@ const CONST = {
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
+        SPAN_JS_PARSE_TIME: 'ManualJsParseTime',
         SPAN_NAVIGATE_TO_REPORTS_TAB: 'ManualNavigateToReportsTab',
         SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER: 'ManualNavigateToReportsTabRender',
         SPAN_ON_LAYOUT_SKELETON_REPORTS: 'ManualOnLayoutSkeletonReports',

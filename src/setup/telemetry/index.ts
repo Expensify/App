@@ -1,7 +1,8 @@
 import * as Sentry from '@sentry/react-native';
 import {Platform} from 'react-native';
+import performance, {PerformanceObserver} from 'react-native-performance';
 import {isDevelopment} from '@libs/Environment/Environment';
-import {startSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
 import processBeforeSendTransactions from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
@@ -39,4 +40,34 @@ export default function (): void {
         name: CONST.TELEMETRY.SPAN_APP_STARTUP,
         op: CONST.TELEMETRY.SPAN_APP_STARTUP,
     });
+
+    const runJsBundleStartEntries = performance.getEntriesByName('runJsBundleStart');
+    if (runJsBundleStartEntries.length > 0) {
+        const jsParseStartSecs = (runJsBundleStartEntries.at(0)?.startTime ?? 0) / 1000;
+
+        startSpan(CONST.TELEMETRY.SPAN_JS_PARSE_TIME, {
+            name: CONST.TELEMETRY.SPAN_JS_PARSE_TIME,
+            op: CONST.TELEMETRY.SPAN_JS_PARSE_TIME,
+            startTime: jsParseStartSecs,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
+        });
+
+        const finishJsParseSpan = (endTimeSecs: number) => {
+            endSpan(CONST.TELEMETRY.SPAN_JS_PARSE_TIME, endTimeSecs);
+        };
+
+        const runJsBundleEndEntries = performance.getEntriesByName('runJsBundleEnd');
+        if (runJsBundleEndEntries.length > 0) {
+            finishJsParseSpan((runJsBundleEndEntries.at(0)?.startTime ?? 0) / 1000);
+        } else {
+            const observer = new PerformanceObserver((list) => {
+                const entries = list.getEntriesByName('runJsBundleEnd');
+                if (entries.length > 0) {
+                    finishJsParseSpan((entries.at(0)?.startTime ?? 0) / 1000);
+                    observer.disconnect();
+                }
+            });
+            observer.observe({type: 'mark', buffered: true});
+        }
+    }
 }
