@@ -1027,6 +1027,27 @@ type OriginalMessageMarkedReimbursed = {
 type OriginalMessageReimbursed = {
     /** Whether this action was created from NewDot */
     isNewDot?: boolean;
+
+    /** Payment method used (e.g., 'Fast_ACH', 'Check', 'StripeConnect', or standard ACH) */
+    paymentMethod?: string;
+
+    /** Last 4 digits of the debit bank account used to fund the payment */
+    debitBankAccountLast4?: string;
+
+    /** Last 4 digits of the credit bank account receiving the payment */
+    creditBankAccountLast4?: string;
+
+    /** Expected completion date for the reimbursement */
+    expectedDate?: string;
+
+    /** Whether this is an invoice or bill payment */
+    isInvoiceOrBill?: boolean;
+
+    /** Whether the submitter is adding a bank account */
+    isSubmitterAddingBankAccount?: boolean;
+
+    /** For StripeConnect payments, indicates payment type ('card' or 'bank account') */
+    stripePaymentType?: string;
 };
 
 /** Model of `trip room preview` report action */
@@ -1428,6 +1449,7 @@ export type {
     PolicyBudgetFrequencyValues,
     PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,
+    OriginalMessageReimbursed,
     OriginalMessageConciergeAutoMapMccGroups,
     OriginalMessageCompanyCardConnectionBroken,
     OriginalMessagePlaidBalanceFailure,
