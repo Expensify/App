@@ -24,15 +24,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function SearchAddApproverPage() {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {isBetaEnabled} = usePermissions();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const {clearSelectedTransactions, selectedReports} = useSearchContext();
     const [isSaving, setIsSaving] = useState(false);
 
@@ -59,10 +59,10 @@ function SearchAddApproverPage() {
                 if (!email) {
                     return null;
                 }
-                const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? CONST.DEFAULT_NUMBER_ID);
-                const isPendingDelete = intersectedEmployees?.[accountID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                const accountID = policyMemberEmailsToAccountIDs[email];
+                const isPendingDelete = employee?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-                if (isPendingDelete) {
+                if (!accountID || isPendingDelete) {
                     return null;
                 }
 
@@ -180,7 +180,7 @@ function SearchAddApproverPage() {
 
     return (
         <ApproverSelectionList
-            testID={SearchAddApproverPage.displayName}
+            testID="SearchAddApproverPage"
             headerTitle={translate('iou.changeApprover.actions.addApprover')}
             onBackButtonPress={Navigation.goBack}
             subtitle={
@@ -201,7 +201,5 @@ function SearchAddApproverPage() {
         />
     );
 }
-
-SearchAddApproverPage.displayName = 'SearchAddApproverPage';
 
 export default SearchAddApproverPage;

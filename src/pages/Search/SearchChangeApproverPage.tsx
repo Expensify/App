@@ -20,7 +20,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {assignReportToMe} from '@libs/actions/IOU';
-import {openReport} from '@libs/actions/Report';
+import {openBulkChangeApproverPage} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
@@ -39,15 +39,16 @@ function SearchChangeApproverPage() {
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>();
     const [hasError, setHasError] = useState(false);
     const {isBetaEnabled} = usePermissions();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const {clearSelectedTransactions, selectedReports} = useSearchContext();
-    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const {isOffline} = useNetwork();
     const [isSaving, setIsSaving] = useState(false);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const hasAutoAppliedRef = useRef(false);
+    const hasNavigatedToAddApproverRef = useRef(false);
 
     const getOnyxReports = (allReports: OnyxCollection<Report>) => {
         const reports = new Map<string, Report>();
@@ -63,34 +64,15 @@ function SearchChangeApproverPage() {
 
     // React Compiler automatically memoizes the selector, so we can suppress the ESLint rule
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
-    const [onyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getOnyxReports, canBeMissing: true});
-    const isLoadingOnyxReports = useRef(false);
+    const [onyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getOnyxReports});
 
     useEffect(() => {
         if (!hasLoadedApp || !selectedReports.length) {
             return;
         }
 
-        if (onyxReports?.size === selectedReports.length) {
-            isLoadingOnyxReports.current = false;
-            return;
-        }
-
-        if (isLoadingOnyxReports.current) {
-            return;
-        }
-
-        isLoadingOnyxReports.current = true;
-        for (const selectedReport of selectedReports) {
-            if (!selectedReport.reportID || onyxReports?.has(selectedReport.reportID)) {
-                continue;
-            }
-
-            // Load the report into Onyx, because data from SearchContext contains only a subset of report properties.
-            // Alternatively, remove this and make sure the backend returns all required properties and SearchContext keeps all of them.
-            openReport(selectedReport.reportID, introSelected);
-        }
-    }, [hasLoadedApp, introSelected, onyxReports, selectedReports]);
+        openBulkChangeApproverPage(selectedReports.map((selectedReport) => selectedReport.reportID).filter((selectedReportID) => undefined !== selectedReportID));
+    }, [hasLoadedApp, selectedReports]);
 
     const getSelectedPolicies = () => {
         const policies = new Map<string, Policy>();
@@ -111,6 +93,7 @@ function SearchChangeApproverPage() {
         }
 
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
+            hasNavigatedToAddApproverRef.current = true;
             const policiesToUpgrade = selectedPolicies.filter((policy) => !isControlPolicy(policy));
             if (policiesToUpgrade.length > 1) {
                 // Bulk upgrade is not supported, so show a general page to guide the user to upgrade manually
@@ -194,6 +177,18 @@ function SearchChangeApproverPage() {
     const approverTypes = getApproverTypes();
 
     useEffect(() => {
+        if (selectedApproverType === undefined && approverTypes.length > 0) {
+            setSelectedApproverType(approverTypes.at(0)?.keyForList);
+            return;
+        }
+
+        if (!hasAutoAppliedRef.current && approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList && !hasNavigatedToAddApproverRef.current) {
+            hasAutoAppliedRef.current = true;
+            changeApprover();
+        }
+    }, [approverTypes, selectedApproverType, changeApprover]);
+
+    useEffect(() => {
         if (selectedReports.length && approverTypes.at(0)) {
             return;
         }
@@ -228,7 +223,7 @@ function SearchChangeApproverPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchChangeApproverPage.displayName}
+            testID="SearchChangeApproverPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             // Show the non-blocking offline indicator if reports are available in Onyx, otherwise show the blocking offline view because this page requires the Onyx data
@@ -257,6 +252,7 @@ function SearchChangeApproverPage() {
                     confirmButtonOptions={confirmButtonOptions}
                     shouldUpdateFocusedIndex
                     customListHeader={listHeader}
+                    initiallyFocusedItemKey={selectedApproverType}
                 >
                     {hasError && (
                         <FormHelpMessage
@@ -270,7 +266,5 @@ function SearchChangeApproverPage() {
         </ScreenWrapper>
     );
 }
-
-SearchChangeApproverPage.displayName = 'SearchChangeApproverPage';
 
 export default SearchChangeApproverPage;
