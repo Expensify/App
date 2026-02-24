@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
@@ -45,30 +45,27 @@ function BaseSearchList({
         captureOnInputs: false,
     });
 
-    const renderItemWithKeyboardFocus = useCallback(
-        ({item, index}: {item: SearchListItem; index: number}) => {
-            const isItemFocused = focusedIndex === index;
+    const renderItemWithKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => {
+        const isItemFocused = focusedIndex === index;
 
-            const onFocus = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                if (isMobileChrome() && event.nativeEvent) {
-                    if (!event.nativeEvent.sourceCapabilities) {
-                        return;
-                    }
-                    // Ignore the focus if it's caused by a touch event on mobile chrome.
-                    // For example, a long press will trigger a focus event on mobile chrome
-                    if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
-                        return;
-                    }
+        const onFocus = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+            // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
+            if (isMobileChrome() && event.nativeEvent) {
+                if (!event.nativeEvent.sourceCapabilities) {
+                    return;
                 }
-                setFocusedIndex(index);
-            };
-            return renderItem(item, index, isItemFocused, onFocus);
-        },
-        [focusedIndex, renderItem, setFocusedIndex],
-    );
+                // Ignore the focus if it's caused by a touch event on mobile chrome.
+                // For example, a long press will trigger a focus event on mobile chrome
+                if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
+                    return;
+                }
+            }
+            setFocusedIndex(index);
+        };
+        return renderItem(item, index, isItemFocused, onFocus);
+    };
 
-    const selectFocusedOption = useCallback(() => {
+    const selectFocusedOption = () => {
         const focusedItem = data.at(focusedIndex);
 
         if (!focusedItem) {
@@ -76,7 +73,7 @@ function BaseSearchList({
         }
 
         onSelectRow(focusedItem);
-    }, [data, focusedIndex, onSelectRow]);
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
