@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
@@ -86,7 +86,7 @@ function BaseSearchList({
         shouldStopPropagation: true,
     });
 
-    const extraData = useMemo(() => [columns, newTransactions, selectedTransactions, customCardNames], [columns, newTransactions, selectedTransactions, customCardNames]);
+    const extraData = [columns, newTransactions, selectedTransactions, customCardNames];
 
     return (
         <AnimatedFlashListComponent
