@@ -909,7 +909,6 @@ function MenuItem({
                                                             styles.justifyContentCenter,
                                                             styles.flex1,
                                                             StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu || isCompact),
-                                                            styles.gap1,
                                                             titleContainerStyle,
                                                         ]}
                                                     >
@@ -953,14 +952,14 @@ function MenuItem({
                                                         )}
                                                         {!shouldShowDescriptionOnTop && !descriptionAddon && !!description && (
                                                             <Text
-                                                                style={[descriptionTextStyles, styles.mt0]}
+                                                                style={[descriptionTextStyles]}
                                                                 numberOfLines={numberOfLinesDescription}
                                                             >
                                                                 {description}
                                                             </Text>
                                                         )}
                                                         {!shouldShowDescriptionOnTop && !!descriptionAddon && (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, ...(icon && !Array.isArray(icon) ? [styles.ml3] : [])]}>
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ml3, styles.mt1]}>
                                                                 {descriptionAddon}
                                                                 {!!description && (
                                                                     <Text
@@ -973,7 +972,7 @@ function MenuItem({
                                                             </View>
                                                         )}
                                                         {!!furtherDetails && (
-                                                            <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                                 {!!furtherDetailsIcon && (
                                                                     <Icon
                                                                         src={furtherDetailsIcon}

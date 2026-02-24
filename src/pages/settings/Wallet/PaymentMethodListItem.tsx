@@ -140,7 +140,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     icon={icons.FreezeCard}
                     badgeStyles={[styles.descriptionBadge, styles.descriptionBadgeWithIcon]}
                     textStyles={styles.descriptionBadgeText}
-                    iconStyles={[styles.mr0]}
+                    iconStyles={[styles.mr1]}
                     shouldUseXXSmallIcon
                 />
             );
