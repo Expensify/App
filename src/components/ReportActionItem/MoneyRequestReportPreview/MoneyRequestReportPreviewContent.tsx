@@ -659,6 +659,10 @@ function MoneyRequestReportPreviewContent({
                         isFullApproval,
                     );
                 }}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                }}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (

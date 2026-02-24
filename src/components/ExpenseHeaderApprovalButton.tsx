@@ -3,6 +3,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -32,6 +33,9 @@ type ExpenseHeaderApprovalButtonProps = {
 
     /** Whether the button is disabled */
     isDisabled?: boolean;
+
+    /** The anchor alignment of the popover menu */
+    anchorAlignment?: AnchorAlignment;
 };
 
 type ApprovalOption = {
@@ -100,6 +104,7 @@ function ExpenseHeaderApprovalButton({
     fullAmount,
     onApprove,
     isDisabled = false,
+    anchorAlignment,
 }: ExpenseHeaderApprovalButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -131,6 +136,7 @@ function ExpenseHeaderApprovalButton({
                     shouldAlwaysShowDropdownMenu
                     isSplitButton={false}
                     isDisabled={isDisabled}
+                    anchorAlignment={anchorAlignment}
                 />
             );
         }
