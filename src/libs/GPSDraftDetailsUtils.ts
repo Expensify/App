@@ -1,6 +1,7 @@
 import {hasStartedLocationUpdatesAsync, reverseGeocodeAsync, stopLocationUpdatesAsync} from 'expo-location';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -8,7 +9,6 @@ import type {Routes, WaypointCollection} from '@src/types/onyx/Transaction';
 import {setEndAddress, setIsTracking} from './actions/GPSDraftDetails';
 import DistanceRequestUtils from './DistanceRequestUtils';
 import {roundToTwoDecimalPlaces} from './NumberUtils';
-import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 
 function getGPSWaypoints(gpsDraftDetails: GpsDraftDetails | undefined): WaypointCollection {
     const gpsCoordinates = gpsDraftDetails?.gpsPoints ?? [];

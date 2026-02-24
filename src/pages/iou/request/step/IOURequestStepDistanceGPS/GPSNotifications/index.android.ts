@@ -1,7 +1,7 @@
 import Airship from '@ua/react-native-airship';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import ROUTES from '@src/ROUTES';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const LIVE_UPDATE_NAME = 'gps_live_update';
 const LIVE_UPDATE_TYPE = 'gps_trip_notification';

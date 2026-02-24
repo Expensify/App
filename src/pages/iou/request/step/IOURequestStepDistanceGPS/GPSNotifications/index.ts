@@ -1,5 +1,4 @@
 // Android and iOS only, no-op for other platforms
-
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
