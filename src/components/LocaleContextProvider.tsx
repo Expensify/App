@@ -127,18 +127,16 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         });
     }, [localeToApply, nvpPreferredLocale]);
 
-    useEffect(() => {
-        if (areTranslationsLoading) {
-            return;
+    const [prevTranslationsLoading, setPrevTranslationsLoading] = useState(areTranslationsLoading);
+    if (prevTranslationsLoading !== areTranslationsLoading) {
+        setPrevTranslationsLoading(areTranslationsLoading);
+        if (!areTranslationsLoading) {
+            const locale = IntlStore.getCurrentLocale();
+            if (locale) {
+                setCurrentLocale(locale);
+            }
         }
-
-        const locale = IntlStore.getCurrentLocale();
-        if (!locale) {
-            return;
-        }
-
-        setCurrentLocale(locale);
-    }, [areTranslationsLoading]);
+    }
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails?.timezone?.selected]);
 
