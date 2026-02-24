@@ -455,9 +455,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction tax value */
         taxValue?: string | undefined;
 
-        /** The transaction tax name */
-        taxName?: string;
-
         /** Whether the expense is billable */
         billable?: boolean;
 
@@ -653,6 +650,9 @@ type AdditionalTransactionChanges = {
 
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
+
+    /** The unit for the distance/quantity */
+    quantity?: number;
 };
 
 /** Model of transaction changes  */
