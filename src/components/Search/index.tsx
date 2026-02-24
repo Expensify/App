@@ -98,6 +98,8 @@ type SearchProps = {
     onDEWModalOpen?: () => void;
 };
 
+const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
+
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
     itemTransaction: OnyxEntry<Transaction>,
@@ -474,10 +476,7 @@ function Search({
             return [];
         }
         return (baseFilteredData as TransactionGroupListItemType[])
-            .map((item) => {
-                const queryHash = item.transactionsQueryJSON?.hash;
-                return queryHash || queryHash === 0 ? String(queryHash) : undefined;
-            })
+            .map((item) => hashToString(item.transactionsQueryJSON?.hash))
             .filter((hashValue): hashValue is string => !!hashValue);
     }, [validGroupBy, baseFilteredData]);
 
@@ -489,8 +488,7 @@ function Search({
         }
 
         const enriched = (baseFilteredData as TransactionGroupListItemType[]).map((item) => {
-            const queryHash = item.transactionsQueryJSON?.hash;
-            const snapshot = queryHash || queryHash === 0 ? groupByTransactionSnapshots[String(queryHash)] : undefined;
+            const snapshot = groupByTransactionSnapshots[hashToString(item.transactionsQueryJSON?.hash) ?? ''];
             if (!snapshot?.data) {
                 return item;
             }
