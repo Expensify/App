@@ -383,20 +383,22 @@ function createOptionList(
     const currentUserRef = {
         current: undefined as OptionData | undefined,
     };
-    const allPersonalDetailsOptions = Object.values(personalDetails).map((personalDetail) => {
-        if (!personalDetail) {
-            return {} as OptionData;
+    const allPersonalDetailsOptions = [] as OptionData[];
+
+    for (const personalDetail of Object.values(personalDetails)) {
+        if (!personalDetail || !personalDetail.accountID) {
+            continue;
         }
         const reportID = accountIDToReportIDMap[personalDetail.accountID];
         const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const reportAttributes = report?.reportID ? reportAttributesDerived?.[report.reportID] : undefined;
         const isReportArchived = privateIsArchivedMap[reportID];
         const option = createOption(personalDetail, report, formatPhoneNumber, config, reportAttributes, isReportArchived);
+        allPersonalDetailsOptions.push(option);
         if (option.accountID === currentUserAccountID) {
             currentUserRef.current = option;
         }
-        return option;
-    });
+    }
 
     return {
         currentUserOption: currentUserRef.current,

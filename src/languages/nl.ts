@@ -394,6 +394,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Kaart',
         whyDoWeAskForThis: 'Waarom vragen we dit?',
         required: 'Vereist',
+        automatic: 'Automatisch',
         showing: 'Wordt weergegeven',
         of: 'of',
         default: 'Standaard',
@@ -529,6 +530,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Actie vereist',
         duplicate: 'Dupliceren',
         duplicated: 'Gedupliceerd',
+        opensInNewTab: 'Opent in een nieuw tabblad',
         locked: 'Vergrendeld',
         duplicateExpense: 'Dubbele uitgave',
         exchangeRate: 'Wisselkoers',
@@ -1173,6 +1175,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Bon wordt nog gekoppeld aan kaarttransactie. Markeer als contant om te annuleren.',
         markAsCash: 'Markeren als contant',
         routePending: 'Routeren in behandeling...',
+        automaticallyEnterExpenseDetails: 'Concierge zal automatisch de uitgavendetails voor je invoeren, of je kunt ze handmatig toevoegen.',
         receiptScanning: () => ({
             one: 'Bon wordt gescand...',
             other: 'Bonnetjes scannen...',
@@ -1382,7 +1385,12 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Sommige van deze duplicaten zijn al goedgekeurd of betaald.',
         reviewDuplicates: 'Dubbele items controleren',
         keepAll: 'Alles behouden',
-        confirmApprovalWithHeldAmount: 'Het rapport bevat uitgaven in de wacht. Alleen conforme uitgaven goedkeuren, of het hele rapport goedkeuren?',
+        confirmApprove: 'Bevestig goedkeuringsbedrag',
+        confirmApprovalAmount: 'Keur alleen conforme uitgaven goed, of keur het hele rapport goed.',
+        confirmApprovalAllHoldAmount: () => ({
+            one: 'Deze uitgave is in de wacht gezet. Wil je toch goedkeuren?',
+            other: 'Deze declaraties staan in de wacht. Wil je ze toch goedkeuren?',
+        }),
         confirmPay: 'Bevestig betalingsbedrag',
         confirmPayAmount: 'Betaal wat niet in de wacht staat, of betaal het volledige rapport.',
         confirmPayAllHoldAmount: () => ({
@@ -7406,6 +7414,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         scrollToNewestMessages: 'Scroll naar nieuwste berichten',
         preStyledText: 'Vooraf opgemaakte tekst',
         viewAttachment: 'Bijlage bekijken',
+        selectAllFeatures: 'Selecteer alle functies',
+        selectAllTransactions: 'Selecteer alle transacties',
+        selectAllItems: 'Alle items selecteren',
     },
     parentReportAction: {
         deletedReport: 'Verwijderd rapport',

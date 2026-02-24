@@ -537,7 +537,7 @@ function SearchList({
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
                     {canSelectMultiple && (
                         <Checkbox
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
                             onPress={() => {
@@ -554,7 +554,7 @@ function SearchList({
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={onAllCheckboxPress}
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             role="button"
                             accessibilityState={{checked: isSelectAllChecked}}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_BUTTON}
