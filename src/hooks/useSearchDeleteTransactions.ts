@@ -1,11 +1,11 @@
 import {useCallback} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequestOnSearch, revertSplitTransactionOnSearch} from '@libs/actions/Search';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 
 function useSearchDeleteTransactions() {
     const {currentSearchResults} = useSearchContext();
@@ -71,9 +71,7 @@ function useSearchDeleteTransactions() {
                     if (!remaining) {
                         continue;
                     }
-                    const remainingPortion = Math.abs(
-                        hasValidModifiedAmount(remaining) ? Number(remaining.modifiedAmount) : Number(remaining.amount ?? 0),
-                    );
+                    const remainingPortion = Math.abs(hasValidModifiedAmount(remaining) ? Number(remaining.modifiedAmount) : Number(remaining.amount ?? 0));
                     const splitTransactionIDList = [...splitTransactionIDs];
                     if (remaining.transactionID !== originalTransactionID) {
                         splitTransactionIDList.push(remaining.transactionID);

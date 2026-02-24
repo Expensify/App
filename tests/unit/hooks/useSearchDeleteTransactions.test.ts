@@ -1,11 +1,11 @@
 import {act, renderHook} from '@testing-library/react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useSearchDeleteTransactions from '@hooks/useSearchDeleteTransactions';
 import type {deleteMoneyRequestOnSearch, revertSplitTransactionOnSearch} from '@libs/actions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults, Transaction} from '@src/types/onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import createRandomTransaction from '../../utils/collections/transaction';
 
 const mockDeleteMoneyRequestOnSearch = jest.fn();
