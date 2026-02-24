@@ -5,7 +5,6 @@ import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
     CardDeactivateParams,
-    DeletePersonalCardParams,
     FreezeCardParams,
     OpenCardDetailsPageParams,
     ReportVirtualExpensifyCardFraudParams,
@@ -1160,6 +1159,8 @@ function deletePersonalCard({cardID, card}: {cardID: number; card?: Card}) {
     let transactionsData: OnyxCollection<Transaction> | undefined;
     let reportsData: OnyxCollection<Report> | undefined;
     let done = false;
+    let connTransactions: ReturnType<typeof Onyx.connectWithoutView>;
+    let connReports: ReturnType<typeof Onyx.connectWithoutView>;
 
     const runDelete = () => {
         if (transactionsData === undefined || reportsData === undefined || done) {
@@ -1214,14 +1215,14 @@ function deletePersonalCard({cardID, card}: {cardID: number; card?: Card}) {
         API.write(WRITE_COMMANDS.DELETE_PERSONAL_CARD, {cardID}, {optimisticData, failureData});
     };
 
-    const connTransactions = Onyx.connectWithoutView({
+    connTransactions = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.TRANSACTION,
         callback: (data) => {
             transactionsData = data ?? {};
             runDelete();
         },
     });
-    const connReports = Onyx.connectWithoutView({
+    connReports = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.REPORT,
         callback: (data) => {
             reportsData = data ?? {};
