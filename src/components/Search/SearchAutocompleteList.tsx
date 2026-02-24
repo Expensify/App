@@ -29,7 +29,6 @@ import Log from '@libs/Log';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -115,7 +114,6 @@ const defaultListOptions = {
 };
 
 const setPerformanceTimersEnd = () => {
-    Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
     endSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
 };
 
@@ -693,7 +691,6 @@ function SearchAutocompleteList({
         const actionId = `filter_options_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
         const startTime = Date.now();
 
-        Performance.markStart(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         Log.info('[CMD_K_DEBUG] Filter options started', false, {
             actionId,
             queryLength: autocompleteQueryValue.length,
@@ -705,7 +702,6 @@ function SearchAutocompleteList({
         try {
             if (autocompleteQueryValue.trim() === '') {
                 const endTime = Date.now();
-                Performance.markEnd(CONST.TIMING.SEARCH_FILTER_OPTIONS);
                 Log.info('[CMD_K_DEBUG] Filter options completed (empty query path)', false, {
                     actionId,
                     duration: endTime - startTime,
@@ -727,7 +723,6 @@ function SearchAutocompleteList({
 
             const finalOptions = reportOptions.slice(0, 20);
             const endTime = Date.now();
-            Performance.markEnd(CONST.TIMING.SEARCH_FILTER_OPTIONS);
             Log.info('[CMD_K_DEBUG] Filter options completed (search path)', false, {
                 actionId,
                 duration: endTime - startTime,
@@ -741,7 +736,6 @@ function SearchAutocompleteList({
             return finalOptions;
         } catch (error) {
             const endTime = Date.now();
-            Performance.markEnd(CONST.TIMING.SEARCH_FILTER_OPTIONS);
             Log.alert('[CMD_K_FREEZE] Filter options failed', {
                 actionId,
                 error: String(error),
@@ -767,7 +761,6 @@ function SearchAutocompleteList({
         handleSearch(autocompleteQueryWithoutFilters);
 
         const endTime = Date.now();
-        Performance.markEnd(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
         Log.info('[CMD_K_DEBUG] Debounced search completed', false, {
             actionId,
             duration: endTime - startTime,
@@ -780,7 +773,6 @@ function SearchAutocompleteList({
         const actionId = `debounce_search_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
         const startTime = Date.now();
 
-        Performance.markStart(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
         Log.info('[CMD_K_DEBUG] Debounced search started', false, {
             actionId,
             queryLength: autocompleteQueryWithoutFilters?.length ?? 0,
@@ -792,7 +784,6 @@ function SearchAutocompleteList({
             handleDebouncedSearch(actionId, startTime);
         } catch (error) {
             const endTime = Date.now();
-            Performance.markEnd(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
             Log.alert('[CMD_K_FREEZE] Debounced search failed', {
                 actionId,
                 error: String(error),
