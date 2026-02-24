@@ -10,7 +10,6 @@ import FreezeWrapper from '@navigation/AppNavigator/FreezeWrapper';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
-import ROUTES from '@src/ROUTES';
 
 const loadSearchPage = () => require<ReactComponentModule>('@pages/Search/SearchPage').default;
 
@@ -33,7 +32,6 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<AuthScreens
                 <Stack.Screen
                     name={SCREENS.SEARCH.ROOT}
                     getComponent={loadSearchPage}
-                    getId={() => ROUTES.SEARCH_ROOT.route}
                     initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
                     options={{animation: Animations.NONE}}
                 />
