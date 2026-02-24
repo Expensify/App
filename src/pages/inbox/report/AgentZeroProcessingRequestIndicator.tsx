@@ -13,7 +13,7 @@ type AgentZeroProcessingRequestIndicatorProps = {
 function AgentZeroProcessingRequestIndicator({reportID, label}: AgentZeroProcessingRequestIndicatorProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {canBeMissing: true});
+    const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`);
 
     // Check if anyone is currently typing
     const usersTyping = useMemo(() => Object.keys(userTypingStatuses ?? {}).filter((loginOrAccountID) => userTypingStatuses?.[loginOrAccountID]), [userTypingStatuses]);
