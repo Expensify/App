@@ -24,7 +24,6 @@ import DomUtils from '@libs/DomUtils';
 import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import FS from '@libs/Fullstory';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
-import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import {isAdminRoom, isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isConciergeChatReport, isGroupChat, isOneOnOneChat, isSystemChat} from '@libs/ReportUtils';
@@ -208,7 +207,6 @@ function OptionRowLHN({
     const alternateTextFSClass = FS.getChatFSClass(report);
 
     const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
-        Performance.markStart(CONST.TIMING.OPEN_REPORT);
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
             name: 'OptionRowLHN',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
