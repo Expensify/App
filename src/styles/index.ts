@@ -447,10 +447,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: undefined,
         },
 
-        lineHeightNormal: {
-            lineHeight: variables.lineHeightNormal,
-        },
-
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
@@ -936,11 +932,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: 8,
             paddingBottom: 8,
             alignItems: 'flex-start',
-            borderRadius: variables.componentBorderRadiusMedium,
+            borderRadius: 20,
         },
 
-        actionableItemButtonBackgroundHovered: {
-            borderColor: theme.buttonPressedBG,
+        actionableItemButtonText: {
+            textAlign: 'left',
+            ...wordBreak.breakWord,
         },
 
         hoveredComponentBG: {
@@ -4345,7 +4342,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestImage: {
-            height: 200,
             borderRadius: 16,
             marginHorizontal: 20,
             overflow: 'hidden',
@@ -4541,7 +4537,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: 'auto',
         },
         expenseViewImageSmall: {
-            maxWidth: 440,
+            maxWidth: variables.receiptPreviewMaxWidth,
             aspectRatio: 16 / 9,
             height: 'auto',
         },
@@ -6208,6 +6204,10 @@ const dynamicStyles = (theme: ThemeColors) =>
                 overflow: 'hidden',
             };
         },
+
+        getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
+
+        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
     }) satisfies DynamicStyles;
 
 // Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects

@@ -21,12 +21,12 @@ function ConfirmDelegateMagicCodePage({route}: ConfirmDelegateMagicCodePageProps
     const {translate} = useLocalize();
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
     const addDelegateErrors = account?.delegatedAccess?.errorFields?.addDelegate?.[login];
     const validateLoginError = getLatestError(addDelegateErrors);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     useEffect(() => {
         if (!currentDelegate || !!currentDelegate.pendingFields?.email || !!addDelegateErrors) {
