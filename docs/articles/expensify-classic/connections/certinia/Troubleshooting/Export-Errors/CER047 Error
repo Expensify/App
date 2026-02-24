@@ -2,7 +2,7 @@
 title: CER047 Error: Ops Edit Permission Is Required to Edit Approved Records
 description: Learn why CER047 appears when exporting expenses to Certinia and how to enable the Expense Ops Edit permission to restore syncing.
 keywords: CER047, Certinia error CER047, Ops Edit permission, Expense Ops Edit, approved records, Certinia export error, Sync Now, Workspace Admin
-internalScope: Audience is Workspace Admins using the Certinia integration. Covers resolving the CER047 Ops Edit permission error and re-syncing the Workspace. Does not cover unrelated Certinia errors or general Certinia permission setup.
+internalScope: Audience is Workspace Admins using the Certinia integration. Covers resolving the CER047 Ops Edit permission error and re-syncing the Workspace. Does not cover unrelated Certinia errors or general Certinia permission configuration.
 ---
 
 # CER047 Error: Ops Edit Permission Is Required to Edit Approved Records
@@ -42,8 +42,6 @@ You must have access to manage permission sets in Certinia (typically a Certinia
 5. Ensure **Expense Ops Edit** is enabled.
 6. Save your changes.
 
-**ADD A SCREENSHOT HERE.** Suggestion: Certinia Permission Controls screen highlighting Expense Ops Edit enabled.
-
 This permission allows users to modify approved records, which is required for exporting expenses from Expensify.
 
 ---
@@ -58,8 +56,6 @@ After enabling the permission, re-sync the connection in Expensify.
 4. Select your Workspace.
 5. Click **Accounting**.
 6. Click **Sync Now**.
-
-**ADD A SCREENSHOT HERE.** Suggestion: Workspace Accounting page showing Sync Now button.
 
 ---
 
@@ -83,12 +79,12 @@ No. The expense remains in Expensify. The export failed because Certinia blocked
 
 ---
 
-## Do I need to reconnect the Certinia integration?
-
-No. In most cases, enabling **Expense Ops Edit** and selecting **Sync Now** resolves the issue.
-
----
-
 ## Is CER047 caused by Expensify settings?
 
 No. CER047 is triggered by missing permissions in Certinia, not by Workspace settings in Expensify.
+
+---
+
+## Do I need to reconnect the Certinia integration?
+
+No. In most cases, enabling **Expense Ops Edit** and selecting **Sync Now** resolves the issue.
