@@ -2228,6 +2228,7 @@ const CONST = {
     },
 
     IMAGE_CACHE_FILE_TYPES: {
+        'image/webp': 'webp',
         'image/png': 'png',
         'image/apng': 'png',
         'image/avif': 'avif',

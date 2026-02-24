@@ -2,7 +2,7 @@ import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import {getImageCacheFileExtension, isLocalAttachment} from '@libs/AttachmentUtils';
+import {getImageCacheFileExtension, isInternalAttachment} from '@libs/AttachmentUtils';
 import Log from '@libs/Log';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
@@ -33,7 +33,7 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
         return;
     }
 
-    const attachmentURL = isLocalAttachment(uri) ? addEncryptedAuthTokenToURL(tryResolveUrlFromApiRoot(uri)) : uri;
+    const attachmentURL = isInternalAttachment(uri) ? addEncryptedAuthTokenToURL(tryResolveUrlFromApiRoot(uri)) : uri;
 
     try {
         // HEAD first to validate size and type before downloading

@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import {getImageCacheFileExtension, isLocalAttachment} from '@libs/AttachmentUtils';
+import {getImageCacheFileExtension, isInternalAttachment} from '@libs/AttachmentUtils';
 import CacheAPI from '@libs/CacheAPI';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps} from './types';
 
 async function cacheAttachment({attachmentID, uri}: CacheAttachmentProps): Promise<void> {
-    const attachmentURL = isLocalAttachment(uri) ? addEncryptedAuthTokenToURL(tryResolveUrlFromApiRoot(uri)) : uri;
+    const attachmentURL = isInternalAttachment(uri) ? addEncryptedAuthTokenToURL(tryResolveUrlFromApiRoot(uri)) : uri;
 
     try {
         const response = await fetch(attachmentURL);

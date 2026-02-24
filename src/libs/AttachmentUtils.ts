@@ -102,7 +102,7 @@ function isDirectoryCheck(data: FileObject) {
     return true;
 }
 
-function isLocalAttachment(url: string) {
+function isInternalAttachment(url: string) {
     return new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(url) || url.startsWith('/chat-attachments');
 }
 
@@ -114,5 +114,5 @@ function getImageCacheFileExtension(contentType: string) {
     return imageCacheFileTypes[contentType] ?? '';
 }
 
-export {validateAttachmentFile, isLocalAttachment, getImageCacheFileExtension};
+export {validateAttachmentFile, isInternalAttachment, getImageCacheFileExtension};
 export type {AttachmentValidationResult};
