@@ -113,17 +113,18 @@ function MoneyRequestParticipantsSelector({
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails.login;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const reportAttributesDerived = useReportAttributes();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -133,7 +134,7 @@ function MoneyRequestParticipantsSelector({
     const activeAdminWorkspaces = useMemo(() => getActiveAdminWorkspaces(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const optimisticTransactions = useTransactionDraftValues();
 
@@ -499,7 +500,7 @@ function MoneyRequestParticipantsSelector({
 
     const onSelectRow = useCallback(
         (option: Participant) => {
-            if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID)) {
+            if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID, userBillingGraceEndPeriodCollection)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
                 return;
             }
@@ -511,7 +512,7 @@ function MoneyRequestParticipantsSelector({
 
             addSingleParticipant(option);
         },
-        [isIOUSplit, addParticipantToSelection, addSingleParticipant],
+        [isIOUSplit, addParticipantToSelection, addSingleParticipant, userBillingGraceEndPeriodCollection],
     );
 
     const importContactsButtonComponent = useMemo(() => {
