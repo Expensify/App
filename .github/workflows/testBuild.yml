@@ -161,6 +161,5 @@ jobs:
       BUILD_WEB: ${{ inputs.WEB && 'true' || 'false' }}
       BUILD_IOS: ${{ inputs.IOS && 'true' || 'false' }}
       BUILD_ANDROID: ${{ inputs.ANDROID && 'true' || 'false' }}
-      TRIGGER_ACTOR: ${{ github.actor }}
       FORCE_NATIVE_BUILD: ${{ inputs.FORCE_NATIVE_BUILD && 'true' || 'false' }}
     secrets: inherit
