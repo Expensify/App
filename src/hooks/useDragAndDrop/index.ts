@@ -33,6 +33,7 @@ const useDragAndDrop: UseDragAndDrop = ({
         if (isFocused && !isDisabled) {
             return;
         }
+        setIsDraggingOver(false);
         dragCounter.current = 0;
         if (debounceTimeoutRef.current) {
             clearTimeout(debounceTimeoutRef.current);

@@ -28,7 +28,7 @@ function TransactionStartDateStep() {
 
     const [dateOptionSelected, setDateOptionSelected] = useState(cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const [errorText, setErrorText] = useState('');
-    const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+    const [startDate, setStartDate] = useState(() => cardToAssign?.startDate ?? assignCard?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     const [prevCardToAssign, setPrevCardToAssign] = useState({dateOption: cardToAssign?.dateOption, startDate: cardToAssign?.startDate});
     if (prevCardToAssign.dateOption !== cardToAssign?.dateOption || prevCardToAssign.startDate !== cardToAssign?.startDate) {
         setPrevCardToAssign({dateOption: cardToAssign?.dateOption, startDate: cardToAssign?.startDate});
