@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
@@ -59,13 +59,8 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
         return CONST.EXPENSIFY_CARD.STEP.CARD_NAME;
     }, [isBetaEnabled, isEditing, issueNewCard?.data?.cardType]);
 
-    useEffect(() => {
-        const listener = Keyboard.addListener('keyboardDidShow', () => {
-            formRef.current?.scrollToEnd();
-        });
-        return () => {
-            listener.remove();
-        };
+    const onInputFocus = useCallback(() => {
+        formRef.current?.scrollToEnd();
     }, []);
 
     const submit = useCallback(
@@ -204,6 +199,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
                         currency={issueNewCard?.data?.currency}
                         inputID={INPUT_IDS.LIMIT}
                         displayAsTextInput
+                        onFocus={onInputFocus}
                     />
                 </View>
             </FormProvider>
