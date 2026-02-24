@@ -1,8 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useReducer, useRef, useState} from 'react';
-import {PanResponder, StyleSheet, View} from 'react-native';
+import {PanResponder, View} from 'react-native';
 import type {LayoutRectangle} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import type Webcam from 'react-webcam';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -270,11 +269,6 @@ function IOURequestStepOdometerImage({
         [],
     );
 
-    const blinkOpacity = useSharedValue(0);
-    const blinkStyle = useAnimatedStyle(() => ({
-        opacity: blinkOpacity.get(),
-    }));
-
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
@@ -359,10 +353,6 @@ function IOURequestStepOdometerImage({
                                 <RenderHTML html={snapPhotoText} />
                             </View>
                         </View>
-                        <Animated.View
-                            pointerEvents="none"
-                            style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
-                        />
                     </View>
                 )}
             </View>
