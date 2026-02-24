@@ -24,16 +24,15 @@ type FABPopoverMenuProps = {
     onItemSelected: () => void;
     onModalHide: () => void;
     anchorRef: RefObject<View | HTMLDivElement | null>;
-    fromSidebarMediumScreen?: boolean;
     animationInTiming?: number;
     animationOutTiming?: number;
     children: React.ReactNode;
 };
 
-function FABPopoverMenu({isVisible, onClose, onItemSelected, onModalHide, anchorRef, fromSidebarMediumScreen, animationInTiming, animationOutTiming, children}: FABPopoverMenuProps) {
+function FABPopoverMenu({isVisible, onClose, onItemSelected, onModalHide, anchorRef, animationInTiming, animationOutTiming, children}: FABPopoverMenuProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const anchorPosition = styles.createMenuPositionSidebar(windowHeight);
 
@@ -96,7 +95,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, onModalHide, anchor
                 onClose={onClose}
                 isVisible={isVisible}
                 onModalHide={onModalHide}
-                fromSidebarMediumScreen={fromSidebarMediumScreen}
+                fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 animationIn="fadeIn"
                 animationOut="fadeOut"
                 animationInTiming={animationInTiming}

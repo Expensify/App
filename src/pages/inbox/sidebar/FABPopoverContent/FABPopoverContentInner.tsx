@@ -1,5 +1,4 @@
 import React from 'react';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import FABPopoverMenu from './FABPopoverMenu';
 import CreateReportMenuItem from './menuItems/CreateReportMenuItem';
@@ -19,8 +18,6 @@ type FABPopoverContentInnerExtraProps = FABPopoverContentInnerProps & {
 };
 
 function FABPopoverContentInner({isVisible, onClose, onItemSelected, onModalHide, anchorRef, reportID, activePolicyID}: FABPopoverContentInnerExtraProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
     return (
         <FABPopoverMenu
             isVisible={isVisible}
@@ -28,7 +25,6 @@ function FABPopoverContentInner({isVisible, onClose, onItemSelected, onModalHide
             onItemSelected={onItemSelected}
             onModalHide={onModalHide}
             anchorRef={anchorRef}
-            fromSidebarMediumScreen={!shouldUseNarrowLayout}
             animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
             animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
         >
