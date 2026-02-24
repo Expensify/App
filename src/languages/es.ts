@@ -1140,6 +1140,18 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer) => `${payer ? `${payer} ` : ''}pagó con la billetera`,
         automaticallyPaidWithExpensify: (payer) =>
             `${payer ? `${payer} ` : ''}pagó con Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
+        reimbursedThisReport: 'reembolsó este informe',
+        paidThisBill: 'pagó esta factura',
+        reimbursedOnBehalfOf: (actor: string) => `en nombre de ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `desde la cuenta bancaria terminada en ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} añadió una cuenta bancaria, quitando el informe de espera. El reembolso se ha iniciado`,
+        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
+            `. El dinero está en camino a ${recipient}${creditBankAccount ? ` cuenta bancaria terminada en ${creditBankAccount}` : ' cuenta'}. Se estima que el reembolso se completará el ${expectedDate}.`,
+        reimbursedWithCheck: ' mediante cheque.',
+        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
+            `. El dinero está en camino a ${recipient}${creditBankAccount ? ` cuenta bancaria terminada en ${creditBankAccount}` : ' cuenta'} (pagado mediante ${paymentMethod}). Esto puede tardar hasta 10 días hábiles.`,
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` con depósito directo (ACH)${creditBankAccount ? ` a la cuenta bancaria terminada en ${creditBankAccount}. ` : '. '}${expectedDate ? `Se estima que el reembolso se completará para el ${expectedDate}.` : 'Esto generalmente toma de 4 a 5 días hábiles.'}`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheExpense: 'cambió el gasto',

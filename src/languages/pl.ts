@@ -1289,6 +1289,18 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}zapłacono z portfela`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}zapłacono przez Expensify za pomocą <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reguł przestrzeni roboczej</a>`,
+        reimbursedThisReport: 'zwrócił środki za ten raport',
+        paidThisBill: 'opłacił ten rachunek',
+        reimbursedOnBehalfOf: (actor: string) => `w imieniu ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `z konta bankowego kończącego się na ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} dodał konto bankowe, usuwając raport z zawieszenia. Zwrot środków został zainicjowany`,
+        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
+            `. Pieniądze są w drodze do ${recipient}${creditBankAccount ? ` konta bankowego kończącego się na ${creditBankAccount}` : ' konta'}. Zwrot środków powinien zostać zrealizowany do ${expectedDate}.`,
+        reimbursedWithCheck: ' czekiem.',
+        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
+            `. Pieniądze są w drodze do ${recipient}${creditBankAccount ? ` konta bankowego kończącego się na ${creditBankAccount}` : ' konta'} (płatność przez ${paymentMethod}). Może to potrwać do 10 dni roboczych.`,
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` przelewem bezpośrednim (ACH)${creditBankAccount ? ` na konto bankowe kończące się na ${creditBankAccount}. ` : '. '}${expectedDate ? `Oczekuje się, że zwrot środków zostanie zrealizowany do ${expectedDate}.` : 'Zazwyczaj zajmuje to 4-5 dni roboczych.'}`,
         noReimbursableExpenses: 'Ten raport ma nieprawidłową kwotę',
         pendingConversionMessage: 'Suma zaktualizuje się, gdy wrócisz do trybu online',
         changedTheExpense: 'zmienił(a) wydatek',

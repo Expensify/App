@@ -1287,6 +1287,18 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}pago com carteira`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}pagos com Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
+        reimbursedThisReport: 'reembolsou este relatório',
+        paidThisBill: 'pagou esta conta',
+        reimbursedOnBehalfOf: (actor: string) => `em nome de ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `da conta bancária terminada em ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} adicionou uma conta bancária, removendo o relatório da espera. O reembolso foi iniciado`,
+        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
+            `. O dinheiro está a caminho de ${recipient}${creditBankAccount ? ` conta bancária terminada em ${creditBankAccount}` : ' conta'}. O reembolso deve ser concluído em ${expectedDate}.`,
+        reimbursedWithCheck: ' via cheque.',
+        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
+            `. O dinheiro está a caminho de ${recipient}${creditBankAccount ? ` conta bancária terminada em ${creditBankAccount}` : ' conta'} (pago via ${paymentMethod}). Isso pode levar até 10 dias úteis.`,
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` por depósito direto (ACH)${creditBankAccount ? ` para a conta bancária terminada em ${creditBankAccount}. ` : '. '}${expectedDate ? `O reembolso deve ser concluído até ${expectedDate}.` : 'Geralmente leva 4 a 5 dias úteis.'}`,
         noReimbursableExpenses: 'Este relatório tem um valor inválido',
         pendingConversionMessage: 'O total será atualizado quando você voltar a ficar online',
         changedTheExpense: 'alterou a despesa',

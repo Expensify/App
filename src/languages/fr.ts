@@ -1296,6 +1296,18 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}payé avec le portefeuille`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}payé avec Expensify via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l’espace de travail</a>`,
+        reimbursedThisReport: 'a remboursé ce rapport',
+        paidThisBill: 'a payé cette facture',
+        reimbursedOnBehalfOf: (actor: string) => `au nom de ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `depuis le compte bancaire se terminant par ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} a ajouté un compte bancaire, libérant le rapport de l’attente. Le remboursement est lancé`,
+        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
+            `. L’argent est en route vers ${recipient}${creditBankAccount ? ` compte bancaire se terminant par ${creditBankAccount}` : ' compte'}. Le remboursement devrait être terminé le ${expectedDate}.`,
+        reimbursedWithCheck: ' par chèque.',
+        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
+            `. L’argent est en route vers ${recipient}${creditBankAccount ? ` compte bancaire se terminant par ${creditBankAccount}` : ' compte'} (payé par ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrables.`,
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` par virement bancaire (ACH)${creditBankAccount ? ` vers le compte bancaire se terminant par ${creditBankAccount}. ` : '. '}${expectedDate ? `Le remboursement devrait être terminé d’ici le ${expectedDate}.` : 'Cela prend généralement 4 à 5 jours ouvrables.'}`,
         noReimbursableExpenses: 'Cette note de frais a un montant non valide',
         pendingConversionMessage: 'Le total sera mis à jour quand vous serez de nouveau en ligne',
         changedTheExpense: 'a modifié la dépense',

@@ -1264,6 +1264,18 @@ const translations: TranslationDeepObject<typeof en> = {
         paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}标记为已支付${comment ? `，内容为“${comment}”` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}用钱包支付`,
         automaticallyPaidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}已通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>使用 Expensify 支付`,
+        reimbursedThisReport: '已报销此报告',
+        paidThisBill: '已支付此账单',
+        reimbursedOnBehalfOf: (actor: string) => `代表${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `从尾号为${debitBankAccount}的银行账户`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter}已添加银行账户，报告已解除搁置。报销已启动`,
+        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
+            `。资金正在转入${recipient}${creditBankAccount ? `的尾号为${creditBankAccount}的银行账户` : '的账户'}。预计报销将于${expectedDate}完成。`,
+        reimbursedWithCheck: ' 通过支票。',
+        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
+            `。资金正在转入${recipient}${creditBankAccount ? `的尾号为${creditBankAccount}的银行账户` : '的账户'}（通过${paymentMethod}支付）。最多可能需要10个工作日。`,
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` 通过直接存款（ACH）${creditBankAccount ? `转至尾号为${creditBankAccount}的银行账户。` : '。'}${expectedDate ? `预计报销将于${expectedDate}前完成。` : '通常需要4-5个工作日。'}`,
         noReimbursableExpenses: '此报表的金额无效',
         pendingConversionMessage: '当你重新联网时，总金额会更新',
         changedTheExpense: '更改了报销单',

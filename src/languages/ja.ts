@@ -1285,6 +1285,18 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}ウォレットで支払い済み`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}は<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>経由でExpensifyにより支払われました`,
+        reimbursedThisReport: 'はこのレポートを払い戻しました',
+        paidThisBill: 'はこの請求を支払いました',
+        reimbursedOnBehalfOf: (actor: string) => `${actor}の代わりに`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `末尾が${debitBankAccount}の銀行口座から`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter}が銀行口座を追加し、レポートの保留が解除されました。払い戻しが開始されました`,
+        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
+            `。${recipient}${creditBankAccount ? `の末尾が${creditBankAccount}の銀行口座` : 'の口座'}へ送金中です。払い戻しは${expectedDate}までに完了する予定です。`,
+        reimbursedWithCheck: ' 小切手にて。',
+        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
+            `。${recipient}${creditBankAccount ? `の末尾が${creditBankAccount}の銀行口座` : 'の口座'}へ送金中です（${paymentMethod}経由）。最大10営業日かかる場合があります。`,
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` 銀行振込（ACH）${creditBankAccount ? `で末尾が${creditBankAccount}の銀行口座へ。` : 'にて。'}${expectedDate ? `払い戻しは${expectedDate}までに完了する予定です。` : '通常4〜5営業日かかります。'}`,
         noReimbursableExpenses: 'このレポートには無効な金額が含まれています',
         pendingConversionMessage: 'オンラインに戻ると合計が更新されます',
         changedTheExpense: '経費を変更しました',

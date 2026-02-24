@@ -1291,6 +1291,18 @@ const translations: TranslationDeepObject<typeof en> = {
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}pagato con portafoglio`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}pagato con Expensify tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
+        reimbursedThisReport: 'ha rimborsato questo rapporto',
+        paidThisBill: 'ha pagato questa fattura',
+        reimbursedOnBehalfOf: (actor: string) => `per conto di ${actor}`,
+        reimbursedFromBankAccount: (debitBankAccount: string) => `dal conto bancario che termina con ${debitBankAccount}`,
+        reimbursedSubmitterAddedBankAccount: (submitter: string) => `${submitter} ha aggiunto un conto bancario, rimuovendo il rapporto dalla sospensione. Il rimborso è stato avviato`,
+        reimbursedWithFastACH: ({recipient, creditBankAccount, expectedDate}: {recipient: string; creditBankAccount: string; expectedDate: string}) =>
+            `. Il denaro è in arrivo a ${recipient}${creditBankAccount ? ` conto bancario che termina con ${creditBankAccount}` : ' conto'}. Si stima che il rimborso sarà completato il ${expectedDate}.`,
+        reimbursedWithCheck: ' tramite assegno.',
+        reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
+            `. Il denaro è in arrivo a ${recipient}${creditBankAccount ? ` conto bancario che termina con ${creditBankAccount}` : ' conto'} (pagato tramite ${paymentMethod}). Potrebbe richiedere fino a 10 giorni lavorativi.`,
+        reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
+            ` con deposito diretto (ACH)${creditBankAccount ? ` al conto bancario che termina con ${creditBankAccount}. ` : '. '}${expectedDate ? `Si stima che il rimborso sarà completato entro il ${expectedDate}.` : 'In genere richiede 4-5 giorni lavorativi.'}`,
         noReimbursableExpenses: 'Questo rendiconto contiene un importo non valido',
         pendingConversionMessage: 'Il totale verrà aggiornato quando torni online',
         changedTheExpense: 'ha modificato la spesa',
