@@ -50,7 +50,7 @@ function ExportWithDropdownMenu({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
-    const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD, {canBeMissing: true});
+    const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare']);
 
     const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
