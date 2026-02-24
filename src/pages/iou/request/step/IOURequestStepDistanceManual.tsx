@@ -291,7 +291,7 @@ function IOURequestStepDistanceManual({
         }
 
         navigateToNextPage(value);
-    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam]);
+    }, [navigateToNextPage, translate]);
 
     useEffect(() => {
         if (isLoadingSelectedTab) {
