@@ -178,7 +178,6 @@ const SCREENS = {
 
         WALLET: {
             ROOT: 'Settings_Wallet',
-            VERIFY_ACCOUNT: 'Settings_Wallet_VerifyAccount',
             DOMAIN_CARD: 'Settings_Wallet_DomainCard',
             DOMAIN_CARD_CONFIRM_MAGIC_CODE: 'Settings_Wallet_DomainCard_ConfirmMagicCode',
             CARD_MISSING_DETAILS: 'Settings_Wallet_Card_MissingDetails',
@@ -941,6 +940,7 @@ const SCREENS = {
         ADD_ADMIN: 'Domain_Add_Admin',
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
+        VACATION_DELEGATE: 'Vacation_Delegate',
         RESET_DOMAIN: 'Domain_Reset',
         ADD_MEMBER: 'Domain_Add_Member',
         MEMBERS_SETTINGS: 'Members_Settings',
