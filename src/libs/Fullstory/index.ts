@@ -1,5 +1,4 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
-import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
 import {getChatFSClass, shouldInitializeFullstory} from './common';
@@ -32,7 +31,10 @@ const FS: Fullstory = {
             }
         }),
 
-    shouldInitialize: (userMetadata, envName) => shouldInitializeFullstory(userMetadata, envName) && !Session.isSupportAuthToken(),
+    // Lazy require to avoid circular dependency with Session (Session imports Fullstory)
+    shouldInitialize: (userMetadata, envName) =>
+        shouldInitializeFullstory(userMetadata, envName) &&
+        !(require('@userActions/Session') as {isSupportAuthToken: () => boolean}).isSupportAuthToken(),
 
     consent: (shouldConsent) => FullStory(CONST.FULLSTORY.OPERATION.SET_IDENTITY, {consent: shouldConsent}),
 

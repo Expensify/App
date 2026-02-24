@@ -30,7 +30,6 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import FraudProtection from '@libs/FraudProtection';
-import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -97,10 +96,13 @@ Onyx.connect({
     },
 });
 
-// Use connectWithoutView because it is only for fullstory initialization
+// Use connectWithoutView because it is only for fullstory initialization.
+// Lazy require to avoid circular dependency (Fullstory imports Session for isSupportAuthToken).
 Onyx.connectWithoutView({
     key: ONYXKEYS.USER_METADATA,
-    callback: Fullstory.consentAndIdentify,
+    callback: (value) => {
+        require('@libs/Fullstory').default.consentAndIdentify(value);
+    },
 });
 
 let stashedSession: Session = {};
