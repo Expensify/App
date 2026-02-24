@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -27,10 +27,11 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
-
-    useEffect(() => {
+    const [prevInitialItems, setPrevInitialItems] = useState(initiallySelectedItems);
+    if (prevInitialItems !== initiallySelectedItems) {
+        setPrevInitialItems(initiallySelectedItems);
         setSelectedItems(initiallySelectedItems ?? []);
-    }, [initiallySelectedItems]);
+    }
 
     const selectedItemsSection = selectedItems
         .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
