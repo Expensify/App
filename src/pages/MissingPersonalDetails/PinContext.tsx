@@ -8,12 +8,6 @@ type PinContextType = {
     /** Set the PIN value */
     setPin: (pin: string) => void;
 
-    /** Whether the PIN has been verified (confirmed by user entering it twice) */
-    isVerified: boolean;
-
-    /** Set the verification status */
-    setIsVerified: (verified: boolean) => void;
-
     /** Clear the PIN and reset verification status */
     clearPin: () => void;
 };
@@ -31,11 +25,9 @@ type PinContextProviderProps = {
  */
 function PinContextProvider({children}: PinContextProviderProps) {
     const [pin, setPin] = useState('');
-    const [isVerified, setIsVerified] = useState(false);
 
     const clearPin = useCallback(() => {
         setPin('');
-        setIsVerified(false);
     }, []);
 
     // Clear PIN when the context provider unmounts (user leaves the flow)
@@ -49,11 +41,9 @@ function PinContextProvider({children}: PinContextProviderProps) {
         () => ({
             pin,
             setPin,
-            isVerified,
-            setIsVerified,
             clearPin,
         }),
-        [pin, isVerified, clearPin],
+        [pin, clearPin],
     );
 
     return <PinContext.Provider value={value}>{children}</PinContext.Provider>;
@@ -70,6 +60,8 @@ function usePin(): PinContextType {
     }
     return context;
 }
+
+PinContextProvider.displayName = 'PinContextProvider';
 
 export {PinContextProvider, usePin};
 export type {PinContextType};

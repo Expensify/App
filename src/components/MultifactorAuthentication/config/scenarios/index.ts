@@ -3,20 +3,17 @@ import type {MultifactorAuthenticationScenarioConfigRecord} from '@components/Mu
 import CONST from '@src/CONST';
 import BiometricsTest from './BiometricsTest';
 import {customConfig} from './DefaultUserInterface';
+import type {Payload as SetPinOrderCardPayload} from './SetPinOrderCard';
 import SetPinOrderCard from './SetPinOrderCard';
 
 /**
  * Payload types for multifactor authentication scenarios.
- * Since the BiometricsTest does not require any payload, it is an empty object for now.
- * The AuthorizeTransaction Scenario will change it, as it needs the transactionID to be provided as well.
- *
- * {
- *     "AUTHORIZE-TRANSACTION": {
- *         transactionID: string;
- *     }
- * }
+ * Each scenario that requires additional parameters should have its payload type defined here.
  */
-type Payloads = EmptyObject;
+type Payloads = {
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: EmptyObject;
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: SetPinOrderCardPayload;
+};
 
 /**
  * Configuration records for all multifactor authentication scenarios.

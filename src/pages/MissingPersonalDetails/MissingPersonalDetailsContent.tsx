@@ -12,6 +12,8 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
+import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/PersonalDetails';
+import type SetPersonalDetailsAndShipExpensifyCardsParams from '@libs/API/parameters/SetPersonalDetailsAndShipExpensifyCardsParams';
 import {isExpensifyCardUkEuSupported} from '@libs/CardUtils';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
-import {PinContextProvider} from './PinContext';
+import {usePin} from './PinContext';
 import Address from './subPages/Address';
 import Confirmation from './subPages/Confirmation';
 import DateOfBirth from './subPages/DateOfBirth';
@@ -60,10 +62,12 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const {isOffline} = useNetwork();
     const {executeScenario} = useMultifactorAuthentication();
     const {translate} = useLocalize();
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const card = cardList?.[Number(cardID)];
+    const {pin} = usePin();
 
-    const isUKEUCard = isExpensifyCardUkEuSupported(card);
+    const isUKEUCard = !!cardID && isExpensifyCardUkEuSupported(card);
 
     // Build form pages dynamically based on whether this is a UK/EU card
     const formPages = useMemo(() => {
@@ -80,20 +84,20 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const startFrom = useMemo(() => findPageIndex<CustomSubPageProps>(formPages, getInitialSubPage(values)), [formPages, values]);
 
     const handleFinishStep = () => {
-        if (!values) {
-            return;
-        }
         if (isUKEUCard) {
             if (isOffline) {
                 return;
             }
 
+            const personalDetailsParams: Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
+
             // The reason for using it, despite it being deprecated: https://github.com/Expensify/App/pull/79473/files#r2745847379
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() =>
                 executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD, {
-                    ...values,
-                    pin: '1231',
+                    ...personalDetailsParams,
+                    pin,
+                    cardID: cardID ?? '',
                 }),
             );
         } else {
@@ -127,7 +131,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         prevPage();
     };
 
-    const content = (
+    return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
@@ -154,13 +158,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             />
         </ScreenWrapper>
     );
-
-    // Wrap with PinContextProvider for UK/EU cards to manage PIN state
-    if (isUKEUCard) {
-        return <PinContextProvider>{content}</PinContextProvider>;
-    }
-
-    return content;
 }
 
 export default MissingPersonalDetailsContent;

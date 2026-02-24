@@ -3013,9 +3013,7 @@ type MissingPersonalDetailsParamList = {
         subPage?: string;
         action?: 'edit';
     };
-    [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
-        cardID?: string;
-    };
+    [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: undefined;
 };
 
 type SplitExpenseParamList = {

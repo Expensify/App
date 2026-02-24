@@ -3356,15 +3356,7 @@ const ROUTES = {
             return `missing-personal-details/${cardID}/${subPage}${action ? `/${action}` : ''}` as const;
         },
     },
-    MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: {
-        route: 'missing-personal-details/:cardID?/confirm-magic-code',
-        getRoute: (cardID?: string) => {
-            if (!cardID) {
-                return 'missing-personal-details/confirm-magic-code' as const;
-            }
-            return `missing-personal-details/${cardID}/confirm-magic-code` as const;
-        },
-    },
+    MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'missing-personal-details/confirm-magic-code',
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'workspaces/:policyID/accounting/netsuite/subsidiary-selector',
         getRoute: (policyID: string | undefined) => {

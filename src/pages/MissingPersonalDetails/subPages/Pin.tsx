@@ -14,14 +14,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * PIN entry step for UK/EU Expensify Card ordering flow.
- * Implements a two-page flow where user enters PIN, then confirms it.
+ * Implements a flow where user enters PIN, then needs to verify it.
  */
 function Pin({onNext}: CustomSubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {setPin, setIsVerified} = usePin();
+    const {setPin} = usePin();
 
-    // Track whether we're on the initial entry or confirmation step
+    // Track whether we're on the initial entry or verification step
     const [isConfirmStep, setIsConfirmStep] = useState(false);
     const [enteredPin, setEnteredPin] = useState('');
     const [confirmPin, setConfirmPin] = useState('');
@@ -65,18 +65,17 @@ function Pin({onNext}: CustomSubPageProps) {
         }
 
         if (!isConfirmStep) {
-            // Move to confirmation step
+            // Move to verification step
             setIsConfirmStep(true);
             setConfirmPin('');
             setError('');
             return;
         }
 
-        // PIN confirmed, save it and proceed
+        // PIN verified, save it and proceed
         setPin(confirmPin);
-        setIsVerified(true);
         onNext();
-    }, [validatePin, isConfirmStep, confirmPin, setPin, setIsVerified, onNext]);
+    }, [validatePin, isConfirmStep, confirmPin, setPin, onNext]);
 
     const togglePinVisibility = useCallback(() => {
         setIsPinHidden((prev) => !prev);

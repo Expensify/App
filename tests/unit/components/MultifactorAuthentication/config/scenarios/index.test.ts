@@ -29,7 +29,6 @@ describe('MultifactorAuthentication Scenarios Config', () => {
         for (const scenarioConfig of Object.values(config)) {
             expect(scenarioConfig).toHaveProperty('action');
             expect(scenarioConfig).toHaveProperty('allowedAuthenticationMethods');
-            expect(scenarioConfig).toHaveProperty('screen');
         }
     });
 

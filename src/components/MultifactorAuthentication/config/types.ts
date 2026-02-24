@@ -89,7 +89,7 @@ type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknow
 type MultifactorAuthenticationScenarioBase<T extends Record<string, unknown> = EmptyObject> = {
     action: MultifactorAuthenticationScenarioPureMethod<T>;
     allowedAuthenticationMethods: Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>;
-    screen: MultifactorAuthenticationScreen;
+    screen?: MultifactorAuthenticationScreen;
 
     /**
      * Whether the scenario does not require any additional parameters except for the native biometrics data.

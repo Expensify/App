@@ -6,7 +6,7 @@ type CustomSubPageProps = SubPageProps & {
     personalDetailsValues: PersonalDetailsForm;
 
     /** Whether this is a UK/EU card (requires PIN) */
-    isUKEUCard?: boolean;
+    isUKEUCard: boolean;
 };
 
 type CountryZipRegex = {

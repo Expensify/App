@@ -48,7 +48,12 @@ function IssueCardMessage({action, policyID, shouldNavigateToCardDetails}: Issue
             />
             {shouldShowAddMissingDetailsButton && (
                 <Button
-                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(expensifyCard?.cardID ? String(expensifyCard.cardID) : undefined))}
+                    onPress={() => {
+                        if (!expensifyCard?.cardID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(expensifyCard.cardID)));
+                    }}
                     success
                     style={[styles.alignSelfStart, styles.mt3]}
                     text={translate('workspace.expensifyCard.addShippingDetails')}

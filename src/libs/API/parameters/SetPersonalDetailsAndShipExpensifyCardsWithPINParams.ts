@@ -1,8 +1,7 @@
-import type SetPersonalDetailsAndShipExpensifyCardsParams from './SetPersonalDetailsAndShipExpensifyCardsParams';
+import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
 
-type SetPersonalDetailsAndShipExpensifyCardsWithPINParams = SetPersonalDetailsAndShipExpensifyCardsParams & {
-    pin: string;
-    signedChallenge?: string;
+type SetPersonalDetailsAndShipExpensifyCardsWithPINParams = Omit<MultifactorAuthenticationScenarioParameters['SET-PIN-ORDER-CARD'], 'signedChallenge'> & {
+    signedChallenge: string;
 };
 
 export default SetPersonalDetailsAndShipExpensifyCardsWithPINParams;

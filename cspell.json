@@ -830,7 +830,8 @@
         "pgrep",
         "skia",
         "canvaskit",
-        "Invoicify"
+        "Invoicify",
+        "UKEU"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

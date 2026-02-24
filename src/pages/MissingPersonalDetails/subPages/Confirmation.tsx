@@ -54,7 +54,6 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
             },
         ];
 
-        // Add PIN row for UK/EU cards
         if (isUKEUCard) {
             baseItems.push({
                 description: translate('common.pin'),

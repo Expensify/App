@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import {areAllExpensifyCardsShipped} from '@selectors/Card';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
@@ -10,21 +9,16 @@ import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/acti
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MissingPersonalDetailsParamList} from '@libs/Navigation/types';
 import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import {primaryLoginSelector} from '@src/selectors/Account';
 import type {PersonalDetailsForm} from '@src/types/form';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubPageValues} from './utils';
 
 function MissingPersonalDetailsMagicCodePage() {
-    const route = useRoute<PlatformStackRouteProp<MissingPersonalDetailsParamList, typeof SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE>>();
-    const cardID = route.params?.cardID;
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
@@ -75,7 +69,7 @@ function MissingPersonalDetailsMagicCodePage() {
             clearError={clearError}
             onClose={() => {
                 resetValidateActionCodeSent();
-                Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID));
+                Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute());
             }}
             isLoading={privatePersonalDetails?.isLoading}
         />
