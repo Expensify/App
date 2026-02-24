@@ -73,8 +73,8 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
     settingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
     oldSettingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
 ) {
-    const exporterOptimisticData = settingName === CONST.NETSUITE_CONFIG.EXPORTER ? {exporter: settingValue as unknown as string} : {};
-    const exporterErrorData = settingName === CONST.NETSUITE_CONFIG.EXPORTER ? {exporter: oldSettingValue as unknown as string} : {};
+    const exporterOptimisticData = settingName === CONST.NETSUITE_CONFIG.EXPORTER && typeof settingValue === 'string' ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === CONST.NETSUITE_CONFIG.EXPORTER && typeof oldSettingValue === 'string' ? {exporter: oldSettingValue} : {};
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
