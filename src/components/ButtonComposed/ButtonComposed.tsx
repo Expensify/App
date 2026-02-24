@@ -105,11 +105,8 @@ type ButtonComposedStyleProps = {
     /** The visual variant of the button */
     variant?: ButtonComposedVariant;
 
-    /** Should we remove the right border radius top + bottom? */
-    shouldRemoveRightBorderRadius?: boolean;
-
-    /** Should we remove the left border radius top + bottom? */
-    shouldRemoveLeftBorderRadius?: boolean;
+    /** Should we remove the border radius on a specific side? */
+    shouldRemoveBorderRadius?: 'left' | 'right' | 'all';
 };
 
 type ButtonComposedProps = WithSentryLabel &
@@ -202,8 +199,7 @@ function ButtonComposed({
     shouldUseDefaultHover = true,
     hoverStyles = undefined,
     variant,
-    shouldRemoveRightBorderRadius = false,
-    shouldRemoveLeftBorderRadius = false,
+    shouldRemoveBorderRadius,
     shouldEnableHapticFeedback = false,
     isLongPressDisabled = false,
     id = '',
@@ -240,12 +236,12 @@ function ButtonComposed({
             variant === 'danger' ? styles.buttonDanger : undefined,
             isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
             isDisabled && variant !== 'danger' && variant !== 'success' && !shouldStayNormalOnDisable ? styles.buttonDisabled : undefined,
-            shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-            shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+            shouldRemoveBorderRadius === 'right' || shouldRemoveBorderRadius === 'all' ? styles.noRightBorderRadius : undefined,
+            shouldRemoveBorderRadius === 'left' || shouldRemoveBorderRadius === 'all' ? styles.noLeftBorderRadius : undefined,
             innerStyles,
             variant === 'link' && styles.bgTransparent,
         ],
-        [variant, innerStyles, isDisabled, shouldRemoveLeftBorderRadius, shouldRemoveRightBorderRadius, styles, shouldStayNormalOnDisable],
+        [variant, innerStyles, isDisabled, shouldRemoveBorderRadius, styles, shouldStayNormalOnDisable],
     );
 
     return (
@@ -299,8 +295,8 @@ function ButtonComposed({
                 wrapperStyle={[
                     isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,
-                    shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-                    shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                    shouldRemoveBorderRadius === 'right' || shouldRemoveBorderRadius === 'all' ? styles.noRightBorderRadius : undefined,
+                    shouldRemoveBorderRadius === 'left' || shouldRemoveBorderRadius === 'all' ? styles.noLeftBorderRadius : undefined,
                     style,
                 ]}
                 style={buttonStyles}

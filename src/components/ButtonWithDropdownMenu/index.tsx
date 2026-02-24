@@ -188,7 +188,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         isDisabled={isDisabled || areAllOptionsDisabled}
                         shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                         isLoading={isLoading}
-                        shouldRemoveRightBorderRadius
+                        shouldRemoveBorderRadius="right"
                         style={isSplitButton ? [styles.flex1, styles.pr0] : {}}
                         size={buttonSize}
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView, isTextTooLong && shouldUseShortForm && {...styles.pl2, ...styles.pr1}]}
