@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 type ManageTripsProps = {
@@ -66,6 +67,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
                         subtitle={translate('travel.subtitle')}
                         illustration={illustrations.EmptyStateTravel}
                         illustrationStyle={[styles.mv4]}
+                        illustrationBackgroundColor={colors.blue600}
                         titleStyles={styles.textHeadlineH1}
                         contentPaddingOnLargeScreens={styles.p5}
                         footer={
