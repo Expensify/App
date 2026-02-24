@@ -11,7 +11,14 @@ import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports,
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
-import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, OpenSearchPageParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
+import type {
+    ExportSearchItemsToCSVParams,
+    ExportSearchWithTemplateParams,
+    OpenBulkChangeApproverPageParams,
+    OpenSearchPageParams,
+    ReportExportParams,
+    SubmitReportParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -389,6 +396,10 @@ function deleteSavedSearch(hash: number) {
 
 function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParams) {
     API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts});
+}
+
+function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
+    API.read(READ_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE, {reportIDList});
 }
 
 let shouldPreventSearchAPI = false;
@@ -1478,6 +1489,7 @@ export {
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
     openSearchPage as openSearch,
+    openBulkChangeApproverPage,
     getLastPolicyPaymentMethod,
     getLastPolicyBankAccountID,
     exportToIntegrationOnSearch,
