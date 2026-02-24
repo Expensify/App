@@ -1,5 +1,5 @@
 import type {PropsWithChildren} from 'react';
-import React, {createContext, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useContext, useMemo, useState} from 'react';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import type {CardList, ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -51,8 +51,9 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
         return errors;
     }, [cardList]);
 
-    // Update error state when error is cleared in Onyx DB
-    useEffect(() => {
+    const [prevCardListErrors, setPrevCardListErrors] = useState(cardListErrors);
+    if (prevCardListErrors !== cardListErrors) {
+        setPrevCardListErrors(cardListErrors);
         setCardsDetailsErrors((prevErrors) => {
             const clearedErrors = {...prevErrors};
             for (const cardID of Object.keys(clearedErrors)) {
@@ -63,7 +64,7 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
             }
             return clearedErrors;
         });
-    }, [cardListErrors]);
+    }
 
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
