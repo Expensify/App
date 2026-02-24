@@ -173,6 +173,7 @@ const deprecatedOldDotReportActions = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.DONATION,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+    CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
 ]);
 
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -1384,6 +1385,75 @@ function getSortedReportActionsForDisplay(
 
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
     return getSortedReportActions(withDEWRoutedActionsArray(baseURLAdjustedReportActions), true);
+}
+
+/**
+ * Returns true if action `a` is newer than action `b`,
+ * matching getSortedReportActions order (descending by timestamp, with CREATED always oldest).
+ */
+function isNewerReportAction(a: ReportAction, b: ReportAction): boolean {
+    if (a.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        return false;
+    }
+    if (b.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        return true;
+    }
+
+    // Undefined created is treated as oldest (mirrors getSortedReportActions which places undefined first in ascending order)
+    if (a.created === undefined && b.created !== undefined) {
+        return false;
+    }
+    if (a.created !== undefined && b.created === undefined) {
+        return true;
+    }
+
+    if (a.created !== b.created) {
+        return a.created > b.created;
+    }
+
+    if (a.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && b.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+        return true;
+    }
+    if (b.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && a.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+        return false;
+    }
+
+    return a.reportActionID > b.reportActionID;
+}
+
+/**
+ * Finds the newest report action matching each of two filter criteria in a single pass.
+ * Returns:
+ * - lastVisibleAction: newest visible action
+ * - lastActionForDisplay: newest displayable action (not CREATED)
+ */
+function findLastReportActions(reportActions: OnyxEntry<ReportActions>, canUserPerformWriteAction?: boolean) {
+    if (!reportActions) {
+        return {lastVisibleAction: undefined, lastActionForDisplay: undefined};
+    }
+
+    let lastVisibleAction: ReportAction | undefined;
+    let lastActionForDisplay: ReportAction | undefined;
+
+    for (const [key, action] of Object.entries(reportActions)) {
+        if (!action) {
+            continue;
+        }
+
+        if (shouldReportActionBeVisible(action, key, canUserPerformWriteAction)) {
+            if (!lastVisibleAction || isNewerReportAction(action, lastVisibleAction)) {
+                lastVisibleAction = action;
+            }
+        }
+
+        if (shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction) && action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            if (!lastActionForDisplay || isNewerReportAction(action, lastActionForDisplay)) {
+                lastActionForDisplay = action;
+            }
+        }
+    }
+
+    return {lastVisibleAction, lastActionForDisplay};
 }
 
 /**
@@ -2696,6 +2766,36 @@ function getWorkspaceTaxUpdateMessage(translate: LocalizedTranslate, action: Rep
             oldValue: normalizeTaxValue(oldValue),
             newValue: normalizeTaxValue(newValue),
         });
+    }
+
+    return getReportActionText(action);
+}
+
+function getCustomTaxNameUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME>) ?? {};
+
+    if (newName) {
+        return translate('workspaceActions.updateCustomTaxName', {oldName, newName});
+    }
+
+    return getReportActionText(action);
+}
+
+function getCurrencyDefaultTaxUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX>) ?? {};
+
+    if (newName) {
+        return translate('workspaceActions.updateCurrencyDefaultTax', {oldName, newName});
+    }
+
+    return getReportActionText(action);
+}
+
+function getForeignCurrencyDefaultTaxUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX>) ?? {};
+
+    if (newName) {
+        return translate('workspaceActions.updateForeignCurrencyDefaultTax', {oldName, newName});
     }
 
     return getReportActionText(action);
@@ -4158,6 +4258,7 @@ export {
     isAddCommentAction,
     isApprovedOrSubmittedReportAction,
     isIOURequestReportAction,
+    isNewerReportAction,
     isChronosOOOListAction,
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
@@ -4243,6 +4344,7 @@ export {
     getCardIssuedMessage,
     getRemovedConnectionMessage,
     getActionableJoinRequestPendingReportAction,
+    findLastReportActions,
     getFilteredReportActionsForReportView,
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
@@ -4266,6 +4368,9 @@ export {
     getUpdateACHAccountMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,

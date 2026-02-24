@@ -31,10 +31,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type NewTaskPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
 
 function NewTaskPage({route}: NewTaskPageProps) {
-    const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [task] = useOnyx(ONYXKEYS.TASK);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
