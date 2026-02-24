@@ -8228,7 +8228,7 @@ ${reportName}
             resetDomain: '重置域名',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `请输入要重置的域名 <strong>${domainName}</strong> 以确认。`,
             enterDomainName: '在此输入您的域名',
-            resetDomainInfo: `此操作<strong>无法撤销</strong>，并将删除以下数据：<br/> <ul><li>公司卡关联以及这些卡上所有未报销的费用</li> <li>SAML 和群组设置</li> </ul> 所有账户、工作区、报表、费用和其他数据将保留。<br/><br/>注意：您可以通过从<a href="#">联系方法</a>中移除关联的邮箱，将此域从您的域名列表中清除。`,
+            resetDomainInfo: `此操作<strong>无法撤销</strong>，并将删除以下数据：<br/> <bullet-list><bullet-item>公司卡关联以及这些卡上所有未报销的费用</bullet-item><bullet-item>SAML 和群组设置</bullet-item></bullet-list> 所有账户、工作区、报表、费用和其他数据将保留。<br/><br/>注意：您可以通过从<a href="#">联系方法</a>中移除关联的邮箱，将此域从您的域名列表中清除。`,
         },
         domainMembers: '域成员',
         members: {
@@ -8247,8 +8247,8 @@ ${reportName}
                 other: '安全关闭账户',
             }),
             closeAccountInfo: () => ({
-                one: '我们建议安全地关闭该账户，以便在存在以下情况时跳过关闭操作：<ul><li>待处理的审批</li><li>正在进行的报销</li><li>没有其他登录方式</li></ul>否则，您可以忽略上述安全预防措施并强制关闭所选账户。',
-                other: '我们建议安全地关闭该账户，以便在存在以下情况时跳过关闭操作：<ul><li>待处理的审批</li><li>正在进行的报销</li><li>没有其他登录方式</li></ul>否则，您可以忽略上述安全预防措施并强制关闭所选账户。',
+                one: '我们建议安全地关闭该账户，以便在存在以下情况时跳过关闭操作：<bullet-list><bullet-item>待处理的审批</bullet-item><bullet-item>正在进行的报销</bullet-item><bullet-item>没有其他登录方式</bullet-item></bullet-list>否则，您可以忽略上述安全预防措施并强制关闭所选账户。',
+                other: '我们建议安全地关闭该账户，以便在存在以下情况时跳过关闭操作：<bullet-list><bullet-item>待处理的审批</bullet-item><bullet-item>正在进行的报销</bullet-item><bullet-item>没有其他登录方式</bullet-item></bullet-list>否则，您可以忽略上述安全预防措施并强制关闭所选账户。',
             }),
             error: {removeMember: '无法移除此用户。请重试。', addMember: '无法添加此成员。请重试。', vacationDelegate: '无法将此用户设置为休假代理人。请重试。'},
             forceTwoFactorAuth: '强制启用双重身份验证',
