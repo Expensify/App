@@ -854,9 +854,9 @@ function revertSplitTransactionOnSearch(
     splitTransactionIDList: string[] = [],
     optimisticRestoredTransaction?: Transaction,
 ) {
-    let optimisticData: OnyxUpdate[] = [];
-    let failureData: OnyxUpdate[] = [];
-    let finallyData: OnyxUpdate[] = [];
+    let optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
+    let failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
+    let finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
 
     if (splitTransactionIDList.length > 0 && optimisticRestoredTransaction) {
         const {optimisticData: loadingOptimisticData, finallyData: loadingFinallyData} = getOnyxLoadingData(hash);
@@ -878,7 +878,7 @@ function revertSplitTransactionOnSearch(
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: optimisticRestoredTransaction,
                 },
             },
-        } as unknown as OnyxUpdate);
+        } as unknown as OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>);
 
         failureData = [
             {
@@ -890,7 +890,7 @@ function revertSplitTransactionOnSearch(
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
                     },
                 },
-            } as unknown as OnyxUpdate,
+            } as unknown as OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>,
         ];
     }
 
