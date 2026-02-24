@@ -1,5 +1,5 @@
 import {format, subDays} from 'date-fns';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -29,16 +29,16 @@ function TransactionStartDateStep() {
     const [dateOptionSelected, setDateOptionSelected] = useState(cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const [errorText, setErrorText] = useState('');
     const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
-
-    useEffect(() => {
+    const [prevCardToAssign, setPrevCardToAssign] = useState({dateOption: cardToAssign?.dateOption, startDate: cardToAssign?.startDate});
+    if (prevCardToAssign.dateOption !== cardToAssign?.dateOption || prevCardToAssign.startDate !== cardToAssign?.startDate) {
+        setPrevCardToAssign({dateOption: cardToAssign?.dateOption, startDate: cardToAssign?.startDate});
         if (cardToAssign?.dateOption) {
             setDateOptionSelected(cardToAssign.dateOption);
         }
-
         if (cardToAssign?.startDate) {
             setStartDate(cardToAssign.startDate);
         }
-    }, [cardToAssign?.dateOption, cardToAssign?.startDate]);
+    }
 
     const handleBackButtonPress = () => {
         if (isEditing) {
