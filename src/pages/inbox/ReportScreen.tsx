@@ -24,6 +24,7 @@ import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWid
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -300,6 +301,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         [reportOnyx, reportNameValuePairsOnyx?.private_isArchived],
     );
     const reportID = report?.reportID;
+    useDocumentTitle(report?.reportName ?? '');
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const prevReport = usePrevious(report);

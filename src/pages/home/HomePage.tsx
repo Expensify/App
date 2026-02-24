@@ -9,6 +9,7 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
@@ -31,6 +32,8 @@ function HomePage() {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
     const {initScanRequest, PDFValidationComponent, ErrorModal} = useReceiptScanDrop();
+
+    useDocumentTitle(translate('common.home'));
 
     // This hook signals that the app is ready to be opened after HomePage mounts
     // to make sure everything loads properly

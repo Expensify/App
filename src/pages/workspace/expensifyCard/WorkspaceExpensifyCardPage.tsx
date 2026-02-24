@@ -1,8 +1,11 @@
 import React, {useCallback, useEffect} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDocumentTitle from '@hooks/useDocumentTitle';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {filterInactiveCards} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -19,6 +22,9 @@ type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNa
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID;
+    const {translate} = useLocalize();
+    const policy = usePolicy(policyID);
+    useDocumentTitle(policy?.name ? `${policy.name} - ${translate('workspace.common.expensifyCard')}` : '');
     const defaultFundID = useDefaultFundID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);

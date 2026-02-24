@@ -23,6 +23,7 @@ import useAllTransactions from '@hooks/useAllTransactions';
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -225,6 +226,8 @@ function SearchPage({route}: SearchPageProps) {
     useEffect(() => {
         updateAdvancedFilters(formValues, true);
     }, [formValues]);
+
+    useDocumentTitle(translate('common.search'));
 
     useConfirmReadyToOpenApp();
 

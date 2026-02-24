@@ -1,11 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import usePolicy from '@hooks/usePolicy';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
@@ -20,6 +22,8 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['InvoiceBlue']);
+    const policy = usePolicy(route.params.policyID);
+    useDocumentTitle(policy?.name ? `${policy.name} - ${translate('workspace.common.invoices')}` : '');
 
     return (
         <AccessOrNotFoundWrapper

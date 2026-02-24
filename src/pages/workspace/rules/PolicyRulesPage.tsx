@@ -1,7 +1,9 @@
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
@@ -19,6 +21,8 @@ type PolicyRulesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorPara
 function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {translate} = useLocalize();
     const {policyID} = route.params;
+    const policy = usePolicy(policyID);
+    useDocumentTitle(policy?.name ? `${policy.name} - ${translate('workspace.common.rules')}` : '');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Rules']);
