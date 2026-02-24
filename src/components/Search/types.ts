@@ -164,6 +164,27 @@ type SearchContextData = {
     shouldResetSearchQuery: boolean;
 };
 
+/** Selection-only context (no search results). Used by SearchSelectionBar, list components, IOU/RHP. */
+type SearchSelectionContextProps = {
+    selectedTransactions: SelectedTransactions;
+    selectedTransactionIDs: string[];
+    selectedReports: SelectedReports[];
+    shouldTurnOffSelectionMode: boolean;
+    setSelectedTransactions: {
+        (selectedTransactionIDs: string[], unused?: undefined): void;
+        (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
+    };
+    clearSelectedTransactions: {
+        (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
+        (clearIDs: true, unused?: undefined): void;
+    };
+    removeTransaction: (transactionID: string | undefined) => void;
+    showSelectAllMatchingItems: boolean;
+    shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
+    areAllMatchingItemsSelected: boolean;
+    selectAllMatchingItems: (on: boolean) => void;
+};
+
 type SearchContextProps = SearchContextData & {
     currentSearchResults: SearchResults | undefined;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
@@ -336,6 +357,7 @@ type GroupedItem =
     | TransactionQuarterGroupListItemType;
 
 export type {
+    SearchSelectionContextProps,
     SelectedTransactionInfo,
     SelectedTransactions,
     SearchColumnType,

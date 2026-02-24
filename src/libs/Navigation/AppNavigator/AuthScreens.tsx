@@ -15,6 +15,7 @@ import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
+import {SearchSelectionContextProvider} from '@components/Search/SearchSelectionContext';
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
@@ -511,6 +512,7 @@ function AuthScreens() {
                 OptionsListContextProvider,
                 SidebarOrderedReportsContextProvider,
                 SearchContextProvider,
+                SearchSelectionContextProvider,
                 LockedAccountModalProvider,
                 DelegateNoAccessModalProvider,
                 SupportalPermissionDeniedModalProvider,
