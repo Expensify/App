@@ -1,11 +1,17 @@
-import React, {useCallback, useEffect, useRef, useState, useReducer} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useReducer, useRef, useState} from 'react';
 import {PanResponder, StyleSheet, View} from 'react-native';
+import type {LayoutRectangle} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import type Webcam from 'react-webcam';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {useDragAndDropState} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import Icon from '@components/Icon';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -14,8 +20,14 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobile, isMobileWebKit} from '@libs/Browser';
+import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/NavigationAwareCamera/WebCamera';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -26,19 +38,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
-import type {LayoutRectangle} from 'react-native';
-import {isMobile, isMobileWebKit} from '@libs/Browser';
-import type Webcam from 'react-webcam';
-import {useIsFocused} from '@react-navigation/native';
-import {base64ToFile} from '@libs/fileDownload/FileUtils';
-import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
-import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ActivityIndicator from '@components/ActivityIndicator';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/NavigationAwareCamera/WebCamera';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
-import Log from '@libs/Log';
 
 type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
 
@@ -70,10 +70,11 @@ function IOURequestStepOdometerImage({
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const isTabActive = useIsFocused();
 
-    const lazyIllustrations = useMemoizedLazyIllustrations(['Hand', 'ReceiptStack', 'Shutter']);
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd', 'Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash', 'ReplaceReceipt', 'SmartScan']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd', 'Bolt', 'Gallery']);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['Hand', 'Shutter']);
     const title = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
     const message = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
+    const snapPhotoText = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.snapPhotoStart') : translate('distance.odometer.snapPhotoEnd');
     const icon = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
     const messageHTML = `<centered-text><muted-text-label>${message}</muted-text-label></centered-text>`;
 
@@ -223,13 +224,13 @@ function IOURequestStepOdometerImage({
         const viewFinderHeight = viewfinderLayout.current?.height ?? NaN;
         const shouldAlignTop = videoHeight > viewFinderHeight;
         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop)
-        .then(({source}) => {
-            setMoneyRequestOdometerImage(transactionID, imageType, source, isTransactionDraft);
-            navigateBack();
-        })
-        .catch((error: unknown) => {
-            Log.warn('Error cropping photo', error instanceof Error ? error.message : String(error));
-        });
+            .then(({source}) => {
+                setMoneyRequestOdometerImage(transactionID, imageType, source, isTransactionDraft);
+                navigateBack();
+            })
+            .catch((error: unknown) => {
+                Log.warn('Error cropping photo', error instanceof Error ? error.message : String(error));
+            });
     }, [imageType, isTransactionDraft, navigateBack, requestCameraPermission, transactionID]);
 
     const clearTorchConstraints = useCallback(() => {
@@ -298,7 +299,7 @@ function IOURequestStepOdometerImage({
                                 <RenderHTML html={translate('receipt.deniedCameraAccess')} />
                             </Text>
                         ) : (
-                            <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                            <Text style={[styles.subTextFileUpload]}>{translate('distance.odometer.cameraAccessRequired')}</Text>
                         )}
                         <Button
                             success
@@ -331,6 +332,33 @@ function IOURequestStepOdometerImage({
                             mirrored={false}
                             screenshotQuality={0}
                         />
+                        <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, isFlashLightOn && styles.bgGreenSuccess, !isTorchAvailable && styles.opacity0]}>
+                            <PressableWithFeedback
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('receipt.flash')}
+                                disabled={!isTorchAvailable}
+                                onPress={toggleFlashlight}
+                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.FLASH}
+                            >
+                                <Icon
+                                    height={variables.iconSizeSmall}
+                                    width={variables.iconSizeSmall}
+                                    src={lazyIcons.Bolt}
+                                    fill={isFlashLightOn ? theme.white : theme.icon}
+                                />
+                            </PressableWithFeedback>
+                        </View>
+                        <View style={[styles.odometerPhotoInformationContainer]}>
+                            <Icon
+                                height={variables.menuIconSize}
+                                width={variables.menuIconSize}
+                                src={icon}
+                            />
+                            <View style={[styles.flex1, styles.flexColumn]}>
+                                <Text style={[styles.labelStrong, styles.mb1]}>{title}</Text>
+                                <RenderHTML html={snapPhotoText} />
+                            </View>
+                        </View>
                         <Animated.View
                             pointerEvents="none"
                             style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
@@ -340,13 +368,12 @@ function IOURequestStepOdometerImage({
             </View>
 
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker
-                    acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}
-                >
+                <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
                     {({openPicker}) => (
                         <PressableWithFeedback
-                            accessibilityLabel={translate('common.chooseFile')}
                             role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('common.chooseFile')}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.CHOOSE_FILE}
                             onPress={() => {
                                 openPicker({
                                     onPicked: (data) => validateFiles(data),
@@ -365,6 +392,7 @@ function IOURequestStepOdometerImage({
                 <PressableWithFeedback
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.SHUTTER}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
                 >
