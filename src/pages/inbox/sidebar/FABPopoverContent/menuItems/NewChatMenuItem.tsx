@@ -1,6 +1,7 @@
 import React from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {startNewChat} from '@libs/actions/Report';
@@ -10,14 +11,14 @@ import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import CONST from '@src/CONST';
 
 type NewChatMenuItemProps = {
-    shouldUseNarrowLayout: boolean;
     icons: MenuItemIcons;
     /** Injected by FABPopoverMenu via React.cloneElement */
     itemIndex?: number;
 };
 
-function NewChatMenuItem({shouldUseNarrowLayout, icons, itemIndex = -1}: NewChatMenuItemProps) {
+function NewChatMenuItem({icons, itemIndex = -1}: NewChatMenuItemProps) {
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();

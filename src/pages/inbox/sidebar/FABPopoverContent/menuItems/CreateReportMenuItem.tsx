@@ -8,6 +8,7 @@ import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {createNewReport} from '@libs/actions/Report';
@@ -28,7 +29,6 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type CreateReportMenuItemProps = {
-    shouldUseNarrowLayout: boolean;
     icons: MenuItemIcons;
     activePolicyID: string | undefined;
     /** Injected by FABPopoverMenu via React.cloneElement */
@@ -48,8 +48,9 @@ function useCreateReportMenuItemVisible(): boolean {
     return shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
 }
 
-function CreateReportMenuItem({shouldUseNarrowLayout, icons, activePolicyID, itemIndex = -1}: CreateReportMenuItemProps) {
+function CreateReportMenuItem({icons, activePolicyID, itemIndex = -1}: CreateReportMenuItemProps) {
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});

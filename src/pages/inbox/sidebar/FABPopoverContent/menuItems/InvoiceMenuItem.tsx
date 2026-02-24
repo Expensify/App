@@ -3,6 +3,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {startMoneyRequest} from '@libs/actions/IOU';
@@ -16,7 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type InvoiceMenuItemProps = {
-    shouldUseNarrowLayout: boolean;
     icons: MenuItemIcons;
     reportID: string;
     /** Injected by FABPopoverMenu via React.cloneElement */
@@ -29,8 +29,9 @@ function useInvoiceMenuItemVisible(): boolean {
     return canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email);
 }
 
-function InvoiceMenuItem({shouldUseNarrowLayout, icons, reportID, itemIndex = -1}: InvoiceMenuItemProps) {
+function InvoiceMenuItem({icons, reportID, itemIndex = -1}: InvoiceMenuItemProps) {
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal, allPolicies} = useRedirectToExpensifyClassic();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});

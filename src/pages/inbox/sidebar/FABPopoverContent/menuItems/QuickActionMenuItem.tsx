@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,7 +39,6 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
 
 type QuickActionMenuItemProps = {
-    shouldUseNarrowLayout: boolean;
     icons: MenuItemIcons;
     reportID: string;
     /** Injected by FABPopoverMenu via React.cloneElement */
@@ -73,8 +73,9 @@ function useQuickActionMenuItemVisible(): boolean {
     return !isEmptyObject(policyChatForActivePolicy);
 }
 
-function QuickActionMenuItem({shouldUseNarrowLayout, icons, reportID, itemIndex = -1}: QuickActionMenuItemProps) {
+function QuickActionMenuItem({icons, reportID, itemIndex = -1}: QuickActionMenuItemProps) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate, formatPhoneNumber} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});

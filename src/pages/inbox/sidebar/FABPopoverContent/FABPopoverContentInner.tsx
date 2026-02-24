@@ -1,5 +1,6 @@
 import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import FABPopoverMenu from './FABPopoverMenu';
 import CreateReportMenuItem, {useCreateReportMenuItemVisible} from './menuItems/CreateReportMenuItem';
@@ -18,17 +19,8 @@ type FABPopoverContentInnerExtraProps = FABPopoverContentInnerProps & {
     activePolicyID: string | undefined;
 };
 
-function FABPopoverContentInner({
-    isVisible,
-    onClose,
-    onItemSelected,
-    onModalHide,
-    anchorPosition,
-    anchorRef,
-    shouldUseNarrowLayout,
-    reportID,
-    activePolicyID,
-}: FABPopoverContentInnerExtraProps) {
+function FABPopoverContentInner({isVisible, onClose, onItemSelected, onModalHide, anchorPosition, anchorRef, reportID, activePolicyID}: FABPopoverContentInnerExtraProps) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons([
         'CalendarSolid',
         'Document',
@@ -71,35 +63,27 @@ function FABPopoverContentInner({
         >
             {showQuickAction && (
                 <QuickActionMenuItem
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
                     icons={icons}
                     reportID={reportID}
                 />
             )}
             <ExpenseMenuItem
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
                 icons={icons}
                 reportID={reportID}
             />
             <TrackDistanceMenuItem
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
                 icons={icons}
                 reportID={reportID}
             />
             {showCreateReport && (
                 <CreateReportMenuItem
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
                     icons={icons}
                     activePolicyID={activePolicyID}
                 />
             )}
-            <NewChatMenuItem
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
-                icons={icons}
-            />
+            <NewChatMenuItem icons={icons} />
             {showInvoice && (
                 <InvoiceMenuItem
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
                     icons={icons}
                     reportID={reportID}
                 />
@@ -111,12 +95,7 @@ function FABPopoverContentInner({
                 />
             )}
             {showTestDrive && <TestDriveMenuItem icons={icons} />}
-            {showNewWorkspace && (
-                <NewWorkspaceMenuItem
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                    icons={icons}
-                />
-            )}
+            {showNewWorkspace && <NewWorkspaceMenuItem icons={icons} />}
         </FABPopoverMenu>
     );
 }

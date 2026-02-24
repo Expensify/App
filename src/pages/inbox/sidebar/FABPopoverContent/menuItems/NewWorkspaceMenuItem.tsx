@@ -7,6 +7,7 @@ import useMappedPolicies from '@hooks/useMappedPolicies';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -22,7 +23,6 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type NewWorkspaceMenuItemProps = {
-    shouldUseNarrowLayout: boolean;
     icons: MenuItemIcons;
     /** Injected by FABPopoverMenu via React.cloneElement */
     itemIndex?: number;
@@ -42,8 +42,9 @@ function useNewWorkspaceMenuItemVisible(): boolean {
     return Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email));
 }
 
-function NewWorkspaceMenuItem({shouldUseNarrowLayout, icons, itemIndex = -1}: NewWorkspaceMenuItemProps) {
+function NewWorkspaceMenuItem({icons, itemIndex = -1}: NewWorkspaceMenuItemProps) {
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});

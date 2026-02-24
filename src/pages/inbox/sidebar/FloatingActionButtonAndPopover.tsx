@@ -84,7 +84,6 @@ function FloatingActionButtonAndPopover() {
                 onModalHide={handleMenuModalHide}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 anchorRef={fabRef}
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
                 reportID={reportID}
                 activePolicyID={activePolicyID}
             />

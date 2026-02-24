@@ -26,7 +26,6 @@ type FABPopoverContentProps = {
     onModalHide: () => void;
     anchorPosition: AnchorPosition;
     anchorRef: RefObject<HTMLDivElement | null>;
-    shouldUseNarrowLayout: boolean;
 };
 
 type FABPopoverContentInnerProps = Omit<FABPopoverContentProps, 'isMenuMounted'>;
