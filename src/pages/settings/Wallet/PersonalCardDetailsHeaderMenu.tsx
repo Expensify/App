@@ -57,7 +57,7 @@ function PersonalCardDetailsHeaderMenu({
 
     return (
         <>
-            {!cardholder?.validated && (
+            {!cardholder?.validated && !isCSVImportedPersonalCard && (
                 <MenuItem
                     icon={Expensicons.Hourglass}
                     iconStyles={styles.mln2}
