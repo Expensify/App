@@ -9,7 +9,6 @@ import type {ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import ActivityIndicator from '@components/ActivityIndicator';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import LoadingView from '@components/BlockingViews/LoadingView';
