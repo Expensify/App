@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
-import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
+import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';

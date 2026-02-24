@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
 import {EditableCell, usePopoverEditState} from '@components/Table/EditableCell';
@@ -6,7 +7,6 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
-import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 type CategoryCellProps = TransactionDataCellProps & {

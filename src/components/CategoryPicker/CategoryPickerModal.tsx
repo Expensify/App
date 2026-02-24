@@ -1,6 +1,6 @@
-import type {ValueOf} from 'type-fest';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import ConfirmCancelButtonRow from '@components/ConfirmCancelButtonRow';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {ListItem} from '@components/SelectionList/types';

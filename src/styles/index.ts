@@ -1079,6 +1079,17 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        /**
+         * Matches the border and padding of editableCell so column headers stay
+         * visually aligned with their editable cells.
+         */
+        editableCellHeader: {
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: 'transparent',
+            paddingHorizontal: 4,
+        },
+
         editableCell: {
             width: '100%',
             borderWidth: 1,
