@@ -8,11 +8,11 @@ import {isAuthenticationError} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {useAccountingContext} from '@pages/workspace/accounting/AccountingContext';
+import {getInitialSubPageForNetsuiteTokenInput} from '@pages/workspace/accounting/netsuite/utils';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {getInitialSubPageForNetsuiteTokenInput} from '@pages/workspace/accounting/netsuite/utils';
 import type {ConnectToNetSuiteFlowProps} from './types';
 
 function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {

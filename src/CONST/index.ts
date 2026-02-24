@@ -1720,48 +1720,21 @@ const CONST = {
         },
     },
     TIMING: {
-        GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
-        CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        SPLASH_SCREEN: 'splash_screen',
-        OPEN_SEARCH: 'open_search',
-        OPEN_REPORT: 'open_report',
-        OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
-        OPEN_REPORT_THREAD: 'open_report_thread',
-        OPEN_REPORT_SEARCH: 'open_report_search',
-        SIDEBAR_LOADED: 'sidebar_loaded',
-        LOAD_SEARCH_OPTIONS: 'load_search_options',
-        SEND_MESSAGE: 'send_message',
-        SUBMIT_EXPENSE: 'submit_expense',
-        NAVIGATE_AFTER_EXPENSE_CREATE: 'navigate_after_expense_create',
-        OPEN_CREATE_EXPENSE: 'open_create_expense',
-        OPEN_CREATE_EXPENSE_CONTACT: 'open_create_expense_contact',
-        OPEN_CREATE_EXPENSE_APPROVE: 'open_create_expense_approve',
-        APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
-        APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
-        APPLY_HTTPS_UPDATES: 'apply_https_updates',
-        COLD: 'cold',
-        WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
         TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
-        TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         SUGGESTION_DEBOUNCE_TIME: 100,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
-        SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
-        PUSHER_PING_PONG: 'pusher_ping_pong',
         LOCATION_UPDATE_INTERVAL: 5000,
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
         NOTIFY_NEW_ACTION_DELAY: 700,
         SKELETON_ANIMATION_SPEED: 3,
-        SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
-        DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
-        FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
@@ -3207,6 +3180,11 @@ const CONST = {
             MONEY_REQUEST: 'moneyRequest',
             REPLACE_RECEIPT: 'replaceReceipt',
         },
+        COMPACT_RECEIPT: {
+            MAX_WIDTH: variables.receiptPreviewMaxWidth,
+            DEFAULT_ASPECT_RATIO: 16 / 9,
+            MAX_HEIGHT_PIXEL_ADJUSTMENT: 5,
+        },
     },
 
     CATEGORY_SOURCE: {
@@ -4093,6 +4071,7 @@ const CONST = {
         SPECIAL_CHAR_MENTION_BREAKER: /[,/?"{}[\]()&^%;`$=<>!*]/g,
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
         FIRST_SPACE: /.+?(?=\s)/,
+        TRAILING_DOTS: /\.$/,
 
         get SPECIAL_CHAR_OR_EMOJI() {
             return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
@@ -5743,6 +5722,8 @@ const CONST = {
         LINK: 'link',
         /** Use to identify a list of items. */
         LIST: 'list',
+        /** Use for individual items within a list. */
+        LISTITEM: 'listitem',
         /** Use for a list of choices or options. */
         MENU: 'menu',
         /** Use for a container of multiple menus. */
@@ -5783,6 +5764,14 @@ const CONST = {
         NAVIGATION: 'navigation',
         /** Use for Tooltips */
         TOOLTIP: 'tooltip',
+        /** Use for data table containers. */
+        TABLE: 'table',
+        /** Use for table rows. */
+        ROW: 'row',
+        /** Use for column header cells in a table. */
+        COLUMNHEADER: 'columnheader',
+        /** Use for data cells in a table row. */
+        CELL: 'cell',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
@@ -8432,12 +8421,18 @@ const CONST = {
         },
         SELECTION_LIST: {
             BASE_LIST_ITEM: 'SelectionList-BaseListItem',
+            SELECT_ALL: 'ListHeader-SelectAll',
             SPLIT_LIST_ITEM_EDIT_BUTTON: 'SplitListItem-EditButton',
             LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeader-SelectAll',
         },
         SELECTION_LIST_WITH_SECTIONS: {
             BASE_LIST_ITEM: 'SelectionListWithSections-BaseListItem',
-            SELECT_ALL: 'SelectionList-SelectAll',
+            SELECT_ALL: 'BaseSelectionListWithSections-SelectAll',
+        },
+        WORKSPACE_DUPLICATE_SELECT_FEATURES: {
+            SELECT_ALL: 'WorkspaceDuplicateSelectFeatures-SelectAll',
+            SPLIT_LIST_ITEM_EDIT_BUTTON: 'SplitListItem-EditButton',
+            LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeader-SelectAll',
         },
         CONTEXT_MENU: {
             REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
@@ -8530,6 +8525,12 @@ const CONST = {
         },
         TRANSACTION_ITEM_ROW: {
             ARROW_RIGHT: 'TransactionItemRow-ArrowRight',
+        },
+        PDF_VIEW: {
+            DOCUMENT: 'PDFView-Document',
+        },
+        AVATAR_CROP_MODAL: {
+            ZOOM_SLIDER: 'AvatarCropModal-ZoomSlider',
         },
         PAYMENT_METHOD_LIST_ITEM: {
             CHASE_ACCOUNT_HELP: 'PaymentMethodListItem-ChaseAccountHelp',

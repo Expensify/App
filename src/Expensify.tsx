@@ -2,7 +2,7 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
-import {AppState, Linking, Platform} from 'react-native';
+import {AppState, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
@@ -16,6 +16,7 @@ import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
+import DeepLinkHandler from './DeepLinkHandler';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
@@ -25,11 +26,8 @@ import usePriorityMode from './hooks/usePriorityChange';
 import {confirmReadyToOpenApp, openApp, updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
-import {openReportFromDeepLink} from './libs/actions/Link';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/actions/replaceOptimisticReportWithActualReport';
-import * as Report from './libs/actions/Report';
-import {hasAuthToken} from './libs/actions/Session';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
@@ -55,7 +53,6 @@ import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/Repor
 import type {Route} from './ROUTES';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
-import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -89,7 +86,6 @@ type ExpensifyProps = {
 };
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
-    const linkingChangeListener = useRef<NativeEventSubscription | null>(null);
     const hasLoggedDelegateMismatchRef = useRef(false);
     const hasHandledMissingIsLoadingAppRef = useRef(false);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
@@ -99,7 +95,7 @@ function Expensify() {
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate, preferredLocale} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
@@ -108,14 +104,11 @@ function Expensify() {
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED);
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isOffline} = useNetwork();
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     useDebugShortcut();
     usePriorityMode();
@@ -321,47 +314,6 @@ function Expensify() {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
-    useEffect(() => {
-        if (isLoadingOnyxValue(sessionMetadata)) {
-            return;
-        }
-        // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-        Linking.getInitialURL().then((url) => {
-            setInitialUrl(url as Route);
-
-            if (url) {
-                if (conciergeReportID === undefined) {
-                    Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
-                }
-                if (introSelected === undefined) {
-                    Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
-                }
-                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected);
-            } else {
-                Report.doneCheckingPublicRoom();
-            }
-
-            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
-        });
-
-        // Open chat report from a deep link (only mobile native)
-        linkingChangeListener.current = Linking.addEventListener('url', (state) => {
-            if (conciergeReportID === undefined) {
-                Log.info('[Deep link] conciergeReportID is undefined when processing URL change', false, {url: state.url});
-            }
-            if (introSelected === undefined) {
-                Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
-            }
-            const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected);
-        });
-
-        return () => {
-            linkingChangeListener.current?.remove();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
-    }, [sessionMetadata?.status, conciergeReportID, introSelected]);
-
     useLayoutEffect(() => {
         if (!isNavigationReady || !lastRoute) {
             return;
@@ -449,6 +401,7 @@ function Expensify() {
                 </>
             )}
 
+            <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
             {hasAttemptedToOpenPublicRoom && (
                 <NavigationRoot
