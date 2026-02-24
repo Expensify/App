@@ -220,6 +220,7 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
 
@@ -3129,7 +3130,7 @@ function buildNewReportOptimisticData(
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
             value: {
                 data: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData},
-            } as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report>,
+            } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report>,
         });
     } else if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.CHAT) {
         // Building this object sequentially resolves TypeScript type inference issues
@@ -5097,7 +5098,7 @@ function deleteAppReport(
         Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
             data: {
                 [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-            } as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, Report>,
+            } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report>,
         });
     }
 
@@ -6268,7 +6269,7 @@ function buildOptimisticChangePolicyData(
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
             value: {
                 data: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy},
-            } as Record<`${typeof ONYXKEYS.COLLECTION.POLICY}${string}`, Policy>,
+            } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy>,
         });
     }
 

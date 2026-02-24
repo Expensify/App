@@ -72,6 +72,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SplitShares, TransactionChanges, TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -1488,7 +1489,7 @@ function updateSplitTransactions({
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const]: originalTransaction,
-                } as Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, Transaction>,
+                } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction>,
             },
         });
     } else {
