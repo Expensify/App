@@ -3,7 +3,7 @@ import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {SearchContextProps} from '@components/Search/types';
+import type {SearchContextProps, SearchSelectionContextProps} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, RevertSplitTransactionParams, SplitBillParams, SplitTransactionParams, SplitTransactionSplitsParam, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -106,6 +106,8 @@ type UpdateSplitTransactionsParams = {
         splitExpensesTotal?: number;
     };
     searchContext?: Partial<SearchContextProps>;
+    /** Called to clear search selection after saving (from SearchSelectionContext). */
+    clearSelectedTransactions?: SearchSelectionContextProps['clearSelectedTransactions'];
     policyCategories: OnyxTypes.PolicyCategories | undefined;
     policy: OnyxTypes.Policy | undefined;
     policyRecentlyUsedCategories: OnyxTypes.RecentlyUsedCategories | undefined;
@@ -1645,9 +1647,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
     const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
     if (isUserOnSearchPage) {
-        params?.searchContext?.clearSelectedTransactions?.(undefined, true);
+        params?.clearSelectedTransactions?.(undefined, true);
     } else {
-        params?.searchContext?.clearSelectedTransactions?.(true);
+        params?.clearSelectedTransactions?.(true);
     }
 
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {

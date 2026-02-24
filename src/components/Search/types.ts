@@ -156,11 +156,7 @@ type SearchContextData = {
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: SearchQueryJSON | undefined;
     currentSearchResults: SearchResults | undefined;
-    selectedTransactions: SelectedTransactions;
-    selectedTransactionIDs: string[];
-    selectedReports: SelectedReports[];
     isOnSearch: boolean;
-    shouldTurnOffSelectionMode: boolean;
     shouldResetSearchQuery: boolean;
 };
 
@@ -191,25 +187,10 @@ type SearchContextProps = SearchContextData & {
     shouldUseLiveData: boolean;
     setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
     setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
-    /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
-    setSelectedTransactions: {
-        (selectedTransactionIDs: string[], unused?: undefined): void;
-        (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
-    };
-    /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
-    clearSelectedTransactions: {
-        (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
-        (clearIDs: true, unused?: undefined): void;
-    };
-    removeTransaction: (transactionID: string | undefined) => void;
     shouldShowFiltersBarLoading: boolean;
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
-    showSelectAllMatchingItems: boolean;
-    shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
-    areAllMatchingItemsSelected: boolean;
-    selectAllMatchingItems: (on: boolean) => void;
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
 };
 

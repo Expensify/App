@@ -11,6 +11,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchSelectionContext';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useAllTransactions from '@hooks/useAllTransactions';
@@ -72,6 +73,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
     const searchContext = useSearchContext();
+    const {clearSelectedTransactions} = useSearchSelectionContext();
 
     const {getCurrencySymbol} = useCurrencyListActions();
 
@@ -248,6 +250,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
             },
             searchContext,
+            clearSelectedTransactions,
             policyCategories,
             policy: expenseReportPolicy,
             policyRecentlyUsedCategories,
