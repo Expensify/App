@@ -13,9 +13,6 @@ import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction'
 import CONST from '@src/CONST';
 import {FABMenuContext} from './FABMenuContext';
 
-// Fixed display order for all possible menu items.
-// Components self-register — this array ensures arrow-key indices always follow JSX order
-// regardless of when each item becomes visible.
 const FAB_ITEM_ORDER = [
     CONST.FAB_MENU_ITEM_IDS.QUICK_ACTION,
     CONST.FAB_MENU_ITEM_IDS.EXPENSE,
@@ -41,15 +38,12 @@ type FABPopoverMenuProps = {
 
 function FABPopoverMenu({isVisible, onClose, onItemSelected, onModalHide, anchorRef, animationInTiming, animationOutTiming, children}: FABPopoverMenuProps) {
     const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const anchorPosition = styles.createMenuPositionSidebar(windowHeight);
 
     const [registeredSet, setRegisteredSet] = useState<ReadonlySet<string>>(new Set());
 
-    // Derive ordered list from the fixed order array so indices are stable
-    // regardless of registration order.
     const registeredItems = FAB_ITEM_ORDER.filter((id) => registeredSet.has(id));
     const itemCount = registeredItems.length;
 
@@ -117,12 +111,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, onModalHide, anchor
                     active={isVisible}
                     shouldReturnFocus
                 >
-                    {/*
-                     * Replicates PopoverMenu's layout:
-                     * - mobile: flexGrow1 outer (no fixed width), pv4 inner for item padding
-                     * - web: createMenuContainer (fixed sidebar width) + flex1 outer, pv4 inner
-                     */}
-                    <View style={isSmallScreenWidth ? styles.flexGrow1 : [styles.createMenuContainer, styles.flex1]}>
+                    <View style={shouldUseNarrowLayout ? styles.flexGrow1 : [styles.createMenuContainer, styles.flex1]}>
                         <View style={styles.pv4}>{children}</View>
                     </View>
                 </FocusTrapForModal>
