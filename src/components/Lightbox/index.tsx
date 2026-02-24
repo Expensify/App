@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
@@ -154,21 +154,14 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
     const previousUri = usePrevious(uri);
 
-    // Clear cached dimensions and reset loading states when URI changes to ensure the new image get fresh dimensions
-    useEffect(() => {
-        if (previousUri === uri || !previousUri || !uri) {
-            return;
-        }
-        // Clear the content size state to force recalculation of dimensions
-        // This ensures that when an image is rotated and gets a new URI,
-        // we don't use stale cached dimensions from the previous image
+    const [prevUri, setPrevUri] = useState(uri);
+    if (prevUri !== uri && previousUri && uri) {
+        setPrevUri(uri);
         setInternalContentSize(undefined);
         setLightboxImageLoaded(false);
         setFallbackImageLoaded(false);
         setIsLoading(true);
-        // Don't delete from cache here as other components might still need it
-        // The new URI will get its own cache entry when loaded
-    }, [uri, previousUri]);
+    }
 
     const fallbackSize = useMemo(() => {
         if (!hasSiblingCarouselItems || !contentSize || isCanvasLoading) {
@@ -193,34 +186,34 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const isLightboxStillLoading = isLightboxVisible && !isLightboxImageLoaded;
     const isImageLoaded = !(isActive && (isCanvasLoading || isFallbackStillLoading || isLightboxStillLoading));
 
-    // Resets the lightbox when it becomes inactive
-    useEffect(() => {
-        if (isLightboxVisible) {
-            return;
+    const [prevLightboxVisible, setPrevLightboxVisible] = useState(isLightboxVisible);
+    if (prevLightboxVisible !== isLightboxVisible) {
+        setPrevLightboxVisible(isLightboxVisible);
+        if (!isLightboxVisible) {
+            setLightboxImageLoaded(false);
+            setInternalContentSize(undefined);
+            cachedImageDimensions.set(uri, undefined);
         }
-        setLightboxImageLoaded(false);
-        setContentSize(undefined);
-    }, [isLightboxVisible, setContentSize]);
+    }
 
-    // Enables and disables the fallback image when the carousel item is active or not
-    useEffect(() => {
-        // When there are no other carousel items, we don't need to show the fallback image
-        if (!hasSiblingCarouselItems) {
-            return;
+    const [prevFallbackDeps, setPrevFallbackDeps] = useState({hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible});
+    if (
+        prevFallbackDeps.hasSiblingCarouselItems !== hasSiblingCarouselItems ||
+        prevFallbackDeps.isActive !== isActive ||
+        prevFallbackDeps.isFallbackVisible !== isFallbackVisible ||
+        prevFallbackDeps.isLightboxImageLoaded !== isLightboxImageLoaded ||
+        prevFallbackDeps.isLightboxVisible !== isLightboxVisible
+    ) {
+        setPrevFallbackDeps({hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible});
+        if (hasSiblingCarouselItems) {
+            if (isActive && isFallbackVisible && isLightboxVisible && isLightboxImageLoaded) {
+                setFallbackVisible(false);
+                setFallbackImageLoaded(false);
+            } else if (!isActive && !isLightboxVisible) {
+                setFallbackVisible(true);
+            }
         }
-
-        // When the carousel item is active and the lightbox has finished loading, we want to hide the fallback image
-        if (isActive && isFallbackVisible && isLightboxVisible && isLightboxImageLoaded) {
-            setFallbackVisible(false);
-            setFallbackImageLoaded(false);
-            return;
-        }
-
-        // If the carousel item has become inactive and the lightbox is not continued to be rendered, we want to show the fallback image
-        if (!isActive && !isLightboxVisible) {
-            setFallbackVisible(true);
-        }
-    }, [hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible]);
+    }
 
     const scaleChange = useCallback(
         (scale: number) => {
