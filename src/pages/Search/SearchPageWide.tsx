@@ -12,6 +12,7 @@ import Search from '@components/Search';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchSelectionBar from '@components/Search/SearchPageHeader/SearchSelectionBar';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -93,15 +94,26 @@ function SearchPageWide({
                                 handleSearch={handleSearchAction}
                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             />
-                            <SearchFiltersBar
-                                queryJSON={queryJSON}
-                                headerButtonsOptions={headerButtonsOptions}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
-                                currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
-                                confirmPayment={onBulkPaySelected}
-                                latestBankItems={latestBankItems}
-                            />
+                            {headerButtonsOptions.length > 0 ? (
+                                <SearchSelectionBar
+                                    queryJSON={queryJSON}
+                                    headerButtonsOptions={headerButtonsOptions}
+                                    currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
+                                    currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
+                                    confirmPayment={onBulkPaySelected}
+                                    latestBankItems={latestBankItems}
+                                />
+                            ) : (
+                                <SearchFiltersBar
+                                    queryJSON={queryJSON}
+                                    headerButtonsOptions={headerButtonsOptions}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                    currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
+                                    currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
+                                    confirmPayment={onBulkPaySelected}
+                                    latestBankItems={latestBankItems}
+                                />
+                            )}
                             <Search
                                 key={queryJSON.hash}
                                 queryJSON={queryJSON}

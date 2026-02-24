@@ -18,6 +18,7 @@ import {useSearchSelectionContext} from '@components/Search/SearchSelectionConte
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchSelectionBar from '@components/Search/SearchPageHeader/SearchSelectionBar';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
@@ -219,13 +220,23 @@ function SearchPageNarrow({
                                     />
                                 </View>
                                 <View style={[styles.appBG]}>
-                                    {!searchRouterListVisible && (
-                                        <SearchFiltersBar
-                                            queryJSON={queryJSON}
-                                            headerButtonsOptions={headerButtonsOptions}
-                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                        />
-                                    )}
+                                    {!searchRouterListVisible &&
+                                        (isMobileSelectionModeEnabled ? (
+                                            <SearchSelectionBar
+                                                queryJSON={queryJSON}
+                                                headerButtonsOptions={headerButtonsOptions}
+                                                currentSelectedPolicyID={currentSelectedPolicyID}
+                                                currentSelectedReportID={currentSelectedReportID}
+                                                confirmPayment={confirmPayment}
+                                                latestBankItems={latestBankItems}
+                                            />
+                                        ) : (
+                                            <SearchFiltersBar
+                                                queryJSON={queryJSON}
+                                                headerButtonsOptions={headerButtonsOptions}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                            />
+                                        ))}
                                 </View>
                             </Animated.View>
                         </View>
