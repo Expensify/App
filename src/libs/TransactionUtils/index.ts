@@ -1138,6 +1138,15 @@ function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInput
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined): string {
     if (transaction && isDistanceRequest(transaction)) {
+        // Prefer the stored merchant string if it contains rate info (has the '@' separator).
+        // The stored merchant was set when the expense was created/edited, so it preserves the original rate.
+        // This prevents policy rate changes from retroactively altering historical distance expense display.
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const storedMerchant = transaction.modifiedMerchant || transaction.merchant;
+        if (storedMerchant?.includes(CONST.DISTANCE_MERCHANT_SEPARATOR)) {
+            return storedMerchant;
+        }
+
         const report = getReportOrDraftReport(transaction.reportID);
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         // eslint-disable-next-line @typescript-eslint/no-deprecated

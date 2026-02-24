@@ -688,6 +688,100 @@ describe('TransactionUtils', () => {
                     expect(merchant).toBe('100.00 mi @ USD 1.00 / mi');
                 });
         });
+
+        it('should prefer stored merchant with rate info over recalculating from policy for distance requests', () => {
+            return waitForBatchedUpdates()
+                .then(async () => {
+                    const fakePolicy: Policy = {
+                        ...createRandomPolicy(0),
+                        customUnits: {
+                            Unit1: {
+                                customUnitID: 'Unit1',
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                rates: {
+                                    Rate1: {
+                                        customUnitRateID: 'Rate1',
+                                        currency: CONST.CURRENCY.USD,
+                                        rate: 200,
+                                    },
+                                },
+                                enabled: true,
+                                attributes: {
+                                    unit: 'mi',
+                                },
+                            },
+                        },
+                        outputCurrency: CONST.CURRENCY.USD,
+                    };
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`, {policyID: fakePolicy.id});
+                })
+                .then(() => {
+                    const transaction = generateTransaction({
+                        merchant: '10.00 mi @ $0.70 / mi',
+                        comment: {
+                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitID: 'Unit1',
+                                customUnitRateID: 'Rate1',
+                                quantity: 10,
+                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            },
+                        },
+                        reportID: FAKE_OPEN_REPORT_ID,
+                    });
+                    const merchant = TransactionUtils.getMerchant(transaction);
+                    expect(merchant).toBe('10.00 mi @ $0.70 / mi');
+                });
+        });
+
+        it('should recalculate merchant from policy when stored merchant has no rate info', () => {
+            return waitForBatchedUpdates()
+                .then(async () => {
+                    const fakePolicy: Policy = {
+                        ...createRandomPolicy(0),
+                        customUnits: {
+                            Unit1: {
+                                customUnitID: 'Unit1',
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                rates: {
+                                    Rate1: {
+                                        customUnitRateID: 'Rate1',
+                                        currency: CONST.CURRENCY.USD,
+                                        rate: 100,
+                                    },
+                                },
+                                enabled: true,
+                                attributes: {
+                                    unit: 'mi',
+                                },
+                            },
+                        },
+                        outputCurrency: CONST.CURRENCY.USD,
+                    };
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`, {policyID: fakePolicy.id});
+                })
+                .then(() => {
+                    const transaction = generateTransaction({
+                        merchant: 'Pending...',
+                        comment: {
+                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitID: 'Unit1',
+                                customUnitRateID: 'Rate1',
+                                quantity: 100,
+                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            },
+                        },
+                        reportID: FAKE_OPEN_REPORT_ID,
+                    });
+                    const merchant = TransactionUtils.getMerchant(transaction);
+                    expect(merchant).toBe('100.00 mi @ USD 1.00 / mi');
+                });
+        });
     });
     describe('getTransactionPendingAction', () => {
         it.each([

@@ -43,7 +43,6 @@ import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
@@ -423,7 +422,7 @@ function MoneyRequestView({
     const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) || (isDistanceRequest && !rate);
     let rateToDisplay = isCustomUnitOutOfPolicy
         ? translate('common.rateOutOfPolicy')
-        : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
+        : DistanceRequestUtils.getStoredRateForDisplay(updatedTransaction ?? transaction, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount?.toString() || '';
@@ -515,7 +514,7 @@ function MoneyRequestView({
         // Because we lack the necessary data in policy.customUnits to determine the rate in merge flow,
         // We need to extract the rate from the merchant string
         // See https://github.com/Expensify/App/pull/71675#issuecomment-3425488228 for more information
-        rateToDisplay = getRateFromMerchant(updatedMerchantTitle);
+        rateToDisplay = DistanceRequestUtils.getRateFromMerchant(updatedMerchantTitle);
     }
 
     const hasErrors = hasMissingSmartscanFields(transaction, transactionReport);

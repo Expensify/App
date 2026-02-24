@@ -363,6 +363,45 @@ function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxE
 }
 
 /**
+ * Extract the rate display portion from a merchant string.
+ * The merchant format is "<distance> @ <rate>" (e.g., "10.00 mi @ $0.70 / mi").
+ * Returns the rate portion (e.g., "$0.70 / mi"), or empty string if not present.
+ */
+function getRateFromMerchant(merchant: string | undefined): string {
+    if (!merchant) {
+        return '';
+    }
+
+    return merchant.split(CONST.DISTANCE_MERCHANT_SEPARATOR).at(-1)?.trim() ?? '';
+}
+
+/**
+ * Get the rate display string for a distance transaction.
+ * Extracts the rate from the stored merchant string if it matches the expected format (contains '@'),
+ * otherwise falls back to computing the display string from the current policy rate.
+ */
+function getStoredRateForDisplay(
+    transaction: OnyxEntry<Transaction>,
+    unit: Unit | undefined,
+    rate: number | undefined,
+    currency: string | undefined,
+    translate: LocaleContextProps['translate'],
+    toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
+    isOffline?: boolean,
+): string {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const storedMerchant = transaction?.modifiedMerchant || transaction?.merchant;
+    if (storedMerchant?.includes(CONST.DISTANCE_MERCHANT_SEPARATOR)) {
+        const parsed = getRateFromMerchant(storedMerchant);
+        if (parsed) {
+            return parsed;
+        }
+    }
+    return getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
+}
+
+/**
  * Get the selected rate for a transaction, from the policy or P2P default rate.
  * Use the distanceUnit stored on the transaction by default to prevent policy changes modifying existing transactions. Otherwise, get the unit from the rate.
  *
@@ -436,6 +475,8 @@ export default {
     getRateByCustomUnitRateID,
     getDistanceForDisplayLabel,
     convertDistanceUnit,
+    getStoredRateForDisplay,
+    getRateFromMerchant,
 };
 
 export type {MileageRate};

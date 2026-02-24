@@ -569,14 +569,6 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(
     return updatedValues;
 }
 
-function getRateFromMerchant(merchant: string | undefined): string {
-    if (!merchant) {
-        return '';
-    }
-
-    return merchant.split(CONST.DISTANCE_MERCHANT_SEPARATOR).at(-1)?.trim() ?? '';
-}
-
 export {
     getTransactionFromMergeTransaction,
     shouldNavigateToReceiptReview,
@@ -593,7 +585,6 @@ export {
     getReportIDForExpense,
     getMergeFieldErrorText,
     areTransactionsEligibleForMerge,
-    getRateFromMerchant,
     getMergeFieldUpdatedValues,
     getTransactionsAndReportsFromSearch,
     MERGE_FIELDS,
