@@ -29,11 +29,18 @@ const useDragAndDrop: UseDragAndDrop = ({
     const dragCounter = useRef(0);
     const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    const [prevFocusDeps, setPrevFocusDeps] = useState({isFocused, isDisabled});
+    if (prevFocusDeps.isFocused !== isFocused || prevFocusDeps.isDisabled !== isDisabled) {
+        setPrevFocusDeps({isFocused, isDisabled});
+        if (!isFocused || isDisabled) {
+            setIsDraggingOver(false);
+        }
+    }
+
     useEffect(() => {
         if (isFocused && !isDisabled) {
             return;
         }
-        setIsDraggingOver(false);
         dragCounter.current = 0;
         if (debounceTimeoutRef.current) {
             clearTimeout(debounceTimeoutRef.current);
