@@ -60,7 +60,7 @@ function AboutPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const aboutIllustration = useAboutSectionIllustration();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [

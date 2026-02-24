@@ -46,13 +46,13 @@ function usePolicyForTransaction({transaction, reportPolicyID, action, iouType, 
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(undefined, undefined, isTrackDistanceRequest, isMovingTransactionFromTrackExpense);
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const customUnitPolicy = useMemo(() => {
         return getPolicyByCustomUnitID(transaction, allPolicies);
     }, [transaction, allPolicies]);
 
-    const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicyID}`, {canBeMissing: true});
+    const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicyID}`);
 
     const isUnreportedExpense = isExpenseUnreported(transaction);
 

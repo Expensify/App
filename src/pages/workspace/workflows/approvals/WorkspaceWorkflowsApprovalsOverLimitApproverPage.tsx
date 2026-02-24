@@ -28,10 +28,9 @@ type WorkspaceWorkflowsApprovalsOverLimitApproverPageProps = WithPolicyAndFullsc
 function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsOverLimitApproverPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
+    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
         selector: personalDetailsByEmailSelector,
     });
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
