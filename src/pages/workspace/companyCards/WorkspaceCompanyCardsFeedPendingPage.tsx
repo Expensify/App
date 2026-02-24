@@ -15,7 +15,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {LaptopReviewCard} = useMemoizedLazyIllustrations(['LaptopReviewCard']);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     return (
         <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>

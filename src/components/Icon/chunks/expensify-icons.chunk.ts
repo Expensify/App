@@ -208,6 +208,7 @@ import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
+import Sparkles from '@assets/images/sparkles.svg';
 import SpreadsheetComputer from '@assets/images/spreadsheet-computer.svg';
 import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
@@ -471,6 +472,7 @@ const Expensicons = {
     Table,
     SpreadsheetComputer,
     Bookmark,
+    Sparkles,
     Star,
     QBDSquare,
     GalleryNotFound,

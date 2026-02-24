@@ -12,7 +12,7 @@ const STALE_THRESHOLD_MS = 10_000;
  * after the remaining delay, with automatic cleanup on unmount via useEffect.
  */
 function usePendingConciergeResponse(reportID: string) {
-    const [pendingResponse] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`, {canBeMissing: true});
+    const [pendingResponse] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`);
 
     useEffect(() => {
         if (!pendingResponse) {

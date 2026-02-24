@@ -1,5 +1,5 @@
 import {accountIDSelector, emailSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -58,128 +58,99 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
+    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
-    const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, email ?? '');
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
 
-    const policiesWithEmptyReportsSelector = useCallback(
-        (reports: OnyxCollection<OnyxTypes.Report>) => {
+    const [policiesWithEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports: OnyxCollection<OnyxTypes.Report>) => {
             if (!accountID) {
                 return {};
             }
 
             return getPolicyIDsWithEmptyReportsForAccount(reports, accountID);
         },
-        [accountID],
-    );
+    });
 
-    const [policiesWithEmptyReports] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT,
-        {
-            canBeMissing: true,
-            selector: policiesWithEmptyReportsSelector,
-        },
-        [policiesWithEmptyReportsSelector],
-    );
-
-    const navigateToNewReport = useCallback(
-        (optimisticReportID: string) => {
-            if (isRHPOnReportInSearch) {
-                Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.dismissModal();
-                });
-            }
-
+    const navigateToNewReport = (optimisticReportID: string) => {
+        if (isRHPOnReportInSearch) {
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(
-                    isSearchTopmostFullScreenRoute() ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}) : ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID),
-                    {forceReplace: isRHPOnReportInSearch || shouldUseNarrowLayout},
-                );
-            });
-        },
-        [isRHPOnReportInSearch, shouldUseNarrowLayout],
-    );
-
-    const createReport = useCallback(
-        (policyID: string, shouldDismissEmptyReportsConfirmation?: boolean) => {
-            const optimisticReport = createNewReport(
-                currentUserPersonalDetails,
-                isASAPSubmitBetaEnabled,
-                hasViolations,
-                policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
-                betas,
-                false,
-                shouldDismissEmptyReportsConfirmation,
-            );
-            const selectedTransactionsKeys = Object.keys(selectedTransactions);
-
-            if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
-                const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
-                setNavigationActionToMicrotaskQueue(() => {
-                    changeTransactionsReport({
-                        transactionIDs: selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
-                        isASAPSubmitBetaEnabled,
-                        accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        email: currentUserPersonalDetails?.email ?? '',
-                        newReport: optimisticReport,
-                        policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
-                        reportNextStep,
-                        policyCategories: undefined,
-                        allTransactions,
-                    });
-
-                    // eslint-disable-next-line rulesdir/no-default-id-values
-                    setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
-
-                    if (selectedTransactionIDs.length) {
-                        clearSelectedTransactions(true);
-                    }
-                    if (selectedTransactionsKeys.length) {
-                        clearSelectedTransactions();
-                    }
-                });
-
                 Navigation.dismissModal();
-                Navigation.goBack(backTo ?? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
-                return;
-            }
-            navigateToNewReport(optimisticReport.reportID);
-        },
-        [
+            });
+        }
+
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(
+                isSearchTopmostFullScreenRoute() ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}) : ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID),
+                {forceReplace: isRHPOnReportInSearch || shouldUseNarrowLayout},
+            );
+        });
+    };
+
+    const createReport = (policyID: string, shouldDismissEmptyReportsConfirmation?: boolean) => {
+        const optimisticReport = createNewReport(
             currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
             hasViolations,
-            policies,
-            selectedTransactions,
-            isMovingExpenses,
-            selectedTransactionIDs,
-            navigateToNewReport,
-            allReportNextSteps,
-            backTo,
-            allTransactions,
-            activePolicyID,
-            clearSelectedTransactions,
+            policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
             betas,
-        ],
-    );
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
+        const selectedTransactionsKeys = Object.keys(selectedTransactions);
 
-    const handleConfirmCreateReport = useCallback(
-        (shouldDismissEmptyReportsConfirmation: boolean) => {
+        if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
+            const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
+            setNavigationActionToMicrotaskQueue(() => {
+                changeTransactionsReport({
+                    transactionIDs: selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
+                    isASAPSubmitBetaEnabled,
+                    accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: currentUserPersonalDetails?.email ?? '',
+                    newReport: optimisticReport,
+                    policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                    reportNextStep,
+                    policyCategories: undefined,
+                    allTransactions,
+                });
+
+                // eslint-disable-next-line rulesdir/no-default-id-values
+                setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
+
+                if (selectedTransactionIDs.length) {
+                    clearSelectedTransactions(true);
+                }
+                if (selectedTransactionsKeys.length) {
+                    clearSelectedTransactions();
+                }
+            });
+
+            Navigation.dismissModal();
+            Navigation.goBack(backTo ?? ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+            return;
+        }
+        navigateToNewReport(optimisticReport.reportID);
+    };
+
+    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+        policyID: pendingPolicySelection?.policy.policyID,
+        policyName: pendingPolicySelection?.policy.text ?? '',
+        onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => {
             if (!pendingPolicySelection?.policy.policyID) {
                 return;
             }
@@ -187,80 +158,53 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             createReport(pendingPolicySelection.policy.policyID, shouldDismissEmptyReportsConfirmation);
             setPendingPolicySelection(null);
         },
-        [createReport, pendingPolicySelection?.policy.policyID],
-    );
-
-    const handleCancelCreateReport = useCallback(() => {
-        setPendingPolicySelection(null);
-    }, []);
-
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
-        policyID: pendingPolicySelection?.policy.policyID,
-        policyName: pendingPolicySelection?.policy.text ?? '',
-        onConfirm: handleConfirmCreateReport,
-        onCancel: handleCancelCreateReport,
+        onCancel: () => {
+            setPendingPolicySelection(null);
+        },
     });
 
+    // Open the confirmation modal after pendingPolicySelection is committed so the hook has the correct policyName
     useEffect(() => {
         if (!pendingPolicySelection) {
             return;
         }
 
-        const {policy, shouldShowEmptyReportConfirmation} = pendingPolicySelection;
-        const policyID = policy.policyID;
-
-        if (!policyID) {
-            return;
-        }
-
-        if (!shouldShowEmptyReportConfirmation) {
-            // No empty report confirmation needed - create report directly and clear pending selection
-            // policyID is guaranteed to be defined by the check above
-            createReport(policyID, false);
-            setPendingPolicySelection(null);
-            return;
-        }
-
-        // Empty report confirmation needed - open confirmation modal (modal handles clearing pending selection via onConfirm/onCancel)
         openCreateReportConfirmation();
-    }, [createReport, openCreateReportConfirmation, pendingPolicySelection]);
+    }, [pendingPolicySelection, openCreateReportConfirmation]);
 
-    const selectPolicy = useCallback(
-        (policy?: WorkspaceListItem) => {
-            if (!policy?.policyID) {
-                return;
-            }
-
-            if (shouldRestrictUserBillableActions(policy.policyID)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
-                return;
-            }
-
-            // Capture the decision about whether to show empty report confirmation
-            setPendingPolicySelection({
-                policy,
-                shouldShowEmptyReportConfirmation: !!policiesWithEmptyReports?.[policy.policyID] && hasDismissedEmptyReportsConfirmation !== true,
-            });
-        },
-        [hasDismissedEmptyReportsConfirmation, policiesWithEmptyReports],
-    );
-
-    const hasPerDiemTransactions = useMemo(() => {
-        if (selectedTransactionIDs && selectedTransactionIDs.length > 0 && allTransactions) {
-            return selectedTransactionIDs.some((transactionID) => {
-                const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-                return transaction && isPerDiemRequest(transaction);
-            });
+    const selectPolicy = (policy?: WorkspaceListItem) => {
+        if (!policy?.policyID) {
+            return;
         }
 
-        return false;
-    }, [selectedTransactionIDs, allTransactions]);
-
-    const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
-        if (!policies || isEmptyObject(policies)) {
-            return [];
+        if (shouldRestrictUserBillableActions(policy.policyID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
+            return;
         }
 
+        const shouldShowEmptyReportConfirmation = !!policiesWithEmptyReports?.[policy.policyID] && hasDismissedEmptyReportsConfirmation !== true;
+        if (!shouldShowEmptyReportConfirmation) {
+            createReport(policy.policyID, false);
+            return;
+        }
+
+        setPendingPolicySelection({
+            policy,
+            shouldShowEmptyReportConfirmation: true,
+        });
+    };
+
+    const hasPerDiemTransactions =
+        selectedTransactionIDs &&
+        selectedTransactionIDs.length > 0 &&
+        allTransactions &&
+        selectedTransactionIDs.some((transactionID) => {
+            const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            return transaction && isPerDiemRequest(transaction);
+        });
+
+    let usersWorkspaces: WorkspaceListItem[] = [];
+    if (policies && !isEmptyObject(policies)) {
         const result = [];
         let index = 0;
         for (const policy of Object.values(policies)) {
@@ -291,26 +235,19 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             });
             index++;
         }
+        usersWorkspaces = result.sort((a, b) => localeCompare(a.text, b.text));
+    }
 
-        return result.sort((a, b) => localeCompare(a.text, b.text));
-    }, [policies, currentUserPersonalDetails?.login, localeCompare, hasPerDiemTransactions, icons.FallbackWorkspaceAvatar]);
-
-    const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
-        () => usersWorkspaces.filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? '')),
-        [debouncedSearchTerm, usersWorkspaces],
-    );
+    const filteredAndSortedUserWorkspaces: WorkspaceListItem[] = usersWorkspaces.filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? ''));
 
     const areResultsFound = filteredAndSortedUserWorkspaces.length > 0;
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined,
-            value: searchTerm,
-            onChangeText: setSearchTerm,
-            headerMessage: getHeaderMessageForNonUserList(areResultsFound, debouncedSearchTerm),
-        }),
-        [areResultsFound, debouncedSearchTerm, searchTerm, setSearchTerm, translate, usersWorkspaces.length],
-    );
+    const textInputOptions = {
+        label: usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined,
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage: getHeaderMessageForNonUserList(areResultsFound, debouncedSearchTerm),
+    };
 
     return (
         <ScreenWrapper

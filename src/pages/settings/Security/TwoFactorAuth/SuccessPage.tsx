@@ -32,7 +32,6 @@ function SuccessPage({route}: SuccessPageProps) {
 
     const [isClassicRedirectDismissed] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: classicRedirectDismissedSelector,
-        canBeMissing: true,
     });
 
     const goBack = useCallback(() => {
