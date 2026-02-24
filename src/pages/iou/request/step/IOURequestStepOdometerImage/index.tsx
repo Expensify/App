@@ -230,7 +230,7 @@ function IOURequestStepOdometerImage({
         .catch((error: unknown) => {
             Log.warn('Error cropping photo', error instanceof Error ? error.message : String(error));
         });
-    }, [requestCameraPermission]);
+    }, [imageType, isTransactionDraft, navigateBack, requestCameraPermission, transactionID]);
 
     const clearTorchConstraints = useCallback(() => {
         if (!trackRef.current) {
@@ -374,20 +374,8 @@ function IOURequestStepOdometerImage({
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.flash')}
-                        style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
-                        onPress={toggleFlashlight}
-                        disabled={!isTorchAvailable}
-                    >
-                        <Icon
-                            height={32}
-                            width={32}
-                            src={isFlashLightOn ? lazyIcons.Bolt : lazyIcons.boltSlash}
-                            fill={theme.textSupporting}
-                        />
-                    </PressableWithFeedback>
+                {/* Empty View matching gallery size so justifyContentAround keeps the shutter exactly centered - it's the simplest solution */}
+                <View style={{width: variables.iconSizeMenuItem, height: variables.iconSizeMenuItem}} />
             </View>
         </>
     );
@@ -481,7 +469,7 @@ function IOURequestStepOdometerImage({
             testID="IOURequestStepOdometerImage"
         >
             {(isDraggingOverWrapper) => (
-                <View style={[styles.flex1, styles.chooseFilesView(isSmallScreenWidth)]}>
+                <View style={[styles.flex1, !isMobile() && styles.chooseFilesView(isSmallScreenWidth)]}>
                     <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
                         {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                     </View>
