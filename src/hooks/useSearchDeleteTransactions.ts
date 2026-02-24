@@ -71,7 +71,9 @@ function useSearchDeleteTransactions() {
                     if (!remaining) {
                         continue;
                     }
-                    const remainingPortion = Math.abs(Number(remaining.modifiedAmount ?? remaining.amount ?? 0));
+                    const remainingPortion = Math.abs(
+                        hasValidModifiedAmount(remaining) ? Number(remaining.modifiedAmount) : Number(remaining.amount ?? 0),
+                    );
                     const splitTransactionIDList = [...splitTransactionIDs];
                     if (remaining.transactionID !== originalTransactionID) {
                         splitTransactionIDList.push(remaining.transactionID);
