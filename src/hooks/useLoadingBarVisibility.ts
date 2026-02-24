@@ -11,8 +11,8 @@ const RELEVANT_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMAN
  * Shows LoadingBar when any of the RELEVANT_COMMANDS are being processed
  */
 export default function useLoadingBarVisibility(): boolean {
-    const [persistedRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {canBeMissing: false});
-    const [ongoingRequests] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {canBeMissing: true});
+    const [persistedRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS);
+    const [ongoingRequests] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS);
     const {isOffline} = useNetwork();
 
     // Don't show loading bar if currently offline

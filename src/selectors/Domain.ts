@@ -3,7 +3,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import type {SecurityGroupKey, UserSecurityGroupData} from '@src/types/onyx/Domain';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+type DomainSecurityGroupWithID = {
+    id: string;
+    details: DomainSecurityGroup;
+};
 
 const domainMemberSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
 
@@ -136,10 +142,31 @@ function selectSecurityGroupForAccount(accountID: number) {
 }
 
 const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.member ?? {};
+/**
+ * Get the vacation delegate for a specific member in a domain.
+ *
+ * @param accountID - The account ID of the domain member.
+ */
+function vacationDelegateSelector(accountID: number): (domain: OnyxEntry<Domain>) => BaseVacationDelegate | undefined {
+    return (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${accountID}`];
+}
 
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
 
 const defaultSecurityGroupIDSelector = (domain: OnyxEntry<Domain>) => domain?.domain_defaultSecurityGroupID;
+
+function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] {
+    if (!domain) {
+        return getEmptyArray<DomainSecurityGroupWithID>();
+    }
+
+    return Object.entries(domain).reduce<DomainSecurityGroupWithID[]>((acc, [key, value]) => {
+        if (key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX)) {
+            acc.push({id: key.replace(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, ''), details: value as DomainSecurityGroup});
+        }
+        return acc;
+    }, []);
+}
 
 export {
     domainMemberSettingsSelector,
@@ -156,4 +183,8 @@ export {
     selectSecurityGroupForAccount,
     memberPendingActionSelector,
     isSecurityGroupEntry,
+    groupsSelector,
+    vacationDelegateSelector,
 };
+
+export {type DomainSecurityGroupWithID};
