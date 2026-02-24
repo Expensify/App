@@ -139,14 +139,14 @@ function optimisticallyUpdateSnapshotTransaction(hash: number, transactionID: st
  */
 function getIouParamsForTransaction(transactionID: string, transactionThreadReportID: string | undefined) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const reportID = transaction?.reportID ?? '';
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const policyID = parentReport?.policyID ?? '';
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
-    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
-    const policyRecentlyUsedCategories = allPolicyRecentlyUsedCategories?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`];
-    const parentReportNextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`];
+    const reportID = transaction?.reportID;
+    const parentReport = reportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : undefined;
+    const policyID = parentReport?.policyID;
+    const policy = policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
+    const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined;
+    const policyCategories = policyID ? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] : undefined;
+    const policyRecentlyUsedCategories = policyID ? allPolicyRecentlyUsedCategories?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`] : undefined;
+    const parentReportNextStep = reportID ? allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`] : undefined;
     const transactionThreadReport = transactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] : undefined;
 
     return {
@@ -265,10 +265,10 @@ function getSearchTransactionEditPermissions(
     }
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const reportID = transaction?.reportID ?? '';
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? undefined;
-    const policyID = parentReport?.policyID ?? '';
-    const parentPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? undefined;
+    const reportID = transaction?.reportID;
+    const parentReport = reportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : undefined;
+    const policyID = parentReport?.policyID;
+    const parentPolicy = policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
 
     // Changing a split-parent amount would leave child splits inconsistent.
     const isSplitTransaction = !!transaction?.comment?.originalTransactionID || !!(transaction?.comment?.splits && transaction.comment.splits.length > 0);

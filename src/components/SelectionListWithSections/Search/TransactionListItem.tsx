@@ -162,7 +162,7 @@ function TransactionListItem<TItem extends ListItem>({
 
     // Inline edit
     const transactionThreadReportID = transactionItem.reportAction?.childReportID;
-    const transactionID = transactionItem.transactionID ?? '';
+    const transactionID = transactionItem.transactionID;
 
     const {canEditDate, canEditMerchant, canEditDescription, canEditCategory, canEditAmount} = getSearchTransactionEditPermissions(transactionID, parentReportAction, currentSearchQueryJSON);
 
