@@ -975,7 +975,7 @@ function SearchPage({route}: SearchPageProps) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, reports, false, true, transactionPolicies),
+                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, reports, false, true),
                     });
                 }
             }
@@ -1027,7 +1027,9 @@ function SearchPage({route}: SearchPageProps) {
                 icon: expensifyIcons.ArrowSplit,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SPLIT,
                 onSelected: () => {
-                    initSplitExpense(allTransactions, allReports, firstTransaction);
+                    const report = firstTransaction?.reportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${firstTransaction.reportID}`] : undefined;
+                    const transactionPolicy = report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
+                    initSplitExpense(allTransactions, allReports, firstTransaction, transactionPolicy);
                 },
             });
         }

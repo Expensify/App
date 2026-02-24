@@ -1,4 +1,3 @@
-import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import {endSpan, getSpan} from './activeSpans';
 
@@ -10,7 +9,6 @@ function markNavigateAfterExpenseCreateEnd() {
         return;
     }
     endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
-    Performance.markEnd(CONST.TIMING.NAVIGATE_AFTER_EXPENSE_CREATE);
 }
 
 export default markNavigateAfterExpenseCreateEnd;
