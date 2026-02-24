@@ -3,6 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
+import LoadingView from '@components/BlockingViews/LoadingView';
 import Deferred from '@components/Deferred';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
@@ -81,7 +82,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
     const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
 
     return (
-        <Suspense>
+        <Suspense fallback={<LoadingView />}>
             <Deferred>
                 <View style={[styles.flex1, styles.h100]}>
                     <View style={[styles.pRelative, styles.flex1]}>

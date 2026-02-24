@@ -11,6 +11,7 @@ import {Animated, DeviceEventEmitter, InteractionManager, View} from 'react-nati
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import LoadingView from '@components/BlockingViews/LoadingView';
 import Deferred from '@components/Deferred';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyReportHeader from '@components/MoneyReportHeader';
@@ -1007,7 +1008,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     }
 
     return (
-        <Suspense>
+        <Suspense fallback={<LoadingView />}>
             <Deferred>
                 {/* Wide RHP overlays should be rendered only for the report screen displayed in RHP */}
                 <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
