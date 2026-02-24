@@ -49,6 +49,13 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const parentReport = task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined;
     const ancestors = useAncestors(parentReport);
     const [errorMessage, setErrorMessage] = useState('');
+    const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
+    const [prevTaskKey, setPrevTaskKey] = useState(taskKey);
+    if (prevTaskKey !== taskKey) {
+        setPrevTaskKey(taskKey);
+        setErrorMessage('');
+    }
+
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = isEmptyObject(parentReport) || isAllowedToComment(parentReport);
 
@@ -68,15 +75,11 @@ function NewTaskPage({route}: NewTaskPageProps) {
     });
 
     useEffect(() => {
-        setErrorMessage('');
-
-        // We only set the parentReportID if we are creating a task from a report
-        // this allows us to go ahead and set that report as the share destination
-        // and disable the share destination selector
-        if (task?.parentReportID) {
-            setShareDestinationValue(task.parentReportID);
+        if (!task?.parentReportID) {
+            return;
         }
-    }, [task?.assignee, task?.assigneeAccountID, task?.description, task?.parentReportID, task?.shareDestination, task?.title]);
+        setShareDestinationValue(task.parentReportID);
+    }, [task?.parentReportID]);
 
     // On submit, we want to call the createTask function and wait to validate
     // the response
