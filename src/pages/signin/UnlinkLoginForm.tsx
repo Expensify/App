@@ -20,8 +20,8 @@ function UnlinkLoginForm() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
 
     const unlinkMessage =
         account?.message === 'unlinkLoginForm.linkSent' || account?.message === 'unlinkLoginForm.successfullyUnlinkedLogin' ? translate(account?.message) : account?.message;
@@ -56,6 +56,7 @@ function UnlinkLoginForm() {
                 <PressableWithFeedback
                     accessibilityLabel={translate('common.back')}
                     onPress={() => redirectToSignIn()}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.GO_BACK}
                 >
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>
@@ -65,6 +66,7 @@ function UnlinkLoginForm() {
                     isLoading={account?.isLoading && account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
                     onPress={() => requestUnlinkValidationLink()}
                     isDisabled={!!isOffline || !!account?.message}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.UNLINK}
                 />
             </View>
         </>

@@ -95,6 +95,7 @@ function BaseTextInput({
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
+    const helpMessageId = useId();
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -507,6 +508,7 @@ function BaseTextInput({
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                                 accessibilityLabel={inputProps.accessibilityLabel}
+                                aria-describedby={inputHelpText ? helpMessageId : undefined}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -579,6 +581,7 @@ function BaseTextInput({
                 </PressableWithoutFeedback>
                 {!!inputHelpText && (
                     <FormHelpMessage
+                        nativeID={helpMessageId}
                         isError={!!errorText}
                         message={inputHelpText}
                         messageID={errorMessageID}

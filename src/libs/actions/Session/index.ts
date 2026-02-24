@@ -726,7 +726,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                 readyToShowAuthScreens: !hybridApp?.useNewDotSignInPage,
             };
 
-            const onyxUpdates: OnyxUpdate[] = [
+            const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP | keyof typeof newDotOnyxValues>> = [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.HYBRID_APP,
@@ -739,7 +739,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
                     value: value ?? {},
-                } as OnyxUpdate);
+                } as OnyxUpdate<keyof typeof newDotOnyxValues>);
             }
 
             // Batch all merges together so they're processed atomically by Onyx

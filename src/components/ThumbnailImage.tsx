@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
@@ -76,6 +76,9 @@ type ThumbnailImageProps = {
 
     /** Callback to be called when the image loads */
     onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
+
+    /** The resize mode of the image */
+    resizeMode?: ImageResizeMode;
 };
 
 function ThumbnailImage({
@@ -97,6 +100,7 @@ function ThumbnailImage({
     onMeasure,
     loadingIndicatorStyles,
     onLoad,
+    resizeMode,
 }: ThumbnailImageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'OfflineCloud']);
     const styles = useThemeStyles();
@@ -161,6 +165,7 @@ function ThumbnailImage({
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
                     altText={altText}
+                    style={style}
                     onMeasure={(args) => {
                         updateImageSize(args);
                         onMeasure?.();
@@ -174,6 +179,7 @@ function ThumbnailImage({
                     loadingIconSize={loadingIconSize}
                     loadingIndicatorStyles={loadingIndicatorStyles}
                     onLoad={onLoad}
+                    resizeMode={resizeMode}
                 />
             </View>
         </View>
