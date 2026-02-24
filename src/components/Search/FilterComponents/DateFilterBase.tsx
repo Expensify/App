@@ -3,8 +3,8 @@ import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScrollView from '@components/ScrollView';
-import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
-import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
+import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from './DatePresetFilterBase';
+import DatePresetFilterBase from './DatePresetFilterBase';
 import type {SearchDatePreset} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,13 +18,13 @@ type DateFilterBaseProps = {
     isSearchAdvancedFiltersFormLoading?: boolean;
     onBackButtonPress: () => void;
     onSubmit: (values: SearchDateValues) => void;
-    renderFooter?: () => React.ReactNode;
-    wrapper?: (children: React.ReactNode) => React.ReactNode;
+    customFooter?: React.ReactNode;
+    Wrapper?: React.ComponentType<{children: React.ReactNode}>;
 };
 
 // Use forwardRef so parent can get the selected date values via the exposed method
 const DateFilterBase = forwardRef<SearchDatePresetFilterBaseHandle, DateFilterBaseProps>(
-    ({title, defaultDateValues, presets, isSearchAdvancedFiltersFormLoading, onBackButtonPress, onSubmit, renderFooter, wrapper}, ref) => {
+    ({title, defaultDateValues, presets, isSearchAdvancedFiltersFormLoading, onBackButtonPress, onSubmit, customFooter, Wrapper}, ref) => {
         const styles = useThemeStyles();
         const {translate} = useLocalize();
 
@@ -51,7 +51,7 @@ const DateFilterBase = forwardRef<SearchDatePresetFilterBaseHandle, DateFilterBa
             return title;
         }
 
-        function reset() {
+        const reset = () => {
             if (!searchDatePresetFilterBaseRef.current) {
                 return;
             }
@@ -63,9 +63,9 @@ const DateFilterBase = forwardRef<SearchDatePresetFilterBaseHandle, DateFilterBa
             }
 
             searchDatePresetFilterBaseRef.current.clearDateValues();
-        }
+        };
 
-        function save() {
+        const save = () => {
             if (!searchDatePresetFilterBaseRef.current) {
                 return;
             }
@@ -78,16 +78,16 @@ const DateFilterBase = forwardRef<SearchDatePresetFilterBaseHandle, DateFilterBa
 
             const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
             onSubmit(dateValues);
-        }
+        };
 
-        function goBack() {
+        const goBack = () => {
             if (selectedDateModifier) {
                 setSelectedDateModifier(null);
                 return;
             }
 
             onBackButtonPress();
-        }
+        };
 
         const computedTitle = getComputedTitle();
 
@@ -107,8 +107,8 @@ const DateFilterBase = forwardRef<SearchDatePresetFilterBaseHandle, DateFilterBa
                         isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
                     />
                 </ScrollView>
-                {!selectedDateModifier && renderFooter ? (
-                    renderFooter()
+                {!selectedDateModifier && customFooter ? (
+                    customFooter
                 ) : (
                     <>
                         <Button
@@ -128,13 +128,12 @@ const DateFilterBase = forwardRef<SearchDatePresetFilterBaseHandle, DateFilterBa
             </>
         );
 
-        if (wrapper) {
-            return wrapper(content);
+        if (Wrapper) {
+            return <Wrapper>{content}</Wrapper>;
         }
 
         return content;
     },
 );
-
 
 export default DateFilterBase;

@@ -1,6 +1,6 @@
 import React from 'react';
-import type {ReportFieldDateKey} from '@components/Search/types';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {ReportFieldDateKey} from './types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,10 +8,10 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type {TranslationPaths} from '@src/languages/types';
 import DateFilterBase from './FilterComponents/DateFilterBase';
 import type {SearchDateFilterKeys} from './types';
 
@@ -59,10 +59,10 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
         return getDatePresets(dateKey, hasFeed);
     }
 
-    function goBack() {
+    const goBack = () => {
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }
-    
+    };
+
     const defaultDateValues = getDefaultDateValues();
     const presets = getPresets();
 

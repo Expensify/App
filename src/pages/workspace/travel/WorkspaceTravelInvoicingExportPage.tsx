@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {SearchDatePresetFilterBaseHandle} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
+import type {SearchDatePresetFilterBaseHandle} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePreset} from '@components/Search/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -128,20 +128,17 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         }
     }, [prevIsGenerating, isGenerating, processDownload, travelInvoiceStatement, policyID, getDateRange]);
 
-    function handleDownloadCSV() {
+    const handleDownloadCSV = () => {
         const {startDate, endDate} = getDateRange();
         exportTravelInvoiceStatementCSV(policyID, startDate, endDate, translate);
-    }
+    };
 
-    function goBack() {
-        Navigation.goBack();
-    }
+    const goBack = () => Navigation.goBack();
 
-    function onSubmit() {
-        // Handled by the generic component automatically calling its internal exposed methods.
-        // It updates its own internal refs/states so the parent just needs to call save without doing anything else.
-        // And when it saves, the parent just needs it available in ref when export uses getDateValues.
-    }
+    // Handled by the generic component automatically calling its internal exposed methods.
+    // It updates its own internal refs/states so the parent just needs to call save without doing anything else.
+    // And when it saves, the parent just needs it available in ref when export uses getDateValues.
+    const onSubmit = () => {};
 
     const defaultDateValues = getDefaultDateValues();
 
@@ -160,8 +157,8 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
                 presets={presets}
                 onBackButtonPress={goBack}
                 onSubmit={onSubmit}
-                wrapper={(children) => <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>}
-                renderFooter={() => (
+                Wrapper={FullPageOfflineBlockingView}
+                customFooter={
                     <View style={[styles.ph5, styles.pb5]}>
                         <Button
                             text={translate('workspace.moreFeatures.travel.travelInvoicing.exportToPDF')}
@@ -177,7 +174,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
                             large
                         />
                     </View>
-                )}
+                }
             />
         </ScreenWrapper>
     );
