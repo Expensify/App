@@ -8,7 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {findSelfDMReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
 import {setTransactionReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -39,6 +39,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation}: IOURequestStepPerDi
                 let targetReport: OnyxEntry<Report> = getPolicyExpenseChat(accountID, policy?.id);
                 let targetIouType = iouType;
                 let transactionReportID;
+                // eslint-disable-next-line prefer-const
                 ({targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(targetReport, selfDMReport, targetIouType, defaultExpensePolicy, personalPolicy));
 
                 if (!targetReport) {

@@ -23,7 +23,7 @@ import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
-import {findSelfDMReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
 import {
