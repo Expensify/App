@@ -1,11 +1,10 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
 import useDragoverDismiss from '@hooks/useDragoverDismiss';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {generateReportID} from '@libs/ReportUtils';
@@ -31,7 +30,6 @@ function FloatingActionButtonAndPopover() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
-    const prevIsFocused = usePrevious(isFocused);
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
@@ -53,18 +51,12 @@ function FloatingActionButtonAndPopover() {
         setIsCreateMenuActive(false);
     }, [isCreateMenuActive]);
 
-    const didScreenBecomeInactive = useCallback((): boolean => !isFocused && prevIsFocused, [isFocused, prevIsFocused]);
-
-    useEffect(() => {
-        if (!didScreenBecomeInactive()) {
-            return;
-        }
-
-        // Intentionally calling setState inside useEffect — we need to imperatively respond to
-        // navigation focus changes (an external event) which can't be expressed as an event handler
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        hideCreateMenu();
-    }, [didScreenBecomeInactive, hideCreateMenu]);
+    // Close the menu when the screen loses focus (e.g. navigating away)
+    useFocusEffect(
+        useCallback(() => {
+            return () => hideCreateMenu();
+        }, [hideCreateMenu]),
+    );
 
     // Close menu on dragover — prevents popover from staying open during file drag
     useDragoverDismiss(isCreateMenuActive, hideCreateMenu);
