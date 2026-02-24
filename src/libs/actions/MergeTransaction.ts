@@ -358,6 +358,8 @@ function mergeTransactionRequest({
         billable: boolean;
         reimbursable: boolean;
         tag: string;
+        taxCode: string;
+        taxPolicyID: string;
         receiptID: number | undefined;
         reportID: string;
         createdIOUReportActionID?: string;
