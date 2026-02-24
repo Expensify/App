@@ -59,6 +59,40 @@ type SearchRouterProps = {
     ref?: React.Ref<View>;
 };
 
+const setFocusAndScrollToRight = (actionId: string, textInputRef: React.RefObject<AnimatedTextInputRef | null>) => {
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            if (!textInputRef.current) {
+                Log.info('[CMD_K_DEBUG] Focus skipped - no text input ref', false, {
+                    actionId,
+                    timestamp: Date.now(),
+                });
+                return;
+            }
+            textInputRef.current.focus();
+            scrollToRight(textInputRef.current);
+        });
+    } catch (error) {
+        Log.alert('[CMD_K_FREEZE] Focus and scroll failed', {
+            actionId,
+            error: String(error),
+            timestamp: Date.now(),
+        });
+    }
+};
+
+type HandlerData<T> = {item: T; actionId: string; startTime: number};
+
+type ParserData = {
+    autocompleteID: string | undefined;
+    actionId: string;
+    startTime: number;
+    newSearchQuery: string;
+    mapKey: string | undefined;
+    trimmedUserSearchQueryLength?: number;
+};
+
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -278,81 +312,28 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         [autocompleteSubstitutions, onRouterClose, setTextInputValue, setShouldResetSearchQuery],
     );
 
-    const setFocusAndScrollToRight = (actionId: string) => {
-        try {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                if (!textInputRef.current) {
-                    Log.info('[CMD_K_DEBUG] Focus skipped - no text input ref', false, {
-                        actionId,
-                        timestamp: Date.now(),
-                    });
-                    return;
-                }
-                textInputRef.current.focus();
-                scrollToRight(textInputRef.current);
-            });
-        } catch (error) {
-            Log.alert('[CMD_K_FREEZE] Focus and scroll failed', {
-                actionId,
-                error: String(error),
-                timestamp: Date.now(),
-            });
-        }
-    };
-
-    const parseContextualSuggestion = ({item, actionId, startTime}: {item: SearchQueryItem; actionId: string; startTime: number}) => {
-        const searchQuery = getContextualSearchQuery(item, policies, reports);
-        const newSearchQuery = `${searchQuery}\u00A0`;
+    const parseSuggestion = ({autocompleteID, actionId, startTime, newSearchQuery, trimmedUserSearchQueryLength, mapKey}: ParserData) => {
         onSearchQueryChange(newSearchQuery, true);
         setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
-        const autocompleteKey = getContextualSearchAutocompleteKey(item, policies, reports);
-        if (autocompleteKey && item.autocompleteID) {
-            const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: item.autocompleteID};
+        if (mapKey && autocompleteID) {
+            const substitutions = {...autocompleteSubstitutions, [mapKey]: autocompleteID};
             setAutocompleteSubstitutions(substitutions);
         }
-        setFocusAndScrollToRight(actionId);
-
-        const endTime = Date.now();
-        Log.info('[CMD_K_DEBUG] Contextual suggestion handled', false, {
-            actionId,
-            duration: endTime - startTime,
-            newQueryLength: newSearchQuery.length,
-            hasSubstitutions: !!(autocompleteKey && item.autocompleteID),
-            timestamp: endTime,
-        });
-    };
-
-    const parseAutocompleteSuggestion = ({item, actionId, startTime}: {item: SearchQueryItem; actionId: string; startTime: number}) => {
-        if (!item.searchQuery) {
-            return;
-        }
-
-        const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
-        const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
-        const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
-        onSearchQueryChange(newSearchQuery, true);
-        setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
-
-        if (item.mapKey && item.autocompleteID) {
-            const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
-            setAutocompleteSubstitutions(substitutions);
-        }
-        setFocusAndScrollToRight(actionId);
+        setFocusAndScrollToRight(actionId, textInputRef);
 
         const endTime = Date.now();
         Log.info('[CMD_K_DEBUG] Autocomplete suggestion handled', false, {
             actionId,
             duration: endTime - startTime,
-            trimmedQueryLength: trimmedUserSearchQuery.length,
+            trimmedQueryLength: trimmedUserSearchQueryLength,
             newQueryLength: newSearchQuery.length,
-            hasMapKey: !!(item.mapKey && item.autocompleteID),
+            hasMapKey: !!(mapKey && autocompleteID),
             timestamp: endTime,
         });
     };
 
-    const handleSearchQuery = ({item, actionId, startTime}: {item: SearchQueryItem; actionId: string; startTime: number}) => {
+    const handleSearchQuery = ({item, actionId, startTime}: HandlerData<SearchQueryItem>) => {
         if (!item.searchQuery) {
             Log.info('[CMD_K_DEBUG] List item press skipped - no search query', false, {
                 actionId,
@@ -363,16 +344,24 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         }
 
         if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
-            parseContextualSuggestion({
-                item,
+            parseSuggestion({
+                autocompleteID: item.autocompleteID,
                 actionId,
                 startTime,
+                newSearchQuery: `${getContextualSearchQuery(item, policies, reports)}\u00A0`,
+                mapKey: getContextualSearchAutocompleteKey(item, policies, reports),
             });
         } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
-            parseAutocompleteSuggestion({
-                item,
+            const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
+            const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
+
+            parseSuggestion({
+                autocompleteID: item.autocompleteID,
                 actionId,
                 startTime,
+                newSearchQuery: `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery ?? '')}\u00A0`,
+                mapKey: item.mapKey,
+                trimmedUserSearchQueryLength: trimmedUserSearchQuery.length,
             });
         } else {
             submitSearch(item.searchQuery);
@@ -387,7 +376,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         }
     };
 
-    const handleOptionData = ({item, actionId, startTime}: {item: OptionData; actionId: string; startTime: number}) => {
+    const handleOptionData = ({item, actionId, startTime}: HandlerData<OptionData>) => {
         backHistory(() => {
             if (item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
