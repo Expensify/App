@@ -18,8 +18,8 @@ import {useTravelCVV} from './TravelCVVContextProvider';
  */
 function TravelCVVVerifyAccountPage() {
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [cardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [cardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
 
     // Get state and actions from context
     const {isLoading, validateError, setCvv, setIsLoading, setValidateError} = useTravelCVV();
