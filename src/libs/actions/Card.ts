@@ -1218,14 +1218,14 @@ function deletePersonalCard({cardID, card}: {cardID: number; card?: Card}) {
     connTransactions = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.TRANSACTION,
         callback: (data) => {
-            transactionsData = data ?? {};
+            transactionsData = (data ?? {}) as OnyxCollection<Transaction>;
             runDelete();
         },
     });
     connReports = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.REPORT,
         callback: (data) => {
-            reportsData = data ?? {};
+            reportsData = (data ?? {}) as OnyxCollection<Report>;
             runDelete();
         },
     });
