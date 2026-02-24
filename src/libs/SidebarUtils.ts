@@ -760,9 +760,11 @@ function getOptionData({
     result.isPolicyExpenseChat = isPolicyExpenseChat(report);
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
-    // Chat threads and workspace tasks should not show subscript in LHN even if shouldReportShowSubscript
-    // returns true — the workspace icon is suppressed to show only the actor avatar.
-    result.shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived) && !(isChatThread(report) && !isTripRoom(report)) && !isWorkspaceTaskReport(report);
+    // Chat threads (except expense reports submitted to workspaces) and workspace tasks should
+    // not show subscript in LHN. Expense reports keep subscript because they need the workspace
+    // icon alongside the member icon.
+    result.shouldShowSubscript =
+        shouldReportShowSubscript(report, isReportArchived) && !(isChatThread(report) && !isTripRoom(report) && !isExpenseReport(report)) && !isWorkspaceTaskReport(report);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;

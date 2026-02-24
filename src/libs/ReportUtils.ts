@@ -3709,8 +3709,8 @@ function getIconsForExpenseReport(report: OnyxInputOrEntry<Report>, personalDeta
     if (!report) {
         return [];
     }
-    const workspaceIcon = getWorkspaceIcon(report, policy);
     const memberIcon = getParticipantIcon(report?.ownerAccountID, personalDetails, true);
+    const workspaceIcon = getWorkspaceIcon(report, policy);
     return [memberIcon, workspaceIcon];
 }
 
@@ -3851,8 +3851,21 @@ function getIcons(
             },
         ];
     }
+    // Money report types must be checked before isChatThread because expense reports,
+    // IOU reports, and invoice reports all have parentReportID + parentReportActionID set,
+    // which makes isChatThread() return true. Without this ordering they would be incorrectly
+    // routed to getIconsForChatThread instead of their proper icon handlers.
     if (isExpenseRequest(report)) {
         return getIconsForExpenseRequest(report, personalDetails, policy);
+    }
+    if (isExpenseReport(report)) {
+        return getIconsForExpenseReport(report, personalDetails, policy);
+    }
+    if (isIOUReport(report)) {
+        return getIconsForIOUReport(report, personalDetails);
+    }
+    if (isInvoiceReport(report)) {
+        return getIconsForInvoiceReport(report, personalDetails, policy, invoiceReceiverPolicy);
     }
     if (isChatThread(report)) {
         return getIconsForChatThread(report, personalDetails, policy, formatPhoneNumber);
@@ -3872,12 +3885,6 @@ function getIcons(
     if (isPolicyExpenseChat(report)) {
         return getIconsForPolicyExpenseChat(report, personalDetails, policy);
     }
-    if (isExpenseReport(report)) {
-        return getIconsForExpenseReport(report, personalDetails, policy);
-    }
-    if (isIOUReport(report)) {
-        return getIconsForIOUReport(report, personalDetails);
-    }
     if (isSelfDM(report)) {
         return getIconsForParticipants(currentUserAccountID ? [currentUserAccountID] : [], personalDetails);
     }
@@ -3886,9 +3893,6 @@ function getIcons(
     }
     if (isGroupChat(report)) {
         return getIconsForGroupChat(report, formatPhoneNumber);
-    }
-    if (isInvoiceReport(report)) {
-        return getIconsForInvoiceReport(report, personalDetails, policy, invoiceReceiverPolicy);
     }
     if (isOneOnOneChat(report)) {
         const otherParticipantsAccountIDs = Object.keys(report.participants ?? {})
