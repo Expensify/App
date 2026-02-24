@@ -22,8 +22,8 @@ type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const {initialURL} = useInitialURLState();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountLoading = account?.isLoading;
     const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
 

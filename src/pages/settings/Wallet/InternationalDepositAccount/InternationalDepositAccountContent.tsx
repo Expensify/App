@@ -16,6 +16,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InternationalBankAccountForm} from '@src/types/form';
@@ -38,6 +39,7 @@ type InternationalDepositAccountContentProps = {
     draftValues: OnyxEntry<InternationalBankAccountForm>;
     country: OnyxEntry<string>;
     isAccountLoading: boolean;
+    backTo?: Route;
 };
 
 const pages = [
@@ -61,7 +63,15 @@ function getSkippedPages(skipAccountTypeStep: boolean, skipAccountHolderInformat
     return skippedSteps;
 }
 
-function InternationalDepositAccountContent({privatePersonalDetails, corpayFields, bankAccountList, draftValues, country, isAccountLoading}: InternationalDepositAccountContentProps) {
+function InternationalDepositAccountContent({
+    privatePersonalDetails,
+    corpayFields,
+    bankAccountList,
+    draftValues,
+    country,
+    isAccountLoading,
+    backTo,
+}: InternationalDepositAccountContentProps) {
     const {translate} = useLocalize();
 
     const fieldsMap = useMemo(() => getFieldsMap(corpayFields), [corpayFields]);
@@ -84,24 +94,31 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT>>();
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((r) => isFullScreenName(r.name)));
 
-    const goBack = useCallback(() => {
-        switch (topmostFullScreenRoute?.name) {
-            case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
-                Navigation.goBack(ROUTES.SETTINGS_WALLET);
-                break;
-            case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
-                Navigation.closeRHPFlow();
-                break;
-            default:
-                Navigation.goBack();
-                break;
-        }
-    }, [topmostFullScreenRoute?.name]);
+    const goBack = useCallback(
+        (shouldIgnoreBackToParam = false) => {
+            if (backTo && !shouldIgnoreBackToParam) {
+                Navigation.goBack(backTo);
+                return;
+            }
+            switch (topmostFullScreenRoute?.name) {
+                case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
+                    Navigation.goBack(ROUTES.SETTINGS_WALLET);
+                    break;
+                case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
+                    Navigation.closeRHPFlow();
+                    break;
+                default:
+                    Navigation.goBack();
+                    break;
+            }
+        },
+        [backTo, topmostFullScreenRoute?.name],
+    );
 
     const handleFinishStep = useCallback(() => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-        goBack();
-    }, [goBack]);
+        goBack(backTo?.includes(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE));
+    }, [goBack, backTo]);
 
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomSubPageProps>({
         pages,

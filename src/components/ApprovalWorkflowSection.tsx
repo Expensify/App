@@ -36,7 +36,6 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
         selector: personalDetailsByEmailSelector,
     });
 
@@ -90,6 +89,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                     iconFill={theme.icon}
                     onPress={onPress}
                     shouldRemoveBackground
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_EXPENSES_FROM}
                 />
 
                 {approvalWorkflow.approvers.map((approver, index) => (
@@ -113,6 +113,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                             shouldRemoveBackground
                             helperText={getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail})}
                             helperTextStyle={styles.workflowApprovalLimitText}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                         />
                     </View>
                 ))}

@@ -55,14 +55,14 @@ function KYCWall({
     shouldShowPersonalBankAccountOption = false,
     ref,
 }: KYCWallProps) {
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
-    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const {formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -81,7 +81,7 @@ function KYCWall({
         anchorPositionHorizontal: 0,
     });
 
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
 
     const getAnchorPosition = useCallback(
         (domRect: DomRect): AnchorPosition => {
@@ -143,7 +143,7 @@ function KYCWall({
                                 if (adminPolicy?.achAccount) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(adminPolicy.id));
+                                Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: adminPolicy.id}));
                             });
                         } else {
                             const moveResult = moveIOUReportToPolicy(iouReport, adminPolicy, true, reportTransactions);
@@ -155,7 +155,7 @@ function KYCWall({
                                     if (adminPolicy?.achAccount) {
                                         return;
                                     }
-                                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(adminPolicy.id));
+                                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: adminPolicy.id}));
                                 });
                             }
                         }
@@ -173,7 +173,7 @@ function KYCWall({
                     }
 
                     // Navigate to the bank account set up flow for this specific policy
-                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID));
+                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID}));
                     return;
                 }
 
@@ -182,7 +182,7 @@ function KYCWall({
                 // - account already present on policy is partially setup
                 // - account is being connected 'on the spot' while trying to pay for an expense (it won't be linked to policy yet but will appear as reimbursementAccount)
                 if (policy !== undefined && (isBankAccountPartiallySetup(policy?.achAccount?.state) || isBankAccountPartiallySetup(reimbursementAccount?.achData?.state))) {
-                    navigateToBankAccountRoute(policy.id);
+                    navigateToBankAccountRoute({policyID: policy.id});
                     return;
                 }
 
