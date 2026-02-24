@@ -41,17 +41,9 @@ type MediaType<THeaderMedia, TMediaType extends MediaTypes> = SharedProps<TMedia
     headerMedia: THeaderMedia;
 };
 
-type VideoProps = MediaType<string, 'video'>;
 type IllustrationProps = MediaType<IconAsset, 'illustration'>;
 
-type EmptyStateComponentProps = VideoProps | IllustrationProps;
+type EmptyStateComponentProps = IllustrationProps;
 type GenericEmptyStateComponentProps = SharedProps<MediaTypes> & {headerMedia: HeaderMedia};
 
-type VideoLoadedEventType = {
-    srcElement: {
-        videoWidth: number;
-        videoHeight: number;
-    };
-};
-
-export type {EmptyStateComponentProps, VideoLoadedEventType, EmptyStateButton, GenericEmptyStateComponentProps, MediaTypes, HeaderMedia};
+export type {EmptyStateComponentProps, EmptyStateButton, GenericEmptyStateComponentProps, MediaTypes, HeaderMedia};

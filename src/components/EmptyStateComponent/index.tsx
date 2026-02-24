@@ -1,20 +1,16 @@
-import type {SourceLoadEventPayload} from 'expo-video';
 import isEmpty from 'lodash/isEmpty';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
-import VideoPlayer from '@components/VideoPlayer';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import CONST from '@src/CONST';
 import type {EmptyStateComponentProps} from './types';
-
-const VIDEO_ASPECT_RATIO = 400 / 225;
 
 function EmptyStateComponent({
     headerMediaType,
@@ -33,34 +29,11 @@ function EmptyStateComponent({
     subtitleText,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
-    const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const doesSubtitleContainCustomEmojiAndMore = containsCustomEmoji(subtitle ?? '') && !containsOnlyCustomEmoji(subtitle ?? '');
 
-    const setAspectRatio = (event: SourceLoadEventPayload) => {
-        const track = event.availableVideoTracks.at(0);
-
-        if (!track) {
-            return;
-        }
-
-        setVideoAspectRatio(track.size.width / track.size.height);
-    };
-
     const HeaderComponent = useMemo(() => {
         switch (headerMediaType) {
-            case CONST.EMPTY_STATE_MEDIA.VIDEO:
-                return (
-                    <VideoPlayer
-                        url={headerMedia}
-                        videoPlayerStyle={[headerContentStyles, {aspectRatio: videoAspectRatio}]}
-                        onSourceLoaded={setAspectRatio}
-                        controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
-                        shouldUseControlsBottomMargin={false}
-                        shouldPlay
-                        isLooping
-                    />
-                );
             case CONST.EMPTY_STATE_MEDIA.ILLUSTRATION:
                 return (
                     <ImageSVG
@@ -71,7 +44,7 @@ function EmptyStateComponent({
             default:
                 return null;
         }
-    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio]);
+    }, [headerMedia, headerMediaType, headerContentStyles]);
 
     return (
         <View style={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}>
@@ -96,7 +69,7 @@ function EmptyStateComponent({
                             ))}
                         {children}
                         {!isEmpty(buttons) && (
-                            <View style={[styles.gap2, styles.mt6, styles.flexRow, styles.justifyContentCenter]}>
+                            <View style={[styles.gap2, styles.mt6, styles.flexRow, styles.flexWrap, styles.justifyContentCenter]}>
                                 {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, dropDownOptions}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu

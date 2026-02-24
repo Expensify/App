@@ -7710,7 +7710,6 @@ const CONST = {
     },
     EMPTY_STATE_MEDIA: {
         ILLUSTRATION: 'illustration',
-        VIDEO: 'video',
     },
     REPORT_FIELDS_FEATURE: {
         qbo: {
