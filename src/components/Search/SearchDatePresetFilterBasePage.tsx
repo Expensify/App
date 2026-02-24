@@ -1,6 +1,5 @@
 import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ReportFieldDateKey} from './types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import DateFilterBase from './FilterComponents/DateFilterBase';
-import type {SearchDateFilterKeys} from './types';
+import type {ReportFieldDateKey, SearchDateFilterKeys} from './types';
 
 type SearchDatePresetFilterBasePageProps = {
     /** Key used for the date filter */
