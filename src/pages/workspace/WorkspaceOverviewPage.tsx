@@ -295,18 +295,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [isLoadingBill]);
 
-    useEffect(() => {
-        if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
-            return;
+    const [prevDeleteState, setPrevDeleteState] = useState({isFocused, isPendingDelete});
+    if (prevDeleteState.isPendingDelete !== isPendingDelete || prevDeleteState.isFocused !== isFocused) {
+        setPrevDeleteState({isFocused, isPendingDelete});
+        if (isFocused && prevDeleteState.isPendingDelete && !isPendingDelete) {
+            if (!policyLastErrorMessage) {
+                goBackFromInvalidPolicy();
+            } else {
+                setIsDeleteModalOpen(false);
+                setIsDeleteWorkspaceErrorModalOpen(true);
+            }
         }
-
-        if (!policyLastErrorMessage) {
-            goBackFromInvalidPolicy();
-            return;
-        }
-        setIsDeleteModalOpen(false);
-        setIsDeleteWorkspaceErrorModalOpen(true);
-    }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
+    }
 
     const onDeleteWorkspace = useCallback(() => {
         if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(subscriptionType), ownerPolicies, policyID)) {
