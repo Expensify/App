@@ -2,7 +2,6 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
@@ -48,7 +47,6 @@ function DraggableList<T>({
     ref,
 }: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
     const styles = useThemeStyles();
-    const isFocused = useIsFocused();
     const containerRef = useRef<HTMLDivElement>(null);
     const [hasFocus, setHasFocus] = useState(false);
 
@@ -62,7 +60,7 @@ function DraggableList<T>({
         initialFocusedIndex: -1,
         maxIndex: data.length - 1,
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: isFocused,
+        isActive: hasFocus,
         disableCyclicTraversal: true,
     });
 
