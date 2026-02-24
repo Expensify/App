@@ -131,6 +131,7 @@ import type {
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
+
 type StateValue = {
     stateISO: string;
     stateName: string;
@@ -987,7 +988,7 @@ const translations: TranslationDeepObject<typeof en> = {
             hotelIn: ({destination}: {destination: string}) => `Hotel em ${destination}`,
             carRentalIn: ({destination}: {destination: string}) => `Aluguel de carro em ${destination}`,
             inOneWeek: 'Em 1 semana',
-            inDays: {one: 'Em 1 dia', other: (count: number) => `Em ${count} dias`},
+            inDays: () => ({one: 'Em 1 dia', other: (count: number) => `Em ${count} dias`}),
             today: 'Hoje',
         },
     },
