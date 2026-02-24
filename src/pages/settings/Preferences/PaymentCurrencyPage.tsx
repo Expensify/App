@@ -17,7 +17,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 function PaymentCurrencyPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const personalPolicy = usePolicy(personalPolicyID);
 
     const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;

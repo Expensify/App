@@ -39,7 +39,7 @@ type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<SettingsNav
 function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(CONST.POLICY.ROLE.USER);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
 
@@ -57,7 +57,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         };
     }, []);
 
-    const [importedSpreadsheetMemberData] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, {canBeMissing: true});
+    const [importedSpreadsheetMemberData] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA);
     const newMembers = useMemo(() => {
         return importedSpreadsheetMemberData?.filter((member) => !isPolicyMemberWithoutPendingDelete(member.email, policy) && !member.role) ?? [];
     }, [importedSpreadsheetMemberData, policy]);

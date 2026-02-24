@@ -1,0 +1,275 @@
+name: Build iOS HybridApp
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to checkout and build
+        type: string
+        required: true
+      variant:
+        description: "'Release' or 'Adhoc'"
+        type: string
+        required: true
+      mobile-expensify-ref:
+        description: Mobile-Expensify ref to checkout (empty to use submodule at HEAD)
+        type: string
+        default: ''
+      pull-request-number:
+        description: Pull request number associated with this build
+        type: string
+        default: ''
+      artifact-prefix:
+        description: Prefix for build artifact names
+        type: string
+        default: ''
+      force-native-build:
+        description: Force a full native build, bypassing Rock remote cache
+        type: string
+        default: 'false'
+
+    outputs:
+      IOS_VERSION:
+        description: iOS version string from the build
+        value: ${{ jobs.build.outputs.IOS_VERSION }}
+      ROCK_ARTIFACT_URL:
+        description: URL to download the ad-hoc build artifact (adhoc only)
+        value: ${{ jobs.build.outputs.ROCK_ARTIFACT_URL }}
+
+jobs:
+  build:
+    name: Build iOS HybridApp
+    runs-on: macos-15-xlarge
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+      PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
+    outputs:
+      IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
+      ROCK_ARTIFACT_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: true
+          ref: ${{ inputs.ref }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Checkout Mobile-Expensify to specified branch or commit
+        if: ${{ inputs.mobile-expensify-ref != '' }}
+        run: |
+          cd Mobile-Expensify
+          git fetch origin ${{ inputs.mobile-expensify-ref }}
+          git checkout ${{ inputs.mobile-expensify-ref }}
+
+      - name: Compute custom build identifier
+        id: computeIdentifier
+        run: |
+          APP_SHORT_SHA=$(git rev-parse --short HEAD)
+          MOBILE_EXPENSIFY_SHORT_SHA=$(cd Mobile-Expensify && git rev-parse --short HEAD)
+          echo "IDENTIFIER=${APP_SHORT_SHA}-${MOBILE_EXPENSIFY_SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Setup Node
+        id: setup-node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
+
+      - name: Create .env.adhoc file based on staging
+        if: ${{ inputs.variant == 'Adhoc' }}
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+
+      - name: Inject CI data into JS bundle
+        if: ${{ inputs.variant == 'Adhoc' && inputs.pull-request-number != '' }}
+        run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
+
+      - name: Setup Ruby
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
+        with:
+          bundler-cache: true
+
+      - name: Install New Expensify Gems
+        run: bundle install
+
+      - name: Cache Pod dependencies
+        # v5.0.1
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        id: pods-cache
+        with:
+          path: Mobile-Expensify/iOS/Pods
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock', 'firebase.json') }}
+
+      - name: Compare Podfile.lock and Manifest.lock
+        id: compare-podfile-and-manifest
+        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock') == hashFiles('Mobile-Expensify/iOS/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+
+      - name: Install cocoapods
+        uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
+        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: npm run pod-install
+
+      - name: Setup 1Password CLI and certificates
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
+
+      - name: Load provisioning profiles from 1Password
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          if [ "${{ inputs.variant }}" == "Release" ]; then
+            op read "op://${{ vars.OP_VAULT }}/firebase.json/firebase.json" --force --out-file ./firebase.json
+            op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore/${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}
+            op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Share_Extension/${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}
+            op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Notification_Service/${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
+          else
+            op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc/OldApp_AdHoc.mobileprovision" --force --out-file ./OldApp_AdHoc.mobileprovision
+            op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
+            op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
+          fi
+          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
+
+      - name: Create ExportOptions.plist
+        run: |
+          if [ "${{ inputs.variant }}" == "Release" ]; then
+            cat > Mobile-Expensify/iOS/ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>${{ vars.APPLE_ID }}</key>
+              <string>${{ vars.APPLE_STORE_PROVISIONING_PROFILE_NAME }}</string>
+              <key>${{ vars.APPLE_ID }}.SmartScanExtension</key>
+              <string>${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_NAME }}</string>
+              <key>${{ vars.APPLE_ID }}.NotificationServiceExtension</key>
+              <string>${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME }}</string>
+            </dict>
+          </dict>
+          </plist>
+          EOF
+          else
+            cat > Mobile-Expensify/iOS/ExportOptions.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>ad-hoc</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.expensify.expensifylite.adhoc</key>
+              <string>(OldApp) AdHoc</string>
+              <key>com.expensify.expensifylite.adhoc.SmartScanExtension</key>
+              <string>(OldApp) AdHoc: Share Extension</string>
+              <key>com.expensify.expensifylite.adhoc.NotificationServiceExtension</key>
+              <string>(OldApp) AdHoc: Notification Service</string>
+            </dict>
+          </dict>
+          </plist>
+          EOF
+          fi
+
+      - name: Get iOS native version
+        id: getIOSVersion
+        run: echo "IOS_VERSION=$(jq -r .version < package.json | tr '-' '.')" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS Credentials
+        # v6
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Prepare provisioning profiles JSON
+        id: prepare-profiles
+        run: |
+          if [ "${{ inputs.variant }}" == "Release" ]; then
+            echo 'PROFILES=[{"name":"${{ vars.APPLE_STORE_PROVISIONING_PROFILE_NAME }}","file":"./${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}"},{"name":"${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_NAME }}","file":"./${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}"},{"name":"${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME }}","file":"./${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}"}]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'PROFILES=[{"name":"(OldApp) AdHoc","file":"./OldApp_AdHoc.mobileprovision"},{"name":"(OldApp) AdHoc: Share Extension","file":"./OldApp_AdHoc_Share_Extension.mobileprovision"},{"name":"(OldApp) AdHoc: Notification Service","file":"./OldApp_AdHoc_Notification_Service.mobileprovision"}]' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Rock Remote Build - iOS
+        id: rock-remote-build-ios
+        uses: callstackincubator/ios@dd30f7e53eee2ea6a59509793d0a30fbb5c91216
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          IS_HYBRID_APP: true
+          FORCE_NATIVE_BUILD: ${{ inputs.force-native-build == 'true' && github.run_id || '' }}
+        with:
+          destination: device
+          re-sign: true
+          ad-hoc: ${{ inputs.variant == 'Adhoc' }}
+          scheme: ${{ inputs.variant == 'Release' && 'Expensify' || 'Expensify AdHoc' }}
+          configuration: ${{ inputs.variant == 'Release' && 'Release' || 'AdHoc' }}
+          certificate-file: './Certificates.p12'
+          provisioning-profiles: ${{ steps.prepare-profiles.outputs.PROFILES }}
+          comment-bot: false
+          custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
+
+      - name: Set artifact URL output
+        id: set-artifact-url
+        if: ${{ inputs.variant == 'Adhoc' }}
+        run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Find and upload IPA artifact
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: ${{ inputs.artifact-prefix }}iosBuild-artifact
+          path: .rock/cache/ios/export/*.ipa
+
+      - name: Zip dSYMs from xcarchive
+        id: zip-dsyms
+        continue-on-error: true
+        run: |
+          DSYM_DIR=".rock/cache/ios/archive/Expensify.xcarchive/dSYMs"
+          if [ -d "$DSYM_DIR" ] && ls "$DSYM_DIR"/*.dSYM 1>/dev/null 2>&1; then
+            cd "$DSYM_DIR"
+            for dsym in ./*.dSYM; do
+              zip -r "${dsym}.zip" "$dsym"
+            done
+            echo "DSYM_PATH=$DSYM_DIR" >> "$GITHUB_OUTPUT"
+            echo "Found and zipped dSYMs:"
+            ls -la ./*.dSYM.zip
+          else
+            echo "::warning::No dSYMs found in xcarchive"
+          fi
+
+      - name: Find and upload dSYM artifact
+        id: upload-dsym
+        if: steps.zip-dsyms.outputs.DSYM_PATH != ''
+        continue-on-error: true
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: ${{ inputs.artifact-prefix }}ios-dsym-artifact
+          path: ${{ steps.zip-dsyms.outputs.DSYM_PATH }}/*.dSYM.zip
+          if-no-files-found: warn
+
+      - name: Log dSYM upload failure
+        if: steps.upload-dsym.outcome == 'failure'
+        run: echo "::error::Failed to upload dSYM artifact – symbolication data may be missing for this build"
+
+      - name: Upload iOS sourcemap artifact
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: ${{ inputs.artifact-prefix }}ios-sourcemap-artifact
+          path: Mobile-Expensify/main.jsbundle.map
