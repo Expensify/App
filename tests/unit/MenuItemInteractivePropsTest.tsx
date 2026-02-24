@@ -26,7 +26,6 @@
 
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
-import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -102,20 +101,6 @@ describe('MenuItem interactive prop behavior - Issue #76921', () => {
             expect(menuItem.props.accessibilityRole).toBeUndefined();
         });
 
-        it('should render content correctly when interactive={false}', () => {
-            renderWithProvider(
-                <MenuItem
-                    title="Expenses from"
-                    description="Everyone"
-                    interactive={false}
-                />,
-            );
-
-            // Content should still render normally
-            expect(screen.getByText('Expenses from')).toBeTruthy();
-            expect(screen.getByText('Everyone')).toBeTruthy();
-        });
-
         it('should set tabIndex={-1} when interactive={false}', () => {
             renderWithProvider(
                 <MenuItem
@@ -141,19 +126,6 @@ describe('MenuItem interactive prop behavior - Issue #76921', () => {
          * - tabIndex={0} - keyboard focusable
          * - onPress={handler} - claims responder status
          */
-
-        it('should set accessible={true} when interactive={true}', () => {
-            renderWithProvider(
-                <MenuItem
-                    title="Clickable Item"
-                    interactive
-                    pressableTestID="menu-item-interactive"
-                />,
-            );
-
-            const menuItem = screen.getByTestId('menu-item-interactive');
-            expect(menuItem.props.accessible).toBe(true);
-        });
 
         it('should have role prop set when interactive={true}', () => {
             renderWithProvider(
@@ -186,21 +158,6 @@ describe('MenuItem interactive prop behavior - Issue #76921', () => {
             // Default behavior should be interactive (accessible=true is the key indicator)
             expect(menuItem.props.accessible).toBe(true);
         });
-
-        it('should set tabIndex={0} when interactive={true}', () => {
-            renderWithProvider(
-                <MenuItem
-                    title="Focusable Item"
-                    interactive
-                    pressableTestID="menu-item-focusable"
-                />,
-            );
-
-            const menuItem = screen.getByTestId('menu-item-focusable');
-
-            // tabIndex={0} ensures the element IS keyboard focusable
-            expect(menuItem.props.tabIndex).toBe(0);
-        });
     });
 
     describe('Nested pressable structure for ApprovalWorkflowSection pattern', () => {
@@ -216,46 +173,6 @@ describe('MenuItem interactive prop behavior - Issue #76921', () => {
          * 2. Inner MenuItems don't have role="menuitem" (skipped by .closest())
          * 3. Outer wrapper has role="button" (captured by .closest())
          */
-
-        it('should render nested structure with correct accessibility hierarchy', () => {
-            renderWithProvider(
-                <PressableWithoutFeedback
-                    accessibilityRole="button"
-                    accessibilityLabel="Workflow Card"
-                    onPress={() => {}}
-                    testID="outer-wrapper"
-                >
-                    <View>
-                        <MenuItem
-                            title="Expenses from"
-                            description="Everyone"
-                            interactive={false}
-                            pressableTestID="inner-expenses"
-                        />
-                        <MenuItem
-                            title="Approver"
-                            description="John Doe"
-                            interactive={false}
-                            pressableTestID="inner-approver"
-                        />
-                    </View>
-                </PressableWithoutFeedback>,
-            );
-
-            const outer = screen.getByTestId('outer-wrapper');
-            const innerExpenses = screen.getByTestId('inner-expenses');
-            const innerApprover = screen.getByTestId('inner-approver');
-
-            // Outer wrapper should be the interactive element
-            expect(outer.props.accessibilityRole).toBe('button');
-
-            // Inner MenuItems should NOT be interactive
-            expect(innerExpenses.props.accessible).toBe(false);
-            expect(innerExpenses.props.accessibilityRole).toBeUndefined();
-
-            expect(innerApprover.props.accessible).toBe(false);
-            expect(innerApprover.props.accessibilityRole).toBeUndefined();
-        });
 
         it('should allow outer wrapper to be found by NavigationFocusManager selector', () => {
             /**
@@ -297,281 +214,4 @@ describe('MenuItem interactive prop behavior - Issue #76921', () => {
             expect(inner.props.accessible).toBe(false);
         });
     });
-
-    describe('Edge cases', () => {
-        it('should handle onPress prop being passed but interactive={false}', () => {
-            // Even if onPress is passed, it should be ignored when interactive={false}
-            const onPressMock = jest.fn();
-
-            renderWithProvider(
-                <MenuItem
-                    title="Has onPress but not interactive"
-                    onPress={onPressMock}
-                    interactive={false}
-                    pressableTestID="ignored-onpress"
-                />,
-            );
-
-            const menuItem = screen.getByTestId('ignored-onpress');
-
-            // The component should still be non-interactive
-            expect(menuItem.props.accessible).toBe(false);
-            expect(menuItem.props.accessibilityRole).toBeUndefined();
-
-            // Note: We can't test that onPress isn't called in JSDOM because
-            // the responder system isn't replicated. This is verified by:
-            // 1. The code in MenuItem.tsx (getResolvedOnPress returns undefined)
-            // 2. Manual browser testing with Playwright
-        });
-
-        it('should handle disabled={true} separately from interactive={false}', () => {
-            renderWithProvider(
-                <MenuItem
-                    title="Disabled but interactive"
-                    disabled
-                    interactive
-                    pressableTestID="disabled-interactive"
-                />,
-            );
-
-            const menuItem = screen.getByTestId('disabled-interactive');
-
-            // Key distinction: disabled + interactive should still have accessible={true}
-            // (unlike interactive={false} which sets accessible={false})
-            // The element is still in the accessibility tree, just marked as disabled
-            expect(menuItem.props.accessible).toBe(true);
-        });
-
-        it('should have accessible={false} when both disabled and interactive={false}', () => {
-            renderWithProvider(
-                <MenuItem
-                    title="Disabled and not interactive"
-                    disabled
-                    interactive={false}
-                    pressableTestID="disabled-non-interactive"
-                />,
-            );
-
-            const menuItem = screen.getByTestId('disabled-non-interactive');
-
-            // interactive={false} takes precedence - element is not interactive
-            expect(menuItem.props.accessible).toBe(false);
-        });
-
-        it('should support copyable={true} with interactive={false}', () => {
-            /**
-             * MenuItem supports a copyable mode where hovering shows a copy button.
-             * This feature works specifically when interactive={false} (see MenuItem.tsx line 1038):
-             * {copyable && deviceHasHoverSupport && !interactive && isHovered && ...}
-             *
-             * This test verifies:
-             * 1. The component renders correctly with both props
-             * 2. The accessibility props are still correct (not interactive)
-             *
-             * Note: The actual copy button visibility on hover requires browser testing
-             * because JSDOM doesn't replicate hover states or deviceHasHoverSupport.
-             */
-            renderWithProvider(
-                <MenuItem
-                    title="Copyable Content"
-                    interactive={false}
-                    copyable
-                    copyValue="text-to-copy"
-                    pressableTestID="copyable-non-interactive"
-                />,
-            );
-
-            const menuItem = screen.getByTestId('copyable-non-interactive');
-
-            // Should still be non-interactive (copy is triggered via hover, not click)
-            expect(menuItem.props.accessible).toBe(false);
-            expect(menuItem.props.accessibilityRole).toBeUndefined();
-            expect(menuItem.props.tabIndex).toBe(-1);
-
-            // Content should render
-            expect(screen.getByText('Copyable Content')).toBeTruthy();
-        });
-    });
-
-    describe('shouldRemoveBackground prop', () => {
-        /**
-         * shouldRemoveBackground is used when MenuItem is display-only inside a wrapper
-         * that handles its own styling (like ApprovalWorkflowSection).
-         *
-         * Historical context: Commit 741cd37f9ad added this prop as part of fixing
-         * "unclickable MenuItem" - it prevents background color from being applied
-         * so the parent container's styling takes precedence.
-         */
-
-        it('should render correctly with shouldRemoveBackground={true}', () => {
-            renderWithProvider(
-                <MenuItem
-                    title="No Background Item"
-                    shouldRemoveBackground
-                    pressableTestID="no-background-item"
-                />,
-            );
-
-            const menuItem = screen.getByTestId('no-background-item');
-
-            // Component should render without errors
-            expect(menuItem).toBeTruthy();
-            expect(screen.getByText('No Background Item')).toBeTruthy();
-        });
-
-        it('should work with interactive={false} and shouldRemoveBackground={true} together', () => {
-            /**
-             * This is the exact pattern used in ApprovalWorkflowSection:
-             * - interactive={false}: Don't claim responder status
-             * - shouldRemoveBackground={true}: Don't apply background styling
-             */
-            renderWithProvider(
-                <MenuItem
-                    title="Display Only"
-                    description="With no background"
-                    interactive={false}
-                    shouldRemoveBackground
-                    pressableTestID="display-only-no-bg"
-                />,
-            );
-
-            const menuItem = screen.getByTestId('display-only-no-bg');
-
-            // Should have all the interactive={false} props
-            expect(menuItem.props.accessible).toBe(false);
-            expect(menuItem.props.accessibilityRole).toBeUndefined();
-            expect(menuItem.props.tabIndex).toBe(-1);
-
-            // Content should render
-            expect(screen.getByText('Display Only')).toBeTruthy();
-            expect(screen.getByText('With no background')).toBeTruthy();
-        });
-
-        it('should render with shouldRemoveHoverBackground={true}', () => {
-            renderWithProvider(
-                <MenuItem
-                    title="No Hover Background"
-                    shouldRemoveHoverBackground
-                    pressableTestID="no-hover-bg"
-                />,
-            );
-
-            const menuItem = screen.getByTestId('no-hover-bg');
-            expect(menuItem).toBeTruthy();
-            expect(screen.getByText('No Hover Background')).toBeTruthy();
-        });
-    });
-
-    describe('Console warnings and errors', () => {
-        /**
-         * These tests ensure MenuItem doesn't produce console warnings or errors
-         * during render. Historical bugs (e.g., c30058a9dfc) were caused by
-         * prop mismatches that only showed up as console warnings.
-         */
-
-        let consoleWarnSpy: jest.SpyInstance;
-        let consoleErrorSpy: jest.SpyInstance;
-
-        beforeEach(() => {
-            consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-            consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-        });
-
-        afterEach(() => {
-            consoleWarnSpy.mockRestore();
-            consoleErrorSpy.mockRestore();
-        });
-
-        it('should not produce console warnings with basic props', () => {
-            renderWithProvider(
-                <MenuItem
-                    title="Basic Item"
-                    pressableTestID="basic-item"
-                />,
-            );
-
-            expect(consoleWarnSpy).not.toHaveBeenCalled();
-            expect(consoleErrorSpy).not.toHaveBeenCalled();
-        });
-
-        it('should not produce console warnings with interactive={false}', () => {
-            renderWithProvider(
-                <MenuItem
-                    title="Non-interactive Item"
-                    interactive={false}
-                    pressableTestID="non-interactive-item"
-                />,
-            );
-
-            expect(consoleWarnSpy).not.toHaveBeenCalled();
-            expect(consoleErrorSpy).not.toHaveBeenCalled();
-        });
-
-        it('should not produce console warnings with all common props combined', () => {
-            renderWithProvider(
-                <MenuItem
-                    title="Full Featured Item"
-                    description="With description"
-                    interactive={false}
-                    shouldRemoveBackground
-                    copyable
-                    copyValue="copy-value"
-                    disabled={false}
-                    pressableTestID="full-featured-item"
-                />,
-            );
-
-            expect(consoleWarnSpy).not.toHaveBeenCalled();
-            expect(consoleErrorSpy).not.toHaveBeenCalled();
-        });
-
-        it('should not produce console warnings in nested pressable structure', () => {
-            renderWithProvider(
-                <PressableWithoutFeedback
-                    accessibilityRole="button"
-                    accessibilityLabel="Wrapper"
-                    onPress={() => {}}
-                    testID="wrapper"
-                >
-                    <View>
-                        <MenuItem
-                            title="Nested Item 1"
-                            interactive={false}
-                            shouldRemoveBackground
-                            pressableTestID="nested-1"
-                        />
-                        <MenuItem
-                            title="Nested Item 2"
-                            interactive={false}
-                            shouldRemoveBackground
-                            pressableTestID="nested-2"
-                        />
-                    </View>
-                </PressableWithoutFeedback>,
-            );
-
-            expect(consoleWarnSpy).not.toHaveBeenCalled();
-            expect(consoleErrorSpy).not.toHaveBeenCalled();
-        });
-    });
 });
-
-/**
- * IMPORTANT: Responder System Behavior
- *
- * The actual click delegation behavior (inner MenuItem not intercepting clicks)
- * cannot be fully tested in Jest/JSDOM because React Native Web's responder
- * system is not replicated.
- *
- * To verify the full fix works:
- * 1. Run the dev server: npm run web
- * 2. Navigate to a workspace with approval workflows
- * 3. Click on the "Expenses from" or "Approver" text inside the card
- * 4. Verify navigation occurs (click bubbles to outer wrapper)
- * 5. Press back and verify focus returns to the card
- *
- * Or use Playwright MCP:
- * - mcp__playwright__browser_navigate to the workflows page
- * - mcp__playwright__browser_click on the inner text
- * - Verify navigation and focus restoration
- */

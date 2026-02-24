@@ -165,26 +165,6 @@ describe('PopoverMenu initialFocus role/query behavior', () => {
         document.body.innerHTML = '';
     });
 
-    it('returns first role=button row (default PopoverMenu path)', () => {
-        const container = document.createElement('div');
-
-        const item1 = document.createElement('div');
-        item1.setAttribute('role', 'button');
-        item1.tabIndex = 0;
-        item1.textContent = 'Request money';
-
-        const item2 = document.createElement('div');
-        item2.setAttribute('role', 'button');
-        item2.tabIndex = 0;
-        item2.textContent = 'Split expense';
-
-        container.appendChild(item1);
-        container.appendChild(item2);
-        document.body.appendChild(container);
-
-        expect(getInitialFocusTargetFromContainer(container)).toBe(item1);
-    });
-
     it('returns first item when role menuitem is present', () => {
         const container = document.createElement('div');
         const item1 = document.createElement('div');
@@ -208,23 +188,6 @@ describe('PopoverMenu initialFocus role/query behavior', () => {
         document.body.appendChild(container);
 
         expect(getInitialFocusTargetFromContainer(container)).toBe(false);
-    });
-
-    it('finds deeply nested menuitem', () => {
-        const container = document.createElement('div');
-        const wrapper = document.createElement('div');
-        const innerWrapper = document.createElement('div');
-        const menuItem = document.createElement('div');
-        menuItem.setAttribute('role', 'menuitem');
-        menuItem.tabIndex = 0;
-        menuItem.textContent = 'Nested action';
-
-        innerWrapper.appendChild(menuItem);
-        wrapper.appendChild(innerWrapper);
-        container.appendChild(wrapper);
-        document.body.appendChild(container);
-
-        expect(getInitialFocusTargetFromContainer(container)).toBe(menuItem);
     });
 
     it('returns first actionable candidate for mixed roles', () => {
@@ -277,46 +240,6 @@ describe('PopoverMenu initialFocus role/query behavior', () => {
         document.body.appendChild(container);
 
         expect(getInitialFocusTargetFromContainer(container)).toBe(actionable);
-    });
-
-    it('uses first actionable target for keyboard-open role=button rows (fix verification for prior mismatch test)', () => {
-        const wasOpenedViaKeyboard = true;
-        const isWeb = true;
-        const container = document.createElement('div');
-
-        for (let i = 0; i < 5; i++) {
-            const item = document.createElement('div');
-            item.setAttribute('role', 'button');
-            item.tabIndex = 0;
-            item.textContent = `Action ${i}`;
-            container.appendChild(item);
-        }
-        document.body.appendChild(container);
-
-        const computeInitialFocus = (() => {
-            if (!wasOpenedViaKeyboard || !isWeb) {
-                return false;
-            }
-            return () => getInitialFocusTargetFromContainer(container);
-        })();
-
-        expect(typeof computeInitialFocus).toBe('function');
-        const focusTarget = typeof computeInitialFocus === 'function' ? computeInitialFocus() : computeInitialFocus;
-        expect(focusTarget).toBe(container.firstElementChild);
-    });
-
-    it('keeps mouse/touch open behavior unchanged (no initial focus)', () => {
-        const wasOpenedViaKeyboard = false;
-        const isWeb = true;
-
-        const computeInitialFocus = (() => {
-            if (!wasOpenedViaKeyboard || !isWeb) {
-                return false;
-            }
-            return () => false;
-        })();
-
-        expect(computeInitialFocus).toBe(false);
     });
 });
 

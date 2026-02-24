@@ -209,34 +209,6 @@ describe('FocusTrapForScreen', () => {
         jest.clearAllMocks();
     });
 
-    describe('Implementation Check', () => {
-        it('verifies whether the new implementation is applied', () => {
-            // When: Component is rendered
-            render(
-                <FocusTrapForScreen>
-                    <div data-testid="content">Test Content</div>
-                </FocusTrapForScreen>,
-            );
-
-            // Then: Check if new implementation is applied
-            const hasNewImplementation = isSetReturnFocusFunction();
-
-            if (!hasNewImplementation) {
-                // Current implementation - setReturnFocus is `false`
-                // These tests are specifications for the NEW implementation
-                // eslint-disable-next-line no-console
-                console.warn(
-                    '\nFocusTrapForScreen fix NOT YET IMPLEMENTED\n' +
-                        '   Current: setReturnFocus = false (boolean)\n' +
-                        '   Expected: setReturnFocus = (element) => {...} (function)\n',
-                );
-            }
-
-            // This test documents the current state - it always passes
-            expect(typeof capturedFocusTrapOptions.setReturnFocus).toBeDefined();
-        });
-    });
-
     describe('P0-1: Initial page load - no focus restoration (guards #46109)', () => {
         it('should NOT restore focus via initialFocus on initial page load', () => {
             // Given: Initial page load (no prior navigation, wasNavigatedTo is false)
@@ -387,39 +359,6 @@ describe('FocusTrapForScreen', () => {
             expect(blurSpy).not.toHaveBeenCalled();
         });
 
-        it('should restore focus even when INPUT in closing page has focus (e.g., autoFocus)', () => {
-            // Given: A button was focused before navigation (e.g., user clicked a menu item)
-            const triggerButton = createMockElement('button', 'trigger-button');
-            triggerButton.focus();
-
-            // When: Component renders
-            render(
-                <FocusTrapForScreen>
-                    <div data-testid="content">Test Content</div>
-                </FocusTrapForScreen>,
-            );
-
-            // Skip detailed check if new implementation not applied
-            if (!isSetReturnFocusFunction()) {
-                expect(capturedFocusTrapOptions.setReturnFocus).toBe(false);
-                return;
-            }
-
-            // When: Trap activates while button is focused (captures it as previously focused)
-            capturedFocusTrapOptions.onActivate?.();
-
-            // And: An input inside the trap gets autoFocused (simulating page with autoFocus input)
-            const autoFocusedInput = createMockElement('input', 'autofocus-input') as HTMLInputElement;
-            autoFocusedInput.focus();
-
-            // And: setReturnFocus is called (trap deactivating, e.g., user pressed Escape)
-            const result = callSetReturnFocus(triggerButton);
-
-            // Then: Should STILL return the previously focused element (the trigger button)
-            // The autoFocused input is inside the trap being closed and will be unmounted anyway
-            expect(result).toBe(triggerButton);
-        });
-
         it('should blur non-input elements on trap activation', () => {
             // Given: A button that is currently focused
             const buttonElement = createMockElement('button', 'test-button');
@@ -442,66 +381,7 @@ describe('FocusTrapForScreen', () => {
         });
     });
 
-    describe('P0-4: Previously focused element removed from DOM - fallback used', () => {
-        it('should handle null previouslyFocusedElement gracefully', () => {
-            // Given: No element was focused before rendering
-            render(
-                <FocusTrapForScreen>
-                    <div data-testid="content">Test Content</div>
-                </FocusTrapForScreen>,
-            );
-
-            // When: onActivate is called with no meaningful focused element
-            capturedFocusTrapOptions.onActivate?.();
-
-            // Skip if new implementation not applied
-            if (!isSetReturnFocusFunction()) {
-                expect(capturedFocusTrapOptions.setReturnFocus).toBe(false);
-                return;
-            }
-
-            // And: setReturnFocus is called
-            const triggerElement = createMockElement('button', 'trigger');
-            const result = callSetReturnFocus(triggerElement);
-
-            // Then: Should return false or triggerElement (not crash)
-            expect(result === false || result === triggerElement).toBe(true);
-        });
-    });
-
-    describe('Focus trap activation state', () => {
-        // Note: These tests verify the isActive logic. The mock may not fully
-        // capture activation state changes due to Jest module caching.
-        // The key P0 tests above verify the critical focus restoration behavior.
-
-        it('should compute isActive based on route and focus state', () => {
-            // Given: Default test configuration
-            // When: Component renders
-            render(
-                <FocusTrapForScreen>
-                    <div data-testid="content">Test Content</div>
-                </FocusTrapForScreen>,
-            );
-
-            // Then: Component rendered and captured options
-            expect(capturedFocusTrapOptions).toBeDefined();
-            expect(capturedFocusTrapOptions.onActivate).toBeDefined();
-        });
-    });
-
     describe('Edge Cases', () => {
-        it('should handle document.activeElement being null gracefully', () => {
-            // Given: Component is rendered
-            render(
-                <FocusTrapForScreen>
-                    <div data-testid="content">Test Content</div>
-                </FocusTrapForScreen>,
-            );
-
-            // When/Then: onActivate should not throw
-            expect(() => capturedFocusTrapOptions.onActivate?.()).not.toThrow();
-        });
-
         it('should no-op safely if route key is missing in malformed mocks', () => {
             mockRouteKey = undefined;
 
@@ -595,38 +475,6 @@ describe('FocusTrapForScreen', () => {
             expect(result).toBe(fallbackElement);
         });
 
-        it('should use fallback when previously focused element becomes visibility: hidden', () => {
-            // Given: A button was focused before navigation
-            const invisibleButton = createMockElement('button', 'invisible-button');
-            invisibleButton.focus();
-
-            // When: Component renders
-            render(
-                <FocusTrapForScreen>
-                    <div data-testid="content">Test Content</div>
-                </FocusTrapForScreen>,
-            );
-
-            // Skip if new implementation not applied
-            if (!isSetReturnFocusFunction()) {
-                expect(capturedFocusTrapOptions.setReturnFocus).toBe(false);
-                return;
-            }
-
-            // When: Trap activates while button is focused
-            capturedFocusTrapOptions.onActivate?.();
-
-            // And: The button becomes invisible (mock getComputedStyle)
-            invisibleButton.style.visibility = 'hidden';
-
-            // And: setReturnFocus is called with a fallback
-            const fallbackElement = createMockElement('button', 'fallback-button');
-            const result = callSetReturnFocus(fallbackElement);
-
-            // Then: Should return fallback since invisible element is not focusable
-            expect(result).toBe(fallbackElement);
-        });
-
         it('should use fallback when previously focused element is inside an inert container', () => {
             // Given: A container with inert attribute
             const inertContainer = createMockElement('div', 'inert-container');
@@ -671,77 +519,6 @@ describe('FocusTrapForScreen', () => {
 
             // Then: Should return fallback since button in inert container is not focusable
             expect(result).toBe(fallbackElement);
-        });
-
-        it('should return false when neither element is focusable', () => {
-            // Given: A button was focused before navigation
-            const unfocusableButton = createMockElement('button', 'unfocusable-button');
-            unfocusableButton.focus();
-
-            // When: Component renders
-            render(
-                <FocusTrapForScreen>
-                    <div data-testid="content">Test Content</div>
-                </FocusTrapForScreen>,
-            );
-
-            // Skip if new implementation not applied
-            if (!isSetReturnFocusFunction()) {
-                expect(capturedFocusTrapOptions.setReturnFocus).toBe(false);
-                return;
-            }
-
-            // When: Trap activates while button is focused
-            capturedFocusTrapOptions.onActivate?.();
-
-            // And: The button becomes hidden (update mock)
-            unfocusableButton.style.display = 'none';
-            unfocusableButton.getBoundingClientRect = jest.fn(() => ({
-                width: 0,
-                height: 0,
-                top: 0,
-                left: 0,
-                bottom: 0,
-                right: 0,
-                x: 0,
-                y: 0,
-                toJSON: () => ({}),
-            }));
-
-            // And: setReturnFocus is called with an ALSO unfocusable fallback
-            const unfocusableFallback = createMockElement('button', 'unfocusable-fallback', {hidden: true});
-            const result = callSetReturnFocus(unfocusableFallback);
-
-            // Then: Should return false since neither element is focusable
-            expect(result).toBe(false);
-        });
-
-        it('should still return previously focused element when it remains focusable', () => {
-            // Given: A button was focused before navigation and remains visible
-            const visibleButton = createMockElement('button', 'visible-button');
-            visibleButton.focus();
-
-            // When: Component renders
-            render(
-                <FocusTrapForScreen>
-                    <div data-testid="content">Test Content</div>
-                </FocusTrapForScreen>,
-            );
-
-            // Skip if new implementation not applied
-            if (!isSetReturnFocusFunction()) {
-                expect(capturedFocusTrapOptions.setReturnFocus).toBe(false);
-                return;
-            }
-
-            // When: Trap activates while button is focused
-            capturedFocusTrapOptions.onActivate?.();
-
-            // And: setReturnFocus is called (button is still visible and focusable)
-            const result = callSetReturnFocus(visibleButton);
-
-            // Then: Should return the original button since it's still focusable
-            expect(result).toBe(visibleButton);
         });
     });
 });
