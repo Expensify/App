@@ -98,13 +98,13 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
         onBackButtonPress();
     };
 
-    useEffect(() => {
-        if (selectedCountry || !countryDefaultValue) {
-            return;
+    const [prevCountryDefault, setPrevCountryDefault] = useState(countryDefaultValue);
+    if (prevCountryDefault !== countryDefaultValue) {
+        setPrevCountryDefault(countryDefaultValue);
+        if (!selectedCountry && countryDefaultValue) {
+            setUserSelectedCountry(countryDefaultValue);
         }
-
-        setUserSelectedCountry(countryDefaultValue);
-    }, [selectedCountry, countryDefaultValue]);
+    }
 
     return (
         <InteractiveStepWrapper
