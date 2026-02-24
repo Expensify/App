@@ -20,22 +20,22 @@ function ValidateLoginPage({
         params: {accountID, validateCode, exitTo},
     },
 }: ValidateLoginPageProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const login = credentials?.login;
     const isSignedIn = !!session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
     // To ensure that the previous autoAuthState does not impact the rendering of the current magic link page, the autoAuthState prop sets initWithStoredValues to false.
     // This is done unless the user is signed in, in which case the page will be remounted upon successful sign-in, as explained in Session.initAutoAuthState.
-    const [autoAuthState] = useOnyx(ONYXKEYS.SESSION, {initWithStoredValues: isSignedIn, selector: autoAuthStateSelector, canBeMissing: true});
+    const [autoAuthState] = useOnyx(ONYXKEYS.SESSION, {initWithStoredValues: isSignedIn, selector: autoAuthStateSelector});
     const autoAuthStateWithDefault = autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
     const is2FARequired = !!account?.requiresTwoFactorAuth;
     const cachedAccountID = credentials?.accountID;
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
     const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo) && isValidValidateCode(validateCode);
     const isNavigatingToExitTo = isSignedIn && !!exitTo;
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
 
     useEffect(() => {
         if (isUserClickedSignIn) {

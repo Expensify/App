@@ -823,11 +823,12 @@ describe('actions/Policy', () => {
         it("should remove all non-owned workspace chats and keep the user's own workspace chat when leaving a workspace", async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const policyID = Policy.generatePolicyID();
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy: PolicyType = {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
                 id: policyID,
                 name: WORKSPACE_NAME,
-            });
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
             const ownWorkspaceChat: Report = {
@@ -856,7 +857,7 @@ describe('actions/Policy', () => {
             const getAllWorkspaceReportsSpy = jest.spyOn(ReportUtils, 'getAllWorkspaceReports').mockReturnValue([ownWorkspaceChat, ...nonOwnedWorkspaceChats]);
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
-            Policy.leaveWorkspace(ESH_ACCOUNT_ID, policyID);
+            Policy.leaveWorkspace(ESH_ACCOUNT_ID, policy);
             await waitForBatchedUpdates();
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
@@ -1108,38 +1109,6 @@ describe('actions/Policy', () => {
             });
 
             expect(policy?.eReceipts).toBe(fakePolicy.eReceipts);
-        });
-    });
-
-    describe('disableWorkflows', () => {
-        it('disableWorkflow should reset autoReportingFrequency to INSTANT', async () => {
-            const autoReporting = true;
-            const autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
-            // Given that a policy has autoReporting initially set to true and autoReportingFrequency set to monthly.
-            const fakePolicy: PolicyType = {
-                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
-                autoReporting,
-                autoReportingFrequency,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-
-            // When workflows are disabled for the policy
-            Policy.enablePolicyWorkflows(fakePolicy.id, false);
-            await waitForBatchedUpdates();
-
-            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connection);
-                        resolve(workspace);
-                    },
-                });
-            });
-
-            // Then the policy autoReportingFrequency should revert to "INSTANT"
-            expect(policy?.autoReporting).toBe(false);
-            expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
         });
     });
 
@@ -1961,6 +1930,43 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('leaveWorkspace', () => {
+        it('should leave workspace and archive reports', async () => {
+            // Given a policy and a report in Onyx
+            const policy = createRandomPolicy(1);
+            const report = {
+                ...createRandomReport(1, undefined),
+                policyID: policy.id,
+            };
+
+            // Set initial state in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // When leaveWorkspace is called
+            Policy.leaveWorkspace(1, policy);
+
+            await waitForBatchedUpdates();
+
+            // Then the policy should be removed
+            const policyAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(policyAfter).toBeFalsy();
+
+            // And the report should be closed and archived
+            const reportAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`);
+            expect(reportAfter).toMatchObject({
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            });
+
+            const reportNameValuePairsAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+            expect(reportNameValuePairsAfter?.private_isArchived).toBeTruthy();
+
+            const reportMetadataAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
+            expect(reportMetadataAfter?.pendingChatMembers).toBeFalsy();
+        });
+    });
+
     describe('generateDefaultWorkspaceName', () => {
         beforeAll(() => {
             Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
@@ -2057,37 +2063,6 @@ describe('actions/Policy', () => {
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
-        });
-    });
-
-    describe('enablePolicyWorkflows', () => {
-        it('should update delayed submission to instant when disabling the workflows feature', async () => {
-            (fetch as MockFetch)?.pause?.();
-            Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            const fakePolicy: PolicyType = {
-                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
-                areWorkflowsEnabled: true,
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-            };
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            await waitForBatchedUpdates();
-
-            // Disable the workflow feature
-            Policy.enablePolicyWorkflows(fakePolicy.id, false);
-            await waitForBatchedUpdates();
-
-            await TestHelper.getOnyxData({
-                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                waitForCollectionCallback: false,
-                callback: (policy) => {
-                    // Check if the autoReportingFrequency is updated to instant
-                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
-                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
-                },
-            });
-
-            mockFetch?.resume?.();
         });
     });
 
