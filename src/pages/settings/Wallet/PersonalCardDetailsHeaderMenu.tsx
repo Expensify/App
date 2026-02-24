@@ -141,9 +141,17 @@ function PersonalCardDetailsHeaderMenu({
                 title={translate('workspace.common.viewTransactions')}
                 style={styles.mt3}
                 onPress={() => {
+                    // Use card.cardID (from Onyx) as source of truth, same as three-dot menu which uses
+                    // the card passed to assignedCardPressed. Route param cardID can be undefined in some
+                    // navigation/RHP setups, which would otherwise produce a search query with card:undefined.
+                    const searchCardID = card?.cardID != null ? String(card.cardID) : cardID;
                     Navigation.navigate(
                         ROUTES.SEARCH_ROOT.getRoute({
-                            query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
+                            query: buildCannedSearchQuery({
+                                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                                cardID: searchCardID,
+                            }),
                         }),
                     );
                 }}
