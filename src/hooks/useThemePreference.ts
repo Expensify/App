@@ -5,7 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
 function useThemePreference() {
-    const [preferredThemeFromStorage] = useOnyx(ONYXKEYS.PREFERRED_THEME, {canBeMissing: true});
+    const [preferredThemeFromStorage] = useOnyx(ONYXKEYS.PREFERRED_THEME);
     const systemTheme = useColorScheme();
 
     const themePreference = useMemo(() => {
