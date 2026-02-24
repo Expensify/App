@@ -4,6 +4,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchSelectionContext';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {initSplitExpense} from '@libs/actions/IOU/Split';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -75,7 +76,8 @@ function useSelectedTransactionsActions({
     const {isOffline} = useNetworkWithOfflineStatus();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
+    const {currentSearchHash} = useSearchContext();
+    const {selectedTransactionIDs, clearSelectedTransactions, selectedTransactions: selectedTransactionsMeta} = useSearchSelectionContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);

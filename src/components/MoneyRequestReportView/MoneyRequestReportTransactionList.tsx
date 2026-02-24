@@ -8,7 +8,7 @@ import Checkbox from '@components/Checkbox';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchSelectionContext';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -207,7 +207,7 @@ function MoneyRequestReportTransactionList({
         return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
     }, [hasPendingDeletionTransaction, transactions]);
 
-    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchSelectionContext();
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 

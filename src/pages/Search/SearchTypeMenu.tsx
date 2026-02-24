@@ -11,7 +11,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchSelectionContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
@@ -84,7 +84,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const taxRates = getAllTaxRates(allPolicies);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const {clearSelectedTransactions} = useSearchContext();
+    const {clearSelectedTransactions} = useSearchSelectionContext();
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
 
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);

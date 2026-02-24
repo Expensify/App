@@ -8,7 +8,7 @@ import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchSelectionContext';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {
     ListItem,
@@ -83,7 +83,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {selectedTransactions} = useSearchContext();
+    const {selectedTransactions} = useSearchSelectionContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
 

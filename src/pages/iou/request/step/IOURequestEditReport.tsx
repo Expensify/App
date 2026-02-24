@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchSelectionContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
@@ -34,7 +34,7 @@ type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID, action, shouldTurnOffSelectionMode} = route.params;
 
-    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchSelectionContext();
     const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);

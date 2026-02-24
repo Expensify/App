@@ -16,6 +16,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchSelectionContext';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -103,17 +104,14 @@ function SearchPage({route}: SearchPageProps) {
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {lastSearchType, setLastSearchType, currentSearchKey, currentSearchResults} = useSearchContext();
     const {
         selectedTransactions,
         clearSelectedTransactions,
         selectedReports,
-        lastSearchType,
-        setLastSearchType,
         areAllMatchingItemsSelected,
         selectAllMatchingItems,
-        currentSearchKey,
-        currentSearchResults,
-    } = useSearchContext();
+    } = useSearchSelectionContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const allTransactions = useAllTransactions();

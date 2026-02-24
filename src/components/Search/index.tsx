@@ -82,6 +82,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import SearchChartView from './SearchChartView';
 import {useSearchContext} from './SearchContext';
+import {useSearchSelectionContext} from './SearchSelectionContext';
 import SearchList from './SearchList';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
@@ -231,19 +232,21 @@ function Search({
         currentSearchHash,
         setCurrentSearchHashAndKey,
         setCurrentSearchQueryJSON,
-        setSelectedTransactions,
-        selectedTransactions,
-        clearSelectedTransactions,
-        shouldTurnOffSelectionMode,
         setShouldShowFiltersBarLoading,
         lastSearchType,
-        shouldShowSelectAllMatchingItems,
-        areAllMatchingItemsSelected,
-        selectAllMatchingItems,
         shouldResetSearchQuery,
         setShouldResetSearchQuery,
         shouldUseLiveData,
     } = useSearchContext();
+    const {
+        setSelectedTransactions,
+        selectedTransactions,
+        clearSelectedTransactions,
+        shouldTurnOffSelectionMode,
+        shouldShowSelectAllMatchingItems,
+        areAllMatchingItemsSelected,
+        selectAllMatchingItems,
+    } = useSearchSelectionContext();
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);

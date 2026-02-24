@@ -87,6 +87,7 @@ import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 import {usePersonalDetails} from './OnyxListItemProvider';
 import {useSearchContext} from './Search/SearchContext';
+import {useSearchSelectionContext} from './Search/SearchSelectionContext';
 import {useWideRHPState} from './WideRHPContextProvider';
 
 type MoneyRequestHeaderProps = {
@@ -149,7 +150,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy, transactionViolations);
     const reportID = report?.reportID;
-    const {removeTransaction, currentSearchHash} = useSearchContext();
+    const {currentSearchHash} = useSearchContext();
+    const {removeTransaction} = useSearchSelectionContext();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);

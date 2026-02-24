@@ -164,6 +164,7 @@ import type {PopoverMenuItem} from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
+import {useSearchSelectionContext} from './Search/SearchSelectionContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
 
@@ -427,7 +428,8 @@ function MoneyReportHeader({
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK
     > | null>(null);
 
-    const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey, currentSearchHash, currentSearchResults} = useSearchContext();
+    const {currentSearchQueryJSON, currentSearchKey, currentSearchHash, currentSearchResults} = useSearchContext();
+    const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions} = useSearchSelectionContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
     const [network] = useOnyx(ONYXKEYS.NETWORK);

@@ -21,6 +21,7 @@ import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopu
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchSelectionContext';
 import type {BankAccountMenuItem, SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
@@ -161,7 +162,8 @@ function SearchFiltersBar({
     const personalDetails = usePersonalDetails();
     const filterFormValues = useFilterFormValues(queryJSON);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading, currentSearchResults} = useSearchContext();
+    const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchContext();
+    const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems} = useSearchSelectionContext();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
 

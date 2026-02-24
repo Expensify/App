@@ -17,7 +17,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchSelectionContext';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -196,7 +196,7 @@ function MoneyRequestReportActionsList({
     const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
     const [lastActionEventId, setLastActionEventId] = useState<string>('');
 
-    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchSelectionContext();
 
     useFilterSelectedTransactions(transactions);
 
