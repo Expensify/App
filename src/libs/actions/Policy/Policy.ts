@@ -1136,7 +1136,7 @@ function setWorkspaceReimbursement({
         optimisticBankAccountList[bankAccountID] = {
             ...optimisticBankAccountList[bankAccountID],
             accountData: {
-                policyIDs: [...currentPolicyIDs, policyID],
+                policyIDs: [...new Set([...currentPolicyIDs, policyID])],
             },
         };
 
