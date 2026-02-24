@@ -3,12 +3,9 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
-import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
+import type {SearchDatePresetFilterBaseHandle} from '@components/Search/FilterComponents/DatePresetFilterBase';
+import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {SearchDatePreset} from '@components/Search/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -23,7 +20,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDateRangeForPreset} from '@libs/SearchUIUtils';
-import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import {downloadTravelInvoiceStatementPDF} from '@libs/TravelInvoicingUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONST from '@src/CONST';
@@ -36,7 +32,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {environment, isDevelopment} = useEnvironment();
+    const {environment} = useEnvironment();
     const [travelInvoiceStatement] = useOnyx(ONYXKEYS.TRAVEL_INVOICE_STATEMENT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -44,25 +40,25 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     const prevIsGenerating = usePrevious(isGenerating);
     const [isDownloading, setIsDownloading] = useState(isGenerating);
 
-    // When on DEV, use the production URL to download the PDF because the OldDot DEV url does not work
-    const baseURL = addTrailingForwardSlash(isDevelopment ? getOldDotURLFromEnvironment(CONST.ENVIRONMENT.PRODUCTION) : getOldDotURLFromEnvironment(environment));
+    const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
 
-    const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
-    const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
+    const dateFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
 
     const presets: SearchDatePreset[] = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
 
-    const getDefaultDateValues = (): SearchDateValues => ({
-        [CONST.SEARCH.DATE_MODIFIERS.ON]: CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
-        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
-        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-    });
+    function getDefaultDateValues() {
+        return {
+            [CONST.SEARCH.DATE_MODIFIERS.ON]: CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
+            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
+        };
+    }
 
     /**
      * Computes startDate and endDate in YYYY-MM-DD format from the current date selection.
      */
     const getDateRange = useCallback((): {startDate: string; endDate: string} => {
-        const values = searchDatePresetFilterBaseRef.current?.getDateValues();
+        const values = dateFilterBaseRef.current?.getDateValues();
         const dateOn = values?.[CONST.SEARCH.DATE_MODIFIERS.ON];
         const dateAfter = values?.[CONST.SEARCH.DATE_MODIFIERS.AFTER];
         const dateBefore = values?.[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
@@ -132,50 +128,21 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         }
     }, [prevIsGenerating, isGenerating, processDownload, travelInvoiceStatement, policyID, getDateRange]);
 
-    const handleDownloadCSV = () => {
+    function handleDownloadCSV() {
         const {startDate, endDate} = getDateRange();
         exportTravelInvoiceStatementCSV(policyID, startDate, endDate, translate);
-    };
-
-    function getComputedTitle() {
-        if (selectedDateModifier) {
-            return translate(`common.${selectedDateModifier.toLowerCase() as Lowercase<SearchDateModifier>}`);
-        }
-        return translate('common.export');
     }
 
-    const goBack = () => {
-        if (selectedDateModifier) {
-            setSelectedDateModifier(null);
-            return;
-        }
+    function goBack() {
         Navigation.goBack();
-    };
+    }
 
-    const save = () => {
-        if (!searchDatePresetFilterBaseRef.current || !selectedDateModifier) {
-            return;
-        }
+    function onSubmit() {
+        // Handled by the generic component automatically calling its internal exposed methods.
+        // It updates its own internal refs/states so the parent just needs to call save without doing anything else.
+        // And when it saves, the parent just needs it available in ref when export uses getDateValues.
+    }
 
-        searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
-        setSelectedDateModifier(null);
-    };
-
-    const reset = () => {
-        if (!searchDatePresetFilterBaseRef.current) {
-            return;
-        }
-
-        if (selectedDateModifier) {
-            searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
-            setSelectedDateModifier(null);
-            return;
-        }
-
-        searchDatePresetFilterBaseRef.current.clearDateValues();
-    };
-
-    const computedTitle = getComputedTitle();
     const defaultDateValues = getDefaultDateValues();
 
     return (
@@ -186,54 +153,32 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={computedTitle}
+            <DateFilterBase
+                ref={dateFilterBaseRef}
+                title={translate('common.export')}
+                defaultDateValues={defaultDateValues}
+                presets={presets}
                 onBackButtonPress={goBack}
+                onSubmit={onSubmit}
+                wrapper={(children) => <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>}
+                renderFooter={() => (
+                    <View style={[styles.ph5, styles.pb5]}>
+                        <Button
+                            text={translate('workspace.moreFeatures.travel.travelInvoicing.exportToPDF')}
+                            onPress={processDownload}
+                            isLoading={isDownloading}
+                            large
+                            style={styles.mb3}
+                        />
+                        <Button
+                            success
+                            text={translate('workspace.moreFeatures.travel.travelInvoicing.exportToCSV')}
+                            onPress={handleDownloadCSV}
+                            large
+                        />
+                    </View>
+                )}
             />
-            <FullPageOfflineBlockingView>
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    <DatePresetFilterBase
-                        ref={searchDatePresetFilterBaseRef}
-                        defaultDateValues={defaultDateValues}
-                        selectedDateModifier={selectedDateModifier}
-                        onSelectDateModifier={setSelectedDateModifier}
-                        presets={presets}
-                    />
-                </ScrollView>
-                <View style={[styles.ph5, styles.pb5]}>
-                    {!selectedDateModifier ? (
-                        <>
-                            <Button
-                                text={translate('workspace.moreFeatures.travel.travelInvoicing.exportToPDF')}
-                                onPress={processDownload}
-                                isLoading={isDownloading}
-                                large
-                                style={styles.mb3}
-                            />
-                            <Button
-                                success
-                                text={translate('workspace.moreFeatures.travel.travelInvoicing.exportToCSV')}
-                                onPress={handleDownloadCSV}
-                                large
-                            />
-                        </>
-                    ) : (
-                        <>
-                            <Button
-                                text={translate('common.reset')}
-                                onPress={reset}
-                                style={styles.mb3}
-                                large
-                            />
-                            <FormAlertWithSubmitButton
-                                buttonText={translate('common.save')}
-                                onSubmit={save}
-                                enabledWhenOffline
-                            />
-                        </>
-                    )}
-                </View>
-            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
