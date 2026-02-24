@@ -261,21 +261,20 @@ function PaymentMethodList({
                     }
                     // Personal cards (including CSV import) navigate to personal card details page (right panel)
                     // Company cards use the pressHandler callback (for 3-dot menu behavior)
-                    const cardOnPress =
-                        isUserPersonalCard
-                            ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
-                            : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-                                  pressHandler({
-                                      event: e,
-                                      cardData: card,
-                                      icon: {
-                                          icon,
-                                          iconStyles: [styles.cardIcon],
-                                          iconWidth: variables.cardIconWidth,
-                                          iconHeight: variables.cardIconHeight,
-                                      },
-                                      cardID: card.cardID,
-                                  });
+                    const cardOnPress = isUserPersonalCard
+                        ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
+                        : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                              pressHandler({
+                                  event: e,
+                                  cardData: card,
+                                  icon: {
+                                      icon,
+                                      iconStyles: [styles.cardIcon],
+                                      iconWidth: variables.cardIconWidth,
+                                      iconHeight: variables.cardIconHeight,
+                                  },
+                                  cardID: card.cardID,
+                              });
 
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
