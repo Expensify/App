@@ -8,6 +8,7 @@ import type {Routes, WaypointCollection} from '@src/types/onyx/Transaction';
 import {setEndAddress, setIsTracking} from './actions/GPSDraftDetails';
 import DistanceRequestUtils from './DistanceRequestUtils';
 import {roundToTwoDecimalPlaces} from './NumberUtils';
+import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 
 function getGPSWaypoints(gpsDraftDetails: GpsDraftDetails | undefined): WaypointCollection {
     const gpsCoordinates = gpsDraftDetails?.gpsPoints ?? [];
@@ -99,6 +100,8 @@ async function stopGpsTrip(isOffline: boolean) {
     }
 
     setIsTracking(false);
+
+    stopGpsTripNotification();
 
     const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 

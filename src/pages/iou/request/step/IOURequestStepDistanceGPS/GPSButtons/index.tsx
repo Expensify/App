@@ -12,9 +12,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {initGpsDraft, resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
 import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import BackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow';
-import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, getBackgroundLocationTaskOptions} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {startGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import openSettings from './openSettings';
 
 type ButtonsProps = {
@@ -55,17 +57,14 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
 
     const startGpsTrip = async () => {
         try {
-            await startLocationUpdatesAsync(
-                BACKGROUND_LOCATION_TRACKING_TASK_NAME,
-                getBackgroundLocationTaskOptions(translate('gps.notification.title'), translate('gps.notification.body')),
-            );
+            await startLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME, BACKGROUND_LOCATION_TASK_OPTIONS);
         } catch (error) {
             console.error('[GPS distance request] Failed to start location tracking', error);
             setShouldShowStartError(true);
             return;
         }
-
         initGpsDraft(reportID);
+        startGpsTripNotification(translate, reportID);
     };
 
     const onNext = () => {
