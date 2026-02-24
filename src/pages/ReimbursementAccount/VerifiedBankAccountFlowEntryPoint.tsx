@@ -58,17 +58,11 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
 
-    /** Set step for non USD flow */
-    setNonUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
-
     /** Set step for USD flow */
     setUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
 
     /** Method to set the state of shouldShowContinueSetupButton */
     setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
-
-    /** Method to set the state of isResettingBankAccount */
-    setIsResettingBankAccount?: (isResetting: boolean) => void;
 };
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
@@ -81,10 +75,8 @@ function VerifiedBankAccountFlowEntryPoint({
     onContinuePress,
     shouldShowContinueSetupButton,
     isNonUSDWorkspace,
-    setNonUSDBankAccountStep,
     setUSDBankAccountStep,
     setShouldShowContinueSetupButton,
-    setIsResettingBankAccount,
 }: VerifiedBankAccountFlowEntryPointProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -139,7 +131,7 @@ function VerifiedBankAccountFlowEntryPoint({
 
         if (reimbursementAccountOptionPressed === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
             if (isNonUSDWorkspace) {
-                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.COUNTRY}));
                 setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
                 return;
             }
@@ -151,7 +143,7 @@ function VerifiedBankAccountFlowEntryPoint({
             prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         }
-    }, [isAccountValidated, isNonUSDWorkspace, prepareNextStep, reimbursementAccountOptionPressed, setNonUSDBankAccountStep]);
+    }, [isAccountValidated, isNonUSDWorkspace, prepareNextStep, reimbursementAccountOptionPressed, policyID]);
 
     const handleConnectManually = () => {
         if (!isAccountValidated) {
@@ -161,7 +153,7 @@ function VerifiedBankAccountFlowEntryPoint({
         }
 
         if (isNonUSDWorkspace) {
-            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.COUNTRY}));
             return;
         }
 
@@ -296,9 +288,7 @@ function VerifiedBankAccountFlowEntryPoint({
                     reimbursementAccount={reimbursementAccount}
                     isNonUSDWorkspace={isNonUSDWorkspace}
                     setUSDBankAccountStep={setUSDBankAccountStep}
-                    setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                     setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
-                    setIsResettingBankAccount={setIsResettingBankAccount}
                 />
             )}
         </ScreenWrapper>

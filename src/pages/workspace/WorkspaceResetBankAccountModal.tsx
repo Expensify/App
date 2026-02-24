@@ -6,9 +6,11 @@ import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import {cancelResetBankAccount, resetNonUSDBankAccount, resetUSDBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type WorkspaceResetBankAccountModalProps = {
@@ -24,24 +26,16 @@ type WorkspaceResetBankAccountModalProps = {
     /** Method to set the state of setUSDBankAccountStep */
     setUSDBankAccountStep?: (step: string | null) => void;
 
-    /** Method to set the state of setNonUSDBankAccountStep */
-    setNonUSDBankAccountStep?: (step: string | null) => void;
-
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
-
-    /** Method to set the state of isResettingBankAccount */
-    setIsResettingBankAccount?: (isResetting: boolean) => void;
 };
 
 function WorkspaceResetBankAccountModal({
     reimbursementAccount,
     setShouldShowConnectedVerifiedBankAccount,
     setUSDBankAccountStep,
-    setNonUSDBankAccountStep,
     isNonUSDWorkspace,
     setShouldShowContinueSetupButton,
-    setIsResettingBankAccount,
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -67,10 +61,6 @@ function WorkspaceResetBankAccountModal({
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
-            if (setIsResettingBankAccount) {
-                setIsResettingBankAccount(true);
-            }
-
             resetNonUSDBankAccount(policyID, policy?.achAccount, achData?.bankAccountID, lastPaymentMethod);
 
             if (setShouldShowConnectedVerifiedBankAccount) {
@@ -81,13 +71,7 @@ function WorkspaceResetBankAccountModal({
                 setShouldShowContinueSetupButton(false);
             }
 
-            if (setNonUSDBankAccountStep) {
-                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
-            }
-
-            requestAnimationFrame(() => {
-                setIsResettingBankAccount?.(false);
-            });
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? '', page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.COUNTRY}));
         } else {
             resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod);
 
