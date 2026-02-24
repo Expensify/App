@@ -19,8 +19,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getReportAction} from '@libs/ReportActionsUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import {getTransactionViolations} from '@libs/TransactionUtils';
+import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -89,6 +92,20 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const dateColumnSize = shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
 
     const {markReportIDAsExpense} = useWideRHPActions();
+    const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
+    const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
+        const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
+        const parentReport = getReportOrDraftReport(transactionItem?.reportID);
+        const transactionThreadReport = getReportOrDraftReport(transactionItem?.reportAction?.childReportID);
+
+        return {
+            hasParentReport: !!parentReport,
+            hasTransaction: false,
+            hasParentReportAction: !!parentReportAction || !!transactionItem.reportAction,
+            hasTransactionThreadReport: !!transactionThreadReport,
+        };
+    };
+
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
         const reportID = getReportIDForTransaction(transactionItem, transactionItem?.reportAction?.childReportID);
@@ -104,12 +121,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         // The arrow navigation in RHP is only allowed for group-by:reports
         if (!isExpenseReportType) {
-            onSelectRow(transactionItem as unknown as TItem, {
-                hasParentReport: false,
-                hasTransaction: false,
-                hasParentReportAction: false,
-                hasTransactionThreadReport: false,
-            });
+            selectRow(transactionItem as unknown as TItem, getTransactionPreviewData(transactionItem));
             return;
         }
 
