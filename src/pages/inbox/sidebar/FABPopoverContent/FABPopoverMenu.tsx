@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import type {RefObject} from 'react';
 import {View} from 'react-native';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
