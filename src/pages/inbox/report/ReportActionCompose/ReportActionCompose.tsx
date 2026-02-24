@@ -38,7 +38,6 @@ import DomUtils from '@libs/DomUtils';
 import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {rand64} from '@libs/NumberUtils';
-import Performance from '@libs/Performance';
 import {getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
@@ -358,7 +357,6 @@ function ReportActionCompose({
                 // The list is inverted, so an offset near 0 means the user is at the bottom (newest messages visible).
                 const isScrolledToBottom = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
                 if (isScrolledToBottom) {
-                    Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
                     startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`, {
                         name: 'send-message',
                         op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,

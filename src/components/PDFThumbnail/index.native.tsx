@@ -2,10 +2,13 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import Pdf from 'react-native-pdf';
 import LoadingIndicator from '@components/LoadingIndicator';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
+
+const PDF_THUMBNAIL_REASON_ATTRIBUTES: SkeletonSpanReasonAttributes = {context: 'PDFThumbnail'};
 
 function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, fitPolicy = 0, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
@@ -19,7 +22,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                     <Pdf
                         fitPolicy={fitPolicy}
                         trustAllCerts={false}
-                        renderActivityIndicator={() => <LoadingIndicator />}
+                        renderActivityIndicator={() => <LoadingIndicator reasonAttributes={PDF_THUMBNAIL_REASON_ATTRIBUTES} />}
                         source={{uri: isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}}
                         singlePage
                         style={sizeStyles}
