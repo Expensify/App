@@ -1604,9 +1604,8 @@ function shouldSkipSuggestedSearchNavigation(queryJSON?: SearchQueryJSON) {
 
 /**
  * Determines whether sortOrder should be reset (not passed to query builder) when filters change.
- * Line view uses sortOrder:asc for time-based groupBy, which differs from other views.
- * When crossing the line/non-line boundary or changing groupBy within line view,
- * we reset sortOrder so the parser can determine the correct default.
+ * Each view/groupBy combination has its own default sortOrder derived by the parser,
+ * so we reset on any view or groupBy change to let the parser determine the correct default.
  */
 function shouldResetSortOrder({
     newView,
