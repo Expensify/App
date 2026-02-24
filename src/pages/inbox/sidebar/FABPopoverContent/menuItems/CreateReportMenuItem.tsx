@@ -45,7 +45,7 @@ const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes
             break;
         }
     }
-    
+
     return result;
 };
 
