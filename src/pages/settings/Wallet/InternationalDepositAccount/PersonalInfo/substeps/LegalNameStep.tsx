@@ -12,7 +12,7 @@ const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.L
 
 function LegalNameStep({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     const getDefaultValues = () => ({
         firstName: privatePersonalDetails?.legalFirstName ?? '',

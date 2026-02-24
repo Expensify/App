@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import PDF from 'react-native-pdf';
@@ -13,6 +13,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getRelativeUrl, isTravelLink} from '@libs/TravelUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,7 +53,17 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
+    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'PDFView',
+            shouldRequestPassword,
+            isPasswordInvalid,
+            shouldAttemptPDFLoad,
+        }),
+        [shouldRequestPassword, isPasswordInvalid, shouldAttemptPDFLoad],
+    );
 
     useEffect(() => {
         onToggleKeyboard?.(isKeyboardShown);
@@ -164,7 +175,12 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                     <PDF
                         fitPolicy={0}
                         trustAllCerts={false}
-                        renderActivityIndicator={() => <LoadingIndicator style={loadingIndicatorStyles} />}
+                        renderActivityIndicator={() => (
+                            <LoadingIndicator
+                                style={loadingIndicatorStyles}
+                                reasonAttributes={reasonAttributes}
+                            />
+                        )}
                         source={{uri: sourceURL, cache: true, expiration: 864000}}
                         style={pdfStyles}
                         onError={handleFailureToLoadPDF}
@@ -198,6 +214,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             accessibilityRole={CONST.ROLE.BUTTON}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
+            sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.DOCUMENT}
         >
             {renderPDFView()}
         </PressableWithoutFeedback>

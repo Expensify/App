@@ -53,8 +53,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
-    const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
+    const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
     const transactionsSnapshotMetadata = transactionsSnapshot?.search;
 

@@ -97,7 +97,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {policy, tags: policyTags} = policyData;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {environmentURL} = useEnvironment();
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
@@ -527,6 +527,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         <Button
                             success
                             onPress={navigateToCreateTagPage}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
                             icon={expensifyIcons.Plus}
                             text={translate('workspace.tags.addTag')}
                             style={[shouldUseNarrowLayout && styles.flex1]}
@@ -537,6 +538,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         onPress={() => {}}
                         shouldAlwaysShowDropdownMenu
                         customText={translate('common.more')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
                         options={secondaryActions}
                         isSplitButton={false}
                         wrapperStyle={hasPrimaryActions ? styles.flexGrow0 : styles.flexGrow1}
@@ -667,6 +669,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedTags.length}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS_DROPDOWN}
                 testID="WorkspaceTagsPage-header-dropdown-menu-button"
             />
         );
@@ -697,7 +700,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return (
-            <View style={[styles.renderHTML]}>
+            <View style={[styles.flexRow, styles.renderHTML]}>
                 <RenderHTML
                     html={
                         hasDependentTags

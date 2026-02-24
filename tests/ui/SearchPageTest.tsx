@@ -113,7 +113,7 @@ describe('SearchPageNarrow', () => {
         expect(screen.getByTestId('SearchPageNarrow')).toBeTruthy();
 
         // Initially, there are two NavigationTabBars on screen: one from TopLevelNavigationTabBar and one from SearchPageNarrow.
-        let navigationTabBars = screen.getAllByTestId('NavigationTabBar');
+        let navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
         expect(navigationTabBars).toHaveLength(2);
 
         const searchAutocompleteInput = await screen.findByTestId('search-autocomplete-text-input');
@@ -126,12 +126,12 @@ describe('SearchPageNarrow', () => {
         });
 
         await waitFor(() => {
-            navigationTabBars = screen.getAllByTestId('NavigationTabBar');
+            navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
             expect(navigationTabBars).toHaveLength(1);
         });
 
         await waitFor(() => {
-            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar');
+            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar', {includeHiddenElements: true});
             expect(topLevelNavigationTabBar).toHaveStyle({pointerEvents: 'none', opacity: 0});
         });
 
@@ -142,12 +142,12 @@ describe('SearchPageNarrow', () => {
         });
 
         await waitFor(() => {
-            navigationTabBars = screen.getAllByTestId('NavigationTabBar');
+            navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
             expect(navigationTabBars).toHaveLength(2);
         });
 
         await waitFor(() => {
-            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar');
+            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar', {includeHiddenElements: true});
             expect(topLevelNavigationTabBar).toHaveStyle({pointerEvents: 'auto', opacity: 1});
         });
     });
