@@ -30,11 +30,6 @@ type SearchPageWideProps = {
     searchRequestResponseStatusCode: number | null;
     isMobileSelectionModeEnabled: boolean;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
-    footerData: {
-        count: number | undefined;
-        total: number | undefined;
-        currency: string | undefined;
-    };
     selectedPolicyIDs: Array<string | undefined>;
     selectedTransactionReportIDs: string[];
     selectedReportIDs: string[];
@@ -46,7 +41,6 @@ type SearchPageWideProps = {
     initScanRequest: (e: DragEvent) => void;
     PDFValidationComponent: React.ReactNode;
     ErrorModal: React.ReactNode;
-    shouldShowFooter: boolean;
 };
 
 function SearchPageWide({
@@ -55,7 +49,6 @@ function SearchPageWide({
     searchRequestResponseStatusCode,
     isMobileSelectionModeEnabled,
     headerButtonsOptions,
-    footerData,
     selectedPolicyIDs,
     selectedTransactionReportIDs,
     selectedReportIDs,
@@ -67,19 +60,12 @@ function SearchPageWide({
     initScanRequest,
     PDFValidationComponent,
     ErrorModal,
-    shouldShowFooter,
 }: SearchPageWideProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const offlineIndicatorStyle = useMemo(() => {
-        if (shouldShowFooter) {
-            return [styles.mtAuto, styles.pAbsolute, styles.h10, styles.b0];
-        }
-
-        return [styles.mtAuto];
-    }, [shouldShowFooter, styles]);
+    const offlineIndicatorStyle = useMemo(() => [styles.mtAuto], [styles]);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan']);
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
@@ -126,13 +112,7 @@ function SearchPageWide({
                                 onSortPressedCallback={onSortPressedCallback}
                                 searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                             />
-                            {shouldShowFooter && (
-                                <SearchPageFooter
-                                    count={footerData.count}
-                                    total={footerData.total}
-                                    currency={footerData.currency}
-                                />
-                            )}
+                            <SearchPageFooter />
                             <DragAndDropConsumer onDrop={initScanRequest}>
                                 <DropZoneUI
                                     icon={expensifyIcons.SmartScan}

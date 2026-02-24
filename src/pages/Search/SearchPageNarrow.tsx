@@ -49,16 +49,10 @@ type SearchPageNarrowProps = {
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
-    footerData: {
-        count: number | undefined;
-        total: number | undefined;
-        currency: string | undefined;
-    };
     currentSelectedPolicyID?: string | undefined;
     currentSelectedReportID?: string | undefined;
     confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
     latestBankItems?: BankAccountMenuItem[] | undefined;
-    shouldShowFooter: boolean;
 };
 
 function SearchPageNarrow({
@@ -67,12 +61,10 @@ function SearchPageNarrow({
     searchResults,
     isMobileSelectionModeEnabled,
     metadata,
-    footerData,
     currentSelectedPolicyID,
     currentSelectedReportID,
     latestBankItems,
     confirmPayment,
-    shouldShowFooter,
 }: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -274,13 +266,7 @@ function SearchPageNarrow({
                         />
                     </View>
                 )}
-                {shouldShowFooter && !searchRouterListVisible && (
-                    <SearchPageFooter
-                        count={footerData.count}
-                        total={footerData.total}
-                        currency={footerData.currency}
-                    />
-                )}
+                {!searchRouterListVisible && <SearchPageFooter />}
             </View>
         </ScreenWrapper>
     );

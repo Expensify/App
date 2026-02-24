@@ -7,15 +7,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useSearchFooter from '@hooks/useSearchFooter';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 
-type SearchPageFooterProps = {
-    count: number | undefined;
-    total: number | undefined;
-    currency: string | undefined;
-};
-
-function SearchPageFooter({count, total, currency}: SearchPageFooterProps) {
+function SearchPageFooter() {
+    const {count, total, currency, shouldShow} = useSearchFooter();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -25,6 +21,10 @@ function SearchPageFooter({count, total, currency}: SearchPageFooterProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const valueTextStyle = useMemo(() => (isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong]), [isOffline, styles]);
+
+    if (!shouldShow) {
+        return null;
+    }
 
     return (
         <View
