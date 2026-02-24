@@ -224,6 +224,8 @@ function useReceiptScan({
                     setStartLocationPermissionFlow(true);
                     return;
                 }
+                navigateToConfirmationStep(newReceiptFiles, true);
+                return;
             }
         }
         navigateToConfirmationStep(newReceiptFiles, false);
@@ -241,6 +243,8 @@ function useReceiptScan({
                     setStartLocationPermissionFlow(true);
                     return;
                 }
+                navigateToConfirmationStep(files, true);
+                return;
             }
         }
         navigateToConfirmationStep(files, false);
