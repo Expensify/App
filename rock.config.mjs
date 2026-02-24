@@ -19,7 +19,7 @@ export default {
     bundler: pluginMetro(),
     platforms: {
         ios: platformIOS({sourceDir: isHybrid ? './Mobile-Expensify/iOS' : './ios'}),
-        android: platformAndroid({sourceDir: isHybrid ? './Mobile-Expensify/Android' : './android', appName: 'app'}),
+        android: platformAndroid({sourceDir: isHybrid ? './Mobile-Expensify/Android' : './android'}),
     },
     fingerprint: {
         env: ['USE_WEB_PROXY', 'PUSHER_DEV_SUFFIX', 'SECURE_NGROK_URL', 'NGROK_URL', 'USE_NGROK', 'FORCE_NATIVE_BUILD'],

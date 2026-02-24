@@ -27,9 +27,6 @@ import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
 
 type ReportActionItemParentActionProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<Report>;
-
     /** All the data of the policy collection */
     policies: OnyxCollection<Policy>;
 
@@ -90,7 +87,6 @@ type ReportActionItemParentActionProps = {
 };
 
 function ReportActionItemParentAction({
-    allReports,
     policies,
     report,
     action,
@@ -205,7 +201,6 @@ function ReportActionItemParentAction({
                                 />
                             )}
                             <ReportActionItem
-                                allReports={allReports}
                                 policies={policies}
                                 onPress={
                                     canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)
