@@ -17,6 +17,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
+import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 
 type IOURequestStepPerDiemWorkspaceProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>;
 
@@ -37,14 +38,8 @@ function IOURequestStepPerDiemWorkspace({route, navigation}: IOURequestStepPerDi
             onSelectWorkspace={(policy) => {
                 let targetReport: OnyxEntry<Report> = getPolicyExpenseChat(accountID, policy?.id);
                 let targetIouType = iouType;
-                const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-                if (!shouldAutoReport || targetIouType === CONST.IOU.TYPE.TRACK) {
-                    targetReport = selfDMReport;
-                }
-                const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
-                if (transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                    targetIouType = CONST.IOU.TYPE.TRACK;
-                }
+                let transactionReportID;
+                ({targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(targetReport, selfDMReport, targetIouType, defaultExpensePolicy, personalPolicy));
 
                 if (!targetReport) {
                     return;

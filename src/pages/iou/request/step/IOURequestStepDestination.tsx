@@ -47,6 +47,7 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 
 type IOURequestStepDestinationRef = {
     focus?: () => void;
@@ -115,20 +116,12 @@ function IOURequestStepDestination({
         }
         let targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
         let targetIouType = iouType;
+        let transactionReportID;
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
-                const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-                if (!shouldAutoReport || targetIouType === CONST.IOU.TYPE.TRACK) {
-                    targetReport = selfDMReport;
-                }
-                const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
-                if (transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                    targetIouType = CONST.IOU.TYPE.TRACK;
-                }
-                const areParticipantsAutoAssigned = targetIouType !== CONST.IOU.TYPE.TRACK;
-
+                ({targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(targetReport, selfDMReport, targetIouType, defaultExpensePolicy, personalPolicy));
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-                setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, areParticipantsAutoAssigned);
+                setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
