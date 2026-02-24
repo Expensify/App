@@ -120,7 +120,6 @@ function WorkspaceTravelPage({
                             options={secondaryActions}
                             isSplitButton={false}
                             shouldUseOptionIcon
-                            wrapperStyle={styles.flexGrow1}
                         />
                     )}
                 </HeaderWithBackButton>
