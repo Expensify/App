@@ -311,7 +311,7 @@ function MoneyRequestReportTransactionList({
         );
     }, [transactions, currentUserDetails?.accountID, report, policy, reportDetailsColumns]);
 
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);
     const shouldScrollHorizontally = !shouldUseNarrowLayout && minTableWidth > windowWidth;
     const horizontalScrollViewRef = useRef<RNScrollView>(null);
@@ -532,7 +532,7 @@ function MoneyRequestReportTransactionList({
 
     const groupByPopoverComponent = useCallback(
         (props: {closeOverlay: () => void}) => (
-            <View style={[styles.pv2, styles.getSelectionListPopoverHeight(groupByOptions.length || 1, windowHeight, false)]}>
+            <View style={[styles.pv2]}>
                 <SelectionList
                     data={groupByOptions}
                     shouldSingleExecuteRowSelect
@@ -544,11 +544,10 @@ function MoneyRequestReportTransactionList({
                         setReportLayoutGroupBy(item.keyForList, reportLayoutGroupBy);
                         props.closeOverlay();
                     }}
-                    showLoadingPlaceholder
                 />
             </View>
         ),
-        [groupByOptions, reportLayoutGroupBy, styles, windowHeight],
+        [groupByOptions, reportLayoutGroupBy, styles.pv2],
     );
 
     const transactionListContent = (
@@ -735,6 +734,7 @@ function MoneyRequestReportTransactionList({
                     styles.gap6,
                     listHorizontalPadding,
                     styles.mb2,
+                    styles.mt1,
                     styles.alignItemsStart,
                     styles.minHeight7,
                     shouldUseNarrowLayout && styles.flexColumn,
