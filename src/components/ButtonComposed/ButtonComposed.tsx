@@ -90,8 +90,8 @@ type ButtonComposedStyleProps = {
     /** Additional button styles. Specific to the OpacityView of the button */
     innerStyles?: StyleProp<ViewStyle>;
 
-    /** Any additional styles to pass to the icon wrapper container. */
-    iconWrapperStyles?: StyleProp<ViewStyle>;
+    /** Any additional styles to pass to the content container wrapping all children (icons + text). */
+    contentContainerStyle?: StyleProp<ViewStyle>;
 
     /** Additional hover styles */
     hoverStyles?: StyleProp<ViewStyle>;
@@ -181,7 +181,7 @@ function KeyboardShortcutComponent({
 function ButtonComposed({
     children,
     allowBubble = false,
-    iconWrapperStyles = [],
+    contentContainerStyle = [],
     size,
     isLoading = false,
     isDisabled = false,
@@ -327,7 +327,7 @@ function ButtonComposed({
                             styles.flexRow,
                             styles.alignItemsCenter,
                             isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween,
-                            iconWrapperStyles,
+                            contentContainerStyle,
                             styles.mw100,
                             isLoading && styles.opacity0,
                         ]}
