@@ -3,6 +3,7 @@ import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {PixelRatio, StyleSheet, View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment} from '@components/Attachments/types';
@@ -232,6 +233,18 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const isALocalFile = isLocalFile(uri);
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
 
+    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'Lightbox',
+            isImageLoaded,
+            isLoadingPreviousUri: previousUri !== uri,
+            isOffline,
+            isLoading,
+            isALocalFile,
+        }),
+        [isImageLoaded, previousUri, uri, isOffline, isLoading, isALocalFile],
+    );
+
     return (
         <View
             style={[StyleSheet.absoluteFill, style]}
@@ -301,6 +314,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
+                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}

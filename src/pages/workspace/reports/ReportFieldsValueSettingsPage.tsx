@@ -37,7 +37,7 @@ function ReportFieldsValueSettingsPage({
 }: ReportFieldsValueSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
 

@@ -12,8 +12,8 @@ import BaseTestDriveModal from './BaseTestDriveModal';
 
 function AdminTestDriveModal() {
     const {translate} = useLocalize();
-    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
-    const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`, {canBeMissing: true});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`);
 
     const navigate = () => {
         Log.hmmm('[AdminTestDriveModal] Navigate function called');

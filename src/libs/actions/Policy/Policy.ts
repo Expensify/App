@@ -1186,19 +1186,18 @@ function setWorkspaceReimbursement({
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
 }
 
-function leaveWorkspace(currentUserAccountID: number, policyID?: string) {
-    if (!policyID) {
+function leaveWorkspace(currentUserAccountID: number, policy: OnyxEntry<Policy>) {
+    if (!policy) {
         return;
     }
-    const policy = deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const workspaceChats = ReportUtils.getAllWorkspaceReports(policyID);
+    const workspaceChats = ReportUtils.getAllWorkspaceReports(policy.id);
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 employeeList: {
@@ -1213,7 +1212,7 @@ function leaveWorkspace(currentUserAccountID: number, policyID?: string) {
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: null,
         },
     ];
@@ -1222,7 +1221,7 @@ function leaveWorkspace(currentUserAccountID: number, policyID?: string) {
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 pendingAction: policy?.pendingAction ?? null,
                 employeeList: {
@@ -1330,7 +1329,7 @@ function leaveWorkspace(currentUserAccountID: number, policyID?: string) {
     }
 
     const params: LeavePolicyParams = {
-        policyID,
+        policyID: policy.id,
         email: deprecatedSessionEmail,
     };
     API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
