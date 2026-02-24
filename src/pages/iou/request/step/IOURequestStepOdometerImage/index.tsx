@@ -224,6 +224,9 @@ function IOURequestStepOdometerImage({
         const shouldAlignTop = videoHeight > viewFinderHeight;
         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop)
             .then(({source}) => {
+                if (source !== imageObject.source) {
+                    URL.revokeObjectURL(imageObject.source);
+                }
                 setMoneyRequestOdometerImage(transactionID, imageType, source, isTransactionDraft);
                 navigateBack();
             })
