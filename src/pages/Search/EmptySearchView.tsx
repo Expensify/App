@@ -235,7 +235,7 @@ function EmptySearchViewContent({
     const typeMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
     const todoMenuItems = new Set(typeMenuSections.filter((section) => section.translationPath === 'common.todo').flatMap((section) => section.menuItems));
 
-    // Default 'Folder' lottie animation, along with its background styles
+    // Default 'Folder' illustration styles
     const defaultViewItemHeader = useSearchEmptyStateIllustration();
 
     const startTestDriveAction = () => {

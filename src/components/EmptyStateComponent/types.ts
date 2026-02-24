@@ -6,7 +6,7 @@ import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
-type HeaderMedia = string | IconAsset;
+type HeaderMedia = IconAsset;
 type EmptyStateButton = {
     buttonText?: string;
     buttonAction?: () => void;

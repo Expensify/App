@@ -6050,9 +6050,9 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
-        emptyStateHeaderPosition: (isIllustration: boolean) => ({
-            alignItems: isIllustration ? 'center' : undefined,
-            justifyContent: isIllustration ? 'center' : undefined,
+        emptyStateHeaderPosition: () => ({
+            alignItems: 'center' as const,
+            justifyContent: 'center' as const,
         }),
 
         emojiHeaderContainerWidth: (isSmallScreenWidth: boolean, windowWidth: number) =>

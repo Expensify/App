@@ -13,7 +13,6 @@ import CONST from '@src/CONST';
 import type {EmptyStateComponentProps} from './types';
 
 function EmptyStateComponent({
-    headerMediaType,
     headerMedia,
     buttons,
     containerStyles,
@@ -32,25 +31,21 @@ function EmptyStateComponent({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const doesSubtitleContainCustomEmojiAndMore = containsCustomEmoji(subtitle ?? '') && !containsOnlyCustomEmoji(subtitle ?? '');
 
-    const HeaderComponent = useMemo(() => {
-        switch (headerMediaType) {
-            case CONST.EMPTY_STATE_MEDIA.ILLUSTRATION:
-                return (
-                    <ImageSVG
-                        style={StyleSheet.flatten(headerContentStyles)}
-                        src={headerMedia}
-                    />
-                );
-            default:
-                return null;
-        }
-    }, [headerMedia, headerMediaType, headerContentStyles]);
+    const HeaderComponent = useMemo(
+        () => (
+            <ImageSVG
+                style={StyleSheet.flatten(headerContentStyles)}
+                src={headerMedia}
+            />
+        ),
+        [headerMedia, headerContentStyles],
+    );
 
     return (
         <View style={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}>
             <View style={styles.emptyStateForeground}>
                 <View style={[styles.emptyStateContent, cardStyles]}>
-                    <View style={[styles.emptyStateHeader, styles.emptyStateHeaderPosition(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
+                    <View style={[styles.emptyStateHeader, styles.emptyStateHeaderPosition(), headerStyles]}>{HeaderComponent}</View>
                     <View style={[shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pb8], cardContentStyles]}>
                         <Text
                             style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}
