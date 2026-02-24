@@ -35,6 +35,9 @@ on:
       ROCK_ARTIFACT_URL:
         description: URL to download the ad-hoc build artifact (adhoc only)
         value: ${{ jobs.build.outputs.ROCK_ARTIFACT_URL }}
+      SENTRY_URL:
+        description: URL to Sentry size analysis (adhoc only)
+        value: ${{ jobs.build.outputs.SENTRY_URL }}
 
 jobs:
   build:
@@ -45,6 +48,7 @@ jobs:
     outputs:
       VERSION_CODE: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
       ROCK_ARTIFACT_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
+      SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
         # v6
@@ -168,6 +172,22 @@ jobs:
           rock-build-extra-params: ${{ inputs.variant == 'Adhoc' && '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"' || '--extra-params "--profile"' }}
           custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
           validate-elf-alignment: false
+
+      - name: Upload Android build to Sentry for size analysis
+        id: sentry-upload
+        if: ${{ env.ARTIFACT_PATH != '' && inputs.variant == 'Adhoc' }}
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          OUTPUT=$(npx sentry-cli build upload "$ARTIFACT_PATH" --org expensify --project app --build-configuration AdHoc --log-level debug 2>&1)
+          echo "$OUTPUT"
+          SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
+          if [ -n "$SENTRY_URL" ]; then
+            echo "::notice::Android Sentry size analysis: $SENTRY_URL"
+            echo "SENTRY_URL=$SENTRY_URL" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload Gradle profile report
         if: always()
