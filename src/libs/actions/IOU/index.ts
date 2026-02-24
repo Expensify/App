@@ -72,7 +72,6 @@ import * as NumberUtils from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
-import Performance from '@libs/Performance';
 import {getAccountIDsByLogins, getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
@@ -1145,7 +1144,6 @@ function handleNavigateAfterExpenseCreate({
         return;
     }
 
-    Performance.markStart(CONST.TIMING.NAVIGATE_AFTER_EXPENSE_CREATE);
     startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE, {
         name: 'navigate-after-expense-create',
         op: CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE,
@@ -1360,7 +1358,6 @@ function startMoneyRequest(
     draftTransactions?: OnyxCollection<OnyxTypes.Transaction>,
     isFromFloatingActionButton?: boolean,
 ) {
-    Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE);
     const sourceRoute = Navigation.getActiveRoute();
     startSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE, {
         name: '/money-request-create',
@@ -3437,7 +3434,14 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
-    const isScanRequest = isScanRequestTransactionUtils({amount, receipt});
+    const isScanRequest = isScanRequestTransactionUtils({
+        amount,
+        receipt,
+        ...(existingTransaction && {
+            iouRequestType: existingTransaction.iouRequestType,
+        }),
+    });
+
     const shouldCreateNewMoneyRequestReport = isSplitExpense ? false : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, action);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
@@ -8862,6 +8866,7 @@ function cleanUpMoneyRequest(
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatIOUReportArchived: boolean | undefined,
+    originalReportID: string | undefined,
     isSingleTransactionView = false,
 ) {
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
@@ -9019,7 +9024,7 @@ function cleanUpMoneyRequest(
     }
 
     if (!shouldDeleteIOUReport) {
-        clearAllRelatedReportActionErrors(reportID, reportAction);
+        clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
     }
 
     // First, update the reportActions to ensure related actions are not displayed.
@@ -9028,7 +9033,7 @@ function cleanUpMoneyRequest(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (shouldDeleteIOUReport) {
-                clearAllRelatedReportActionErrors(reportID, reportAction);
+                clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
             }
             // After navigation, update the remaining data.
             Onyx.update(onyxUpdates);

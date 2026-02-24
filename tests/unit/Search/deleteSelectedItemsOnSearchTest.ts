@@ -4,6 +4,7 @@ import type {SelectedTransactionInfo} from '@components/Search/types';
 import {bulkDeleteReports} from '@libs/actions/Search';
 import {deleteAppReport} from '@userActions/Report';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {createRandomReport} from '../../utils/collections/reports';
 
 jest.mock('@userActions/Report', () => ({
@@ -15,6 +16,10 @@ jest.mock('@libs/API', () => ({
 }));
 
 describe('bulkDeleteReports', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         return Onyx.clear();
