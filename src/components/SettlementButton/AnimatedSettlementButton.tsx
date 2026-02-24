@@ -39,8 +39,8 @@ function AnimatedSettlementButton({
     const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
     const buttonMarginTop = useSharedValue<number>(gap);
     const height = useSharedValue<number>(variables.componentSizeNormal);
-    const [canShow, setCanShow] = React.useState(true);
-    const [minWidth, setMinWidth] = React.useState<number>(0);
+    const [canShow, setCanShow] = useState(true);
+    const [minWidth, setMinWidth] = useState<number>(0);
     const viewRef = useRef<HTMLElement | null>(null);
 
     const containerStyles = useAnimatedStyle(() => ({
@@ -101,9 +101,9 @@ function AnimatedSettlementButton({
 
     const animatedViewRef = useCallback(
         (el: View | null) => {
-            viewRef.current = el as HTMLElement | null;
+            viewRef.current = el as unknown as HTMLElement | null;
             if (el && isAnimationRunning) {
-                setMinWidth((el as HTMLElement).getBoundingClientRect?.().width ?? 0);
+                setMinWidth((el as unknown as HTMLElement).getBoundingClientRect?.().width ?? 0);
             }
         },
         [isAnimationRunning],

@@ -62,8 +62,8 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
     const countriesSupportedForExpensifyCard = getAvailableEuCountries();
 
     const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
-    const [userSelectedCountry, setUserSelectedCountry] = useState<string>(countryDefaultValue);
-    const selectedCountry = shouldAllowChange ? userSelectedCountry : currencyMappedToCountry;
+    const [userSelectedCountry, setUserSelectedCountry] = useState<string>('');
+    const selectedCountry = shouldAllowChange ? userSelectedCountry || countryDefaultValue : currencyMappedToCountry;
     const disableSubmit = !(currency in CONST.CURRENCY);
 
     const handleSettingsPress = () => {
@@ -97,14 +97,6 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         onBackButtonPress();
     };
-
-    const [prevCountryDefault, setPrevCountryDefault] = useState(countryDefaultValue);
-    if (prevCountryDefault !== countryDefaultValue) {
-        setPrevCountryDefault(countryDefaultValue);
-        if (!selectedCountry && countryDefaultValue) {
-            setUserSelectedCountry(countryDefaultValue);
-        }
-    }
 
     return (
         <InteractiveStepWrapper

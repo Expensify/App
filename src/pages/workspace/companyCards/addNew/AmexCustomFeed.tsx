@@ -19,7 +19,7 @@ function AmexCustomFeed() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>(addNewCard?.data.selectedAmexCustomFeed);
+    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED> | undefined>(addNewCard?.data.selectedAmexCustomFeed);
     const [prevSelectedFeed, setPrevSelectedFeed] = useState(addNewCard?.data.selectedAmexCustomFeed);
     if (prevSelectedFeed !== addNewCard?.data.selectedAmexCustomFeed) {
         setPrevSelectedFeed(addNewCard?.data.selectedAmexCustomFeed);

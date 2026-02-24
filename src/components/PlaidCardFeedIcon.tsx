@@ -20,20 +20,16 @@ type PlaidCardFeedIconProps = {
 };
 
 function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader = false}: PlaidCardFeedIconProps) {
-    const [isBrokenImage, setIsBrokenImage] = useState<boolean>(false);
+    const [brokenUrl, setBrokenUrl] = useState<string | null>(null);
+    const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
+    const isBrokenImage = brokenUrl === plaidUrl;
+    const loading = loadedUrl !== plaidUrl && !isBrokenImage;
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const companyCardBankIcons = useCompanyCardBankIcons();
     const width = isLarge ? variables.cardPreviewWidth : variables.cardIconWidth;
     const height = isLarge ? variables.cardPreviewHeight : variables.cardIconHeight;
-    const [loading, setLoading] = useState<boolean>(true);
-    const [prevPlaidUrl, setPrevPlaidUrl] = useState(plaidUrl);
-    if (prevPlaidUrl !== plaidUrl && plaidUrl) {
-        setPrevPlaidUrl(plaidUrl);
-        setIsBrokenImage(false);
-        setLoading(true);
-    }
 
     const plaidImageStyle = isLarge ? styles.plaidIcon : styles.plaidIconSmall;
     const iconWidth = isSmall ? variables.cardMiniatureWidth : width;
@@ -60,8 +56,8 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader
                         source={{uri: plaidUrl}}
                         style={plaidLoadedStyle}
                         cachePolicy="memory-disk"
-                        onError={() => setIsBrokenImage(true)}
-                        onLoadEnd={() => setLoading(false)}
+                        onError={() => setBrokenUrl(plaidUrl)}
+                        onLoadEnd={() => setLoadedUrl(plaidUrl)}
                     />
                     {loading && useSkeletonLoader && (
                         <CardIconSkeleton

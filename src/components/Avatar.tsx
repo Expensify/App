@@ -77,14 +77,10 @@ function Avatar({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [imageError, setImageError] = useState(false);
-    const [prevSource, setPrevSource] = useState(originalSource);
-    if (prevSource !== originalSource) {
-        setPrevSource(originalSource);
-        setImageError(false);
-    }
+    const [errorSource, setErrorSource] = useState<string | undefined>(undefined);
+    const imageError = errorSource !== undefined && errorSource === originalSource;
 
-    useNetwork({onReconnect: () => setImageError(false)});
+    useNetwork({onReconnect: () => setErrorSource(undefined)});
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
@@ -125,7 +121,7 @@ function Avatar({
                     <Image
                         source={{uri: avatarSource}}
                         style={imageStyle}
-                        onError={() => setImageError(true)}
+                        onError={() => setErrorSource(typeof originalSource === 'string' ? originalSource : undefined)}
                         cachePolicy="memory-disk"
                     />
                 </View>

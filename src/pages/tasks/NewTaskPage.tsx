@@ -48,13 +48,9 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const shareDestination = task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined;
     const parentReport = task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined;
     const ancestors = useAncestors(parentReport);
-    const [errorMessage, setErrorMessage] = useState('');
     const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
-    const [prevTaskKey, setPrevTaskKey] = useState(taskKey);
-    if (prevTaskKey !== taskKey) {
-        setPrevTaskKey(taskKey);
-        setErrorMessage('');
-    }
+    const [error, setError] = useState<{message: string; taskKey: string}>({message: '', taskKey: ''});
+    const errorMessage = error.taskKey === taskKey ? error.message : '';
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = isEmptyObject(parentReport) || isAllowedToComment(parentReport);
@@ -85,17 +81,17 @@ function NewTaskPage({route}: NewTaskPageProps) {
     // the response
     const onSubmit = () => {
         if (!task?.title && !task?.shareDestination) {
-            setErrorMessage(translate('newTaskPage.confirmError'));
+            setError({message: translate('newTaskPage.confirmError'), taskKey});
             return;
         }
 
         if (!task.title) {
-            setErrorMessage(translate('newTaskPage.pleaseEnterTaskName'));
+            setError({message: translate('newTaskPage.pleaseEnterTaskName'), taskKey});
             return;
         }
 
         if (!task.shareDestination) {
-            setErrorMessage(translate('newTaskPage.pleaseEnterTaskDestination'));
+            setError({message: translate('newTaskPage.pleaseEnterTaskDestination'), taskKey});
             return;
         }
 
