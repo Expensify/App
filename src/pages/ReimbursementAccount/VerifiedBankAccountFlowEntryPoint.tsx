@@ -103,15 +103,8 @@ function VerifiedBankAccountFlowEntryPoint({
     const isAccountValidated = account?.validated ?? false;
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const isCurrentUserPolicyAdminSelector = useCallback((policies: OnyxCollection<OnyxTypes.Policy>) => hasActiveAdminWorkspaces(currentUserLogin, policies), [currentUserLogin]);
-    const [isCurrentUserPolicyAdmin] = useOnyx(
-        ONYXKEYS.COLLECTION.POLICY,
-        {
-            canBeMissing: true,
-            selector: isCurrentUserPolicyAdminSelector,
-        },
-        [isCurrentUserPolicyAdminSelector],
-    );
+    const isCurrentUserPolicyAdminSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => hasActiveAdminWorkspaces(currentUserLogin, policies);
+    const [isCurrentUserPolicyAdmin] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isCurrentUserPolicyAdminSelector});
 
     const personalBankAccounts = bankAccountList ? Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) : [];
 

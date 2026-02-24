@@ -33,7 +33,7 @@ type WorkspaceResetBankAccountModalProps = {
     /** Method to set the state of isResettingBankAccount */
     setIsResettingBankAccount?: (isResetting: boolean) => void;
 
-    /** Method to navigate back after resetting bank account from wallet */
+    /** Method to navigate after resetting bank account */
     navigateAfterReset?: () => void;
 };
 
