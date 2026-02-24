@@ -1,0 +1,81 @@
+name: Build Web
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to checkout and build
+        type: string
+        required: true
+      environment:
+        description: "'production', 'staging', or 'adhoc'"
+        type: string
+        required: true
+      pull-request-number:
+        description: Pull request number (used for adhoc builds)
+        type: string
+        default: ''
+
+jobs:
+  build:
+    name: Build Web
+    runs-on: blacksmith-32vcpu-ubuntu-2404
+    env:
+      PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Create .env.adhoc file based on staging
+        if: ${{ inputs.environment == 'adhoc' }}
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+
+      - name: Inject CI data into JS bundle
+        if: ${{ inputs.environment == 'adhoc' && inputs.pull-request-number != '' }}
+        run: ./.github/scripts/inject-ci-data.sh PULL_REQUEST_NUMBER="$PULL_REQUEST_NUMBER"
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Build web
+        run: |
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            npm run build
+          elif [ "${{ inputs.environment }}" == "staging" ]; then
+            npm run build-staging
+          else
+            npm run build-adhoc
+          fi
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+      - name: Upload web sourcemaps artifact
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: web-sourcemaps-artifact
+          path: ./dist/merged-source-map.js.map
+
+      - name: Compress web build .tar.gz and .zip
+        run: |
+          tar -czvf webBuild.tar.gz dist
+          zip -r webBuild.zip dist
+
+      - name: Upload .tar.gz web build artifact
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: web-build-tar-gz-artifact
+          path: ./webBuild.tar.gz
+
+      - name: Upload .zip web build artifact
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: web-build-zip-artifact
+          path: ./webBuild.zip

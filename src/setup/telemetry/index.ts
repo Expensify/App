@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/react-native';
 import {Platform} from 'react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import {browserProfilingIntegration, navigationIntegration, tracingIntegration, breadcrumbsIntegration, consoleIntegration} from '@libs/telemetry/integrations';
+import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
 import processBeforeSendTransactions from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';

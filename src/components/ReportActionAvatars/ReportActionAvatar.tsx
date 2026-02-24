@@ -322,9 +322,7 @@ function ReportActionAvatarMultipleHorizontal({
     const StyleUtils = useStyleUtils();
     const {localeCompare, formatPhoneNumber} = useLocalize();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
-    });
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const overlapSize = oneAvatarSize.width / overlapDivider;

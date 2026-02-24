@@ -4693,17 +4693,48 @@ describe('SearchUIUtils', () => {
         });
     });
 
-    describe('Test createTypeMenuItems', () => {
-        const reportCounts = {
-            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: 0,
-            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: 0,
-            [CONST.SEARCH.SEARCH_KEYS.PAY]: 0,
-            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 0,
-        };
+    describe('formatBadgeText', () => {
+        it('should return empty string for 0', () => {
+            expect(SearchUIUtils.formatBadgeText(0)).toBe('');
+        });
 
+        it('should return count as string for values between 1 and max', () => {
+            expect(SearchUIUtils.formatBadgeText(1)).toBe('1');
+            expect(SearchUIUtils.formatBadgeText(25)).toBe('25');
+            expect(SearchUIUtils.formatBadgeText(50)).toBe('50');
+        });
+
+        it('should return max+ for values above max count', () => {
+            expect(SearchUIUtils.formatBadgeText(51)).toBe('50+');
+            expect(SearchUIUtils.formatBadgeText(100)).toBe('50+');
+        });
+    });
+
+    describe('getItemBadgeText', () => {
+        const reportCounts = {submit: 5, approve: 0, pay: 51, export: 1};
+
+        it('should return formatted badge text for a matching key', () => {
+            expect(SearchUIUtils.getItemBadgeText('submit', reportCounts)).toBe('5');
+            expect(SearchUIUtils.getItemBadgeText('export', reportCounts)).toBe('1');
+        });
+
+        it('should return empty string when count is 0', () => {
+            expect(SearchUIUtils.getItemBadgeText('approve', reportCounts)).toBe('');
+        });
+
+        it('should return max+ when count exceeds max', () => {
+            expect(SearchUIUtils.getItemBadgeText('pay', reportCounts)).toBe('50+');
+        });
+
+        it('should return undefined for non-matching key', () => {
+            expect(SearchUIUtils.getItemBadgeText('unknown', reportCounts)).toBeUndefined();
+        });
+    });
+
+    describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, reportCounts)
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -4793,8 +4824,6 @@ describe('SearchUIUtils', () => {
                 false,
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -4857,8 +4886,6 @@ describe('SearchUIUtils', () => {
                 false,
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -4889,7 +4916,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {}, reportCounts);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -4899,7 +4926,7 @@ describe('SearchUIUtils', () => {
             const mockSavedSearches = {};
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {}, reportCounts);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -4927,8 +4954,6 @@ describe('SearchUIUtils', () => {
                 false, // not offline
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -4957,8 +4982,6 @@ describe('SearchUIUtils', () => {
                 true, // offline
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -4980,7 +5003,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, reportCounts);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -5012,8 +5035,6 @@ describe('SearchUIUtils', () => {
                 false,
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -5045,7 +5066,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, reportCounts);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false);
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -5071,20 +5092,7 @@ describe('SearchUIUtils', () => {
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                mockCardFeedsByPolicy,
-                undefined,
-                mockPolicies,
-                {},
-                false,
-                undefined,
-                false,
-                {},
-                reportCounts,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false);
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
 
             expect(accountingSection).toBeDefined();
@@ -5094,7 +5102,7 @@ describe('SearchUIUtils', () => {
 
         it('should generate correct routes', () => {
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, reportCounts)
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -5157,20 +5165,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                mockCardFeedsByPolicy,
-                undefined,
-                mockPolicies,
-                {},
-                false,
-                undefined,
-                false,
-                {},
-                reportCounts,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false);
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
 
@@ -5179,10 +5174,10 @@ describe('SearchUIUtils', () => {
             const payItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.PAY);
             const exportItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.EXPORT);
 
-            expect(submitItem?.badgeText).toBe('');
-            expect(approveItem?.badgeText).toBe('');
-            expect(payItem?.badgeText).toBe('');
-            expect(exportItem?.badgeText).toBe('');
+            expect(submitItem).toBeDefined();
+            expect(approveItem).toBeDefined();
+            expect(payItem).toBeDefined();
+            expect(exportItem).toBeDefined();
         });
     });
 
@@ -5429,7 +5424,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.export).toBe(false);
+            expect(response.visibility.export).toBe(false);
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastSync = {
@@ -5443,7 +5438,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response2.export).toBe(true);
+            expect(response2.visibility.export).toBe(true);
         });
 
         test('Should show Top Categories when areCategoriesEnabled is true', () => {
@@ -5459,7 +5454,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(true);
+            expect(response.visibility.topCategories).toBe(true);
         });
 
         test('Should hide Top Categories when areCategoriesEnabled is false', () => {
@@ -5475,7 +5470,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(false);
+            expect(response.visibility.topCategories).toBe(false);
         });
 
         test('Should not show Top Categories when areCategoriesEnabled is undefined', () => {
@@ -5491,7 +5486,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(false);
+            expect(response.visibility.topCategories).toBe(false);
         });
 
         test('Should not show Top Categories for free policies even if categories are enabled', () => {
@@ -5507,7 +5502,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(false);
+            expect(response.visibility.topCategories).toBe(false);
         });
 
         test('Should show Top Categories if at least one policy has categories enabled', () => {
@@ -5527,7 +5522,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(true);
+            expect(response.visibility.topCategories).toBe(true);
         });
 
         test('Should hide Top Categories if all policies have categories disabled', () => {
@@ -5547,7 +5542,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(false);
+            expect(response.visibility.topCategories).toBe(false);
         });
 
         test('Should show Spend Over Time for Admin role in paid policy', () => {
@@ -5562,7 +5557,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.spendOverTime).toBe(true);
+            expect(response.visibility.spendOverTime).toBe(true);
         });
 
         test('Should show Spend Over Time for Auditor role in paid policy', () => {
@@ -5577,7 +5572,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility('auditor@policy.com', {}, policies, undefined);
-            expect(response.spendOverTime).toBe(true);
+            expect(response.visibility.spendOverTime).toBe(true);
         });
 
         test('Should show Spend Over Time for Approver role in paid policy', () => {
@@ -5592,7 +5587,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(approverEmail, {}, policies, undefined);
-            expect(response.spendOverTime).toBe(true);
+            expect(response.visibility.spendOverTime).toBe(true);
         });
 
         test('Should hide Spend Over Time for User role in paid policy', () => {
@@ -5607,7 +5602,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility('user@policy.com', {}, policies, undefined);
-            expect(response.spendOverTime).toBe(false);
+            expect(response.visibility.spendOverTime).toBe(false);
         });
 
         test('Should hide Spend Over Time for free policies even with Admin role', () => {
@@ -5622,7 +5617,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.spendOverTime).toBe(false);
+            expect(response.visibility.spendOverTime).toBe(false);
         });
 
         test('Should show Spend Over Time if at least one policy has Admin/Auditor/Approver role', () => {
@@ -5640,7 +5635,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.spendOverTime).toBe(true);
+            expect(response.visibility.spendOverTime).toBe(true);
         });
 
         test('Should hide Spend Over Time if all policies have User role', () => {
@@ -5658,7 +5653,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility('user@policy.com', {}, policies, undefined);
-            expect(response.spendOverTime).toBe(false);
+            expect(response.visibility.spendOverTime).toBe(false);
         });
 
         test('Should return Spend Over Time search with correct properties', () => {
