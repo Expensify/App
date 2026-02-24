@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {Platform, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
@@ -32,10 +32,6 @@ import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-
-const ARIA_DESCRIBED_BY = 'aria-describedby';
-const ARIA_ERROR_MESSAGE = 'aria-errormessage';
-const ARIA_INVALID = 'aria-invalid';
 
 function BaseTextInput({
     label = '',
@@ -104,7 +100,6 @@ function BaseTextInput({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled'] as const);
-    const reactInputID = useId();
 
     // Disabling this line for safeness as nullish coalescing works only if value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -331,18 +326,7 @@ function BaseTextInput({
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
-    const inputNativeID = inputProps.nativeID ?? inputProps.id ?? inputID ?? `text-input-${reactInputID}`;
-    const errorMessageID = errorText && inputNativeID ? `${inputNativeID}-error` : undefined;
-    const webDescribedByProps =
-        Platform.OS === 'web' && errorMessageID
-            ? {
-                  [ARIA_DESCRIBED_BY]: errorMessageID,
-                  [ARIA_ERROR_MESSAGE]: errorMessageID,
-                  [ARIA_INVALID]: true,
-              }
-            : {};
     const accessibilityLabel = [label, hint, errorText ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join(', ');
-
     return (
         <>
             <View
@@ -397,7 +381,7 @@ function BaseTextInput({
                                     label={label}
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
-                                    for={inputNativeID}
+                                    for={inputProps.nativeID}
                                     isMultiline={isMultiline}
                                 />
                             </>
@@ -459,15 +443,12 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
-                                // eslint-disable-next-line react/jsx-props-no-spreading
-                                {...webDescribedByProps}
                                 // Filter out role="presentation" so it doesn't strip the native
                                 // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
                                 role={role === CONST.ROLE.PRESENTATION ? undefined : role}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={newPlaceholder}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
-                                nativeID={inputNativeID}
                                 underlineColorAndroid="transparent"
                                 style={[
                                     styles.flex1,
@@ -584,7 +565,6 @@ function BaseTextInput({
                         nativeID={helpMessageId}
                         isError={!!errorText}
                         message={inputHelpText}
-                        messageID={errorMessageID}
                     />
                 )}
             </View>
