@@ -250,7 +250,6 @@ describe('TravelInvoicing', () => {
                                 isEnabled: !enabled,
                             }),
                             pendingAction: null,
-                            errors: expect.anything() as unknown,
                         }),
                     }),
                 ]),

@@ -29,7 +29,6 @@ import Log from '@libs/Log';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -115,7 +114,6 @@ const defaultListOptions = {
 };
 
 const setPerformanceTimersEnd = () => {
-    Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
     endSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
 };
 
@@ -170,14 +168,14 @@ function SearchAutocompleteList({
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -322,8 +320,8 @@ function SearchAutocompleteList({
     // Thus passing an empty object to the `allCards` parameter.
     const feedAutoCompleteList = Object.values(getCardFeedsForDisplay(allFeeds, {}, translate, feedKeysWithCards));
 
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
-    const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const categoryAutocompleteList = getAutocompleteCategories(allPolicyCategories);
     const recentCategoriesAutocompleteList = getAutocompleteRecentCategories(allRecentCategories);
 
@@ -346,9 +344,9 @@ function SearchAutocompleteList({
 
     const {currencyList} = useCurrencyListState();
     const currencyAutocompleteList = Object.keys(currencyList).filter((currency) => !currencyList[currency]?.retired);
-    const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
-    const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS, {canBeMissing: true});
+    const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
     const tagAutocompleteList = getAutocompleteTags(allPoliciesTags);
     const recentTagsAutocompleteList = getAutocompleteRecentTags(allRecentTags);
 
@@ -693,7 +691,6 @@ function SearchAutocompleteList({
         const actionId = `filter_options_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
         const startTime = Date.now();
 
-        Performance.markStart(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         Log.info('[CMD_K_DEBUG] Filter options started', false, {
             actionId,
             queryLength: autocompleteQueryValue.length,
@@ -705,7 +702,6 @@ function SearchAutocompleteList({
         try {
             if (autocompleteQueryValue.trim() === '') {
                 const endTime = Date.now();
-                Performance.markEnd(CONST.TIMING.SEARCH_FILTER_OPTIONS);
                 Log.info('[CMD_K_DEBUG] Filter options completed (empty query path)', false, {
                     actionId,
                     duration: endTime - startTime,
@@ -727,7 +723,6 @@ function SearchAutocompleteList({
 
             const finalOptions = reportOptions.slice(0, 20);
             const endTime = Date.now();
-            Performance.markEnd(CONST.TIMING.SEARCH_FILTER_OPTIONS);
             Log.info('[CMD_K_DEBUG] Filter options completed (search path)', false, {
                 actionId,
                 duration: endTime - startTime,
@@ -741,7 +736,6 @@ function SearchAutocompleteList({
             return finalOptions;
         } catch (error) {
             const endTime = Date.now();
-            Performance.markEnd(CONST.TIMING.SEARCH_FILTER_OPTIONS);
             Log.alert('[CMD_K_FREEZE] Filter options failed', {
                 actionId,
                 error: String(error),
@@ -767,7 +761,6 @@ function SearchAutocompleteList({
         handleSearch(autocompleteQueryWithoutFilters);
 
         const endTime = Date.now();
-        Performance.markEnd(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
         Log.info('[CMD_K_DEBUG] Debounced search completed', false, {
             actionId,
             duration: endTime - startTime,
@@ -780,7 +773,6 @@ function SearchAutocompleteList({
         const actionId = `debounce_search_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
         const startTime = Date.now();
 
-        Performance.markStart(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
         Log.info('[CMD_K_DEBUG] Debounced search started', false, {
             actionId,
             queryLength: autocompleteQueryWithoutFilters?.length ?? 0,
@@ -792,7 +784,6 @@ function SearchAutocompleteList({
             handleDebouncedSearch(actionId, startTime);
         } catch (error) {
             const endTime = Date.now();
-            Performance.markEnd(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
             Log.alert('[CMD_K_FREEZE] Debounced search failed', {
                 actionId,
                 error: String(error),
