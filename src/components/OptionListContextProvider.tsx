@@ -293,34 +293,29 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
     const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
-    const prevOptions = useRef<OptionList>(null);
     const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
 
     const prevIsInitialized = usePrevious(areOptionsInitialized);
-    useEffect(() => {
-        if (!prevOptions.current) {
-            prevOptions.current = optionsList;
-            setInternalOptions(optionsList);
-            setAreInternalOptionsInitialized(areOptionsInitialized);
-            return;
-        }
+    const [prevOptionsSnapshot, setPrevOptionsSnapshot] = useState(optionsList);
+    const [prevOptionsDeps, setPrevOptionsDeps] = useState({optionsList, areOptionsInitialized, prevIsInitialized});
+    if (prevOptionsDeps.optionsList !== optionsList || prevOptionsDeps.areOptionsInitialized !== areOptionsInitialized || prevOptionsDeps.prevIsInitialized !== prevIsInitialized) {
+        setPrevOptionsDeps({optionsList, areOptionsInitialized, prevIsInitialized});
         /**
          * optionsList reference can change multiple times even the value of its arrays is the same. We perform shallow comparison to check if the options have truly changed.
          * This is necessary to avoid unnecessary re-renders in components that use this context.
          */
-        const areOptionsEqual = shallowOptionsListCompare(prevOptions.current, optionsList);
-        prevOptions.current = optionsList;
+        const areOptionsEqual = shallowOptionsListCompare(prevOptionsSnapshot, optionsList);
+        setPrevOptionsSnapshot(optionsList);
         const hasInitializedChanged = prevIsInitialized !== areOptionsInitialized;
         if (areOptionsEqual) {
             if (hasInitializedChanged) {
                 setAreInternalOptionsInitialized(areOptionsInitialized);
             }
-
-            return;
+        } else {
+            setInternalOptions(optionsList);
+            setAreInternalOptionsInitialized(areOptionsInitialized);
         }
-        setInternalOptions(optionsList);
-        setAreInternalOptionsInitialized(areOptionsInitialized);
-    }, [optionsList, areOptionsInitialized, prevIsInitialized]);
+    }
 
     useEffect(() => {
         if (!shouldInitialize || areOptionsInitialized) {
