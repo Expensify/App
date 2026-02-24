@@ -235,14 +235,32 @@ jobs:
           name: ${{ inputs.artifact-prefix }}iosBuild-artifact
           path: .rock/cache/ios/export/*.ipa
 
+      - name: Zip dSYMs from xcarchive
+        id: zip-dsyms
+        continue-on-error: true
+        run: |
+          DSYM_DIR=".rock/cache/ios/archive/Expensify.xcarchive/dSYMs"
+          if [ -d "$DSYM_DIR" ] && ls "$DSYM_DIR"/*.dSYM 1>/dev/null 2>&1; then
+            cd "$DSYM_DIR"
+            for dsym in ./*.dSYM; do
+              zip -r "${dsym}.zip" "$dsym"
+            done
+            echo "DSYM_PATH=$DSYM_DIR" >> "$GITHUB_OUTPUT"
+            echo "Found and zipped dSYMs:"
+            ls -la ./*.dSYM.zip
+          else
+            echo "::warning::No dSYMs found in xcarchive"
+          fi
+
       - name: Find and upload dSYM artifact
         id: upload-dsym
+        if: steps.zip-dsyms.outputs.DSYM_PATH != ''
         continue-on-error: true
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: ${{ inputs.artifact-prefix }}ios-dsym-artifact
-          path: .rock/cache/ios/export/*.dSYM.zip
+          path: ${{ steps.zip-dsyms.outputs.DSYM_PATH }}/*.dSYM.zip
           if-no-files-found: warn
 
       - name: Log dSYM upload failure
