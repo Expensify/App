@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
@@ -92,6 +92,7 @@ function BaseTextInput({
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
     const helpMessageId = useId();
+    const inputElementId = useId();
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -326,6 +327,7 @@ function BaseTextInput({
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
+    const inputNativeID = inputProps.nativeID ?? inputProps.id ?? inputID ?? `text-input-${inputElementId}`;
     const accessibilityLabel = [label, hint, errorText ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join(', ');
     return (
         <>
@@ -381,7 +383,7 @@ function BaseTextInput({
                                     label={label}
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
-                                    for={inputProps.nativeID}
+                                    for={inputNativeID}
                                     isMultiline={isMultiline}
                                 />
                             </>
@@ -443,6 +445,7 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
+                                nativeID={inputNativeID}
                                 // Filter out role="presentation" so it doesn't strip the native
                                 // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
                                 role={role === CONST.ROLE.PRESENTATION ? undefined : role}
@@ -490,6 +493,8 @@ function BaseTextInput({
                                 markdownStyle={markdownStyle}
                                 accessibilityLabel={inputProps.accessibilityLabel}
                                 aria-describedby={inputHelpText ? helpMessageId : undefined}
+                                aria-errormessage={errorText ? helpMessageId : undefined}
+                                aria-invalid={Platform.OS === 'web' && !!errorText ? true : undefined}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
