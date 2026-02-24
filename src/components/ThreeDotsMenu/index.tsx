@@ -48,7 +48,7 @@ function ThreeDotsMenu({
     sentryLabel,
     isContainerFocused = true,
 }: ThreeDotsMenuProps) {
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
 
     const theme = useTheme();
     const styles = useThemeStyles();

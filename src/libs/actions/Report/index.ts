@@ -280,6 +280,7 @@ type AddCommentParams = {
     shouldPlaySound?: boolean;
     isInSidePanel?: boolean;
     pregeneratedResponseParams?: PregeneratedResponseParams;
+    reportActionID?: string;
 };
 
 type AddActionsParams = {
@@ -292,6 +293,7 @@ type AddActionsParams = {
     file?: FileObject;
     isInSidePanel?: boolean;
     pregeneratedResponseParams?: PregeneratedResponseParams;
+    reportActionID?: string;
 };
 
 type AddAttachmentWithCommentParams = {
@@ -609,7 +611,18 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
  * @param isInSidePanel - Whether the comment is being added from the side panel
  * @param pregeneratedResponseParams - Optional params for pre-generated response (API only, no optimistic action - used when response display is delayed)
  */
-function addActions({report, notifyReportID, ancestors, timezoneParam, currentUserAccountID, text = '', file, isInSidePanel = false, pregeneratedResponseParams}: AddActionsParams) {
+function addActions({
+    report,
+    notifyReportID,
+    ancestors,
+    timezoneParam,
+    currentUserAccountID,
+    text = '',
+    file,
+    isInSidePanel = false,
+    pregeneratedResponseParams,
+    reportActionID,
+}: AddActionsParams) {
     if (!report?.reportID) {
         return;
     }
@@ -620,7 +633,7 @@ function addActions({report, notifyReportID, ancestors, timezoneParam, currentUs
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     if (text && !file) {
-        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, reportID);
+        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, reportID, reportActionID);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -848,11 +861,22 @@ function addAttachmentWithComment({
 }
 
 /** Add a single comment to a report */
-function addComment({report, notifyReportID, ancestors, text, timezoneParam, currentUserAccountID, shouldPlaySound, isInSidePanel, pregeneratedResponseParams}: AddCommentParams) {
+function addComment({
+    report,
+    notifyReportID,
+    ancestors,
+    text,
+    timezoneParam,
+    currentUserAccountID,
+    shouldPlaySound,
+    isInSidePanel,
+    pregeneratedResponseParams,
+    reportActionID,
+}: AddCommentParams) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions({report, notifyReportID, ancestors, timezoneParam, currentUserAccountID, text, isInSidePanel, pregeneratedResponseParams});
+    addActions({report, notifyReportID, ancestors, timezoneParam, currentUserAccountID, text, isInSidePanel, pregeneratedResponseParams, reportActionID});
 }
 
 function reportActionsExist(reportID: string): boolean {
@@ -1539,6 +1563,7 @@ function getOptimisticChatReport(accountID: number, currentUserAccountID: number
 }
 
 function createTransactionThreadReport(
+    introSelected: OnyxEntry<IntroSelected>,
     iouReport?: OnyxEntry<Report>,
     iouReportAction?: OnyxEntry<ReportAction>,
     transaction?: Transaction,
@@ -1579,7 +1604,7 @@ function createTransactionThreadReport(
     const shouldAddPendingFields = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || iouReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     openReport(
         optimisticTransactionThreadReportID,
-        deprecatedIntroSelected,
+        introSelected,
         undefined,
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         deprecatedCurrentUserLogin ? [deprecatedCurrentUserLogin] : [],
@@ -3590,7 +3615,7 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     return true;
 }
 
-function showReportActionNotification(reportID: string, reportAction: ReportAction, currentUserAccountID: number) {
+function showReportActionNotification(reportID: string, reportAction: ReportAction, currentUserAccountID: number, currentUserLogin: string) {
     if (!shouldShowReportActionNotification(reportID, currentUserAccountID, reportAction)) {
         return;
     }
@@ -3609,7 +3634,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport});
+        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, currentUserLogin});
     } else {
         LocalNotification.showCommentNotification(report, reportAction, onClick);
     }
@@ -4473,6 +4498,7 @@ type CompleteOnboardingProps = {
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldWaitForRHPVariantInitialization?: boolean;
+    introSelected: OnyxEntry<IntroSelected>;
 };
 
 async function completeOnboarding({
@@ -4486,14 +4512,15 @@ async function completeOnboarding({
     companySize,
     userReportedIntegration,
     wasInvited,
-    selectedInterestedFeatures = [],
+    selectedInterestedFeatures,
     shouldSkipTestDriveModal,
     isInvitedAccountant,
     onboardingPurposeSelected,
     shouldWaitForRHPVariantInitialization = false,
+    introSelected,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
-        introSelected: deprecatedIntroSelected,
+        introSelected,
         engagementChoice,
         onboardingMessage,
         adminsChatReportID,

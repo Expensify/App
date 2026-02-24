@@ -11,6 +11,7 @@ import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -130,6 +131,21 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
 }
 
 /**
+ * Check if the navigation action is targeting an onboarding screen.
+ * This handles NAVIGATE/PUSH actions that target the OnboardingModalNavigator directly.
+ */
+function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
+    if (
+        (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH) &&
+        (action.payload as {name?: string} | undefined)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR
+    ) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * OnboardingGuard handles ONLY the core NewDot onboarding flow
  */
 const OnboardingGuard: NavigationGuard = {
@@ -147,6 +163,13 @@ const OnboardingGuard: NavigationGuard = {
         const needsExplanationModal = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
+
+        // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
+        // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
+        if (isOnboardingCompleted && isNavigatingToOnboardingFlow(action)) {
+            Log.info('[OnboardingGuard] Redirecting completed user away from onboarding route to home');
+            return {type: 'REDIRECT', route: ROUTES.HOME};
+        }
 
         const shouldSkipOnboarding = context.isLoading || isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
 

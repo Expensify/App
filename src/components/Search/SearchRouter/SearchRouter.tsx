@@ -65,16 +65,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {setShouldResetSearchQuery} = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
+    const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const {areOptionsInitialized} = useOptionsList();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
     const shouldShowList = isRecentSearchesDataLoaded && areOptionsInitialized;
     const personalDetails = usePersonalDetails();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
-    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
@@ -115,7 +115,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 }
 
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`];
-                const option = createOptionFromReport(report, personalDetails, currentUserAccountID, privateIsArchived, undefined, {showPersonalDetails: true});
+                const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+                const option = createOptionFromReport(report, personalDetails, currentUserAccountID, chatReport, privateIsArchived, undefined, {showPersonalDetails: true});
                 reportForContextualSearch = option;
             }
 

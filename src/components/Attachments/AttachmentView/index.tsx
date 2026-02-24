@@ -132,7 +132,7 @@ function AttachmentView({
     transaction: transactionProp,
 }: AttachmentViewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Gallery']);
-    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const transaction = transactionProp ?? transactionFromOnyx;
     const {translate} = useLocalize();
     const {currentlyPlayingURL} = usePlaybackStateContext();
@@ -329,6 +329,10 @@ function AttachmentView({
             <>
                 <View style={styles.imageModalImageCenterContainer}>
                     <AttachmentViewImage
+                        // Forces remount of high resolution images when transitioning from blob URL (uploading) to server URL (uploaded).
+                        // Prevents stale Image cache that causes "Attachment not found" errors.
+                        // See: https://github.com/Expensify/App/issues/76193
+                        key={attachmentID ? `${attachmentID}-${isHighResolution && isUploaded ? 'preview' : 'full'}` : undefined}
                         attachmentID={attachmentID}
                         url={imageSource}
                         file={file}

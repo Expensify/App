@@ -39,12 +39,10 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
     const styles = useThemeStyles();
 
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {
-        canBeMissing: false,
         selector: domainSamlSettingsStateSelector,
     });
-    const [metaIdentity] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`, {canBeMissing: true, selector: metaIdentitySelector});
+    const [metaIdentity] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`, {selector: metaIdentitySelector});
     const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`, {
-        canBeMissing: false,
         selector: domainMemberSettingsSelector,
     });
     const [isOktaScimConfirmModalVisible, setIsScimConfirmModalVisible] = useState(false);
