@@ -11,7 +11,7 @@ type UpcomingReservation = ReservationData & {
 };
 
 function useUpcomingTravelReservations(): UpcomingReservation[] {
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     return useMemo(() => {
         const now = new Date();
