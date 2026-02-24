@@ -17,6 +17,7 @@ import {clearDraftRule, saveExpenseRule, updateDraftRule} from '@libs/actions/Us
 import {getAvailableNonPersonalPolicyCategories, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRatesNamesAndValues, getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -29,7 +30,6 @@ import ROUTES from '@src/ROUTES';
 import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import {hasEnabledOptions} from '@libs/OptionsListUtils';
 
 type RulePageBaseProps = {
     titleKey: TranslationPaths;
@@ -89,8 +89,8 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: ExpenseRuleForm) 
 
 function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     const {translate} = useLocalize();
-    const [expenseRules = getEmptyArray<ExpenseRule>()] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES, {canBeMissing: true});
-    const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
+    const [expenseRules = getEmptyArray<ExpenseRule>()] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
+    const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM);
     // Cannot use useRef because react compiler fails
     const [isSaving, setIsSaving] = useState(false);
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -98,7 +98,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
 
     useEffect(() => () => clearDraftRule(), []);
 
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const categoriesSelector = useCallback(
         (allPolicyCategories: OnyxCollection<PolicyCategories>) => {
             const categories = getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID);
@@ -111,19 +111,16 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
         [personalPolicyID],
     );
     const [hasPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
-        canBeMissing: true,
         selector: categoriesSelector,
     });
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${activePolicyID}`, {
-        canBeMissing: true,
         selector: getTagLists,
     });
     const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const [allTaxRates] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
         selector: getAllTaxRatesNamesAndValues,
     });
     const hasTaxRates = Object.keys(allTaxRates ?? {}).length > 0;

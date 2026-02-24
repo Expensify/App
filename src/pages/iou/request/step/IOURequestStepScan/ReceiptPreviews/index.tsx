@@ -1,4 +1,3 @@
-import useTransactionDraftReceipts from '@hooks/useTransactionDraftReceipts';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {FlatList as FlatListType} from 'react-native';
@@ -12,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionDraftReceipts from '@hooks/useTransactionDraftReceipts';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
