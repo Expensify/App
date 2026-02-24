@@ -8,9 +8,9 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import {
     areTransactionsEligibleForMerge,
+    DERIVED_MERGE_FIELDS,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
-    MERGE_FIELDS,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
@@ -56,6 +56,7 @@ function setupMergeTransactionDataAndNavigate(
     searchReports?: Report[],
     isSelectingSourceTransaction?: boolean,
     isOnSearch?: boolean,
+    policies?: Array<OnyxEntry<Policy>>,
 ) {
     if (!transactions.length || transactions.length > 2) {
         return;
@@ -70,7 +71,12 @@ function setupMergeTransactionDataAndNavigate(
         }
     }
 
-    const {targetTransaction, sourceTransaction} = selectTargetAndSourceTransactionsForMerge(transactions.at(0), transactions.at(1));
+    const {targetTransaction, sourceTransaction, targetTransactionPolicy, sourceTransactionPolicy} = selectTargetAndSourceTransactionsForMerge(
+        transactions.at(0),
+        transactions.at(1),
+        policies?.at(0),
+        policies?.at(1),
+    );
     if (!targetTransaction || !sourceTransaction) {
         return;
     }
@@ -91,7 +97,14 @@ function setupMergeTransactionDataAndNavigate(
         }
 
         // If transactions are identical, skip to the confirmation page
-        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare, searchReports);
+        const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(
+            targetTransaction,
+            sourceTransaction,
+            localeCompare,
+            searchReports,
+            targetTransactionPolicy,
+            sourceTransactionPolicy,
+        );
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(navigationTransactionID, mergeableData);
@@ -223,7 +236,7 @@ function getOnyxTargetTransactionData({
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const filteredTransactionChanges = Object.fromEntries(
         Object.entries(mergeTransaction).filter(([key, mergeValue]) => {
-            if (!(MERGE_FIELDS as readonly string[]).includes(key)) {
+            if (!(DERIVED_MERGE_FIELDS as readonly string[]).includes(key)) {
                 return false;
             }
 
@@ -367,6 +380,8 @@ function mergeTransactionRequest({
         billable: mergeTransaction.billable,
         reimbursable: mergeTransaction.reimbursable,
         tag: mergeTransaction.tag,
+        taxCode: mergeTransaction.taxCode,
+        taxPolicyID: mergeTransaction.taxPolicyID,
         receiptID: mergeTransaction.receipt?.receiptID,
         reportID: mergeTransaction.reportID,
     };
@@ -390,9 +405,13 @@ function mergeTransactionRequest({
     const isUnreportedSourceTransaction = sourceTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const selfDMReportID = selfDMReport?.reportID;
 
-    const sourceTransactionOptimisticData: OnyxUpdate[] = [];
-    const sourceTransactionSuccessData: OnyxUpdate[] = [];
-    const sourceTransactionFailureData: OnyxUpdate[] = [];
+    const sourceTransactionOptimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>
+    > = [];
+    const sourceTransactionSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
+    const sourceTransactionFailureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>
+    > = [];
     if (!isUnreportedSourceTransaction || !selfDMReportID) {
         const optimisticSourceTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
             onyxMethod: Onyx.METHOD.SET,
@@ -404,32 +423,31 @@ function mergeTransactionRequest({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
             value: sourceTransaction,
         };
+        const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
         const transactionToDelete = mergeTransaction.reportID === targetTransaction.reportID ? sourceTransaction : targetTransaction;
-        const transactionsOfDeletableReport = getReportTransactions(transactionToDelete.reportID);
-        const optimisticSourceReportData: OnyxUpdate[] =
-            transactionsOfDeletableReport.length === 1
-                ? [
-                      {
-                          onyxMethod: Onyx.METHOD.SET,
-                          key: `${ONYXKEYS.COLLECTION.REPORT}${transactionToDelete.reportID}`,
-                          value: null,
-                      },
-                  ]
-                : [];
+        const shouldDeleteSourceReport = transactionsOfSourceReport.length === 1 && mergeTransaction.reportID !== sourceTransaction.reportID;
+        const optimisticSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = shouldDeleteSourceReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
+                      value: null,
+                  },
+              ]
+            : [];
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        const failureSourceReportData: OnyxUpdate[] =
-            transactionsOfDeletableReport.length === 1
-                ? [
-                      {
-                          onyxMethod: Onyx.METHOD.SET,
-                          key: `${ONYXKEYS.COLLECTION.REPORT}${transactionToDelete.reportID}`,
-                          value: getReportOrDraftReport(transactionToDelete.reportID),
-                      },
-                  ]
-                : [];
-        const iouActionOfSourceTransaction = getIOUActionForReportID(transactionToDelete.reportID, transactionToDelete.transactionID);
-        const optimisticSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+        const failureSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = shouldDeleteSourceReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
+                      value: getReportOrDraftReport(sourceTransaction.reportID),
+                  },
+              ]
+            : [];
+        const iouActionOfSourceTransaction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
+        const optimisticSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
             ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
@@ -442,7 +460,7 @@ function mergeTransactionRequest({
                   },
               ]
             : [];
-        const successSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+        const successSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
             ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
@@ -456,7 +474,7 @@ function mergeTransactionRequest({
               ]
             : [];
 
-        const failureSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+        const failureSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
             ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
@@ -544,20 +562,18 @@ function mergeTransactionRequest({
         },
     );
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION>> = [
         ...(onyxTargetTransactionData.optimisticData ?? []),
         optimisticMergeTransactionData,
         ...optimisticTransactionViolations,
         ...sourceTransactionOptimisticData,
     ];
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const failureData: OnyxUpdate[] = [...(onyxTargetTransactionData.failureData ?? []), ...failureTransactionViolations, ...sourceTransactionFailureData];
+    const failureData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys>> = [...(onyxTargetTransactionData.failureData ?? []), ...failureTransactionViolations, ...sourceTransactionFailureData];
 
-    const successData: OnyxUpdate[] = [];
+    const successData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys>> = [];
     successData.push(...sourceTransactionSuccessData);
     successData.push(...(onyxTargetTransactionData.successData ?? []));
 

@@ -288,11 +288,16 @@ describe('actions/Policy', () => {
             const newTagName = 'new tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName);
 
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
             mockFetch.pause();
             await waitForBatchedUpdates();
 
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
             // When creating a new tag
-            createPolicyTag(fakePolicy.id, newTagName, fakePolicyTags);
+            createPolicyTag(policyData.current, newTagName);
             await waitForBatchedUpdates();
 
             // Then the tag should appear optimistically with pending state so the user sees immediate feedback
@@ -322,12 +327,17 @@ describe('actions/Policy', () => {
             const newTagName = 'new tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName);
 
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
             mockFetch.pause();
             await waitForBatchedUpdates();
             mockFetch.fail();
 
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
             // When the API fails
-            createPolicyTag(fakePolicy.id, newTagName, fakePolicyTags);
+            createPolicyTag(policyData.current, newTagName);
             await waitForBatchedUpdates();
             mockFetch.resume();
             await waitForBatchedUpdates();
@@ -345,11 +355,15 @@ describe('actions/Policy', () => {
 
             const newTagName = 'new tag';
 
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
             mockFetch.pause();
             await waitForBatchedUpdates();
 
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
             // When adding the first tag
-            createPolicyTag(fakePolicy.id, newTagName, {});
+            createPolicyTag(policyData.current, newTagName);
             await waitForBatchedUpdates();
 
             // Then the tag should be created in a new list with pending state so the user sees immediate feedback
@@ -389,6 +403,7 @@ describe('actions/Policy', () => {
 
             mockFetch.pause();
 
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
             await waitForBatchedUpdates();
 
@@ -398,8 +413,10 @@ describe('actions/Policy', () => {
                 expect(result.current[0]).toBeDefined();
             });
 
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
             // When using data from useOnyx hook
-            createPolicyTag(fakePolicy.id, newTagName, result.current[0] ?? {});
+            createPolicyTag(policyData.current, newTagName);
             await waitForBatchedUpdates();
 
             // Then the tag should appear optimistically with pending state so the user sees immediate feedback
@@ -2243,7 +2260,9 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakeTags);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeTaskReportID}`, fakeTaskReport);
 
-            createPolicyTag(fakePolicy.id, newTagName, fakeTags, fakeTaskReport, undefined, false);
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            createPolicyTag(policyData.current, newTagName, fakeTaskReport);
 
             await waitForBatchedUpdates();
 
@@ -2276,7 +2295,9 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakeTags);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeTaskReportID}`, fakeTaskReport);
 
-            createPolicyTag(fakePolicy.id, newTagName, fakeTags, undefined, fakeTaskReport, true);
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            createPolicyTag(policyData.current, newTagName, undefined, fakeTaskReport, true);
 
             await waitForBatchedUpdates();
 
@@ -2309,7 +2330,9 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakeTags);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeTaskReportID}`, fakeTaskReport);
 
-            createPolicyTag(fakePolicy.id, newTagName, fakeTags, undefined, fakeTaskReport, false);
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            createPolicyTag(policyData.current, newTagName, undefined, fakeTaskReport, false);
 
             await waitForBatchedUpdates();
 

@@ -1,36 +1,32 @@
 import React from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
-import type {MultifactorAuthenticationScenario} from './config/types';
+import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI} from './config';
+import type {MultifactorAuthenticationScenarioConfig} from './config/types';
 
 type MultifactorAuthenticationTriggerCancelConfirmModalProps = {
     isVisible: boolean;
     onConfirm: () => void;
     onCancel: () => void;
-    scenario?: MultifactorAuthenticationScenario;
+    scenario?: MultifactorAuthenticationScenarioConfig;
 };
 
 function MultifactorAuthenticationTriggerCancelConfirmModal({isVisible, onConfirm, onCancel, scenario}: MultifactorAuthenticationTriggerCancelConfirmModalProps) {
     const {translate} = useLocalize();
 
-    /**
-     * Retrieves the cancel confirmation modal configuration for a given scenario.
-     * Falls back to default UI configuration if scenario-specific config doesn't exist.
-     */
-    const {title, description, cancelButtonText, confirmButtonText} = (scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] : MULTIFACTOR_AUTHENTICATION_DEFAULT_UI).MODALS
-        .cancelConfirmation;
+    const defaults = MULTIFACTOR_AUTHENTICATION_DEFAULT_UI.MODALS.cancelConfirmation;
+    const cancelConfirmation = scenario?.MODALS.cancelConfirmation;
 
     return (
         <ConfirmModal
             danger
-            title={translate(title)}
+            title={translate(cancelConfirmation?.title ?? defaults.title)}
             onConfirm={onConfirm}
             onCancel={onCancel}
             isVisible={isVisible}
-            prompt={translate(description)}
-            confirmText={translate(confirmButtonText)}
-            cancelText={translate(cancelButtonText)}
+            prompt={translate(cancelConfirmation?.description ?? defaults.description)}
+            confirmText={translate(cancelConfirmation?.confirmButtonText ?? defaults.confirmButtonText)}
+            cancelText={translate(cancelConfirmation?.cancelButtonText ?? defaults.cancelButtonText)}
             shouldShowCancelButton
         />
     );

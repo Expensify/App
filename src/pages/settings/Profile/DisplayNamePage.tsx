@@ -105,6 +105,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             defaultValue={currentUserDetails.firstName ?? ''}
                             spellCheck={false}
                             autoCapitalize="words"
+                            autoComplete="given-name"
                         />
                     </View>
                     <View>
@@ -118,6 +119,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             defaultValue={currentUserDetails.lastName ?? ''}
                             spellCheck={false}
                             autoCapitalize="words"
+                            autoComplete="family-name"
                         />
                     </View>
                 </FormProvider>

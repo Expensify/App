@@ -1,14 +1,17 @@
 import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
+import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
+import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {
     BankAccountList,
     Card,
@@ -112,17 +115,19 @@ function isExpensifyCard(card?: Card) {
 
 /**
  * @param card
- * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
+ * @param translate
+ * @returns string in format %<bank> • <lastFourPAN || Not Activated>%.
  */
 function getCardDescription(card: Card | undefined, translate: LocalizedTranslate) {
     if (!card) {
         return '';
     }
     const isPlaid = !!getPlaidInstitutionId(card.bank);
-    const bankName = isPlaid ? card?.cardName : getBankName(card.bank);
+    const isPersonal = isPersonalCard(card);
+    const bankName = isPlaid || isPersonal ? card?.cardName : getBankName(card.bank);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translate('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
-    return cardDescriptor && !isPlaid ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
+    return cardDescriptor && !isPlaid && !isPersonal ? `${humanReadableBankName} ${CONST.DOT_SEPARATOR} ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
 /**
@@ -303,10 +308,13 @@ function isMatchingCard(card: Card, encryptedCardNumber: string, cardName: strin
         return false;
     }
 
-    // Normalize both strings to remove special characters (®, ™, ©, etc.)
-    // This handles differences between OAuth provider card names and stored card names
-    const normalize = (str: string) => str.replaceAll(/[^\w\s-]/g, '').trim();
-    return normalize(card.cardName) === normalize(cardName);
+    return normalizeCardName(card.cardName) === normalizeCardName(cardName);
+}
+
+// Normalize both strings to remove special characters (®, ™, ©, etc.)
+// This handles differences between OAuth provider card names and stored card names
+function normalizeCardName(cardName: string): string {
+    return cardName.replaceAll(/[^\w\s-]/g, '').trim();
 }
 
 function getMCardNumberString(cardNumber: string): string {
@@ -448,7 +456,7 @@ function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | u
 /**
  * Verify if the feed is a custom feed. Those are also referred to as commercial feeds.
  */
-function isCustomFeed(feed: CardFeedWithNumber | CardFeedWithDomainID | undefined): boolean {
+function isCustomFeed(feed: string | undefined): boolean {
     if (!feed) {
         return false;
     }
@@ -465,13 +473,69 @@ function isCSVFeedOrExpensifyCard(feedKey: string): boolean {
     return lowerFeedKey.startsWith('csv') || lowerFeedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedKey === CONST.EXPENSIFY_CARD.BANK;
 }
 
-function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
+/**
+ * Checks if a feed is a direct feed (OAuth or Plaid based).
+ * Mirrors the backend's Card::isOAuthBank and Card::isPlaidBank logic.
+ */
+function isDirectFeed(feed: string | undefined): boolean {
+    if (!feed) {
+        return false;
+    }
+    const lowerFeed = feed.toLowerCase();
+    return lowerFeed.startsWith('oauth') || lowerFeed.startsWith('plaid');
+}
+
+/**
+ * Checks whether a feed has any assigned cards using a precomputed lightweight map.
+ * This is used as a validity signal: direct feeds use it as a fallback when oAuthAccountDetails is missing,
+ * and "gray zone" feeds (neither commercial nor direct) use it as the sole visibility criterion.
+ * The feedKeysWithCards map is produced by buildFeedKeysWithAssignedCards in selectors/Card.ts.
+ */
+function feedHasCards(feedName: string, domainID: number, feedKeysWithCards: FeedKeysWithAssignedCards | undefined): boolean {
+    if (!feedKeysWithCards || !domainID) {
+        return false;
+    }
+
+    return feedKeysWithCards[`${domainID}_${feedName}`] === true;
+}
+
+/**
+ * Returns company feeds from cardFeeds, filtering out pending/deleted feeds, Expensify Card, stale direct feeds,
+ * and "gray zone" feeds with no assigned cards.
+ *
+ * Feed visibility rules (when feedKeysWithCards is provided):
+ * - Commercial feeds (isCustomFeed): always shown
+ * - Direct feeds (isDirectFeed): shown if they have oAuthAccountDetails OR assigned cards
+ * - Gray zone feeds (everything else): shown only if they have assigned cards
+ */
+function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, feedKeysWithCards?: FeedKeysWithAssignedCards, domainID?: number): CompanyFeeds {
+    const oAuthAccountDetails = cardFeeds?.settings?.oAuthAccountDetails;
+    const resolvedDomainID = domainID ?? CONST.DEFAULT_NUMBER_ID;
     return Object.fromEntries(
         Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
             if (value?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || value?.pending) {
                 return false;
             }
-            return key !== CONST.EXPENSIFY_CARD.BANK;
+            if (key === CONST.EXPENSIFY_CARD.BANK) {
+                return false;
+            }
+
+            // When we don't have card data, we can't make informed filtering decisions - show all feeds.
+            if (!feedKeysWithCards) {
+                return true;
+            }
+
+            // A direct feed is stale if it has no oAuthAccountDetails AND no assigned cards.
+            if (isDirectFeed(key) && !oAuthAccountDetails?.[key as CompanyCardFeed] && !feedHasCards(key, resolvedDomainID, feedKeysWithCards)) {
+                return false;
+            }
+
+            // "Gray zone" feeds (not commercial AND not direct) are only shown when they have assigned cards.
+            if (!isCustomFeed(key) && !isDirectFeed(key) && !feedHasCards(key, resolvedDomainID, feedKeysWithCards)) {
+                return false;
+            }
+
+            return true;
         }),
     );
 }
@@ -942,7 +1006,7 @@ function isCardPendingActivate(card?: Card) {
  * Returns true if the card has fraud type 'domain' or 'individual'.
  */
 function isCardWithPotentialFraud(card: Card): boolean {
-    return card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL;
+    return card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.nameValuePairs?.possibleFraud;
 }
 
 function isCardPendingReplace(card?: Card) {
@@ -951,6 +1015,15 @@ function isCardPendingReplace(card?: Card) {
         !!card?.nameValuePairs?.terminationReason &&
         card?.nameValuePairs?.statusChanges?.at(-1)?.status === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED
     );
+}
+
+/**
+ * Check if card has a broken connection
+ *
+ * @param card personal card to check
+ */
+function isPersonalCardBrokenConnection(card?: Card) {
+    return card?.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card?.lastScrapeResult);
 }
 
 function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
@@ -1100,6 +1173,67 @@ function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
     );
 }
 
+function isCardFrozen(card?: OnyxEntry<Card>): boolean {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && card?.nameValuePairs?.frozen != null;
+}
+
+/**
+ * Return url for fixing broken personal card connection
+ *
+ * @param cards list of the broken cards
+ * @param environmentURL environment url
+ * @returns url
+ */
+function getBrokenConnectionUrlToFixPersonalCard(cards: Record<string, Card>, environmentURL: string) {
+    if (!cards) {
+        return undefined;
+    }
+    if (Object.keys(cards).length === 1) {
+        const card = Object.values(cards).at(0);
+        return `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(card?.cardID.toString())}`;
+    }
+
+    return `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
+}
+
+/**
+ * Gets displayable Expensify cards, filtering out inactive cards and grouping combo cards
+ * (physical + virtual pairs) so only the physical card is shown per domain.
+ *
+ * @param cardList - The card list to filter
+ * @returns Array of displayable Expensify cards with combo cards deduplicated by domain
+ */
+function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
+    if (!hasDisplayableAssignedCards(cardList)) {
+        return [];
+    }
+
+    const activeCards = filterAllInactiveCards(cardList);
+    const activeExpensifyCards = Object.values(activeCards).filter((card) => isExpensifyCard(card) && card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH);
+
+    const sortedCards = lodashSortBy(activeExpensifyCards, getAssignedCardSortKey);
+    const seenDomains = new Set<string>();
+
+    return sortedCards.filter((card) => {
+        const isAdminIssuedVirtualCard = !!card.nameValuePairs?.issuedBy && !!card.nameValuePairs?.isVirtual;
+        const isTravelCard = !!card.nameValuePairs?.isVirtual && !!card.nameValuePairs?.isTravelCard;
+        const isComboCard = !!card.domainName && !isAdminIssuedVirtualCard && !isTravelCard;
+
+        // Always show non-combo cards (admin-issued virtual, travel cards, or cards without domain)
+        if (!isComboCard) {
+            return true;
+        }
+
+        // For combo cards, only show the first one per domain (physical card comes first due to sorting)
+        if (seenDomains.has(card.domainName)) {
+            return false;
+        }
+
+        seenDomains.add(card.domainName);
+        return true;
+    });
+}
+
 export {
     getAssignedCardSortKey,
     getDefaultExpensifyCardLimitType,
@@ -1107,6 +1241,7 @@ export {
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,
+    getBrokenConnectionUrlToFixPersonalCard,
     getYearFromExpirationDateString,
     maskCard,
     maskCardNumber,
@@ -1121,6 +1256,7 @@ export {
     getBankName,
     isSelectedFeedExpired,
     getCompanyFeeds,
+    isPersonalCardBrokenConnection,
     isCustomFeed,
     isCSVFeedOrExpensifyCard,
     getBankCardDetailsImage,
@@ -1148,6 +1284,7 @@ export {
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     isMatchingCard,
+    normalizeCardName,
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     filterAllInactiveCards,
@@ -1165,6 +1302,8 @@ export {
     getPlaidInstitutionId,
     getFeedConnectionBrokenCard,
     getCorrectStepForPlaidSelectedBank,
+    isDirectFeed,
+    feedHasCards,
     getOriginalCompanyFeeds,
     getCompanyCardFeed,
     getCardFeedWithDomainID,
@@ -1177,7 +1316,9 @@ export {
     isCardAlreadyAssigned,
     generateCardID,
     hasDisplayableAssignedCards,
+    isCardFrozen,
     isCardWithPotentialFraud,
+    getDisplayableExpensifyCards,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};

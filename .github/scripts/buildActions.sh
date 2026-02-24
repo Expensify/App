@@ -16,6 +16,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/checkDeployBlockers/checkDeployBlockers.ts"
     "$ACTIONS_DIR/checkSVGCompression/checkSVGCompression.ts"
     "$ACTIONS_DIR/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy.ts"
+    "$ACTIONS_DIR/failureNotifier/failureNotifier.ts"
     "$ACTIONS_DIR/formatCodeCovComment/formatCodeCovComment.ts"
     "$ACTIONS_DIR/getAndroidRolloutPercentage/getAndroidRolloutPercentage.ts"
     "$ACTIONS_DIR/getArtifactInfo/getArtifactInfo.ts"
@@ -32,6 +33,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/reviewerChecklist/reviewerChecklist.ts"
     "$ACTIONS_DIR/validateReassureOutput/validateReassureOutput.ts"
     "$ACTIONS_DIR/verifySignedCommits/verifySignedCommits.ts"
+    "$ACTIONS_DIR/waitForPreviousRuns/waitForPreviousRuns.ts"
 )
 
 # This will be inserted at the top of all compiled files as a warning to devs.
