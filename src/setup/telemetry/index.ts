@@ -33,6 +33,9 @@ export default function (): void {
         release: `${pkg.name}@${pkg.version}`,
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,
+        // In HybridApp, native SDK is initialized early in Application.onCreate (Android) and
+        // AppDelegate (iOS) to capture breadcrumbs during native startup before JS loads.
+        autoInitializeNativeSdk: !CONFIG.IS_HYBRID_APP,
     });
 
     startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
