@@ -1184,7 +1184,7 @@ function MoneyReportHeader({
                         );
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                        const createdTransactionThreadReport = createTransactionThreadReport(moneyRequestReport, iouAction);
+                        const createdTransactionThreadReport = createTransactionThreadReport(introSelected, moneyRequestReport, iouAction);
                         threadID = createdTransactionThreadReport?.reportID;
                     }
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
@@ -1445,7 +1445,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                initSplitExpense(allTransactions, allReports, currentTransaction);
+                initSplitExpense(allTransactions, allReports, currentTransaction, policy);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {

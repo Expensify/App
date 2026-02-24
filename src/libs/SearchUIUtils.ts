@@ -1925,6 +1925,7 @@ function getTaskSections(
 /** Creates transaction thread report and navigates to it from the search page */
 function createAndOpenSearchTransactionThread(
     item: TransactionListItemType,
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     backTo: string,
     IOUTransactionID?: string,
     transactionPreviewData?: TransactionPreviewData,
@@ -1955,7 +1956,7 @@ function createAndOpenSearchTransactionThread(
         const transactionViolations = shouldPassTransactionData ? item.violations : undefined;
         // Use the full reportAction to preserve originalMessage.type (e.g., "track") for proper expense type detection
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
-        transactionThreadReport = createTransactionThreadReport(item.report, reportActionToPass, transaction, transactionViolations);
+        transactionThreadReport = createTransactionThreadReport(introSelected, item.report, reportActionToPass, transaction, transactionViolations);
     }
 
     if (shouldNavigate) {
