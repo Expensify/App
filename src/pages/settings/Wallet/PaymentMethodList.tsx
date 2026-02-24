@@ -259,10 +259,10 @@ function PaymentMethodList({
                     } else {
                         cardDescription = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
                     }
-                    // Personal cards navigate to personal card details page (except CSV cards which need 3-dot menu for delete)
+                    // Personal cards (including CSV import) navigate to personal card details page (right panel)
                     // Company cards use the pressHandler callback (for 3-dot menu behavior)
                     const cardOnPress =
-                        isUserPersonalCard && !isCSVCard
+                        isUserPersonalCard
                             ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
                             : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                                   pressHandler({
@@ -285,7 +285,7 @@ function PaymentMethodList({
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         shouldShowRightIcon,
-                        shouldShowThreeDotsMenu: !isUserPersonalCard || isCSVCard,
+                        shouldShowThreeDotsMenu: !isUserPersonalCard,
                         errors: isUserPersonalCard ? undefined : card.errors,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
