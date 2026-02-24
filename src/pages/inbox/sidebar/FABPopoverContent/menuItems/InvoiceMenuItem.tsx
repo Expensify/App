@@ -8,7 +8,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {canSendInvoice as canSendInvoicePolicyUtils} from '@libs/PolicyUtils';
-import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
@@ -28,10 +27,9 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal, allPolicies} = useRedirectToExpensifyClassic();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
-    const {setFocusedIndex, onItemPress} = useFABMenuContext();
     const canSendInvoice = canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email);
 
-    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID, canSendInvoice);
+    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID, canSendInvoice);
 
     if (!canSendInvoice) {
         return null;

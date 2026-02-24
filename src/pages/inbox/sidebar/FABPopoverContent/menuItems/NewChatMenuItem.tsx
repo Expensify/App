@@ -5,7 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {startNewChat} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import CONST from '@src/CONST';
 
@@ -15,8 +14,7 @@ function NewChatMenuItem() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubble'] as const);
-    const {setFocusedIndex, onItemPress} = useFABMenuContext();
-    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID);
+    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID);
 
     return (
         <FocusableMenuItem

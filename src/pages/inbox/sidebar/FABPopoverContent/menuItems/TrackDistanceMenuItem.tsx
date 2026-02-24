@@ -6,7 +6,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {startDistanceRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
@@ -24,8 +23,7 @@ function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Location'] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
-    const {setFocusedIndex, onItemPress} = useFABMenuContext();
-    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID);
+    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID);
 
     return (
         <FocusableMenuItem

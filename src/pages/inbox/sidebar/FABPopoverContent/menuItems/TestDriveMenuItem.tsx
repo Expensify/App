@@ -9,7 +9,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,11 +24,9 @@ function TestDriveMenuItem() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector});
     const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
-    const {setFocusedIndex, onItemPress} = useFABMenuContext();
-
     const isVisible = !hasSeenTour;
 
-    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID, isVisible);
+    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID, isVisible);
 
     if (!isVisible) {
         return null;

@@ -12,7 +12,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
-import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import {policyMapper} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import variables from '@styles/variables';
@@ -32,7 +31,6 @@ function NewWorkspaceMenuItem() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicies] = useMappedPolicies(policyMapper);
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
-    const {setFocusedIndex, onItemPress} = useFABMenuContext();
     const shouldShowNewWorkspaceButton = (() => {
         if (isRestrictedPolicyCreation) {
             return false;
@@ -44,7 +42,7 @@ function NewWorkspaceMenuItem() {
 
     const isVisible = !isLoading && shouldShowNewWorkspaceButton;
 
-    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID, isVisible);
+    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID, isVisible);
 
     if (!isVisible) {
         return null;

@@ -7,7 +7,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
@@ -25,8 +24,7 @@ function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle'] as const);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
-    const {setFocusedIndex, onItemPress} = useFABMenuContext();
-    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID);
+    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID);
 
     return (
         <FocusableMenuItem

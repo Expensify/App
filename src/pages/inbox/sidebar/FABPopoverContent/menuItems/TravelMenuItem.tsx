@@ -10,7 +10,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,10 +34,9 @@ function TravelMenuItem({activePolicyID}: TravelMenuItemProps) {
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
-    const {setFocusedIndex, onItemPress} = useFABMenuContext();
     const isVisible = !!activePolicy?.isTravelEnabled;
 
-    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID, isVisible);
+    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID, isVisible);
 
     const isTravelEnabled = (() => {
         if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {

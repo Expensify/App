@@ -25,7 +25,6 @@ import {
     isPolicyExpenseChat,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,7 +64,6 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
-    const {setFocusedIndex, onItemPress} = useFABMenuContext();
     const quickActionPolicyID = quickAction?.action === CONST.QUICK_ACTIONS.TRACK_PER_DIEM && quickAction?.perDiemPolicyID ? quickAction?.perDiemPolicyID : quickActionReport?.policyID;
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionPolicyID}`);
 
@@ -80,7 +78,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
             : false) ||
         (!quickAction?.action && !isEmptyObject(policyChatForActivePolicy));
 
-    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID, isVisible);
+    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID, isVisible);
 
     let quickActionAvatars: ReturnType<typeof getIcons> = [];
     if (isValidReport) {

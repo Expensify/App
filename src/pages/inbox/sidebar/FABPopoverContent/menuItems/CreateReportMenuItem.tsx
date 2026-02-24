@@ -18,7 +18,6 @@ import {getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
-import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
@@ -49,7 +48,6 @@ function CreateReportMenuItem({activePolicyID}: CreateReportMenuItemProps) {
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const {setFocusedIndex, onItemPress} = useFABMenuContext();
     const groupPaidPoliciesWithChatEnabled = useCallback(
         (policies: Parameters<typeof groupPaidPoliciesWithExpenseChatEnabledSelector>[0]) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, session?.email),
         [session?.email],
@@ -59,7 +57,7 @@ function CreateReportMenuItem({activePolicyID}: CreateReportMenuItemProps) {
 
     const isVisible = shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
 
-    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID, isVisible);
+    const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(ITEM_ID, isVisible);
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
 
