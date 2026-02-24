@@ -1,11 +1,10 @@
 import React, {useMemo} from 'react';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import type {PaymentMethodType} from '@components/KYCWall/types';
 import {useSearchSelectionContext} from '@components/Search/SearchSelectionContext';
 import type {BankAccountMenuItem, SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import {getTypeOptions} from '@libs/SearchUIUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import CONST from '@src/CONST';
@@ -19,12 +18,10 @@ type SearchPageHeaderProps = {
     searchRouterListVisible?: boolean;
     hideSearchRouterList?: () => void;
     onSearchRouterFocus?: () => void;
-    headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     handleSearch: (value: string) => void;
     isMobileSelectionModeEnabled: boolean;
     currentSelectedPolicyID?: string | undefined;
     currentSelectedReportID?: string | undefined;
-    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
     latestBankItems?: BankAccountMenuItem[] | undefined;
 };
 
@@ -35,14 +32,13 @@ function SearchPageHeader({
     searchRouterListVisible,
     hideSearchRouterList,
     onSearchRouterFocus,
-    headerButtonsOptions,
     handleSearch,
     isMobileSelectionModeEnabled,
     currentSelectedPolicyID,
     currentSelectedReportID,
-    confirmPayment,
     latestBankItems,
 }: SearchPageHeaderProps) {
+    const {headerButtonsOptions, onBulkPaySelected} = useSearchBulkActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions} = useSearchSelectionContext();
     const {translate} = useLocalize();
@@ -84,7 +80,7 @@ function SearchPageHeader({
                 itemsLength={selectedItemsCount}
                 currentSelectedPolicyID={currentSelectedPolicyID}
                 currentSelectedReportID={currentSelectedReportID}
-                confirmPayment={confirmPayment}
+                confirmPayment={onBulkPaySelected}
                 latestBankItems={latestBankItems}
             />
         );

@@ -1,39 +1,36 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useContext} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
-import type {PaymentMethodType} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import {useSearchSelectionContext} from '@components/Search/SearchSelectionContext';
 import type {BankAccountMenuItem, SearchQueryJSON} from '@components/Search/types';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import useSearchBulkActions from '@hooks/useSearchBulkActions';
+import useSortedActiveAdminPolicies from '@hooks/useSortedActiveAdminPolicies';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {handleBulkPayItemSelected} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {isExpenseReport} from '@libs/ReportUtils';
-import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
-import useSortedActiveAdminPolicies from '@hooks/useSortedActiveAdminPolicies';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {isUserValidatedSelector} from '@selectors/Account';
-import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 type SearchSelectionBarProps = {
     queryJSON?: SearchQueryJSON;
-    headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     currentSelectedPolicyID?: string | undefined;
     currentSelectedReportID?: string | undefined;
-    confirmPayment?: (paymentMethod?: PaymentMethodType) => void;
     latestBankItems?: BankAccountMenuItem[] | undefined;
 };
 
-function SearchSelectionBar({queryJSON, headerButtonsOptions, currentSelectedPolicyID, currentSelectedReportID, confirmPayment, latestBankItems}: SearchSelectionBarProps) {
+function SearchSelectionBar({queryJSON, currentSelectedPolicyID, currentSelectedReportID, latestBankItems}: SearchSelectionBarProps) {
+    const {headerButtonsOptions, onBulkPaySelected} = useSearchBulkActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems} = useSearchSelectionContext();
@@ -81,7 +78,7 @@ function SearchSelectionBar({queryJSON, headerButtonsOptions, currentSelectedPol
                           })
                         : undefined
                 }
-                onSuccessfulKYC={(paymentType) => confirmPayment?.(paymentType)}
+                onSuccessfulKYC={(paymentType) => onBulkPaySelected?.(paymentType)}
             >
                 {(triggerKYCFlow, buttonRef) => (
                     <View style={[styles.flexRow, styles.gap3]}>
@@ -103,7 +100,7 @@ function SearchSelectionBar({queryJSON, headerButtonsOptions, currentSelectedPol
                                     isUserValidated,
                                     isDelegateAccessRestricted,
                                     showDelegateNoAccessModal,
-                                    confirmPayment,
+                                    confirmPayment: onBulkPaySelected,
                                 })
                             }
                             isSplitButton={false}
