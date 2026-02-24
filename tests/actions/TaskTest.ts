@@ -5,6 +5,8 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
+import * as ReportModule from '@libs/actions/Report';
 import {
     canActionTask,
     canModifyTask,
@@ -22,8 +24,6 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
-import * as ReportModule from '@libs/actions/Report';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportUtils from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
