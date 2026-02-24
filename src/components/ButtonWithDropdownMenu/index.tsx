@@ -3,8 +3,10 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
+import ButtonComposed from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
+import Text from '@components/Text';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
@@ -63,9 +65,10 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldStayNormalOnDisable = false,
         sentryLabel,
         shouldPutHeaderTextAfterBackButton = false,
+        brickRoadIndicator,
     } = props;
 
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'DotIndicator']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -162,16 +165,26 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         setIsMenuVisible,
     }));
 
+    const iconLeft =
+        brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? (
+            <ButtonComposed.IconLeft
+                src={icons.DotIndicator}
+                fill={theme.danger}
+                hoverFill={theme.danger}
+            />
+        ) : (
+            !!icon && <ButtonComposed.IconLeft src={icon} />
+        );
+
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
                 <View style={[splitButtonWrapperStyle, style]}>
-                    <Button
+                    <ButtonComposed
                         success={success}
                         pressOnEnter={pressOnEnter}
                         ref={dropdownButtonRef}
                         onPress={handlePress}
-                        text={customText ?? selectedItem?.text ?? ''}
                         isDisabled={isDisabled || areAllOptionsDisabled}
                         shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                         isLoading={isLoading}
@@ -183,15 +196,29 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView, isTextTooLong && shouldUseShortForm && {...styles.pl2, ...styles.pr1}]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                        iconRight={icons.DownArrow}
-                        shouldShowRightIcon={!isSplitButton && !isLoading && options?.length > 0}
-                        isSplitButton={isSplitButton}
                         testID={testID}
-                        textStyles={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}]}
-                        secondLineText={secondLineText}
-                        icon={icon}
                         sentryLabel={sentryLabel}
-                    />
+                    >
+                        {iconLeft}
+                        {secondLineText ? (
+                            <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
+                                <ButtonComposed.Text style={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}, styles.noPaddingBottom]}>
+                                    {customText ?? selectedItem?.text ?? ''}
+                                </ButtonComposed.Text>
+                                <Text
+                                    style={[styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker, styles.textExtraSmallSupporting, styles.textWhite, styles.textBold]}
+                                    numberOfLines={1}
+                                >
+                                    {secondLineText}
+                                </Text>
+                            </View>
+                        ) : (
+                            <ButtonComposed.Text style={isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}}>
+                                {customText ?? selectedItem?.text ?? ''}
+                            </ButtonComposed.Text>
+                        )}
+                        {!isSplitButton && !isLoading && options?.length > 0 && <ButtonComposed.IconRight src={icons.DownArrow} />}
+                    </ButtonComposed>
 
                     {isSplitButton && (
                         <Button
