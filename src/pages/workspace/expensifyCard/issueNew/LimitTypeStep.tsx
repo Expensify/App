@@ -1,10 +1,10 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
@@ -41,6 +41,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const {isBetaEnabled} = usePermissions();
+    const formRef = useRef<FormRef | null>(null);
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultType = getDefaultExpensifyCardLimitType(policy);
@@ -57,6 +58,15 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
         }
         return CONST.EXPENSIFY_CARD.STEP.CARD_NAME;
     }, [isBetaEnabled, isEditing, issueNewCard?.data?.cardType]);
+
+    useEffect(() => {
+        const listener = Keyboard.addListener('keyboardDidShow', () => {
+            formRef.current?.scrollToEnd();
+        });
+        return () => {
+            listener.remove();
+        };
+    }, []);
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
@@ -163,6 +173,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
                 validate={validate}
                 enabledWhenOffline
                 addBottomSafeAreaPadding
+                ref={formRef}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseLimitType')}</Text>
                 <InputWrapperWithRef
