@@ -17,9 +17,6 @@ type BadgeProps = {
     /** Is Error type */
     error?: boolean;
 
-    /** Whether badge uses strong (filled) style instead of outlined */
-    isStrong?: boolean;
-
     /** Whether badge uses condensed (smaller) sizing */
     isCondensed?: boolean;
 
@@ -54,7 +51,6 @@ type BadgeProps = {
 function Badge({
     success = false,
     error = false,
-    isStrong = false,
     isCondensed = false,
     pressable = false,
     text,
@@ -72,7 +68,7 @@ function Badge({
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
 
-    const iconColor = StyleUtils.getIconColorStyle(success, error, isStrong);
+    const iconColor = StyleUtils.getIconColorStyle();
 
     const iconSize = isCondensed ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall;
 
@@ -82,7 +78,7 @@ function Badge({
             isCondensed && (icon ? styles.condensedBadgeWithIcon : styles.condensedBadge),
             styles.alignSelfCenter,
             styles.ml2,
-            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC, isStrong),
+            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC),
             badgeStyles,
         ],
         [
@@ -97,7 +93,6 @@ function Badge({
             environment,
             badgeStyles,
             isCondensed,
-            isStrong,
             icon,
         ],
     );
@@ -126,9 +121,6 @@ function Badge({
                     styles.badgeText,
                     styles.textStrong,
                     isCondensed && styles.condensedBadgeText,
-                    !isStrong && success && styles.badgeSuccessText,
-                    !isStrong && error && styles.badgeDangerText,
-                    isStrong && (success || error) && styles.badgeStrongText,
                     textStyles,
                     isDeleted ? styles.offlineFeedbackDeleted : {},
                 ]}

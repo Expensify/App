@@ -973,7 +973,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.badgeDefaultBG,
             borderWidth: 1,
             borderRadius: variables.buttonBorderRadius,
-            borderColor: theme.transparent,
+            borderColor: theme.badgeDefaultBG,
             paddingHorizontal: 12,
             minHeight: 28,
             height: variables.iconSizeNormal,
@@ -1002,8 +1002,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeSuccess: {
-            backgroundColor: theme.badgeSuccessBG,
-            borderColor: theme.badgeSuccessBG,
+            backgroundColor: theme.success,
+            borderColor: theme.success,
+        },
+
+        badgeSuccessPressed: {
+            backgroundColor: theme.successHover,
+            borderColor: theme.successHover,
         },
 
         badgeEnvironmentSuccess: {
@@ -1020,8 +1025,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeDanger: {
-            backgroundColor: theme.badgeDangerBG,
-            borderColor: theme.badgeDangerBG,
+            backgroundColor: theme.danger,
+            borderColor: theme.danger,
+        },
+
+        badgeDangerPressed: {
+            backgroundColor: theme.dangerHover,
+            borderColor: theme.dangerHover,
         },
 
         badgeEnvironmentDanger: {
@@ -1050,44 +1060,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 8,
         },
 
-        badgeSuccessStrong: {
-            backgroundColor: theme.success,
-            borderColor: theme.success,
-        },
-
-        badgeSuccessStrongPressed: {
-            backgroundColor: theme.successHover,
-            borderColor: theme.successHover,
-        },
-
-        badgeDangerStrong: {
-            backgroundColor: theme.danger,
-            borderColor: theme.danger,
-        },
-
-        badgeDangerStrongPressed: {
-            backgroundColor: theme.dangerHover,
-            borderColor: theme.dangerHover,
-        },
-
-        badgeStrongText: {
-            color: colors.white,
-        },
-
-        badgeSuccessText: {
-            color: theme.badgeSuccessText,
-        },
-
-        badgeDangerText: {
-            color: theme.badgeDangerText,
-        },
-
         condensedBadgeText: {
             fontSize: variables.fontSizeExtraSmall,
         },
 
         badgeText: {
-            color: theme.text,
+            color: colors.white,
             fontSize: variables.fontSizeSmall,
             ...lineHeightBadge,
             ...whiteSpace.noWrap,

@@ -87,9 +87,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the badge should be shown as success */
         badgeSuccess?: boolean;
 
-        /** Whether the badge should use strong (filled) variant */
-        badgeStrong?: boolean;
-
         /** Callback to fire when the badge is pressed */
         onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
@@ -452,7 +449,6 @@ function MenuItem({
     badgeText,
     badgeIcon,
     badgeSuccess,
-    badgeStrong,
     onBadgePress,
     shouldShowBadgeInSeparateRow = false,
     shouldShowBadgeBelow = false,
@@ -983,7 +979,6 @@ function MenuItem({
                                                                     focused && isDefaultBadge && styles.badgeDefaultActive,
                                                                 ]}
                                                                 success={badgeSuccess}
-                                                                isStrong={badgeStrong}
                                                                 onPress={onBadgePress}
                                                                 pressable={!!onBadgePress}
                                                             />
@@ -1000,7 +995,6 @@ function MenuItem({
                                                         icon={badgeIcon}
                                                         badgeStyles={[badgeStyle, focused && isDefaultBadge && styles.badgeDefaultActive]}
                                                         success={badgeSuccess}
-                                                        isStrong={badgeStrong}
                                                         onPress={onBadgePress}
                                                         pressable={!!onBadgePress}
                                                     />
@@ -1091,7 +1085,6 @@ function MenuItem({
                                                 icon={badgeIcon}
                                                 badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2, focused && isDefaultBadge && styles.badgeDefaultActive]}
                                                 success={badgeSuccess}
-                                                isStrong={badgeStrong}
                                                 onPress={onBadgePress}
                                                 pressable={!!onBadgePress}
                                             />

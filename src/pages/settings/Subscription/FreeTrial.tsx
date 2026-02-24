@@ -55,7 +55,6 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
     ) : (
         <Badge
             success={success}
-            isStrong
             text={freeTrialText}
             badgeStyles={badgeStyles}
         />
