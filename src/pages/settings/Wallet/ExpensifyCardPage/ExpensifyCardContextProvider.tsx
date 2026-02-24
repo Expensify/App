@@ -51,20 +51,19 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
         return errors;
     }, [cardList]);
 
-    const [prevCardListErrors, setPrevCardListErrors] = useState(cardListErrors);
-    if (prevCardListErrors !== cardListErrors) {
-        setPrevCardListErrors(cardListErrors);
-        setCardsDetailsErrors((prevErrors) => {
-            const clearedErrors = {...prevErrors};
-            for (const cardID of Object.keys(clearedErrors)) {
-                if (cardListErrors[cardID] && Object.keys(cardListErrors[cardID]).length > 0) {
-                    continue;
-                }
-                delete clearedErrors[Number(cardID)];
+    // Derive effective errors: only show detail errors for cards that still have card list errors.
+    // When card list errors clear, we stop showing the corresponding detail error without mutating state.
+    const effectiveCardsDetailsErrors = useMemo(() => {
+        const result: Record<number, string> = {};
+        for (const cardID of Object.keys(cardsDetailsErrors)) {
+            const numID = Number(cardID);
+            const listErrors = cardListErrors[cardID];
+            if (listErrors && Object.keys(listErrors).length > 0) {
+                result[numID] = cardsDetailsErrors[numID];
             }
-            return clearedErrors;
-        });
-    }
+        }
+        return result;
+    }, [cardsDetailsErrors, cardListErrors]);
 
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
@@ -79,7 +78,7 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
     const stateContextValue: ExpensifyCardStateContextType = {
         cardsDetails,
         isCardDetailsLoading,
-        cardsDetailsErrors,
+        cardsDetailsErrors: effectiveCardsDetailsErrors,
     };
 
     return (

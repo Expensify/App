@@ -60,12 +60,8 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [isThumbnail, setIsThumbnail] = useState(true);
-    const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
-    const [prevVideoDimensions, setPrevVideoDimensions] = useState(videoDimensions);
-    if (prevVideoDimensions !== videoDimensions && (getPlatform() !== CONST.PLATFORM.WEB || !videoUrl)) {
-        setPrevVideoDimensions(videoDimensions);
-        setMeasuredDimensions(videoDimensions);
-    }
+    const [webMeasuredDimensions, setWebMeasuredDimensions] = useState<Dimensions | null>(null);
+    const measuredDimensions = getPlatform() === CONST.PLATFORM.WEB && videoUrl && webMeasuredDimensions ? webMeasuredDimensions : videoDimensions;
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
     const isOnSearch = useIsOnSearch();
     const navigation = useNavigation();
@@ -76,10 +72,10 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
         }
         const video = document.createElement('video');
         video.onloadedmetadata = () => {
-            if (video.videoWidth === measuredDimensions.width && video.videoHeight === measuredDimensions.height) {
+            if (video.videoWidth === videoDimensions.width && video.videoHeight === videoDimensions.height) {
                 return;
             }
-            setMeasuredDimensions({
+            setWebMeasuredDimensions({
                 width: video.videoWidth,
                 height: video.videoHeight,
             });
@@ -89,7 +85,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
         return () => {
             video.src = '';
         };
-    }, [videoUrl, measuredDimensions.width, measuredDimensions.height]);
+    }, [videoUrl, videoDimensions.width, videoDimensions.height]);
 
     // We want to play the video only when the user is on the page where it was initially rendered
     const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
@@ -103,7 +99,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
             return;
         }
 
-        setMeasuredDimensions({width: track.size.width, height: track.size.height});
+        setWebMeasuredDimensions({width: track.size.width, height: track.size.height});
     };
 
     const handleOnPress = () => {

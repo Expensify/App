@@ -1,10 +1,9 @@
 import isBoolean from 'lodash/isBoolean';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import type {ComponentType} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -34,25 +33,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         const isConnectionDataFetchNeeded =
             !isOnyxDataLoading && !isOffline && !!props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
 
-        const [isFetchingData, setIsFetchingData] = useState(false);
-
-        const prevHasConnectionsDataBeenFetched = usePrevious(hasConnectionsDataBeenFetched);
-
-        if (prevHasConnectionsDataBeenFetched === undefined && isBoolean(hasConnectionsDataBeenFetched) && isFetchingData) {
-            setIsFetchingData(false);
-        }
-
-        const [prevFetchKey, setPrevFetchKey] = useState({policyId: props.policy?.id, isConnectionDataFetchNeeded});
-        if (prevFetchKey.policyId !== props.policy?.id || prevFetchKey.isConnectionDataFetchNeeded !== isConnectionDataFetchNeeded) {
-            setPrevFetchKey({policyId: props.policy?.id, isConnectionDataFetchNeeded});
-            if (!isConnectionDataFetchNeeded || !props.policy?.id) {
-                if (isFetchingData) {
-                    setIsFetchingData(false);
-                }
-            } else {
-                setIsFetchingData(true);
-            }
-        }
+        const isFetchingData = isConnectionDataFetchNeeded && !!props.policy?.id && !isBoolean(hasConnectionsDataBeenFetched);
 
         useEffect(() => {
             if (!isConnectionDataFetchNeeded || !props.policy?.id) {
@@ -61,7 +42,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             openPolicyAccountingPage(props.policy.id);
         }, [props.policy?.id, isConnectionDataFetchNeeded]);
 
-        if ((isConnectionDataFetchNeeded || isFetchingData || isOnyxDataLoading) && shouldBlockView) {
+        if ((isFetchingData || isOnyxDataLoading) && shouldBlockView) {
             return <FullScreenLoadingIndicator />;
         }
 

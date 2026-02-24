@@ -18,28 +18,22 @@ type AutoUpdateTimeProps = {
 function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
-    const getCurrentUserLocalTime = () => getLocalDateFromDatetime(undefined, timezone.selected);
 
-    const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime);
-    const [prevTimezone, setPrevTimezone] = useState(timezone.selected);
-    if (prevTimezone !== timezone.selected) {
-        setPrevTimezone(timezone.selected);
-        setCurrentUserLocalTime(getCurrentUserLocalTime());
-    }
-
+    const [, setTick] = useState(0);
     const minuteRef = useRef(new Date().getMinutes());
+    const currentUserLocalTime = getLocalDateFromDatetime(undefined, timezone.selected);
     const timezoneName = timezone.selected ? DateUtils.getZoneAbbreviation(currentUserLocalTime, timezone.selected) : '';
 
     useEffect(() => {
         const interval = setInterval(() => {
-            const currentMinute = new Date().getMinutes();
-            if (currentMinute !== minuteRef.current) {
-                setCurrentUserLocalTime(getLocalDateFromDatetime(undefined, timezone.selected));
-                minuteRef.current = currentMinute;
+            if (new Date().getMinutes() === minuteRef.current) {
+                return;
             }
+            setTick((t) => t + 1);
+            minuteRef.current = new Date().getMinutes();
         }, 1000);
         return () => clearInterval(interval);
-    }, [getLocalDateFromDatetime, timezone.selected]);
+    }, []);
 
     return (
         <View style={[styles.w100, styles.detailsPageSectionContainer]}>

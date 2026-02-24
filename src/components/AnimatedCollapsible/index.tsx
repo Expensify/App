@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -76,14 +76,13 @@ function AnimatedCollapsible({
     const contentHeight = useSharedValue(0);
     const descriptionHeight = useSharedValue(0);
     const hasExpanded = useSharedValue(isExpanded);
-    const [isRendered, setIsRendered] = React.useState(isExpanded);
-    const [prevExpanded, setPrevExpanded] = React.useState(isExpanded);
-    if (prevExpanded !== isExpanded) {
-        setPrevExpanded(isExpanded);
-        hasExpanded.set(isExpanded);
-        if (isExpanded) {
-            setIsRendered(true);
-        }
+    const [isRendered, setIsRendered] = useState(isExpanded);
+
+    // Keep Reanimated shared value in sync with prop (idempotent when unchanged)
+    hasExpanded.set(isExpanded);
+    // Mount content for collapse animation once expanded; unmount after animation via scheduleOnRN
+    if (isExpanded && !isRendered) {
+        setIsRendered(true);
     }
 
     const animatedHeight = useDerivedValue(() => {

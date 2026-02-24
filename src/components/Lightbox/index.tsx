@@ -150,7 +150,12 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    const [isFallbackVisible, setFallbackVisible] = useState(!isLightboxVisible);
+    /**
+     * Derived: show fallback (non-gesture image) when we don't have all conditions to show the lightbox.
+     * Hide fallback when: active + lightbox in view + lightbox image loaded.
+     * Show fallback when: inactive, or lightbox out of view, or lightbox image still loading.
+     */
+    const isFallbackVisible = !hasSiblingCarouselItems ? !isLightboxVisible : !(isActive && isLightboxVisible && isLightboxImageLoaded);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
     const previousUri = usePrevious(uri);
 
@@ -196,22 +201,12 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
         }
     }
 
-    const [prevFallbackDeps, setPrevFallbackDeps] = useState({hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible});
-    if (
-        prevFallbackDeps.hasSiblingCarouselItems !== hasSiblingCarouselItems ||
-        prevFallbackDeps.isActive !== isActive ||
-        prevFallbackDeps.isFallbackVisible !== isFallbackVisible ||
-        prevFallbackDeps.isLightboxImageLoaded !== isLightboxImageLoaded ||
-        prevFallbackDeps.isLightboxVisible !== isLightboxVisible
-    ) {
-        setPrevFallbackDeps({hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible});
-        if (hasSiblingCarouselItems) {
-            if (isActive && isFallbackVisible && isLightboxVisible && isLightboxImageLoaded) {
-                setFallbackVisible(false);
-                setFallbackImageLoaded(false);
-            } else if (!isActive && !isLightboxVisible) {
-                setFallbackVisible(true);
-            }
+    // Reset isFallbackImageLoaded when fallback becomes invisible (so it's false when we show fallback again)
+    const [prevFallbackVisible, setPrevFallbackVisible] = useState(isFallbackVisible);
+    if (prevFallbackVisible !== isFallbackVisible) {
+        setPrevFallbackVisible(isFallbackVisible);
+        if (!isFallbackVisible) {
+            setFallbackImageLoaded(false);
         }
     }
 

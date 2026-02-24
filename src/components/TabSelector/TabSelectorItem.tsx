@@ -44,18 +44,13 @@ function TabSelectorItem({
     const [isHovered, setIsHovered] = useState(false);
     const childRef = useRef<View | null>(null);
     const shouldShowEducationalTooltip = shouldShowProductTrainingTooltip && isActive;
-    const [shiftHorizontal, setShiftHorizontal] = useState(0);
+    // Store only the measured value from mobile measurement
+    const [measuredShift, setMeasuredShift] = useState(0);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const layoutKey = `${isActive}|${isSmallScreenWidth}|${parentX}|${parentWidth}`;
-    const [prevLayoutKey, setPrevLayoutKey] = useState(layoutKey);
-    if (prevLayoutKey !== layoutKey) {
-        setPrevLayoutKey(layoutKey);
-        if (isActive && !isSmallScreenWidth) {
-            setShiftHorizontal(0);
-        }
-    }
+    // Derive effective shift: 0 on desktop, measured value on mobile
+    const shiftHorizontal = isActive && !isSmallScreenWidth ? 0 : measuredShift;
 
     useLayoutEffect(() => {
         if (!isActive || !isSmallScreenWidth) {
@@ -66,7 +61,7 @@ function TabSelectorItem({
             childRef.current?.measureInWindow((x, _y, width) => {
                 const parentCenter = parentX + parentWidth / 2;
                 const currentCenter = x + width / 2;
-                setShiftHorizontal(parentCenter - currentCenter);
+                setMeasuredShift(parentCenter - currentCenter);
             });
         }, CONST.TOOLTIP_ANIMATION_DURATION);
         return () => {

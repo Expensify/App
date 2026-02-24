@@ -4,12 +4,8 @@ import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
 import type {TextInputWithSymbolProps} from './types';
 
 function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: TextInputWithSymbolProps) {
-    const [skipNextSelectionChange, setSkipNextSelectionChange] = useState(false);
-    const [prevFormattedAmount, setPrevFormattedAmount] = useState(props.formattedAmount);
-    if (prevFormattedAmount !== props.formattedAmount) {
-        setPrevFormattedAmount(props.formattedAmount);
-        setSkipNextSelectionChange(true);
-    }
+    const [acknowledgedAmount, setAcknowledgedAmount] = useState(props.formattedAmount);
+    const skipNextSelectionChange = acknowledgedAmount !== props.formattedAmount;
 
     return (
         <BaseTextInputWithSymbol
@@ -18,7 +14,7 @@ function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: Text
             ref={ref}
             onSelectionChange={(event: TextInputSelectionChangeEvent) => {
                 if (skipNextSelectionChange) {
-                    setSkipNextSelectionChange(false);
+                    setAcknowledgedAmount(props.formattedAmount);
                     return;
                 }
                 onSelectionChange(event.nativeEvent.selection.start, event.nativeEvent.selection.end);

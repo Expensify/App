@@ -91,6 +91,10 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
               })
             : null;
 
+    // Sync isLoadingMore when options are recomputed with the new limit.
+    // Options are derived synchronously from reportsLimit, so we detect completion by
+    // comparing prev vs current limit. We use render-phase sync (not useEffect) because
+    // the codebase forbids setState in effects. Ref access during render is also forbidden.
     const [prevReportsLimit, setPrevReportsLimit] = useState(reportsLimit);
     if (prevReportsLimit !== reportsLimit && isLoadingMore && options) {
         setPrevReportsLimit(reportsLimit);
