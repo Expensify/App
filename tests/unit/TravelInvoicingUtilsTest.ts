@@ -76,6 +76,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return true when TRAVEL_US has valid paymentBankAccountID and isEnabled is undefined', () => {
             const cardSettings = {
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {paymentBankAccountID: 12345},
             } as ExpensifyCardSettings;
@@ -86,6 +87,7 @@ describe('TravelInvoicingUtils', () => {
         // Tests for nested TRAVEL_US structure (backend response format)
         it('Should return false when nested TRAVEL_US.isEnabled is false', () => {
             const cardSettings = {
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {isEnabled: false, paymentBankAccountID: 12345},
             } as ExpensifyCardSettings;
@@ -95,6 +97,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return true when nested TRAVEL_US.isEnabled is true', () => {
             const cardSettings = {
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {isEnabled: true, paymentBankAccountID: 12345},
             } as ExpensifyCardSettings;
@@ -106,6 +109,7 @@ describe('TravelInvoicingUtils', () => {
             // Even if root level says enabled, nested TRAVEL_US should take precedence
             const cardSettings = {
                 isEnabled: true,
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {isEnabled: false},
             } as ExpensifyCardSettings;
@@ -140,6 +144,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return true when TRAVEL_US has a valid non-zero paymentBankAccountID', () => {
             const cardSettings = {
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {paymentBankAccountID: 67890},
             } as ExpensifyCardSettings;
@@ -162,6 +167,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return the limit value from TRAVEL_US when set', () => {
             const cardSettings = {
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {remainingLimit: 50000},
             } as ExpensifyCardSettings;
@@ -184,6 +190,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return the currentBalance value from TRAVEL_US when set', () => {
             const cardSettings = {
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {currentBalance: 25000},
             } as ExpensifyCardSettings;
@@ -206,6 +213,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return daily when TRAVEL_US has no monthlySettlementDate', () => {
             const cardSettings = {
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {isEnabled: true},
             } as ExpensifyCardSettings;
@@ -215,6 +223,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return monthly when TRAVEL_US has monthlySettlementDate', () => {
             const cardSettings = {
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {monthlySettlementDate: new Date('2024-01-15')},
             } as ExpensifyCardSettings;
@@ -259,6 +268,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should use paymentBankAccountAddressName from TRAVEL_US when available', () => {
             const cardSettings = {
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {
                     paymentBankAccountID: 12345,
@@ -274,6 +284,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should fallback to bank account data when TRAVEL_US paymentBankAccountAddressName is not set', () => {
             const cardSettings = {
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {
                     paymentBankAccountID: 'bankAccountID' as unknown as number,
@@ -287,6 +298,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return bankAccountID from TRAVEL_US in the result', () => {
             const cardSettings = {
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {
                     paymentBankAccountID: 12345,
@@ -299,6 +311,7 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should handle missing bank account in list gracefully', () => {
             const cardSettings = {
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {
                     paymentBankAccountID: 99999,
@@ -316,6 +329,7 @@ describe('TravelInvoicingUtils', () => {
         it('Should merge root settings with partial nested TRAVEL_US settings', () => {
             const cardSettings = {
                 monthlySettlementDate: new Date('2024-01-01'), // Root level
+                // TRAVEL_US matches the backend API property name
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {
                     isEnabled: true, // Nested level (partial)
@@ -359,6 +373,7 @@ describe('TravelInvoicingUtils', () => {
         it('Should return undefined when no travel card exists', () => {
             const cardList = {
                 workspaceCards: {
+                    // Card IDs use numeric string keys from the backend
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1234': {
                         cardID: 1234,
@@ -377,6 +392,7 @@ describe('TravelInvoicingUtils', () => {
         it('Should return the travel card when feedCountry is PROGRAM_TRAVEL_US', () => {
             const cardList = {
                 workspaceCards: {
+                    // Card IDs use numeric string keys from the backend
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1234': {
                         cardID: 1234,
@@ -396,6 +412,7 @@ describe('TravelInvoicingUtils', () => {
         it('Should return first travel card when multiple cards exist', () => {
             const cardList = {
                 workspaceCards: {
+                    // Card IDs use numeric string keys from the backend
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1111': {
                         cardID: 1111,
@@ -405,6 +422,7 @@ describe('TravelInvoicingUtils', () => {
                             feedCountry: 'OTHER_COUNTRY',
                         },
                     },
+                    // Card IDs use numeric string keys from the backend
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '2222': {
                         cardID: 2222,
@@ -425,6 +443,7 @@ describe('TravelInvoicingUtils', () => {
 
             const cardList = {
                 workspaceCards: {
+                    // Card IDs use numeric string keys from the backend
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '9999': {
                         cardID: 9999,
@@ -447,6 +466,7 @@ describe('TravelInvoicingUtils', () => {
     describe('isTravelCVVEligible', () => {
         const mockTravelCardList = {
             workspaceCards: {
+                // Card IDs use numeric string keys from the backend
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1234': {
                     cardID: 1234,
@@ -461,6 +481,7 @@ describe('TravelInvoicingUtils', () => {
 
         const mockNonTravelCardList = {
             workspaceCards: {
+                // Card IDs use numeric string keys from the backend
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '5678': {
                     cardID: 5678,
