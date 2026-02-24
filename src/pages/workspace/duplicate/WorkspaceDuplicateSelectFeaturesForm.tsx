@@ -358,7 +358,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 <View style={[styles.flex1]}>
                     <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5]}>
                         <Checkbox
-                            accessibilityLabel={translate('workspace.common.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={selectedItems.length > 0 && selectedItems.length !== items.length}
                             onPress={toggleAllItems}
@@ -367,7 +367,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={toggleAllItems}
-                            accessibilityLabel={translate('workspace.common.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
                             role="button"
                             accessibilityState={{checked: isSelectAllChecked}}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DUPLICATE_SELECT_FEATURES_SELECT_ALL}

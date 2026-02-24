@@ -13,7 +13,6 @@ import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
 import Parser from '@libs/Parser';
-import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
@@ -63,9 +62,6 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
 
     const processedTextArray = splitTextWithEmojis(message);
 
-    useEffect(() => {
-        Performance.markEnd(CONST.TIMING.SEND_MESSAGE, {message: text});
-    }, [text]);
     useEffect(() => {
         if (!reportActionID) {
             return;
