@@ -53,21 +53,21 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector, canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector});
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`, {canBeMissing: true});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`);
     const invoiceReceiverPolicyID = report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? report?.invoiceReceiver?.policyID : undefined;
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {canBeMissing: true});
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const isChatRoom = isChatRoomReportUtils(report);
     const isSelfDM = isSelfDMReportUtils(report);
     const isInvoiceRoom = isInvoiceRoomReportUtils(report);
     const isSystemChat = isSystemChatReportUtils(report);
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, betas, isReportArchived, isRestrictedToPreferredPolicy);

@@ -377,6 +377,7 @@ function BaseTextInput({
                                 // eslint-disable-next-line
                                 {...inputProps}
                                 accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                accessibilityHint={errorText || inputProps.accessibilityHint}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}

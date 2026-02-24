@@ -34,7 +34,7 @@ function WorkspaceTimeTrackingDefaultRatePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [policy, policyFetchStatus] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true, selector: policyTimeTrackingSelector});
+    const [policy, policyFetchStatus] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyTimeTrackingSelector});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     if (!policy || isLoadingOnyxValue(policyFetchStatus)) {

@@ -15,7 +15,7 @@ type ConciergeLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
 
 function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     const styles = useThemeStyles();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     /**
      * Simple wrapper to create a stable reference without passing event args to navigation function.

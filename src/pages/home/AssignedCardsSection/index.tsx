@@ -27,7 +27,7 @@ function AssignedCardsSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {currencyList} = useCurrencyListState();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
