@@ -1,8 +1,8 @@
 /** Number of Y-axis ticks (including zero) */
 const Y_AXIS_TICK_COUNT = 5;
 
-/** Distance between Y-axis labels and the chart */
-const Y_AXIS_LABEL_OFFSET = 16;
+/** Desired visual gap (px) between axis labels and the chart edge, used for both axes */
+const AXIS_LABEL_GAP = 12;
 
 /** Chart padding */
 const CHART_PADDING = 5;
@@ -16,4 +16,4 @@ const X_AXIS_LINE_WIDTH = 0;
 /** Line width for Y-axis grid lines */
 const Y_AXIS_LINE_WIDTH = 1;
 
-export {Y_AXIS_TICK_COUNT, Y_AXIS_LABEL_OFFSET, CHART_PADDING, CHART_CONTENT_MIN_HEIGHT, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH};
+export {Y_AXIS_TICK_COUNT, AXIS_LABEL_GAP, CHART_PADDING, CHART_CONTENT_MIN_HEIGHT, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH};

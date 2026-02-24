@@ -1,18 +1,20 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import Button from '@components/Button';
+import DelegatorList from '@components/DelegatorList';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
+import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -26,9 +28,7 @@ import {isMobileChrome} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import focusAfterModalClose from '@libs/focusAfterModalClose';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {clearCustomStatus, clearDraftCustomStatus, updateCustomStatus, updateDraftCustomStatus} from '@userActions/User';
 import {clearVacationDelegateError} from '@userActions/VacationDelegate';
 import CONST from '@src/CONST';
@@ -40,7 +40,7 @@ import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
 const initialEmoji = '💬';
 
 function StatusPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -54,14 +54,14 @@ function StatusPage() {
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [draftStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT, {canBeMissing: true});
+    const [formState] = useOnyx(ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const formRef = useRef<FormRef>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>>();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
-    const hasVacationDelegate = !!vacationDelegate?.delegate;
-    const vacationDelegatePersonalDetails = getPersonalDetailByEmail(vacationDelegate?.delegate ?? '');
-    const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
+    const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
+    const isFormLoading = !!formState?.isLoading;
 
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const currentUserStatusText = currentUserPersonalDetails?.status?.text ?? '';
@@ -187,7 +187,6 @@ function StatusPage() {
     );
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
-    const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
 
     return (
         <ScreenWrapper
@@ -206,11 +205,10 @@ function StatusPage() {
                 style={[styles.flexGrow1, styles.flex1]}
                 ref={formRef}
                 submitButtonText={translate('statusPage.save')}
-                submitButtonStyles={[styles.mh5, styles.flexGrow1]}
                 onSubmit={updateStatus}
                 validate={validateForm}
+                isSubmitButtonVisible={false}
                 enabledWhenOffline
-                shouldScrollToEnd
             >
                 <View style={[styles.mh5, styles.mv1]}>
                     <Text style={[styles.textNormal, styles.mt2]}>{translate('statusPage.statusExplanation')}</Text>
@@ -257,45 +255,45 @@ function StatusPage() {
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                         <MenuItem
                             title={translate('statusPage.clearStatus')}
-                            icon={Expensicons.Trashcan}
+                            icon={icons.Trashcan}
                             onPress={clearStatus}
                         />
                     )}
                 </View>
                 <View style={[styles.mb2, styles.mt6]}>
-                    <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>
-                    {hasVacationDelegate && <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{translate('statusPage.vacationDelegate')}</Text>}
-                    {hasVacationDelegate ? (
-                        <OfflineWithFeedback
-                            pendingAction={vacationDelegate?.pendingAction}
-                            errors={vacationDelegate?.errors}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
-                        >
-                            <MenuItem
-                                title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
-                                description={fallbackVacationDelegateLogin}
-                                avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
-                                iconType={CONST.ICON_TYPE_AVATAR}
-                                numberOfLinesDescription={1}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
-                                containerStyle={styles.pr2}
-                            />
-                        </OfflineWithFeedback>
+                    <Text style={[styles.headerText, styles.mh5, styles.mb2]}>{translate('common.vacationDelegate')}</Text>
+                    {hasActiveDelegations ? (
+                        <DelegatorList
+                            delegators={vacationDelegate?.delegatorFor}
+                            message={translate('statusPage.cannotSetVacationDelegate')}
+                        />
                     ) : (
-                        <View style={[styles.mt1]}>
-                            <MenuItem
-                                description={translate('statusPage.vacationDelegate')}
-                                shouldShowRightIcon
+                        <>
+                            <Text style={[styles.mh5, styles.mb1]}>{translate('statusPage.setVacationDelegate')}</Text>
+                            <VacationDelegateMenuItem
+                                vacationDelegate={vacationDelegate}
+                                errors={vacationDelegate?.errors}
+                                pendingAction={vacationDelegate?.pendingAction}
+                                onCloseError={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
-                                containerStyle={styles.pr2}
                             />
-                        </View>
+                        </>
                     )}
                 </View>
             </FormProvider>
+
+            <FixedFooter style={[styles.mtAuto]}>
+                <Button
+                    success
+                    large
+                    style={styles.w100}
+                    text={translate('statusPage.save')}
+                    onPress={() => formRef.current?.submit()}
+                    pressOnEnter
+                    enterKeyEventListenerPriority={1}
+                    isLoading={isFormLoading}
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }

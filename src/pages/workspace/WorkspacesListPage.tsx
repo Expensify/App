@@ -251,7 +251,7 @@ function WorkspacesListPage() {
             return;
         }
 
-        leaveWorkspace(policyIDToLeave);
+        leaveWorkspace(currentUserPersonalDetails.accountID, policyIDToLeave);
         setIsLeaveModalOpen(false);
     };
 

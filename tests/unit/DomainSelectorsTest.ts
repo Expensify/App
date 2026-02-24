@@ -4,14 +4,17 @@ import {
     defaultSecurityGroupIDSelector,
     domainEmailSelector,
     domainSettingsPrimaryContactSelector,
+    groupsSelector,
     isSecurityGroupEntry,
     memberAccountIDsSelector,
     selectSecurityGroupForAccount,
     technicalContactSettingsSelector,
+    vacationDelegateSelector,
 } from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 describe('domainSelectors', () => {
     const userID1 = 123;
@@ -390,6 +393,118 @@ describe('domainSelectors', () => {
         it('should return false if the value does not have a "shared" property', () => {
             const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, {other: {}}];
             expect(isSecurityGroupEntry(entry)).toBe(false);
+        });
+    });
+
+    describe('groupsSelector', () => {
+        it('Should return an empty array if the domain object is undefined', () => {
+            expect(groupsSelector(undefined)).toEqual([]);
+        });
+
+        it('Should return an empty array if the domain object is empty', () => {
+            const domain = {} as OnyxEntry<Domain>;
+            expect(groupsSelector(domain)).toEqual([]);
+        });
+
+        it('Should return an array of groups when keys start with the security group prefix', () => {
+            const domain = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1'},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}456`]: {name: 'Group 2'},
+            } as unknown as OnyxEntry<Domain>;
+
+            const expectedGroups = [
+                {id: '123', details: {name: 'Group 1'}},
+                {id: '456', details: {name: 'Group 2'}},
+            ];
+
+            expect(groupsSelector(domain)).toEqual(expectedGroups);
+        });
+
+        it('Should ignore keys that do not start with the security group prefix', () => {
+            const domain = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1'},
+                otherKey: 'value',
+            } as unknown as OnyxEntry<Domain>;
+
+            const expectedGroups = [{id: '123', details: {name: 'Group 1'}}];
+
+            expect(groupsSelector(domain)).toEqual(expectedGroups);
+        });
+    });
+    describe('vacationDelegateSelector', () => {
+        it('Should return undefined if domain is undefined', () => {
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(undefined)).toBeUndefined();
+        });
+
+        it('Should return the vacation delegate for a specific accountID', () => {
+            const vacationDelegate: BaseVacationDelegate = {
+                delegate: 'delegate@example.com',
+                creator: 'creator@example.com',
+            };
+
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID1}`]: vacationDelegate,
+            } as unknown as OnyxEntry<Domain>;
+
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(domain)).toEqual(vacationDelegate);
+        });
+
+        it('Should return undefined if the vacation delegate for a specific accountID does not exist', () => {
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID2}`]: {
+                    delegate: 'other@example.com',
+                },
+            } as unknown as OnyxEntry<Domain>;
+
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(domain)).toBeUndefined();
+        });
+
+        it('Should return the vacation delegate when it exists but has no properties', () => {
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID1}`]: {},
+            } as unknown as OnyxEntry<Domain>;
+
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(domain)).toEqual({});
+        });
+
+        it('Should return the vacation delegate when only some fields are present', () => {
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID1}`]: {
+                    delegate: 'delegate@example.com',
+                },
+            } as unknown as OnyxEntry<Domain>;
+
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(domain)).toEqual({
+                delegate: 'delegate@example.com',
+            });
+        });
+
+        it('Should ignore keys that do not start with the vacation delegate prefix', () => {
+            const domain = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                private_otherPrefix_123: {
+                    delegate: 'wrong@example.com',
+                },
+            } as unknown as OnyxEntry<Domain>;
+
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(domain)).toBeUndefined();
+        });
+
+        it('Should not be affected by other vacation delegate entries with different accountIDs', () => {
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${userID2}`]: {
+                    delegate: 'delegate@example.com',
+                },
+            } as unknown as OnyxEntry<Domain>;
+
+            const selector = vacationDelegateSelector(userID1);
+            expect(selector(domain)).toBeUndefined();
         });
     });
 });

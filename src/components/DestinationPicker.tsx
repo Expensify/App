@@ -11,7 +11,7 @@ import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import RadioListItem from './SelectionList/ListItem/RadioListItem';
-import SelectionList from './SelectionList/SelectionListWithSections';
+import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsHandle} from './SelectionList/types';
 
 type DestinationPickerProps = {
@@ -74,7 +74,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
     };
 
     return (
-        <SelectionList
+        <SelectionListWithSections
             ref={ref}
             sections={sections}
             shouldShowTextInput={shouldShowTextInput}

@@ -30,6 +30,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getTitleFieldWithFallback} from '@libs/ReportUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -88,6 +89,8 @@ function WorkspaceReportFieldsPage({
         openPolicyReportFieldsPage(policyID);
     }, [policyID]);
 
+    const titleField = getTitleFieldWithFallback(policy);
+
     const reportFieldsSections: ReportFieldForList[] = policy?.fieldList
         ? Object.entries(policy.fieldList)
               .filter(([, value]) => value.fieldID !== 'text_title')
@@ -140,7 +143,8 @@ function WorkspaceReportFieldsPage({
     const titleFieldError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
     const reportTitleErrors = getLatestErrorField({errorFields: titleFieldError ?? {}}, 'defaultValue');
 
-    const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
+    const policyTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+    const reportTitlePendingFields = policyTitleField?.pendingFields ?? {};
 
     const clearTitleFieldError = () => {
         clearPolicyTitleFieldError(policyID);
@@ -150,7 +154,12 @@ function WorkspaceReportFieldsPage({
 
     const renderReportTitle = () => (
         <OfflineWithFeedback pendingAction={policy?.pendingAction}>
-            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}>{translate('workspace.common.reportTitle')}</Text>
+            <Text
+                style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
+                accessibilityRole={CONST.ROLE.HEADER}
+            >
+                {translate('workspace.common.reportTitle')}
+            </Text>
         </OfflineWithFeedback>
     );
 
@@ -212,7 +221,7 @@ function WorkspaceReportFieldsPage({
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
-                                    title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.defaultValue ?? '')}
+                                    title={Str.htmlDecode(titleField?.defaultValue ?? '')}
                                     shouldShowRightIcon
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                     onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
@@ -224,7 +233,7 @@ function WorkspaceReportFieldsPage({
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                                 titleStyle={toggleTitleStyle}
-                                isActive={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.deletable === false}
+                                isActive={titleField?.deletable === false}
                                 onToggle={(isEnabled) => {
                                     if (isEnabled && !isControlPolicy(policy)) {
                                         Navigation.navigate(
@@ -251,6 +260,7 @@ function WorkspaceReportFieldsPage({
                                 switchAccessibilityLabel={reportFieldsAccessibilityLabel}
                                 subtitle={getHeaderText()}
                                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
+                                titleAccessibilityRole={CONST.ROLE.HEADER}
                                 isActive={!!policy?.areReportFieldsEnabled}
                                 onToggle={(isEnabled) => {
                                     if (!isEnabled) {

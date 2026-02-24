@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -22,7 +21,6 @@ import {setMoneyRequestMerchant, updateMoneyRequestMerchant} from '@userActions/
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -71,44 +69,29 @@ function IOURequestStepMerchant({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    const isMerchantRequired = useMemo(() => {
-        if (isEditing) {
-            return isPolicyExpenseChat(report) || isExpenseRequest(report);
-        }
-        return transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
-    }, [isEditing, report, transaction?.participants]);
+    const isMerchantRequired = isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
     }, [backTo]);
-
-    useFocusEffect(
-        useCallback(() => {
-            setIsSaved(false);
-            setCurrentMerchant(initialMerchant);
-        }, [initialMerchant]),
-    );
 
     useEffect(() => {
         if (!isSaved || !shouldNavigateAfterSaveRef.current) {
             return;
         }
         shouldNavigateAfterSaveRef.current = false;
-        if (!isEditing && !backTo) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, undefined, undefined, Navigation.getActiveRoute()));
-            return;
-        }
         navigateBack();
-    }, [isSaved, navigateBack, action, iouType, transactionID, reportID, backTo, isEditing]);
+    }, [isSaved, navigateBack]);
 
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
             const {isValid, byteLength} = isValidInputLength(value.moneyRequestMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
 
-            if (isMerchantRequired && !value.moneyRequestMerchant) {
+            const trimmedMerchant = value.moneyRequestMerchant?.trim();
+            if (isMerchantRequired && !trimmedMerchant) {
                 errors.moneyRequestMerchant = translate('common.error.fieldRequired');
-            } else if (isMerchantRequired && isInvalidMerchantValue(value.moneyRequestMerchant)) {
+            } else if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
                 errors.moneyRequestMerchant = translate('iou.error.invalidMerchant');
             } else if (!isValid) {
                 errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
@@ -183,7 +166,6 @@ function IOURequestStepMerchant({
                         inputID={INPUT_IDS.MONEY_REQUEST_MERCHANT}
                         name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
                         defaultValue={initialMerchant}
-                        value={currentMerchant}
                         onValueChange={updateMerchantRef}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
