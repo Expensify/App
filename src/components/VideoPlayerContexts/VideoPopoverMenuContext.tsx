@@ -26,7 +26,10 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const updatePlaybackSpeed = useCallback(
         (speed: PlaybackSpeed) => {
             setCurrentPlaybackSpeed(speed);
-            if (!videoPopoverMenuPlayerRef.current) {
+
+            // We check if the player ref exists and if the playback rate is already set to the new speed to avoid redundant updates.
+            // On iOS, setting the playback rate can cause the video to resume playback if it was paused.
+            if (!videoPopoverMenuPlayerRef.current || videoPopoverMenuPlayerRef.current.playbackRate === speed) {
                 return;
             }
             videoPopoverMenuPlayerRef.current.playbackRate = speed;

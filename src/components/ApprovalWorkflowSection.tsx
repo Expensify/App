@@ -36,7 +36,6 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
         selector: personalDetailsByEmailSelector,
     });
 

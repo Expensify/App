@@ -4,7 +4,7 @@ import type {CardList} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 function useNonPersonalCardList(): CardList {
-    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST);
 
     return filterOutPersonalCards(allCards);
 }

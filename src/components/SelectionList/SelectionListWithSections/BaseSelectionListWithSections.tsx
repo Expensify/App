@@ -359,6 +359,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         showsVerticalScrollIndicator
                         keyboardShouldPersistTaps="always"
                         ListFooterComponent={listFooterContent}
+                        ListFooterComponentStyle={style?.listFooterContentStyle}
                         style={style?.listStyle}
                         contentContainerStyle={style?.contentContainerStyle}
                         maintainVisibleContentPosition={{disabled: true}}

@@ -39,7 +39,7 @@ function appleSignInRequest(): Promise<string | undefined> {
  * Apple Sign In button for Android.
  */
 function AppleSignIn({onPress = () => {}}: AppleSignInProps) {
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const handleSignIn = () => {
         appleSignInRequest()
             .then((token) => beginAppleSignIn(token, preferredLocale))

@@ -35,7 +35,6 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
         : selectedTransactionsList.length === 0 || selectedTransactionsList.every((t) => t.ownerAccountID === currentUserAccountID);
 
     const ancestors = useAncestors(report);
-
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const onSubmit = useCallback(
