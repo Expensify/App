@@ -2,6 +2,7 @@ import React, {useCallback, useEffect} from 'react';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchSelectionContext} from '@components/Search/SearchSelectionContext';
 import useAncestors from '@hooks/useAncestors';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -24,7 +25,8 @@ type SearchHoldReasonPageProps =
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
     const {backTo = '', reportID} = route.params ?? {};
-    const context = useSearchContext();
+    const {currentSearchHash} = useSearchContext();
+    const {selectedTransactionIDs, selectedTransactions, clearSelectedTransactions} = useSearchSelectionContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const ancestors = useAncestors(report);
@@ -40,16 +42,28 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             }
 
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(context.selectedTransactionIDs, comment, reportID, ancestors);
-                context.clearSelectedTransactions(true);
+                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, ancestors);
+                clearSelectedTransactions(true);
             } else {
-                holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment, allTransactions, allReportActions);
-                context.clearSelectedTransactions();
+                holdMoneyRequestOnSearch(currentSearchHash, Object.keys(selectedTransactions), comment, allTransactions, allReportActions);
+                clearSelectedTransactions();
             }
 
             Navigation.goBack();
         },
-        [route.name, context, reportID, allTransactions, allReportActions, ancestors, isDelegateAccessRestricted, showDelegateNoAccessModal],
+        [
+            route.name,
+            currentSearchHash,
+            selectedTransactionIDs,
+            selectedTransactions,
+            clearSelectedTransactions,
+            reportID,
+            allTransactions,
+            allReportActions,
+            ancestors,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
+        ],
     );
 
     const validate = useCallback(
@@ -70,7 +84,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
         clearErrorFields(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
     }, []);
 
-    const expenseCount = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS ? context.selectedTransactionIDs.length : Object.keys(context.selectedTransactions).length;
+    const expenseCount = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS ? selectedTransactionIDs.length : Object.keys(selectedTransactions).length;
 
     return (
         <HoldReasonFormView
