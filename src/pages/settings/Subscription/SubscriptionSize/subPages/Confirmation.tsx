@@ -19,7 +19,7 @@ function Confirmation({onNext}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const privateSubscription = usePrivateSubscription();
-    const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT, {canBeMissing: true});
+    const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);
     const subscriptionRenewalDate = getNewSubscriptionRenewalDate();
     const subscriptionSizeDraft = subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0;
     const subscriptionSize = subscriptionSizeDraft || (privateSubscription?.userCount ?? 0);

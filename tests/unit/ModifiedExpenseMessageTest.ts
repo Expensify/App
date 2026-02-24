@@ -14,6 +14,14 @@ import {createRandomReport} from '../utils/collections/reports';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+// Mock PolicyUtils so getPolicy and isPolicyAdmin are controllable in tests. ModifiedExpenseMessage
+// uses named imports from this module; spies alone do not affect those references, so we need a module mock.
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    getPolicy: jest.fn(),
+    isPolicyAdmin: jest.fn(),
+}));
+
 const MOVED_TO_REPORT_ID = '1';
 const MOVED_FROM_REPORT_ID = '2';
 
@@ -814,8 +822,20 @@ describe('ModifiedExpenseMessage', () => {
 
         describe('when policy rules modify an expense', () => {
             let environmentURL: string;
+            const policyRulesPolicyId = '1234';
+
             beforeAll(async () => {
                 environmentURL = await getEnvironmentURL();
+            });
+
+            beforeEach(() => {
+                // Default: current user has policy rule access (admin + rules enabled), so link points to workspace rules
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                (PolicyUtils.getPolicy as jest.Mock).mockReturnValue({
+                    id: policyRulesPolicyId,
+                    areRulesEnabled: true,
+                } as Policy);
+                (PolicyUtils.isPolicyAdmin as jest.Mock).mockReturnValue(true);
             });
 
             it('returns the correct text message with multiple overrides', () => {
@@ -923,6 +943,28 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `marked the expense as "reimbursable" and marked the expense as "billable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
 
                 expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct text message with help link for non-admin', () => {
+                (PolicyUtils.isPolicyAdmin as jest.Mock).mockReturnValue(false);
+
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: policyRulesPolicyId,
+                        policyRulesModifiedFields: {
+                            category: 'Travel',
+                            merchant: "McDonald's",
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toContain(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL);
+                expect(result).toContain('workspace rules</a>');
+                expect(result).toContain('set the category to "Travel" and merchant to "McDonald\'s"');
             });
         });
 

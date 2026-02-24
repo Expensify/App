@@ -1427,6 +1427,9 @@ const CONST = {
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
+                    UPDATE_CUSTOM_TAX_NAME: 'POLICYCHANGELOG_UPDATE_CUSTOM_TAX_NAME',
+                    UPDATE_CURRENCY_DEFAULT_TAX: 'POLICYCHANGELOG_UPDATE_CURRENCY_DEFAULT_TAX',
+                    UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX: 'POLICYCHANGELOG_UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX',
                     UPDATE_INVOICE_COMPANY_NAME: 'POLICYCHANGELOG_UPDATE_INVOICE_COMPANY_NAME',
                     UPDATE_INVOICE_COMPANY_WEBSITE: 'POLICYCHANGELOG_UPDATE_INVOICE_COMPANY_WEBSITE',
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
@@ -1717,48 +1720,21 @@ const CONST = {
         },
     },
     TIMING: {
-        GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
-        CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        SPLASH_SCREEN: 'splash_screen',
-        OPEN_SEARCH: 'open_search',
-        OPEN_REPORT: 'open_report',
-        OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
-        OPEN_REPORT_THREAD: 'open_report_thread',
-        OPEN_REPORT_SEARCH: 'open_report_search',
-        SIDEBAR_LOADED: 'sidebar_loaded',
-        LOAD_SEARCH_OPTIONS: 'load_search_options',
-        SEND_MESSAGE: 'send_message',
-        SUBMIT_EXPENSE: 'submit_expense',
-        NAVIGATE_AFTER_EXPENSE_CREATE: 'navigate_after_expense_create',
-        OPEN_CREATE_EXPENSE: 'open_create_expense',
-        OPEN_CREATE_EXPENSE_CONTACT: 'open_create_expense_contact',
-        OPEN_CREATE_EXPENSE_APPROVE: 'open_create_expense_approve',
-        APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
-        APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
-        APPLY_HTTPS_UPDATES: 'apply_https_updates',
-        COLD: 'cold',
-        WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
         SHOW_LOADING_SPINNER_DEBOUNCE_TIME: 250,
         TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
-        TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         SUGGESTION_DEBOUNCE_TIME: 100,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
-        SEARCH_FILTER_OPTIONS: 'search_filter_options',
         USE_DEBOUNCED_STATE_DELAY: 300,
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
-        PUSHER_PING_PONG: 'pusher_ping_pong',
         LOCATION_UPDATE_INTERVAL: 5000,
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
         NOTIFY_NEW_ACTION_DELAY: 700,
         SKELETON_ANIMATION_SPEED: 3,
-        SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
-        DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
-        FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
@@ -1837,6 +1813,28 @@ const CONST = {
             PUSHER_INIT: 'NavigationPusherInit',
             APP_OPEN: 'NavigationAppOpen',
         },
+        // Network span names
+        SPAN_SEQUENTIAL_QUEUE_FLUSH: 'ManualSequentialQueueFlush',
+        SPAN_SEQUENTIAL_QUEUE_PROCESS: 'ManualSequentialQueueProcess',
+        SPAN_PROCESS_WITH_MIDDLEWARE: 'ManualProcessWithMiddleware',
+        SPAN_PROCESS_MIDDLEWARES: 'ManualProcessMiddlewares',
+        SPAN_HTTP_XHR: 'ManualHttpXhr',
+        SPAN_APPLY_ONYX_UPDATES: 'ManualApplyOnyxUpdates',
+        SPAN_FLUSH_ONYX_UPDATES_QUEUE: 'ManualFlushOnyxUpdatesQueue',
+        SPAN_REQUEST_THROTTLE_SLEEP: 'ManualRequestThrottleSleep',
+        SPAN_APPLY_OPTIMISTIC_DATA: 'ManualApplyOptimisticData',
+        SPAN_HANDLE_MISSING_ONYX_UPDATES: 'ManualHandleMissingOnyxUpdates',
+        // Middleware names
+        MIDDLEWARE_LOGGING: 'Logging',
+        MIDDLEWARE_RECHECK_CONNECTION: 'RecheckConnection',
+        MIDDLEWARE_REAUTHENTICATION: 'Reauthentication',
+        MIDDLEWARE_HANDLE_DELETED_ACCOUNT: 'HandleDeletedAccount',
+        MIDDLEWARE_SUPPORTAL_PERMISSION: 'SupportalPermission',
+        MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID: 'HandleUnusedOptimisticID',
+        MIDDLEWARE_PAGINATION: 'Pagination',
+        MIDDLEWARE_SENTRY_SERVER_TIMING: 'SentryServerTiming',
+        MIDDLEWARE_SAVE_RESPONSE_IN_ONYX: 'SaveResponseInOnyx',
+        MIDDLEWARE_FRAUD_MONITORING: 'FraudMonitoring',
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
         ATTRIBUTE_IS_ONE_TRANSACTION_REPORT: 'is_one_transaction_report',
@@ -1856,7 +1854,12 @@ const CONST = {
         ATTRIBUTE_HAS_RECEIPT: 'has_receipt',
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
         ATTRIBUTE_COMMAND: 'command',
+        ATTRIBUTE_QUEUE_LENGTH: 'queue_length',
+        ATTRIBUTE_IS_FROM_SEQUENTIAL_QUEUE: 'is_from_sequential_queue',
+        ATTRIBUTE_RETRY_COUNT: 'retry_count',
+        ATTRIBUTE_THROTTLE_WAIT_MS: 'throttle_wait_ms',
         ATTRIBUTE_JSON_CODE: 'json_code',
+        ATTRIBUTE_ONYX_UPDATES_COUNT: 'onyx_updates_count',
         SUBMIT_EXPENSE_SCENARIO: {
             REQUEST_MONEY_MANUAL: 'request_money_manual',
             REQUEST_MONEY_SCAN: 'request_money_scan',
@@ -1940,6 +1943,7 @@ const CONST = {
         STATE: {
             CURRENT: 'current',
             DRAFT: 'draft',
+            SPLIT_DRAFT: 'splitDraft',
             BACKUP: 'backup',
         },
         LIABILITY_TYPE: {
@@ -2590,13 +2594,23 @@ const CONST = {
         AUTO_CREATE_ENTITIES: 'autoCreateEntities',
         APPROVAL_ACCOUNT: 'approvalAccount',
         CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
-        TOKEN_INPUT_STEP_NAMES: ['1', '2', '3', '4', '5'],
-        TOKEN_INPUT_STEP_KEYS: {
-            0: 'installBundle',
-            1: 'enableTokenAuthentication',
-            2: 'enableSoapServices',
-            3: 'createAccessToken',
-            4: 'enterCredentials',
+        TOKEN_INPUT: {
+            STEP_INDEX_LIST: ['1', '2', '3', '4'],
+            PAGE_NAME: {
+                INSTALL: 'install',
+                AUTHENTICATION: 'authentication',
+                SOAP: 'soap',
+                ACCESS_TOKEN: 'access-token',
+                CREDENTIALS: 'credentials',
+            },
+            CREDENTIALS_PAGE_INDEX: 4,
+            STEP_KEYS: {
+                install: 'installBundle',
+                authentication: 'enableTokenAuthentication',
+                soap: 'enableSoapServices',
+                'access-token': 'createAccessToken',
+                credentials: 'enterCredentials',
+            },
         },
         IMPORT_CUSTOM_FIELDS: {
             CUSTOM_SEGMENTS: 'customSegments',
@@ -3059,6 +3073,8 @@ const CONST = {
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
+        // This is the transactionID used when going through the distance split expense flow so that it mimics a draft transaction
+        OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID: '2',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS: 7,
@@ -3166,6 +3182,11 @@ const CONST = {
             TRACK_EXPENSE: 'trackExpense',
             MONEY_REQUEST: 'moneyRequest',
             REPLACE_RECEIPT: 'replaceReceipt',
+        },
+        COMPACT_RECEIPT: {
+            MAX_WIDTH: variables.receiptPreviewMaxWidth,
+            DEFAULT_ASPECT_RATIO: 16 / 9,
+            MAX_HEIGHT_PIXEL_ADJUSTMENT: 5,
         },
     },
 
@@ -4053,6 +4074,7 @@ const CONST = {
         SPECIAL_CHAR_MENTION_BREAKER: /[,/?"{}[\]()&^%;`$=<>!*]/g,
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
         FIRST_SPACE: /.+?(?=\s)/,
+        TRAILING_DOTS: /\.$/,
 
         get SPECIAL_CHAR_OR_EMOJI() {
             return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
@@ -5703,6 +5725,8 @@ const CONST = {
         LINK: 'link',
         /** Use to identify a list of items. */
         LIST: 'list',
+        /** Use for individual items within a list. */
+        LISTITEM: 'listitem',
         /** Use for a list of choices or options. */
         MENU: 'menu',
         /** Use for a container of multiple menus. */
@@ -5743,6 +5767,14 @@ const CONST = {
         NAVIGATION: 'navigation',
         /** Use for Tooltips */
         TOOLTIP: 'tooltip',
+        /** Use for data table containers. */
+        TABLE: 'table',
+        /** Use for table rows. */
+        ROW: 'row',
+        /** Use for column header cells in a table. */
+        COLUMNHEADER: 'columnheader',
+        /** Use for data cells in a table row. */
+        CELL: 'cell',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
@@ -8382,6 +8414,7 @@ const CONST = {
             PURE_REPORT_ACTION_ITEM: 'Report-PureReportActionItem',
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
+            MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
         },
         SIDEBAR: {
@@ -8392,12 +8425,18 @@ const CONST = {
         },
         SELECTION_LIST: {
             BASE_LIST_ITEM: 'SelectionList-BaseListItem',
+            SELECT_ALL: 'ListHeader-SelectAll',
             SPLIT_LIST_ITEM_EDIT_BUTTON: 'SplitListItem-EditButton',
             LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeader-SelectAll',
         },
         SELECTION_LIST_WITH_SECTIONS: {
             BASE_LIST_ITEM: 'SelectionListWithSections-BaseListItem',
-            SELECT_ALL: 'SelectionList-SelectAll',
+            SELECT_ALL: 'BaseSelectionListWithSections-SelectAll',
+        },
+        WORKSPACE_DUPLICATE_SELECT_FEATURES: {
+            SELECT_ALL: 'WorkspaceDuplicateSelectFeatures-SelectAll',
+            SPLIT_LIST_ITEM_EDIT_BUTTON: 'SplitListItem-EditButton',
+            LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeader-SelectAll',
         },
         CONTEXT_MENU: {
             REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
@@ -8490,6 +8529,12 @@ const CONST = {
         },
         TRANSACTION_ITEM_ROW: {
             ARROW_RIGHT: 'TransactionItemRow-ArrowRight',
+        },
+        PDF_VIEW: {
+            DOCUMENT: 'PDFView-Document',
+        },
+        AVATAR_CROP_MODAL: {
+            ZOOM_SLIDER: 'AvatarCropModal-ZoomSlider',
         },
         PAYMENT_METHOD_LIST_ITEM: {
             CHASE_ACCOUNT_HELP: 'PaymentMethodListItem-ChaseAccountHelp',
@@ -8620,6 +8665,11 @@ const CONST = {
                 CHOOSE_FILES: 'Scan-ChooseFiles',
                 SHUTTER: 'Scan-Shutter',
             },
+            ODOMETER_IMAGE: {
+                FLASH: 'OdometerImage-Flash',
+                GALLERY: 'OdometerImage-Gallery',
+                SHUTTER: 'OdometerImage-Shutter',
+            },
         },
         NEW_CHAT: {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
@@ -8628,6 +8678,7 @@ const CONST = {
             CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
         },
         WORKSPACE: {
+            APPROVAL_WORKFLOW_SECTION: 'Workspace-ApprovalWorkflowSection',
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
             DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
@@ -8775,6 +8826,9 @@ const CONST = {
             JOIN_WORKSPACE: 'Onboarding-JoinWorkspace',
             CREATE_WORKSPACE: 'Onboarding-CreateWorkspace',
         },
+        BASE_ANCHOR_FOR_ATTACHMENTS_ONLY: {
+            DOWNLOAD_BUTTON: 'BaseAnchorForAttachmentsOnly-DownloadButton',
+        },
         REPORT_HEADER_SKELETON: {
             GO_BACK: 'ReportHeaderSkeleton-GoBack',
         },
@@ -8792,9 +8846,6 @@ const CONST = {
         INTERACTIVE_STEP_SUB_HEADER: {
             STEP_BUTTON: 'InteractiveStepSubHeader-StepButton',
         },
-        WALLET: {
-            ADD_BANK_ACCOUNT: 'Wallet-AddBankAccount',
-        },
         SOCIALS: {
             LINK: 'Socials',
         },
@@ -8810,6 +8861,82 @@ const CONST = {
             SEND: 'SignIn-Send',
             CONFIRM: 'SignIn-Confirm',
         },
+        SETTINGS_GENERAL: {
+            HELP: 'SettingsGeneral-Help',
+            WHATS_NEW: 'SettingsGeneral-WhatsNew',
+            ABOUT: 'SettingsGeneral-About',
+            TROUBLESHOOT: 'SettingsGeneral-Troubleshoot',
+            SAVE_THE_WORLD: 'SettingsGeneral-SaveTheWorld',
+            SIGN_OUT: 'SettingsGeneral-SignOut',
+            GO_TO_CLASSIC: 'SettingsGeneral-GoToExpensifyClassic',
+        },
+        SETTINGS_PROFILE: {
+            AVATAR: 'SettingsProfile-Avatar',
+            DISPLAY_NAME: 'SettingsProfile-DisplayName',
+            CONTACT_METHODS: 'SettingsProfile-ContactMethods',
+            STATUS: 'SettingsProfile-Status',
+            PRONOUNS: 'SettingsProfile-Pronouns',
+            TIMEZONE: 'SettingsProfile-Timezone',
+            SHARE_CODE: 'SettingsProfile-ShareCode',
+            LEGAL_NAME: 'SettingsProfile-LegalName',
+            DATE_OF_BIRTH: 'SettingsProfile-DateOfBirth',
+            PHONE_NUMBER: 'SettingsProfile-PhoneNumber',
+            ADDRESS: 'SettingsProfile-Address',
+        },
+        SETTINGS_PREFERENCES: {
+            PRIORITY_MODE: 'SettingsPreferences-PriorityMode',
+            LANGUAGE: 'SettingsPreferences-Language',
+            PAYMENT_CURRENCY: 'SettingsPreferences-PaymentCurrency',
+            THEME: 'SettingsPreferences-Theme',
+        },
+        SETTINGS_SECURITY: {
+            TWO_FACTOR_AUTH: 'SettingsSecurity-TwoFactorAuth',
+            REVOKE_MFA: 'SettingsSecurity-RevokeMFA',
+            MERGE_ACCOUNTS: 'SettingsSecurity-MergeAccounts',
+            LOCK_UNLOCK_ACCOUNT: 'SettingsSecurity-LockUnlockAccount',
+            CLOSE_ACCOUNT: 'SettingsSecurity-CloseAccount',
+            ADD_COPILOT: 'SettingsSecurity-AddCopilot',
+            DELEGATE_ITEM: 'SettingsSecurity-DelegateItem',
+            DELEGATE_CHANGE_ACCESS: 'SettingsSecurity-DelegateChangeAccess',
+            DELEGATE_REMOVE: 'SettingsSecurity-DelegateRemove',
+        },
+        SETTINGS_WALLET: {
+            ADD_BANK_ACCOUNT: 'SettingsWallet-AddBankAccount',
+            IMPORT_TRANSACTIONS: 'SettingsWallet-ImportTransactions',
+            TRANSFER_BALANCE: 'SettingsWallet-TransferBalance',
+            ENABLE_WALLET: 'SettingsWallet-EnableWallet',
+        },
+        SETTINGS_RULES: {
+            NEW_RULE: 'SettingsRules-NewRule',
+        },
+        SETTINGS_TEACHERS_UNITE: {
+            I_KNOW_A_TEACHER: 'SettingsTeachersUnite-IKnowATeacher',
+            I_AM_A_TEACHER: 'SettingsTeachersUnite-IAmATeacher',
+        },
+        SETTINGS_SUBSCRIPTION: {
+            EXPLORE_PLANS: 'SettingsSubscription-ExplorePlans',
+            SAVE_WITH_EXPENSIFY: 'SettingsSubscription-SaveWithExpensify',
+            RETRY_PAYMENT: 'SettingsSubscription-RetryPayment',
+            AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
+            VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
+            REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
+            REQUEST_EARLY_CANCELLATION: 'SettingsSubscription-RequestEarlyCancellation',
+        },
+        SETTINGS_ABOUT: {
+            APP_DOWNLOAD_LINKS: 'SettingsAbout-AppDownloadLinks',
+            VIEW_KEYBOARD_SHORTCUTS: 'SettingsAbout-ViewKeyboardShortcuts',
+            VIEW_THE_CODE: 'SettingsAbout-ViewTheCode',
+            VIEW_OPEN_JOBS: 'SettingsAbout-ViewOpenJobs',
+            REPORT_A_BUG: 'SettingsAbout-ReportABug',
+        },
+        SETTINGS_TROUBLESHOOT: {
+            CLEAR_CACHE: 'SettingsTroubleshoot-ClearCache',
+            EXPORT_ONYX: 'SettingsTroubleshoot-ExportOnyx',
+            GO_TO_CLASSIC: 'SettingsTroubleshoot-GoToExpensifyClassic',
+        },
+        SETTINGS_EXIT_SURVEY: {
+            GO_TO_CLASSIC: 'SettingsExitSurvey-GoToExpensifyClassic',
+        },
     },
 
     DOMAIN: {
@@ -8817,6 +8944,8 @@ const CONST = {
         EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
         /** Onyx prefix for domain security groups */
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
+        /** Onyx prefix for vacation delegate */
+        PRIVATE_VACATION_DELEGATE_PREFIX: 'private_vacationDelegate_',
 
         MEMBERS: {
             SECONDARY_ACTIONS: {
@@ -8837,22 +8966,22 @@ const CONST = {
     HOME: {
         ANNOUNCEMENTS: [
             {
-                title: 'Start the year with smarter spending, admin controls, and more.',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-january-2026-product-update',
-                publishedDate: '2026-01-28',
+                title: 'Expensify and Xero partner to support SMBs',
+                subtitle: 'Press Release',
+                url: 'https://www.businesswire.com/news/home/20260212641796/en/Expensify-and-Xero-Enhance-Partnership-to-Support-Small-Businesses',
+                publishedDate: '2026-02-12',
             },
             {
-                title: 'Our favorite features + final upgrades of the year',
+                title: 'New Home page & upgraded Insights analytics',
                 subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-2025-year-end-product-update',
-                publishedDate: '2025-12-22',
+                url: 'https://use.expensify.com/blog/expensify-home-and-insights-update',
+                publishedDate: '2026-02-18',
             },
             {
-                title: 'Uber for business + Expensify automates ride and meal receipts',
+                title: 'Smarter spend controls & Concierge anywhere',
                 subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/uber-for-business-and-expensify-integration-update',
-                publishedDate: '2025-12-01',
+                url: 'https://use.expensify.com/blog/expensify-february-2026-product-update',
+                publishedDate: '2026-02-19',
             },
         ],
     },

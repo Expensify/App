@@ -202,8 +202,8 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
     }
 }
 
-function getPolicyRulesModifiedMessage(translate: LocalizedTranslate, fields: PolicyRulesModifiedFields, policyID: string) {
-    const route = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
+function getPolicyRulesModifiedMessage(translate: LocalizedTranslate, fields: PolicyRulesModifiedFields, policyID: string, hasPolicyRuleAccess: boolean) {
+    const route = hasPolicyRuleAccess ? `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}` : CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL;
     const entries = ObjectUtils.typedEntries(fields);
 
     const fragments = entries.map(([key, value], i) => {
@@ -253,13 +253,21 @@ function getForReportAction({
     movedFromReport,
     movedToReport,
     policyForMovingExpensesID,
+    currentUserLogin: currentUserLoginParam,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     policyID: string | undefined;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     policyForMovingExpensesID?: string;
+    currentUserLogin?: string;
 }): string {
+    // Temporary fallback to storedCurrentUserLogin since currentUserLogin can be empty string.
+    // Remove once all callers pass currentUserLogin explicitly and the migration to getForReportActionTemp is complete.
+    let currentUserLogin = currentUserLoginParam;
+    if (!currentUserLogin) {
+        currentUserLogin = storedCurrentUserLogin;
+    }
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
@@ -371,7 +379,7 @@ function getForReportAction({
         } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const policy = getPolicy(policyID);
-            const isAdmin = isPolicyAdmin(policy, storedCurrentUserLogin);
+            const isAdmin = isPolicyAdmin(policy, currentUserLogin);
 
             // For admins, create a hyperlink to the workspace rules page
             if (isAdmin && policy?.id) {
@@ -517,7 +525,10 @@ function getForReportAction({
 
         if (policyRulesModifiedFields && rulePolicyID) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return getPolicyRulesModifiedMessage(translateLocal, policyRulesModifiedFields, rulePolicyID);
+            const rulePolicy = getPolicy(rulePolicyID);
+            const hasPolicyRuleAccess = !!rulePolicy?.areRulesEnabled && isPolicyAdmin(rulePolicy, storedCurrentUserLogin);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return getPolicyRulesModifiedMessage(translateLocal, policyRulesModifiedFields, rulePolicyID, hasPolicyRuleAccess);
         }
     }
 
@@ -554,7 +565,7 @@ function getForReportActionTemp({
     movedFromReport,
     movedToReport,
     policyTags,
-    currentUserLogin,
+    currentUserLogin: currentUserLoginParam,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction>;
@@ -564,6 +575,12 @@ function getForReportActionTemp({
     policyTags: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
 }): string {
+    // Temporary fallback to storedCurrentUserLogin since currentUserLogin can be empty string.
+    // Remove once all callers pass currentUserLogin explicitly and the migration to getForReportActionTemp is complete.
+    let currentUserLogin = currentUserLoginParam;
+    if (!currentUserLogin) {
+        currentUserLogin = storedCurrentUserLogin;
+    }
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
@@ -756,11 +773,11 @@ function getForReportActionTemp({
 
     const hasPolicyRulesModifiedFields = isReportActionOriginalMessageAnObject && 'policyRulesModifiedFields' in reportActionOriginalMessage && 'policyID' in reportActionOriginalMessage;
     if (hasPolicyRulesModifiedFields) {
-        const rulePolicyID = reportActionOriginalMessage.policyID;
         const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
-        if (policyRulesModifiedFields && rulePolicyID) {
-            return getPolicyRulesModifiedMessage(translate, policyRulesModifiedFields, rulePolicyID);
+        if (policyRulesModifiedFields && policy?.id) {
+            const hasPolicyRuleAccess = !!policy?.areRulesEnabled && isPolicyAdmin(policy, currentUserLogin);
+            return getPolicyRulesModifiedMessage(translate, policyRulesModifiedFields, policy?.id, hasPolicyRuleAccess);
         }
     }
 
