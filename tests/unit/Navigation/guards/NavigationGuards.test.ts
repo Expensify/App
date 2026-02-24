@@ -1,9 +1,15 @@
 import type {NavigationState} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
 import {clearGuards, createGuardContext, evaluateGuards, getRegisteredGuards, registerGuard} from '@libs/Navigation/guards';
 import type {GuardContext, NavigationGuard} from '@libs/Navigation/guards/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 describe('Navigation Guard System', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
     beforeEach(() => {
         // Clear all guards before each test
         clearGuards();

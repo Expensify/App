@@ -536,9 +536,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction id */
         transactionID: string;
 
-        /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
-        selectedTransactionIDs?: string[];
-
         /** The transaction tag */
         tag?: string;
 
@@ -653,6 +650,9 @@ type AdditionalTransactionChanges = {
 
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
+
+    /** The unit for the distance/quantity */
+    quantity?: number;
 };
 
 /** Model of transaction changes  */

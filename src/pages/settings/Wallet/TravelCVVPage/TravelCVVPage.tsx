@@ -34,9 +34,9 @@ function TravelCVVPage() {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['TravelCVV']);
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
-    const [cardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [cardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     // Get CVV from context - shared with TravelCVVVerifyAccountPage

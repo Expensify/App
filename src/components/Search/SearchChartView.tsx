@@ -15,6 +15,7 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -24,7 +25,6 @@ import {formatToParts} from '@libs/NumberFormatUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import useLocalize from '@hooks/useLocalize';
 import SearchBarChart from './SearchBarChart';
 import SearchLineChart from './SearchLineChart';
 import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
