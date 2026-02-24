@@ -7533,6 +7533,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             endTitle: 'Eindfoto kilometerteller',
             deleteOdometerPhoto: 'Kilometerstandfoto verwijderen',
             deleteOdometerPhotoConfirmation: 'Weet je zeker dat je deze kilometertellerfoto wilt verwijderen?',
+            cameraAccessRequired: 'Cameratoegang is nodig om foto’s te maken.',
+            snapPhotoStart: '<muted-text-label>Maak een foto van je kilometerteller aan het <strong>begin</strong> van je rit.</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>Maak een foto van je kilometerteller aan het <strong>einde</strong> van je rit.</muted-text-label>',
         },
     },
     gps: {

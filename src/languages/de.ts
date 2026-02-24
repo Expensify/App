@@ -7567,6 +7567,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             endTitle: 'Kilometerzähler-Endfoto',
             deleteOdometerPhoto: 'Kilometerzähler-Foto löschen',
             deleteOdometerPhotoConfirmation: 'Möchtest du dieses Kilometerzählerfoto wirklich löschen?',
+            cameraAccessRequired: 'Für das Aufnehmen von Bildern ist der Kamerazugriff erforderlich.',
+            snapPhotoStart: '<muted-text-label>Machen Sie zu <strong>Beginn</strong> Ihrer Fahrt ein Foto von Ihrem Kilometerzähler.</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>Machen Sie ein Foto von Ihrem Kilometerzähler am <strong>Ende</strong> Ihrer Fahrt.</muted-text-label>',
         },
     },
     gps: {

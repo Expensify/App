@@ -3618,6 +3618,19 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: colors.green400,
         },
 
+        odometerPhotoInformationContainer: {
+            ...positioning.pAbsolute,
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            ...spacing.gap4,
+            bottom: variables.bottomPositionOdometerPhotoInformationContainer,
+            left: variables.leftPositionOdometerPhotoInformationContainer,
+            right: variables.rightPositionOdometerPhotoInformationContainer,
+            padding: variables.paddingOdometerPhotoInformationContainer,
+            backgroundColor: theme.componentBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+        },
+
         webButtonShadow: {
             boxShadow: `0px 0px 24px 16px ${theme.appBG}`,
         },

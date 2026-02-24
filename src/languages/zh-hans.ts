@@ -7359,6 +7359,9 @@ ${reportName}
             endTitle: '结束里程表照片',
             deleteOdometerPhoto: '删除里程表照片',
             deleteOdometerPhotoConfirmation: '确定要删除这个里程表照片吗？',
+            cameraAccessRequired: '拍照需要启用相机访问权限。',
+            snapPhotoStart: '<muted-text-label>在行程<strong>开始</strong>时拍一张里程表照片。</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>在行程<strong>结束</strong>时拍一张里程表的照片。</muted-text-label>',
         },
     },
     gps: {

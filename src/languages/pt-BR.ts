@@ -7525,6 +7525,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             endTitle: 'Foto final do hodômetro',
             deleteOdometerPhoto: 'Excluir foto do odômetro',
             deleteOdometerPhotoConfirmation: 'Tem certeza de que deseja excluir esta foto do odômetro?',
+            cameraAccessRequired: 'É necessário acessar a câmera para tirar fotos.',
+            snapPhotoStart: '<muted-text-label>Tire uma foto do odômetro no <strong>início</strong> da sua viagem.</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>Tire uma foto do odômetro no <strong>final</strong> da sua viagem.</muted-text-label>',
         },
     },
     gps: {
