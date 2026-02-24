@@ -112,6 +112,7 @@ describe('PureReportActionItem', () => {
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
                                 allTransactionDrafts={undefined}
+                                userBillingGraceEndPeriodCollection={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -239,6 +240,33 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(Parser.htmlToText(translateLocal('workspaceActions.forcedCorporateUpgrade')))).toBeOnTheScreen();
         });
+
+        it('UPDATE_CUSTOM_TAX_NAME action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME, {oldName: 'Sales Tax', newName: 'VAT'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed the custom tax name to "VAT" (previously "Sales Tax")')).toBeOnTheScreen();
+        });
+
+        it('UPDATE_CURRENCY_DEFAULT_TAX action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX, {oldName: 'Standard Rate', newName: 'Reduced Rate'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed the workspace currency default tax rate to "Reduced Rate" (previously "Standard Rate")')).toBeOnTheScreen();
+        });
+
+        it('UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX, {oldName: 'Foreign Tax (15%)', newName: 'Foreign Tax (10%)'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")')).toBeOnTheScreen();
+        });
     });
 
     describe('DEW (Dynamic External Workflow) actions', () => {
@@ -292,6 +320,7 @@ describe('PureReportActionItem', () => {
                                     reportMetadata={reportMetadata}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -350,6 +379,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -420,6 +450,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -485,6 +516,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -537,6 +569,7 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
                                     modifiedExpenseMessage={modifiedExpenseMessage}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
