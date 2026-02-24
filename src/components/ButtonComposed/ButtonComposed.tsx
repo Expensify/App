@@ -17,10 +17,7 @@ import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import ButtonComposedContext from './ButtonComposedContext';
 
-type ButtonComposedProps = WithSentryLabel & {
-    /** Sub-components to render inside the button */
-    children: React.ReactNode;
-
+type ButtonComposedEventsProps = {
     /** A function that is called when the button is clicked on */
     onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
@@ -38,12 +35,67 @@ type ButtonComposedProps = WithSentryLabel & {
 
     /** Invoked on mount and layout changes */
     onLayout?: (event: LayoutChangeEvent) => void;
+};
 
+type ButtonComposedBehaviorProps = {
     /** Indicates whether the button should be disabled and in the loading state */
     isLoading?: boolean;
 
     /** Indicates whether the button should be disabled */
     isDisabled?: boolean;
+
+    /** Call the onPress function when Enter key is pressed */
+    pressOnEnter?: boolean;
+
+    /** The priority to assign the enter key event listener. 0 is the highest priority. */
+    enterKeyEventListenerPriority?: number;
+
+    /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
+    isPressOnEnterActive?: boolean;
+
+    /** Should the press event bubble across multiple instances when Enter key triggers it. */
+    allowBubble?: boolean;
+
+    /** Whether button's content should be centered */
+    isContentCentered?: boolean;
+
+    /** Should enable the haptic feedback? */
+    shouldEnableHapticFeedback?: boolean;
+
+    /** Should disable the long press? */
+    isLongPressDisabled?: boolean;
+
+    /**
+     * Whether the button should have a background layer in the color of theme.appBG.
+     * This is needed for buttons that allow content to display under them.
+     */
+    shouldBlendOpacity?: boolean;
+
+    /** Whether is a nested button inside other button, since nesting buttons isn't valid html */
+    isNested?: boolean;
+
+    /** Whether we should use the default hover style */
+    shouldUseDefaultHover?: boolean;
+
+    /** Should enable the haptic feedback? */
+    shouldStayNormalOnDisable?: boolean;
+};
+
+type ButtonComposedStyleProps = {
+    /** Additional styles to add after local styles. Applied to Pressable portion of button */
+    style?: StyleProp<ViewStyle>;
+
+    /** Additional button styles. Specific to the OpacityView of the button */
+    innerStyles?: StyleProp<ViewStyle>;
+
+    /** Any additional styles to pass to the icon wrapper container. */
+    iconWrapperStyles?: StyleProp<ViewStyle>;
+
+    /** Additional hover styles */
+    hoverStyles?: StyleProp<ViewStyle>;
+
+    /** Additional styles to add to the component when it's disabled */
+    disabledStyle?: StyleProp<ViewStyle>;
 
     /** Extra-small sized button */
     extraSmall?: boolean;
@@ -66,79 +118,34 @@ type ButtonComposedProps = WithSentryLabel & {
     /** Whether we should display the button as a link */
     link?: boolean;
 
-    /** Whether button's content should be centered */
-    isContentCentered?: boolean;
-
-    /** Call the onPress function when Enter key is pressed */
-    pressOnEnter?: boolean;
-
-    /** The priority to assign the enter key event listener. 0 is the highest priority. */
-    enterKeyEventListenerPriority?: number;
-
-    /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
-    isPressOnEnterActive?: boolean;
-
-    /** Should the press event bubble across multiple instances when Enter key triggers it. */
-    allowBubble?: boolean;
-
-    /** Additional styles to add after local styles. Applied to Pressable portion of button */
-    style?: StyleProp<ViewStyle>;
-
-    /** Additional button styles. Specific to the OpacityView of the button */
-    innerStyles?: StyleProp<ViewStyle>;
-
-    /** Any additional styles to pass to the icon wrapper container. */
-    iconWrapperStyles?: StyleProp<ViewStyle>;
-
     /** Should we remove the right border radius top + bottom? */
     shouldRemoveRightBorderRadius?: boolean;
 
     /** Should we remove the left border radius top + bottom? */
     shouldRemoveLeftBorderRadius?: boolean;
-
-    /** Should enable the haptic feedback? */
-    shouldEnableHapticFeedback?: boolean;
-
-    /** Should disable the long press? */
-    isLongPressDisabled?: boolean;
-
-    /**
-     * Whether the button should have a background layer in the color of theme.appBG.
-     * This is needed for buttons that allow content to display under them.
-     */
-    shouldBlendOpacity?: boolean;
-
-    /** Id to use for this button */
-    id?: string;
-
-    /** The testID of the button. Used to locate this view in end-to-end tests. */
-    testID?: string;
-
-    /** Accessibility label for the component */
-    accessibilityLabel?: string;
-
-    /** Whether is a nested button inside other button, since nesting buttons isn't valid html */
-    isNested?: boolean;
-
-    /** Whether we should use the default hover style */
-    shouldUseDefaultHover?: boolean;
-
-    /** Additional hover styles */
-    hoverStyles?: StyleProp<ViewStyle>;
-
-    /** Additional styles to add to the component when it's disabled */
-    disabledStyle?: StyleProp<ViewStyle>;
-
-    /**
-     * Whether the button should stay visually normal even when disabled.
-     */
-    shouldStayNormalOnDisable?: boolean;
-
-    /**
-     * Reference to the outer element.
-     */
-    ref?: ForwardedRef<View>;
 };
+
+type ButtonComposedProps = WithSentryLabel &
+    ButtonComposedEventsProps &
+    ButtonComposedBehaviorProps &
+    ButtonComposedStyleProps & {
+        /** Sub-components to render inside the button */
+        children: React.ReactNode;
+
+        /** Id to use for this button */
+        id?: string;
+
+        /** The testID of the button. Used to locate this view in end-to-end tests. */
+        testID?: string;
+
+        /** Accessibility label for the component */
+        accessibilityLabel?: string;
+
+        /**
+         * Reference to the outer element.
+         */
+        ref?: ForwardedRef<View>;
+    };
 
 type KeyboardShortcutComponentProps = Pick<
     ButtonComposedProps,
