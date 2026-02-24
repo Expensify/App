@@ -83,6 +83,7 @@ function PressableWithDelayToggle({
     icon,
     ref,
     accessibilityRole,
+    sentryLabel,
     shouldHaveActiveBackground,
     iconWidth = variables.iconSizeSmall,
     iconHeight = variables.iconSizeSmall,
@@ -141,6 +142,7 @@ function PressableWithDelayToggle({
                     <PressableWithoutFeedback
                         tabIndex={-1}
                         accessible={false}
+                        sentryLabel={sentryLabel}
                         onPress={updatePressState}
                         style={({hovered, pressed}) => [
                             styles.flexRow,

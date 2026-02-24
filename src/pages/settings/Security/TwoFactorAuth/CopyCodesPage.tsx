@@ -128,6 +128,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             accessible={false}
                                             tooltipText={translate('twoFactorAuth.copy')}
                                             tooltipTextChecked={translate('common.copied')}
+                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
                                         />
                                         <PressableWithDelayToggle
                                             text={translate('common.download')}
@@ -143,6 +144,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             accessible={false}
                                             tooltipText={translate('common.download')}
                                             tooltipTextChecked={translate('common.download')}
+                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD}
                                         />
                                     </View>
                                 </>
