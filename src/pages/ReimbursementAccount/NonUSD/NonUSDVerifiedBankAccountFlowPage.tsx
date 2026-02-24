@@ -61,7 +61,7 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
     const currentEntry = pages.at(currentPageIndex);
     const CurrentPage = currentEntry?.component ?? Country;
 
-    const nextPage = useCallback(() => {
+    const onSubmit = useCallback(() => {
         const nextIndex = currentPageIndex + 1;
         if (nextIndex >= pages.length) {
             Navigation.goBack();
@@ -70,15 +70,15 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
         Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? '', page: pages.at(nextIndex)?.pageName}));
     }, [currentPageIndex, pages, policyID]);
 
-    const prevPage = useCallback(() => {
+    const onBackButtonPress = useCallback(() => {
         Navigation.goBack();
     }, []);
 
     return (
         <View style={styles.flex1}>
             <CurrentPage
-                onNext={nextPage}
-                prevPage={prevPage}
+                onSubmit={onSubmit}
+                onBackButtonPress={onBackButtonPress}
                 policyID={policyID}
                 policyCurrency={policyCurrency}
                 stepNames={stepNames}

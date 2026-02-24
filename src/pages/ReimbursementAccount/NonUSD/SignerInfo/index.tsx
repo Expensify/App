@@ -11,6 +11,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
 import getInitialSubStepForSignerInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForSignerInfoStep';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
+import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import {askForCorpaySignerInformation, clearReimbursementAccountSaveCorpayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -24,17 +25,6 @@ import DateOfBirth from './subSteps/DateOfBirth';
 import JobTitle from './subSteps/JobTitle';
 import Name from './subSteps/Name';
 import UploadDocuments from './subSteps/UploadDocuments';
-
-type SignerInfoProps = {
-    /** Handles back button press */
-    onBackButtonPress: () => void;
-
-    /** Handles submit button press */
-    onSubmit: () => void;
-
-    /** Array of step names */
-    stepNames?: readonly string[];
-};
 
 type EmailSubmitParams = {
     /** Signer email to send the reminder to */
@@ -53,7 +43,7 @@ const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME, SIGNER_EMAIL, SIGNER_FULL_NAME, 
 const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, DateOfBirth, Address, UploadDocuments, Confirmation];
 const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, UploadDocuments, Confirmation];
 
-function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
+function SignerInfo({onBackButtonPress, onSubmit, stepNames}: NonUSDPageProps) {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
 

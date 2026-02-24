@@ -1,9 +1,9 @@
 type NonUSDPageProps = {
-    /** continues to next major step */
-    onNext: () => void;
+    /** Handles submit button press */
+    onSubmit: () => void;
 
-    /** moves user to previous major step */
-    prevPage?: () => void;
+    /** Handles back button press */
+    onBackButtonPress: () => void;
 
     /** ID of current policy */
     policyID?: string;

@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getInitialSubStepForBusinessInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBusinessInfoStep';
+import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountSaveCorpayOnboardingCompanyDetails, getCorpayOnboardingFields, saveCorpayOnboardingCompanyDetails} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
@@ -25,17 +26,6 @@ import PaymentVolume from './subSteps/PaymentVolume';
 import RegistrationNumber from './subSteps/RegistrationNumber';
 import TaxIDEINNumber from './subSteps/TaxIDEINNumber';
 import Website from './subSteps/Website';
-
-type BusinessInfoProps = {
-    /** Handles back button press */
-    onBackButtonPress: () => void;
-
-    /** Handles submit button press */
-    onSubmit: () => void;
-
-    /** Array of step names */
-    stepNames?: readonly string[];
-};
 
 const bodyContent: Array<ComponentType<SubStepProps>> = [
     Name,
@@ -72,7 +62,7 @@ const INPUT_KEYS = {
     BUSINESS_TYPE_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_TYPE_ID,
 };
 
-function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProps) {
+function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: NonUSDPageProps) {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
 
