@@ -70,6 +70,7 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SplitShares, TransactionChanges, TransactionCustomUnit} from '@src/types/onyx/Transaction';
+import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     buildMinimalTransactionForFormula,
@@ -92,7 +93,6 @@ import {
     mergePolicyRecentlyUsedCurrencies,
 } from './index';
 import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams, UpdateMoneyRequestDataKeys} from './index';
-import Transaction from '@src/types/onyx/Transaction';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
