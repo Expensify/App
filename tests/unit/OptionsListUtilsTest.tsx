@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {PrivateIsArchivedMap} from '@selectors/ReportNameValuePairs';
 import {act, render, renderHook} from '@testing-library/react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -7,6 +6,7 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import {translate} from '@libs/Localize';
@@ -45,7 +45,13 @@ import {
     sortAlphabetically,
 } from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getChangedApproverActionMessage, getDynamicExternalWorkflowRoutedMessage} from '@libs/ReportActionsUtils';
+import {
+    getChangedApproverActionMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
+    getDynamicExternalWorkflowRoutedMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
+} from '@libs/ReportActionsUtils';
 import {
     canCreateTaskInReport,
     canUserPerformWriteAction,
@@ -53,10 +59,12 @@ import {
     getMovedActionMessage,
     getMovedTransactionMessage,
     getReportPreviewMessage,
+    getReportTransactions,
     isCanceledTaskReport,
     isExpensifyOnlyParticipantInReport,
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {isScanning} from '@libs/TransactionUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -803,6 +811,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
 
@@ -829,6 +838,7 @@ describe('OptionsListUtils', () => {
                 includeRecentReports: true,
                 includeCurrentUser: true,
                 loginList,
+                policyCollection: allPolicies,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
@@ -859,6 +869,7 @@ describe('OptionsListUtils', () => {
                 includeUserToInvite: false,
                 includeRecentReports: true,
                 loginList,
+                policyCollection: allPolicies,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
@@ -870,6 +881,91 @@ describe('OptionsListUtils', () => {
 
             // Then all personal details except the current user should be returned
             expect(results.personalDetails.length).toBe(10);
+        });
+
+        it('should use policyCollection to filter workspace chats correctly', () => {
+            // Given a set of options with workspace rooms
+            // When we call getSearchOptions with policyCollection
+            const results = getSearchOptions({
+                options: OPTIONS_WITH_WORKSPACE_ROOM,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                isUsedInChatFinder: true,
+                includeReadOnly: true,
+                searchQuery: '',
+                maxResults: undefined,
+                includeUserToInvite: false,
+                includeRecentReports: true,
+                loginList,
+                policyCollection: allPolicies,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+            });
+
+            // Then recent reports should include the workspace room
+            expect(results.recentReports.length).toBeGreaterThan(0);
+
+            // Then the workspace room should be in recent reports (with subtitle 'Avengers Room')
+            const workspaceRoom = results.recentReports.find((report) => report.subtitle === 'Avengers Room');
+            expect(workspaceRoom).toBeDefined();
+        });
+
+        it('should handle empty policyCollection', () => {
+            // Given a set of options
+            // When we call getSearchOptions with empty policyCollection
+            const results = getSearchOptions({
+                options: OPTIONS,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                isUsedInChatFinder: true,
+                includeReadOnly: true,
+                searchQuery: '',
+                maxResults: undefined,
+                includeUserToInvite: false,
+                includeRecentReports: true,
+                loginList,
+                policyCollection: {},
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+            });
+
+            // Then it should still return personal details
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+
+            // Then it should still return recent reports
+            expect(results.recentReports.length).toBeGreaterThan(0);
+        });
+
+        it('should handle undefined policyCollection', () => {
+            // Given a set of options
+            // When we call getSearchOptions with undefined policyCollection
+            const results = getSearchOptions({
+                options: OPTIONS,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                isUsedInChatFinder: true,
+                includeReadOnly: true,
+                searchQuery: '',
+                maxResults: undefined,
+                includeUserToInvite: false,
+                includeRecentReports: true,
+                loginList,
+                policyCollection: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+            });
+
+            // Then it should still return personal details
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+
+            // Then it should still return recent reports
+            expect(results.recentReports.length).toBeGreaterThan(0);
         });
     });
 
@@ -2218,6 +2314,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we pass the returned options to filterAndOrderOptions with an empty search value
@@ -2240,6 +2337,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
@@ -2271,6 +2369,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
@@ -2295,6 +2394,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
@@ -2318,6 +2418,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 loginList,
                 betas: [CONST.BETAS.ALL],
+                policyCollection: allPolicies,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
@@ -2343,6 +2444,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 loginList,
                 betas: [CONST.BETAS.ALL],
+                policyCollection: allPolicies,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
@@ -2368,6 +2470,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
@@ -2397,6 +2500,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 loginList,
                 betas: [CONST.BETAS.ALL],
+                policyCollection: allPolicies,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
@@ -2422,6 +2526,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value
@@ -2446,6 +2551,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value
@@ -2490,6 +2596,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value and excludeLogins
@@ -2512,6 +2619,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
@@ -2544,6 +2652,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value
@@ -2777,6 +2886,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Spider-Man',
+                policyCollection: allPolicies,
             });
 
             // Then one report should be returned
@@ -2817,6 +2927,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'peterparker@expensify.com',
+                policyCollection: allPolicies,
             });
 
             // Then one report should be returned
@@ -2857,6 +2968,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Black Panther',
+                policyCollection: allPolicies,
             });
 
             // Then one report should be returned
@@ -2897,6 +3009,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Wolverine',
+                policyCollection: allPolicies,
             });
 
             // Then no reports should be returned
@@ -2938,6 +3051,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                policyCollection: allPolicies,
             });
 
             // When we pass the returned options to filterAndOrderOptions with any search value
@@ -3245,6 +3359,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value that matches a personal detail
@@ -3266,6 +3381,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value that matches multiple items
@@ -3291,6 +3407,7 @@ describe('OptionsListUtils', () => {
                         loginList,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserEmail: CURRENT_USER_EMAIL,
+                        policyCollection: allPolicies,
                         personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
                     });
                     // When we pass the returned options to filterAndOrderOptions with a search value
@@ -3330,6 +3447,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a an empty search value
@@ -3353,6 +3471,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 loginList,
                 betas: [CONST.BETAS.ALL],
+                policyCollection: allPolicies,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
@@ -3549,6 +3668,113 @@ describe('OptionsListUtils', () => {
 
             expect(misterFantasticOption?.private_isArchived).toBe('2023-06-15 10:00:00');
             expect(invisibleWomanOption?.private_isArchived).toBe('2023-07-20 15:30:00');
+        });
+
+        it('should set private_isArchived on report options when privateIsArchivedMap is provided', () => {
+            renderLocaleContextProvider();
+            // Given a privateIsArchivedMap with archived reports
+            const privateIsArchivedMap: PrivateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: '2023-06-15 10:00:00',
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}5`]: '2023-07-20 15:30:00',
+            };
+
+            // When we call createOptionList with this privateIsArchivedMap
+            const result = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, privateIsArchivedMap, REPORTS);
+
+            // Then the report options should have the correct private_isArchived values
+            const report3Option = result.reports.find((r) => r.item?.reportID === '3');
+            const report5Option = result.reports.find((r) => r.item?.reportID === '5');
+            const report1Option = result.reports.find((r) => r.item?.reportID === '1');
+
+            expect(report3Option?.private_isArchived).toBe('2023-06-15 10:00:00');
+            expect(report5Option?.private_isArchived).toBe('2023-07-20 15:30:00');
+            // Report 1 should not have private_isArchived since it's not in the map
+            expect(report1Option?.private_isArchived).toBeUndefined();
+        });
+    });
+
+    describe('createFilteredOptionList()', () => {
+        it('should set private_isArchived on report options when privateIsArchivedMap is provided', () => {
+            renderLocaleContextProvider();
+            // Given a privateIsArchivedMap with archived reports
+            const privateIsArchivedMap: PrivateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: '2023-06-15 10:00:00',
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}5`]: '2023-07-20 15:30:00',
+            };
+
+            // When we call createFilteredOptionList with this privateIsArchivedMap
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, privateIsArchivedMap);
+
+            // Then the report options should have the correct private_isArchived values
+            const report3Option = result.reports.find((r) => r.item?.reportID === '3');
+            const report5Option = result.reports.find((r) => r.item?.reportID === '5');
+            const report1Option = result.reports.find((r) => r.item?.reportID === '1');
+
+            expect(report3Option?.private_isArchived).toBe('2023-06-15 10:00:00');
+            expect(report5Option?.private_isArchived).toBe('2023-07-20 15:30:00');
+            // Report 1 should not have private_isArchived since it's not in the map
+            expect(report1Option?.private_isArchived).toBeUndefined();
+        });
+
+        it('should not set private_isArchived from map when privateIsArchivedMap is empty', () => {
+            renderLocaleContextProvider();
+            // Given an empty privateIsArchivedMap
+            const emptyMap: PrivateIsArchivedMap = {};
+
+            // When we call createFilteredOptionList with an empty privateIsArchivedMap
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, emptyMap);
+
+            // Then reports NOT in Onyx (like report 3, 5) should not have private_isArchived set
+            // Note: Report 10 gets private_isArchived from Onyx (set in beforeAll)
+            const report3Option = result.reports.find((r) => r.item?.reportID === '3');
+            const report5Option = result.reports.find((r) => r.item?.reportID === '5');
+            expect(report3Option?.private_isArchived).toBeUndefined();
+            expect(report5Option?.private_isArchived).toBeUndefined();
+        });
+
+        it('should correctly map multiple archived reports in privateIsArchivedMap', () => {
+            renderLocaleContextProvider();
+            // Given a privateIsArchivedMap with multiple archived reports
+            const privateIsArchivedMap: PrivateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}1`]: '2023-01-01 00:00:00',
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: '2023-06-15 10:00:00',
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}5`]: '2023-07-20 15:30:00',
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}7`]: '2023-12-31 23:59:59',
+            };
+
+            // When we call createFilteredOptionList with this privateIsArchivedMap
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, privateIsArchivedMap);
+
+            // Then the report options should have the correct private_isArchived values
+            const report1Option = result.reports.find((r) => r.item?.reportID === '1');
+            const report3Option = result.reports.find((r) => r.item?.reportID === '3');
+            const report5Option = result.reports.find((r) => r.item?.reportID === '5');
+            const report7Option = result.reports.find((r) => r.item?.reportID === '7');
+            const report2Option = result.reports.find((r) => r.item?.reportID === '2');
+
+            expect(report1Option?.private_isArchived).toBe('2023-01-01 00:00:00');
+            expect(report3Option?.private_isArchived).toBe('2023-06-15 10:00:00');
+            expect(report5Option?.private_isArchived).toBe('2023-07-20 15:30:00');
+            expect(report7Option?.private_isArchived).toBe('2023-12-31 23:59:59');
+            // Report 2 should not have private_isArchived since it's not in the map
+            expect(report2Option?.private_isArchived).toBeUndefined();
+        });
+
+        it('should respect maxRecentReports option while preserving archived status', () => {
+            renderLocaleContextProvider();
+            // Given a privateIsArchivedMap and a small maxRecentReports limit
+            const privateIsArchivedMap: PrivateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}7`]: '2023-12-31 23:59:59', // Report 7 has largest lastVisibleActionCreated
+            };
+
+            // When we call createFilteredOptionList with maxRecentReports limit
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, privateIsArchivedMap, {
+                maxRecentReports: 5,
+            });
+
+            // Then the report 7 (most recent) should still have private_isArchived set
+            const report7Option = result.reports.find((r) => r.item?.reportID === '7');
+            expect(report7Option?.private_isArchived).toBe('2023-12-31 23:59:59');
         });
     });
 
@@ -4149,6 +4375,63 @@ describe('OptionsListUtils', () => {
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
         });
+        it('UPDATE_CUSTOM_TAX_NAME action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {oldName: 'Sales Tax', newName: 'VAT'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(lastMessage).toBe(getCustomTaxNameUpdateMessage(translateLocal, action));
+        });
+        it('UPDATE_CURRENCY_DEFAULT_TAX action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {oldName: 'Standard Rate', newName: 'Reduced Rate'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(lastMessage).toBe(getCurrencyDefaultTaxUpdateMessage(translateLocal, action));
+        });
+        it('UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX action', async () => {
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {oldName: 'Foreign Tax (15%)', newName: 'Foreign Tax (10%)'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(lastMessage).toBe(getForeignCurrencyDefaultTaxUpdateMessage(translateLocal, action));
+        });
         it('TAKE_CONTROL action', async () => {
             const report: Report = createRandomReport(0, undefined);
             const takeControlAction: ReportAction = {
@@ -4253,6 +4536,87 @@ describe('OptionsListUtils', () => {
                 isReportArchived: false,
             });
             expect(result).toBe(expectedVisibleText);
+        });
+        it('should return "No activity yet" for MoneyRequestReport with zero transactions', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                type: Math.floor(Math.random() * 2) === 1 ? CONST.REPORT.TYPE.IOU : CONST.REPORT.TYPE.EXPENSE,
+                transactionCount: 0,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const lastMessage = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(lastMessage).toBe(translateLocal('report.noActivityYet'));
+        });
+        it('should return "Receipt scanning..." for MoneyRequestReport with scanning transactions', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                type: Math.floor(Math.random() * 2) === 1 ? CONST.REPORT.TYPE.IOU : CONST.REPORT.TYPE.EXPENSE,
+                transactionCount: 1,
+            };
+            const scannedTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                reportID: report.reportID,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                modifiedMerchant: '',
+                amount: 0,
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${scannedTransaction.transactionID}`, scannedTransaction);
+            await waitForBatchedUpdates();
+
+            const result = getLastMessageTextForReport({
+                translate: translateLocal,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            const transactions = getReportTransactions(report.reportID);
+            const scanningTransactions = transactions.filter((transaction) => isScanning(transaction));
+            expect(result).toBe(translateLocal('iou.receiptScanning', {count: scanningTransactions.length}));
+        });
+        it('should NOT leak fraud alert text when user cannot perform write actions', async () => {
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                permissions: [CONST.REPORT.PERMISSIONS.READ],
+                lastMessageText: 'Fraud alert: Sensitive transaction details',
+            };
+            const fraudAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+                message: [
+                    {
+                        text: 'Sensitive',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    whisperedTo: [],
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [fraudAction.reportActionID]: fraudAction,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getLastMessageTextForReport({
+                report,
+                translate: translateLocal,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(result).toBe('');
         });
 
         describe('DEW (Dynamic External Workflow)', () => {

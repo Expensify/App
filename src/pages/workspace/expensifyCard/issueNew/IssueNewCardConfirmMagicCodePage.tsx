@@ -23,9 +23,9 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const primaryLogin = account?.primaryLogin ?? '';
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const validateError = getLatestErrorMessageField(issueNewCard);
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
@@ -52,10 +52,6 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
 
     const handleSubmit = useCallback(
         (validateCode: string) => {
-            if (!assigneeTimeZone) {
-                return;
-            }
-
             // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
             issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, assigneeTimeZone, data);
         },

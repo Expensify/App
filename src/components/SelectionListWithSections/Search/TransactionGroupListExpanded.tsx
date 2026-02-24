@@ -53,8 +53,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
-    const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
+    const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
     const transactionsSnapshotMetadata = transactionsSnapshot?.search;
 
@@ -187,6 +187,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         shouldShowTooltip={showTooltip}
                         shouldUseNarrowLayout={!isLargeScreenWidth}
                         shouldShowCheckbox={!!canSelectMultiple}
+                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
                         onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
                         columns={currentColumns}
                         onButtonPress={() => {
@@ -217,6 +218,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                 hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                                 id={transaction.transactionID}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW}
                             >
                                 {transactionRow}
                             </PressableWithFeedback>

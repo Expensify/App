@@ -5,7 +5,7 @@ import OptionListContextProvider, {useOptionsList} from '@components/OptionListC
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
-import {createOptionFromReport, createOptionList} from '@libs/OptionsListUtils';
+import {createOptionFromReport, createOptionList, processReport} from '@libs/OptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
@@ -28,6 +28,7 @@ jest.mock('@components/OnyxListItemProvider', () => ({
 }));
 
 const mockCreateOptionList = createOptionList as jest.MockedFunction<typeof createOptionList>;
+const mockProcessReport = processReport as jest.MockedFunction<typeof processReport>;
 const mockCreateOptionFromReport = createOptionFromReport as jest.MockedFunction<typeof createOptionFromReport>;
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
 const mockUsePersonalDetails = usePersonalDetails as jest.MockedFunction<typeof usePersonalDetails>;
@@ -120,6 +121,59 @@ describe('OptionListContextProvider', () => {
         rerender({shouldInitialize: false});
 
         expect(mockCreateOptionList).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls processReport with privateIsArchived when reports change', () => {
+        const reportID = '1';
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const report = {reportID};
+
+        const {result, rerender} = renderHook(({shouldInitialize}) => useOptionsList({shouldInitialize}), {
+            initialProps: {shouldInitialize: false},
+            wrapper,
+        });
+
+        act(() => {
+            result.current.initializeOptions();
+        });
+
+        mockProcessReport.mockClear();
+
+        onyxState = {
+            ...onyxState,
+            [ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: report},
+        };
+        onyxSourceValues = {
+            ...onyxSourceValues,
+            [ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: report},
+        };
+        rerender({shouldInitialize: false});
+
+        expect(mockProcessReport).toHaveBeenCalled();
+    });
+
+    it('calls processReport with privateIsArchived when report actions change', () => {
+        const reportID = '2';
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
+
+        const {result, rerender} = renderHook(({shouldInitialize}) => useOptionsList({shouldInitialize}), {
+            initialProps: {shouldInitialize: false},
+            wrapper,
+        });
+
+        act(() => {
+            result.current.initializeOptions();
+        });
+
+        mockProcessReport.mockClear();
+
+        onyxSourceValues = {
+            ...onyxSourceValues,
+            [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {[reportActionsKey]: {someAction: {}}},
+        };
+        rerender({shouldInitialize: false});
+
+        expect(mockProcessReport).toHaveBeenCalled();
     });
 
     it('passes privateIsArchived to createOptionFromReport when personal details change', () => {
