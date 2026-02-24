@@ -15,7 +15,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDomainMemberError, closeUserAccount} from '@libs/actions/Domain';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {hasDomainMemberDetailsErrors} from '@libs/DomainUtils';
+import {hasDomainMemberDetailsErrors, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -121,6 +121,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         },
     ];
 
+    const hasSettingsErrors = hasDomainMembersSettingsErrors(domainErrors);
     const getHeaderButtons = () => {
         return (shouldUseNarrowLayout ? canSelectMultiple : selectedMembers.length > 0) ? (
             <ButtonWithDropdownMenu<DomainMemberBulkActionType>
@@ -136,14 +137,34 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 wrapperStyle={shouldUseNarrowLayout && styles.flexGrow1}
             />
         ) : (
-            <Button
-                success
-                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
-                text={translate('domain.members.addMember')}
-                icon={icons.Plus}
-                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
-            />
+            <>
+                <Button
+                    success
+                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
+                    text={translate('domain.members.addMember')}
+                    icon={icons.Plus}
+                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                    style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+                />
+                <ButtonWithDropdownMenu
+                    success={false}
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    brickRoadIndicator={hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    options={[
+                        {
+                            value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SETTINGS,
+                            text: translate('domain.common.settings'),
+                            icon: icons.Gear,
+                            onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
+                            brickRoadIndicator: hasSettingsErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                        },
+                    ]}
+                    isSplitButton={false}
+                    wrapperStyle={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
+                />
+            </>
         );
     };
 

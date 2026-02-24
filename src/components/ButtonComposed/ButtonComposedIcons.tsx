@@ -7,7 +7,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {ButtonComposedVariant, useButtonComposedContext} from './ButtonComposedContext';
+import type {ButtonComposedVariant} from './ButtonComposedContext';
+import {useButtonComposedContext} from './ButtonComposedContext';
 
 type ButtonIconBaseProps = {
     src: IconAsset;
