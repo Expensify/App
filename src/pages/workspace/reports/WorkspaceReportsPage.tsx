@@ -64,7 +64,7 @@ function WorkspaceReportFieldsPage({
     const {translate, localeCompare} = useLocalize();
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const policy = usePolicy(policyID);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
@@ -154,7 +154,12 @@ function WorkspaceReportFieldsPage({
 
     const renderReportTitle = () => (
         <OfflineWithFeedback pendingAction={policy?.pendingAction}>
-            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}>{translate('workspace.common.reportTitle')}</Text>
+            <Text
+                style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
+                accessibilityRole={CONST.ROLE.HEADER}
+            >
+                {translate('workspace.common.reportTitle')}
+            </Text>
         </OfflineWithFeedback>
     );
 
@@ -255,6 +260,7 @@ function WorkspaceReportFieldsPage({
                                 switchAccessibilityLabel={reportFieldsAccessibilityLabel}
                                 subtitle={getHeaderText()}
                                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
+                                titleAccessibilityRole={CONST.ROLE.HEADER}
                                 isActive={!!policy?.areReportFieldsEnabled}
                                 onToggle={(isEnabled) => {
                                     if (!isEnabled) {

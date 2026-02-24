@@ -13,7 +13,6 @@ import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
 import Parser from '@libs/Parser';
-import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
@@ -64,9 +63,11 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const processedTextArray = splitTextWithEmojis(message);
 
     useEffect(() => {
-        Performance.markEnd(CONST.TIMING.SEND_MESSAGE, {message: text});
-        endSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE);
-    }, [text]);
+        if (!reportActionID) {
+            return;
+        }
+        endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${reportActionID}`);
+    }, [reportActionID]);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html

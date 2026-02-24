@@ -21,7 +21,7 @@ function ImportTransactionsCardNamePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
 
     const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM>) => {
         setImportTransactionCardName(values.cardDisplayName.trim());

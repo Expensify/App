@@ -23,7 +23,7 @@ Expensify offers two main subscription plans:
 | **ACH reimbursements** | ✔ Unlimited                                   | ✔ Unlimited                                      |
 | **Bank feed support**  | ❌ Not available                              | ✔ Card feeds and reconciliation                  |
 | **Accounting sync**    | ✔ QuickBooks Online, Xero                    | ✔ NetSuite, Sage Intacct, QuickBooks Desktop     |
-| **HR & payroll sync**  | ❌ Not available                              | ✔ Gusto, Zenefits, Certinia, Workday             |
+| **HR & payroll sync**  | ❌ Not available                              | ✔ Gusto, TriNet, Certinia, Workday             |
 | **Security & control** | ❌ Not available                              | ✔ SAML/SSO and admin-enforced controls           |
 
 **Control Plan Pricing**:
