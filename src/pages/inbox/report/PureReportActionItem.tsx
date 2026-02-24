@@ -1207,7 +1207,7 @@ function PureReportActionItem({
 
                                     // If no childReportID exists, create transaction thread on-demand
                                     if (!action.childReportID) {
-                                        const createdTransactionThreadReport = createTransactionThreadReport(iouReport, action);
+                                        const createdTransactionThreadReport = createTransactionThreadReport(introSelected, iouReport, action);
                                         if (createdTransactionThreadReport?.reportID) {
                                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(createdTransactionThreadReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
                                             return;
