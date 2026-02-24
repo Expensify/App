@@ -39,6 +39,7 @@ function EmptyStateComponent({
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const doesSubtitleContainCustomEmojiAndMore = containsCustomEmoji(subtitle ?? '') && !containsOnlyCustomEmoji(subtitle ?? '');
+    const singleButtonStyle = buttons?.length === 1 && styles.alignItemsCenter;
 
     const setAspectRatio = (event: SourceLoadEventPayload) => {
         const track = event.availableVideoTracks.at(0);
@@ -127,7 +128,7 @@ function EmptyStateComponent({
                                             customText={buttonText}
                                             options={dropDownOptions}
                                             isSplitButton={false}
-                                            style={[styles.flex1, style, buttons.length === 1 && styles.alignItemsCenter]}
+                                            style={[styles.flex1, style, singleButtonStyle]}
                                         />
                                     ) : (
                                         <Button
@@ -138,7 +139,7 @@ function EmptyStateComponent({
                                             icon={icon}
                                             large
                                             isDisabled={isDisabled}
-                                            style={[styles.flex1, style, buttons.length === 1 && styles.alignItemsCenter]}
+                                            style={[styles.flex1, style, singleButtonStyle]}
                                         />
                                     ),
                                 )}
