@@ -19,11 +19,8 @@ const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.TRAVEL;
 
 const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => account?.primaryLogin;
 
-type TravelMenuItemProps = {
-    activePolicyID: string | undefined;
-};
-
-function TravelMenuItem({activePolicyID}: TravelMenuItemProps) {
+function TravelMenuItem() {
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Suitcase', 'NewWindow'] as const);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);

@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import FABPopoverMenu from './FABPopoverContent/FABPopoverMenu';
 import CreateReportMenuItem from './FABPopoverContent/menuItems/CreateReportMenuItem';
@@ -35,7 +36,8 @@ function FloatingActionButtonAndPopover() {
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
 
-    const {startScan, startQuickScan, reportID, activePolicyID} = useScanActions();
+    const {startScan, startQuickScan} = useScanActions();
+    const [reportID] = useState(() => generateReportID());
 
     const showCreateMenu = useCallback(() => {
         if (!isFocused && shouldUseNarrowLayout) {
@@ -88,10 +90,10 @@ function FloatingActionButtonAndPopover() {
                 <QuickActionMenuItem reportID={reportID} />
                 <ExpenseMenuItem reportID={reportID} />
                 <TrackDistanceMenuItem reportID={reportID} />
-                <CreateReportMenuItem activePolicyID={activePolicyID} />
+                <CreateReportMenuItem />
                 <NewChatMenuItem />
                 <InvoiceMenuItem reportID={reportID} />
-                <TravelMenuItem activePolicyID={activePolicyID} />
+                <TravelMenuItem />
                 <TestDriveMenuItem />
                 <NewWorkspaceMenuItem />
             </FABPopoverMenu>

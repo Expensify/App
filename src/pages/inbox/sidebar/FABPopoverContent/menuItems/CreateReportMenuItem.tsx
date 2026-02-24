@@ -29,11 +29,8 @@ const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.CREATE_REPORT;
 
 const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
 
-type CreateReportMenuItemProps = {
-    activePolicyID: string | undefined;
-};
-
-function CreateReportMenuItem({activePolicyID}: CreateReportMenuItemProps) {
+function CreateReportMenuItem() {
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Document'] as const);

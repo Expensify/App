@@ -59,7 +59,7 @@ function useScanActions() {
         });
     };
 
-    return {startScan, startQuickScan, reportID, activePolicyID};
+    return {startScan, startQuickScan};
 }
 
 export default useScanActions;
