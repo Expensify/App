@@ -8,9 +8,10 @@ import useTheme from '@hooks/useTheme';
 import {startNewChat} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
+import FAB_MENU_ITEM_IDS from '@pages/inbox/sidebar/FABPopoverContent/FABMenuItemIDs';
 import CONST from '@src/CONST';
 
-const ITEM_ID = 'new-chat';
+const ITEM_ID = FAB_MENU_ITEM_IDS.NEW_CHAT;
 
 function NewChatMenuItem() {
     const {translate} = useLocalize();

@@ -11,10 +11,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
+import FAB_MENU_ITEM_IDS from '@pages/inbox/sidebar/FABPopoverContent/FABMenuItemIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-const ITEM_ID = 'test-drive';
+const ITEM_ID = FAB_MENU_ITEM_IDS.TEST_DRIVE;
 
 function TestDriveMenuItem() {
     const {translate} = useLocalize();

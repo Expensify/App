@@ -10,11 +10,12 @@ import {startMoneyRequest} from '@libs/actions/IOU';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
+import FAB_MENU_ITEM_IDS from '@pages/inbox/sidebar/FABPopoverContent/FABMenuItemIDs';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-const ITEM_ID = 'expense';
+const ITEM_ID = FAB_MENU_ITEM_IDS.EXPENSE;
 
 type ExpenseMenuItemProps = {
     reportID: string;
