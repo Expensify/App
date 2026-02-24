@@ -1,4 +1,3 @@
-import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
@@ -16,7 +15,7 @@ import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftInviteAccountID} from '@libs/actions/Card';
 import {searchInServer} from '@libs/actions/Report';
-import {getDefaultCardName} from '@libs/CardUtils';
+import {getCardAssignmentDateOption, getCardAssignmentStartDate, getDefaultCardName} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
@@ -92,12 +91,8 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
                 cardToAssign.cardName = assignCard.cardToAssign.cardName;
                 cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
-                cardToAssign.startDate = !isEditing
-                    ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)
-                    : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
-                cardToAssign.dateOption = !isEditing
-                    ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM
-                    : (assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+                cardToAssign.startDate = getCardAssignmentStartDate(isEditing, assignCard?.cardToAssign?.startDate);
+                cardToAssign.dateOption = getCardAssignmentDateOption(isEditing, assignCard?.cardToAssign?.dateOption);
                 setAssignCardStepAndData({
                     cardToAssign,
                     isEditing: false,
@@ -129,12 +124,8 @@ function AssigneeStep({route}: AssigneeStepProps) {
             cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
             cardToAssign.cardName = assignCard.cardToAssign.cardName;
             cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
-            cardToAssign.startDate = !isEditing
-                ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)
-                : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
-            cardToAssign.dateOption = !isEditing
-                ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM
-                : (assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+            cardToAssign.startDate = getCardAssignmentStartDate(isEditing, assignCard?.cardToAssign?.startDate);
+            cardToAssign.dateOption = getCardAssignmentDateOption(isEditing, assignCard?.cardToAssign?.dateOption);
             setAssignCardStepAndData({
                 cardToAssign,
                 isEditing: false,
