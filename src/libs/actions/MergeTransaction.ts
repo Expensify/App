@@ -345,8 +345,6 @@ function mergeTransactionRequest({
         billable: boolean;
         reimbursable: boolean;
         tag: string;
-        taxCode: string;
-        taxPolicyID: string;
         receiptID: number | undefined;
         reportID: string;
         createdIOUReportActionID?: string;
@@ -410,6 +408,8 @@ function mergeTransactionRequest({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`,
             value: sourceTransaction,
         };
+
+        const transactionToDelete = mergeTransaction.reportID === targetTransaction.reportID ? sourceTransaction : targetTransaction;
         const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
         const optimisticSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> =
             transactionsOfSourceReport.length === 1
