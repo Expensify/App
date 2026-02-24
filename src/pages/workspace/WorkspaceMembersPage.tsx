@@ -139,9 +139,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
     );
 
-    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const currentUserAccountID = Number(session?.accountID);
     const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
     const isFocused = useIsFocused();
@@ -166,10 +166,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         if (approverEmail) {
             const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
-            return translate('workspace.people.removeMembersWarningPrompt', {
-                memberName: getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
-                ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
-            });
+            return translate(
+                'workspace.people.removeMembersWarningPrompt',
+                getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
+                getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+            );
         }
 
         const exporters = getConnectionExporters(policy);
@@ -658,8 +659,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
         const hasAtLeastOneNonMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
         const hasAtLeastOneNonAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
+        const isReimbursementEnabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        const hasAtLeastOnePayer = isReimbursementEnabled && policy?.achAccount?.reimburser ? selectedEmployees.includes(policy?.achAccount?.reimburser) : false;
 
-        if (hasAtLeastOneNonMemberRole) {
+        if (hasAtLeastOneNonMemberRole && !hasAtLeastOnePayer) {
             options.push(memberOption);
         }
 
@@ -667,7 +670,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push(adminOption);
         }
 
-        if (hasAtLeastOneNonAuditorRole && isControlPolicy(policy)) {
+        if (hasAtLeastOneNonAuditorRole && isControlPolicy(policy) && !hasAtLeastOnePayer) {
             options.push(auditorOption);
         }
 
@@ -746,6 +749,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 isSplitButton={false}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedEmployees.length}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_DROPDOWN}
                 testID="WorkspaceMembersPage-header-dropdown-menu-button"
             />
         ) : (
@@ -753,6 +757,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 <Button
                     success
                     onPress={inviteUser}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_BUTTON}
                     text={translate('workspace.invite.member')}
                     icon={Plus}
                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
@@ -763,6 +768,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.MORE_DROPDOWN}
                     options={secondaryActions}
                     isSplitButton={false}
                     wrapperStyle={styles.flexGrow0}
@@ -822,7 +828,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     turnOffMobileSelectionMode();
                     return;
                 }
-                Navigation.popToSidebar();
+                Navigation.goBack();
             }}
         >
             {() => (
@@ -846,7 +852,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={isPolicyAdmin}
                         onSelectAll={filteredData.length > 0 ? () => toggleAllUsers(filteredData) : undefined}
-                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5], listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : [styles.pr3]}}
+                        style={{listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3}}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         onCheckboxPress={(item) => toggleUser(item.login)}

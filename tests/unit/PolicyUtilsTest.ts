@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
+    areAllGroupPoliciesExpenseChatDisabled,
+    canSendInvoiceFromWorkspace,
     getActivePolicies,
     getAllTaxRatesNamesAndValues,
     getCustomUnitsForDuplication,
+    getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
@@ -26,6 +29,7 @@ import {
     isCurrentUserMemberOfAnyPolicy,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
+    sortPoliciesByName,
     sortWorkspacesBySelected,
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
@@ -44,7 +48,6 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
-const CARLOS_ACCOUNT_ID = 1;
 function toLocaleDigitMock(dot: string): string {
     return dot;
 }
@@ -217,6 +220,12 @@ const policyTags = {
 };
 
 describe('PolicyUtils', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
     describe('useDefaultFundID', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
@@ -232,22 +241,18 @@ describe('PolicyUtils', () => {
                 workspaceAccountID: 0,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}`, {
-                [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}18441278`]: {
-                    currentBalance: 0,
-                    domainName: 'expensify-policy8fe6324c4897.exfy',
-                    earnedCashback: 0,
-                    isLoading: false,
-                    isMonthlySettlementAllowed: false,
-                    limit: 0,
-                    marqetaBusinessToken: 18441278,
-                    ownerEmail: 'user@gmail.com',
-                    paymentBankAccountAddressName: 'Alberta Bobbeth Charleson',
-                    paymentBankAccountID: 3288123,
-                    paymentBankAccountNumber: 'XXXXXXXXXXXX1111',
-                    preferredPolicy: '2',
-                    remainingLimit: 0,
-                },
+            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}18441278`, {
+                currentBalance: 0,
+                domainName: 'expensify-policy8fe6324c4897.exfy',
+                earnedCashback: 0,
+                isLoading: false,
+                isMonthlySettlementAllowed: false,
+                marqetaBusinessToken: 18441278,
+                paymentBankAccountAddressName: 'Alberta Bobbeth Charleson',
+                paymentBankAccountID: 3288123,
+                paymentBankAccountNumber: 'XXXXXXXXXXXX1111',
+                preferredPolicy: '2',
+                remainingLimit: 0,
             });
             const {result} = renderHook(() => useDefaultFundID(policy.id));
 
@@ -544,11 +549,9 @@ describe('PolicyUtils', () => {
                     reportID: expenseReport.reportID,
                 };
                 await Onyx.multiSet({
-                    [ONYXKEYS.COLLECTION.TRANSACTION]: {
-                        [transaction1.transactionID]: transaction1,
-                        [transaction2.transactionID]: transaction2,
-                    },
-                });
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                } as unknown as OnyxMultiSetInput);
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover1AccountID);
             });
             it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
@@ -605,11 +608,9 @@ describe('PolicyUtils', () => {
                     reportID: expenseReport.reportID,
                 };
                 await Onyx.multiSet({
-                    [ONYXKEYS.COLLECTION.TRANSACTION]: {
-                        [transaction1.transactionID]: transaction1,
-                        [transaction2.transactionID]: transaction2,
-                    },
-                });
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                } as unknown as OnyxMultiSetInput);
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(categoryApprover2AccountID);
             });
             it('should return the first rule approver who is not the current submitter', async () => {
@@ -652,12 +653,10 @@ describe('PolicyUtils', () => {
                 };
 
                 await Onyx.multiSet({
-                    [ONYXKEYS.COLLECTION.TRANSACTION]: {
-                        [transaction1.transactionID]: transaction1,
-                        [transaction2.transactionID]: transaction2,
-                        [transaction3.transactionID]: transaction3,
-                    },
-                });
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction3.transactionID}`]: transaction3,
+                } as unknown as OnyxMultiSetInput);
 
                 expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover1AccountID);
             });
@@ -691,10 +690,10 @@ describe('PolicyUtils', () => {
                         created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
-                    await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
-                        [transaction1.transactionID]: transaction1,
-                        [transaction2.transactionID]: transaction2,
-                    });
+                    await Onyx.multiSet({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                    } as unknown as OnyxMultiSetInput);
                     expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover1AccountID);
                 });
                 it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
@@ -726,25 +725,16 @@ describe('PolicyUtils', () => {
                         created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
-                    await Onyx.set(ONYXKEYS.COLLECTION.TRANSACTION, {
-                        [transaction1.transactionID]: transaction1,
-                        [transaction2.transactionID]: transaction2,
-                    });
+                    await Onyx.multiSet({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+                    } as unknown as OnyxMultiSetInput);
                     expect(getSubmitToAccountID(policy, expenseReport)).toBe(tagApprover2AccountID);
                 });
             });
         });
     });
     describe('shouldShowPolicy', () => {
-        beforeAll(() => {
-            Onyx.init({
-                keys: ONYXKEYS,
-                initialKeyStates: {
-                    [ONYXKEYS.SESSION]: {accountID: CARLOS_ACCOUNT_ID, email: CARLOS_EMAIL},
-                },
-            });
-        });
-
         beforeEach(() => {
             global.fetch = TestHelper.getGlobalFetchMock();
             return Onyx.clear().then(waitForBatchedUpdates);
@@ -903,6 +893,7 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
                 },
+                pendingAction: null,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
@@ -920,6 +911,7 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
+                pendingAction: null,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
@@ -937,6 +929,7 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.USER},
                 },
+                pendingAction: null,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
@@ -954,9 +947,21 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
+                pendingAction: null,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            expect(result).toBe(false);
+        });
+
+        it('returns false if policy is pending delete', async () => {
+            const currentUserLogin = employeeEmail;
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                isPolicyExpenseChatEnabled: true,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
             const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(false);
         });
@@ -1810,6 +1815,22 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('canSendInvoiceFromWorkspace', () => {
+        it('returns true when areInvoicesEnabled is true', () => {
+            const policy = {areInvoicesEnabled: true} as Policy;
+            expect(canSendInvoiceFromWorkspace(policy)).toBe(true);
+        });
+
+        it('returns false when areInvoicesEnabled is false', () => {
+            const policy = {areInvoicesEnabled: false} as Policy;
+            expect(canSendInvoiceFromWorkspace(policy)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(canSendInvoiceFromWorkspace(undefined)).toBe(false);
+        });
+    });
+
     it('should return undefined when no tag approver rule is present', () => {
         const policy: Policy = {
             ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -1864,6 +1885,129 @@ describe('PolicyUtils', () => {
                 },
             ],
             approver: 'approver@example.com',
+        });
+    });
+
+    describe('areAllGroupPoliciesExpenseChatDisabled', () => {
+        it('should return false when policies is empty', () => {
+            const result = areAllGroupPoliciesExpenseChatDisabled({});
+            expect(result).toBe(false);
+        });
+
+        it('should return false when there are no group policies (only personal)', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), isPolicyExpenseChatEnabled: false},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), isPolicyExpenseChatEnabled: true},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when single group policy has expense chat enabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: true, pendingAction: null},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when multiple group policies and at least one has expense chat enabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), isPolicyExpenseChatEnabled: true, pendingAction: null},
+                '3': {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(false);
+        });
+
+        it('should return true when single group policy has expense chat disabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(true);
+        });
+
+        it('should return true when all group policies have expense chat disabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), isPolicyExpenseChatEnabled: false, pendingAction: null},
+                '3': {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), isPolicyExpenseChatEnabled: false, pendingAction: null},
+            };
+            const result = areAllGroupPoliciesExpenseChatDisabled(policies);
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('getDefaultTimeTrackingRate', () => {
+        it('should return rate in subunits', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                units: {
+                    time: {
+                        enabled: true,
+                        rate: 20,
+                    },
+                },
+            };
+            expect(getDefaultTimeTrackingRate(policy)).toBe(2000);
+        });
+
+        it('should return 0 when the rate is 0, not undefined', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                units: {
+                    time: {
+                        enabled: true,
+                        rate: 0,
+                    },
+                },
+            };
+            expect(getDefaultTimeTrackingRate(policy)).toBe(0);
+        });
+
+        it('should return undefined when the rate is not defined on the policy', () => {
+            const policy = createRandomPolicy(1);
+            expect(getDefaultTimeTrackingRate(policy)).toBeUndefined();
+        });
+    });
+
+    describe('sortPoliciesByName', () => {
+        const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+        it('sorts policies alphabetically by name', () => {
+            const policies: Policy[] = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
+            ];
+
+            const result = sortPoliciesByName(policies, localeCompare);
+            expect(result.map((p) => p.name)).toEqual(['Alpha', 'Bravo', 'Charlie']);
+        });
+
+        it('returns empty array for empty input', () => {
+            expect(sortPoliciesByName([], localeCompare)).toEqual([]);
+        });
+
+        it('treats undefined or empty names as empty string', () => {
+            const policies: Policy[] = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: ''},
+                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+            ];
+
+            const result = sortPoliciesByName(policies, localeCompare);
+            expect(result.map((p) => p.name)).toEqual(['', 'Alpha', 'Bravo']);
+        });
+
+        it('returns single-element array as-is', () => {
+            const policies: Policy[] = [{...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Only'}];
+
+            const result = sortPoliciesByName(policies, localeCompare);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.name).toBe('Only');
         });
     });
 });

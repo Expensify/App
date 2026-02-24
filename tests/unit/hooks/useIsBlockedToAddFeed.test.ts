@@ -40,6 +40,11 @@ jest.mock('@hooks/useCardFeeds', () => ({
     default: jest.fn(),
 }));
 describe('useIsBlockedToAddFeed', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
     beforeEach(async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy?.policyID}`, mockPolicy);
     });

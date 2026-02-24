@@ -65,6 +65,7 @@ import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crosshair from '@assets/images/crosshair.svg';
+import DocumentCheck from '@assets/images/document-check.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
@@ -81,6 +82,7 @@ import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import Expand from '@assets/images/expand.svg';
+import ExpenseCopy from '@assets/images/expense-copy.svg';
 import ExpensifyAppIcon from '@assets/images/expensify-app-icon.svg';
 import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
@@ -98,6 +100,7 @@ import FlagLevelOne from '@assets/images/flag_level_01.svg';
 import FlagLevelTwo from '@assets/images/flag_level_02.svg';
 import FlagLevelThree from '@assets/images/flag_level_03.svg';
 import Folder from '@assets/images/folder.svg';
+import FreezeCard from '@assets/images/freeze-card.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
 import GalleryNotFound from '@assets/images/gallery-not-found.svg';
 import Gallery from '@assets/images/gallery.svg';
@@ -161,6 +164,8 @@ import Fingerprint from '@assets/images/multifactorAuthentication/fingerprint.sv
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
+import OdometerEnd from '@assets/images/odometer-end.svg';
+import OdometerStart from '@assets/images/odometer-start.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
 import Offline from '@assets/images/offline.svg';
 import Paperclip from '@assets/images/paperclip.svg';
@@ -185,6 +190,7 @@ import ReceiptScan from '@assets/images/receipt-scan.svg';
 import ReceiptSlash from '@assets/images/receipt-slash.svg';
 import Receipt from '@assets/images/receipt.svg';
 import RemoveMembers from '@assets/images/remove-members.svg';
+import ReportCopy from '@assets/images/report-copy.svg';
 import Rotate from '@assets/images/rotate-image.svg';
 import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
@@ -202,6 +208,7 @@ import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
+import Sparkles from '@assets/images/sparkles.svg';
 import SpreadsheetComputer from '@assets/images/spreadsheet-computer.svg';
 import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
@@ -304,6 +311,7 @@ const Expensicons = {
     EReceiptIcon,
     Emoji,
     EmptyStateRoutePending,
+    ExpenseCopy,
     Exclamation,
     Exit,
     ExpensifyAppIcon,
@@ -322,6 +330,7 @@ const Expensicons = {
     FlagLevelTwo,
     FlagLevelThree,
     Fingerprint,
+    FreezeCard,
     Fullscreen,
     Folder,
     Tag,
@@ -372,6 +381,8 @@ const Expensicons = {
     NotificationsAvatar,
     Offline,
     OfflineCloud,
+    OdometerStart,
+    OdometerEnd,
     Paperclip,
     Pause,
     Pencil,
@@ -393,6 +404,7 @@ const Expensicons = {
     ReceiptScan,
     ReceiptSlash,
     RemoveMembers,
+    ReportCopy,
     ReplaceReceipt,
     ReceiptMultiple,
     Rotate,
@@ -460,6 +472,7 @@ const Expensicons = {
     Table,
     SpreadsheetComputer,
     Bookmark,
+    Sparkles,
     Star,
     QBDSquare,
     GalleryNotFound,
@@ -477,6 +490,7 @@ const Expensicons = {
     XeroExport,
     ArrowCircleClockwise,
     LuggageWithLines,
+    DocumentCheck,
     TreasureChestGreenWithSparkle,
     UserShield,
 };

@@ -17,24 +17,30 @@ type FixCompanyCardConnectionProps = {
 
     /** The policy ID associated with this card */
     policyID: string;
+
+    /** The policy name associated with this card */
+    policyName: string;
 };
 
-function FixCompanyCardConnection({card, policyID}: FixCompanyCardConnectionProps) {
+function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardConnectionProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Connect']);
 
     // Get the card feeds data to access custom nicknames
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`, {canBeMissing: true});
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`);
     const customFeedName = cardFeeds?.settings?.companyCardNicknames?.[card.bank as CompanyCardFeed];
     const feedName = getCustomOrFormattedFeedName(translate, card.bank as CompanyCardFeed, customFeedName, false) ?? '';
+    const subtitle = policyName
+        ? translate('homePage.timeSensitiveSection.fixCompanyCardConnection.subtitle', {policyName})
+        : translate('homePage.timeSensitiveSection.fixCompanyCardConnection.defaultSubtitle');
 
     return (
         <BaseWidgetItem
             icon={icons.Connect}
             iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine700}
+            iconFill={colors.tangerine500}
             title={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.title', {feedName})}
-            subtitle={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.subtitle')}
+            subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID))}
             buttonProps={{danger: true}}

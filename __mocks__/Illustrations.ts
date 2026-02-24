@@ -56,6 +56,7 @@ const TeachersUnite = 'TeachersUnite';
 const Abacus = 'Abacus';
 const Binoculars = 'Binoculars';
 const CompanyCard = 'CompanyCard';
+const ReceiptStack = 'ReceiptStack';
 const ReceiptUpload = 'ReceiptUpload';
 const ExpensifyCardIllustration = 'ExpensifyCardIllustration';
 const ExpensifyCardImage = 'ExpensifyCardImage';
@@ -92,6 +93,7 @@ const CompanyCardsPendingState = 'CompanyCardsPendingState';
 const VisaCompanyCardDetail = 'VisaCompanyCardDetail';
 const MasterCardCompanyCardDetail = 'MasterCardCompanyCardDetail';
 const AmexCardCompanyCardDetail = 'AmexCardCompanyCardDetail';
+const TravelCVV = 'TravelCVV';
 const TurtleInShell = 'TurtleInShell';
 const BankOfAmericaCompanyCardDetail = 'BankOfAmericaCompanyCardDetail';
 const BrexCompanyCardDetail = 'BrexCompanyCardDetail';
@@ -174,6 +176,7 @@ export {
     Abacus,
     Binoculars,
     CompanyCard,
+    ReceiptStack,
     ReceiptUpload,
     ExpensifyCardIllustration,
     ExpensifyCardImage,
@@ -210,6 +213,7 @@ export {
     VisaCompanyCardDetail,
     MasterCardCompanyCardDetail,
     AmexCardCompanyCardDetail,
+    TravelCVV,
     TurtleInShell,
     BankOfAmericaCompanyCardDetail,
     BrexCompanyCardDetail,

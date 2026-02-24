@@ -31,17 +31,30 @@ function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string
 }
 
 function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, expensePolicyID?: string) {
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
-        canBeMissing: true,
         selector: activePolicySelector,
     });
 
     const session = useSession();
     const login = session?.email ?? '';
-    const userPolicies = Object.values(allPolicies ?? {}).filter((policy) => isPolicyValidForMovingExpenses(policy, login, isPerDiemRequest));
-    const isMemberOfMoreThanOnePolicy = userPolicies.length > 1;
+
+    // Early exit optimization: only need to check if we have 0, 1, or >1 policies
+    let singleUserPolicy;
+    let isMemberOfMoreThanOnePolicy = false;
+    for (const policy of Object.values(allPolicies ?? {})) {
+        if (!isPolicyValidForMovingExpenses(policy, login, isPerDiemRequest)) {
+            continue;
+        }
+
+        if (!singleUserPolicy) {
+            singleUserPolicy = policy;
+        } else {
+            isMemberOfMoreThanOnePolicy = true;
+            break; // Found 2, no need to continue
+        }
+    }
 
     // If an expense policy ID is provided and valid, prefer it over the active policy
     // This ensures that when viewing/editing an expense from workspace B, we show workspace B
@@ -57,8 +70,8 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, expensePolicyID?
         return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false};
     }
 
-    if (userPolicies.length === 1) {
-        return {policyForMovingExpensesID: userPolicies.at(0)?.id, policyForMovingExpenses: userPolicies.at(0), shouldSelectPolicy: false};
+    if (singleUserPolicy && !isMemberOfMoreThanOnePolicy) {
+        return {policyForMovingExpensesID: singleUserPolicy.id, policyForMovingExpenses: singleUserPolicy, shouldSelectPolicy: false};
     }
 
     if (isMemberOfMoreThanOnePolicy) {

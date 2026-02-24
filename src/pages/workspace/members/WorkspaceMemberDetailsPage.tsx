@@ -19,6 +19,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -32,7 +33,7 @@ import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWo
 import {
     getAllCardsForWorkspace,
     getCardFeedIcon,
-    getCompanyCardFeedWithDomainID,
+    getCardFeedWithDomainID,
     getCompanyFeeds,
     getPlaidInstitutionIconUrl,
     isExpensifyCardFullySetUp,
@@ -58,7 +59,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -84,10 +85,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {environmentURL} = useEnvironment();
     const [cardFeeds] = useCardFeeds(policyID);
-    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
     const {showConfirmModal} = useConfirmModal();
 
@@ -106,9 +108,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const policyOwnerDisplayName = formatPhoneNumber(getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
     const hasMultipleFeeds = Object.keys(getCompanyFeeds(cardFeeds, false, true)).length > 0;
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
+    const workspaceWorkflowsPageURL = `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}`;
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
-    const isReimburser = policy?.achAccount?.reimburser === memberLogin;
+    const isReimburser = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && policy?.achAccount?.reimburser === memberLogin;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
@@ -134,10 +137,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     ];
     const isUserExporter = exporters.includes(details.login);
 
-    let confirmModalPrompt = translate('workspace.people.removeMembersWarningPrompt', {
-        memberName: displayName,
-        ownerName: policyOwnerDisplayName,
-    });
+    let confirmModalPrompt = translate('workspace.people.removeMembersWarningPrompt', displayName, policyOwnerDisplayName);
 
     if (isTechnicalContact) {
         confirmModalPrompt = translate('workspace.people.removeMemberPromptTechContact', {
@@ -154,7 +154,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             workspaceOwner: policyOwnerDisplayName,
         });
     } else if (!isApprover) {
-        confirmModalPrompt = translate('workspace.people.removeMemberPrompt', {memberName: displayName});
+        confirmModalPrompt = translate('workspace.people.removeMemberPrompt', displayName);
     } else if (isApprover) {
         confirmModalPrompt = translate('workspace.people.removeMemberPromptApprover', {
             approver: displayName,
@@ -256,7 +256,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         Navigation.navigate(
             ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
                 policyID,
-                getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID),
+                getCardFeedWithDomainID(card.bank, card.fundID) as CompanyCardFeedWithDomainID,
                 card.cardID.toString(),
                 Navigation.getActiveRoute(),
             ),
@@ -342,10 +342,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             />
                             <MenuItemWithTopDescription
                                 disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                title={translate(`workspace.common.roleName`, {role: member?.role})}
+                                title={translate(`workspace.common.roleName`, member?.role)}
+                                interactive={!isReimburser}
                                 description={translate('common.role')}
-                                shouldShowRightIcon
+                                shouldShowRightIcon={!isReimburser}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID))}
+                                hintText={isReimburser ? translate('common.roleCannotBeChanged', workspaceWorkflowsPageURL) : undefined}
+                                shouldRenderHintAsHTML
                             />
                             {isControlPolicy(policy) && (
                                 <>

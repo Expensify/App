@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -96,12 +97,13 @@ function FormWrapper({
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
     forwardedFSClass,
+    sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
 
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
+    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
 
     const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
 
@@ -183,6 +185,7 @@ function FormWrapper({
             shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
             shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
+            sentryLabel={sentryLabel}
         />
     );
 

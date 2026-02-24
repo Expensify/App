@@ -201,7 +201,7 @@ export default createOnyxDerivedValueConfig({
             const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
             const isReportArchived = isArchivedReport(reportNameValuePair);
-            const {hasAnyViolations, requiresAttention, reportErrors} = generateReportAttributes({
+            const {hasAnyViolations, requiresAttention, reportErrors, oneTransactionThreadReportID} = generateReportAttributes({
                 report,
                 chatReport,
                 reportActions,
@@ -227,6 +227,7 @@ export default createOnyxDerivedValueConfig({
                 brickRoadStatus,
                 requiresAttention,
                 reportErrors,
+                oneTransactionThreadReportID,
             };
 
             return acc;

@@ -12,7 +12,7 @@ const CONCIERGE_NEGATIVE_MESSAGE = "Hi there! I'm sorry to hear you aren't fully
 
 function ProactiveAppReviewModalManager() {
     const {shouldShowModal, proactiveAppReview} = useProactiveAppReview();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const handleResponse = useCallback(
         (response: AppReviewResponse, message?: string) => {

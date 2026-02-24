@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -82,8 +82,9 @@ function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const companyCardBankIcons = useCompanyCardBankIcons();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
-    const [typeSelected, setTypeSelected] = useState<CardFeedProvider>();
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [localTypeSelected, setLocalTypeSelected] = useState<CardFeedProvider>();
+    const typeSelected = localTypeSelected ?? addNewCard?.data.feedType;
     const [isError, setIsError] = useState(false);
     const data = getAvailableCompanyCardTypes({
         translate,
@@ -110,10 +111,6 @@ function CardTypeStep() {
             });
         }
     }, [bankName, isNewCardTypeSelected, isOtherBankSelected, typeSelected]);
-
-    useEffect(() => {
-        setTypeSelected(addNewCard?.data.feedType);
-    }, [addNewCard?.data.feedType]);
 
     const handleBackButtonPress = () => {
         if (isOtherBankSelected) {
@@ -153,7 +150,7 @@ function CardTypeStep() {
                 data={data}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => {
-                    setTypeSelected(value);
+                    setLocalTypeSelected(value);
                     setIsError(false);
                 }}
                 confirmButtonOptions={confirmButtonOptions}
