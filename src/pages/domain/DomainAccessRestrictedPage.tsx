@@ -42,7 +42,7 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
     const {translate} = useLocalize();
 
     const {domainAccountID} = route.params;
-    const [domainName, domainNameResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
+    const [domainName, domainNameResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
 
     if (isLoadingOnyxValue(domainNameResults)) {
         return <FullScreenLoadingIndicator />;
