@@ -12,6 +12,9 @@ import PlaidCompanyCardDetail from '@assets/images/companyCards/card-plaid.svg';
 import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
+import CompanyCardsEmptyStateGeneric from '@assets/images/companyCards/companycards-generic.svg';
+import CompanyCardsEmptyStateUKEU from '@assets/images/companyCards/companycards-uk_eu.svg';
+import CompanyCardsEmptyStateUSCA from '@assets/images/companyCards/companycards-us_ca.svg';
 import LaptopAssignCard from '@assets/images/companyCards/emptystate__laptop-assign-card.svg';
 import LaptopReviewCard from '@assets/images/companyCards/emptystate__laptop-review-card.svg';
 import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
@@ -199,6 +202,9 @@ const Illustrations = {
     StripeCompanyCardDetailLarge,
     VisaCompanyCardDetailLarge,
     WellsFargoCompanyCardDetailLarge,
+    CompanyCardsEmptyStateGeneric,
+    CompanyCardsEmptyStateUKEU,
+    CompanyCardsEmptyStateUSCA,
     LaptopAssignCard,
     LaptopReviewCard,
     ExpensifyCardCoins,

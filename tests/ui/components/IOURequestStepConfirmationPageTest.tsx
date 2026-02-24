@@ -31,6 +31,8 @@ jest.mock('@libs/actions/IOU', () => {
         ...actualNav,
         startMoneyRequest: jest.fn(),
         requestMoney: jest.fn(() => ({iouReport: undefined})),
+        trackExpense: jest.fn(),
+        createDistanceRequest: jest.fn(),
     };
 });
 jest.mock('@libs/actions/IOU/Split', () => {
@@ -1093,6 +1095,219 @@ describe('IOURequestStepConfirmationPageTest', () => {
             } finally {
                 isReportOutstandingSpy.mockRestore();
             }
+        });
+    });
+
+    describe('Unreported transaction tests', () => {
+        beforeEach(async () => {
+            await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        });
+
+        it('should route unreported manual expense to requestMoney and skip trackExpense', async () => {
+            const transactionID = 'tx-unreported-1';
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 1000,
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
+                    created: '2025-01-15',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await screen.findByText(/^Create .*expense/i));
+
+            expect(IOU.requestMoney).toHaveBeenCalled();
+            expect(IOU.trackExpense).not.toHaveBeenCalled();
+        });
+
+        it('should route unreported distance expense to requestMoney and skip createDistanceRequest', async () => {
+            const transactionID = 'tx-unreported-dist';
+            const policy = createPolicyWithTaxAndDistance();
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                    reportID: REPORT_ID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 5000,
+                    currency: 'USD',
+                    comment: {
+                        waypoints: createWaypoints('New York', 'Boston'),
+                        customUnit: {
+                            customUnitRateID: 'altTaxRate',
+                        },
+                    },
+                    routes: {
+                        route0: {
+                            distance: 100000,
+                            geometry: {
+                                coordinates: [
+                                    [-74.006, 40.7128],
+                                    [-73.9851, 40.7589],
+                                ],
+                            },
+                        },
+                    },
+                    merchant: 'Distance',
+                    created: '2025-01-15',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await screen.findByText(/^Create .*expense/i));
+
+            // Unreported distance requests should skip createDistanceRequest and use requestMoney
+            expect(IOU.createDistanceRequest).not.toHaveBeenCalled();
+            expect(IOU.requestMoney).toHaveBeenCalled();
+        });
+    });
+
+    describe('Distance request tests', () => {
+        beforeEach(async () => {
+            await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        });
+
+        it('should call createDistanceRequest with personalDetails for non-unreported distance expense', async () => {
+            const transactionID = 'tx-dist-1';
+            const policy = createPolicyWithTaxAndDistance();
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                    reportID: REPORT_ID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_CHAT_REPORT_ID}`, {
+                    reportID: POLICY_CHAT_REPORT_ID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: REPORT_ID,
+                    amount: 5000,
+                    currency: 'USD',
+                    comment: {
+                        waypoints: createWaypoints('New York', 'Boston'),
+                        customUnit: {
+                            customUnitRateID: 'altTaxRate',
+                        },
+                    },
+                    routes: {
+                        route0: {
+                            distance: 100000,
+                            geometry: {
+                                coordinates: [
+                                    [-74.006, 40.7128],
+                                    [-73.9851, 40.7589],
+                                ],
+                            },
+                        },
+                    },
+                    merchant: 'Distance',
+                    created: '2025-01-15',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    participants: [{isPolicyExpenseChat: true, selected: true, reportID: POLICY_CHAT_REPORT_ID}],
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await screen.findByText(/^Create .*expense/i));
+
+            expect(IOU.createDistanceRequest).toHaveBeenCalled();
+            const createDistanceRequestMock = IOU.createDistanceRequest as jest.MockedFunction<typeof IOU.createDistanceRequest>;
+            const params = createDistanceRequestMock.mock.calls.at(0)?.at(0);
+            expect(params?.personalDetails).toBeDefined();
         });
     });
 });
