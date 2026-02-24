@@ -76,6 +76,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Whether to scroll to the focused item */
     shouldScrollToFocusedIndex?: boolean;
 
+    /** Whether to scroll to the focused item on mount. When false, the list stays at the top to keep header content visible */
+    shouldScrollToFocusedIndexOnMount?: boolean;
+
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
 
@@ -184,6 +187,9 @@ type SelectionListStyle = {
 
     /** Styles for the content container of the list (scrolls with content) */
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the list footer content container */
+    listFooterContentStyle?: StyleProp<ViewStyle>;
 
     /** Styles for the list container */
     containerStyle?: StyleProp<ViewStyle>;
