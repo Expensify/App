@@ -1,6 +1,5 @@
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import CONST from '@src/CONST';
-import type {Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {translateLocal} from '../utils/TestHelper';
@@ -207,7 +206,7 @@ describe('DistanceRequestUtils', () => {
         });
     });
 
-    describe('getStoredRateForDisplay', () => {
+    describe('getRateNameForDisplay', () => {
         const toLocaleDigitMock = (dot: string): string => dot;
         const getCurrencySymbolMock = (currency: string): string | undefined => {
             if (currency === 'USD') {
@@ -216,59 +215,42 @@ describe('DistanceRequestUtils', () => {
             return undefined;
         };
 
-        const callGetStoredRateForDisplay = (transaction: Transaction | undefined, unit?: Unit, rate?: number, currency?: string, isOffline?: boolean) =>
-            DistanceRequestUtils.getStoredRateForDisplay(
-                transaction,
-                unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                rate ?? 67,
-                currency ?? 'USD',
+        it('should return rate name when available', () => {
+            const result = DistanceRequestUtils.getRateNameForDisplay(
+                'Default Rate',
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                67,
+                'USD',
                 translateLocal,
                 toLocaleDigitMock,
                 getCurrencySymbolMock,
-                isOffline,
             );
+            expect(result).toBe('Default Rate');
+        });
 
-        it('should fall back to policy rate when transaction is undefined', () => {
-            const result = callGetStoredRateForDisplay(undefined);
+        it('should fall back to formatted rate value when name is undefined', () => {
+            const result = DistanceRequestUtils.getRateNameForDisplay(undefined, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, 'USD', translateLocal, toLocaleDigitMock, getCurrencySymbolMock);
             const expectedFallback = DistanceRequestUtils.getRateForDisplay(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, 'USD', translateLocal, toLocaleDigitMock, getCurrencySymbolMock);
             expect(result).toBe(expectedFallback);
         });
 
-        it('should fall back to policy rate when merchant has no separator', () => {
-            const transaction = {merchant: 'Uber ride'} as Transaction;
-            const result = callGetStoredRateForDisplay(transaction);
+        it('should fall back to formatted rate value when name is empty string', () => {
+            const result = DistanceRequestUtils.getRateNameForDisplay('', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, 'USD', translateLocal, toLocaleDigitMock, getCurrencySymbolMock);
             const expectedFallback = DistanceRequestUtils.getRateForDisplay(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, 'USD', translateLocal, toLocaleDigitMock, getCurrencySymbolMock);
             expect(result).toBe(expectedFallback);
         });
 
-        it('should extract rate from merchant with separator', () => {
-            const transaction = {merchant: '10.00 mi @ $0.70 / mi'} as Transaction;
-            const result = callGetStoredRateForDisplay(transaction);
-            expect(result).toBe('$0.70 / mi');
-        });
-
-        it('should prefer modifiedMerchant over merchant', () => {
-            const transaction = {
-                merchant: '10.00 mi @ $0.50 / mi',
-                modifiedMerchant: '10.00 mi @ $1.00 / mi',
-            } as Transaction;
-            const result = callGetStoredRateForDisplay(transaction);
-            expect(result).toBe('$1.00 / mi');
-        });
-
-        it('should fall back to merchant when modifiedMerchant is empty', () => {
-            const transaction = {
-                merchant: '10.00 mi @ $0.70 / mi',
-                modifiedMerchant: '',
-            } as Transaction;
-            const result = callGetStoredRateForDisplay(transaction);
-            expect(result).toBe('$0.70 / mi');
-        });
-
-        it('should return stored rate even when policy rate differs', () => {
-            const transaction = {merchant: '10.00 mi @ $0.50 / mi'} as Transaction;
-            const result = callGetStoredRateForDisplay(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 100, 'USD');
-            expect(result).toBe('$0.50 / mi');
+        it('should return rate name regardless of rate value', () => {
+            const result = DistanceRequestUtils.getRateNameForDisplay(
+                'Standard Mileage',
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                100,
+                'USD',
+                translateLocal,
+                toLocaleDigitMock,
+                getCurrencySymbolMock,
+            );
+            expect(result).toBe('Standard Mileage');
         });
     });
 });

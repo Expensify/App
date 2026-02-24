@@ -377,11 +377,12 @@ function getRateFromMerchant(merchant: string | undefined): string {
 
 /**
  * Get the rate display string for a distance transaction.
- * Extracts the rate from the stored merchant string if it matches the expected format (contains '@'),
- * otherwise falls back to computing the display string from the current policy rate.
+ * Shows the rate name (e.g., "Default Rate") so that updating a rate's value on the workspace
+ * does not retroactively change the displayed rate on historical expenses.
+ * Falls back to the formatted rate value for P2P expenses or rates without a name.
  */
-function getStoredRateForDisplay(
-    transaction: OnyxEntry<Transaction>,
+function getRateNameForDisplay(
+    rateName: string | undefined,
     unit: Unit | undefined,
     rate: number | undefined,
     currency: string | undefined,
@@ -390,13 +391,8 @@ function getStoredRateForDisplay(
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     isOffline?: boolean,
 ): string {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const storedMerchant = transaction?.modifiedMerchant || transaction?.merchant;
-    if (storedMerchant?.includes(CONST.DISTANCE_MERCHANT_SEPARATOR)) {
-        const parsed = getRateFromMerchant(storedMerchant);
-        if (parsed) {
-            return parsed;
-        }
+    if (rateName) {
+        return rateName;
     }
     return getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 }
@@ -475,7 +471,7 @@ export default {
     getRateByCustomUnitRateID,
     getDistanceForDisplayLabel,
     convertDistanceUnit,
-    getStoredRateForDisplay,
+    getRateNameForDisplay,
     getRateFromMerchant,
 };
 

@@ -131,7 +131,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
     const isOdometerDistance = isOdometerDistanceRequest(splitExpenseDraftTransaction);
-    const {unit, rate} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: currentPolicy});
+    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: currentPolicy});
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
     const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, rate, translate, false, isManualDistance);
@@ -141,7 +141,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isCustomUnitOutOfPolicy = !rates[currentRateID] || (isDistance && !rate);
     const rateToDisplay = isCustomUnitOutOfPolicy
         ? translate('common.rateOutOfPolicy')
-        : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
+        : DistanceRequestUtils.getRateNameForDisplay(rateName, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
     const getErrorForField = (field: ViolationField) => {
         if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {

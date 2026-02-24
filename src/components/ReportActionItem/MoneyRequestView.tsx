@@ -415,14 +415,14 @@ function MoneyRequestView({
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
-    const {unit, rate} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy});
+    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy});
     const distance = getDistanceInMeters(transactionBackup ?? updatedTransaction ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
     const hasRequiredCompanyCardViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.COMPANY_CARD_REQUIRED);
     const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) || (isDistanceRequest && !rate);
     let rateToDisplay = isCustomUnitOutOfPolicy
         ? translate('common.rateOutOfPolicy')
-        : DistanceRequestUtils.getStoredRateForDisplay(updatedTransaction ?? transaction, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
+        : DistanceRequestUtils.getRateNameForDisplay(rateName, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount?.toString() || '';
