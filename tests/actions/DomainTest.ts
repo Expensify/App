@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {
+    addAdminToDomain,
     addMemberToDomain,
     clearDomainErrors,
     clearDomainMemberError,
@@ -187,6 +188,75 @@ describe('actions/Domain', () => {
         apiWriteSpy.mockRestore();
     });
 
+    it('addAdminToDomain - adds and clears optimistic personal details for optimistic accounts', () => {
+        const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+        const domainAccountID = 123;
+        const accountID = 456;
+        const targetEmail = 'test@example.com';
+        const domainName = 'test.com';
+
+        addAdminToDomain(domainAccountID, accountID, targetEmail, domainName, true);
+
+        expect(apiWriteSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.ADD_DOMAIN_ADMIN,
+            {domainName, targetEmail},
+            {
+                optimisticData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [accountID]: {
+                                accountID,
+                                login: targetEmail,
+                                displayName: targetEmail,
+                                isOptimisticPersonalDetail: true,
+                            },
+                        },
+                    }),
+                ]),
+                successData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {[accountID]: null},
+                    }),
+                ]),
+                failureData: expect.arrayContaining([
+                    expect.objectContaining({
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {[accountID]: null},
+                    }),
+                ]),
+            },
+        );
+
+        apiWriteSpy.mockRestore();
+    });
+
+    it('addAdminToDomain - does not update optimistic personal details for non-optimistic accounts', () => {
+        const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+        const domainAccountID = 123;
+        const accountID = 456;
+        const targetEmail = 'test@example.com';
+        const domainName = 'test.com';
+
+        addAdminToDomain(domainAccountID, accountID, targetEmail, domainName, false);
+
+        expect(apiWriteSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.ADD_DOMAIN_ADMIN,
+            {domainName, targetEmail},
+            expect.objectContaining({
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                optimisticData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.PERSONAL_DETAILS_LIST})]),
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                successData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.PERSONAL_DETAILS_LIST})]),
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                failureData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.PERSONAL_DETAILS_LIST})]),
+            }),
+        );
+
+        apiWriteSpy.mockRestore();
+    });
+
     it('clearAddMemberError - clears member errors and optimistic data', async () => {
         const domainAccountID = 123;
         const email = 'test@example.com';
@@ -257,7 +327,7 @@ describe('actions/Domain', () => {
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
-                {domain: domainName, targetEmail, overrideProcessingReports: false},
+                {domain: domainName, domainAccountID, targetEmail, overrideProcessingReports: false},
                 {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
@@ -309,7 +379,11 @@ describe('actions/Domain', () => {
 
             closeUserAccount(domainAccountID, domainName, targetEmail, undefined, true);
 
-            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_DOMAIN_MEMBER, {domain: domainName, targetEmail, overrideProcessingReports: true}, expect.any(Object));
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
+                {domain: domainName, targetEmail, overrideProcessingReports: true, domainAccountID},
+                expect.any(Object),
+            );
 
             apiWriteSpy.mockRestore();
         });

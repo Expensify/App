@@ -47,10 +47,10 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>, isSingleUseEna
 
 function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true, initWithStoredValues: false});
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {initWithStoredValues: false});
     const {currentStep} = issueNewCard ?? {};
     const backTo = route?.params?.backTo;
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const {isBetaEnabled} = usePermissions();
     const isSingleUseEnabled = isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS);
 

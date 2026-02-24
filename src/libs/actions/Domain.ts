@@ -540,10 +540,12 @@ function clearToggleConsolidatedDomainBillingErrors(domainAccountID: number) {
     });
 }
 
-function addAdminToDomain(domainAccountID: number, accountID: number, targetEmail: string, domainName: string) {
+function addAdminToDomain(domainAccountID: number, accountID: number, targetEmail: string, domainName: string, isOptimisticAccount: boolean) {
     const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
@@ -575,7 +577,24 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+    if (isOptimisticAccount) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.PERSONAL_DETAILS_LIST}`,
+            value: {
+                [accountID]: {
+                    accountID,
+                    login: targetEmail,
+                    displayName: targetEmail,
+                    isOptimisticPersonalDetail: true,
+                },
+            },
+        });
+    }
+
+    const successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
@@ -605,7 +624,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -627,6 +646,18 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
             },
         },
     ];
+
+    if (isOptimisticAccount) {
+        const clearOptimisticPersonalDetails: OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> = {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.PERSONAL_DETAILS_LIST}`,
+            value: {
+                [accountID]: null,
+            },
+        };
+        successData.push(clearOptimisticPersonalDetails);
+        failureData.push(clearOptimisticPersonalDetails);
+    }
 
     const params: AddAdminToDomainParams = {
         domainName,
@@ -1040,6 +1071,7 @@ function closeUserAccount(domainAccountID: number, domain: string, targetEmail: 
 
     const parameters: DeleteDomainMemberParams = {
         domain,
+        domainAccountID,
         targetEmail,
         overrideProcessingReports,
     };
@@ -1049,7 +1081,12 @@ function closeUserAccount(domainAccountID: number, domain: string, targetEmail: 
 
 function toggleTwoFactorAuthRequiredForDomain(domainAccountID: number, domainName: string, twoFactorAuthRequired: boolean, twoFactorAuthCode?: string) {
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+            | typeof ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1074,8 +1111,13 @@ function toggleTwoFactorAuthRequiredForDomain(domainAccountID: number, domainNam
                 setTwoFactorAuthRequiredError: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE,
+            value: null,
+        },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -1090,9 +1132,19 @@ function toggleTwoFactorAuthRequiredForDomain(domainAccountID: number, domainNam
                 setTwoFactorAuthRequiredError: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE,
+            value: null,
+        },
     ];
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+            | typeof ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1107,9 +1159,20 @@ function toggleTwoFactorAuthRequiredForDomain(domainAccountID: number, domainNam
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
-                setTwoFactorAuthRequiredError: getMicroSecondOnyxErrorWithTranslationKey('domain.members.forceTwoFactorAuthError'),
+                setTwoFactorAuthRequiredError: twoFactorAuthCode ? null : getMicroSecondOnyxErrorWithTranslationKey('domain.members.forceTwoFactorAuthError'),
             },
         },
+        ...(twoFactorAuthCode
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE,
+                      value: {
+                          errors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.forceTwoFactorAuthError'),
+                      },
+                  } as OnyxUpdate<typeof ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE>,
+              ]
+            : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -1133,6 +1196,10 @@ function clearToggleTwoFactorAuthRequiredForDomainError(domainAccountID: number)
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         setTwoFactorAuthRequiredError: null,
     });
+}
+
+function clearValidateDomainTwoFactorCodeError() {
+    Onyx.set(ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE, null);
 }
 
 function setDomainVacationDelegate(domainAccountID: number, domainMemberAccountID: number, creator: string, vacationer: string, delegate: string, vacationDelegate?: BaseVacationDelegate) {
@@ -1172,7 +1239,7 @@ function setDomainVacationDelegate(domainAccountID: number, domainMemberAccountI
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
@@ -1206,7 +1273,7 @@ function setDomainVacationDelegate(domainAccountID: number, domainMemberAccountI
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -1281,7 +1348,7 @@ function deleteDomainVacationDelegate(domainAccountID: number, domainMemberAccou
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -1306,7 +1373,7 @@ function deleteDomainVacationDelegate(domainAccountID: number, domainMemberAccou
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
@@ -1393,6 +1460,7 @@ export {
     closeUserAccount,
     toggleTwoFactorAuthRequiredForDomain,
     clearToggleTwoFactorAuthRequiredForDomainError,
+    clearValidateDomainTwoFactorCodeError,
     setDomainVacationDelegate,
     deleteDomainVacationDelegate,
     clearVacationDelegateError,
