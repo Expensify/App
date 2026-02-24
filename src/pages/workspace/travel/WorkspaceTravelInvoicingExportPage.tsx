@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {exportTravelInvoiceStatementCSV, getTravelInvoiceStatementPDF} from '@libs/actions/TravelInvoicing';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,6 +38,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     const {translate} = useLocalize();
     const {environment, isDevelopment} = useEnvironment();
     const [travelInvoiceStatement] = useOnyx(ONYXKEYS.TRAVEL_INVOICE_STATEMENT);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isGenerating = travelInvoiceStatement?.isGenerating ?? false;
     const prevIsGenerating = usePrevious(isGenerating);
@@ -107,13 +109,13 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         if (travelInvoiceStatement?.[cacheKey]) {
             // We already have a cached file for this statement, download it immediately
             const fileName = travelInvoiceStatement[cacheKey];
-            downloadTravelInvoiceStatementPDF(translate, baseURL, fileName, startDate, endDate).finally(() => setIsDownloading(false));
+            downloadTravelInvoiceStatementPDF(translate, baseURL, fileName, startDate, endDate, currentUserPersonalDetails?.login ?? '').finally(() => setIsDownloading(false));
             return;
         }
 
         // Request PDF generation — the useEffect will auto-download when it completes
         getTravelInvoiceStatementPDF(policyID, startDate, endDate);
-    }, [baseURL, isGenerating, getDateRange, translate, travelInvoiceStatement, policyID]);
+    }, [baseURL, isGenerating, getDateRange, translate, travelInvoiceStatement, policyID, currentUserPersonalDetails?.login]);
 
     useEffect(() => {
         if (!prevIsGenerating || isGenerating) {

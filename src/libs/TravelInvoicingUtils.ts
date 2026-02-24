@@ -6,6 +6,7 @@ import type {BankAccountList, Card, WorkspaceCardsList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
 import {getLastFourDigits} from './BankAccountUtils';
+import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {isDevelopment, isInternalTestBuild, isStaging} from './Environment/Environment';
 import fileDownload from './fileDownload';
 
@@ -172,10 +173,17 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
  * Downloads a cached Travel Invoice Statement PDF.
  * Constructs a secure URL with encrypted auth token and triggers the download.
  */
-function downloadTravelInvoiceStatementPDF(translate: LocalizedTranslate, baseURL: string, fileName: string | true, startDate: string, endDate: string): Promise<void> {
+function downloadTravelInvoiceStatementPDF(
+    translate: LocalizedTranslate,
+    baseURL: string,
+    fileName: string | true,
+    startDate: string,
+    endDate: string,
+    currentUserEmail: string,
+): Promise<void> {
     const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
-    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
-    return fileDownload(translate, pdfURL, downloadFileName, '');
+    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
+    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '');
 }
 
 /**
