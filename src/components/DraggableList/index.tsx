@@ -2,7 +2,8 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
@@ -41,14 +42,15 @@ function DraggableList<T>({
     keyExtractor,
     onDragEnd: onDragEndCallback,
     onSelectRow,
-    isKeyboardActive = false,
-    focusedIndex: controlledFocusedIndex,
     // eslint-disable-next-line @typescript-eslint/naming-convention
     ListFooterComponent,
     disableScroll,
     ref,
 }: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
     const styles = useThemeStyles();
+    const isFocused = useIsFocused();
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [hasFocus, setHasFocus] = useState(false);
 
     const items = data.map((item, index) => {
         return keyExtractor(item, index);
@@ -56,15 +58,45 @@ function DraggableList<T>({
 
     const disabledArrowKeyIndexes = data.flatMap((item, index) => (getDraggableItemState(item).isDisabled ? [index] : []));
 
-    const [internalFocusedIndex, setInternalFocusedIndex] = useArrowKeyFocusManager({
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
         maxIndex: data.length - 1,
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: isKeyboardActive,
+        isActive: isFocused,
         disableCyclicTraversal: true,
     });
 
-    const focusedIndex = controlledFocusedIndex ?? internalFocusedIndex;
+    // Track whether this list's container has focus via DOM events
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) {
+            return;
+        }
+        const handleFocusIn = () => {
+            setHasFocus(true);
+        };
+        const handleFocusOut = (event: FocusEvent) => {
+            if (event.relatedTarget instanceof Node && container.contains(event.relatedTarget)) {
+                return;
+            }
+            setHasFocus(false);
+            setFocusedIndex(-1);
+        };
+        container.addEventListener('focusin', handleFocusIn);
+        container.addEventListener('focusout', handleFocusOut);
+        return () => {
+            container.removeEventListener('focusin', handleFocusIn);
+            container.removeEventListener('focusout', handleFocusOut);
+        };
+    }, [setFocusedIndex]);
+
+    // Clamp focusedIndex when data shrinks
+    useEffect(() => {
+        if (focusedIndex <= data.length - 1) {
+            return;
+        }
+        setFocusedIndex(Math.max(data.length - 1, -1));
+    }, [data.length, focusedIndex, setFocusedIndex]);
 
     const selectFocusedOption = () => {
         const focusedItem = data.at(focusedIndex);
@@ -74,7 +106,11 @@ function DraggableList<T>({
     };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
-        isActive: isKeyboardActive && focusedIndex >= 0 && !!onSelectRow,
+        isActive: hasFocus && focusedIndex >= 0 && !!onSelectRow,
+    });
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, selectFocusedOption, {
+        isActive: hasFocus && focusedIndex >= 0 && !!onSelectRow,
     });
 
     /**
@@ -91,21 +127,21 @@ function DraggableList<T>({
 
             const reorderedItems = arrayMove(data, oldIndex, newIndex);
             onDragEndCallback?.({data: reorderedItems});
-            setInternalFocusedIndex(-1);
+            setFocusedIndex(-1);
         }
     };
 
     const sortableItems = data.map((item, index) => {
         const key = keyExtractor(item, index);
         const {isDragDisabled, isDisabled: isItemDisabled} = getDraggableItemState(item);
-        const isFocused = index === focusedIndex && !isItemDisabled;
+        const isItemFocused = index === focusedIndex && !isItemDisabled;
 
         const renderedItem = renderItem({
             item,
             getIndex: () => index,
             isActive: false,
             drag: () => {},
-            isFocused,
+            isFocused: isItemFocused,
         });
 
         return (
@@ -113,7 +149,7 @@ function DraggableList<T>({
                 id={key}
                 key={key}
                 disabled={isDragDisabled}
-                isFocused={isFocused}
+                isFocused={isItemFocused}
             >
                 {renderedItem}
             </SortableItem>
@@ -133,7 +169,7 @@ function DraggableList<T>({
 
     const content = (
         <>
-            <div>
+            <div ref={containerRef}>
                 <DndContext
                     onDragEnd={onDragEnd}
                     sensors={sensors}

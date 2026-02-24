@@ -11,10 +11,8 @@ import type {ListItem} from '@components/SelectionList/types';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useMultiListFocusManager from '@hooks/useMultiListFocusManager';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -134,22 +132,6 @@ function SearchColumnsPage() {
     const typeColumnsList = allColumnsList.filter((column) => allTypeCustomColumns.includes(column.keyForList));
     const groupColumnsList = allColumnsList.filter((column) => allGroupCustomColumns.includes(column.keyForList));
 
-    const flatItems = groupBy ? [...groupColumnsList, ...typeColumnsList] : typeColumnsList;
-    const groupLength = groupBy ? groupColumnsList.length : 0;
-
-    const {
-        focusedIndex,
-        setFocusedIndex,
-        firstListFocusedIndex: groupFocusedIndex,
-        secondListFocusedIndex: typeFocusedIndex,
-        listContainerRef,
-        scheduleRefocus,
-    } = useMultiListFocusManager({
-        flatItems,
-        firstListLength: groupLength,
-        reorderDep: columns,
-    });
-
     const isDefaultState =
         columns.length === defaultColumns.length &&
         columns.every((col, index) => col.columnId === defaultColumns.at(index)?.columnId && col.isSelected === defaultColumns.at(index)?.isSelected);
@@ -183,42 +165,22 @@ function SearchColumnsPage() {
 
             return prevColumns.map((col) => (col.columnId === updatedColumnId ? {...col, isSelected: false} : col));
         });
-
-        scheduleRefocus();
     };
-
-    const selectFocusedItem = () => {
-        const item = flatItems.at(focusedIndex);
-        if (item) {
-            onSelectItem(item);
-        }
-    };
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedItem, {
-        isActive: focusedIndex >= 0,
-    });
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, selectFocusedItem, {
-        isActive: focusedIndex >= 0,
-    });
 
     const onGroupDragEnd = ({data}: {data: typeof allColumnsList}) => {
         const newGroupColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const existingTypeColumns = typeColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         setColumns([...existingTypeColumns, ...newGroupColumns]);
-        setFocusedIndex(-1);
     };
 
     const onTypeDragEnd = ({data}: {data: typeof allColumnsList}) => {
         const newTypeColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const existingGroupColumns = groupColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         setColumns([...existingGroupColumns, ...newTypeColumns]);
-        setFocusedIndex(-1);
     };
 
     const resetColumns = () => {
         setColumns(defaultColumns);
-        setFocusedIndex(-1);
     };
 
     const applyChanges = () => {
@@ -245,15 +207,6 @@ function SearchColumnsPage() {
                 showTooltip={false}
                 onSelectRow={onSelectItem}
                 isDisabled={item.isDisabled}
-                onFocus={() => {
-                    if (item.isDisabled) {
-                        return;
-                    }
-                    const flatIndex = flatItems.findIndex((i) => i.keyForList === item.keyForList);
-                    if (flatIndex >= 0) {
-                        setFocusedIndex(flatIndex);
-                    }
-                }}
             />
         );
     };
@@ -273,39 +226,37 @@ function SearchColumnsPage() {
                     style={styles.flex1}
                     contentContainerStyle={styles.flex1}
                 >
-                    <View ref={listContainerRef}>
-                        {!!groupBy && (
-                            <>
-                                <View style={[styles.ph5, styles.pb3]}>
-                                    <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
-                                </View>
+                    {!!groupBy && (
+                        <>
+                            <View style={[styles.ph5, styles.pb3]}>
+                                <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
+                            </View>
 
-                                <DraggableList
-                                    disableScroll
-                                    data={groupColumnsList}
-                                    keyExtractor={(item) => item.value}
-                                    onDragEnd={onGroupDragEnd}
-                                    focusedIndex={groupFocusedIndex}
-                                    renderItem={renderItem}
-                                />
+                            <DraggableList
+                                disableScroll
+                                data={groupColumnsList}
+                                keyExtractor={(item) => item.value}
+                                onDragEnd={onGroupDragEnd}
+                                onSelectRow={onSelectItem}
+                                renderItem={renderItem}
+                            />
 
-                                <View style={styles.dividerLine} />
+                            <View style={styles.dividerLine} />
 
-                                <View style={[styles.ph5, styles.pv3]}>
-                                    <Text style={styles.textLabelSupporting}>{translate('search.expenseColumns')}</Text>
-                                </View>
-                            </>
-                        )}
+                            <View style={[styles.ph5, styles.pv3]}>
+                                <Text style={styles.textLabelSupporting}>{translate('search.expenseColumns')}</Text>
+                            </View>
+                        </>
+                    )}
 
-                        <DraggableList
-                            disableScroll
-                            data={typeColumnsList}
-                            keyExtractor={(item) => item.value}
-                            onDragEnd={onTypeDragEnd}
-                            focusedIndex={typeFocusedIndex}
-                            renderItem={renderItem}
-                        />
-                    </View>
+                    <DraggableList
+                        disableScroll
+                        data={typeColumnsList}
+                        keyExtractor={(item) => item.value}
+                        onDragEnd={onTypeDragEnd}
+                        onSelectRow={onSelectItem}
+                        renderItem={renderItem}
+                    />
                 </ScrollView>
             </View>
             <View style={[styles.ph5, styles.pb5]}>

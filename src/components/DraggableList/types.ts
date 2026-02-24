@@ -23,14 +23,8 @@ type DraggableListProps<T> = {
     /** Called after the animation has been completed. Returns updated ordering of data  */
     onDragEnd?: (params: DraggableListData<T>) => void;
 
-    /** Called when a row is selected via Enter key */
+    /** Called when a row is selected via Enter/Space key */
     onSelectRow?: (item: T) => void;
-
-    /** Whether keyboard navigation is active for this list. Defaults to false. */
-    isKeyboardActive?: boolean;
-
-    /** Controlled focused index from parent. When provided, overrides internal focus management. */
-    focusedIndex?: number;
 
     /** Rendered at the bottom of all the items. Just like in the FlatList. */
     ListFooterComponent?: React.ReactElement;
