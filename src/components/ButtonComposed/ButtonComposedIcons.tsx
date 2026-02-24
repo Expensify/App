@@ -1,13 +1,13 @@
 import React from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
-import { View } from 'react-native';
-import type { ValueOf } from 'type-fest';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import { ButtonComposedVariant, useButtonComposedContext } from './ButtonComposedContext';
+import {ButtonComposedVariant, useButtonComposedContext} from './ButtonComposedContext';
 
 type ButtonIconBaseProps = {
     src: IconAsset;
