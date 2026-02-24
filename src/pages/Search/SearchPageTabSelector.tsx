@@ -1,16 +1,16 @@
-import React, {useEffect} from 'react';
+import {useNavigation} from '@react-navigation/native';
+import React from 'react';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import ScrollableTabSelectorBase from '@components/TabSelector/ScrollableTabSelector/ScrollableTabSelectorBase';
 import ScrollableTabSelectorContextProvider from '@components/TabSelector/ScrollableTabSelector/ScrollableTabSelectorContext';
+import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import {setSearchContext} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 type SearchPageTabSelectorProps = {
     queryJSON?: SearchQueryJSON;
@@ -18,8 +18,9 @@ type SearchPageTabSelectorProps = {
 
 function SearchPageTabSelector({queryJSON}: SearchPageTabSelectorProps) {
     const {translate} = useLocalize();
+    const navigation = useNavigation();
     const {typeMenuSections} = useSearchTypeMenuSections();
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Receipt',
         'ChatBubbles',
@@ -74,15 +75,13 @@ function SearchPageTabSelector({queryJSON}: SearchPageTabSelectorProps) {
             return;
         }
         setSearchContext(false);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchData.query, name: searchData.name}));
+        navigation.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
+            payload: {
+                params: {q: searchData.query, name: searchData.name},
+            },
+        });
     };
-
-    useEffect(() => {
-        console.log('MOUNT');
-        return () => {
-            console.log('UNMOUNT');
-        };
-    }, []);
 
     return (
         <ScrollableTabSelectorContextProvider activeTabKey={activeKey}>
