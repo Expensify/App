@@ -39,7 +39,7 @@ function useRedirectToExpensifyClassic() {
         openOldDotLink(CONST.OLDDOT_URLS.INBOX);
     };
 
-    return {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal, allPolicies};
+    return {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal};
 }
 
 export default useRedirectToExpensifyClassic;
