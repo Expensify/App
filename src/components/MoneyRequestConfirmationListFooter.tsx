@@ -1265,7 +1265,7 @@ function MoneyRequestConfirmationListFooter({
 
                                   Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                               }}
-                              style={[isCompactMode ? undefined : styles.mv3, isCompactMode && compactReceiptStyle ? compactReceiptStyle : styles.expenseViewImageSmall]}
+                              style={[isCompactMode ? undefined : styles.mv3, isCompactMode && compactReceiptStyle ? compactReceiptStyle : styles.moneyRequestViewImage]}
                           />
                       ))}
             <View style={[styles.mb5, styles.mt2]}>
