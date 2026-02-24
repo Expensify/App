@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
@@ -36,13 +36,14 @@ function ReportCardLostConfirmMagicCodePage({
     const previousCardList = usePrevious(cardList);
     const validateError = getLatestErrorMessageField(physicalCard);
 
-    useEffect(() => {
+    const [prevCardList, setPrevCardList] = useState(cardList);
+    if (prevCardList !== cardList) {
+        setPrevCardList(cardList);
         const newID = Object.keys(cardList ?? {}).find((cardKey) => cardList?.[cardKey]?.cardID && !(cardKey in (previousCardList ?? {})));
-        if (!newID || physicalCard?.cardID) {
-            return;
+        if (newID && !physicalCard?.cardID) {
+            setNewCardID(newID);
         }
-        setNewCardID(newID);
-    }, [cardList, physicalCard?.cardID, previousCardList]);
+    }
 
     useEffect(() => {
         if (formData?.isLoading) {
@@ -57,15 +58,12 @@ function ReportCardLostConfirmMagicCodePage({
         setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, newErrors);
     }, [formData?.isLoading, formData?.errors, physicalCard?.errors]);
 
-    const handleValidateCodeEntered = useCallback(
-        (validateCode: string) => {
-            if (!physicalCard) {
-                return;
-            }
-            requestReplacementExpensifyCard(physicalCard.cardID, reason, validateCode);
-        },
-        [physicalCard, reason],
-    );
+    const handleValidateCodeEntered = (validateCode: string) => {
+        if (!physicalCard) {
+            return;
+        }
+        requestReplacementExpensifyCard(physicalCard.cardID, reason, validateCode);
+    };
 
     if (newCardID) {
         return (
