@@ -285,7 +285,7 @@ type SearchQuarterGroup = {
 
 /** SearchResultDataType */
 type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
-    Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined> &
+    Partial<Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined>> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &

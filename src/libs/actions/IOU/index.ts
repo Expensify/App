@@ -12564,7 +12564,7 @@ function getSearchOnyxUpdate({
                 });
             }
             // Building this object sequentially resolves TypeScript type inference issues
-            const optimisticDataSnapshotValueData = {} as SearchResultDataType;
+            const optimisticDataSnapshotValueData: SearchResultDataType = {};
 
             optimisticDataSnapshotValueData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
                 [toAccountID]: {
