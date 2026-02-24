@@ -1,0 +1,1417 @@
+Destination,Currency,Subrate,Amount
+Afghanistan,EUR,Full Day,30
+Afghanistan,EUR,Part Day,20
+Afghanistan,EUR,Overnight,95
+Afghanistan,EUR,Breakfast,-6
+Afghanistan,EUR,Lunch,-12
+Afghanistan,EUR,Dinner,-12
+Albania,EUR,Full Day,29
+Albania,EUR,Part Day,20
+Albania,EUR,Overnight,113
+Albania,EUR,Breakfast,-5.8
+Albania,EUR,Lunch,-11.6
+Albania,EUR,Dinner,-11.6
+Algeria,EUR,Full Day,51
+Algeria,EUR,Part Day,34
+Algeria,EUR,Overnight,173
+Algeria,EUR,Breakfast,-10.2
+Algeria,EUR,Lunch,-20.4
+Algeria,EUR,Dinner,-20.4
+Andorra,EUR,Full Day,34
+Andorra,EUR,Part Day,23
+Andorra,EUR,Overnight,45
+Andorra,EUR,Breakfast,-6.8
+Andorra,EUR,Lunch,-13.6
+Andorra,EUR,Dinner,-13.6
+Angola,EUR,Full Day,77
+Angola,EUR,Part Day,52
+Angola,EUR,Overnight,265
+Angola,EUR,Breakfast,-15.4
+Angola,EUR,Lunch,-30.8
+Angola,EUR,Dinner,-30.8
+Antigua and Barbuda,EUR,Full Day,45
+Antigua and Barbuda,EUR,Part Day,30
+Antigua and Barbuda,EUR,Overnight,177
+Antigua and Barbuda,EUR,Breakfast,-9
+Antigua and Barbuda,EUR,Lunch,-18
+Antigua and Barbuda,EUR,Dinner,-18
+Argentina,EUR,Full Day,34
+Argentina,EUR,Part Day,23
+Argentina,EUR,Overnight,144
+Argentina,EUR,Breakfast,-6.8
+Argentina,EUR,Lunch,-13.6
+Argentina,EUR,Dinner,-13.6
+Armenia,EUR,Full Day,23
+Armenia,EUR,Part Day,16
+Armenia,EUR,Overnight,63
+Armenia,EUR,Breakfast,-4.6
+Armenia,EUR,Lunch,-9.2
+Armenia,EUR,Dinner,-9.2
+Australia - Canberra,EUR,Full Day,51
+Australia - Canberra,EUR,Part Day,34
+Australia - Canberra,EUR,Overnight,158
+Australia - Canberra,EUR,Breakfast,-10.2
+Australia - Canberra,EUR,Lunch,-20.4
+Australia - Canberra,EUR,Dinner,-20.4
+Australia - Sydney,EUR,Full Day,68
+Australia - Sydney,EUR,Part Day,45
+Australia - Sydney,EUR,Overnight,184
+Australia - Sydney,EUR,Breakfast,-13.6
+Australia - Sydney,EUR,Lunch,-27.2
+Australia - Sydney,EUR,Dinner,-27.2
+Australia - for the rest,EUR,Full Day,51
+Australia - for the rest,EUR,Part Day,34
+Australia - for the rest,EUR,Overnight,158
+Australia - for the rest,EUR,Breakfast,-10.2
+Australia - for the rest,EUR,Lunch,-20.4
+Australia - for the rest,EUR,Dinner,-20.4
+Austria,EUR,Full Day,40
+Austria,EUR,Part Day,27
+Austria,EUR,Overnight,108
+Austria,EUR,Breakfast,-8
+Austria,EUR,Lunch,-16
+Austria,EUR,Dinner,-16
+Azerbaijan,EUR,Full Day,30
+Azerbaijan,EUR,Part Day,20
+Azerbaijan,EUR,Overnight,72
+Azerbaijan,EUR,Breakfast,-6
+Azerbaijan,EUR,Lunch,-12
+Azerbaijan,EUR,Dinner,-12
+Bahrain,EUR,Full Day,45
+Bahrain,EUR,Part Day,30
+Bahrain,EUR,Overnight,180
+Bahrain,EUR,Breakfast,-9
+Bahrain,EUR,Lunch,-18
+Bahrain,EUR,Dinner,-18
+Bangladesh,EUR,Full Day,30
+Bangladesh,EUR,Part Day,20
+Bangladesh,EUR,Overnight,111
+Bangladesh,EUR,Breakfast,-6
+Bangladesh,EUR,Lunch,-12
+Bangladesh,EUR,Dinner,-12
+Barbados,EUR,Full Day,52
+Barbados,EUR,Part Day,35
+Barbados,EUR,Overnight,165
+Barbados,EUR,Breakfast,-10.4
+Barbados,EUR,Lunch,-20.8
+Barbados,EUR,Dinner,-20.8
+Belarus,EUR,Full Day,20
+Belarus,EUR,Part Day,13
+Belarus,EUR,Overnight,98
+Belarus,EUR,Breakfast,-4
+Belarus,EUR,Lunch,-8
+Belarus,EUR,Dinner,-8
+Belgium,EUR,Full Day,42
+Belgium,EUR,Part Day,28
+Belgium,EUR,Overnight,135
+Belgium,EUR,Breakfast,-8.4
+Belgium,EUR,Lunch,-16.8
+Belgium,EUR,Dinner,-16.8
+Benin,EUR,Full Day,40
+Benin,EUR,Part Day,27
+Benin,EUR,Overnight,101
+Benin,EUR,Breakfast,-8
+Benin,EUR,Lunch,-16
+Benin,EUR,Dinner,-16
+Bolivia,EUR,Full Day,30
+Bolivia,EUR,Part Day,20
+Bolivia,EUR,Overnight,93
+Bolivia,EUR,Breakfast,-6
+Bolivia,EUR,Lunch,-12
+Bolivia,EUR,Dinner,-12
+Bosnia and Herzegovina,EUR,Full Day,18
+Bosnia and Herzegovina,EUR,Part Day,12
+Bosnia and Herzegovina,EUR,Overnight,73
+Bosnia and Herzegovina,EUR,Breakfast,-3.6
+Bosnia and Herzegovina,EUR,Lunch,-7.2
+Bosnia and Herzegovina,EUR,Dinner,-7.2
+Botswana,EUR,Full Day,40
+Botswana,EUR,Part Day,27
+Botswana,EUR,Overnight,102
+Botswana,EUR,Breakfast,-8
+Botswana,EUR,Lunch,-16
+Botswana,EUR,Dinner,-16
+Brazil - Brasilia,EUR,Full Day,57
+Brazil - Brasilia,EUR,Part Day,38
+Brazil - Brasilia,EUR,Overnight,127
+Brazil - Brasilia,EUR,Breakfast,-11.4
+Brazil - Brasilia,EUR,Lunch,-22.8
+Brazil - Brasilia,EUR,Dinner,-22.8
+Brazil - Rio de Janeiro,EUR,Full Day,57
+Brazil - Rio de Janeiro,EUR,Part Day,38
+Brazil - Rio de Janeiro,EUR,Overnight,145
+Brazil - Rio de Janeiro,EUR,Breakfast,-11.4
+Brazil - Rio de Janeiro,EUR,Lunch,-22.8
+Brazil - Rio de Janeiro,EUR,Dinner,-22.8
+Brazil - São Paulo,EUR,Full Day,53
+Brazil - São Paulo,EUR,Part Day,36
+Brazil - São Paulo,EUR,Overnight,132
+Brazil - São Paulo,EUR,Breakfast,-10.6
+Brazil - São Paulo,EUR,Lunch,-21.2
+Brazil - São Paulo,EUR,Dinner,-21.2
+Brazil - for the rest,EUR,Full Day,51
+Brazil - for the rest,EUR,Part Day,34
+Brazil - for the rest,EUR,Overnight,84
+Brazil - for the rest,EUR,Breakfast,-10.2
+Brazil - for the rest,EUR,Lunch,-20.4
+Brazil - for the rest,EUR,Dinner,-20.4
+Brunei,EUR,Full Day,48
+Brunei,EUR,Part Day,32
+Brunei,EUR,Overnight,106
+Brunei,EUR,Breakfast,-9.6
+Brunei,EUR,Lunch,-19.2
+Brunei,EUR,Dinner,-19.2
+Bulgaria,EUR,Full Day,22
+Bulgaria,EUR,Part Day,15
+Bulgaria,EUR,Overnight,90
+Bulgaria,EUR,Breakfast,-4.4
+Bulgaria,EUR,Lunch,-8.8
+Bulgaria,EUR,Dinner,-8.8
+Burkina Faso,EUR,Full Day,44
+Burkina Faso,EUR,Part Day,29
+Burkina Faso,EUR,Overnight,84
+Burkina Faso,EUR,Breakfast,-8.8
+Burkina Faso,EUR,Lunch,-17.6
+Burkina Faso,EUR,Dinner,-17.6
+Burundi,EUR,Full Day,47
+Burundi,EUR,Part Day,32
+Burundi,EUR,Overnight,98
+Burundi,EUR,Breakfast,-9.4
+Burundi,EUR,Lunch,-18.8
+Burundi,EUR,Dinner,-18.8
+Cambodia,EUR,Full Day,38
+Cambodia,EUR,Part Day,25
+Cambodia,EUR,Overnight,94
+Cambodia,EUR,Breakfast,-7.6
+Cambodia,EUR,Lunch,-15.2
+Cambodia,EUR,Dinner,-15.2
+Cameroon,EUR,Full Day,50
+Cameroon,EUR,Part Day,33
+Cameroon,EUR,Overnight,180
+Cameroon,EUR,Breakfast,-10
+Cameroon,EUR,Lunch,-20
+Cameroon,EUR,Dinner,-20
+Canada - Ottawa,EUR,Full Day,47
+Canada - Ottawa,EUR,Part Day,32
+Canada - Ottawa,EUR,Overnight,142
+Canada - Ottawa,EUR,Breakfast,-9.4
+Canada - Ottawa,EUR,Lunch,-18.8
+Canada - Ottawa,EUR,Dinner,-18.8
+Canada - Toronto,EUR,Full Day,51
+Canada - Toronto,EUR,Part Day,34
+Canada - Toronto,EUR,Overnight,161
+Canada - Toronto,EUR,Breakfast,-10.2
+Canada - Toronto,EUR,Lunch,-20.4
+Canada - Toronto,EUR,Dinner,-20.4
+Canada - Vancouver,EUR,Full Day,50
+Canada - Vancouver,EUR,Part Day,33
+Canada - Vancouver,EUR,Overnight,140
+Canada - Vancouver,EUR,Breakfast,-10
+Canada - Vancouver,EUR,Lunch,-20
+Canada - Vancouver,EUR,Dinner,-20
+Canada - for the rest,EUR,Full Day,47
+Canada - for the rest,EUR,Part Day,32
+Canada - for the rest,EUR,Overnight,134
+Canada - for the rest,EUR,Breakfast,-9.4
+Canada - for the rest,EUR,Lunch,-18.8
+Canada - for the rest,EUR,Dinner,-18.8
+Cape Verde,EUR,Full Day,30
+Cape Verde,EUR,Part Day,20
+Cape Verde,EUR,Overnight,105
+Cape Verde,EUR,Breakfast,-6
+Cape Verde,EUR,Lunch,-12
+Cape Verde,EUR,Dinner,-12
+Central African Republic,EUR,Full Day,46
+Central African Republic,EUR,Part Day,31
+Central African Republic,EUR,Overnight,74
+Central African Republic,EUR,Breakfast,-9.2
+Central African Republic,EUR,Lunch,-18.4
+Central African Republic,EUR,Dinner,-18.4
+Chad,EUR,Full Day,64
+Chad,EUR,Part Day,43
+Chad,EUR,Overnight,163
+Chad,EUR,Breakfast,-12.8
+Chad,EUR,Lunch,-25.6
+Chad,EUR,Dinner,-25.6
+Chile,EUR,Full Day,44
+Chile,EUR,Part Day,29
+Chile,EUR,Overnight,187
+Chile,EUR,Breakfast,-8.8
+Chile,EUR,Lunch,-17.6
+Chile,EUR,Dinner,-17.6
+China - Beijing,EUR,Full Day,46
+China - Beijing,EUR,Part Day,31
+China - Beijing,EUR,Overnight,142
+China - Beijing,EUR,Breakfast,-9.2
+China - Beijing,EUR,Lunch,-18.4
+China - Beijing,EUR,Dinner,-18.4
+China - Canton,EUR,Full Day,40
+China - Canton,EUR,Part Day,27
+China - Canton,EUR,Overnight,113
+China - Canton,EUR,Breakfast,-8
+China - Canton,EUR,Lunch,-16
+China - Canton,EUR,Dinner,-16
+China - Chengdu,EUR,Full Day,35
+China - Chengdu,EUR,Part Day,24
+China - Chengdu,EUR,Overnight,105
+China - Chengdu,EUR,Breakfast,-7
+China - Chengdu,EUR,Lunch,-14
+China - Chengdu,EUR,Dinner,-14
+China - Hong Kong,EUR,Full Day,74
+China - Hong Kong,EUR,Part Day,49
+China - Hong Kong,EUR,Overnight,145
+China - Hong Kong,EUR,Breakfast,-14.8
+China - Hong Kong,EUR,Lunch,-29.6
+China - Hong Kong,EUR,Dinner,-29.6
+China - Shanghai,EUR,Full Day,50
+China - Shanghai,EUR,Part Day,33
+China - Shanghai,EUR,Overnight,128
+China - Shanghai,EUR,Breakfast,-10
+China - Shanghai,EUR,Lunch,-20
+China - Shanghai,EUR,Dinner,-20
+China - for the rest,EUR,Full Day,50
+China - for the rest,EUR,Part Day,33
+China - for the rest,EUR,Overnight,78
+China - for the rest,EUR,Breakfast,-10
+China - for the rest,EUR,Lunch,-20
+China - for the rest,EUR,Dinner,-20
+Colombia,EUR,Full Day,41
+Colombia,EUR,Part Day,28
+Colombia,EUR,Overnight,126
+Colombia,EUR,Breakfast,-8.2
+Colombia,EUR,Lunch,-16.4
+Colombia,EUR,Dinner,-16.4
+"Congo, Democratic Republic",EUR,Full Day,68
+"Congo, Democratic Republic",EUR,Part Day,45
+"Congo, Democratic Republic",EUR,Overnight,171
+"Congo, Democratic Republic",EUR,Breakfast,-13.6
+"Congo, Democratic Republic",EUR,Lunch,-27.2
+"Congo, Democratic Republic",EUR,Dinner,-27.2
+"Congo, Republic",EUR,Full Day,50
+"Congo, Republic",EUR,Part Day,33
+"Congo, Republic",EUR,Overnight,200
+"Congo, Republic",EUR,Breakfast,-10
+"Congo, Republic",EUR,Lunch,-20
+"Congo, Republic",EUR,Dinner,-20
+Costa Rica,EUR,Full Day,47
+Costa Rica,EUR,Part Day,32
+Costa Rica,EUR,Overnight,93
+Costa Rica,EUR,Breakfast,-9.4
+Costa Rica,EUR,Lunch,-18.8
+Costa Rica,EUR,Dinner,-18.8
+Côte d’Ivoire,EUR,Full Day,51
+Côte d’Ivoire,EUR,Part Day,34
+Côte d’Ivoire,EUR,Overnight,146
+Côte d’Ivoire,EUR,Breakfast,-10.2
+Côte d’Ivoire,EUR,Lunch,-20.4
+Côte d’Ivoire,EUR,Dinner,-20.4
+Croatia,EUR,Full Day,28
+Croatia,EUR,Part Day,19
+Croatia,EUR,Overnight,75
+Croatia,EUR,Breakfast,-5.6
+Croatia,EUR,Lunch,-11.2
+Croatia,EUR,Dinner,-11.2
+Cuba,EUR,Full Day,46
+Cuba,EUR,Part Day,31
+Cuba,EUR,Overnight,228
+Cuba,EUR,Breakfast,-9.2
+Cuba,EUR,Lunch,-18.4
+Cuba,EUR,Dinner,-18.4
+Cyprus,EUR,Full Day,45
+Cyprus,EUR,Part Day,30
+Cyprus,EUR,Overnight,116
+Cyprus,EUR,Breakfast,-9
+Cyprus,EUR,Lunch,-18
+Cyprus,EUR,Dinner,-18
+Czech Republic,EUR,Full Day,35
+Czech Republic,EUR,Part Day,24
+Czech Republic,EUR,Overnight,94
+Czech Republic,EUR,Breakfast,-7
+Czech Republic,EUR,Lunch,-14
+Czech Republic,EUR,Dinner,-14
+Denmark,EUR,Full Day,58
+Denmark,EUR,Part Day,39
+Denmark,EUR,Overnight,143
+Denmark,EUR,Breakfast,-11.6
+Denmark,EUR,Lunch,-23.2
+Denmark,EUR,Dinner,-23.2
+Djibouti,EUR,Full Day,65
+Djibouti,EUR,Part Day,44
+Djibouti,EUR,Overnight,305
+Djibouti,EUR,Breakfast,-13
+Djibouti,EUR,Lunch,-26
+Djibouti,EUR,Dinner,-26
+Dominica,EUR,Full Day,45
+Dominica,EUR,Part Day,30
+Dominica,EUR,Overnight,177
+Dominica,EUR,Breakfast,-9
+Dominica,EUR,Lunch,-18
+Dominica,EUR,Dinner,-18
+Dominican Republic,EUR,Full Day,45
+Dominican Republic,EUR,Part Day,30
+Dominican Republic,EUR,Overnight,147
+Dominican Republic,EUR,Breakfast,-9
+Dominican Republic,EUR,Lunch,-18
+Dominican Republic,EUR,Dinner,-18
+Ecuador,EUR,Full Day,44
+Ecuador,EUR,Part Day,29
+Ecuador,EUR,Overnight,97
+Ecuador,EUR,Breakfast,-8.8
+Ecuador,EUR,Lunch,-17.6
+Ecuador,EUR,Dinner,-17.6
+Egypt,EUR,Full Day,41
+Egypt,EUR,Part Day,28
+Egypt,EUR,Overnight,125
+Egypt,EUR,Breakfast,-8.2
+Egypt,EUR,Lunch,-16.4
+Egypt,EUR,Dinner,-16.4
+El Salvador,EUR,Full Day,44
+El Salvador,EUR,Part Day,29
+El Salvador,EUR,Overnight,119
+El Salvador,EUR,Breakfast,-8.8
+El Salvador,EUR,Lunch,-17.6
+El Salvador,EUR,Dinner,-17.6
+Equatorial Guinea,EUR,Full Day,36
+Equatorial Guinea,EUR,Part Day,24
+Equatorial Guinea,EUR,Overnight,166
+Equatorial Guinea,EUR,Breakfast,-7.2
+Equatorial Guinea,EUR,Lunch,-14.4
+Equatorial Guinea,EUR,Dinner,-14.4
+Eritrea,EUR,Full Day,50
+Eritrea,EUR,Part Day,33
+Eritrea,EUR,Overnight,91
+Eritrea,EUR,Breakfast,-10
+Eritrea,EUR,Lunch,-20
+Eritrea,EUR,Dinner,-20
+Estonia,EUR,Full Day,27
+Estonia,EUR,Part Day,18
+Estonia,EUR,Overnight,71
+Estonia,EUR,Breakfast,-5.4
+Estonia,EUR,Lunch,-10.8
+Estonia,EUR,Dinner,-10.8
+Ethiopia,EUR,Full Day,27
+Ethiopia,EUR,Part Day,18
+Ethiopia,EUR,Overnight,86
+Ethiopia,EUR,Breakfast,-5.4
+Ethiopia,EUR,Lunch,-10.8
+Ethiopia,EUR,Dinner,-10.8
+Fiji,EUR,Full Day,34
+Fiji,EUR,Part Day,23
+Fiji,EUR,Overnight,69
+Fiji,EUR,Breakfast,-6.8
+Fiji,EUR,Lunch,-13.6
+Fiji,EUR,Dinner,-13.6
+Finland,EUR,Full Day,50
+Finland,EUR,Part Day,33
+Finland,EUR,Overnight,136
+Finland,EUR,Breakfast,-10
+Finland,EUR,Lunch,-20
+Finland,EUR,Dinner,-20
+France - Lyon,EUR,Full Day,53
+France - Lyon,EUR,Part Day,36
+France - Lyon,EUR,Overnight,115
+France - Lyon,EUR,Breakfast,-10.6
+France - Lyon,EUR,Lunch,-21.2
+France - Lyon,EUR,Dinner,-21.2
+France - Marseille,EUR,Full Day,46
+France - Marseille,EUR,Part Day,31
+France - Marseille,EUR,Overnight,101
+France - Marseille,EUR,Breakfast,-9.2
+France - Marseille,EUR,Lunch,-18.4
+France - Marseille,EUR,Dinner,-18.4
+"France - Paris and Departments 92, 93 and 94",EUR,Full Day,58
+"France - Paris and Departments 92, 93 and 94",EUR,Part Day,39
+"France - Paris and Departments 92, 93 and 94",EUR,Overnight,152
+"France - Paris and Departments 92, 93 and 94",EUR,Breakfast,-11.6
+"France - Paris and Departments 92, 93 and 94",EUR,Lunch,-23.2
+"France - Paris and Departments 92, 93 and 94",EUR,Dinner,-23.2
+France - Strasbourg,EUR,Full Day,51
+France - Strasbourg,EUR,Part Day,34
+France - Strasbourg,EUR,Overnight,96
+France - Strasbourg,EUR,Breakfast,-10.2
+France - Strasbourg,EUR,Lunch,-20.4
+France - Strasbourg,EUR,Dinner,-20.4
+France - for the rest,EUR,Full Day,44
+France - for the rest,EUR,Part Day,29
+France - for the rest,EUR,Overnight,115
+France - for the rest,EUR,Breakfast,-8.8
+France - for the rest,EUR,Lunch,-17.6
+France - for the rest,EUR,Dinner,-17.6
+Gabon,EUR,Full Day,62
+Gabon,EUR,Part Day,41
+Gabon,EUR,Overnight,278
+Gabon,EUR,Breakfast,-12.4
+Gabon,EUR,Lunch,-24.8
+Gabon,EUR,Dinner,-24.8
+Gambia,EUR,Full Day,30
+Gambia,EUR,Part Day,20
+Gambia,EUR,Overnight,125
+Gambia,EUR,Breakfast,-6
+Gambia,EUR,Lunch,-12
+Gambia,EUR,Dinner,-12
+Georgia,EUR,Full Day,35
+Georgia,EUR,Part Day,24
+Georgia,EUR,Overnight,88
+Georgia,EUR,Breakfast,-7
+Georgia,EUR,Lunch,-14
+Georgia,EUR,Dinner,-14
+Ghana,EUR,Full Day,46
+Ghana,EUR,Part Day,31
+Ghana,EUR,Overnight,148
+Ghana,EUR,Breakfast,-9.2
+Ghana,EUR,Lunch,-18.4
+Ghana,EUR,Dinner,-18.4
+Greece - Athens,EUR,Full Day,46
+Greece - Athens,EUR,Part Day,31
+Greece - Athens,EUR,Overnight,132
+Greece - Athens,EUR,Breakfast,-9.2
+Greece - Athens,EUR,Lunch,-18.4
+Greece - Athens,EUR,Dinner,-18.4
+Greece - for the rest,EUR,Full Day,36
+Greece - for the rest,EUR,Part Day,24
+Greece - for the rest,EUR,Overnight,135
+Greece - for the rest,EUR,Breakfast,-7.2
+Greece - for the rest,EUR,Lunch,-14.4
+Greece - for the rest,EUR,Dinner,-14.4
+Grenada,EUR,Full Day,45
+Grenada,EUR,Part Day,30
+Grenada,EUR,Overnight,177
+Grenada,EUR,Breakfast,-9
+Grenada,EUR,Lunch,-18
+Grenada,EUR,Dinner,-18
+Guatemala,EUR,Full Day,34
+Guatemala,EUR,Part Day,23
+Guatemala,EUR,Overnight,90
+Guatemala,EUR,Breakfast,-6.8
+Guatemala,EUR,Lunch,-13.6
+Guatemala,EUR,Dinner,-13.6
+Guinea,EUR,Full Day,46
+Guinea,EUR,Part Day,31
+Guinea,EUR,Overnight,118
+Guinea,EUR,Breakfast,-9.2
+Guinea,EUR,Lunch,-18.4
+Guinea,EUR,Dinner,-18.4
+Guinea-Bissau,EUR,Full Day,24
+Guinea-Bissau,EUR,Part Day,16
+Guinea-Bissau,EUR,Overnight,86
+Guinea-Bissau,EUR,Breakfast,-4.8
+Guinea-Bissau,EUR,Lunch,-9.6
+Guinea-Bissau,EUR,Dinner,-9.6
+Guyana,EUR,Full Day,45
+Guyana,EUR,Part Day,30
+Guyana,EUR,Overnight,177
+Guyana,EUR,Breakfast,-9
+Guyana,EUR,Lunch,-18
+Guyana,EUR,Dinner,-18
+Haiti,EUR,Full Day,58
+Haiti,EUR,Part Day,39
+Haiti,EUR,Overnight,130
+Haiti,EUR,Breakfast,-11.6
+Haiti,EUR,Lunch,-23.2
+Haiti,EUR,Dinner,-23.2
+Honduras,EUR,Full Day,48
+Honduras,EUR,Part Day,32
+Honduras,EUR,Overnight,101
+Honduras,EUR,Breakfast,-9.6
+Honduras,EUR,Lunch,-19.2
+Honduras,EUR,Dinner,-19.2
+Hungary,EUR,Full Day,22
+Hungary,EUR,Part Day,15
+Hungary,EUR,Overnight,63
+Hungary,EUR,Breakfast,-4.4
+Hungary,EUR,Lunch,-8.8
+Hungary,EUR,Dinner,-8.8
+Iceland,EUR,Full Day,47
+Iceland,EUR,Part Day,32
+Iceland,EUR,Overnight,108
+Iceland,EUR,Breakfast,-9.4
+Iceland,EUR,Lunch,-18.8
+Iceland,EUR,Dinner,-18.8
+India - Chennai,EUR,Full Day,32
+India - Chennai,EUR,Part Day,21
+India - Chennai,EUR,Overnight,85
+India - Chennai,EUR,Breakfast,-6.4
+India - Chennai,EUR,Lunch,-12.8
+India - Chennai,EUR,Dinner,-12.8
+India - Kolkata,EUR,Full Day,35
+India - Kolkata,EUR,Part Day,24
+India - Kolkata,EUR,Overnight,145
+India - Kolkata,EUR,Breakfast,-7
+India - Kolkata,EUR,Lunch,-14
+India - Kolkata,EUR,Dinner,-14
+India - Mumbai,EUR,Full Day,50
+India - Mumbai,EUR,Part Day,33
+India - Mumbai,EUR,Overnight,146
+India - Mumbai,EUR,Breakfast,-10
+India - Mumbai,EUR,Lunch,-20
+India - Mumbai,EUR,Dinner,-20
+India - New Delhi,EUR,Full Day,38
+India - New Delhi,EUR,Part Day,25
+India - New Delhi,EUR,Overnight,185
+India - New Delhi,EUR,Breakfast,-7.6
+India - New Delhi,EUR,Lunch,-15.2
+India - New Delhi,EUR,Dinner,-15.2
+India - for the rest,EUR,Full Day,32
+India - for the rest,EUR,Part Day,21
+India - for the rest,EUR,Overnight,85
+India - for the rest,EUR,Breakfast,-6.4
+India - for the rest,EUR,Lunch,-12.8
+India - for the rest,EUR,Dinner,-12.8
+Indonesia,EUR,Full Day,38
+Indonesia,EUR,Part Day,25
+Indonesia,EUR,Overnight,130
+Indonesia,EUR,Breakfast,-7.6
+Indonesia,EUR,Lunch,-15.2
+Indonesia,EUR,Dinner,-15.2
+Iran,EUR,Full Day,33
+Iran,EUR,Part Day,22
+Iran,EUR,Overnight,196
+Iran,EUR,Breakfast,-6.6
+Iran,EUR,Lunch,-13.2
+Iran,EUR,Dinner,-13.2
+Ireland,EUR,Full Day,44
+Ireland,EUR,Part Day,29
+Ireland,EUR,Overnight,92
+Ireland,EUR,Breakfast,-8.8
+Ireland,EUR,Lunch,-17.6
+Ireland,EUR,Dinner,-17.6
+Israel,EUR,Full Day,56
+Israel,EUR,Part Day,37
+Israel,EUR,Overnight,191
+Israel,EUR,Breakfast,-11.2
+Israel,EUR,Lunch,-22.4
+Israel,EUR,Dinner,-22.4
+Italy - Milan,EUR,Full Day,45
+Italy - Milan,EUR,Part Day,30
+Italy - Milan,EUR,Overnight,158
+Italy - Milan,EUR,Breakfast,-9
+Italy - Milan,EUR,Lunch,-18
+Italy - Milan,EUR,Dinner,-18
+Italy - Rome,EUR,Full Day,40
+Italy - Rome,EUR,Part Day,27
+Italy - Rome,EUR,Overnight,135
+Italy - Rome,EUR,Breakfast,-8
+Italy - Rome,EUR,Lunch,-16
+Italy - Rome,EUR,Dinner,-16
+Italy - for the rest,EUR,Full Day,40
+Italy - for the rest,EUR,Part Day,27
+Italy - for the rest,EUR,Overnight,135
+Italy - for the rest,EUR,Breakfast,-8
+Italy - for the rest,EUR,Lunch,-16
+Italy - for the rest,EUR,Dinner,-16
+Jamaica,EUR,Full Day,57
+Jamaica,EUR,Part Day,38
+Jamaica,EUR,Overnight,138
+Jamaica,EUR,Breakfast,-11.4
+Jamaica,EUR,Lunch,-22.8
+Jamaica,EUR,Dinner,-22.8
+Japan - Tokyo,EUR,Full Day,66
+Japan - Tokyo,EUR,Part Day,44
+Japan - Tokyo,EUR,Overnight,233
+Japan - Tokyo,EUR,Breakfast,-13.2
+Japan - Tokyo,EUR,Lunch,-26.4
+Japan - Tokyo,EUR,Dinner,-26.4
+Japan - for the rest,EUR,Full Day,51
+Japan - for the rest,EUR,Part Day,34
+Japan - for the rest,EUR,Overnight,156
+Japan - for the rest,EUR,Breakfast,-10.2
+Japan - for the rest,EUR,Lunch,-20.4
+Japan - for the rest,EUR,Dinner,-20.4
+Jordan,EUR,Full Day,46
+Jordan,EUR,Part Day,31
+Jordan,EUR,Overnight,126
+Jordan,EUR,Breakfast,-9.2
+Jordan,EUR,Lunch,-18.4
+Jordan,EUR,Dinner,-18.4
+Kazakhstan,EUR,Full Day,45
+Kazakhstan,EUR,Part Day,30
+Kazakhstan,EUR,Overnight,111
+Kazakhstan,EUR,Breakfast,-9
+Kazakhstan,EUR,Lunch,-18
+Kazakhstan,EUR,Dinner,-18
+Kenya,EUR,Full Day,42
+Kenya,EUR,Part Day,28
+Kenya,EUR,Overnight,223
+Kenya,EUR,Breakfast,-8.4
+Kenya,EUR,Lunch,-16.8
+Kenya,EUR,Dinner,-16.8
+"Korea, Democratic People's Republic",EUR,Full Day,39
+"Korea, Democratic People's Republic",EUR,Part Day,26
+"Korea, Democratic People's Republic",EUR,Overnight,132
+"Korea, Democratic People's Republic",EUR,Breakfast,-7.8
+"Korea, Democratic People's Republic",EUR,Lunch,-15.6
+"Korea, Democratic People's Republic",EUR,Dinner,-15.6
+"Korea, People's Republic",EUR,Full Day,58
+"Korea, People's Republic",EUR,Part Day,39
+"Korea, People's Republic",EUR,Overnight,112
+"Korea, People's Republic",EUR,Breakfast,-11.6
+"Korea, People's Republic",EUR,Lunch,-23.2
+"Korea, People's Republic",EUR,Dinner,-23.2
+Kosovo,EUR,Full Day,23
+Kosovo,EUR,Part Day,16
+Kosovo,EUR,Overnight,57
+Kosovo,EUR,Breakfast,-4.6
+Kosovo,EUR,Lunch,-9.2
+Kosovo,EUR,Dinner,-9.2
+Kuwait,EUR,Full Day,42
+Kuwait,EUR,Part Day,28
+Kuwait,EUR,Overnight,185
+Kuwait,EUR,Breakfast,-8.4
+Kuwait,EUR,Lunch,-16.8
+Kuwait,EUR,Dinner,-16.8
+Kyrgyzstan,EUR,Full Day,29
+Kyrgyzstan,EUR,Part Day,20
+Kyrgyzstan,EUR,Overnight,91
+Kyrgyzstan,EUR,Breakfast,-5.8
+Kyrgyzstan,EUR,Lunch,-11.6
+Kyrgyzstan,EUR,Dinner,-11.6
+Laos,EUR,Full Day,33
+Laos,EUR,Part Day,22
+Laos,EUR,Overnight,96
+Laos,EUR,Breakfast,-6.6
+Laos,EUR,Lunch,-13.2
+Laos,EUR,Dinner,-13.2
+Latvia,EUR,Full Day,30
+Latvia,EUR,Part Day,20
+Latvia,EUR,Overnight,80
+Latvia,EUR,Breakfast,-6
+Latvia,EUR,Lunch,-12
+Latvia,EUR,Dinner,-12
+Lebanon,EUR,Full Day,59
+Lebanon,EUR,Part Day,40
+Lebanon,EUR,Overnight,123
+Lebanon,EUR,Breakfast,-11.8
+Lebanon,EUR,Lunch,-23.6
+Lebanon,EUR,Dinner,-23.6
+Lesotho,EUR,Full Day,24
+Lesotho,EUR,Part Day,16
+Lesotho,EUR,Overnight,103
+Lesotho,EUR,Breakfast,-4.8
+Lesotho,EUR,Lunch,-9.6
+Lesotho,EUR,Dinner,-9.6
+Libya,EUR,Full Day,63
+Libya,EUR,Part Day,42
+Libya,EUR,Overnight,135
+Libya,EUR,Breakfast,-12.6
+Libya,EUR,Lunch,-25.2
+Libya,EUR,Dinner,-25.2
+Liechtenstein,EUR,Full Day,53
+Liechtenstein,EUR,Part Day,36
+Liechtenstein,EUR,Overnight,180
+Liechtenstein,EUR,Breakfast,-10.6
+Liechtenstein,EUR,Lunch,-21.2
+Liechtenstein,EUR,Dinner,-21.2
+Lithuania,EUR,Full Day,24
+Lithuania,EUR,Part Day,16
+Lithuania,EUR,Overnight,68
+Lithuania,EUR,Breakfast,-4.8
+Lithuania,EUR,Lunch,-9.6
+Lithuania,EUR,Dinner,-9.6
+Luxembourg,EUR,Full Day,47
+Luxembourg,EUR,Part Day,32
+Luxembourg,EUR,Overnight,130
+Luxembourg,EUR,Breakfast,-9.4
+Luxembourg,EUR,Lunch,-18.8
+Luxembourg,EUR,Dinner,-18.8
+Macedonia,EUR,Full Day,29
+Macedonia,EUR,Part Day,20
+Macedonia,EUR,Overnight,95
+Macedonia,EUR,Breakfast,-5.8
+Macedonia,EUR,Lunch,-11.6
+Macedonia,EUR,Dinner,-11.6
+Madagascar,EUR,Full Day,34
+Madagascar,EUR,Part Day,23
+Madagascar,EUR,Overnight,87
+Madagascar,EUR,Breakfast,-6.8
+Madagascar,EUR,Lunch,-13.6
+Madagascar,EUR,Dinner,-13.6
+Malawi,EUR,Full Day,47
+Malawi,EUR,Part Day,32
+Malawi,EUR,Overnight,123
+Malawi,EUR,Breakfast,-9.4
+Malawi,EUR,Lunch,-18.8
+Malawi,EUR,Dinner,-18.8
+Malaysia,EUR,Full Day,34
+Malaysia,EUR,Part Day,23
+Malaysia,EUR,Overnight,88
+Malaysia,EUR,Breakfast,-6.8
+Malaysia,EUR,Lunch,-13.6
+Malaysia,EUR,Dinner,-13.6
+Maldives,EUR,Full Day,52
+Maldives,EUR,Part Day,35
+Maldives,EUR,Overnight,170
+Maldives,EUR,Breakfast,-10.4
+Maldives,EUR,Lunch,-20.8
+Maldives,EUR,Dinner,-20.8
+Mali,EUR,Full Day,41
+Mali,EUR,Part Day,28
+Mali,EUR,Overnight,122
+Mali,EUR,Breakfast,-8.2
+Mali,EUR,Lunch,-16.4
+Mali,EUR,Dinner,-16.4
+Malta,EUR,Full Day,45
+Malta,EUR,Part Day,30
+Malta,EUR,Overnight,112
+Malta,EUR,Breakfast,-9
+Malta,EUR,Lunch,-18
+Malta,EUR,Dinner,-18
+Marshall Islands,EUR,Full Day,63
+Marshall Islands,EUR,Part Day,42
+Marshall Islands,EUR,Overnight,102
+Marshall Islands,EUR,Breakfast,-12.6
+Marshall Islands,EUR,Lunch,-25.2
+Marshall Islands,EUR,Dinner,-25.2
+Mauritania,EUR,Full Day,39
+Mauritania,EUR,Part Day,26
+Mauritania,EUR,Overnight,105
+Mauritania,EUR,Breakfast,-7.8
+Mauritania,EUR,Lunch,-15.6
+Mauritania,EUR,Dinner,-15.6
+Mauritius,EUR,Full Day,54
+Mauritius,EUR,Part Day,36
+Mauritius,EUR,Overnight,220
+Mauritius,EUR,Breakfast,-10.8
+Mauritius,EUR,Lunch,-21.6
+Mauritius,EUR,Dinner,-21.6
+Mexico,EUR,Full Day,41
+Mexico,EUR,Part Day,28
+Mexico,EUR,Overnight,141
+Mexico,EUR,Breakfast,-8.2
+Mexico,EUR,Lunch,-16.4
+Mexico,EUR,Dinner,-16.4
+Micronesia,EUR,Full Day,33
+Micronesia,EUR,Part Day,22
+Micronesia,EUR,Overnight,116
+Micronesia,EUR,Breakfast,-6.6
+Micronesia,EUR,Lunch,-13.2
+Micronesia,EUR,Dinner,-13.2
+"Moldova, Republic",EUR,Full Day,24
+"Moldova, Republic",EUR,Part Day,16
+"Moldova, Republic",EUR,Overnight,88
+"Moldova, Republic",EUR,Breakfast,-4.8
+"Moldova, Republic",EUR,Lunch,-9.6
+"Moldova, Republic",EUR,Dinner,-9.6
+Monaco,EUR,Full Day,42
+Monaco,EUR,Part Day,28
+Monaco,EUR,Overnight,180
+Monaco,EUR,Breakfast,-8.4
+Monaco,EUR,Lunch,-16.8
+Monaco,EUR,Dinner,-16.8
+Mongolia,EUR,Full Day,27
+Mongolia,EUR,Part Day,18
+Mongolia,EUR,Overnight,92
+Mongolia,EUR,Breakfast,-5.4
+Mongolia,EUR,Lunch,-10.8
+Mongolia,EUR,Dinner,-10.8
+Montenegro,EUR,Full Day,29
+Montenegro,EUR,Part Day,20
+Montenegro,EUR,Overnight,94
+Montenegro,EUR,Breakfast,-5.8
+Montenegro,EUR,Lunch,-11.6
+Montenegro,EUR,Dinner,-11.6
+Morocco,EUR,Full Day,42
+Morocco,EUR,Part Day,28
+Morocco,EUR,Overnight,129
+Morocco,EUR,Breakfast,-8.4
+Morocco,EUR,Lunch,-16.8
+Morocco,EUR,Dinner,-16.8
+Mozambique,EUR,Full Day,38
+Mozambique,EUR,Part Day,25
+Mozambique,EUR,Overnight,146
+Mozambique,EUR,Breakfast,-7.6
+Mozambique,EUR,Lunch,-15.2
+Mozambique,EUR,Dinner,-15.2
+Myanmar,EUR,Full Day,35
+Myanmar,EUR,Part Day,24
+Myanmar,EUR,Overnight,155
+Myanmar,EUR,Breakfast,-7
+Myanmar,EUR,Lunch,-14
+Myanmar,EUR,Dinner,-14
+Namibia,EUR,Full Day,23
+Namibia,EUR,Part Day,16
+Namibia,EUR,Overnight,77
+Namibia,EUR,Breakfast,-4.6
+Namibia,EUR,Lunch,-9.2
+Namibia,EUR,Dinner,-9.2
+Nepal,EUR,Full Day,28
+Nepal,EUR,Part Day,19
+Nepal,EUR,Overnight,86
+Nepal,EUR,Breakfast,-5.6
+Nepal,EUR,Lunch,-11.2
+Nepal,EUR,Dinner,-11.2
+Netherlands,EUR,Full Day,46
+Netherlands,EUR,Part Day,31
+Netherlands,EUR,Overnight,119
+Netherlands,EUR,Breakfast,-9.2
+Netherlands,EUR,Lunch,-18.4
+Netherlands,EUR,Dinner,-18.4
+New Zealand,EUR,Full Day,56
+New Zealand,EUR,Part Day,37
+New Zealand,EUR,Overnight,153
+New Zealand,EUR,Breakfast,-11.2
+New Zealand,EUR,Lunch,-22.4
+New Zealand,EUR,Dinner,-22.4
+Nicaragua,EUR,Full Day,36
+Nicaragua,EUR,Part Day,24
+Nicaragua,EUR,Overnight,81
+Nicaragua,EUR,Breakfast,-7.2
+Nicaragua,EUR,Lunch,-14.4
+Nicaragua,EUR,Dinner,-14.4
+Niger,EUR,Full Day,41
+Niger,EUR,Part Day,28
+Niger,EUR,Overnight,89
+Niger,EUR,Breakfast,-8.2
+Niger,EUR,Lunch,-16.4
+Niger,EUR,Dinner,-16.4
+Nigeria,EUR,Full Day,63
+Nigeria,EUR,Part Day,42
+Nigeria,EUR,Overnight,255
+Nigeria,EUR,Breakfast,-12.6
+Nigeria,EUR,Lunch,-25.2
+Nigeria,EUR,Dinner,-25.2
+Norway,EUR,Full Day,80
+Norway,EUR,Part Day,53
+Norway,EUR,Overnight,182
+Norway,EUR,Breakfast,-16
+Norway,EUR,Lunch,-32
+Norway,EUR,Dinner,-32
+Oman,EUR,Full Day,60
+Oman,EUR,Part Day,40
+Oman,EUR,Overnight,200
+Oman,EUR,Breakfast,-12
+Oman,EUR,Lunch,-24
+Oman,EUR,Dinner,-24
+Pakistan - Islamabad,EUR,Full Day,30
+Pakistan - Islamabad,EUR,Part Day,20
+Pakistan - Islamabad,EUR,Overnight,165
+Pakistan - Islamabad,EUR,Breakfast,-6
+Pakistan - Islamabad,EUR,Lunch,-12
+Pakistan - Islamabad,EUR,Dinner,-12
+Pakistan - for the rest,EUR,Full Day,27
+Pakistan - for the rest,EUR,Part Day,18
+Pakistan - for the rest,EUR,Overnight,68
+Pakistan - for the rest,EUR,Breakfast,-5.4
+Pakistan - for the rest,EUR,Lunch,-10.8
+Pakistan - for the rest,EUR,Dinner,-10.8
+Palau,EUR,Full Day,51
+Palau,EUR,Part Day,34
+Palau,EUR,Overnight,179
+Palau,EUR,Breakfast,-10.2
+Palau,EUR,Lunch,-20.4
+Palau,EUR,Dinner,-20.4
+Panama,EUR,Full Day,39
+Panama,EUR,Part Day,26
+Panama,EUR,Overnight,111
+Panama,EUR,Breakfast,-7.8
+Panama,EUR,Lunch,-15.6
+Panama,EUR,Dinner,-15.6
+Papua New Guinea,EUR,Full Day,60
+Papua New Guinea,EUR,Part Day,40
+Papua New Guinea,EUR,Overnight,234
+Papua New Guinea,EUR,Breakfast,-12
+Papua New Guinea,EUR,Lunch,-24
+Papua New Guinea,EUR,Dinner,-24
+Paraguay,EUR,Full Day,38
+Paraguay,EUR,Part Day,25
+Paraguay,EUR,Overnight,108
+Paraguay,EUR,Breakfast,-7.6
+Paraguay,EUR,Lunch,-15.2
+Paraguay,EUR,Dinner,-15.2
+Peru,EUR,Full Day,30
+Peru,EUR,Part Day,20
+Peru,EUR,Overnight,93
+Peru,EUR,Breakfast,-6
+Peru,EUR,Lunch,-12
+Peru,EUR,Dinner,-12
+Philippines,EUR,Full Day,33
+Philippines,EUR,Part Day,22
+Philippines,EUR,Overnight,116
+Philippines,EUR,Breakfast,-6.6
+Philippines,EUR,Lunch,-13.2
+Philippines,EUR,Dinner,-13.2
+Poland - Danzig,EUR,Full Day,30
+Poland - Danzig,EUR,Part Day,20
+Poland - Danzig,EUR,Overnight,84
+Poland - Danzig,EUR,Breakfast,-6
+Poland - Danzig,EUR,Lunch,-12
+Poland - Danzig,EUR,Dinner,-12
+Poland - Kraków,EUR,Full Day,27
+Poland - Kraków,EUR,Part Day,18
+Poland - Kraków,EUR,Overnight,86
+Poland - Kraków,EUR,Breakfast,-5.4
+Poland - Kraków,EUR,Lunch,-10.8
+Poland - Kraków,EUR,Dinner,-10.8
+Poland - Warsaw,EUR,Full Day,29
+Poland - Warsaw,EUR,Part Day,20
+Poland - Warsaw,EUR,Overnight,109
+Poland - Warsaw,EUR,Breakfast,-5.8
+Poland - Warsaw,EUR,Lunch,-11.6
+Poland - Warsaw,EUR,Dinner,-11.6
+Poland - Wrocław,EUR,Full Day,33
+Poland - Wrocław,EUR,Part Day,22
+Poland - Wrocław,EUR,Overnight,117
+Poland - Wrocław,EUR,Breakfast,-6.6
+Poland - Wrocław,EUR,Lunch,-13.2
+Poland - Wrocław,EUR,Dinner,-13.2
+Poland - for the rest,EUR,Full Day,29
+Poland - for the rest,EUR,Part Day,20
+Poland - for the rest,EUR,Overnight,60
+Poland - for the rest,EUR,Breakfast,-5.8
+Poland - for the rest,EUR,Lunch,-11.6
+Poland - for the rest,EUR,Dinner,-11.6
+Portugal,EUR,Full Day,36
+Portugal,EUR,Part Day,24
+Portugal,EUR,Overnight,102
+Portugal,EUR,Breakfast,-7.2
+Portugal,EUR,Lunch,-14.4
+Portugal,EUR,Dinner,-14.4
+Qatar,EUR,Full Day,56
+Qatar,EUR,Part Day,37
+Qatar,EUR,Overnight,170
+Qatar,EUR,Breakfast,-11.2
+Qatar,EUR,Lunch,-22.4
+Qatar,EUR,Dinner,-22.4
+Romania - Bucharest,EUR,Full Day,32
+Romania - Bucharest,EUR,Part Day,21
+Romania - Bucharest,EUR,Overnight,100
+Romania - Bucharest,EUR,Breakfast,-6.4
+Romania - Bucharest,EUR,Lunch,-12.8
+Romania - Bucharest,EUR,Dinner,-12.8
+Romania - for the rest,EUR,Full Day,26
+Romania - for the rest,EUR,Part Day,17
+Romania - for the rest,EUR,Overnight,62
+Romania - for the rest,EUR,Breakfast,-5.2
+Romania - for the rest,EUR,Lunch,-10.4
+Romania - for the rest,EUR,Dinner,-10.4
+Russia - Moscow,EUR,Full Day,30
+Russia - Moscow,EUR,Part Day,20
+Russia - Moscow,EUR,Overnight,110
+Russia - Moscow,EUR,Breakfast,-6
+Russia - Moscow,EUR,Lunch,-12
+Russia - Moscow,EUR,Dinner,-12
+Russia - St. Petersburg,EUR,Full Day,26
+Russia - St. Petersburg,EUR,Part Day,17
+Russia - St. Petersburg,EUR,Overnight,114
+Russia - St. Petersburg,EUR,Breakfast,-5.2
+Russia - St. Petersburg,EUR,Lunch,-10.4
+Russia - St. Petersburg,EUR,Dinner,-10.4
+Russia - Yekaterinburg,EUR,Full Day,28
+Russia - Yekaterinburg,EUR,Part Day,19
+Russia - Yekaterinburg,EUR,Overnight,84
+Russia - Yekaterinburg,EUR,Breakfast,-5.6
+Russia - Yekaterinburg,EUR,Lunch,-11.2
+Russia - Yekaterinburg,EUR,Dinner,-11.2
+Russia - for the rest,EUR,Full Day,24
+Russia - for the rest,EUR,Part Day,16
+Russia - for the rest,EUR,Overnight,58
+Russia - for the rest,EUR,Breakfast,-4.8
+Russia - for the rest,EUR,Lunch,-9.6
+Russia - for the rest,EUR,Dinner,-9.6
+Rwanda,EUR,Full Day,46
+Rwanda,EUR,Part Day,31
+Rwanda,EUR,Overnight,141
+Rwanda,EUR,Breakfast,-9.2
+Rwanda,EUR,Lunch,-18.4
+Rwanda,EUR,Dinner,-18.4
+Samoa,EUR,Full Day,29
+Samoa,EUR,Part Day,20
+Samoa,EUR,Overnight,85
+Samoa,EUR,Breakfast,-5.8
+Samoa,EUR,Lunch,-11.6
+Samoa,EUR,Dinner,-11.6
+San Marino,EUR,Full Day,34
+San Marino,EUR,Part Day,23
+San Marino,EUR,Overnight,75
+San Marino,EUR,Breakfast,-6.8
+San Marino,EUR,Lunch,-13.6
+San Marino,EUR,Dinner,-13.6
+São Tomé and Príncipe,EUR,Full Day,47
+São Tomé and Príncipe,EUR,Part Day,32
+São Tomé and Príncipe,EUR,Overnight,80
+São Tomé and Príncipe,EUR,Breakfast,-9.4
+São Tomé and Príncipe,EUR,Lunch,-18.8
+São Tomé and Príncipe,EUR,Dinner,-18.8
+Saudi Arabia - Jeddah,EUR,Full Day,38
+Saudi Arabia - Jeddah,EUR,Part Day,25
+Saudi Arabia - Jeddah,EUR,Overnight,234
+Saudi Arabia - Jeddah,EUR,Breakfast,-7.6
+Saudi Arabia - Jeddah,EUR,Lunch,-15.2
+Saudi Arabia - Jeddah,EUR,Dinner,-15.2
+Saudi Arabia - Riyadh,EUR,Full Day,48
+Saudi Arabia - Riyadh,EUR,Part Day,32
+Saudi Arabia - Riyadh,EUR,Overnight,179
+Saudi Arabia - Riyadh,EUR,Breakfast,-9.6
+Saudi Arabia - Riyadh,EUR,Lunch,-19.2
+Saudi Arabia - Riyadh,EUR,Dinner,-19.2
+Saudi Arabia - for the rest,EUR,Full Day,48
+Saudi Arabia - for the rest,EUR,Part Day,32
+Saudi Arabia - for the rest,EUR,Overnight,80
+Saudi Arabia - for the rest,EUR,Breakfast,-9.6
+Saudi Arabia - for the rest,EUR,Lunch,-19.2
+Saudi Arabia - for the rest,EUR,Dinner,-19.2
+Senegal,EUR,Full Day,45
+Senegal,EUR,Part Day,30
+Senegal,EUR,Overnight,128
+Senegal,EUR,Breakfast,-9
+Senegal,EUR,Lunch,-18
+Senegal,EUR,Dinner,-18
+Serbia,EUR,Full Day,20
+Serbia,EUR,Part Day,13
+Serbia,EUR,Overnight,74
+Serbia,EUR,Breakfast,-4
+Serbia,EUR,Lunch,-8
+Serbia,EUR,Dinner,-8
+Sierra Leone,EUR,Full Day,48
+Sierra Leone,EUR,Part Day,32
+Sierra Leone,EUR,Overnight,161
+Sierra Leone,EUR,Breakfast,-9.6
+Sierra Leone,EUR,Lunch,-19.2
+Sierra Leone,EUR,Dinner,-19.2
+Singapore,EUR,Full Day,54
+Singapore,EUR,Part Day,36
+Singapore,EUR,Overnight,197
+Singapore,EUR,Breakfast,-10.8
+Singapore,EUR,Lunch,-21.6
+Singapore,EUR,Dinner,-21.6
+Slovakia,EUR,Full Day,24
+Slovakia,EUR,Part Day,16
+Slovakia,EUR,Overnight,85
+Slovakia,EUR,Breakfast,-4.8
+Slovakia,EUR,Lunch,-9.6
+Slovakia,EUR,Dinner,-9.6
+Slovenia,EUR,Full Day,33
+Slovenia,EUR,Part Day,22
+Slovenia,EUR,Overnight,95
+Slovenia,EUR,Breakfast,-6.6
+Slovenia,EUR,Lunch,-13.2
+Slovenia,EUR,Dinner,-13.2
+South Africa - Cape Town,EUR,Full Day,27
+South Africa - Cape Town,EUR,Part Day,18
+South Africa - Cape Town,EUR,Overnight,112
+South Africa - Cape Town,EUR,Breakfast,-5.4
+South Africa - Cape Town,EUR,Lunch,-10.8
+South Africa - Cape Town,EUR,Dinner,-10.8
+South Africa - Johannesburg,EUR,Full Day,29
+South Africa - Johannesburg,EUR,Part Day,20
+South Africa - Johannesburg,EUR,Overnight,124
+South Africa - Johannesburg,EUR,Breakfast,-5.8
+South Africa - Johannesburg,EUR,Lunch,-11.6
+South Africa - Johannesburg,EUR,Dinner,-11.6
+Souh Africa - for the rest,EUR,Full Day,22
+Souh Africa - for the rest,EUR,Part Day,15
+Souh Africa - for the rest,EUR,Overnight,94
+Souh Africa - for the rest,EUR,Breakfast,-4.4
+Souh Africa - for the rest,EUR,Lunch,-8.8
+Souh Africa - for the rest,EUR,Dinner,-8.8
+South Sudan,EUR,Full Day,34
+South Sudan,EUR,Part Day,23
+South Sudan,EUR,Overnight,150
+South Sudan,EUR,Breakfast,-6.8
+South Sudan,EUR,Lunch,-13.6
+South Sudan,EUR,Dinner,-13.6
+Spain - Barcelona,EUR,Full Day,34
+Spain - Barcelona,EUR,Part Day,23
+Spain - Barcelona,EUR,Overnight,118
+Spain - Barcelona,EUR,Breakfast,-6.8
+Spain - Barcelona,EUR,Lunch,-13.6
+Spain - Barcelona,EUR,Dinner,-13.6
+Spain - Canary Islands,EUR,Full Day,40
+Spain - Canary Islands,EUR,Part Day,27
+Spain - Canary Islands,EUR,Overnight,115
+Spain - Canary Islands,EUR,Breakfast,-8
+Spain - Canary Islands,EUR,Lunch,-16
+Spain - Canary Islands,EUR,Dinner,-16
+Spain - Madrid,EUR,Full Day,40
+Spain - Madrid,EUR,Part Day,27
+Spain - Madrid,EUR,Overnight,118
+Spain - Madrid,EUR,Breakfast,-8
+Spain - Madrid,EUR,Lunch,-16
+Spain - Madrid,EUR,Dinner,-16
+Spain - Palma de Mallorca,EUR,Full Day,35
+Spain - Palma de Mallorca,EUR,Part Day,24
+Spain - Palma de Mallorca,EUR,Overnight,121
+Spain - Palma de Mallorca,EUR,Breakfast,-7
+Spain - Palma de Mallorca,EUR,Lunch,-14
+Spain - Palma de Mallorca,EUR,Dinner,-14
+Spain - for the rest,EUR,Full Day,34
+Spain - for the rest,EUR,Part Day,23
+Spain - for the rest,EUR,Overnight,115
+Spain - for the rest,EUR,Breakfast,-6.8
+Spain - for the rest,EUR,Lunch,-13.6
+Spain - for the rest,EUR,Dinner,-13.6
+Sri Lanka,EUR,Full Day,42
+Sri Lanka,EUR,Part Day,28
+Sri Lanka,EUR,Overnight,100
+Sri Lanka,EUR,Breakfast,-8.4
+Sri Lanka,EUR,Lunch,-16.8
+Sri Lanka,EUR,Dinner,-16.8
+St. Kitts and Nevis,EUR,Full Day,45
+St. Kitts and Nevis,EUR,Part Day,30
+St. Kitts and Nevis,EUR,Overnight,177
+St. Kitts and Nevis,EUR,Breakfast,-9
+St. Kitts and Nevis,EUR,Lunch,-18
+St. Kitts and Nevis,EUR,Dinner,-18
+St. Lucia,EUR,Full Day,45
+St. Lucia,EUR,Part Day,30
+St. Lucia,EUR,Overnight,177
+St. Lucia,EUR,Breakfast,-9
+St. Lucia,EUR,Lunch,-18
+St. Lucia,EUR,Dinner,-18
+St. Vincent and the Grenadines,EUR,Full Day,45
+St. Vincent and the Grenadines,EUR,Part Day,30
+St. Vincent and the Grenadines,EUR,Overnight,177
+St. Vincent and the Grenadines,EUR,Breakfast,-9
+St. Vincent and the Grenadines,EUR,Lunch,-18
+St. Vincent and the Grenadines,EUR,Dinner,-18
+Sudan,EUR,Full Day,35
+Sudan,EUR,Part Day,24
+Sudan,EUR,Overnight,115
+Sudan,EUR,Breakfast,-7
+Sudan,EUR,Lunch,-14
+Sudan,EUR,Dinner,-14
+Suriname,EUR,Full Day,45
+Suriname,EUR,Part Day,30
+Suriname,EUR,Overnight,177
+Suriname,EUR,Breakfast,-9
+Suriname,EUR,Lunch,-18
+Suriname,EUR,Dinner,-18
+Sweden,EUR,Full Day,50
+Sweden,EUR,Part Day,33
+Sweden,EUR,Overnight,168
+Sweden,EUR,Breakfast,-10
+Sweden,EUR,Lunch,-20
+Sweden,EUR,Dinner,-20
+Switzerland - Geneva,EUR,Full Day,64
+Switzerland - Geneva,EUR,Part Day,43
+Switzerland - Geneva,EUR,Overnight,195
+Switzerland - Geneva,EUR,Breakfast,-12.8
+Switzerland - Geneva,EUR,Lunch,-25.6
+Switzerland - Geneva,EUR,Dinner,-25.6
+Switzerland - for the rest,EUR,Full Day,62
+Switzerland - for the rest,EUR,Part Day,41
+Switzerland - for the rest,EUR,Overnight,169
+Switzerland - for the rest,EUR,Breakfast,-12.4
+Switzerland - for the rest,EUR,Lunch,-24.8
+Switzerland - for the rest,EUR,Dinner,-24.8
+Syria,EUR,Full Day,38
+Syria,EUR,Part Day,25
+Syria,EUR,Overnight,140
+Syria,EUR,Breakfast,-7.6
+Syria,EUR,Lunch,-15.2
+Syria,EUR,Dinner,-15.2
+Taiwan,EUR,Full Day,51
+Taiwan,EUR,Part Day,34
+Taiwan,EUR,Overnight,126
+Taiwan,EUR,Breakfast,-10.2
+Taiwan,EUR,Lunch,-20.4
+Taiwan,EUR,Dinner,-20.4
+Tajikistan,EUR,Full Day,27
+Tajikistan,EUR,Part Day,18
+Tajikistan,EUR,Overnight,118
+Tajikistan,EUR,Breakfast,-5.4
+Tajikistan,EUR,Lunch,-10.8
+Tajikistan,EUR,Dinner,-10.8
+Tanzania,EUR,Full Day,47
+Tanzania,EUR,Part Day,32
+Tanzania,EUR,Overnight,201
+Tanzania,EUR,Breakfast,-9.4
+Tanzania,EUR,Lunch,-18.8
+Tanzania,EUR,Dinner,-18.8
+Thailand,EUR,Full Day,38
+Thailand,EUR,Part Day,25
+Thailand,EUR,Overnight,110
+Thailand,EUR,Breakfast,-7.6
+Thailand,EUR,Lunch,-15.2
+Thailand,EUR,Dinner,-15.2
+Togo,EUR,Full Day,35
+Togo,EUR,Part Day,24
+Togo,EUR,Overnight,108
+Togo,EUR,Breakfast,-7
+Togo,EUR,Lunch,-14
+Togo,EUR,Dinner,-14
+Tonga,EUR,Full Day,39
+Tonga,EUR,Part Day,26
+Tonga,EUR,Overnight,94
+Tonga,EUR,Breakfast,-7.8
+Tonga,EUR,Lunch,-15.6
+Tonga,EUR,Dinner,-15.6
+Trinidad and Tobago,EUR,Full Day,45
+Trinidad and Tobago,EUR,Part Day,30
+Trinidad and Tobago,EUR,Overnight,177
+Trinidad and Tobago,EUR,Breakfast,-9
+Trinidad and Tobago,EUR,Lunch,-18
+Trinidad and Tobago,EUR,Dinner,-18
+Tunisia,EUR,Full Day,40
+Tunisia,EUR,Part Day,27
+Tunisia,EUR,Overnight,115
+Tunisia,EUR,Breakfast,-8
+Tunisia,EUR,Lunch,-16
+Tunisia,EUR,Dinner,-16
+Turkey - Istanbul,EUR,Full Day,35
+Turkey - Istanbul,EUR,Part Day,24
+Turkey - Istanbul,EUR,Overnight,104
+Turkey - Istanbul,EUR,Breakfast,-7
+Turkey - Istanbul,EUR,Lunch,-14
+Turkey - Istanbul,EUR,Dinner,-14
+Turkey - Izmir,EUR,Full Day,42
+Turkey - Izmir,EUR,Part Day,28
+Turkey - Izmir,EUR,Overnight,80
+Turkey - Izmir,EUR,Breakfast,-8.4
+Turkey - Izmir,EUR,Lunch,-16.8
+Turkey - Izmir,EUR,Dinner,-16.8
+Turkey - for the rest,EUR,Full Day,40
+Turkey - for the rest,EUR,Part Day,27
+Turkey - for the rest,EUR,Overnight,78
+Turkey - for the rest,EUR,Breakfast,-8
+Turkey - for the rest,EUR,Lunch,-16
+Turkey - for the rest,EUR,Dinner,-16
+Turkmenistan,EUR,Full Day,33
+Turkmenistan,EUR,Part Day,22
+Turkmenistan,EUR,Overnight,108
+Turkmenistan,EUR,Breakfast,-6.6
+Turkmenistan,EUR,Lunch,-13.2
+Turkmenistan,EUR,Dinner,-13.2
+Uganda,EUR,Full Day,35
+Uganda,EUR,Part Day,24
+Uganda,EUR,Overnight,129
+Uganda,EUR,Breakfast,-7
+Uganda,EUR,Lunch,-14
+Uganda,EUR,Dinner,-14
+Ukraine,EUR,Full Day,32
+Ukraine,EUR,Part Day,21
+Ukraine,EUR,Overnight,98
+Ukraine,EUR,Breakfast,-6.4
+Ukraine,EUR,Lunch,-12.8
+Ukraine,EUR,Dinner,-12.8
+United Arab Emirates,EUR,Full Day,45
+United Arab Emirates,EUR,Part Day,30
+United Arab Emirates,EUR,Overnight,155
+United Arab Emirates,EUR,Breakfast,-9
+United Arab Emirates,EUR,Lunch,-18
+United Arab Emirates,EUR,Dinner,-18
+United Kingdom of Great Britain and Ireland,EUR,Full Day,
+United Kingdom of Great Britain and Ireland,EUR,Part Day,
+United Kingdom of Great Britain and Ireland,EUR,Overnight,
+United Kingdom of Great Britain and Ireland,EUR,Breakfast,0
+United Kingdom of Great Britain and Ireland,EUR,Lunch,0
+United Kingdom of Great Britain and Ireland,EUR,Dinner,0
+United Kingdom - London,EUR,Full Day,62
+United Kingdom - London,EUR,Part Day,41
+United Kingdom - London,EUR,Overnight,224
+United Kingdom - London,EUR,Breakfast,-12.4
+United Kingdom - London,EUR,Lunch,-24.8
+United Kingdom - London,EUR,Dinner,-24.8
+United Kingdom - for the rest,EUR,Full Day,45
+United Kingdom - for the rest,EUR,Part Day,30
+United Kingdom - for the rest,EUR,Overnight,115
+United Kingdom - for the rest,EUR,Breakfast,-9
+United Kingdom - for the rest,EUR,Lunch,-18
+United Kingdom - for the rest,EUR,Dinner,-18
+United States of America - Atlanta,EUR,Full Day,62
+United States of America - Atlanta,EUR,Part Day,41
+United States of America - Atlanta,EUR,Overnight,175
+United States of America - Atlanta,EUR,Breakfast,-12.4
+United States of America - Atlanta,EUR,Lunch,-24.8
+United States of America - Atlanta,EUR,Dinner,-24.8
+United States of America - Boston,EUR,Full Day,58
+United States of America - Boston,EUR,Part Day,39
+United States of America - Boston,EUR,Overnight,265
+United States of America - Boston,EUR,Breakfast,-11.6
+United States of America - Boston,EUR,Lunch,-23.2
+United States of America - Boston,EUR,Dinner,-23.2
+United States of America - Chicago,EUR,Full Day,54
+United States of America - Chicago,EUR,Part Day,36
+United States of America - Chicago,EUR,Overnight,209
+United States of America - Chicago,EUR,Breakfast,-10.8
+United States of America - Chicago,EUR,Lunch,-21.6
+United States of America - Chicago,EUR,Dinner,-21.6
+United States of America - Houston,EUR,Full Day,63
+United States of America - Houston,EUR,Part Day,42
+United States of America - Houston,EUR,Overnight,138
+United States of America - Houston,EUR,Breakfast,-12.6
+United States of America - Houston,EUR,Lunch,-25.2
+United States of America - Houston,EUR,Dinner,-25.2
+United States of America - Los Angeles,EUR,Full Day,56
+United States of America - Los Angeles,EUR,Part Day,37
+United States of America - Los Angeles,EUR,Overnight,274
+United States of America - Los Angeles,EUR,Breakfast,-11.2
+United States of America - Los Angeles,EUR,Lunch,-22.4
+United States of America - Los Angeles,EUR,Dinner,-22.4
+United States of America - Miami,EUR,Full Day,64
+United States of America - Miami,EUR,Part Day,43
+United States of America - Miami,EUR,Overnight,151
+United States of America - Miami,EUR,Breakfast,-12.8
+United States of America - Miami,EUR,Lunch,-25.6
+United States of America - Miami,EUR,Dinner,-25.6
+United States of America - New York,EUR,Full Day,58
+United States of America - New York,EUR,Part Day,39
+United States of America - New York,EUR,Overnight,282
+United States of America - New York,EUR,Breakfast,-11.6
+United States of America - New York,EUR,Lunch,-23.2
+United States of America - New York,EUR,Dinner,-23.2
+United States of America - San Francisco,EUR,Full Day,51
+United States of America - San Francisco,EUR,Part Day,34
+United States of America - San Francisco,EUR,Overnight,314
+United States of America - San Francisco,EUR,Breakfast,-10.2
+United States of America - San Francisco,EUR,Lunch,-20.4
+United States of America - San Francisco,EUR,Dinner,-20.4
+United States of America - Washington D.C.,EUR,Full Day,62
+United States of America - Washington D.C.,EUR,Part Day,41
+United States of America - Washington D.C.,EUR,Overnight,276
+United States of America - Washington D.C.,EUR,Breakfast,-12.4
+United States of America - Washington D.C.,EUR,Lunch,-24.8
+United States of America - Washington D.C.,EUR,Dinner,-24.8
+United States of America - for the rest,EUR,Full Day,51
+United States of America - for the rest,EUR,Part Day,34
+United States of America - for the rest,EUR,Overnight,138
+United States of America - for the rest,EUR,Breakfast,-10.2
+United States of America - for the rest,EUR,Lunch,-20.4
+United States of America - for the rest,EUR,Dinner,-20.4
+Uruguay,EUR,Full Day,44
+Uruguay,EUR,Part Day,29
+Uruguay,EUR,Overnight,109
+Uruguay,EUR,Breakfast,-8.8
+Uruguay,EUR,Lunch,-17.6
+Uruguay,EUR,Dinner,-17.6
+Uzbekistan,EUR,Full Day,34
+Uzbekistan,EUR,Part Day,23
+Uzbekistan,EUR,Overnight,123
+Uzbekistan,EUR,Breakfast,-6.8
+Uzbekistan,EUR,Lunch,-13.6
+Uzbekistan,EUR,Dinner,-13.6
+Vatican City,EUR,Full Day,52
+Vatican City,EUR,Part Day,35
+Vatican City,EUR,Overnight,160
+Vatican City,EUR,Breakfast,-10.4
+Vatican City,EUR,Lunch,-20.8
+Vatican City,EUR,Dinner,-20.8
+Venezuela,EUR,Full Day,69
+Venezuela,EUR,Part Day,46
+Venezuela,EUR,Overnight,127
+Venezuela,EUR,Breakfast,-13.8
+Venezuela,EUR,Lunch,-27.6
+Venezuela,EUR,Dinner,-27.6
+Vietnam,EUR,Full Day,41
+Vietnam,EUR,Part Day,28
+Vietnam,EUR,Overnight,86
+Vietnam,EUR,Breakfast,-8.2
+Vietnam,EUR,Lunch,-16.4
+Vietnam,EUR,Dinner,-16.4
+Yemen,EUR,Full Day,24
+Yemen,EUR,Part Day,16
+Yemen,EUR,Overnight,95
+Yemen,EUR,Breakfast,-4.8
+Yemen,EUR,Lunch,-9.6
+Yemen,EUR,Dinner,-9.6
+Zambia,EUR,Full Day,36
+Zambia,EUR,Part Day,24
+Zambia,EUR,Overnight,130
+Zambia,EUR,Breakfast,-7.2
+Zambia,EUR,Lunch,-14.4
+Zambia,EUR,Dinner,-14.4
+Zimbabwe,EUR,Full Day,45
+Zimbabwe,EUR,Part Day,30
+Zimbabwe,EUR,Overnight,140
+Zimbabwe,EUR,Breakfast,-9
+Zimbabwe,EUR,Lunch,-18
+Zimbabwe,EUR,Dinner,-18

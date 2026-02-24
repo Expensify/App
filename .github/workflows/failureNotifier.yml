@@ -1,0 +1,25 @@
+name: Notify on Workflow Failure
+
+on:
+  workflow_run:
+    workflows: ["Process new code merged to main", "Remote Build iOS", "Remote Build Android"]
+    branches: [main]
+    types:
+      - completed
+
+permissions:
+  issues: write
+
+jobs:
+  notifyFailure:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Process Failed Jobs
+        uses: ./.github/actions/javascript/failureNotifier
+        with:
+          GITHUB_TOKEN: ${{ github.token }}

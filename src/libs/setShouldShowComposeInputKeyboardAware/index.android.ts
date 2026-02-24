@@ -1,0 +1,3 @@
+import setShouldShowComposeInputKeyboardAwareBuilder from './setShouldShowComposeInputKeyboardAwareBuilder';
+
+export default setShouldShowComposeInputKeyboardAwareBuilder('keyboardDidHide');

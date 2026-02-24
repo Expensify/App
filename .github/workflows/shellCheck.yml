@@ -1,0 +1,20 @@
+name: Lint shell code
+
+on:
+  workflow_call:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths: ['**.sh']
+
+jobs:
+  lint:
+    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Lint shell scripts with ShellCheck
+        run: npm run shellcheck
