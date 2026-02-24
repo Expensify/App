@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -88,26 +88,40 @@ function AnimatedSettlementButton({
         icon = expensifyIcons.Checkmark;
     }
 
-    useEffect(() => {
+    const [prevIsAnimationRunning, setPrevIsAnimationRunning] = useState(isAnimationRunning);
+    if (prevIsAnimationRunning !== isAnimationRunning) {
+        setPrevIsAnimationRunning(isAnimationRunning);
         if (!isAnimationRunning) {
             setMinWidth(0);
             setCanShow(true);
             height.set(variables.componentSizeNormal);
             buttonMarginTop.set(shouldAddTopMargin ? gap : 0);
+        }
+    }
+
+    const animatedViewRef = useCallback(
+        (el: View | null) => {
+            viewRef.current = el as HTMLElement | null;
+            if (el && isAnimationRunning) {
+                setMinWidth((el as HTMLElement).getBoundingClientRect?.().width ?? 0);
+            }
+        },
+        [isAnimationRunning],
+    );
+
+    useEffect(() => {
+        if (!isAnimationRunning) {
             return;
         }
-        setMinWidth(viewRef.current?.getBoundingClientRect?.().width ?? 0);
         const timer = setTimeout(() => setCanShow(false), CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY);
         return () => clearTimeout(timer);
-    }, [buttonMarginTop, gap, height, isAnimationRunning, shouldAddTopMargin]);
+    }, [isAnimationRunning]);
 
     return (
         <Animated.View style={[containerStyles, wrapperStyle, {minWidth}]}>
             {isAnimationRunning && canShow && (
                 <Animated.View
-                    ref={(el: View | null) => {
-                        viewRef.current = el as HTMLElement | null;
-                    }}
+                    ref={animatedViewRef}
                     exiting={buttonAnimation}
                 >
                     <Button
