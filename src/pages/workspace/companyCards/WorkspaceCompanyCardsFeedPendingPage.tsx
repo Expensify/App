@@ -27,7 +27,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
                 headerContentStyles={styles.pendingStateCardIllustration}
                 title={translate('workspace.moreFeatures.companyCards.pendingFeedTitle')}
             >
-                <Text>
+                <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
                     {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
                     <TextLink onPress={() => navigateToConciergeChat(conciergeReportID, false)}> {CONST.CONCIERGE_CHAT_NAME}</TextLink>.
                 </Text>
