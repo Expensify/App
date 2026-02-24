@@ -2,6 +2,7 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
@@ -47,8 +48,15 @@ function DraggableList<T>({
     ref,
 }: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
     const styles = useThemeStyles();
+    const isFocused = useIsFocused();
     const containerRef = useRef<HTMLDivElement>(null);
     const [hasFocus, setHasFocus] = useState(false);
+    const [hasBeenFocused, setHasBeenFocused] = useState(false);
+
+    // Arrow keys are active if:
+    // 1. The screen is focused AND focus hasn't entered+left the container yet (initial page state), OR
+    // 2. The container currently has DOM focus
+    const isArrowKeyActive = hasFocus || (isFocused && !hasBeenFocused);
 
     const items = data.map((item, index) => {
         return keyExtractor(item, index);
@@ -60,17 +68,17 @@ function DraggableList<T>({
         initialFocusedIndex: -1,
         maxIndex: data.length - 1,
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: hasFocus,
+        isActive: isArrowKeyActive,
         disableCyclicTraversal: true,
     });
 
-    // Track whether this list's container has focus via DOM events
     useEffect(() => {
         const container = containerRef.current;
         if (!container) {
             return;
         }
         const handleFocusIn = () => {
+            setHasBeenFocused(true);
             setHasFocus(true);
         };
         const handleFocusOut = (event: FocusEvent) => {
@@ -78,7 +86,11 @@ function DraggableList<T>({
                 return;
             }
             setHasFocus(false);
-            setFocusedIndex(-1);
+            // When relatedTarget is null the focused element was destroyed by a React re-render.
+            // Preserve focusedIndex so prevItemsRef can track the item to its new position.
+            if (event.relatedTarget) {
+                setFocusedIndex(-1);
+            }
         };
         container.addEventListener('focusin', handleFocusIn);
         container.addEventListener('focusout', handleFocusOut);
@@ -88,7 +100,27 @@ function DraggableList<T>({
         };
     }, [setFocusedIndex]);
 
-    // Clamp focusedIndex when data shrinks
+    // Follow focus through data reorders — focus should track the item, not stay at the index.
+    const prevItemsRef = useRef<string[]>(items);
+    useEffect(() => {
+        const prevItems = prevItemsRef.current;
+        prevItemsRef.current = items;
+
+        if (focusedIndex < 0 || focusedIndex >= prevItems.length) {
+            return;
+        }
+
+        const focusedKey = prevItems.at(focusedIndex);
+        if (focusedIndex < items.length && items.at(focusedIndex) === focusedKey) {
+            return;
+        }
+
+        const newIndex = items.indexOf(focusedKey);
+        if (newIndex >= 0 && newIndex !== focusedIndex) {
+            setFocusedIndex(newIndex);
+        }
+    }, [items, focusedIndex, setFocusedIndex]);
+
     useEffect(() => {
         if (focusedIndex <= data.length - 1) {
             return;
