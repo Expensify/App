@@ -19,10 +19,10 @@ import {isMobileSafari, isSafari} from '@libs/Browser';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import Parser from '@libs/Parser';
-import type {FileObject} from '@src/types/utils/Attachment';
-import CONST from '@src/CONST';
 import Log from '@libs/Log';
+import Parser from '@libs/Parser';
+import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
