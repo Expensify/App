@@ -262,6 +262,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_OPTIONS_INIT, {
                 name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_OPTIONS_INIT,
                 op: 'function',
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
             });
         }
         loadOptions();

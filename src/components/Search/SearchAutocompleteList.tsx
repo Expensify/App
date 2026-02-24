@@ -188,6 +188,7 @@ function SearchAutocompleteList({
         startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS, {
             name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS,
             op: 'function',
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
         });
         computeSpanStarted.current = true;
     }
@@ -907,6 +908,7 @@ function SearchAutocompleteList({
         startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER, {
             name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER,
             op: 'ui.render',
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
         });
     }
 
