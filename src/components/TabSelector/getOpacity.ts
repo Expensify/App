@@ -14,7 +14,7 @@ function getOpacity({routesLength, tabIndex, active, affectedTabs, position, isA
             });
         }
 
-        return affectedTabs.includes(tabIndex) && isActive ? activeValue : inactiveValue;
+        return isActive ? activeValue : inactiveValue;
     }
 
     return activeValue;
