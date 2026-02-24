@@ -37,7 +37,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);

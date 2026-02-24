@@ -348,18 +348,16 @@ function SearchList({
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-    });
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
 
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector, canBeMissing: false});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
 
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
@@ -539,7 +537,7 @@ function SearchList({
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
                     {canSelectMultiple && (
                         <Checkbox
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
                             onPress={() => {
@@ -556,7 +554,7 @@ function SearchList({
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={onAllCheckboxPress}
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             role="button"
                             accessibilityState={{checked: isSelectAllChecked}}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_BUTTON}

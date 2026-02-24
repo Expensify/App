@@ -16,8 +16,8 @@ const displayStringValue = (list: Array<{id: string; name: string; stringValue: 
 function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: false});
-    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: false});
+    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
     const error = getLatestErrorMessage(enableGlobalReimbursementsDraft);
 
     const paymentVolume = useMemo(

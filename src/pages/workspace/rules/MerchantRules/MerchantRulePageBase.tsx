@@ -97,9 +97,9 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const [isDeleting, setIsDeleting] = useState(false);
     const isEditing = !!ruleID;
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTags = useMemo(() => getTagLists(policyTagsFromOnyx) ?? getEmptyArray<ValueOf<PolicyTagLists>>(), [policyTagsFromOnyx]);
     const [shouldShowError, setShouldShowError] = useState(false);
     const {showConfirmModal} = useConfirmModal();
