@@ -502,7 +502,7 @@ function MoneyRequestReportTransactionList({
                                         setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
                                     }
                                 }}
-                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
                                 isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
                                 isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
                             />

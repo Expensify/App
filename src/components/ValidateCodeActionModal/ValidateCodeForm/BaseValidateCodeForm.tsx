@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {AccessibilityInfo, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -200,6 +200,13 @@ function BaseValidateCodeForm({
         if (!validateCodeSent) {
             return;
         }
+        AccessibilityInfo.announceForAccessibility(translate('validateCodeModal.successfulNewCodeRequest'));
+    }, [validateCodeSent, translate]);
+
+    useEffect(() => {
+        if (!validateCodeSent) {
+            return;
+        }
         // Delay prevents the input from gaining focus before the RHP slide-out animation finishes,
         // which would cause issues with the RHP sliding out smoothly and flickering of the wide RHP in the background.
         if ((wideRHPRouteKeys.length > 0 && !isMobileSafari()) || isInPageModal) {
@@ -329,14 +336,16 @@ function BaseValidateCodeForm({
                     </View>
                 )}
             </OfflineWithFeedback>
-            {!!validateCodeSent && (
-                <DotIndicatorMessage
-                    type="success"
-                    style={[styles.mt6, styles.flex0]}
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
-                />
-            )}
+            <View accessibilityLiveRegion="polite">
+                {!!validateCodeSent && (
+                    <DotIndicatorMessage
+                        type="success"
+                        style={[styles.mt6, styles.flex0]}
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
+                    />
+                )}
+            </View>
 
             <OfflineWithFeedback
                 shouldDisplayErrorAbove

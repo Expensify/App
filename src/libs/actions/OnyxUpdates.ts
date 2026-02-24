@@ -4,7 +4,6 @@ import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 import CONST from '@src/CONST';
@@ -31,7 +30,6 @@ let pusherEventsPromise = Promise.resolve();
 let airshipEventsPromise = Promise.resolve();
 
 function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, lastUpdateID: number) {
-    Performance.markStart(CONST.TIMING.APPLY_HTTPS_UPDATES);
     const span = Sentry.startInactiveSpan({
         name: CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES,
         op: `${CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES}.https`,
@@ -84,7 +82,6 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
             return Promise.resolve();
         })
         .then(() => {
-            Performance.markEnd(CONST.TIMING.APPLY_HTTPS_UPDATES);
             span.setStatus({code: 1});
             span.end();
             Log.info('[OnyxUpdateManager] Done applying HTTPS update', false, {lastUpdateID});
@@ -98,7 +95,6 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
 }
 
 function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
-    Performance.markStart(CONST.TIMING.APPLY_PUSHER_UPDATES);
     const span = Sentry.startInactiveSpan({
         name: CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES,
         op: `${CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES}.pusher`,
@@ -114,7 +110,6 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
     pusherEventsPromise = updates
         .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
-            Performance.markEnd(CONST.TIMING.APPLY_PUSHER_UPDATES);
             span.setStatus({code: 1});
             span.end();
             Log.info('[OnyxUpdateManager] Done applying Pusher update', false, {lastUpdateID});
@@ -129,7 +124,6 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
 }
 
 function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
-    Performance.markStart(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
     const span = Sentry.startInactiveSpan({
         name: CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES,
         op: `${CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES}.airship`,
@@ -145,7 +139,6 @@ function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdate
     airshipEventsPromise = updates
         .reduce((promise, update) => promise.then(() => Onyx.update(update.data as Array<OnyxUpdate<TKey>>)), airshipEventsPromise)
         .then(() => {
-            Performance.markEnd(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
             span.setStatus({code: 1});
             span.end();
             Log.info('[OnyxUpdateManager] Done applying Airship updates', false, {lastUpdateID});

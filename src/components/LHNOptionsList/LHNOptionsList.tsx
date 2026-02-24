@@ -28,21 +28,13 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {
-    getOneTransactionThreadReportID,
-    getOriginalMessage,
-    getSortedReportActions,
-    getSortedReportActionsForDisplay,
-    isInviteOrRemovedAction,
-    isMoneyRequestAction,
-    shouldReportActionBeVisibleAsLastAction,
-} from '@libs/ReportActionsUtils';
+import {findLastReportActions, getOriginalMessage, isInviteOrRemovedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import OptionRowLHNData from './OptionRowLHNData';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
@@ -175,14 +167,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const renderItem = useCallback(
         ({item, index}: RenderItemProps): ReactElement => {
             const reportID = item.reportID;
+            const itemReportAttributes = reportAttributes?.[reportID];
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
             const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-            const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.chatReportID}`];
             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getOneTransactionThreadReportID(item, chatReport, itemReportActions, isOffline)}`];
+            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item?.parentReportID}`];
             const itemParentReportAction = item?.parentReportActionID ? itemParentReportActions?.[item?.parentReportActionID] : undefined;
-            const itemReportAttributes = reportAttributes?.[reportID];
 
             let invoiceReceiverPolicyID = '-1';
             if (item?.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
@@ -207,8 +198,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
             const canUserPerformWrite = canUserPerformWriteActionUtil(item, isReportArchived);
-            const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
-            const lastReportAction = sortedReportActions.at(0);
+            const {lastVisibleAction: lastReportAction, lastActionForDisplay: lastAction} = findLastReportActions(itemReportActions, canUserPerformWrite);
 
             // Get the transaction for the last report action
             const lastReportActionTransactionID = isMoneyRequestAction(lastReportAction)
@@ -244,18 +234,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             });
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
-
-            let lastAction: ReportAction | undefined;
-            if (!itemReportActions || !item) {
-                lastAction = undefined;
-            } else {
-                const canUserPerformWriteAction = canUserPerformWriteActionUtil(item, isReportArchived);
-                const actionsArray = getSortedReportActions(Object.values(itemReportActions));
-                const reportActionsForDisplay = actionsArray.filter(
-                    (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
-                );
-                lastAction = reportActionsForDisplay.at(-1);
-            }
 
             let lastActionReport: OnyxEntry<Report> | undefined;
             if (isInviteOrRemovedAction(lastAction)) {
