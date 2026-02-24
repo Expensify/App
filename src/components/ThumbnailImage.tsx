@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -107,37 +107,28 @@ function ThumbnailImage({
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const [failedToLoad, setFailedToLoad] = useState(false);
+    const [prevLoadKey, setPrevLoadKey] = useState({isOffline, previewSourceURL});
+    if (prevLoadKey.isOffline !== isOffline || prevLoadKey.previewSourceURL !== previewSourceURL) {
+        setPrevLoadKey({isOffline, previewSourceURL});
+        setFailedToLoad(false);
+    }
+
     const cachedDimensions = shouldDynamicallyResize && typeof previewSourceURL === 'string' ? thumbnailDimensionsCache.get(previewSourceURL) : null;
     const [imageDimensions, setImageDimensions] = useState({width: cachedDimensions?.width ?? imageWidth, height: cachedDimensions?.height ?? imageHeight});
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(imageDimensions.width, imageDimensions.height);
     const StyleUtils = useStyleUtils();
 
-    useEffect(() => {
-        setFailedToLoad(false);
-    }, [isOffline, previewSourceURL]);
+    const updateImageSize = ({width, height}: Dimensions) => {
+        if (!shouldDynamicallyResize || (imageDimensions.width === width && imageDimensions.height === height)) {
+            return;
+        }
 
-    /**
-     * Update the state with the computed thumbnail sizes.
-     * @param Params - width and height of the original image.
-     */
-    const updateImageSize = useCallback(
-        ({width, height}: Dimensions) => {
-            if (
-                !shouldDynamicallyResize ||
-                // If the provided dimensions are good avoid caching them and updating state.
-                (imageDimensions.width === width && imageDimensions.height === height)
-            ) {
-                return;
-            }
+        if (typeof previewSourceURL === 'string') {
+            thumbnailDimensionsCache.set(previewSourceURL, {width, height});
+        }
 
-            if (typeof previewSourceURL === 'string') {
-                thumbnailDimensionsCache.set(previewSourceURL, {width, height});
-            }
-
-            setImageDimensions({width, height});
-        },
-        [previewSourceURL, imageDimensions.width, imageDimensions.height, shouldDynamicallyResize],
-    );
+        setImageDimensions({width, height});
+    };
 
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
 
@@ -188,4 +179,4 @@ function ThumbnailImage({
 
 ThumbnailImage.displayName = 'ThumbnailImage';
 
-export default React.memo(ThumbnailImage);
+export default ThumbnailImage;
