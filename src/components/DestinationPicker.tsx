@@ -24,7 +24,7 @@ type DestinationPickerProps = {
 function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: DestinationPickerProps) {
     const policy = usePolicy(policyID);
     const customUnit = getPerDiemCustomUnit(policy);
-    const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');

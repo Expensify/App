@@ -10,7 +10,7 @@ type AppNavigatorProps = {
 };
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
     const shouldShowAuthScreens = useMemo(() => {
         if (!CONFIG.IS_HYBRID_APP) {

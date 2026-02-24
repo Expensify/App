@@ -40,9 +40,7 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
     const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'EReceiptIcon']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
-        canBeMissing: true,
-    });
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const {primaryColor, secondaryColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transaction, fileExtension, isReceiptThumbnail);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);

@@ -394,6 +394,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Carta',
         whyDoWeAskForThis: 'Perché lo chiediamo?',
         required: 'Obbligatorio',
+        automatic: 'Automatico',
         showing: 'Mostrando',
         of: 'di',
         default: 'Predefinito',
@@ -534,6 +535,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: 'Tasso di cambio',
         reimbursableTotal: 'Totale rimborsabile',
         nonReimbursableTotal: 'Totale non rimborsabile',
+        opensInNewTab: 'Si apre in una nuova scheda',
         locked: 'Bloccato',
         month: 'Mese',
         week: 'Settimana',
@@ -1174,6 +1176,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Ricevuta in attesa di abbinamento con la transazione della carta. Contrassegna come contante per annullare.',
         markAsCash: 'Segna come contante',
         routePending: 'Instradamento in sospeso...',
+        automaticallyEnterExpenseDetails: 'Concierge inserirà automaticamente i dettagli della spesa per te, oppure puoi aggiungerli manualmente.',
         receiptScanning: () => ({
             one: 'Scansione della ricevuta in corso...',
             other: 'Scansione delle ricevute in corso...',
@@ -7427,6 +7430,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         scrollToNewestMessages: 'Scorri ai messaggi più recenti',
         preStyledText: 'Testo preformattato',
         viewAttachment: 'Visualizza allegato',
+        selectAllFeatures: 'Seleziona tutte le funzionalità',
+        selectAllTransactions: 'Seleziona tutte le transazioni',
+        selectAllItems: 'Seleziona tutti gli elementi',
     },
     parentReportAction: {
         deletedReport: 'Report eliminato',

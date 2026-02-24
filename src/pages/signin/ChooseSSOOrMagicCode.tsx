@@ -30,8 +30,8 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     // This view doesn't have a field for user input, so dismiss the device keyboard if shown
     useEffect(() => {
