@@ -9,8 +9,8 @@ import {startMoneyRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {canSendInvoice as canSendInvoicePolicyUtils} from '@libs/PolicyUtils';
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
+import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import {policyMapper} from '@pages/inbox/sidebar/FABPopoverContent/types';
-import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -25,7 +25,7 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric'] as const);
-    const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
+    const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useFABMenuContext();
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);

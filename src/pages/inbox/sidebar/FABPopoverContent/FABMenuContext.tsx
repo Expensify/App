@@ -8,6 +8,8 @@ type FABMenuContextType = {
     registeredItems: readonly string[];
     registerItem: (id: string) => void;
     unregisterItem: (id: string) => void;
+    shouldRedirectToExpensifyClassic: boolean;
+    showRedirectToExpensifyClassicModal: () => Promise<void>;
 };
 
 const FABMenuContext = createContext<FABMenuContextType>({
@@ -18,6 +20,8 @@ const FABMenuContext = createContext<FABMenuContextType>({
     registeredItems: [],
     registerItem: () => {},
     unregisterItem: () => {},
+    shouldRedirectToExpensifyClassic: false,
+    showRedirectToExpensifyClassicModal: () => Promise.resolve(),
 });
 
 function useFABMenuContext() {

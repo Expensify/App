@@ -12,6 +12,7 @@ import {isSafari} from '@libs/Browser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import CONST from '@src/CONST';
 import {FABMenuContext} from './FABMenuContext';
+import useRedirectToExpensifyClassic from './useRedirectToExpensifyClassic';
 
 const FAB_ITEM_ORDER = [
     CONST.FAB_MENU_ITEM_IDS.QUICK_ACTION,
@@ -68,6 +69,8 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
         });
     };
 
+    const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
+
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
         maxIndex: itemCount - 1,
@@ -87,7 +90,19 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
     };
 
     return (
-        <FABMenuContext.Provider value={{focusedIndex, setFocusedIndex, onItemPress, isVisible, registeredItems, registerItem, unregisterItem}}>
+        <FABMenuContext.Provider
+            value={{
+                focusedIndex,
+                setFocusedIndex,
+                onItemPress,
+                isVisible,
+                registeredItems,
+                registerItem,
+                unregisterItem,
+                shouldRedirectToExpensifyClassic,
+                showRedirectToExpensifyClassicModal,
+            }}
+        >
             <PopoverWithMeasuredContent
                 anchorPosition={anchorPosition}
                 anchorRef={anchorRef}
