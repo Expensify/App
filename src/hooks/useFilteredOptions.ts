@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
@@ -91,13 +91,11 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
               })
             : null;
 
-    // Reset loading state after options are computed
-    useEffect(() => {
-        if (!isLoadingMore || !options) {
-            return;
-        }
+    const [prevReportsLimit, setPrevReportsLimit] = useState(reportsLimit);
+    if (prevReportsLimit !== reportsLimit && isLoadingMore && options) {
+        setPrevReportsLimit(reportsLimit);
         setIsLoadingMore(false);
-    }, [options, isLoadingMore]);
+    }
 
     const loadMore = () => {
         if (!options || isLoadingMore) {
