@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import shouldUseNativeDisabledOnWebDefault from './shouldUseNativeDisabledOnWeb';
 import {getButtonRole} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
@@ -181,6 +182,11 @@ type ButtonProps = Partial<ChildrenProps> &
          * Whether the button should stay visually normal even when disabled.
          */
         shouldStayNormalOnDisable?: boolean;
+
+        /**
+         * Whether disabled/loading states should also set native disabled semantics on web.
+         */
+        shouldUseNativeDisabledOnWeb?: boolean;
     };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -286,6 +292,7 @@ function Button({
     secondLineText = '',
     shouldBlendOpacity = false,
     shouldStayNormalOnDisable = false,
+    shouldUseNativeDisabledOnWeb = shouldUseNativeDisabledOnWebDefault,
     sentryLabel,
     ref,
     ...rest
@@ -459,6 +466,8 @@ function Button({
         };
     }, [buttonStyles, shouldBlendOpacity]);
 
+    const isDisabledOrLoading = isLoading || isDisabled;
+
     return (
         <>
             {pressOnEnter && (
@@ -488,7 +497,7 @@ function Button({
                         HapticFeedback.press();
                     }
 
-                    if (isDisabled || isLoading) {
+                    if (isDisabledOrLoading) {
                         return; // Prevent the onPress from being triggered when the button is disabled or in a loading state
                     }
                     return onPress(event);
@@ -506,7 +515,8 @@ function Button({
                 onPressOut={onPressOut}
                 onMouseDown={onMouseDown}
                 shouldBlendOpacity={shouldBlendOpacity}
-                disabled={isLoading || isDisabled}
+                disabled={isDisabledOrLoading}
+                fullDisabled={shouldUseNativeDisabledOnWeb && isDisabledOrLoading}
                 wrapperStyle={[
                     isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,
