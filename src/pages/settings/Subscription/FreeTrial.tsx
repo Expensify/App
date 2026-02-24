@@ -55,6 +55,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
     ) : (
         <Badge
             success={success}
+            isCondensed
             text={freeTrialText}
             badgeStyles={badgeStyles}
         />

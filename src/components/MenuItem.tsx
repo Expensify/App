@@ -87,6 +87,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the badge should be shown as success */
         badgeSuccess?: boolean;
 
+        /** Whether the badge should use condensed (smaller) sizing */
+        badgeCondensed?: boolean;
+
         /** Callback to fire when the badge is pressed */
         onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
@@ -452,6 +455,7 @@ function MenuItem({
     badgeText,
     badgeIcon,
     badgeSuccess,
+    badgeCondensed,
     onBadgePress,
     shouldShowBadgeInSeparateRow = false,
     shouldShowBadgeBelow = false,
@@ -586,7 +590,6 @@ function MenuItem({
     const popoverAnchor = useRef<View>(null);
     const deviceHasHoverSupport = hasHoverSupport();
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
-    const isDefaultBadge = !badgeSuccess;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
@@ -980,14 +983,9 @@ function MenuItem({
                                                             <Badge
                                                                 text={badgeText}
                                                                 icon={badgeIcon}
-                                                                badgeStyles={[
-                                                                    badgeStyle,
-                                                                    styles.alignSelfStart,
-                                                                    styles.ml3,
-                                                                    styles.mt2,
-                                                                    focused && isDefaultBadge && styles.badgeDefaultActive,
-                                                                ]}
+                                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml3, styles.mt2]}
                                                                 success={badgeSuccess}
+                                                                isCondensed={badgeCondensed}
                                                                 onPress={onBadgePress}
                                                                 pressable={!!onBadgePress}
                                                             />
@@ -1002,8 +1000,9 @@ function MenuItem({
                                                     <Badge
                                                         text={badgeText}
                                                         icon={badgeIcon}
-                                                        badgeStyles={[badgeStyle, focused && isDefaultBadge && styles.badgeDefaultActive]}
+                                                        badgeStyles={badgeStyle}
                                                         success={badgeSuccess}
+                                                        isCondensed={badgeCondensed}
                                                         onPress={onBadgePress}
                                                         pressable={!!onBadgePress}
                                                     />
@@ -1100,8 +1099,9 @@ function MenuItem({
                                             <Badge
                                                 text={badgeText}
                                                 icon={badgeIcon}
-                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2, focused && isDefaultBadge && styles.badgeDefaultActive]}
+                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2]}
                                                 success={badgeSuccess}
+                                                isCondensed={badgeCondensed}
                                                 onPress={onBadgePress}
                                                 pressable={!!onBadgePress}
                                             />

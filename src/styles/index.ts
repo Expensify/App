@@ -1042,16 +1042,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.danger,
         },
 
-        badgeDefaultActive: {
-            backgroundColor: theme.hoverComponentBG,
-        },
-
-        badgeNewFeature: {
-            minHeight: 20,
-            height: 20,
-            paddingHorizontal: 8,
-        },
-
         condensedBadge: {
             minHeight: 16,
             height: 16,
@@ -5497,11 +5487,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         todoBadge: {
-            width: variables.w36,
             alignItems: 'center',
             justifyContent: 'center',
-            paddingLeft: 0,
-            paddingRight: 0,
         },
 
         stickToBottom: {

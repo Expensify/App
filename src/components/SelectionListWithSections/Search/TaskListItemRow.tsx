@@ -70,6 +70,7 @@ function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellPr
 
 function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const session = useSession();
     const {translate} = useLocalize();
@@ -84,12 +85,18 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
         return (
             <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
                 <Badge
-                    success
                     isCondensed
                     text={translate('task.completed')}
                     icon={Expensicons.Checkmark}
                     iconStyles={styles.mr0}
-                    badgeStyles={[styles.ml0, styles.ph2, styles.gap1, isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd]}
+                    badgeStyles={[
+                        styles.ml0,
+                        styles.gap1,
+                        styles.borderNone,
+                        isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd,
+                        StyleUtils.getBackgroundColorStyle(theme.reportStatusBadge.paid.backgroundColor),
+                    ]}
+                    textStyles={StyleUtils.getColorStyle(theme.reportStatusBadge.paid.textColor)}
                 />
             </View>
         );

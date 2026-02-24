@@ -4,6 +4,7 @@ import Badge from '@components/Badge';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -20,10 +21,13 @@ type BadgeActionCellProps = {
 
 function BadgeActionCell({action, isLargeScreenWidth, isSelected, extraSmall, shouldDisablePointerEvents}: BadgeActionCellProps) {
     const {translate} = useLocalize();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Checkbox']);
     const text = translate(actionTranslationsMap[action]);
+
+    const badgeTheme = action === CONST.SEARCH.ACTION_TYPES.PAID ? theme.reportStatusBadge.paid : theme.reportStatusBadge.approved;
 
     return (
         <View
@@ -33,18 +37,17 @@ function BadgeActionCell({action, isLargeScreenWidth, isSelected, extraSmall, sh
         >
             <Badge
                 text={text}
+                isCondensed
                 icon={action === CONST.SEARCH.ACTION_TYPES.DONE ? expensifyIcons.Checkbox : expensifyIcons.Checkmark}
                 badgeStyles={[
                     styles.ml0,
-                    styles.ph2,
                     styles.gap1,
+                    styles.borderNone,
                     isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd,
-                    StyleUtils.getHeight(variables.h20),
-                    StyleUtils.getMinimumHeight(variables.h20),
+                    StyleUtils.getBackgroundColorStyle(badgeTheme.backgroundColor),
                 ]}
-                textStyles={StyleUtils.getFontSizeStyle(extraSmall ? variables.fontSizeExtraSmall : variables.fontSizeSmall)}
+                textStyles={StyleUtils.getColorStyle(badgeTheme.textColor)}
                 iconStyles={styles.mr0}
-                success
                 shouldUseXXSmallIcon={extraSmall}
             />
         </View>

@@ -83,7 +83,7 @@ const lightTheme = {
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green100,
     reactionActiveText: colors.green600,
-    badgeDefaultBG: colors.productLight700,
+    badgeDefaultBG: colors.productLight600,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
     mentionText: colors.blue600,

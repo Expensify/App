@@ -89,6 +89,7 @@ type MenuData = WithSentryLabel & {
     badgeText?: string;
     badgeStyle?: ViewStyle;
     badgeSuccess?: boolean;
+    badgeCondensed?: boolean;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
@@ -294,6 +295,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     : undefined,
             badgeText: freeTrialText,
             badgeSuccess: !!freeTrialText,
+            badgeCondensed: !!freeTrialText,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SUBSCRIPTION,
             action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route),
         });
@@ -457,6 +459,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             badgeText={item.badgeText}
                             badgeStyle={item.badgeStyle}
                             badgeSuccess={item.badgeSuccess}
+                            badgeCondensed={item.badgeCondensed}
                             fallbackIcon={item.fallbackIcon}
                             brickRoadIndicator={item.brickRoadIndicator}
                             shouldStackHorizontally={item.shouldStackHorizontally}
