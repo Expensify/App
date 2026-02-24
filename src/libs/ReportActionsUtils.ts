@@ -453,11 +453,11 @@ function getReimbursedMessage(
     const {paymentMethod, debitBankAccountLast4, creditBankAccountLast4, expectedDate, isInvoiceOrBill, isSubmitterAddingBankAccount, stripePaymentType} = originalMessage;
 
     // Resolve submitter email from report owner
-    const submitterAccountID = report?.ownerAccountID ?? -1;
+    const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const submitterLogin = getPersonalDetailsByIDs({accountIDs: [submitterAccountID], currentUserAccountID}).at(0)?.login ?? '';
 
     // Resolve actor email from action
-    const actorAccountID = reportAction?.actorAccountID ?? -1;
+    const actorAccountID = reportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const actorLogin = getPersonalDetailsByIDs({accountIDs: [actorAccountID], currentUserAccountID}).at(0)?.login ?? '';
 
     // Current user email

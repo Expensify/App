@@ -115,7 +115,6 @@ import {
     getRemovedFromApprovalChainMessage,
     getRenamedAction,
     getReportActionMessage,
-    getReportActionMessageText,
     getReportActionText,
     getSetAutoJoinMessage,
     getSettlementAccountLockedMessage,

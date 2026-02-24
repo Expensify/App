@@ -1307,7 +1307,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursedWithStripeConnect: ({recipient, creditBankAccount, paymentMethod}: {recipient: string; creditBankAccount: string; paymentMethod: string}) =>
             `. L’argent est en route vers ${recipient}${creditBankAccount ? ` compte bancaire se terminant par ${creditBankAccount}` : ' compte'} (payé par ${paymentMethod}). Cela peut prendre jusqu’à 10 jours ouvrables.`,
         reimbursedWithACH: ({creditBankAccount, expectedDate}: {creditBankAccount?: string; expectedDate?: string}) =>
-            ` par dépôt direct (ACH)${creditBankAccount ? ` vers le compte bancaire se terminant par ${creditBankAccount}. ` : ‘. ‘}${expectedDate ? `Le remboursement devrait être terminé d’ici le ${expectedDate}.` : ‘Cela prend généralement 4 à 5 jours ouvrables.’}`,
+            ` par dépôt direct (ACH)${creditBankAccount ? ` vers le compte bancaire se terminant par ${creditBankAccount}. ` : '. '}${expectedDate ? `Le remboursement devrait être terminé d’ici le ${expectedDate}.` : 'Cela prend généralement 4 à 5 jours ouvrables.'}`,
         noReimbursableExpenses: 'Cette note de frais a un montant non valide',
         pendingConversionMessage: 'Le total sera mis à jour quand vous serez de nouveau en ligne',
         changedTheExpense: 'a modifié la dépense',
