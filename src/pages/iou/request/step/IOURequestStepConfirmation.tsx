@@ -49,10 +49,8 @@ import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction'
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
-    doesReportReceiverMatchParticipant,
     findSelfDMReportID,
     generateReportID,
     getReportOrDraftReport,
@@ -233,7 +231,6 @@ function IOURequestStepConfirmation({
 
     const receiverParticipant: Participant | InvoiceReceiver | undefined = transaction?.participants?.find((participant) => participant?.accountID) ?? report?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
-    const receiverParticipantAccountID = receiverParticipant && 'accountID' in receiverParticipant ? receiverParticipant.accountID : undefined;
     const receiverType = getReceiverType(receiverParticipant);
     const senderWorkspaceID = transaction?.participants?.find((participant) => participant?.isSender)?.policyID;
 
@@ -324,7 +321,6 @@ function IOURequestStepConfirmation({
 
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
-        Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
     }, []);
 
     useEffect(() => {
@@ -995,7 +991,6 @@ function IOURequestStepConfirmation({
                 hasReceiptFiles,
             });
 
-            Performance.markStart(CONST.TIMING.SUBMIT_EXPENSE);
             startSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE, {
                 name: 'submit-expense',
                 op: CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE,
@@ -1125,8 +1120,7 @@ function IOURequestStepConfirmation({
             }
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const invoiceChatReport =
-                    !isEmptyObject(report) && report?.reportID && doesReportReceiverMatchParticipant(report, receiverParticipantAccountID) ? report : existingInvoiceReport;
+                const invoiceChatReport = !isEmptyObject(report) && report?.reportID ? report : existingInvoiceReport;
                 const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
 
                 sendInvoice({
@@ -1262,7 +1256,6 @@ function IOURequestStepConfirmation({
             quickAction,
             isASAPSubmitBetaEnabled,
             transactionViolations,
-            receiverParticipantAccountID,
             existingInvoiceReport,
             policy,
             policyTags,

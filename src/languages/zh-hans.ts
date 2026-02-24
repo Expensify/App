@@ -394,6 +394,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: '卡片',
         whyDoWeAskForThis: '我们为什么要询问这个？',
         required: '必填',
+        automatic: '自动',
         showing: '正在显示',
         of: '的',
         default: '默认',
@@ -529,6 +530,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: '汇率',
         reimbursableTotal: '可报销总额',
         nonReimbursableTotal: '不可报销总额',
+        opensInNewTab: '在新标签页中打开',
         locked: '已锁定',
         month: '月',
         week: '周',
@@ -1153,6 +1155,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: '收据正在等待与卡片交易匹配。将其标记为现金以取消。',
         markAsCash: '标记为现金',
         routePending: '路由处理中…',
+        automaticallyEnterExpenseDetails: 'Concierge 将自动为您输入费用详情，或者您可以手动添加。',
         receiptScanning: () => ({
             one: '正在扫描收据…',
             other: '正在扫描收据…',
@@ -1354,7 +1357,12 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: '其中有些重复项已经被批准或支付。',
         reviewDuplicates: '查看重复项',
         keepAll: '全部保留',
-        confirmApprovalWithHeldAmount: '报告包含暂停的费用。仅批准合规的费用，还是批准整个报告？',
+        confirmApprove: '确认批准金额',
+        confirmApprovalAmount: '仅批准合规报销，或批准整份报销报告。',
+        confirmApprovalAllHoldAmount: () => ({
+            one: '此报销已被搁置。仍要批准吗？',
+            other: '这些报销当前被搁置。你仍然想要批准吗？',
+        }),
         confirmPay: '确认付款金额',
         confirmPayAmount: '支付未冻结的部分，或支付整份报告。',
         confirmPayAllHoldAmount: () => ({
@@ -7234,6 +7242,9 @@ ${reportName}
         scrollToNewestMessages: '滚动到最新消息',
         preStyledText: '预设样式文本',
         viewAttachment: '查看附件',
+        selectAllFeatures: '选择所有功能',
+        selectAllTransactions: '选择所有交易',
+        selectAllItems: '全选所有项目',
     },
     parentReportAction: {
         deletedReport: '已删除的报告',

@@ -61,10 +61,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldUseModalPaddingStyle = true,
         shouldUseShortForm = false,
         shouldUseOptionIcon = false,
-        headerTextStyles,
         shouldStayNormalOnDisable = false,
         sentryLabel,
-        shouldPutHeaderTextAfterBackButton = false,
         brickRoadIndicator,
     } = props;
 
@@ -299,7 +297,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             setIsMenuVisible(false);
                         }
                     }}
-                    headerStyles={headerTextStyles}
                     anchorPosition={popoverAnchorPosition}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     anchorRef={nullCheckRef(dropdownAnchor)}
@@ -329,7 +326,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         shouldCallAfterModalHide: true,
                         subMenuItems: item.subMenuItems?.map((subItem) => ({...subItem, shouldCallAfterModalHide: true})),
                     }))}
-                    shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                 />
             )}
         </View>

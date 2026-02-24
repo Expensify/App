@@ -18,7 +18,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import Performance from '@libs/Performance';
 import Visibility from '@libs/Visibility';
 import {clearSignInData} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -179,10 +178,6 @@ function SignInPage({ref}: SignInPageProps) {
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
-
-    useEffect(() => {
-        Performance.measureTTI();
-    }, []);
 
     useEffect(() => {
         if (credentials?.login) {

@@ -394,6 +394,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Karte',
         whyDoWeAskForThis: 'Warum fragen wir danach?',
         required: 'Erforderlich',
+        automatic: 'Automatisch',
         showing: 'Wird angezeigt',
         of: 'von',
         default: 'Standard',
@@ -534,6 +535,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: 'Wechselkurs',
         reimbursableTotal: 'Erstattungsfähiger Gesamtbetrag',
         nonReimbursableTotal: 'Nicht erstattungsfähige Gesamtsumme',
+        opensInNewTab: 'Wird in einem neuen Tab geöffnet',
         locked: 'Gesperrt',
         month: 'Monat',
         week: 'Woche',
@@ -1176,6 +1178,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Beleg wartet auf Abgleich mit Kartenumsatz. Als Barzahlung markieren, um abzubrechen.',
         markAsCash: 'Als Bar markieren',
         routePending: 'Routing ausstehend ...',
+        automaticallyEnterExpenseDetails: 'Concierge wird automatisch die Ausgabendetails für Sie eingeben, oder Sie können sie manuell hinzufügen.',
         receiptScanning: () => ({
             one: 'Beleg wird gescannt ...',
             other: 'Belege werden gescannt …',
@@ -1387,7 +1390,12 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Einige dieser Duplikate wurden bereits genehmigt oder bezahlt.',
         reviewDuplicates: 'Duplikate prüfen',
         keepAll: 'Alle behalten',
-        confirmApprovalWithHeldAmount: 'Der Bericht enthält zurückgestellte Ausgaben. Nur konforme Ausgaben genehmigen oder den gesamten Bericht genehmigen?',
+        confirmApprove: 'Genehmigungsbetrag bestätigen',
+        confirmApprovalAmount: 'Nur regelkonforme Ausgaben genehmigen oder den gesamten Bericht genehmigen.',
+        confirmApprovalAllHoldAmount: () => ({
+            one: 'Diese Ausgabe ist zurückgestellt. Möchtest du sie trotzdem genehmigen?',
+            other: 'Diese Ausgaben sind zurückgestellt. Möchtest du sie trotzdem genehmigen?',
+        }),
         confirmPay: 'Zahlungsbetrag bestätigen',
         confirmPayAmount: 'Bezahle, was nicht zurückgestellt ist, oder bezahle den gesamten Bericht.',
         confirmPayAllHoldAmount: () => ({
@@ -7440,6 +7448,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         scrollToNewestMessages: 'Zu neuesten Nachrichten scrollen',
         preStyledText: 'Vorgestylter Text',
         viewAttachment: 'Anhang anzeigen',
+        selectAllFeatures: 'Alle Funktionen auswählen',
+        selectAllTransactions: 'Alle Transaktionen auswählen',
+        selectAllItems: 'Alle Einträge auswählen',
     },
     parentReportAction: {
         deletedReport: 'Gelöschter Bericht',
