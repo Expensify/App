@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -77,12 +77,14 @@ function AnimatedCollapsible({
     const descriptionHeight = useSharedValue(0);
     const hasExpanded = useSharedValue(isExpanded);
     const [isRendered, setIsRendered] = React.useState(isExpanded);
-    useEffect(() => {
+    const [prevExpanded, setPrevExpanded] = React.useState(isExpanded);
+    if (prevExpanded !== isExpanded) {
+        setPrevExpanded(isExpanded);
         hasExpanded.set(isExpanded);
         if (isExpanded) {
             setIsRendered(true);
         }
-    }, [isExpanded, hasExpanded]);
+    }
 
     const animatedHeight = useDerivedValue(() => {
         if (!contentHeight.get()) {
