@@ -9,8 +9,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
@@ -34,10 +32,7 @@ function NewWorkspaceMenuItem() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allPolicies] = useMappedPolicies(policyMapper);
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
-
+    const {setFocusedIndex, onItemPress} = useFABMenuContext();
     const shouldShowNewWorkspaceButton = (() => {
         if (isRestrictedPolicyCreation) {
             return false;
@@ -49,7 +44,7 @@ function NewWorkspaceMenuItem() {
 
     const isVisible = !isLoading && shouldShowNewWorkspaceButton;
 
-    const itemIndex = useFABMenuItem(ITEM_ID, isVisible);
+    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID, isVisible);
 
     if (!isVisible) {
         return null;
@@ -65,7 +60,7 @@ function NewWorkspaceMenuItem() {
             iconHeight={variables.h40}
             title={translate('workspace.new.newWorkspace')}
             description={translate('workspace.new.getTheExpensifyCardAndMore')}
-            focused={focusedIndex === itemIndex}
+            focused={isFocused}
             onFocus={() => setFocusedIndex(itemIndex)}
             onPress={() =>
                 onItemPress(() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))), {
@@ -74,7 +69,7 @@ function NewWorkspaceMenuItem() {
             }
             shouldCheckActionAllowedOnPress={false}
             role={CONST.ROLE.BUTTON}
-            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === itemIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
+            wrapperStyle={wrapperStyle}
         />
     );
 }

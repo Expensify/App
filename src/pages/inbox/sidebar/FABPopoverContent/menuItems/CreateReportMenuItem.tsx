@@ -10,8 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -51,10 +49,7 @@ function CreateReportMenuItem({activePolicyID}: CreateReportMenuItemProps) {
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
-
+    const {setFocusedIndex, onItemPress} = useFABMenuContext();
     const groupPaidPoliciesWithChatEnabled = useCallback(
         (policies: Parameters<typeof groupPaidPoliciesWithExpenseChatEnabledSelector>[0]) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, session?.email),
         [session?.email],
@@ -64,7 +59,7 @@ function CreateReportMenuItem({activePolicyID}: CreateReportMenuItemProps) {
 
     const isVisible = shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
 
-    const itemIndex = useFABMenuItem(ITEM_ID, isVisible);
+    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID, isVisible);
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
 
@@ -118,7 +113,7 @@ function CreateReportMenuItem({activePolicyID}: CreateReportMenuItemProps) {
                 pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.CREATE_REPORT}
                 icon={icons.Document}
                 title={translate('report.newReport.createReport')}
-                focused={focusedIndex === itemIndex}
+                focused={isFocused}
                 onFocus={() => setFocusedIndex(itemIndex)}
                 onPress={() =>
                     onItemPress(
@@ -153,7 +148,7 @@ function CreateReportMenuItem({activePolicyID}: CreateReportMenuItemProps) {
                 }
                 shouldCheckActionAllowedOnPress={false}
                 role={CONST.ROLE.BUTTON}
-                wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === itemIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
+                wrapperStyle={wrapperStyle}
             />
             {CreateReportConfirmationModal}
         </>

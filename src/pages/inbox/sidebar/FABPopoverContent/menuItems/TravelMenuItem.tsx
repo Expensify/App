@@ -5,8 +5,6 @@ import FocusableMenuItem from '@components/FocusableMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
@@ -37,13 +35,10 @@ function TravelMenuItem({activePolicyID}: TravelMenuItemProps) {
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
-
+    const {setFocusedIndex, onItemPress} = useFABMenuContext();
     const isVisible = !!activePolicy?.isTravelEnabled;
 
-    const itemIndex = useFABMenuItem(ITEM_ID, isVisible);
+    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID, isVisible);
 
     const isTravelEnabled = (() => {
         if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
@@ -72,12 +67,12 @@ function TravelMenuItem({activePolicyID}: TravelMenuItemProps) {
             title={translate('travel.bookTravel')}
             iconRight={isTravelEnabled && shouldOpenTravelDotLinkWeb() ? icons.NewWindow : undefined}
             shouldShowRightIcon={!!(isTravelEnabled && shouldOpenTravelDotLinkWeb())}
-            focused={focusedIndex === itemIndex}
+            focused={isFocused}
             onFocus={() => setFocusedIndex(itemIndex)}
             onPress={() => onItemPress(() => interceptAnonymousUser(() => openTravel()))}
             shouldCheckActionAllowedOnPress={false}
             role={CONST.ROLE.BUTTON}
-            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === itemIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
+            wrapperStyle={wrapperStyle}
         />
     );
 }

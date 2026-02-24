@@ -5,7 +5,6 @@ import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startTestDrive} from '@libs/actions/Tour';
@@ -21,17 +20,16 @@ function TestDriveMenuItem() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['Binoculars'] as const);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
     const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const {setFocusedIndex, onItemPress} = useFABMenuContext();
 
     const isVisible = !hasSeenTour;
 
-    const itemIndex = useFABMenuItem(ITEM_ID, isVisible);
+    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID, isVisible);
 
     if (!isVisible) {
         return null;
@@ -44,12 +42,12 @@ function TestDriveMenuItem() {
             iconStyles={styles.popoverIconCircle}
             iconFill={theme.icon}
             title={translate('testDrive.quickAction.takeATwoMinuteTestDrive')}
-            focused={focusedIndex === itemIndex}
+            focused={isFocused}
             onFocus={() => setFocusedIndex(itemIndex)}
             onPress={() => onItemPress(() => interceptAnonymousUser(() => startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember)))}
             shouldCheckActionAllowedOnPress={false}
             role={CONST.ROLE.BUTTON}
-            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === itemIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
+            wrapperStyle={wrapperStyle}
         />
     );
 }

@@ -5,8 +5,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {canSendInvoice as canSendInvoicePolicyUtils} from '@libs/PolicyUtils';
@@ -30,13 +28,10 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal, allPolicies} = useRedirectToExpensifyClassic();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
-
+    const {setFocusedIndex, onItemPress} = useFABMenuContext();
     const canSendInvoice = canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email);
 
-    const itemIndex = useFABMenuItem(ITEM_ID, canSendInvoice);
+    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID, canSendInvoice);
 
     if (!canSendInvoice) {
         return null;
@@ -47,7 +42,7 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE}
             icon={icons.InvoiceGeneric}
             title={translate('workspace.invoices.sendInvoice')}
-            focused={focusedIndex === itemIndex}
+            focused={isFocused}
             onFocus={() => setFocusedIndex(itemIndex)}
             onPress={() =>
                 onItemPress(
@@ -64,7 +59,7 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
             }
             shouldCheckActionAllowedOnPress={false}
             role={CONST.ROLE.BUTTON}
-            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === itemIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
+            wrapperStyle={wrapperStyle}
         />
     );
 }

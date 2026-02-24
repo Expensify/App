@@ -9,8 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
@@ -67,10 +65,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
-
+    const {setFocusedIndex, onItemPress} = useFABMenuContext();
     const quickActionPolicyID = quickAction?.action === CONST.QUICK_ACTIONS.TRACK_PER_DIEM && quickAction?.perDiemPolicyID ? quickAction?.perDiemPolicyID : quickActionReport?.policyID;
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionPolicyID}`, {canBeMissing: true});
 
@@ -85,9 +80,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
             : false) ||
         (!quickAction?.action && !isEmptyObject(policyChatForActivePolicy));
 
-    const itemIndex = useFABMenuItem(ITEM_ID, isVisible);
-    const isFocused = focusedIndex === itemIndex;
-    const focusWrapperStyle = StyleUtils.getItemBackgroundColorStyle(false, isFocused, false, theme.activeComponentBG, theme.hoverComponentBG);
+    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID, isVisible);
 
     let quickActionAvatars: ReturnType<typeof getIcons> = [];
     if (isValidReport) {
@@ -152,7 +145,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                 onFocus={() => setFocusedIndex(itemIndex)}
                 shouldCheckActionAllowedOnPress={false}
                 role={CONST.ROLE.BUTTON}
-                wrapperStyle={focusWrapperStyle}
+                wrapperStyle={wrapperStyle}
                 icon={getQuickActionIcon(icons, quickAction?.action)}
                 title={quickActionTitle}
                 rightIconAccountID={quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID}
@@ -204,7 +197,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
             onFocus={() => setFocusedIndex(itemIndex)}
             shouldCheckActionAllowedOnPress={false}
             role={CONST.ROLE.BUTTON}
-            wrapperStyle={focusWrapperStyle}
+            wrapperStyle={wrapperStyle}
             icon={icons.ReceiptScan}
             title={translate('quickAction.scanReceipt')}
             // eslint-disable-next-line @typescript-eslint/no-deprecated

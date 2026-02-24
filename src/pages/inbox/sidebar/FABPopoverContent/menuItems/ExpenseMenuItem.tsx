@@ -4,8 +4,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -27,18 +25,15 @@ function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle'] as const);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
-
-    const itemIndex = useFABMenuItem(ITEM_ID);
+    const {setFocusedIndex, onItemPress} = useFABMenuContext();
+    const {itemIndex, isFocused, wrapperStyle} = useFABMenuItem(ITEM_ID);
 
     return (
         <FocusableMenuItem
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE}
             icon={getIconForAction(CONST.IOU.TYPE.CREATE, icons)}
             title={translate('iou.createExpense')}
-            focused={focusedIndex === itemIndex}
+            focused={isFocused}
             onFocus={() => setFocusedIndex(itemIndex)}
             onPress={() =>
                 onItemPress(
@@ -55,7 +50,7 @@ function ExpenseMenuItem({reportID}: ExpenseMenuItemProps) {
             }
             shouldCheckActionAllowedOnPress={false}
             role={CONST.ROLE.BUTTON}
-            wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focusedIndex === itemIndex, false, theme.activeComponentBG, theme.hoverComponentBG)}
+            wrapperStyle={wrapperStyle}
         />
     );
 }
