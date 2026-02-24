@@ -6,7 +6,7 @@ import getImageRecyclingKey from '@libs/getImageRecyclingKey';
 import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type {BaseImageProps} from './types';
 
-function BaseImage({onLoad, source, ...props}: BaseImageProps) {
+function BaseImage({onLoad, onLoadStart, source, ...props}: BaseImageProps) {
     const {setAttachmentLoaded, isAttachmentLoaded} = useContext(AttachmentStateContext);
     useEffect(() => {
         if (isAttachmentLoaded?.(source as AttachmentSource)) {
@@ -16,6 +16,11 @@ function BaseImage({onLoad, source, ...props}: BaseImageProps) {
         setAttachmentLoaded?.(source as AttachmentSource, false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        // expo-image doesn't support onLoadStart on web, so we call it manually when the source changes, matching react-native-web's Image behavior
+        onLoadStart?.();
+    }, [source, onLoadStart]);
 
     const imageLoadedSuccessfully = useCallback(
         (event: ImageLoadEventData) => {
