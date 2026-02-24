@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
-import {Platform, View} from 'react-native';
+import {AccessibilityInfo, Platform, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -47,6 +47,9 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const isUserValidated = account?.validated ?? false;
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const announceStatus = (message: string) => {
+        if (Platform.OS === CONST.PLATFORM.IOS) {
+            AccessibilityInfo.announceForAccessibility(message);
+        }
         setStatusAnnouncement((previousStatusAnnouncement) => ({id: previousStatusAnnouncement.id + 1, text: message}));
     };
 
@@ -162,8 +165,8 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                             key={statusAnnouncement.id}
                             style={styles.hiddenElementOutsideOfWindow}
                             role={Platform.OS === CONST.PLATFORM.WEB ? CONST.ROLE.ALERT : undefined}
-                            accessibilityRole={Platform.OS !== CONST.PLATFORM.WEB ? CONST.ROLE.ALERT : undefined}
-                            accessibilityLiveRegion={Platform.OS !== CONST.PLATFORM.WEB ? 'assertive' : undefined}
+                            accessibilityRole={Platform.OS === CONST.PLATFORM.ANDROID ? CONST.ROLE.ALERT : undefined}
+                            accessibilityLiveRegion={Platform.OS === CONST.PLATFORM.ANDROID ? 'assertive' : undefined}
                         >
                             {statusAnnouncement.text}
                         </Text>
