@@ -111,7 +111,7 @@ function DraggableList<T>({
         }
 
         const focusedKey = prevItems.at(focusedIndex);
-        if (focusedIndex < items.length && items.at(focusedIndex) === focusedKey) {
+        if (!focusedKey || (focusedIndex < items.length && items.at(focusedIndex) === focusedKey)) {
             return;
         }
 
