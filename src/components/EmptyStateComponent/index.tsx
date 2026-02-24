@@ -5,7 +5,6 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
@@ -28,7 +27,6 @@ function EmptyStateComponent({
     subtitleText,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const doesSubtitleContainCustomEmojiAndMore = containsCustomEmoji(subtitle ?? '') && !containsOnlyCustomEmoji(subtitle ?? '');
 
     const HeaderComponent = useMemo(
@@ -46,7 +44,7 @@ function EmptyStateComponent({
             <View style={styles.emptyStateForeground}>
                 <View style={[styles.emptyStateContent, cardStyles]}>
                     <View style={[styles.emptyStateHeader, styles.emptyStateHeaderPosition(), headerStyles]}>{HeaderComponent}</View>
-                    <View style={[shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pb8], cardContentStyles]}>
+                    <View style={[styles.ph2, styles.pb2, cardContentStyles]}>
                         <Text
                             style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}
                             accessibilityRole={CONST.ROLE.HEADER}
