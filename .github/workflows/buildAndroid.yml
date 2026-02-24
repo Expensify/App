@@ -165,7 +165,7 @@ jobs:
         uses: callstackincubator/android@4cedf4d9b5c167452c96fe67233577e0fde9a025
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DISABLE_AUTO_UPLOAD: 'true'
           IS_HYBRID_APP: true
           FORCE_NATIVE_BUILD: ${{ inputs.force-native-build == 'true' && github.run_id || '' }}
         with:
