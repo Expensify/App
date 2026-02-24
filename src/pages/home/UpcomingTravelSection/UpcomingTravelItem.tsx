@@ -1,4 +1,5 @@
 import {differenceInCalendarDays} from 'date-fns';
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
@@ -62,7 +63,7 @@ function getTypeIdentifier(reservation: Reservation): string {
             return [reservation.company?.shortName, reservation.route?.number].filter(Boolean).join(' ');
 
         case CONST.RESERVATION_TYPE.HOTEL:
-            return reservation.start.longName ?? '';
+            return Str.recapitalize(reservation.start.longName ?? '');
 
         case CONST.RESERVATION_TYPE.CAR:
         case CONST.RESERVATION_TYPE.TRAIN:
