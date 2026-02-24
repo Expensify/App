@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, RecentWaypoint, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -62,6 +62,7 @@ type CreateTransactionParams = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
+    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
 };
 
 type InitialTransactionParams = {
@@ -146,6 +147,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     odometerEnd?: number;
     odometerDistance?: number;
     betas: OnyxEntry<Beta[]>;
+    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     unit?: Unit;
     personalOutputCurrency?: string;
 };
@@ -173,9 +175,8 @@ function createTransaction({
     isSelfTourViewed,
     betas,
     personalDetails,
+    recentWaypoints,
 }: CreateTransactionParams) {
-    const recentWaypoints = getRecentWaypoints();
-
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
@@ -376,6 +377,7 @@ function handleMoneyRequestStepScanParticipants({
                             lat: successData.coords.latitude,
                             long: successData.coords.longitude,
                         };
+                        const recentWaypoints = getRecentWaypoints();
                         createTransaction({
                             transactions,
                             iouType,
@@ -399,11 +401,13 @@ function handleMoneyRequestStepScanParticipants({
                             isSelfTourViewed,
                             betas,
                             personalDetails,
+                            recentWaypoints,
                         });
                     },
                     (errorData) => {
                         Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                         // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                        const recentWaypoints = getRecentWaypoints();
                         createTransaction({
                             transactions,
                             iouType,
@@ -424,11 +428,13 @@ function handleMoneyRequestStepScanParticipants({
                             isSelfTourViewed,
                             betas,
                             personalDetails,
+                            recentWaypoints,
                         });
                     },
                 );
                 return;
             }
+            const recentWaypoints = getRecentWaypoints();
             createTransaction({
                 transactions,
                 iouType,
@@ -449,6 +455,7 @@ function handleMoneyRequestStepScanParticipants({
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                recentWaypoints,
             });
             return;
         }
@@ -534,13 +541,13 @@ function handleMoneyRequestStepDistanceNavigation({
     odometerEnd,
     odometerDistance,
     betas,
+    recentWaypoints,
     unit,
     personalOutputCurrency,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
-    const recentWaypoints = getRecentWaypoints();
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction);
