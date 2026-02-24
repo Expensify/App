@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 
 /**
  * Custom hook to manage a selection of keys from a given set of options.
@@ -10,8 +10,11 @@ import {useEffect, useState} from 'react';
  */
 function useFilteredSelection<TKey extends string | number, TValue>(options: Record<TKey, TValue> | undefined, filter: (option: TValue | undefined) => boolean) {
     const [selectedOptions, setSelectedOptions] = useState<TKey[]>([]);
-
-    useEffect(() => setSelectedOptions((prevOptions) => prevOptions.filter((key) => filter(options?.[key]))), [options, filter]);
+    const [prevDeps, setPrevDeps] = useState({options, filter});
+    if (prevDeps.options !== options || prevDeps.filter !== filter) {
+        setPrevDeps({options, filter});
+        setSelectedOptions((prev) => prev.filter((key) => filter(options?.[key])));
+    }
 
     return [selectedOptions, setSelectedOptions] as const;
 }
