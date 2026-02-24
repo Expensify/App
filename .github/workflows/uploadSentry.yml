@@ -7,6 +7,10 @@ on:
         description: "'adhoc', 'staging', or 'production'"
         type: string
         required: true
+      ref:
+        description: 'Git ref to checkout (must match the ref used to build the artifacts)'
+        type: string
+        default: ''
       artifact-prefix:
         description: 'The prefix for build artifact names'
         type: string
@@ -22,6 +26,7 @@ jobs:
         # v6
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
+          ref: ${{ inputs.ref || github.sha }}
           fetch-depth: 0
 
       - name: Determine Sentry release name

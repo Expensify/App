@@ -112,6 +112,7 @@ jobs:
     uses: ./.github/workflows/uploadSentry.yml
     with:
       environment: adhoc
+      ref: ${{ inputs.APP_REF }}
     secrets: inherit
 
   deployWebAdHoc:
