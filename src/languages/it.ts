@@ -65,8 +65,11 @@ import type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -391,6 +394,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Carta',
         whyDoWeAskForThis: 'Perché lo chiediamo?',
         required: 'Obbligatorio',
+        automatic: 'Automatico',
         showing: 'Mostrando',
         of: 'di',
         default: 'Predefinito',
@@ -531,6 +535,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: 'Tasso di cambio',
         reimbursableTotal: 'Totale rimborsabile',
         nonReimbursableTotal: 'Totale non rimborsabile',
+        opensInNewTab: 'Si apre in una nuova scheda',
         locked: 'Bloccato',
         month: 'Mese',
         week: 'Settimana',
@@ -1171,6 +1176,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Ricevuta in attesa di abbinamento con la transazione della carta. Contrassegna come contante per annullare.',
         markAsCash: 'Segna come contante',
         routePending: 'Instradamento in sospeso...',
+        automaticallyEnterExpenseDetails: 'Concierge inserirà automaticamente i dettagli della spesa per te, oppure puoi aggiungerli manualmente.',
         receiptScanning: () => ({
             one: 'Scansione della ricevuta in corso...',
             other: 'Scansione delle ricevute in corso...',
@@ -6801,6 +6807,11 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 ? `ha modificato il pagatore autorizzato in "${newReimburser}" (in precedenza "${previousReimburser}")`
                 : `ha modificato il pagatore autorizzato in "${newReimburser}"`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `Rimborsi ${enabled ? 'abilitato' : 'disattivato'}`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `ha cambiato il nome dell'imposta personalizzata in "${newName}" (precedentemente "${oldName}")`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
+            `ha modificato l'aliquota fiscale predefinita della valuta dello spazio di lavoro in "${newName}" (in precedenza "${oldName}")`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
+            `ha modificato l'aliquota fiscale predefinita per valuta estera in "${newName}" (in precedenza "${oldName}")`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `ha aggiunto l’imposta “${taxName}”`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `ha rimosso l'imposta "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7419,6 +7430,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         scrollToNewestMessages: 'Scorri ai messaggi più recenti',
         preStyledText: 'Testo preformattato',
         viewAttachment: 'Visualizza allegato',
+        selectAllFeatures: 'Seleziona tutte le funzionalità',
+        selectAllTransactions: 'Seleziona tutte le transazioni',
+        selectAllItems: 'Seleziona tutti gli elementi',
     },
     parentReportAction: {
         deletedReport: 'Report eliminato',
@@ -8466,6 +8480,12 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         },
         common: {settings: 'Impostazioni'},
         groups: {title: 'Gruppi', memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membri`})},
+    },
+    proactiveAppReview: {
+        title: 'Ti piace il nuovo Expensify?',
+        description: 'Facci sapere così possiamo aiutarti a rendere ancora migliore la tua esperienza di gestione delle spese.',
+        positiveButton: 'Sì!',
+        negativeButton: 'Non proprio',
     },
 };
 export default translations;

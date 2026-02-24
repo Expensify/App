@@ -15,8 +15,8 @@ const STEP_FIELDS = [ANNUAL_VOLUME];
 
 function PaymentVolume({onNext, onMove, isEditing, currency}: PaymentVolumeProps) {
     const {translate} = useLocalize();
-    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
-    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: true});
+    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
 
     const annualVolumeRangeListOptions = useMemo(
         () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange),

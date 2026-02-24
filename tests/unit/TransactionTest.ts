@@ -69,7 +69,7 @@ const reportCollectionDataSet: ReportCollectionDataSet = {
 
 const getReportFromUseOnyx = async (reportID: string) => {
     const {result} = renderHook(() => {
-        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
         return {report};
     });
     return result.current.report;
@@ -362,7 +362,7 @@ describe('Transaction', () => {
             const nextStepFailureData = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_NEW_REPORT_ID}`);
 
             expect(nextStepFailureData).toBeDefined();
-            expect(nextStepFailureData?.value).toBeUndefined();
+            expect(nextStepFailureData?.value).toBeNull();
 
             mockAPIWrite.mockRestore();
         });
