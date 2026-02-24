@@ -21,9 +21,9 @@ Until the integration is updated in Certinia, exports and syncs from Expensify m
 
 Certinia periodically releases updates to the Expensify integration.
 
-When Certinia detects that a newer version of the integration is available but not installed or configured, it blocks export activity and returns error CER937.
+When Certinia detects that a newer version of the integration is available but not installed or configured, it blocks export activity and returns error **CER937**.
 
-This is a Certinia configuration issue — not an Expensify Workspace settings issue.
+This is a Certinia configuration issue — not an Expensify Workspace configuration issue.
 
 ---
 
@@ -36,16 +36,14 @@ You must be a Certinia Admin (or have permission to manage integrations in Certi
 ## How to Update the Expensify Integration in Certinia
 
 1. Log in to Certinia as an administrator.
-2. Locate the Expensify Integration within Certinia.
-3. Select the option to Update the integration configuration.
-4. If prompted to reinstall or upgrade the Expensify package or metadata, follow the on-screen instructions.
+2. Locate the **Expensify Integration** within Certinia.
+3. Select the option to **Update** the integration configuration.
+4. If Certinia prompts you to reinstall or upgrade the Expensify package or metadata, follow the on-screen instructions.
 5. Confirm any API credentials or OAuth tokens are refreshed during the process.
 6. Save your changes.
 7. Verify the integration reflects the updated version.
 
-**ADD A SCREENSHOT HERE.** Suggestion: Certinia integration settings page showing Update option for Expensify.
-
-If Certinia does not show an update option, contact your Certinia support team or system administrator to confirm access to the latest integration updates. Certinia updates may require administrative approval before installation.
+If Certinia does not show an update option, contact your Certinia support team or system administrator to confirm access to the latest integration updates. Certinia releases integration updates periodically and may require administrative approval before installation.
 
 ---
 
@@ -54,13 +52,11 @@ If Certinia does not show an update option, contact your Certinia support team o
 After updating the integration in Certinia, re-sync the connection in Expensify.
 
 1. Go to the navigation tabs on the left.
-2. Click Settings.
-3. Click Workspaces.
+2. Click **Settings**.
+3. Click **Workspaces**.
 4. Select your Workspace.
-5. Click Accounting.
-6. Click Sync Now.
-
-**ADD A SCREENSHOT HERE.** Suggestion: Workspace Accounting page showing Sync Now button.
+5. Click **Accounting**.
+6. Click **Sync Now**.
 
 ---
 
@@ -80,7 +76,7 @@ If the error persists after updating and syncing, confirm the integration versio
 
 ## Does CER937 mean I need to reconnect Certinia?
 
-No. In most cases, updating the integration in Certinia and selecting Sync Now resolves the issue.
+No. In most cases, updating the integration in Certinia and selecting **Sync Now** resolves the issue.
 
 ---
 
@@ -96,4 +92,4 @@ Typically:
 - A Certinia Admin updates the integration.
 - A Workspace Admin re-syncs the connection in Expensify.
 
-In some organizations, the same person handles both roles.
+In some organizations, the same person manages both roles.
