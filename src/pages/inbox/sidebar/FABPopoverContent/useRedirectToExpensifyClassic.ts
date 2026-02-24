@@ -2,7 +2,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import useMappedPolicies from '@hooks/useMappedPolicies';
 import useOnyx from '@hooks/useOnyx';
 import {openOldDotLink} from '@libs/actions/Link';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
@@ -27,13 +26,13 @@ const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         areInvoicesEnabled: policy.areInvoicesEnabled,
     }) as PolicySelector;
 
+const shouldRedirectSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => areAllGroupPoliciesExpenseChatDisabled(policies ?? {});
+
 function useRedirectToExpensifyClassic() {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
-    const [allPolicies] = useMappedPolicies(policyMapper);
-
-    const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
+    const [shouldRedirectToExpensifyClassic = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: shouldRedirectSelector});
 
     const showRedirectToExpensifyClassicModal = async () => {
         const {action} = await showConfirmModal({

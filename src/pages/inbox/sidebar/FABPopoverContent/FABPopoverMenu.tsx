@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import type {RefObject} from 'react';
 import {View} from 'react-native';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -12,7 +12,6 @@ import {isSafari} from '@libs/Browser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import CONST from '@src/CONST';
 import {FABMenuContext} from './FABMenuContext';
-import useRedirectToExpensifyClassic from './useRedirectToExpensifyClassic';
 
 const FAB_ITEM_ORDER = [
     CONST.FAB_MENU_ITEM_IDS.QUICK_ACTION,
@@ -69,8 +68,6 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
         });
     };
 
-    const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
-
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
         maxIndex: itemCount - 1,
@@ -99,8 +96,6 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                 registeredItems,
                 registerItem,
                 unregisterItem,
-                shouldRedirectToExpensifyClassic,
-                showRedirectToExpensifyClassicModal,
             }}
         >
             <PopoverWithMeasuredContent
