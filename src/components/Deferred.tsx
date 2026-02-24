@@ -13,7 +13,9 @@ function Deferred({children}: PropsWithChildren) {
         setIsMounted(true);
 
         startTransition(() => {
-            resolve();
+            setTimeout(() => {
+                resolve();
+            }, 1000);
         });
     }, [resolve]);
 
