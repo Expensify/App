@@ -61,7 +61,6 @@ function UserListItem<TItem extends ListItem>({
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
-        canBeMissing: true,
         selector: reportExistsSelector,
     });
 

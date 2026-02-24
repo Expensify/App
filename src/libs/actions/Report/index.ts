@@ -280,6 +280,7 @@ type AddCommentParams = {
     shouldPlaySound?: boolean;
     isInSidePanel?: boolean;
     pregeneratedResponseParams?: PregeneratedResponseParams;
+    reportActionID?: string;
 };
 
 type AddActionsParams = {
@@ -292,6 +293,7 @@ type AddActionsParams = {
     file?: FileObject;
     isInSidePanel?: boolean;
     pregeneratedResponseParams?: PregeneratedResponseParams;
+    reportActionID?: string;
 };
 
 type AddAttachmentWithCommentParams = {
@@ -609,7 +611,18 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
  * @param isInSidePanel - Whether the comment is being added from the side panel
  * @param pregeneratedResponseParams - Optional params for pre-generated response (API only, no optimistic action - used when response display is delayed)
  */
-function addActions({report, notifyReportID, ancestors, timezoneParam, currentUserAccountID, text = '', file, isInSidePanel = false, pregeneratedResponseParams}: AddActionsParams) {
+function addActions({
+    report,
+    notifyReportID,
+    ancestors,
+    timezoneParam,
+    currentUserAccountID,
+    text = '',
+    file,
+    isInSidePanel = false,
+    pregeneratedResponseParams,
+    reportActionID,
+}: AddActionsParams) {
     if (!report?.reportID) {
         return;
     }
@@ -620,7 +633,7 @@ function addActions({report, notifyReportID, ancestors, timezoneParam, currentUs
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     if (text && !file) {
-        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, reportID);
+        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, reportID, reportActionID);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -848,11 +861,22 @@ function addAttachmentWithComment({
 }
 
 /** Add a single comment to a report */
-function addComment({report, notifyReportID, ancestors, text, timezoneParam, currentUserAccountID, shouldPlaySound, isInSidePanel, pregeneratedResponseParams}: AddCommentParams) {
+function addComment({
+    report,
+    notifyReportID,
+    ancestors,
+    text,
+    timezoneParam,
+    currentUserAccountID,
+    shouldPlaySound,
+    isInSidePanel,
+    pregeneratedResponseParams,
+    reportActionID,
+}: AddCommentParams) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions({report, notifyReportID, ancestors, timezoneParam, currentUserAccountID, text, isInSidePanel, pregeneratedResponseParams});
+    addActions({report, notifyReportID, ancestors, timezoneParam, currentUserAccountID, text, isInSidePanel, pregeneratedResponseParams, reportActionID});
 }
 
 function reportActionsExist(reportID: string): boolean {
@@ -1296,8 +1320,8 @@ function openReport(
 
     // Prepare guided setup data only when nvp_introSelected is set and onboarding is not completed
     // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages
-    if (introSelected && !isOnboardingCompleted && !isInviteOnboardingComplete && !hasOpenReportWithGuidedSetupData) {
-        const {choice, inviteType} = introSelected;
+    if (deprecatedIntroSelected && !isOnboardingCompleted && !isInviteOnboardingComplete && !hasOpenReportWithGuidedSetupData) {
+        const {choice, inviteType} = deprecatedIntroSelected;
         const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
         const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
 
@@ -1309,10 +1333,10 @@ function openReport(
             }
 
             const onboardingData = prepareOnboardingOnyxData({
-                introSelected,
+                introSelected: deprecatedIntroSelected,
                 engagementChoice: choice,
                 onboardingMessage,
-                companySize: introSelected?.companySize as OnboardingCompanySize,
+                companySize: deprecatedIntroSelected?.companySize as OnboardingCompanySize,
             });
 
             if (onboardingData) {
@@ -4473,6 +4497,7 @@ type CompleteOnboardingProps = {
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldWaitForRHPVariantInitialization?: boolean;
+    introSelected: OnyxEntry<IntroSelected>;
 };
 
 async function completeOnboarding({
@@ -4486,14 +4511,15 @@ async function completeOnboarding({
     companySize,
     userReportedIntegration,
     wasInvited,
-    selectedInterestedFeatures = [],
+    selectedInterestedFeatures,
     shouldSkipTestDriveModal,
     isInvitedAccountant,
     onboardingPurposeSelected,
     shouldWaitForRHPVariantInitialization = false,
+    introSelected,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
-        introSelected: deprecatedIntroSelected,
+        introSelected,
         engagementChoice,
         onboardingMessage,
         adminsChatReportID,
