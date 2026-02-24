@@ -24,9 +24,9 @@ import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWid
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
-import useDocumentTitle from '@hooks/useDocumentTitle';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
