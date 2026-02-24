@@ -2806,7 +2806,7 @@ function formatSectionsFromSearchTerm(
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
     const selectedOptionsMapper = (participant: Participant) => {
         const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-        const isIOUInvoiceRoom = participant.accountID === CONST.DEFAULT_NUMBER_ID && !!participant.reportID && 'iouType' in participant && participant.iouType === 'invoice';
+        const isIOUInvoiceRoom = participant.accountID === CONST.DEFAULT_NUMBER_ID && !!participant.reportID && 'iouType' in participant && participant.iouType === CONST.IOU.TYPE.INVOICE;
         if (participant.isSelfDM || isIOUInvoiceRoom) {
             const privateIsArchived = allReportNameValuePairsOnyxConnect?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
             return getReportOption(participant, privateIsArchived, undefined, currentUserAccountID, personalDetails, reportAttributesDerived);
