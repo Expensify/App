@@ -1719,6 +1719,17 @@ const CONST = {
             FAB_OUT: 200,
         },
     },
+    FAB_MENU_ITEM_IDS: {
+        QUICK_ACTION: 'quick-action',
+        EXPENSE: 'expense',
+        TRACK_DISTANCE: 'track-distance',
+        CREATE_REPORT: 'create-report',
+        NEW_CHAT: 'new-chat',
+        INVOICE: 'invoice',
+        TRAVEL: 'travel',
+        TEST_DRIVE: 'test-drive',
+        NEW_WORKSPACE: 'new-workspace',
+    },
     TIMING: {
         GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',

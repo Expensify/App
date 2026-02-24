@@ -9,12 +9,11 @@ import useTheme from '@hooks/useTheme';
 import {startDistanceRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
-import FAB_MENU_ITEM_IDS from '@pages/inbox/sidebar/FABPopoverContent/FABMenuItemIDs';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-const ITEM_ID = FAB_MENU_ITEM_IDS.TRACK_DISTANCE;
+const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.TRACK_DISTANCE;
 
 type TrackDistanceMenuItemProps = {
     reportID: string;

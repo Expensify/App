@@ -11,13 +11,12 @@ import {startMoneyRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {canSendInvoice as canSendInvoicePolicyUtils} from '@libs/PolicyUtils';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
-import FAB_MENU_ITEM_IDS from '@pages/inbox/sidebar/FABPopoverContent/FABMenuItemIDs';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-const ITEM_ID = FAB_MENU_ITEM_IDS.INVOICE;
+const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.INVOICE;
 
 type InvoiceMenuItemProps = {
     reportID: string;

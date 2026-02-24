@@ -12,21 +12,20 @@ import {isSafari} from '@libs/Browser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import CONST from '@src/CONST';
 import {FABMenuContext} from './FABMenuContext';
-import FAB_MENU_ITEM_IDS from './FABMenuItemIDs';
 
 // Fixed display order for all possible menu items.
 // Components self-register — this array ensures arrow-key indices always follow JSX order
 // regardless of when each item becomes visible.
 const FAB_ITEM_ORDER = [
-    FAB_MENU_ITEM_IDS.QUICK_ACTION,
-    FAB_MENU_ITEM_IDS.EXPENSE,
-    FAB_MENU_ITEM_IDS.TRACK_DISTANCE,
-    FAB_MENU_ITEM_IDS.CREATE_REPORT,
-    FAB_MENU_ITEM_IDS.NEW_CHAT,
-    FAB_MENU_ITEM_IDS.INVOICE,
-    FAB_MENU_ITEM_IDS.TRAVEL,
-    FAB_MENU_ITEM_IDS.TEST_DRIVE,
-    FAB_MENU_ITEM_IDS.NEW_WORKSPACE,
+    CONST.FAB_MENU_ITEM_IDS.QUICK_ACTION,
+    CONST.FAB_MENU_ITEM_IDS.EXPENSE,
+    CONST.FAB_MENU_ITEM_IDS.TRACK_DISTANCE,
+    CONST.FAB_MENU_ITEM_IDS.CREATE_REPORT,
+    CONST.FAB_MENU_ITEM_IDS.NEW_CHAT,
+    CONST.FAB_MENU_ITEM_IDS.INVOICE,
+    CONST.FAB_MENU_ITEM_IDS.TRAVEL,
+    CONST.FAB_MENU_ITEM_IDS.TEST_DRIVE,
+    CONST.FAB_MENU_ITEM_IDS.NEW_WORKSPACE,
 ] as const;
 
 type FABPopoverMenuProps = {

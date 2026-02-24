@@ -15,7 +15,6 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
-import FAB_MENU_ITEM_IDS from '@pages/inbox/sidebar/FABPopoverContent/FABMenuItemIDs';
 import {policyMapper} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -23,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-const ITEM_ID = FAB_MENU_ITEM_IDS.NEW_WORKSPACE;
+const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.NEW_WORKSPACE;
 
 function NewWorkspaceMenuItem() {
     const {translate} = useLocalize();

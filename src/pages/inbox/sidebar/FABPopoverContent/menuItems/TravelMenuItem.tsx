@@ -13,13 +13,12 @@ import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDot
 import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
-import FAB_MENU_ITEM_IDS from '@pages/inbox/sidebar/FABPopoverContent/FABMenuItemIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-const ITEM_ID = FAB_MENU_ITEM_IDS.TRAVEL;
+const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.TRAVEL;
 
 const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => account?.primaryLogin;
 
