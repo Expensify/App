@@ -45,7 +45,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER,
@@ -90,9 +90,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             pendingAction={item.pendingAction}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
-                    <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
-                        {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
-                    </Text>
+                    <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>{translate('workspace.people.invitedBySecondaryLogin', item.invitedSecondaryLogin)}</Text>
                 ) : undefined
             }
             keyForList={item.keyForList}

@@ -79,6 +79,7 @@ function BaseTextInput({
     iconContainerStyle,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
+    sentryLabel,
     ...props
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
@@ -274,6 +275,11 @@ function BaseTextInput({
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
+    // TextInputMeasurement is absolutely positioned, so it doesn’t inherit padding/border.
+    // We extract the horizontal padding/border from the input container to get an accurate width.
+    // This is used by the TextInputMeasurement for autoGrow height calculation.
+    const autoGrowMeasurementStyles = StyleUtils.getTextInputMeasurementStyles(newTextInputContainerStyles);
+
     const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
@@ -289,6 +295,8 @@ function BaseTextInput({
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
+                    accessible={false}
+                    sentryLabel={sentryLabel}
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
@@ -369,6 +377,7 @@ function BaseTextInput({
                                 // eslint-disable-next-line
                                 {...inputProps}
                                 accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                accessibilityHint={errorText || inputProps.accessibilityHint}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
@@ -489,6 +498,7 @@ function BaseTextInput({
                 onSetTextInputWidth={setTextInputWidth}
                 onSetTextInputHeight={setTextInputHeight}
                 isPrefixCharacterPaddingCalculated={isPrefixCharacterPaddingCalculated}
+                autoGrowMeasurementStyles={autoGrowMeasurementStyles}
             />
         </>
     );

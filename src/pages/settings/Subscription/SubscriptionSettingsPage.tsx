@@ -31,7 +31,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     useEffect(() => {
         openSubscriptionPage();
     }, []);
-    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     useEffect(() => {
         if (subscriptionPlan ?? isAppLoading) {
@@ -56,11 +56,11 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
                 onBackButtonPress={() => {
-                    if (Navigation.getShouldPopToSidebar()) {
-                        Navigation.popToSidebar();
+                    if (backTo) {
+                        Navigation.goBack(backTo);
                         return;
                     }
-                    Navigation.goBack(backTo);
+                    Navigation.goBack();
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter

@@ -1,5 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -30,6 +31,7 @@ function BaseListItem<TItem extends ListItem>({
     rightHandSideComponent,
     keyForList,
     errors,
+    errorRowStyles,
     pendingAction,
     FooterComponent,
     children,
@@ -46,6 +48,8 @@ function BaseListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
     shouldShowRightCaret = false,
+    accessible,
+    accessibilityRole = getButtonRole(true),
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -82,21 +86,23 @@ function BaseListItem<TItem extends ListItem>({
 
     const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
 
-    const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark;
+    const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark && !!item.canShowSeveralIndicators;
+
+    const accessibilityState =
+        accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
 
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
             pendingAction={pendingAction}
             errors={errors}
-            errorRowStyles={styles.ph5}
+            errorRowStyles={[styles.mh5, errorRowStyles]}
             contentContainerStyle={containerStyle}
         >
             <PressableWithFeedback
+                sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.BASE_LIST_ITEM}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
-                sentryLabel={CONST.SENTRY_LABEL.BASE_LIST_ITEM.OPTION}
-                accessibilityState={{selected: item.isSelected}}
                 aria-selected={item.isSelected}
                 ref={pressableRef}
                 onLongPress={() => {
@@ -116,6 +122,7 @@ function BaseListItem<TItem extends ListItem>({
                 interactive={item.isInteractive}
                 accessibilityLabel={item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
                 role={CONST.ROLE.OPTION}
+                accessibilityState={accessibilityState}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
@@ -136,9 +143,10 @@ function BaseListItem<TItem extends ListItem>({
                 ]}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
-                tabIndex={item.tabIndex}
+                tabIndex={accessible === false ? -1 : item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
                 testID={testID}
+                accessible={accessible}
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}

@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Card} from '.';
 import type {CardList} from './Card';
-import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
+import type {CardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
 import type Transaction from './Transaction';
@@ -33,6 +33,10 @@ type ReportAttributes = {
      * The errors of the report.
      */
     reportErrors: Errors;
+    /**
+     * The reportID of the one-transaction thread report, if applicable.
+     */
+    oneTransactionThreadReportID?: string;
 };
 
 /**
@@ -74,11 +78,6 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
 /**
- * The derived value for visible report actions.
- */
-type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
-
-/**
  * The errors of a card.
  */
 type CardErrors = {
@@ -109,11 +108,6 @@ type CardFeedErrorState = {
      * - The feed connection is broken.
      */
     shouldShowRBR: boolean;
-
-    /**
-     * Whether some failed card assignments.
-     */
-    hasFailedCardAssignments: boolean;
 
     /**
      * Whether a specific feed within a workspace/domain has errors.
@@ -162,7 +156,7 @@ type AllCardFeedErrorsMap = Map<number, Map<CardFeedId, FeedErrors>>;
 /**
  * The errors of all card feeds.
  */
-type CardFeedErrorsObject = Record<CompanyCardFeedWithDomainID, FeedErrors>;
+type CardFeedErrorsObject = Record<CardFeedWithDomainID, FeedErrors>;
 
 /**
  * The errors of card feeds.
@@ -177,6 +171,11 @@ type CardFeedErrors = {
      * The cards with a broken feed connection.
      */
     cardsWithBrokenFeedConnection: Record<string, Card>;
+
+    /**
+     * The personal cards with a broken connection.
+     */
+    personalCardsWithBrokenConnection: Record<string, Card>;
 
     /**
      * Whether to show the RBR for each workspace account ID.
@@ -202,6 +201,11 @@ type CardFeedErrors = {
      * The errors of expensify card.
      */
     expensifyCard: CardFeedErrorState;
+
+    /**
+     * The errors of personal card.
+     */
+    personalCard: CardFeedErrorState;
 };
 
 /**
@@ -214,6 +218,39 @@ type CardFeedErrorsDerivedValue = CardFeedErrors;
  */
 type NonPersonalAndWorkspaceCardListDerivedValue = CardList;
 
+/**
+ * Metadata for todo search results.
+ */
+type TodoMetadata = {
+    /** Total number of transactions across all reports */
+    count: number;
+    /** Sum of all report totals (in cents) */
+    total: number;
+    /** Currency of the first report, used as reference currency */
+    currency: string | undefined;
+};
+
+/**
+ * The derived value for todos.
+ */
+type TodosDerivedValue = {
+    /** Reports that need to be submitted */
+    reportsToSubmit: Report[];
+    /** Reports that need to be approved */
+    reportsToApprove: Report[];
+    /** Reports that need to be paid */
+    reportsToPay: Report[];
+    /** Reports that need to be exported */
+    reportsToExport: Report[];
+    /** Transactions grouped by report ID */
+    transactionsByReportID: Record<string, Transaction[]>;
+};
+
+/**
+ * The derived value for merged personal and workspace card feeds.
+ */
+type PersonalAndWorkspaceCardListDerivedValue = CardList;
+
 export default ReportAttributesDerivedValue;
 export type {
     ReportAttributes,
@@ -221,9 +258,11 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
-    VisibleReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
+    PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
+    TodosDerivedValue,
+    TodoMetadata,
     AllCardFeedErrorsMap,
     CardFeedErrorsObject,
     FeedErrors,

@@ -75,8 +75,8 @@ function SuggestionMention({
     const policy = usePolicy(policyID);
     suggestionValuesRef.current = suggestionValues;
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
@@ -205,11 +205,26 @@ function SuggestionMention({
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
             const originalMention = getOriginalMentionText(value, suggestionValues.atSignIndex, StringUtils.countWhiteSpaces(suggestionValues.mentionPrefix));
 
+            // We split trailing dot from the mention token so selecting `@a.` can become `@adam.`
+            // (preserve sentence punctuation) instead of consuming the `.` into the replacement.
+            let trailingDot = '';
+            let mentionToReplace = originalMention;
+            if (suggestionValues.prefixType === '@' && suggestionValues.mentionPrefix.endsWith('.')) {
+                trailingDot = originalMention.match(CONST.REGEX.TRAILING_DOTS)?.[0] ?? '';
+                mentionToReplace = originalMention.slice(0, originalMention.length - trailingDot.length);
+            }
+
+            // Append a preserved trailing dot only when it is sentence punctuation, not part of the selected mention match.
+            const dotToAppend =
+                trailingDot && ![mentionObject.text, mentionObject.alternateText].some((mentionText) => mentionText.toLowerCase().includes(suggestionValues.mentionPrefix.toLowerCase()))
+                    ? trailingDot
+                    : '';
+
             const commentAfterMention = value.slice(
-                suggestionValues.atSignIndex + Math.max(originalMention.length, suggestionValues.mentionPrefix.length + suggestionValues.prefixType.length),
+                suggestionValues.atSignIndex + Math.max(mentionToReplace.length, suggestionValues.mentionPrefix.length + suggestionValues.prefixType.length),
             );
 
-            updateComment(`${commentBeforeAtSign}${mentionCode} ${trimLeadingSpace(commentAfterMention)}`, true);
+            updateComment(`${commentBeforeAtSign}${mentionCode}${dotToAppend}${trimLeadingSpace(commentAfterMention)}`, true);
             const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH;
             setSelection({
                 start: selectionPosition,
@@ -392,23 +407,29 @@ function SuggestionMention({
                 prefix = lastWord.substring(1);
             }
 
+            // Treat a trailing dot as punctuation so short mentions like "@a." still match "@a".
+            const hasTrailingDot = prefixType === '@' && prefix.length > 1 && prefix.endsWith('.');
+            const normalizedPrefix = hasTrailingDot ? prefix.slice(0, -1) : prefix;
+            // Keep the raw prefix for highlight so dots are preserved in the UI.
+            const mentionPrefix = prefix;
+
             const nextState: Partial<SuggestionValues> = {
                 suggestedMentions: [],
                 atSignIndex,
-                mentionPrefix: prefix,
+                mentionPrefix,
                 prefixType,
             };
 
             if (isMentionCode(suggestionWord) && prefixType === '@') {
-                const suggestions = getUserMentionOptions(weightedPersonalDetails, prefix);
+                const suggestions = getUserMentionOptions(weightedPersonalDetails, normalizedPrefix);
                 nextState.suggestedMentions = suggestions;
                 nextState.shouldShowSuggestionMenu = !!suggestions.length;
             }
 
-            const shouldDisplayRoomMentionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || prefix === '');
+            const shouldDisplayRoomMentionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || normalizedPrefix === '');
             if (prefixType === '#' && shouldDisplayRoomMentionsSuggestions) {
                 // Filter reports by room name and current policy
-                nextState.suggestedMentions = getRoomMentionOptions(prefix, reports);
+                nextState.suggestedMentions = getRoomMentionOptions(normalizedPrefix, reports);
 
                 // Even if there are no reports, we should show the suggestion menu - to perform live search
                 nextState.shouldShowSuggestionMenu = true;

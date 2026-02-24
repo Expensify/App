@@ -30,8 +30,8 @@ function CategoryRequiredFieldsPage({
 }: CategoryRequiredFieldsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const decodedCategoryName = getDecodedCategoryName(categoryName);
 
     const policyCategory = policyCategories?.[categoryName];
@@ -76,7 +76,7 @@ function CategoryRequiredFieldsPage({
                             </View>
                         </View>
                     </OfflineWithFeedback>
-                    {isAttendeeTrackingEnabled && CONST.IS_ATTENDEES_REQUIRED_ENABLED && (
+                    {isAttendeeTrackingEnabled && (
                         <OfflineWithFeedback pendingAction={policyCategory?.pendingFields?.areAttendeesRequired}>
                             <View style={[styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mv5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>

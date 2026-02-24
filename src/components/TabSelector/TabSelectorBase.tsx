@@ -1,55 +1,14 @@
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {Animated} from 'react-native';
 import useIsResizing from '@hooks/useIsResizing';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
 import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
 import TabSelectorItem from './TabSelectorItem';
-
-type TabSelectorBaseItem = {
-    /** Stable key for the tab. */
-    key: string;
-
-    /** Icon to display on the tab. */
-    icon?: IconAsset;
-
-    /** Localized title to display. */
-    title: string;
-
-    /** Test identifier used to find elements in tests. */
-    testID?: string;
-};
-
-type TabSelectorBaseProps = {
-    /** Tabs to render. */
-    tabs: TabSelectorBaseItem[];
-
-    /** Key of the currently active tab. */
-    activeTabKey: string;
-
-    /** Called when a tab is pressed with its key. */
-    onTabPress?: (key: string) => void;
-
-    /** Animated position from a navigator (optional). */
-    position?: Animated.AnimatedInterpolation<number>;
-
-    /** Whether to show the label when the tab is inactive. */
-    shouldShowLabelWhenInactive?: boolean;
-
-    /** Whether tabs should have equal width. */
-    equalWidth?: boolean;
-
-    /** Determines whether the product training tooltip should be displayed to the user. */
-    shouldShowProductTrainingTooltip?: boolean;
-
-    /** Function to render the content of the product training tooltip. */
-    renderProductTrainingTooltip?: () => React.JSX.Element;
-};
+import type {TabSelectorBaseProps} from './types';
 
 /**
  * Navigation-agnostic tab selector UI that renders a row of TabSelectorItem components.
@@ -74,7 +33,7 @@ function TabSelectorBase({
 
     const routesLength = tabs.length;
 
-    const defaultAffectedAnimatedTabs = Array.from({length: routesLength}, (_v, i) => i);
+    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: routesLength}, (_v, i) => i), [routesLength]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
     const viewRef = useRef<View>(null);
     const [selectorWidth, setSelectorWidth] = useState(0);
@@ -92,12 +51,12 @@ function TabSelectorBase({
         return () => clearTimeout(timerID);
     }, [defaultAffectedAnimatedTabs, activeIndex]);
 
-    const measure = () => {
+    const measure = useCallback(() => {
         viewRef.current?.measureInWindow((x, _y, width) => {
             setSelectorX(x);
             setSelectorWidth(width);
         });
-    };
+    }, []);
 
     // Measure location/width after initial mount and when layout animations settle.
     useLayoutEffect(() => {
@@ -168,6 +127,7 @@ function TabSelectorBase({
                         backgroundColor={backgroundColor}
                         isActive={isActive}
                         testID={tab.testID}
+                        sentryLabel={tab.sentryLabel}
                         shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                         shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                         renderProductTrainingTooltip={renderProductTrainingTooltip}
@@ -184,4 +144,3 @@ function TabSelectorBase({
 TabSelectorBase.displayName = 'TabSelectorBase';
 
 export default TabSelectorBase;
-export type {TabSelectorBaseItem, TabSelectorBaseProps};

@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,6 +27,21 @@ import INPUT_IDS from '@src/types/form/AddDomainMemberForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
+function DomainEmailInput({onInputChange, ref, ...rest}: BaseTextInputProps) {
+    return (
+        <TextInput
+            ref={ref}
+            onChangeText={(value: string) => {
+                // Replace `@` to block this character in the input
+                // https://github.com/Expensify/App/pull/80090#issuecomment-3819449517
+                onInputChange?.(value.replaceAll('@', ''));
+            }}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
+        />
+    );
+}
+
 type DomainAddMemberProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_MEMBER>;
 
 function DomainAddMemberPage({route}: DomainAddMemberProps) {
@@ -35,12 +51,11 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const {domainAccountID} = route.params;
 
     const [memberIDs = getEmptyArray<number>()] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: memberAccountIDsSelector,
     });
     const personalDetails = getPersonalDetailsByIDs({accountIDs: memberIDs});
-    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
-    const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: defaultSecurityGroupIDSelector});
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
+    const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
 
     const emailInputRef = useRef<AnimatedTextInputRef>(null);
 
@@ -100,7 +115,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
                     style={[styles.flex1, styles.ph5, styles.pb3]}
                 >
                     <InputWrapper
-                        InputComponent={TextInput}
+                        InputComponent={DomainEmailInput}
                         label={`${translate('common.email')}`}
                         aria-label={`${translate('common.email')}`}
                         role={CONST.ROLE.PRESENTATION}
