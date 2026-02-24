@@ -10,20 +10,19 @@ import QuickActionMenuItem from './menuItems/QuickActionMenuItem';
 import TestDriveMenuItem from './menuItems/TestDriveMenuItem';
 import TrackDistanceMenuItem from './menuItems/TrackDistanceMenuItem';
 import TravelMenuItem from './menuItems/TravelMenuItem';
-import type {FABPopoverContentInnerProps} from './types';
+import type {FABPopoverContentProps} from './types';
 
-type FABPopoverContentInnerExtraProps = FABPopoverContentInnerProps & {
+type FABPopoverContentInnerProps = FABPopoverContentProps & {
     reportID: string;
     activePolicyID: string | undefined;
 };
 
-function FABPopoverContentInner({isVisible, onClose, onItemSelected, onModalHide, anchorRef, reportID, activePolicyID}: FABPopoverContentInnerExtraProps) {
+function FABPopoverContentInner({isVisible, onClose, onItemSelected, anchorRef, reportID, activePolicyID}: FABPopoverContentInnerProps) {
     return (
         <FABPopoverMenu
             isVisible={isVisible}
             onClose={onClose}
             onItemSelected={onItemSelected}
-            onModalHide={onModalHide}
             anchorRef={anchorRef}
             animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
             animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}

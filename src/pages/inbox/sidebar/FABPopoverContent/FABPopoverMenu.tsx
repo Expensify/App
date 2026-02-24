@@ -29,14 +29,13 @@ type FABPopoverMenuProps = {
     isVisible: boolean;
     onClose: () => void;
     onItemSelected: () => void;
-    onModalHide: () => void;
     anchorRef: RefObject<View | HTMLDivElement | null>;
     animationInTiming?: number;
     animationOutTiming?: number;
     children: React.ReactNode;
 };
 
-function FABPopoverMenu({isVisible, onClose, onItemSelected, onModalHide, anchorRef, animationInTiming, animationOutTiming, children}: FABPopoverMenuProps) {
+function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animationInTiming, animationOutTiming, children}: FABPopoverMenuProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -98,7 +97,6 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, onModalHide, anchor
                 }}
                 onClose={onClose}
                 isVisible={isVisible}
-                onModalHide={onModalHide}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 animationIn="fadeIn"
                 animationOut="fadeOut"

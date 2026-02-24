@@ -17,15 +17,11 @@ const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
     }) as PolicySelector;
 
 type FABPopoverContentProps = {
-    isMenuMounted: boolean;
     isVisible: boolean;
     onClose: () => void;
     onItemSelected: () => void;
-    onModalHide: () => void;
     anchorRef: RefObject<HTMLDivElement | null>;
 };
 
-type FABPopoverContentInnerProps = Omit<FABPopoverContentProps, 'isMenuMounted'>;
-
-export type {PolicySelector, FABPopoverContentProps, FABPopoverContentInnerProps};
+export type {PolicySelector, FABPopoverContentProps};
 export {policyMapper};

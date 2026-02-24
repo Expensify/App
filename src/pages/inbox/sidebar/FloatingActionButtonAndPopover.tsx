@@ -24,7 +24,6 @@ function FloatingActionButtonAndPopover() {
     const prevIsFocused = usePrevious(isFocused);
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
-    const [isMenuMounted, setIsMenuMounted] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
 
     const {startScan, startQuickScan, reportID, activePolicyID} = useScanActions();
@@ -33,7 +32,6 @@ function FloatingActionButtonAndPopover() {
         if (!isFocused && shouldUseNarrowLayout) {
             return;
         }
-        setIsMenuMounted(true);
         setIsCreateMenuActive(true);
     }, [isFocused, shouldUseNarrowLayout]);
 
@@ -43,10 +41,6 @@ function FloatingActionButtonAndPopover() {
         }
         setIsCreateMenuActive(false);
     }, [isCreateMenuActive]);
-
-    const handleMenuModalHide = useCallback(() => {
-        setIsMenuMounted(false);
-    }, []);
 
     const didScreenBecomeInactive = useCallback((): boolean => !isFocused && prevIsFocused, [isFocused, prevIsFocused]);
 
@@ -75,11 +69,9 @@ function FloatingActionButtonAndPopover() {
     return (
         <View style={[styles.justifyContentCenter, styles.flexGrow1, styles.gap3, shouldUseNarrowLayout ? styles.w100 : styles.pv4]}>
             <FABPopoverContent
-                isMenuMounted={isMenuMounted}
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 onClose={hideCreateMenu}
                 onItemSelected={hideCreateMenu}
-                onModalHide={handleMenuModalHide}
                 anchorRef={fabRef}
                 reportID={reportID}
                 activePolicyID={activePolicyID}
