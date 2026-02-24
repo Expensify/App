@@ -4,11 +4,14 @@ import CONST from '@src/CONST';
 
 type ButtonComposedVariant = 'success' | 'danger' | 'link';
 
-type ButtonComposedContextValue = {
+type ButtonComposedAppearanceProps = {
+    size?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
+    variant?: ButtonComposedVariant;
+};
+
+type ButtonComposedContextValue = ButtonComposedAppearanceProps & {
     isHovered: boolean;
     isLoading: boolean;
-    variant?: ButtonComposedVariant;
-    size: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
     iconFill?: string;
     iconHoverFill?: string;
 };
@@ -30,4 +33,4 @@ function useButtonComposedContext(): ButtonComposedContextValue {
 
 export default ButtonComposedContext;
 export {useButtonComposedContext};
-export type {ButtonComposedContextValue, ButtonComposedVariant};
+export type {ButtonComposedAppearanceProps, ButtonComposedContextValue, ButtonComposedVariant};
