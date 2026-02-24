@@ -7,10 +7,6 @@ on:
         description: "'adhoc', 'staging', or 'production'"
         type: string
         required: true
-      release:
-        description: 'Sentry release name (omit to auto-generate from git SHA)'
-        type: string
-        default: ''
       artifact-prefix:
         description: 'The prefix for build artifact names'
         type: string
@@ -27,6 +23,15 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
+
+      - name: Determine Sentry release name
+        id: release
+        run: |
+          PKG_NAME=$(jq -r .name < package.json)
+          PKG_VERSION=$(jq -r .version < package.json)
+          RELEASE="${PKG_NAME}@${PKG_VERSION}"
+          echo "RELEASE=$RELEASE" >> "$GITHUB_OUTPUT"
+          echo "Sentry release: $RELEASE"
 
       - name: Download Android sourcemap
         id: download-android-sourcemap
@@ -83,7 +88,7 @@ jobs:
           SENTRY_PROJECT: app
         with:
           environment: ${{ inputs.environment }}
-          release: ${{ inputs.release || '' }}
+          release: ${{ steps.release.outputs.RELEASE }}
           sourcemaps: ./sentry-sourcemaps
           set_commits: auto
           inject: false
