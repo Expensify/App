@@ -1,5 +1,5 @@
 import {groupPaidPoliciesWithExpenseChatEnabledSelector} from '@selectors/Policy';
-import React, {useLayoutEffect} from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
@@ -21,6 +21,7 @@ import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
+import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverContent/useRedirectToExpensifyClassic';
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
 import CONST from '@src/CONST';
@@ -50,28 +51,20 @@ function CreateReportMenuItem({activePolicyID}: CreateReportMenuItemProps) {
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
+    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    const groupPaidPoliciesWithChatEnabled = (policies: Parameters<typeof groupPaidPoliciesWithExpenseChatEnabledSelector>[0]) =>
-        groupPaidPoliciesWithExpenseChatEnabledSelector(policies, session?.email);
+    const groupPaidPoliciesWithChatEnabled = useCallback(
+        (policies: Parameters<typeof groupPaidPoliciesWithExpenseChatEnabledSelector>[0]) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, session?.email),
+        [session?.email],
+    );
 
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabled, canBeMissing: true}, [session?.email]);
 
     const isVisible = shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
 
-    useLayoutEffect(() => {
-        if (!isVisible) {
-            return;
-        }
-        registerItem(ITEM_ID);
-        return () => unregisterItem(ITEM_ID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isVisible]);
-
-    const itemIndex = registeredItems.indexOf(ITEM_ID);
+    const itemIndex = useFABMenuItem(ITEM_ID, isVisible);
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
 

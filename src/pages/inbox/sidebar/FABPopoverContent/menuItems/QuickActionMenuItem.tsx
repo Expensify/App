@@ -1,4 +1,4 @@
-import React, {useLayoutEffect} from 'react';
+import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FocusableMenuItem from '@components/FocusableMenuItem';
@@ -28,6 +28,7 @@ import {
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
+import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -66,7 +67,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
-    const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
+    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
@@ -84,16 +85,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
             : false) ||
         (!quickAction?.action && !isEmptyObject(policyChatForActivePolicy));
 
-    useLayoutEffect(() => {
-        if (!isVisible) {
-            return;
-        }
-        registerItem(ITEM_ID);
-        return () => unregisterItem(ITEM_ID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isVisible]);
-
-    const itemIndex = registeredItems.indexOf(ITEM_ID);
+    const itemIndex = useFABMenuItem(ITEM_ID, isVisible);
     const isFocused = focusedIndex === itemIndex;
     const focusWrapperStyle = StyleUtils.getItemBackgroundColorStyle(false, isFocused, false, theme.activeComponentBG, theme.hoverComponentBG);
 

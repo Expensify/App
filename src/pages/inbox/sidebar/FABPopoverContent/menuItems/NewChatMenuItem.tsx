@@ -1,4 +1,4 @@
-import React, {useLayoutEffect} from 'react';
+import React from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -8,6 +8,7 @@ import useTheme from '@hooks/useTheme';
 import {startNewChat} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
+import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import CONST from '@src/CONST';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.NEW_CHAT;
@@ -16,17 +17,11 @@ function NewChatMenuItem() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubble'] as const);
-    const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
+    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    useLayoutEffect(() => {
-        registerItem(ITEM_ID);
-        return () => unregisterItem(ITEM_ID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const itemIndex = registeredItems.indexOf(ITEM_ID);
+    const itemIndex = useFABMenuItem(ITEM_ID);
 
     return (
         <FocusableMenuItem

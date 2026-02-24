@@ -1,5 +1,5 @@
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import React, {useLayoutEffect} from 'react';
+import React from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
+import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -26,20 +27,11 @@ function TestDriveMenuItem() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
     const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
-    const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
+    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
 
     const isVisible = !hasSeenTour;
 
-    useLayoutEffect(() => {
-        if (!isVisible) {
-            return;
-        }
-        registerItem(ITEM_ID);
-        return () => unregisterItem(ITEM_ID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isVisible]);
-
-    const itemIndex = registeredItems.indexOf(ITEM_ID);
+    const itemIndex = useFABMenuItem(ITEM_ID, isVisible);
 
     if (!isVisible) {
         return null;

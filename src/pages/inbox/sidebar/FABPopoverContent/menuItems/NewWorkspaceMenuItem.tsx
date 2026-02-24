@@ -1,5 +1,5 @@
 import type {ImageContentFit} from 'expo-image';
-import React, {useLayoutEffect} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
 import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuContext';
 import {policyMapper} from '@pages/inbox/sidebar/FABPopoverContent/types';
+import useFABMenuItem from '@pages/inbox/sidebar/FABPopoverContent/useFABMenuItem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +34,7 @@ function NewWorkspaceMenuItem() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allPolicies] = useMappedPolicies(policyMapper);
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
-    const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
+    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
@@ -48,16 +49,7 @@ function NewWorkspaceMenuItem() {
 
     const isVisible = !isLoading && shouldShowNewWorkspaceButton;
 
-    useLayoutEffect(() => {
-        if (!isVisible) {
-            return;
-        }
-        registerItem(ITEM_ID);
-        return () => unregisterItem(ITEM_ID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isVisible]);
-
-    const itemIndex = registeredItems.indexOf(ITEM_ID);
+    const itemIndex = useFABMenuItem(ITEM_ID, isVisible);
 
     if (!isVisible) {
         return null;
