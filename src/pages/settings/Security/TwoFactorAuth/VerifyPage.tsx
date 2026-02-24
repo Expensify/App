@@ -122,8 +122,8 @@ function VerifyPage({route}: VerifyPageProps) {
                         <PressableWithDelayToggle
                             text={translate('twoFactorAuth.copy')}
                             textChecked={translate('common.copied')}
-                            tooltipText=""
-                            tooltipTextChecked=""
+                            tooltipText={translate('twoFactorAuth.copy')}
+                            tooltipTextChecked={translate('common.copied')}
                             icon={Expensicons.Copy}
                             inline={false}
                             onPress={() => Clipboard.setString(account?.twoFactorAuthSecretKey ?? '')}

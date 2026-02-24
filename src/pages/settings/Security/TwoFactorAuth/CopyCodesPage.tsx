@@ -126,8 +126,8 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
                                             accessible={false}
-                                            tooltipText=""
-                                            tooltipTextChecked=""
+                                            tooltipText={translate('twoFactorAuth.copy')}
+                                            tooltipTextChecked={translate('common.copied')}
                                         />
                                         <PressableWithDelayToggle
                                             text={translate('common.download')}
@@ -141,8 +141,8 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
                                             accessible={false}
-                                            tooltipText=""
-                                            tooltipTextChecked=""
+                                            tooltipText={translate('common.download')}
+                                            tooltipTextChecked={translate('common.download')}
                                         />
                                     </View>
                                 </>
