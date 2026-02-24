@@ -1,5 +1,5 @@
 import {groupPaidPoliciesWithExpenseChatEnabledSelector} from '@selectors/Policy';
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
@@ -28,27 +28,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type CreateReportMenuItemProps = {
-    icons: MenuItemIcons;
-    activePolicyID: string | undefined;
-    /** Injected by FABPopoverMenu via React.cloneElement */
-    itemIndex?: number;
-};
+const ITEM_ID = 'create-report';
 
 const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
 
-function useCreateReportMenuItemVisible(): boolean {
-    const {shouldRedirectToExpensifyClassic} = useRedirectToExpensifyClassic();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
+type CreateReportMenuItemProps = {
+    icons: MenuItemIcons;
+    activePolicyID: string | undefined;
+};
 
-    const groupPaidPoliciesWithChatEnabled = (policies: Parameters<typeof groupPaidPoliciesWithExpenseChatEnabledSelector>[0]) =>
-        groupPaidPoliciesWithExpenseChatEnabledSelector(policies, session?.email);
-    const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabled, canBeMissing: true}, [session?.email]);
-
-    return shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
-}
-
-function CreateReportMenuItem({icons, activePolicyID, itemIndex = -1}: CreateReportMenuItemProps) {
+function CreateReportMenuItem({icons, activePolicyID}: CreateReportMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
@@ -61,7 +50,7 @@ function CreateReportMenuItem({icons, activePolicyID, itemIndex = -1}: CreateRep
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
@@ -70,6 +59,19 @@ function CreateReportMenuItem({icons, activePolicyID, itemIndex = -1}: CreateRep
 
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabled, canBeMissing: true}, [session?.email]);
+
+    const isVisible = shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
+
+    useLayoutEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        registerItem(ITEM_ID);
+        return () => unregisterItem(ITEM_ID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVisible]);
+
+    const itemIndex = registeredItems.indexOf(ITEM_ID);
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
 
@@ -112,6 +114,10 @@ function CreateReportMenuItem({icons, activePolicyID, itemIndex = -1}: CreateRep
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
     });
+
+    if (!isVisible) {
+        return null;
+    }
 
     return (
         <>
@@ -161,5 +167,4 @@ function CreateReportMenuItem({icons, activePolicyID, itemIndex = -1}: CreateRep
     );
 }
 
-export {useCreateReportMenuItemVisible};
 export default CreateReportMenuItem;

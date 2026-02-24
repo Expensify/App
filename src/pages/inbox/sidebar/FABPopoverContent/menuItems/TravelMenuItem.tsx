@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useLocalize from '@hooks/useLocalize';
@@ -18,21 +18,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type TravelMenuItemProps = {
-    icons: MenuItemIcons;
-    activePolicyID: string | undefined;
-    /** Injected by FABPopoverMenu via React.cloneElement */
-    itemIndex?: number;
-};
+const ITEM_ID = 'travel';
 
 const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => account?.primaryLogin;
 
-function useTravelMenuItemVisible(activePolicyID: string | undefined): boolean {
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    return !!activePolicy?.isTravelEnabled;
-}
+type TravelMenuItemProps = {
+    icons: MenuItemIcons;
+    activePolicyID: string | undefined;
+};
 
-function TravelMenuItem({icons, activePolicyID, itemIndex = -1}: TravelMenuItemProps) {
+function TravelMenuItem({icons, activePolicyID}: TravelMenuItemProps) {
     const {translate} = useLocalize();
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
@@ -41,9 +36,22 @@ function TravelMenuItem({icons, activePolicyID, itemIndex = -1}: TravelMenuItemP
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+
+    const isVisible = !!activePolicy?.isTravelEnabled;
+
+    useLayoutEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        registerItem(ITEM_ID);
+        return () => unregisterItem(ITEM_ID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVisible]);
+
+    const itemIndex = registeredItems.indexOf(ITEM_ID);
 
     const isTravelEnabled = (() => {
         if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
@@ -60,6 +68,10 @@ function TravelMenuItem({icons, activePolicyID, itemIndex = -1}: TravelMenuItemP
         }
         Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
     };
+
+    if (!isVisible) {
+        return null;
+    }
 
     return (
         <FocusableMenuItem
@@ -78,5 +90,4 @@ function TravelMenuItem({icons, activePolicyID, itemIndex = -1}: TravelMenuItemP
     );
 }
 
-export {useTravelMenuItemVisible};
 export default TravelMenuItem;

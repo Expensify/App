@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import type {RefObject} from 'react';
 import {View} from 'react-native';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -13,7 +13,10 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import {FABMenuContext} from './FABMenuContext';
 
-type FABMenuItemElement = React.ReactElement<{itemIndex?: number}>;
+// Fixed display order for all possible menu items.
+// Components self-register — this array ensures arrow-key indices always follow JSX order
+// regardless of when each item becomes visible.
+const FAB_ITEM_ORDER = ['quick-action', 'expense', 'track-distance', 'create-report', 'new-chat', 'invoice', 'travel', 'test-drive', 'new-workspace'] as const;
 
 type FABPopoverMenuProps = {
     isVisible: boolean;
@@ -44,10 +47,34 @@ function FABPopoverMenu({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    // React.Children.toArray filters out null/false/undefined produced by {cond && <Comp />},
-    // giving us an accurate count of actually-rendered items for arrow-key focus management.
-    const childrenArray = React.Children.toArray(children) as FABMenuItemElement[];
-    const itemCount = childrenArray.length;
+    const [registeredSet, setRegisteredSet] = useState<ReadonlySet<string>>(new Set());
+
+    // Derive ordered list from the fixed order array so indices are stable
+    // regardless of registration order.
+    const registeredItems = FAB_ITEM_ORDER.filter((id) => registeredSet.has(id));
+    const itemCount = registeredItems.length;
+
+    const registerItem = (id: string) => {
+        setRegisteredSet((prev) => {
+            if (prev.has(id)) {
+                return prev;
+            }
+            const next = new Set(prev);
+            next.add(id);
+            return next;
+        });
+    };
+
+    const unregisterItem = (id: string) => {
+        setRegisteredSet((prev) => {
+            if (!prev.has(id)) {
+                return prev;
+            }
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+        });
+    };
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
@@ -67,11 +94,8 @@ function FABPopoverMenu({
         setFocusedIndex(-1);
     };
 
-    // Inject itemIndex into each child so it can interact with focus management via context
-    const childrenWithIndex = childrenArray.map((child, index) => React.cloneElement(child, {itemIndex: index}));
-
     return (
-        <FABMenuContext.Provider value={{focusedIndex, setFocusedIndex, onItemPress, isVisible}}>
+        <FABMenuContext.Provider value={{focusedIndex, setFocusedIndex, onItemPress, isVisible, registeredItems, registerItem, unregisterItem}}>
             <PopoverWithMeasuredContent
                 anchorPosition={anchorPosition}
                 anchorRef={anchorRef}
@@ -100,7 +124,7 @@ function FABPopoverMenu({
                      * - web: createMenuContainer (fixed sidebar width) + flex1 outer, pv4 inner
                      */}
                     <View style={isSmallScreenWidth ? styles.flexGrow1 : [styles.createMenuContainer, styles.flex1]}>
-                        <View style={styles.pv4}>{childrenWithIndex}</View>
+                        <View style={styles.pv4}>{children}</View>
                     </View>
                 </FocusTrapForModal>
             </PopoverWithMeasuredContent>

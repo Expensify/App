@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -10,18 +10,26 @@ import {useFABMenuContext} from '@pages/inbox/sidebar/FABPopoverContent/FABMenuC
 import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import CONST from '@src/CONST';
 
+const ITEM_ID = 'new-chat';
+
 type NewChatMenuItemProps = {
     icons: MenuItemIcons;
-    /** Injected by FABPopoverMenu via React.cloneElement */
-    itemIndex?: number;
 };
 
-function NewChatMenuItem({icons, itemIndex = -1}: NewChatMenuItemProps) {
+function NewChatMenuItem({icons}: NewChatMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+
+    useLayoutEffect(() => {
+        registerItem(ITEM_ID);
+        return () => unregisterItem(ITEM_ID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const itemIndex = registeredItems.indexOf(ITEM_ID);
 
     return (
         <FocusableMenuItem

@@ -1,5 +1,5 @@
 import type {ImageContentFit} from 'expo-image';
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useLocalize from '@hooks/useLocalize';
@@ -22,27 +22,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
+const ITEM_ID = 'new-workspace';
+
 type NewWorkspaceMenuItemProps = {
     icons: MenuItemIcons;
-    /** Injected by FABPopoverMenu via React.cloneElement */
-    itemIndex?: number;
 };
 
-function useNewWorkspaceMenuItemVisible(): boolean {
-    const {isOffline} = useNetwork();
-    const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [allPolicies] = useMappedPolicies(policyMapper);
-    const {isRestrictedPolicyCreation} = usePreferredPolicy();
-
-    if (isLoading || isRestrictedPolicyCreation) {
-        return false;
-    }
-
-    return Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email));
-}
-
-function NewWorkspaceMenuItem({icons, itemIndex = -1}: NewWorkspaceMenuItemProps) {
+function NewWorkspaceMenuItem({icons}: NewWorkspaceMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
@@ -50,7 +36,7 @@ function NewWorkspaceMenuItem({icons, itemIndex = -1}: NewWorkspaceMenuItemProps
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allPolicies] = useMappedPolicies(policyMapper);
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
@@ -63,7 +49,20 @@ function NewWorkspaceMenuItem({icons, itemIndex = -1}: NewWorkspaceMenuItemProps
         return Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, isOfflineBool, email));
     })();
 
-    if (isLoading || !shouldShowNewWorkspaceButton) {
+    const isVisible = !isLoading && shouldShowNewWorkspaceButton;
+
+    useLayoutEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        registerItem(ITEM_ID);
+        return () => unregisterItem(ITEM_ID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVisible]);
+
+    const itemIndex = registeredItems.indexOf(ITEM_ID);
+
+    if (!isVisible) {
         return null;
     }
 
@@ -91,5 +90,4 @@ function NewWorkspaceMenuItem({icons, itemIndex = -1}: NewWorkspaceMenuItemProps
     );
 }
 
-export {useNewWorkspaceMenuItemVisible};
 export default NewWorkspaceMenuItem;

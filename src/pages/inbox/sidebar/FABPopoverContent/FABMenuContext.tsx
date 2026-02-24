@@ -5,6 +5,9 @@ type FABMenuContextType = {
     setFocusedIndex: (index: number) => void;
     onItemPress: (onSelected: () => void, options?: {shouldCallAfterModalHide?: boolean}) => void;
     isVisible: boolean;
+    registeredItems: readonly string[];
+    registerItem: (id: string) => void;
+    unregisterItem: (id: string) => void;
 };
 
 const FABMenuContext = createContext<FABMenuContextType>({
@@ -12,6 +15,9 @@ const FABMenuContext = createContext<FABMenuContextType>({
     setFocusedIndex: () => {},
     onItemPress: () => {},
     isVisible: false,
+    registeredItems: [],
+    registerItem: () => {},
+    unregisterItem: () => {},
 });
 
 function useFABMenuContext() {

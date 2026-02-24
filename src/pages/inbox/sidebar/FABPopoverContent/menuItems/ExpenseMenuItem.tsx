@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,21 +14,29 @@ import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverConten
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+const ITEM_ID = 'expense';
+
 type ExpenseMenuItemProps = {
     icons: MenuItemIcons;
     reportID: string;
-    /** Injected by FABPopoverMenu via React.cloneElement */
-    itemIndex?: number;
 };
 
-function ExpenseMenuItem({icons, reportID, itemIndex = -1}: ExpenseMenuItemProps) {
+function ExpenseMenuItem({icons, reportID}: ExpenseMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+
+    useLayoutEffect(() => {
+        registerItem(ITEM_ID);
+        return () => unregisterItem(ITEM_ID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const itemIndex = registeredItems.indexOf(ITEM_ID);
 
     return (
         <FocusableMenuItem

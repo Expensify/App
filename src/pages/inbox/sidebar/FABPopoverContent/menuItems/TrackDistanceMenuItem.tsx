@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,21 +13,29 @@ import useRedirectToExpensifyClassic from '@pages/inbox/sidebar/FABPopoverConten
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+const ITEM_ID = 'track-distance';
+
 type TrackDistanceMenuItemProps = {
     icons: MenuItemIcons;
     reportID: string;
-    /** Injected by FABPopoverMenu via React.cloneElement */
-    itemIndex?: number;
 };
 
-function TrackDistanceMenuItem({icons, reportID, itemIndex = -1}: TrackDistanceMenuItemProps) {
+function TrackDistanceMenuItem({icons, reportID}: TrackDistanceMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+
+    useLayoutEffect(() => {
+        registerItem(ITEM_ID);
+        return () => unregisterItem(ITEM_ID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const itemIndex = registeredItems.indexOf(ITEM_ID);
 
     return (
         <FocusableMenuItem

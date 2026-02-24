@@ -3,15 +3,15 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import FABPopoverMenu from './FABPopoverMenu';
-import CreateReportMenuItem, {useCreateReportMenuItemVisible} from './menuItems/CreateReportMenuItem';
+import CreateReportMenuItem from './menuItems/CreateReportMenuItem';
 import ExpenseMenuItem from './menuItems/ExpenseMenuItem';
-import InvoiceMenuItem, {useInvoiceMenuItemVisible} from './menuItems/InvoiceMenuItem';
+import InvoiceMenuItem from './menuItems/InvoiceMenuItem';
 import NewChatMenuItem from './menuItems/NewChatMenuItem';
-import NewWorkspaceMenuItem, {useNewWorkspaceMenuItemVisible} from './menuItems/NewWorkspaceMenuItem';
-import QuickActionMenuItem, {useQuickActionMenuItemVisible} from './menuItems/QuickActionMenuItem';
-import TestDriveMenuItem, {useTestDriveMenuItemVisible} from './menuItems/TestDriveMenuItem';
+import NewWorkspaceMenuItem from './menuItems/NewWorkspaceMenuItem';
+import QuickActionMenuItem from './menuItems/QuickActionMenuItem';
+import TestDriveMenuItem from './menuItems/TestDriveMenuItem';
 import TrackDistanceMenuItem from './menuItems/TrackDistanceMenuItem';
-import TravelMenuItem, {useTravelMenuItemVisible} from './menuItems/TravelMenuItem';
+import TravelMenuItem from './menuItems/TravelMenuItem';
 import type {FABPopoverContentInnerProps} from './types';
 
 type FABPopoverContentInnerExtraProps = FABPopoverContentInnerProps & {
@@ -42,13 +42,6 @@ function FABPopoverContentInner({isVisible, onClose, onItemSelected, onModalHide
         'Clock',
     ] as const);
 
-    const showQuickAction = useQuickActionMenuItemVisible();
-    const showInvoice = useInvoiceMenuItemVisible();
-    const showTravel = useTravelMenuItemVisible(activePolicyID);
-    const showTestDrive = useTestDriveMenuItemVisible();
-    const showNewWorkspace = useNewWorkspaceMenuItemVisible();
-    const showCreateReport = useCreateReportMenuItemVisible();
-
     return (
         <FABPopoverMenu
             isVisible={isVisible}
@@ -61,12 +54,10 @@ function FABPopoverContentInner({isVisible, onClose, onItemSelected, onModalHide
             animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
             animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
         >
-            {showQuickAction && (
-                <QuickActionMenuItem
-                    icons={icons}
-                    reportID={reportID}
-                />
-            )}
+            <QuickActionMenuItem
+                icons={icons}
+                reportID={reportID}
+            />
             <ExpenseMenuItem
                 icons={icons}
                 reportID={reportID}
@@ -75,27 +66,21 @@ function FABPopoverContentInner({isVisible, onClose, onItemSelected, onModalHide
                 icons={icons}
                 reportID={reportID}
             />
-            {showCreateReport && (
-                <CreateReportMenuItem
-                    icons={icons}
-                    activePolicyID={activePolicyID}
-                />
-            )}
+            <CreateReportMenuItem
+                icons={icons}
+                activePolicyID={activePolicyID}
+            />
             <NewChatMenuItem icons={icons} />
-            {showInvoice && (
-                <InvoiceMenuItem
-                    icons={icons}
-                    reportID={reportID}
-                />
-            )}
-            {showTravel && (
-                <TravelMenuItem
-                    icons={icons}
-                    activePolicyID={activePolicyID}
-                />
-            )}
-            {showTestDrive && <TestDriveMenuItem icons={icons} />}
-            {showNewWorkspace && <NewWorkspaceMenuItem icons={icons} />}
+            <InvoiceMenuItem
+                icons={icons}
+                reportID={reportID}
+            />
+            <TravelMenuItem
+                icons={icons}
+                activePolicyID={activePolicyID}
+            />
+            <TestDriveMenuItem icons={icons} />
+            <NewWorkspaceMenuItem icons={icons} />
         </FABPopoverMenu>
     );
 }

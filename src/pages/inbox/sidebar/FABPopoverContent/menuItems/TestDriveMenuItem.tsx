@@ -1,5 +1,5 @@
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import useLocalize from '@hooks/useLocalize';
@@ -14,26 +14,39 @@ import type {MenuItemIcons} from '@pages/inbox/sidebar/FABPopoverContent/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+const ITEM_ID = 'test-drive';
+
 type TestDriveMenuItemProps = {
     icons: MenuItemIcons;
-    /** Injected by FABPopoverMenu via React.cloneElement */
-    itemIndex?: number;
 };
 
-function useTestDriveMenuItemVisible(): boolean {
-    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
-    return !hasSeenTour;
-}
-
-function TestDriveMenuItem({icons, itemIndex = -1}: TestDriveMenuItemProps) {
+function TestDriveMenuItem({icons}: TestDriveMenuItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
     const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
+
+    const isVisible = !hasSeenTour;
+
+    useLayoutEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        registerItem(ITEM_ID);
+        return () => unregisterItem(ITEM_ID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVisible]);
+
+    const itemIndex = registeredItems.indexOf(ITEM_ID);
+
+    if (!isVisible) {
+        return null;
+    }
 
     return (
         <FocusableMenuItem
@@ -52,5 +65,4 @@ function TestDriveMenuItem({icons, itemIndex = -1}: TestDriveMenuItemProps) {
     );
 }
 
-export {useTestDriveMenuItemVisible};
 export default TestDriveMenuItem;

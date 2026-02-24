@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FocusableMenuItem from '@components/FocusableMenuItem';
@@ -36,44 +36,16 @@ import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
+const ITEM_ID = 'quick-action';
+
 const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
 
 type QuickActionMenuItemProps = {
     icons: MenuItemIcons;
     reportID: string;
-    /** Injected by FABPopoverMenu via React.cloneElement */
-    itemIndex?: number;
 };
 
-function useQuickActionMenuItemVisible(): boolean {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`, {canBeMissing: true});
-    const quickActionPolicyID = quickAction?.action === CONST.QUICK_ACTIONS.TRACK_PER_DIEM && quickAction?.perDiemPolicyID ? quickAction?.perDiemPolicyID : quickActionReport?.policyID;
-    const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionPolicyID}`, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
-    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
-
-    const workspaceChatsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], reports);
-    const [policyChats = getEmptyArray<OnyxTypes.Report>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: workspaceChatsSelector, canBeMissing: true});
-
-    const policyChatForActivePolicy: OnyxTypes.Report =
-        !isEmptyObject(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
-
-    if (quickAction?.action && quickActionReport) {
-        if (!isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, isRestrictedToPreferredPolicy)) {
-            return false;
-        }
-        return true;
-    }
-
-    return !isEmptyObject(policyChatForActivePolicy);
-}
-
-function QuickActionMenuItem({icons, reportID, itemIndex = -1}: QuickActionMenuItemProps) {
+function QuickActionMenuItem({icons, reportID}: QuickActionMenuItemProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -94,7 +66,7 @@ function QuickActionMenuItem({icons, reportID, itemIndex = -1}: QuickActionMenuI
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
-    const {focusedIndex, setFocusedIndex, onItemPress} = useFABMenuContext();
+    const {focusedIndex, setFocusedIndex, onItemPress, registeredItems, registerItem, unregisterItem} = useFABMenuContext();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
@@ -106,14 +78,24 @@ function QuickActionMenuItem({icons, reportID, itemIndex = -1}: QuickActionMenuI
     const policyChatForActivePolicy: OnyxTypes.Report =
         !isEmptyObject(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
 
-    const quickActionReportPolicyID = quickActionReport?.policyID;
-    const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
-        if (shouldRestrictAction && quickActionReportPolicyID && shouldRestrictUserBillableActions(quickActionReportPolicyID)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReportPolicyID));
+    const isVisible =
+        (quickAction?.action && quickActionReport
+            ? isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, isRestrictedToPreferredPolicy)
+            : false) ||
+        (!quickAction?.action && !isEmptyObject(policyChatForActivePolicy));
+
+    useLayoutEffect(() => {
+        if (!isVisible) {
             return;
         }
-        onSelected();
-    };
+        registerItem(ITEM_ID);
+        return () => unregisterItem(ITEM_ID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVisible]);
+
+    const itemIndex = registeredItems.indexOf(ITEM_ID);
+    const isFocused = focusedIndex === itemIndex;
+    const focusWrapperStyle = StyleUtils.getItemBackgroundColorStyle(false, isFocused, false, theme.activeComponentBG, theme.hoverComponentBG);
 
     let quickActionAvatars: ReturnType<typeof getIcons> = [];
     if (isValidReport) {
@@ -148,14 +130,20 @@ function QuickActionMenuItem({icons, reportID, itemIndex = -1}: QuickActionMenuI
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const quickActionSubtitle = !hideQABSubtitle ? (getReportName(quickActionReport, quickActionPolicy, undefined, personalDetails) ?? translate('quickAction.updateDestination')) : '';
 
-    const isFocused = focusedIndex === itemIndex;
-    const focusWrapperStyle = StyleUtils.getItemBackgroundColorStyle(false, isFocused, false, theme.activeComponentBG, theme.hoverComponentBG);
+    if (!isVisible) {
+        return null;
+    }
+
+    const quickActionReportPolicyID = quickActionReport?.policyID;
+    const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
+        if (shouldRestrictAction && quickActionReportPolicyID && shouldRestrictUserBillableActions(quickActionReportPolicyID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReportPolicyID));
+            return;
+        }
+        onSelected();
+    };
 
     if (quickAction?.action && quickActionReport) {
-        if (!isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, isRestrictedToPreferredPolicy)) {
-            return null;
-        }
-
         return (
             <FocusableMenuItem
                 pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
@@ -208,50 +196,45 @@ function QuickActionMenuItem({icons, reportID, itemIndex = -1}: QuickActionMenuI
         );
     }
 
-    if (!isEmptyObject(policyChatForActivePolicy)) {
-        return (
-            <FocusableMenuItem
-                pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
-                label={translate('quickAction.header')}
-                labelStyle={[styles.pt3, styles.pb2]}
-                isLabelHoverable={false}
-                numberOfLinesDescription={1}
-                tooltipAnchorAlignment={{
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                }}
-                shouldTeleportPortalToModalLayer
-                focused={isFocused}
-                onFocus={() => setFocusedIndex(itemIndex)}
-                shouldCheckActionAllowedOnPress={false}
-                role={CONST.ROLE.BUTTON}
-                wrapperStyle={focusWrapperStyle}
-                icon={icons.ReceiptScan}
-                title={translate('quickAction.scanReceipt')}
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                description={getReportName(policyChatForActivePolicy)}
-                rightIconReportID={policyChatForActivePolicy?.reportID}
-                onPress={() =>
-                    onItemPress(
-                        () =>
-                            interceptAnonymousUser(() => {
-                                if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
-                                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
-                                    return;
-                                }
+    return (
+        <FocusableMenuItem
+            pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.QUICK_ACTION}
+            label={translate('quickAction.header')}
+            labelStyle={[styles.pt3, styles.pb2]}
+            isLabelHoverable={false}
+            numberOfLinesDescription={1}
+            tooltipAnchorAlignment={{
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+            }}
+            shouldTeleportPortalToModalLayer
+            focused={isFocused}
+            onFocus={() => setFocusedIndex(itemIndex)}
+            shouldCheckActionAllowedOnPress={false}
+            role={CONST.ROLE.BUTTON}
+            wrapperStyle={focusWrapperStyle}
+            icon={icons.ReceiptScan}
+            title={translate('quickAction.scanReceipt')}
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            description={getReportName(policyChatForActivePolicy)}
+            rightIconReportID={policyChatForActivePolicy?.reportID}
+            onPress={() =>
+                onItemPress(
+                    () =>
+                        interceptAnonymousUser(() => {
+                            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+                                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
+                                return;
+                            }
 
-                                const quickActionReportID = policyChatForActivePolicy?.reportID || reportID;
-                                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts, true);
-                            }),
-                        {shouldCallAfterModalHide: shouldUseNarrowLayout},
-                    )
-                }
-            />
-        );
-    }
-
-    return null;
+                            const quickActionReportID = policyChatForActivePolicy?.reportID || reportID;
+                            startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts, true);
+                        }),
+                    {shouldCallAfterModalHide: shouldUseNarrowLayout},
+                )
+            }
+        />
+    );
 }
 
-export {useQuickActionMenuItemVisible};
 export default QuickActionMenuItem;
