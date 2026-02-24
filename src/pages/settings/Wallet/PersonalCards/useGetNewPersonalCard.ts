@@ -5,7 +5,7 @@ import type {Card, CardList} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 export default function useGetNewPersonalCard() {
-    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST);
     const [newCard, setNewCard] = useState<Card | null>(null);
     const prevCardListRef = useRef<Record<string, Card>>({});
 

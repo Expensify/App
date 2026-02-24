@@ -31,9 +31,9 @@ function BankConnection({route}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD, {canBeMissing: true});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD);
     const selectedBank = addNewCard?.data?.selectedBank;
     const {feed: bankNameFromRoute} = route?.params ?? {};
     const bankName = bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank;

@@ -26,8 +26,8 @@ function SelectCountryStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {currencyList} = useCurrencyListState();
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [addNewPersonalCard] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD, {canBeMissing: true});
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [addNewPersonalCard] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currency = currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');

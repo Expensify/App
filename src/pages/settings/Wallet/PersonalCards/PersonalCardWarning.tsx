@@ -19,7 +19,7 @@ function PersonalCardWarning() {
     const {translate} = useLocalize();
     const {cardFeedsByPolicy} = useCardFeedsForDisplay();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     // All policies in which the current user is admin (active workspaces only)
     const adminPolicies = useActiveAdminPolicies();
