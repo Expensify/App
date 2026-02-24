@@ -144,13 +144,6 @@ jobs:
         run: |
           op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
 
-      - name: Upload Android build to Sentry for size analysis
-        continue-on-error: true
-        timeout-minutes: 5
-        run: npx sentry-cli build upload ${{ env.aabPath }} --org expensify --project app --build-configuration Release --log-level debug
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-
       - name: Upload Android app to Google Play
         run: bundle exec fastlane android ${{ vars.ANDROID_UPLOAD_COMMAND }}
         env:
@@ -361,14 +354,6 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
           op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
-
-      - name: Upload iOS build to Sentry for size analysis
-        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
-        continue-on-error: true
-        timeout-minutes: 5
-        run: npx sentry-cli build upload ${{ env.ipaPath }} --org expensify --project app --build-configuration Release --log-level debug
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload release build to TestFlight
         run: bundle exec fastlane ios upload_testflight_hybrid
