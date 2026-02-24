@@ -25,7 +25,7 @@ import type SCREENS from '@src/SCREENS';
 type WalletStatementPageProps = PlatformStackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
 
 function WalletStatementPage({route}: WalletStatementPageProps) {
-    const [walletStatement] = useOnyx(ONYXKEYS.WALLET_STATEMENT, {canBeMissing: true});
+    const [walletStatement] = useOnyx(ONYXKEYS.WALLET_STATEMENT);
     const themePreference = useThemePreference();
     const yearMonth = route.params.yearMonth ?? null;
     const isWalletStatementGenerating = walletStatement?.isGenerating ?? false;
@@ -78,7 +78,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     const year = yearMonth?.substring(0, 4) || getYear(new Date());
     const month = yearMonth?.substring(4) || getMonth(new Date());
     const monthName = format(new Date(Number(year), Number(month) - 1), CONST.DATE.MONTH_FORMAT);
-    const title = translate('statementPage.title', {year, monthName});
+    const title = translate('statementPage.title', year, monthName);
     const url = `${baseURL}statement.php?period=${yearMonth}${themePreference === CONST.THEME.DARK ? '&isDarkMode=true' : ''}`;
 
     return (

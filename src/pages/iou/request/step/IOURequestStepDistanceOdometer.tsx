@@ -15,9 +15,9 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
-import useReportAttributes from '@hooks/useReportAttributes';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -89,27 +89,27 @@ function IOURequestStepDistanceOdometer({
     const initialEndImageRef = useRef<FileObject | string | undefined>(undefined);
     const prevSelectedTabRef = useRef<string | undefined>(undefined);
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const isArchived = isArchivedReport(reportNameValuePairs);
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const reportAttributesDerived = useReportAttributes();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const policy = usePolicy(report?.policyID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
+    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
 
     // isEditing: we're changing an already existing odometer expense; isEditingConfirmation: we navigated here by pressing 'Distance' field from the confirmation step during the creation of a new odometer expense to adjust the input before submitting
@@ -332,8 +332,8 @@ function IOURequestStepDistanceOdometer({
         Navigation.goBack();
     };
 
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     // Navigate to next page following Manual tab pattern
     const navigateToNextPage = () => {
         const start = parseFloat(startReading);
@@ -422,6 +422,8 @@ function IOURequestStepDistanceOdometer({
             odometerEnd: end,
             odometerDistance: calculatedDistance,
             betas,
+            unit,
+            personalOutputCurrency: personalPolicy?.outputCurrency,
         });
     };
 
@@ -464,7 +466,7 @@ function IOURequestStepDistanceOdometer({
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}>
                 <View>
                     {/* Start Reading */}
-                    <View style={[styles.mb6, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
                         <View style={[styles.flex1]}>
                             <TextInput
                                 key={`start-${inputKey}`}
@@ -477,40 +479,42 @@ function IOURequestStepDistanceOdometer({
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
                         </View>
-                        <PressableWithFeedback
-                            accessible={false}
-                            accessibilityRole="button"
-                            sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
-                            onPress={() => {
-                                if (odometerStartImage) {
-                                    handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
-                                } else {
-                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
-                                }
-                            }}
-                            style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
-                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                styles.overflowHidden,
-                                StyleUtils.getBackgroundColorStyle(theme.border),
-                            ]}
-                        >
-                            <ReceiptImage
-                                source={startImageSource ?? ''}
-                                shouldUseThumbnailImage
-                                thumbnailContainerStyles={styles.bgTransparent}
-                                isAuthTokenRequired
-                                fallbackIcon={GalleryPlus}
-                                fallbackIconSize={20}
-                                fallbackIconColor={theme.icon}
-                                iconSize="x-small"
-                                loadingIconSize="small"
-                                shouldUseInitialObjectPosition
-                            />
-                        </PressableWithFeedback>
+                        {!isEditing && (
+                            <PressableWithFeedback
+                                accessibilityRole="button"
+                                accessibilityLabel={translate('distance.odometer.startTitle')}
+                                sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
+                                onPress={() => {
+                                    if (odometerStartImage) {
+                                        handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
+                                    } else {
+                                        handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
+                                    }
+                                }}
+                                style={[
+                                    StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
+                                    StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                    styles.overflowHidden,
+                                    StyleUtils.getBackgroundColorStyle(theme.border),
+                                ]}
+                            >
+                                <ReceiptImage
+                                    source={startImageSource ?? ''}
+                                    shouldUseThumbnailImage
+                                    thumbnailContainerStyles={styles.bgTransparent}
+                                    isAuthTokenRequired
+                                    fallbackIcon={GalleryPlus}
+                                    fallbackIconSize={variables.iconSizeNormal}
+                                    fallbackIconColor={theme.icon}
+                                    iconSize="x-small"
+                                    loadingIconSize="small"
+                                    shouldUseInitialObjectPosition
+                                />
+                            </PressableWithFeedback>
+                        )}
                     </View>
                     {/* End Reading */}
-                    <View style={[styles.mb6, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
                         <View style={[styles.flex1]}>
                             <TextInput
                                 key={`end-${inputKey}`}
@@ -523,37 +527,39 @@ function IOURequestStepDistanceOdometer({
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
                         </View>
-                        <PressableWithFeedback
-                            accessible={false}
-                            accessibilityRole="button"
-                            sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
-                            onPress={() => {
-                                if (odometerEndImage) {
-                                    handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
-                                } else {
-                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
-                                }
-                            }}
-                            style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
-                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                styles.overflowHidden,
-                                StyleUtils.getBackgroundColorStyle(theme.border),
-                            ]}
-                        >
-                            <ReceiptImage
-                                source={endImageSource ?? ''}
-                                shouldUseThumbnailImage
-                                thumbnailContainerStyles={styles.bgTransparent}
-                                isAuthTokenRequired
-                                fallbackIcon={GalleryPlus}
-                                fallbackIconSize={20}
-                                fallbackIconColor={theme.icon}
-                                iconSize="x-small"
-                                loadingIconSize="small"
-                                shouldUseInitialObjectPosition
-                            />
-                        </PressableWithFeedback>
+                        {!isEditing && (
+                            <PressableWithFeedback
+                                accessibilityRole="button"
+                                accessibilityLabel={translate('distance.odometer.endTitle')}
+                                sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
+                                onPress={() => {
+                                    if (odometerEndImage) {
+                                        handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+                                    } else {
+                                        handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+                                    }
+                                }}
+                                style={[
+                                    StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
+                                    StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                    styles.overflowHidden,
+                                    StyleUtils.getBackgroundColorStyle(theme.border),
+                                ]}
+                            >
+                                <ReceiptImage
+                                    source={endImageSource ?? ''}
+                                    shouldUseThumbnailImage
+                                    thumbnailContainerStyles={styles.bgTransparent}
+                                    isAuthTokenRequired
+                                    fallbackIcon={GalleryPlus}
+                                    fallbackIconSize={variables.iconSizeNormal}
+                                    fallbackIconColor={theme.icon}
+                                    iconSize="x-small"
+                                    loadingIconSize="small"
+                                    shouldUseInitialObjectPosition
+                                />
+                            </PressableWithFeedback>
+                        )}
                     </View>
 
                     {/* Total Distance Display - always shown, updated live */}

@@ -1,5 +1,7 @@
+import {reportByIDsSelector} from '@selectors/Attributes';
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useCallback} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,6 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
+import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
 import {
     getReportFieldKey,
     getTitleFieldWithFallback,
@@ -31,7 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
 import EditReportFieldText from './EditReportFieldText';
@@ -41,9 +44,13 @@ type EditReportFieldPageProps = PlatformStackScreenProps<EditRequestNavigatorPar
 function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const {backTo, reportID, policyID} = route.params;
     const fieldKey = getReportFieldKey(route.params.fieldID);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
-    const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportByIDsSelector([reportID])(attributes), [reportID]);
+    const [reportAttributesByReportID] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: reportAttributesSelector,
+    });
+    const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
 
     const isTitleField = route.params.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
     let reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
@@ -60,7 +67,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
     const {translate} = useLocalize();
@@ -113,7 +120,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     // Provide a default when the report name and the policy field list are empty
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const fieldValue = isReportFieldTitle
-        ? report.reportName || (isPolicyFieldListEmpty(policy) ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
+        ? getReportNameFromReportNameUtils(report, reportAttributesByReportID) || (isPolicyFieldListEmpty(policy) ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
         : (reportField.value ?? reportField.defaultValue);
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 

@@ -447,6 +447,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: undefined,
         },
 
+        lineHeightNormal: {
+            lineHeight: variables.lineHeightNormal,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
@@ -4341,7 +4345,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestImage: {
-            height: 200,
             borderRadius: 16,
             marginHorizontal: 20,
             overflow: 'hidden',
@@ -4537,7 +4540,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: 'auto',
         },
         expenseViewImageSmall: {
-            maxWidth: 440,
+            maxWidth: variables.receiptPreviewMaxWidth,
             aspectRatio: 16 / 9,
             height: 'auto',
         },
@@ -5222,6 +5225,16 @@ const staticStyles = (theme: ThemeColors) =>
         travelCardIllustration: {
             width: 191,
             height: 170,
+        },
+
+        travelCCVIllustration: {
+            width: 240,
+            height: 100,
+        },
+
+        travelInvoicingIcon: {
+            backgroundColor: colors.productLight700,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
         successBankSharedCardIllustration: {
@@ -6124,9 +6137,10 @@ const dynamicStyles = (theme: ThemeColors) =>
             const SEARCHBAR_HEIGHT = isSearchable ? 52 : 0;
             const SEARCHBAR_PADDING = isSearchable ? 12 : 0;
             const PADDING = 32;
+            const LIST_BOTTOM_PADDING = 12;
             const GAP = 8;
             const BUTTON_HEIGHT = 40;
-            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_PADDING;
+            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_PADDING + LIST_BOTTOM_PADDING;
             const MAX_HEIGHT = CONST.POPOVER_DROPDOWN_MAX_HEIGHT - (PADDING + GAP + BUTTON_HEIGHT);
 
             // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
@@ -6363,7 +6377,9 @@ const plainStyles = (theme: ThemeColors) =>
                 : ({flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
 
         homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
-            shouldUseNarrowLayout ? ({width: '100%'} satisfies ViewStyle) : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth} satisfies ViewStyle),
+            shouldUseNarrowLayout
+                ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
+                : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, gap: 20} satisfies ViewStyle),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

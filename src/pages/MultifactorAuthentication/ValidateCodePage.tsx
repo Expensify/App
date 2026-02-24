@@ -6,7 +6,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
-import {useMultifactorAuthentication, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationTriggerCancelConfirmModal from '@components/MultifactorAuthentication/TriggerCancelConfirmModal';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
@@ -38,8 +38,8 @@ function MultifactorAuthenticationValidateCodePage() {
     const styles = useThemeStyles();
 
     // Onyx data
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const contactMethod = account?.primaryLogin ?? '';
 
@@ -50,7 +50,8 @@ function MultifactorAuthenticationValidateCodePage() {
     const {cancel} = useMultifactorAuthentication();
     const [isCancelModalVisible, setCancelModalVisibility] = useState(false);
 
-    const {state, dispatch} = useMultifactorAuthenticationState();
+    const state = useMultifactorAuthenticationState();
+    const {dispatch} = useMultifactorAuthenticationActions();
     const {continuableError} = state;
 
     // Refs

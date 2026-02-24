@@ -51,12 +51,11 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const {domainAccountID} = route.params;
 
     const [memberIDs = getEmptyArray<number>()] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: memberAccountIDsSelector,
     });
     const personalDetails = getPersonalDetailsByIDs({accountIDs: memberIDs});
-    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
-    const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: defaultSecurityGroupIDSelector});
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
+    const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
 
     const emailInputRef = useRef<AnimatedTextInputRef>(null);
 

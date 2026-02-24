@@ -37,10 +37,10 @@ function serverHasRegisteredCredentials(data: OnyxEntry<Account>) {
  * timing issues with optimistic updates.
  */
 function usePromptContent(promptType: MultifactorAuthenticationPromptType): PromptContent {
-    const {state} = useMultifactorAuthenticationState();
+    const state = useMultifactorAuthenticationState();
     const {areLocalCredentialsKnownToServer} = useNativeBiometrics();
     const [serverHasCredentials, setServerHasCredentials] = useState(false);
-    const [deviceBiometricsState] = useOnyx(ONYXKEYS.DEVICE_BIOMETRICS, {canBeMissing: true});
+    const [deviceBiometricsState] = useOnyx(ONYXKEYS.DEVICE_BIOMETRICS);
     const hasEverAcceptedSoftPrompt = deviceBiometricsState?.hasAcceptedSoftPrompt ?? false;
 
     // We need to know if server has this device's credentials specifically

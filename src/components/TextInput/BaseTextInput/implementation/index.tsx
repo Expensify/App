@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useId, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -84,11 +84,14 @@ function BaseTextInput({
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
+
+    role,
     ...inputProps
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
+    const helpMessageId = useId();
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -323,7 +326,7 @@ function BaseTextInput({
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
-    const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
+    const accessibilityLabel = [label, hint, errorText ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join(', ');
     const accessibilityValue = useMemo(() => ({text: value ?? ''}), [value]);
     return (
         <>
@@ -441,6 +444,9 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
+                                // Filter out role="presentation" so it doesn't strip the native
+                                // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
+                                role={role === CONST.ROLE.PRESENTATION ? undefined : role}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={newPlaceholder}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
@@ -485,6 +491,7 @@ function BaseTextInput({
                                 markdownStyle={markdownStyle}
                                 accessibilityLabel={inputProps.accessibilityLabel}
                                 accessibilityValue={accessibilityValue}
+                                aria-describedby={inputHelpText ? helpMessageId : undefined}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -557,6 +564,7 @@ function BaseTextInput({
                 </PressableWithoutFeedback>
                 {!!inputHelpText && (
                     <FormHelpMessage
+                        nativeID={helpMessageId}
                         isError={!!errorText}
                         message={inputHelpText}
                     />

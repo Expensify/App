@@ -100,7 +100,6 @@ import {
 } from './actions/IOU';
 import type {IOURequestType} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
-import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {openUnreportedExpense} from './actions/Report';
@@ -1713,15 +1712,6 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Checks if an invoice report's receiver matches a given participant.
- * Used to validate that an invoice chat report corresponds to the correct recipient
- * when the recipient may have been changed (e.g., while offline).
- */
-function doesReportReceiverMatchParticipant(report: OnyxEntry<Report>, receiverParticipantAccountID: number | undefined): boolean {
-    return !!(report?.invoiceReceiver && receiverParticipantAccountID && 'accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverParticipantAccountID);
-}
-
-/**
  * Whether the provided report belongs to a Control policy and is an expense chat
  */
 function isControlPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
@@ -1999,6 +1989,10 @@ function isProcessingReport(report: OnyxEntry<Report>): boolean {
 
 function isOpenReport(report: OnyxEntry<Report>): boolean {
     return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+}
+
+function isOpenOrProcessingReport(report: OnyxEntry<Report>): boolean {
+    return isOpenReport(report) || isProcessingReport(report);
 }
 
 /**
@@ -5178,7 +5172,7 @@ function getTransactionReportName({
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.threadExpenseReportName', {formattedAmount, comment: Parser.htmlToText(comment)});
+    return translateLocal('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment));
 }
 
 /**
@@ -5694,6 +5688,7 @@ function getReportActionMessage({
  * Get the title for a report.
  * @deprecated Moved to src/libs/ReportNameUtils.ts.
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function getReportName(
     report: OnyxEntry<Report>,
     policy?: OnyxEntry<Policy>,
@@ -5705,6 +5700,7 @@ function getReportName(
     isReportArchived?: boolean,
     reports?: Report[],
     policies?: Policy[],
+    conciergeReportID?: string,
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue =
@@ -5879,7 +5875,7 @@ function getReportName(
         });
     }
 
-    if (isConciergeChatReport(report)) {
+    if (isConciergeChatReport(report, conciergeReportID)) {
         formattedName = CONST.CONCIERGE_DISPLAY_NAME;
     }
 
@@ -6036,7 +6032,7 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, isPolicyNamePreferred = 
             return getPolicyName({report});
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', {name: subtitle ?? ''})}`;
+        return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', subtitle ?? '')}`;
     }
 
     if (isReportArchived) {
@@ -8994,7 +8990,8 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
         const transactions = getReportTransactions(potentialReport.reportID);
 
-        if (!isOpenReport(potentialReport)) {
+        // Allow both open and processing reports to show RBR for violations
+        if (!isOpenOrProcessingReport(potentialReport)) {
             return false;
         }
 
@@ -11391,7 +11388,7 @@ function prepareOnboardingOnyxData({
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
-    // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM and TRACK_WORKSPACE onboarding actions, except for emails that have a '+'.
+    // Only the MANAGE_TEAM onboarding action uses the #admins room (with a guide); TRACK_WORKSPACE uses Concierge. Excludes emails that have a '+'.
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
     // When posting to admins room and the user is in the suggestedFollowups beta, we skip tasks in favor of backend-generated followups.
     const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, allBetas, betaConfiguration);
@@ -12055,15 +12052,13 @@ function isChatUsedForOnboarding(
 
 /**
  * Whether onboarding tasks should be posted in the #admins room instead of Concierge.
- * Onboarding guides are assigned to signup with emails that do not contain a '+' and select the "Manage my team's expenses" intent.
+ * Only the "Manage my team's expenses" (MANAGE_TEAM) intent uses the #admins room with a guide;
+ * Track and budget expenses (TRACK_WORKSPACE) uses Concierge chat. Guides are assigned to users who sign up
+ * with emails that do not contain a '+' and who select MANAGE_TEAM.
  */
 function isPostingTasksInAdminsRoom(engagementChoice?: OnboardingPurpose): boolean {
     const userHasPhonePrimaryEmail = Str.endsWith(currentUserEmail ?? '', CONST.SMS.DOMAIN);
-    return (
-        engagementChoice !== undefined &&
-        [CONST.ONBOARDING_CHOICES.MANAGE_TEAM, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE].includes(engagementChoice as 'newDotManageTeam' | 'newDotTrackWorkspace') &&
-        (!currentUserEmail?.includes('+') || userHasPhonePrimaryEmail)
-    );
+    return engagementChoice !== undefined && engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && (!currentUserEmail?.includes('+') || userHasPhonePrimaryEmail);
 }
 
 /**
@@ -12228,31 +12223,41 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
         return false;
     }
 
-    let exportIntegrationActionsCount = 0;
-    let integrationMessageActionsCount = 0;
-
     const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
+
+    // Actions that reset the approval state and invalidate previous exports
+    const resetApprovalActionTypes = new Set<string>([
+        CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+        CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
+        CONST.REPORT.ACTIONS.TYPE.REOPENED,
+        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+    ]);
+    const validExportLabels = new Set<string>(Object.values(CONST.EXPORT_LABELS));
+
+    let lastResetCreated = '';
+    let lastSuccessfulExportCreated = '';
+
     for (const action of reportActionList) {
-        if (isExportIntegrationAction(action)) {
-            const originalMessage = getOriginalMessage(action);
-            // We consider any reports marked manually as exported to be exported, so we shortcut here.
-            if (originalMessage?.markedManually) {
-                return true;
-            }
-            // exportTemplate type is a CSV export, so we don't count it as an export integration action
-            if (originalMessage?.type !== CONST.EXPORT_TEMPLATE) {
-                exportIntegrationActionsCount++;
+        if (resetApprovalActionTypes.has(action.actionName)) {
+            if (action.created > lastResetCreated) {
+                lastResetCreated = action.created;
             }
         }
-        if (isIntegrationMessageAction(action)) {
-            integrationMessageActionsCount++;
+        if (isExportIntegrationAction(action)) {
+            const originalMessage = getOriginalMessage(action);
+            const label = originalMessage?.label;
+            // It's possible for originalMessage?.markedManually to be `false`, but the report is still has a valid automatic export.
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const isValidExport = originalMessage?.markedManually || (label && validExportLabels.has(label) && originalMessage?.type !== CONST.EXPORT_TEMPLATE);
+            if (isValidExport && action.created > lastSuccessfulExportCreated) {
+                lastSuccessfulExportCreated = action.created;
+            }
         }
     }
 
-    // We need to make sure that there was at least one successful export to consider the report exported.
-    // We add one EXPORT_INTEGRATION action to the report when we start exporting it (with pendingAction: 'add') and then another EXPORT_INTEGRATION when the export finishes successfully.
-    // If the export fails, we add an INTEGRATIONS_MESSAGE action to the report, but the initial EXPORT_INTEGRATION action is still present, so we compare the counts of these two actions to determine if the report was exported successfully.
-    return exportIntegrationActionsCount > integrationMessageActionsCount;
+    return lastSuccessfulExportCreated > lastResetCreated;
 }
 
 function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>) {
@@ -12505,17 +12510,14 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
-function canRejectReportAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
-    const isReportApprover = isApproverUtils(policy, currentUserLogin);
+function canRejectReportAction(currentUserLogin: string, report: Report): boolean {
     const isReportBeingProcessed = isProcessingReport(report);
     const isIOU = isIOUReport(report);
     const isInvoice = isInvoiceReport(report);
     const isCurrentUserManager = report?.managerID === currentUserAccountID;
 
-    const userCanReject = isReportApprover && isCurrentUserManager;
-
-    if (!userCanReject) {
-        return false; // must be approver or payer
+    if (!isCurrentUserManager) {
+        return false;
     }
 
     if (isIOU) {
@@ -12561,17 +12563,6 @@ function hasReportBeenRetracted(report: OnyxEntry<Report>, reportActions?: OnyxE
 
     const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
     return reportActionList.some((action) => isRetractedAction(action));
-}
-
-function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Report>, isInvoice?: boolean, reportAttributes?: ReportAttributesDerivedValue['reports']) {
-    if (isInvoice && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
-        const originalMessage = getOriginalMessage(action);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return originalMessage && translateLocal('iou.invoiceReportName', originalMessage);
-    }
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return getReportName(iouReport, undefined, undefined, undefined, undefined, reportAttributes) || action.childReportName;
 }
 
 function selectFilteredReportActions(
@@ -13054,7 +13045,6 @@ export {
     isCompletedTaskReport,
     isConciergeChatReport,
     isControlPolicyExpenseChat,
-    doesReportReceiverMatchParticipant,
     isControlPolicyExpenseReport,
     isCurrentUserSubmitter,
     isCurrentUserTheOnlyParticipant,
@@ -13231,7 +13221,6 @@ export {
     canRejectReportAction,
     hasReportBeenReopened,
     hasReportBeenRetracted,
-    getMoneyReportPreviewName,
     getNextApproverAccountID,
     isWorkspaceTaskReport,
     isWorkspaceThread,

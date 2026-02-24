@@ -1,15 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {render} from '@testing-library/react-native';
-import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import ComposeProviders from '@components/ComposeProviders';
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import reportAttributes from '@libs/actions/OnyxDerived/configs/reportAttributes';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {ACHAccount} from '@src/types/onyx/Policy';
@@ -19,28 +15,28 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const renderLocaleContextProvider = () => {
-    return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <View>TEST</View>
-        </ComposeProviders>,
-    );
-};
-
 const onyxDerivedTestSetup = () => {
-    Onyx.clear();
     Onyx.init({keys: ONYXKEYS});
     initOnyxDerivedValues();
 };
 
 describe('OnyxDerived', () => {
-    beforeEach(() => {
-        Onyx.clear();
+    beforeEach(async () => {
+        await Onyx.clear();
     });
 
     describe('reportAttributes', () => {
-        beforeAll(() => {
+        beforeAll(async () => {
             onyxDerivedTestSetup();
+            await IntlStore.load(CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
+        });
+
+        beforeEach(async () => {
+            // The reportAttributes locale connection uses initWithStoredValues: false,
+            // so it doesn't fire after Onyx.clear(). Setting this triggers recomputation.
+            await Onyx.set(ONYXKEYS.ARE_TRANSLATIONS_LOADING, false);
+            await waitForBatchedUpdates();
         });
 
         const mockReport: Report = {
@@ -67,11 +63,8 @@ describe('OnyxDerived', () => {
         });
 
         it('computes report attributes when reports are set', async () => {
-            renderLocaleContextProvider();
-            await waitForBatchedUpdates();
-
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
-            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+            await waitForBatchedUpdates();
 
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
@@ -85,11 +78,8 @@ describe('OnyxDerived', () => {
         });
 
         it('should clear the report attributes when the report is cleared', async () => {
-            renderLocaleContextProvider();
-            await waitForBatchedUpdates();
-
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
-            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+            await waitForBatchedUpdates();
 
             let derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
@@ -111,11 +101,8 @@ describe('OnyxDerived', () => {
         });
 
         it('updates when locale changes', async () => {
-            renderLocaleContextProvider();
-            await waitForBatchedUpdates();
-
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
-            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es');
+            await IntlStore.load(CONST.LOCALES.ES);
 
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
@@ -154,12 +141,8 @@ describe('OnyxDerived', () => {
         });
 
         it('should not recompute reportAttributes when personalDetailsList changes without displayName change', async () => {
-            renderLocaleContextProvider();
-            await waitForBatchedUpdates();
-
             // Set up initial state with report and personalDetailsList
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
-            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 '1': {
                     accountID: 1,
@@ -200,12 +183,8 @@ describe('OnyxDerived', () => {
         });
 
         it('should recompute reportAttributes when personalDetailsList displayName changes', async () => {
-            renderLocaleContextProvider();
-            await waitForBatchedUpdates();
-
             // Set up initial state with report and personalDetailsList
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
-            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 '1': {
                     accountID: 1,
@@ -382,11 +361,6 @@ describe('OnyxDerived', () => {
 
         describe('RBR propagation for IOU reports', () => {
             it('should correctly propagate and resolve RBR for IOU reports', async () => {
-                renderLocaleContextProvider();
-                await waitForBatchedUpdates();
-                await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
-                await waitForBatchedUpdates();
-
                 const parentReport = createRandomReport(2, undefined);
                 const iouReport = {
                     ...createRandomReport(2, undefined),
@@ -427,6 +401,9 @@ describe('OnyxDerived', () => {
     describe('nonPersonalAndWorkspaceCardList', () => {
         beforeAll(async () => {
             onyxDerivedTestSetup();
+            // Initialize dependency keys so Onyx.clear() in beforeEach triggers derived value recomputation
+            await Onyx.set(ONYXKEYS.CARD_LIST, {});
+            await waitForBatchedUpdates();
         });
 
         it('returns empty object when dependencies are not set', async () => {
@@ -522,6 +499,87 @@ describe('OnyxDerived', () => {
             });
             await waitForBatchedUpdates();
             const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+
+            expect(derivedCardList).toMatchObject({
+                '1': expect.objectContaining({cardID: 1}),
+                '2': expect.objectContaining({cardID: 2}),
+            });
+        });
+    });
+
+    describe('personalAndWorkspaceCardList', () => {
+        beforeAll(async () => {
+            onyxDerivedTestSetup();
+        });
+
+        it('merges cardList and workspaceCardFeeds when dependencies are set', async () => {
+            // Non-personal cards (fundID !== '0') from cardList are kept, workspace cards are always included
+            const nonPersonalCard1 = createRandomExpensifyCard(1, {fundID: '123'});
+            const nonPersonalCard2 = createRandomExpensifyCard(2, {fundID: '456'});
+            const personalCard = createRandomExpensifyCard(3, {fundID: '0'});
+            const workspaceCard3 = createRandomCompanyCard(4, {bank: 'vcf'});
+
+            await Onyx.set(ONYXKEYS.CARD_LIST, {
+                '1': nonPersonalCard1,
+                '2': nonPersonalCard2,
+                '3': personalCard,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}workspace_123`, {
+                '4': workspaceCard3,
+            });
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+
+            expect(derivedCardList).toMatchObject({
+                '1': expect.objectContaining({cardID: 1}),
+                '2': expect.objectContaining({cardID: 2}),
+                '3': expect.objectContaining({cardID: 3}),
+                '4': expect.objectContaining({cardID: 4}),
+            });
+        });
+
+        it('handles empty cardList when workspaceCardFeeds are set', async () => {
+            const workspaceCard = createRandomCompanyCard(1, {bank: 'vcf'});
+
+            await Onyx.set(ONYXKEYS.CARD_LIST, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}workspace_123`, {
+                '1': workspaceCard,
+            });
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+
+            expect(derivedCardList).toMatchObject({
+                '1': expect.objectContaining({cardID: 1}),
+            });
+        });
+
+        it('handles empty workspaceCardFeeds when cardList is set', async () => {
+            const nonPersonalCard = createRandomExpensifyCard(1, {fundID: '123'});
+
+            await Onyx.set(ONYXKEYS.CARD_LIST, {
+                '1': nonPersonalCard,
+            });
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+
+            expect(derivedCardList).toMatchObject({
+                '1': expect.objectContaining({cardID: 1}),
+            });
+        });
+
+        it('includes cards from multiple workspace feeds when dependencies are set', async () => {
+            const card1 = createRandomCompanyCard(1, {bank: 'vcf'});
+            const card2 = createRandomCompanyCard(2, {bank: 'stripe'});
+
+            await Onyx.set(ONYXKEYS.CARD_LIST, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}workspace_123`, {
+                '1': card1,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}workspace_456`, {
+                '2': card2,
+            });
+            await waitForBatchedUpdates();
+            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
 
             expect(derivedCardList).toMatchObject({
                 '1': expect.objectContaining({cardID: 1}),
@@ -880,10 +938,6 @@ describe('OnyxDerived', () => {
                     total: -100,
                     isWaitingOnBankAccount: false,
                 });
-
-            beforeEach(async () => {
-                await Onyx.clear();
-            });
 
             it('uses primary login from personalDetailsList instead of session email for role checks', async () => {
                 const policy = createMockPolicy(POLICY_ID, {

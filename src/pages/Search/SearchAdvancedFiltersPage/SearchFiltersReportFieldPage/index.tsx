@@ -28,10 +28,9 @@ function SearchFiltersReportFieldPage() {
 
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
 
-    const [advancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
+    const [advancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const policyReportFieldsSelector = useCallback((policies: OnyxCollection<Policy>) => createAllPolicyReportFieldsSelector(policies, localeCompare), [localeCompare]);
     const [fieldList] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: false,
         selector: policyReportFieldsSelector,
     });
 
