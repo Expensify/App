@@ -25,7 +25,7 @@ type UpcomingTravelItemProps = {
 function getDestinationCity(reservation: Reservation): string {
     const isDestinationType = reservation.type === CONST.RESERVATION_TYPE.FLIGHT || reservation.type === CONST.RESERVATION_TYPE.TRAIN;
     const cityName = isDestinationType ? reservation.end.cityName : reservation.start.cityName;
-    return cityName?.split(',')[0].trim() ?? '';
+    return Str.recapitalize(cityName?.split(',')[0].trim() ?? '');
 }
 
 function getTitle(translate: ReturnType<typeof useLocalize>['translate'], reservation: Reservation): string {
