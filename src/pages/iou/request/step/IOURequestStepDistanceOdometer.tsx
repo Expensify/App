@@ -12,6 +12,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -42,7 +43,6 @@ import SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import DiscardChangesConfirmation from './DiscardChangesConfirmation';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -454,6 +454,15 @@ function IOURequestStepDistanceOdometer({
         navigateToNextPage();
     };
 
+    useDiscardChangesConfirmation({
+        isEnabled: shouldEnableDiscardConfirmation,
+        getHasUnsavedChanges: () => {
+            const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
+            const hasImageChanges = transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
+            return hasReadingChanges || hasImageChanges;
+        },
+    });
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
@@ -593,15 +602,6 @@ function IOURequestStepDistanceOdometer({
                     />
                 </View>
             </View>
-            <DiscardChangesConfirmation
-                isEnabled={shouldEnableDiscardConfirmation}
-                getHasUnsavedChanges={() => {
-                    const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
-                    const hasImageChanges =
-                        transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
-                    return hasReadingChanges || hasImageChanges;
-                }}
-            />
         </StepScreenWrapper>
     );
 }
