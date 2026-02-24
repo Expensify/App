@@ -2255,11 +2255,15 @@ const CONST = {
     },
 
     IMAGE_CACHE_FILE_TYPES: {
-        'image/jpeg': 'JPEG',
-        'image/jpg': 'JPG',
-        'image/png': 'PNG',
-        'image/gif': 'GIF',
-        'image/webp': 'WEBP',
+        'image/png': 'png',
+        'image/apng': 'png',
+        'image/avif': 'avif',
+        'image/jpeg': 'jpg',
+        'image/jpg': 'jpg',
+        'image/gif': 'gif',
+        'image/svg+xml': 'svg',
+        'image/x-icon': 'ico',
+        'image/vnd.microsoft.icon': 'ico',
     },
 
     SHARE_FILE_MIMETYPE: {
