@@ -8,10 +8,13 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import DecisionModal from '@components/DecisionModal';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
+import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -36,6 +39,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {dismissRejectUseExplanation} from '@libs/actions/IOU';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -166,6 +170,8 @@ function MoneyRequestReportActionsList({
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
@@ -261,7 +267,7 @@ function MoneyRequestReportActionsList({
         [showConfirmModal, translate, selectedTransactionIDs.length, transactions, route.params?.backTo, chatReport?.reportID],
     );
 
-    const {options: selectedTransactionsOptions} = useSelectedTransactionsActions({
+    const {options: originalSelectedTransactionsOptions} = useSelectedTransactionsActions({
         report,
         reportActions,
         allTransactionsLength: transactions.length,
@@ -272,6 +278,43 @@ function MoneyRequestReportActionsList({
         beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
         onDeleteSelected,
     });
+
+    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
+
+    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK> | null>(null);
+
+    const selectedTransactionsOptions = useMemo(() => {
+        return originalSelectedTransactionsOptions.map((option) => {
+            if (option.value === CONST.REPORT.SECONDARY_ACTIONS.REJECT) {
+                return {
+                    ...option,
+                    onSelected: () => {
+                        if (isDelegateAccessRestricted) {
+                            showDelegateNoAccessModal();
+                            return;
+                        }
+
+                        if (dismissedRejectUseExplanation) {
+                            option.onSelected?.();
+                        } else {
+                            setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK);
+                        }
+                    },
+                };
+            }
+            return option;
+        });
+    }, [originalSelectedTransactionsOptions, dismissedRejectUseExplanation]);
+
+    const dismissRejectModalBasedOnAction = useCallback(() => {
+        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
+            dismissRejectUseExplanation();
+            if (report?.reportID) {
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: report.reportID}));
+            }
+        }
+        setRejectModalAction(null);
+    }, [rejectModalAction, report?.reportID]);
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
@@ -849,6 +892,12 @@ function MoneyRequestReportActionsList({
                 isVisible={offlineModalVisible}
                 onClose={() => setOfflineModalVisible(false)}
             />
+            {!!rejectModalAction && (
+                <HoldOrRejectEducationalModal
+                    onClose={dismissRejectModalBasedOnAction}
+                    onConfirm={dismissRejectModalBasedOnAction}
+                />
+            )}
         </View>
     );
 }
