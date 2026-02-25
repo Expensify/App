@@ -25,114 +25,114 @@ type DateFilterBaseProps = {
 
 // Component uses ref as a prop, which is supported in modern React
 function DateFilterBase({title, defaultDateValues, presets, isSearchAdvancedFiltersFormLoading, onBackButtonPress, onSubmit, customFooter, Wrapper, ref}: DateFilterBaseProps) {
-        const styles = useThemeStyles();
-        const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
-        const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
-        const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
+    const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
+    const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
 
-        useImperativeHandle(ref, () => ({
-            getDateValues: () =>
-                searchDatePresetFilterBaseRef.current?.getDateValues() ?? {
-                    [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
-                    [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
-                    [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-                },
-            clearDateValues: () => searchDatePresetFilterBaseRef.current?.clearDateValues(),
-            clearDateValueOfSelectedDateModifier: () => searchDatePresetFilterBaseRef.current?.clearDateValueOfSelectedDateModifier(),
-            setDateValueOfSelectedDateModifier: () => searchDatePresetFilterBaseRef.current?.setDateValueOfSelectedDateModifier(),
-        }));
+    useImperativeHandle(ref, () => ({
+        getDateValues: () =>
+            searchDatePresetFilterBaseRef.current?.getDateValues() ?? {
+                [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
+                [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
+                [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
+            },
+        clearDateValues: () => searchDatePresetFilterBaseRef.current?.clearDateValues(),
+        clearDateValueOfSelectedDateModifier: () => searchDatePresetFilterBaseRef.current?.clearDateValueOfSelectedDateModifier(),
+        setDateValueOfSelectedDateModifier: () => searchDatePresetFilterBaseRef.current?.setDateValueOfSelectedDateModifier(),
+    }));
 
-        function getComputedTitle() {
-            if (selectedDateModifier) {
-                return translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`);
-            }
-
-            return title;
+    function getComputedTitle() {
+        if (selectedDateModifier) {
+            return translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`);
         }
 
-        const reset = () => {
-            if (!searchDatePresetFilterBaseRef.current) {
-                return;
-            }
+        return title;
+    }
 
-            if (selectedDateModifier) {
-                searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
-                setSelectedDateModifier(null);
-                return;
-            }
+    const reset = () => {
+        if (!searchDatePresetFilterBaseRef.current) {
+            return;
+        }
 
-            searchDatePresetFilterBaseRef.current.clearDateValues();
-        };
+        if (selectedDateModifier) {
+            searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
+            setSelectedDateModifier(null);
+            return;
+        }
 
-        const save = () => {
-            if (!searchDatePresetFilterBaseRef.current) {
-                return;
-            }
+        searchDatePresetFilterBaseRef.current.clearDateValues();
+    };
 
-            if (selectedDateModifier) {
-                searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
-                setSelectedDateModifier(null);
-                return;
-            }
+    const save = () => {
+        if (!searchDatePresetFilterBaseRef.current) {
+            return;
+        }
 
-            const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
-            onSubmit(dateValues);
-        };
+        if (selectedDateModifier) {
+            searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
+            setSelectedDateModifier(null);
+            return;
+        }
 
-        const goBack = () => {
-            if (selectedDateModifier) {
-                setSelectedDateModifier(null);
-                return;
-            }
+        const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
+        onSubmit(dateValues);
+    };
 
-            onBackButtonPress();
-        };
+    const goBack = () => {
+        if (selectedDateModifier) {
+            setSelectedDateModifier(null);
+            return;
+        }
 
-        const computedTitle = getComputedTitle();
+        onBackButtonPress();
+    };
 
-        const content = (
-            <>
-                <HeaderWithBackButton
-                    title={computedTitle}
-                    onBackButtonPress={goBack}
+    const computedTitle = getComputedTitle();
+
+    const content = (
+        <>
+            <HeaderWithBackButton
+                title={computedTitle}
+                onBackButtonPress={goBack}
+            />
+            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                <DatePresetFilterBase
+                    ref={searchDatePresetFilterBaseRef}
+                    defaultDateValues={defaultDateValues}
+                    selectedDateModifier={selectedDateModifier}
+                    onSelectDateModifier={setSelectedDateModifier}
+                    presets={presets}
+                    isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
                 />
-                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    <DatePresetFilterBase
-                        ref={searchDatePresetFilterBaseRef}
-                        defaultDateValues={defaultDateValues}
-                        selectedDateModifier={selectedDateModifier}
-                        onSelectDateModifier={setSelectedDateModifier}
-                        presets={presets}
-                        isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
+            </ScrollView>
+            {!selectedDateModifier && customFooter ? (
+                customFooter
+            ) : (
+                <>
+                    <Button
+                        text={translate('common.reset')}
+                        onPress={reset}
+                        style={[styles.mh4, styles.mt4]}
+                        large
                     />
-                </ScrollView>
-                {!selectedDateModifier && customFooter ? (
-                    customFooter
-                ) : (
-                    <>
-                        <Button
-                            text={translate('common.reset')}
-                            onPress={reset}
-                            style={[styles.mh4, styles.mt4]}
-                            large
-                        />
-                        <FormAlertWithSubmitButton
-                            buttonText={translate('common.save')}
-                            containerStyles={[styles.m4, styles.mt3, styles.mb5]}
-                            onSubmit={save}
-                            enabledWhenOffline
-                        />
-                    </>
-                )}
-            </>
-        );
+                    <FormAlertWithSubmitButton
+                        buttonText={translate('common.save')}
+                        containerStyles={[styles.m4, styles.mt3, styles.mb5]}
+                        onSubmit={save}
+                        enabledWhenOffline
+                    />
+                </>
+            )}
+        </>
+    );
 
-        if (Wrapper) {
-            return <Wrapper>{content}</Wrapper>;
-        }
+    if (Wrapper) {
+        return <Wrapper>{content}</Wrapper>;
+    }
 
-        return content;
+    return content;
 }
 
 export default DateFilterBase;
