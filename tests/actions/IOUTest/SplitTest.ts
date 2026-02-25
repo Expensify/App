@@ -1263,6 +1263,84 @@ describe('startSplitBill', () => {
         expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
         expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
     });
+
+    it('should return splitTransactionID and create the transaction in Onyx with correct values', async () => {
+        // Given a participant
+        const policyID = 'A';
+        const testComment = 'Test split comment';
+        const testCategory = 'Food';
+        const testCurrency = CONST.CURRENCY.USD;
+
+        // When starting a split bill
+        const {splitTransactionID} = startSplitBill({
+            participants: [{isPolicyExpenseChat: true, policyID, accountID: RORY_ACCOUNT_ID}],
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            comment: testComment,
+            receipt: {},
+            category: testCategory,
+            tag: '',
+            currency: testCurrency,
+            taxCode: '',
+            taxAmount: 0,
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            policyRecentlyUsedTags: undefined,
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then the returned splitTransactionID should be defined
+        expect(splitTransactionID).toBeDefined();
+
+        // And the transaction should be created in Onyx with correct values
+        const createdTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
+        expect(createdTransaction).toBeDefined();
+        expect(createdTransaction?.transactionID).toBe(splitTransactionID);
+        expect(createdTransaction?.comment?.comment).toBe(testComment);
+        expect(createdTransaction?.category).toBe(testCategory);
+        expect(createdTransaction?.currency).toBe(testCurrency);
+        expect(createdTransaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+        expect(createdTransaction?.reportID).toBe(CONST.REPORT.SPLIT_REPORT_ID);
+    });
+
+    it('should update NVP_QUICK_ACTION_GLOBAL_CREATE with SPLIT_SCAN action', async () => {
+        // Given an existing quick action
+        const policyID = 'B';
+        const existingQuickAction = {
+            action: CONST.QUICK_ACTIONS.REQUEST_MANUAL,
+            chatReportID: '12345',
+        };
+
+        await Onyx.merge(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, existingQuickAction);
+
+        // When starting a split bill
+        const {splitTransactionID} = startSplitBill({
+            participants: [{isPolicyExpenseChat: true, policyID, accountID: RORY_ACCOUNT_ID}],
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            comment: '',
+            receipt: {},
+            category: '',
+            tag: '',
+            currency: CONST.CURRENCY.USD,
+            taxCode: '',
+            taxAmount: 0,
+            quickAction: existingQuickAction,
+            policyRecentlyUsedCurrencies: [],
+            policyRecentlyUsedTags: undefined,
+        });
+
+        await waitForBatchedUpdates();
+
+        expect(splitTransactionID).toBeDefined();
+
+        // Then NVP_QUICK_ACTION_GLOBAL_CREATE should be updated with SPLIT_SCAN action
+        const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+        expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.SPLIT_SCAN);
+        expect(quickAction?.chatReportID).toBeDefined();
+        expect(quickAction?.isFirstQuickAction).toBe(false);
+    });
 });
 
 describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
