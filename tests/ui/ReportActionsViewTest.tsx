@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import DateUtils from '@libs/DateUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -333,6 +334,7 @@ describe('ReportActionsView', () => {
         ];
 
         const setupConciergeMocks = () => {
+            jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUseOnyx.mockImplementation((key: string) => {
                 if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
