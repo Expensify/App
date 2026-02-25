@@ -25,8 +25,8 @@ const DEFAULT_ANCHOR_ORIGIN = {
 };
 
 const POPOVER_DIMENSIONS = {
-    height: 450,
-    width: 350,
+    height: CONST.POPOVER_CATEGORY_PICKER_MAX_HEIGHT,
+    width: CONST.POPOVER_CATEGORY_PICKER_WIDTH,
 };
 
 function CategoryPickerPopover({policyID, selectedCategory, onCategorySelected, ...popoverProps}: CategoryPickerPopoverProps) {
