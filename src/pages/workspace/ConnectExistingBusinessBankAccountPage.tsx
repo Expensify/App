@@ -25,8 +25,8 @@ type ConnectExistingBusinessBankAccountPageProps = PlatformStackScreenProps<Conn
 function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusinessBankAccountPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const policyID = route.params?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();

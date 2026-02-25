@@ -8,7 +8,7 @@ import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function GPSInProgressModal() {
-    const [isGPSInProgressModalOpen] = useOnyx(ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN, {canBeMissing: true});
+    const [isGPSInProgressModalOpen] = useOnyx(ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 

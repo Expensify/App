@@ -17,8 +17,8 @@ const STEP_FIELDS = [TAX_ID_EIN_NUMBER];
 function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const defaultValue = reimbursementAccount?.achData?.corpay?.[TAX_ID_EIN_NUMBER] ?? '';
     const businessStepCountryValue = reimbursementAccount?.achData?.corpay?.[COMPANY_COUNTRY_CODE] ?? reimbursementAccountDraft?.[COMPANY_COUNTRY_CODE] ?? '';

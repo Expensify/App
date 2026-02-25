@@ -41,7 +41,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [error, setError] = useState('');
     const isFocused = useIsFocused();
 
-    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const isUserValidated = account?.validated ?? false;
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));

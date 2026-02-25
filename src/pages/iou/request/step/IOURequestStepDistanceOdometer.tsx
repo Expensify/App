@@ -1,3 +1,4 @@
+import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -25,6 +26,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDistance, setMoneyRequestOdometerReading, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
+import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -89,31 +91,34 @@ function IOURequestStepDistanceOdometer({
     const initialEndImageRef = useRef<FileObject | string | undefined>(undefined);
     const prevSelectedTabRef = useRef<string | undefined>(undefined);
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const isArchived = isArchivedReport(reportNameValuePairs);
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const reportAttributesDerived = useReportAttributes();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const policy = usePolicy(report?.policyID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
+    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
 
     // isEditing: we're changing an already existing odometer expense; isEditingConfirmation: we navigated here by pressing 'Distance' field from the confirmation step during the creation of a new odometer expense to adjust the input before submitting
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
+    const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const isEditingConfirmation = routeName !== SCREENS.MONEY_REQUEST.DISTANCE_CREATE && !isEditing;
     const isCreatingNewRequest = !isEditingConfirmation && !isEditing;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
@@ -124,7 +129,7 @@ function IOURequestStepDistanceOdometer({
     const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy), [iouType, defaultExpensePolicy]);
     const customUnitRateID = getRateID(transaction);
 
-    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
+    const unit = DistanceRequestUtils.getRate({transaction: currentTransaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
     const shouldSkipConfirmation: boolean = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
 
@@ -168,22 +173,27 @@ function IOURequestStepDistanceOdometer({
         if (hasInitializedRefs.current) {
             return;
         }
-        const currentStart = transaction?.comment?.odometerStart;
-        const currentEnd = transaction?.comment?.odometerEnd;
+        const currentStart = currentTransaction?.comment?.odometerStart;
+        const currentEnd = currentTransaction?.comment?.odometerEnd;
         const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
         const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
         initialStartReadingRef.current = startValue;
         initialEndReadingRef.current = endValue;
-        initialStartImageRef.current = transaction?.comment?.odometerStartImage;
-        initialEndImageRef.current = transaction?.comment?.odometerEndImage;
+        initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
+        initialEndImageRef.current = currentTransaction?.comment?.odometerEndImage;
         hasInitializedRefs.current = true;
-    }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd, transaction?.comment?.odometerStartImage, transaction?.comment?.odometerEndImage]);
+    }, [
+        currentTransaction?.comment?.odometerStart,
+        currentTransaction?.comment?.odometerEnd,
+        currentTransaction?.comment?.odometerStartImage,
+        currentTransaction?.comment?.odometerEndImage,
+    ]);
 
     // Initialize values from transaction when editing or when transaction has data (but not when switching tabs)
     // This updates the current state, but NOT the initial refs (those are set only once on mount)
     useEffect(() => {
-        const currentStart = transaction?.comment?.odometerStart;
-        const currentEnd = transaction?.comment?.odometerEnd;
+        const currentStart = currentTransaction?.comment?.odometerStart;
+        const currentEnd = currentTransaction?.comment?.odometerEnd;
 
         // Only initialize if:
         // 1. We haven't initialized yet AND transaction has data, OR
@@ -207,7 +217,7 @@ function IOURequestStepDistanceOdometer({
                 endReadingRef.current = endValue;
             }
         }
-    }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd, isEditing]);
+    }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing]);
 
     // Calculate total distance - updated live after every input change
     const totalDistance = (() => {
@@ -332,8 +342,8 @@ function IOURequestStepDistanceOdometer({
         Navigation.goBack();
     };
 
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     // Navigate to next page following Manual tab pattern
     const navigateToNextPage = () => {
         const start = parseFloat(startReading);
@@ -350,6 +360,22 @@ function IOURequestStepDistanceOdometer({
         setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
 
         if (isEditing) {
+            // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+            if (isEditingSplit && transaction) {
+                setDraftSplitTransaction(
+                    transaction.transactionID,
+                    splitDraftTransaction,
+                    {
+                        distance: calculatedDistance,
+                        odometerStart: start,
+                        odometerEnd: end,
+                    },
+                    policy,
+                );
+                Navigation.goBack();
+                return;
+            }
+
             // Update existing transaction
             const previousDistance = transaction?.comment?.customUnit?.quantity;
             const previousStart = transaction?.comment?.odometerStart;
@@ -422,6 +448,7 @@ function IOURequestStepDistanceOdometer({
             odometerEnd: end,
             odometerDistance: calculatedDistance,
             betas,
+            recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,
         });
