@@ -69,10 +69,9 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {SplitShares, TransactionChanges, TransactionCustomUnit} from '@src/types/onyx/Transaction';
-import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -1483,15 +1482,18 @@ function updateSplitTransactions({
             },
         });
 
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const]: originalTransaction,
-                } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction>,
-            },
-        });
+        if (originalTransaction) {
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const failureSnapshotData: SearchResultDataType = {};
+            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`] = originalTransaction;
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
+                value: {
+                    data: failureSnapshotData,
+                },
+            });
+        }
     } else {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,

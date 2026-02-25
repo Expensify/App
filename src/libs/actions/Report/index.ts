@@ -220,7 +220,6 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
-import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
 
@@ -3125,12 +3124,15 @@ function buildNewReportOptimisticData(
 
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
     if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const optimisticSnapshotData: SearchResultDataType = {};
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = optimisticReportData;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
             value: {
-                data: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData},
-            } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report>,
+                data: optimisticSnapshotData,
+            },
         });
     } else if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.CHAT) {
         // Building this object sequentially resolves TypeScript type inference issues
@@ -5095,10 +5097,11 @@ function deleteAppReport(
 
     // Update search results to mark report as deleted when called from search
     if (hash) {
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const optimisticSnapshotData: SearchResultDataType = {};
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {...report, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
-            data: {
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-            } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report>,
+            data: optimisticSnapshotData,
         });
     }
 
@@ -6264,12 +6267,15 @@ function buildOptimisticChangePolicyData(
 
     // Search data might not have the new policy data so we should add it optimistically.
     if (policy && currentSearchQueryJSON) {
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const optimisticSnapshotData: SearchResultDataType = {};
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
             value: {
-                data: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy},
-            } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy>,
+                data: optimisticSnapshotData,
+            },
         });
     }
 

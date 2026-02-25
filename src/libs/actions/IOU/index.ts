@@ -262,7 +262,6 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -4943,22 +4942,25 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             value: currentTransactionViolations,
         });
         if (hash) {
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const optimisticSnapshotData: SearchResultDataType = {};
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = Array.isArray(violationsOnyxData.value) ? violationsOnyxData.value : [];
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: violationsOnyxData.value,
-                    } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, OnyxTypes.TransactionViolation[]>,
+                    data: optimisticSnapshotData,
                 },
             });
+
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const failureSnapshotData: SearchResultDataType = {};
+            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = currentTransactionViolations;
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: currentTransactionViolations,
-                    } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, OnyxTypes.TransactionViolation[]>,
+                    data: failureSnapshotData,
                 },
             });
         }
@@ -12269,27 +12271,29 @@ function replaceReceipt({transactionID, file, source, transactionPolicy, transac
         });
     }
     if (currentSearchQueryJSON?.hash) {
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {
+            receipt: receiptOptimistic,
+        };
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
             value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                        receipt: receiptOptimistic,
-                    },
-                } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, OnyxTypes.Transaction>,
+                data: optimisticSnapshotData,
             },
         });
 
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+        failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {
+            receipt: !isEmptyObject(oldReceipt) ? oldReceipt : undefined,
+        };
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
             value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                        receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
-                    },
-                } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, OnyxTypes.Transaction>,
+                data: failureSnapshotData,
             },
         });
     }
