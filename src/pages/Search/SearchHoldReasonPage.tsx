@@ -27,7 +27,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {backTo = '', reportID} = route.params ?? {};
     const context = useSearchContext();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const selectedTransactionsList = Object.values(context.selectedTransactions);
     const isSubmitter = report
