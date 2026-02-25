@@ -200,6 +200,7 @@ type MiniReport = {
     lastVisibleActionCreated?: string;
 };
 
+// Guilty
 function shouldDisplayReportInLHN(
     report: Report,
     reports: OnyxCollection<Report>,
@@ -340,6 +341,7 @@ function updateReportsToDisplayInLHN({
     draftComments,
 }: UpdateReportsToDisplayInLHNProps) {
     const displayedReportsCopy = {...displayedReports};
+
     for (const reportID of updatedReportsKeys) {
         const report = reports?.[reportID];
         if (!report) {
