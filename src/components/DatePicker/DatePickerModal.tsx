@@ -1,11 +1,12 @@
 import {setYear} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
-import type {View} from 'react-native';
+import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import CalendarPicker from './CalendarPicker';
 import type {DatePickerProps} from './types';
 
@@ -60,6 +61,8 @@ function DatePickerModal({
         setSelectedDate(newValue);
     };
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+
     return (
         <PopoverWithMeasuredContent
             anchorRef={anchorRef}
@@ -77,13 +80,16 @@ function DatePickerModal({
             shouldSkipRemeasurement
             forwardedFSClass={forwardedFSClass}
             shouldDisplayBelowModals
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <CalendarPicker
-                minDate={minDate}
-                maxDate={maxDate}
-                value={selectedDate}
-                onSelected={handleDateSelection}
-            />
+            <View style={bottomSafeAreaPaddingStyle}>
+                <CalendarPicker
+                    minDate={minDate}
+                    maxDate={maxDate}
+                    value={selectedDate}
+                    onSelected={handleDateSelection}
+                />
+            </View>
         </PopoverWithMeasuredContent>
     );
 }

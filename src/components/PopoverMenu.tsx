@@ -5,6 +5,7 @@ import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -177,11 +178,30 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
 
     /** Badge style to be shown near the right end. */
     badgeStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.
+     * Modals should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
+     * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
+     */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 };
 
-const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
+const renderWithConditionalWrapper = (
+    shouldUseScrollView: boolean,
+    contentContainerStyle: StyleProp<ViewStyle>,
+    children: ReactNode,
+    addBottomSafeAreaPadding?: boolean,
+): React.JSX.Element => {
     if (shouldUseScrollView) {
-        return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
+        return (
+            <ScrollView
+                contentContainerStyle={contentContainerStyle}
+                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            >
+                {children}
+            </ScrollView>
+        );
     }
     // eslint-disable-next-line react/jsx-no-useless-fragment
     return <View style={contentContainerStyle}>{children}</View>;
@@ -255,6 +275,7 @@ function PopoverMenu(props: PopoverMenuProps) {
     }
     return <BasePopoverMenu {...props} />;
 }
+PopoverMenu.displayName = 'PopoverMenu';
 
 function BasePopoverMenu({
     menuItems,
@@ -294,6 +315,7 @@ function BasePopoverMenu({
     shouldUseModalPaddingStyle,
     shouldAvoidSafariException = false,
     shouldMaintainFocusAfterSubItemSelect: shouldPreserveFocusOnSubItems = true,
+    enableEdgeToEdgeBottomSafeAreaPadding,
     testID,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
@@ -597,6 +619,7 @@ function BasePopoverMenu({
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
+            enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
         >
             <FocusTrapForModal
                 active={isVisible}
@@ -610,14 +633,13 @@ function BasePopoverMenu({
                         shouldUseScrollView,
                         [scrollViewPaddingStyles, restScrollContainerStyle],
                         [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
+                        enableEdgeToEdgeBottomSafeAreaPadding,
                     )}
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );
 }
-
-PopoverMenu.displayName = 'PopoverMenu';
 
 export default React.memo(
     PopoverMenu,

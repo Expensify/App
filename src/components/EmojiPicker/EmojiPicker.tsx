@@ -22,6 +22,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import EmojiPickerMenu from './EmojiPickerMenu';
 
 const DEFAULT_ANCHOR_ORIGIN = {
@@ -235,6 +236,8 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
         };
     }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor, hideEmojiPicker]);
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+
     return (
         <PopoverWithMeasuredContent
             shouldHandleNavigationBack={isMobileChrome()}
@@ -262,9 +265,10 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
             shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSkipRemeasurement
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <FocusTrapForModal active={isEmojiPickerVisible}>
-                <View>
+                <View style={bottomSafeAreaPaddingStyle}>
                     <EmojiPickerMenu
                         onEmojiSelected={selectEmoji}
                         activeEmoji={activeEmoji.current}

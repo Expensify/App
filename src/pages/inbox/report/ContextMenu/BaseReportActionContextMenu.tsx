@@ -43,6 +43,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
 import ContextMenuActions from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
@@ -362,12 +363,14 @@ function BaseReportActionContextMenu({
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const card = useGetExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
             <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
                 <View
                     ref={contentRef}
-                    style={wrapperStyle}
+                    style={[wrapperStyle, bottomSafeAreaPaddingStyle]}
                 >
                     {filteredContextMenuActions.map((contextAction, index) => {
                         const closePopup = !isMini;
