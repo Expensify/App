@@ -5,7 +5,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import {getFieldRequiredErrors, isValidWebsite} from '@libs/ValidationUtils';
 import {setDraftValues} from '@userActions/FormActions';
@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type WebsiteProps = SubStepProps;
+type WebsiteProps = SubPageProps;
 
 const {COMPANY_WEBSITE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [COMPANY_WEBSITE];
