@@ -1,5 +1,5 @@
 import type {VideoPlayer} from 'expo-video';
-import type {RefObject} from 'react';
+import type {Dispatch, RefObject, SetStateAction} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -59,7 +59,12 @@ type FullScreenContext = {
     /**
      * Whether the application is currently in fullscreen mode.
      */
-    isFullScreenRef: RefObject<boolean>;
+    isFullScreen: boolean;
+
+    /**
+     * Updates fullscreen mode state.
+     */
+    setIsFullScreen: Dispatch<SetStateAction<boolean>>;
 
     /**
      * Window dimensions saved before entering fullscreen mode.

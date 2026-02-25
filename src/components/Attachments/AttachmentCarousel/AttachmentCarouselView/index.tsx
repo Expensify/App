@@ -65,7 +65,8 @@ function AttachmentCarouselView({
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const canUseTouchScreen = canUseTouchScreenUtil();
-    const {isFullScreenRef} = useFullScreenContext();
+    const {isFullScreen} = useFullScreenContext();
+    const isFullScreenRef = useRef(isFullScreen);
     const isPagerScrolling = useSharedValue(false);
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
@@ -77,6 +78,10 @@ function AttachmentCarouselView({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
     const {windowWidth} = useWindowDimensions();
+
+    useEffect(() => {
+        isFullScreenRef.current = isFullScreen;
+    }, [isFullScreen]);
 
     const cellWidth = useMemo(
         () => PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2),
@@ -110,13 +115,13 @@ function AttachmentCarouselView({
                 onNavigate(item);
             }
         },
-        [isFullScreenRef, onNavigate, setPage, setActiveAttachmentID],
+        [onNavigate, setPage, setActiveAttachmentID],
     );
 
     /** Increments or decrements the index to get another selected item */
     const cycleThroughAttachments = useCallback(
         (deltaSlide: number) => {
-            if (isFullScreenRef.current) {
+            if (isFullScreen) {
                 return;
             }
 
@@ -129,7 +134,7 @@ function AttachmentCarouselView({
 
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
         },
-        [attachments, canUseTouchScreen, isFullScreenRef, page, scrollRef],
+        [attachments, canUseTouchScreen, isFullScreen, page, scrollRef],
     );
 
     const extractItemKey = useCallback(

@@ -17,8 +17,9 @@ const isMobile = isMobileBrowser();
  * A wrapper around React Native's useWindowDimensions hook.
  */
 export default function (useCachedViewportHeight = false): WindowDimensions {
-    const {isFullScreenRef, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions} = useContext(FullScreenContext) ?? {
-        isFullScreenRef: useRef(false),
+    const {isFullScreen, lockedWindowDimensionsRef, lockWindowDimensions, unlockWindowDimensions} = useContext(FullScreenContext) ?? {
+        isFullScreen: false,
+        setIsFullScreen: () => {},
         lockedWindowDimensionsRef: useRef<ResponsiveLayoutProperties | null>(null),
         lockWindowDimensions: () => {},
         unlockWindowDimensions: () => {},
@@ -109,7 +110,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         responsiveLayoutResults,
     };
 
-    if (!lockedWindowDimensionsRef.current && !isFullScreenRef.current) {
+    if (!lockedWindowDimensionsRef.current && !isFullScreen) {
         return windowDimensions;
     }
 
@@ -130,7 +131,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     }
 
     // if video exits fullscreen mode, unlock the window dimensions
-    if (lockedWindowDimensionsRef.current && !isFullScreenRef.current) {
+    if (lockedWindowDimensionsRef.current && !isFullScreen) {
         const lastLockedWindowDimensions = {...lockedWindowDimensionsRef.current};
         unlockWindowDimensions();
         return {windowWidth: lastLockedWindowDimensions.windowWidth, windowHeight: lastLockedWindowDimensions.windowHeight};
