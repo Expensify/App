@@ -14,7 +14,7 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext} from '@components/Search/SearchContext';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -58,6 +58,7 @@ type SearchPageNarrowProps = {
     currentSelectedReportID?: string | undefined;
     confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
     latestBankItems?: BankAccountMenuItem[] | undefined;
+    shouldShowFooter: boolean;
 };
 
 function SearchPageNarrow({
@@ -71,13 +72,14 @@ function SearchPageNarrow({
     currentSelectedReportID,
     latestBankItems,
     confirmPayment,
+    shouldShowFooter,
 }: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {clearSelectedTransactions, selectedTransactions} = useSearchContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
     // Controls the visibility of the educational tooltip based on user scrolling.
@@ -176,7 +178,6 @@ function SearchPageNarrow({
         );
     }
 
-    const shouldShowFooter = !!metadata?.count || Object.keys(selectedTransactions).length > 0;
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
 

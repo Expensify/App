@@ -45,10 +45,10 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const authToken = session?.authToken ?? null;
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const selectedBank = addNewCard?.data?.selectedBank;
     const {feed: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
@@ -74,13 +74,13 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
     useEffect(() => {
-        if (!policyID || !isBlockedToAddNewFeeds) {
+        if (!policyID || !isBlockedToAddNewFeeds || feed) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
             forceReplace: true,
         });
-    }, [isBlockedToAddNewFeeds, policyID]);
+    }, [isBlockedToAddNewFeeds, policyID, feed]);
 
     const handleBackButtonPress = () => {
         // Handle assign card flow
@@ -169,7 +169,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
-                {!!url && !isConnectionCompleted && !isPlaid && !isNewFeedHasError && !isAllFeedsResultLoading && !isBlockedToAddNewFeeds && (
+                {!!url && !isConnectionCompleted && !isPlaid && !isNewFeedHasError && !isAllFeedsResultLoading && (!isBlockedToAddNewFeeds || !!feed) && (
                     <WebView
                         ref={webViewRef}
                         source={{
@@ -185,7 +185,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                         renderLoading={renderLoading}
                     />
                 )}
-                {(isAllFeedsResultLoading || isBlockedToAddNewFeeds || isConnectionCompleted || isPlaid) && !isNewFeedHasError && (
+                {(isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed) || isConnectionCompleted || isPlaid) && !isNewFeedHasError && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}

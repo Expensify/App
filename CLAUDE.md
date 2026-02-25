@@ -154,7 +154,6 @@ Key GitHub Actions workflows:
 - `test.yml`: Unit tests
 - `typecheck.yml`: TypeScript validation
 - `lint.yml`: Code quality checks
-- `e2ePerformanceTests.yml`: Performance testing
 
 ## Related Repositories
 
@@ -190,9 +189,14 @@ The skill provides guidance on:
 - **Prettier**: Code formatting - run `npm run prettier` after making changes
 - **Patch Management**: patch-package for dependency fixes
 
+### Post-Edit Checklist (IMPORTANT)
+**ALWAYS run these steps after making code changes, before committing:**
+1. **Prettier**: Run `npx prettier --write <changed files>` on every file you modified. This is mandatory - CI will reject unformatted code.
+2. **ESLint**: Run `npx eslint <changed files> --max-warnings=0` to catch lint errors early.
+3. **TypeScript**: Run `npm run typecheck` if you changed types, interfaces, or function signatures.
+
 ### Testing
 - **Unit Tests**: Jest with React Native Testing Library
-- **E2E Tests**: Custom test runner
 - **Performance Tests**: Reassure framework
 
 ## Special Considerations

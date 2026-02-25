@@ -14,7 +14,7 @@ on:
 
 jobs:
   generateTranslations:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: ${{ github.event_name == 'workflow_dispatch' || !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Get PR details

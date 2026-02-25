@@ -4,7 +4,7 @@ import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventP
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type ProgressBarProps = {
@@ -24,7 +24,7 @@ function getProgress(currentPosition: number, maxPosition: number): number {
 
 function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
     const styles = useThemeStyles();
-    const {pauseVideo, playVideo, checkIfVideoIsPlaying} = usePlaybackContext();
+    const {pauseVideo, playVideo, checkIfVideoIsPlaying} = usePlaybackActionsContext();
     const [sliderWidth, setSliderWidth] = useState(1);
     const [isSliderPressed, setIsSliderPressed] = useState(false);
     const progressWidth = useSharedValue(0);
@@ -46,6 +46,9 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
 
     const pan = Gesture.Pan()
         .runOnJS(true)
+        // Reduce gesture threshold so quick taps trigger onFinalize on iOS.
+        .minDistance(0)
+        .activateAfterLongPress(0)
         .onBegin((event) => {
             setIsSliderPressed(true);
             checkIfVideoIsPlaying(onCheckIfVideoIsPlaying);

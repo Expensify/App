@@ -7,10 +7,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Performance from '@libs/Performance';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import {useSearchRouterActions} from './SearchRouterContext';
 
@@ -31,8 +29,6 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
         callFunctionIfActionIsAllowed(() => {
             pressableRef.current?.blur();
 
-            Timing.start(CONST.TIMING.OPEN_SEARCH);
-            Performance.markStart(CONST.TIMING.OPEN_SEARCH);
             startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
                 name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
                 op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,

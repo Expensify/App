@@ -125,6 +125,13 @@ type Comment = {
 
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
+
+    /** Both image fields are needed only locally because server receives only one merged image as receipt */
+    /** Odometer start image (File object on web, URI string on native) */
+    odometerStartImage?: File | string;
+
+    /** Odometer end image (File object on web, URI string on native) */
+    odometerEndImage?: File | string;
 };
 
 /** Model of transaction custom unit */
@@ -439,6 +446,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction tax amount */
         taxAmount?: number;
 
+        /** The transaction converted tax amount in report's currency */
+        convertedTaxAmount?: number;
+
         /** The transaction tax code */
         taxCode?: string;
 
@@ -640,6 +650,9 @@ type AdditionalTransactionChanges = {
 
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
+
+    /** The unit for the distance/quantity */
+    quantity?: number;
 };
 
 /** Model of transaction changes  */

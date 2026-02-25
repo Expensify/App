@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import RadioListItem from './SelectionList/ListItem/RadioListItem';
-import SelectionList from './SelectionList/SelectionListWithSections';
+import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {ListItem} from './SelectionList/types';
 
 type CategoryPickerProps = {
@@ -42,9 +42,9 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
 
 function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false}: CategoryPickerProps) {
     const styles = useThemeStyles();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const {isOffline} = useNetwork();
 
     const {translate, localeCompare} = useLocalize();
@@ -77,7 +77,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
     };
 
     return (
-        <SelectionList
+        <SelectionListWithSections
             sections={sections}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}

@@ -83,10 +83,10 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     );
 
     const policyID = useMemo(() => generatePolicyID(), []);
-    const [session, metadata] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session, metadata] = useOnyx(ONYXKEYS.SESSION);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT, {canBeMissing: true});
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
 
     const defaultWorkspaceName = generateDefaultWorkspaceName(policyOwnerEmail || session?.email);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
