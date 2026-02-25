@@ -8472,9 +8472,6 @@ const CONST = {
             MENU: 'ContextMenu-Menu',
             EXPLAIN: 'ContextMenu-Explain',
         },
-        CONFIRM_CONTENT: {
-            CLOSE_BUTTON: 'ConfirmContent-CloseButton',
-        },
         MORE_MENU: {
             MORE_BUTTON: 'MoreMenu-MoreButton',
             VIEW_DETAILS: 'MoreMenu-ViewDetails',
