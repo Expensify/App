@@ -146,6 +146,7 @@ describe('ClearReportActionErrors UI', () => {
 
     describe('Error display and dismissal', () => {
         it('should display error message when action has errors', async () => {
+            // Given a report action with errors stored in Onyx
             const action = createMockReportAction();
             const report = createMockReport();
 
@@ -157,13 +158,16 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
+            // When the PureReportActionItem component is rendered
             renderReportActionItem(action, report);
             await waitForBatchedUpdatesWithAct();
 
+            // Then the error message should be visible on screen
             expect(screen.getByText('Something went wrong. Please try again.')).toBeOnTheScreen();
         });
 
         it('should call clearAllRelatedReportActionErrors when error is dismissed', async () => {
+            // Given a rendered report action with errors and a mock clear function
             const action = createMockReportAction();
             const report = createMockReport();
             const mockClearErrors = jest.fn();
@@ -182,13 +186,16 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
+            // When the user presses the dismiss button
             const dismissButton = screen.getByLabelText('Dismiss');
             fireEvent.press(dismissButton);
 
+            // Then clearAllRelatedReportActionErrors should be called with correct arguments
             expect(mockClearErrors).toHaveBeenCalledWith(REPORT_ID, expect.objectContaining({reportActionID: REPORT_ACTION_ID}), REPORT_ID);
         });
 
         it('should clear error from Onyx when dismissed', async () => {
+            // Given a rendered report action with a visible error message
             const errorTimestamp = Date.now() * 1000;
             const action = createMockReportAction({
                 errors: {[errorTimestamp]: 'Test error message'},
@@ -211,11 +218,13 @@ describe('ClearReportActionErrors UI', () => {
 
             expect(screen.getByText('Test error message')).toBeOnTheScreen();
 
+            // When the user presses the dismiss button
             const dismissButton = screen.getByLabelText('Dismiss');
             fireEvent.press(dismissButton);
 
             await waitForBatchedUpdatesWithAct();
 
+            // Then the error should be removed from Onyx
             const reportActions = await getReportActionsFromOnyx(REPORT_ID);
             expect(reportActions?.[REPORT_ACTION_ID]?.errors).toBeUndefined();
         });
@@ -223,6 +232,7 @@ describe('ClearReportActionErrors UI', () => {
 
     describe('Parent/child error propagation', () => {
         it('should clear errors on child actions when parent error is dismissed', async () => {
+            // Given a parent action with a child report, both having errors with matching keys
             const sharedErrorTimestamp = Date.now() * 1000;
             const sharedError = {[sharedErrorTimestamp]: 'Shared error message'};
 
@@ -266,11 +276,13 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
+            // When the user dismisses the error on the parent action
             const dismissButton = screen.getByLabelText('Dismiss');
             fireEvent.press(dismissButton);
 
             await waitForBatchedUpdatesWithAct();
 
+            // Then both parent and child errors should be cleared
             const parentReportActions = await getReportActionsFromOnyx(REPORT_ID);
             const childReportActions = await getReportActionsFromOnyx(CHILD_REPORT_ID);
 
@@ -281,6 +293,7 @@ describe('ClearReportActionErrors UI', () => {
 
     describe('Optimistic action deletion', () => {
         it('should delete optimistic action instead of clearing errors', async () => {
+            // Given an optimistic report action (pendingAction='add' and isOptimisticAction=true) with errors
             const action = createMockReportAction({
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 isOptimisticAction: true,
@@ -301,11 +314,13 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
+            // When the user dismisses the error
             const dismissButton = screen.getByLabelText('Dismiss');
             fireEvent.press(dismissButton);
 
             await waitForBatchedUpdatesWithAct();
 
+            // Then the entire report action should be deleted from Onyx (not just errors cleared)
             const reportActions = await getReportActionsFromOnyx(REPORT_ID);
             expect(reportActions?.[REPORT_ACTION_ID]).toBeUndefined();
         });
