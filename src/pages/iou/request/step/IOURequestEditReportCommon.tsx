@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import MenuItem from '@components/MenuItem';
@@ -15,6 +15,7 @@ import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
+import {fetchOutstandingReports} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
@@ -91,6 +92,8 @@ function IOURequestEditReportCommon({
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
 
+    const [isLoadingOutstandingReports] = useOnyx(ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS, {canBeMissing: true});
+
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isSelectedReportUnreported = useMemo(() => !!(isUnreported ?? selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID), [isUnreported, selectedReportID]);
     const isOwner = useMemo(
@@ -113,6 +116,17 @@ function IOURequestEditReportCommon({
 
     const shouldShowRemoveFromReport =
         !!(selectedReportID && selectedReportID !== CONST.REPORT.UNREPORTED_REPORT_ID && selectedReport) && isEditing && isOwner && !isReportIOU && !isCardTransaction;
+
+    const hasFetchedOutstandingReportsRef = useRef(false);
+
+    // Fetch all outstanding reports
+    useEffect(() => {
+        if (hasFetchedOutstandingReportsRef.current) {
+            return;
+        }
+        hasFetchedOutstandingReportsRef.current = true;
+        fetchOutstandingReports();
+    }, []);
 
     const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing);
 
@@ -279,6 +293,7 @@ function IOURequestEditReportCommon({
             <SelectionList
                 data={reportOptions}
                 onSelectRow={handleSelectReport}
+                isLoadingNewOptions={isLoadingOutstandingReports}
                 isRowMultilineSupported
                 shouldShowTextInput={outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
                 textInputOptions={{
