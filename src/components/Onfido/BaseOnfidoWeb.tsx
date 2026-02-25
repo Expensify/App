@@ -1,6 +1,6 @@
 import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
 import React, {useEffect} from 'react';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextValue} from '@components/LocaleContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import Log from '@libs/Log';
@@ -14,7 +14,7 @@ import './index.css';
 import type {OnfidoProps} from './types';
 
 type InitializeOnfidoProps = OnfidoProps &
-    Pick<LocaleContextProps, 'translate' | 'preferredLocale'> & {
+    Pick<LocaleContextValue, 'translate' | 'preferredLocale'> & {
         theme: ThemeColors;
     };
 

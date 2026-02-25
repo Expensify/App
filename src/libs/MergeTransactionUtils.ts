@@ -1,7 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextValue} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -66,7 +66,7 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
     reportID: 'common.report',
 } as const;
 
-function getMergeFieldErrorText(translate: LocaleContextProps['translate'], mergeField: MergeFieldData) {
+function getMergeFieldErrorText(translate: LocaleContextValue['translate'], mergeField: MergeFieldData) {
     if (mergeField.field === 'attendees') {
         return translate('transactionMerge.detailsPage.pleaseSelectAttendees');
     }
@@ -200,7 +200,7 @@ function getTransactionsAndReportsFromSearch(
 function getMergeableDataAndConflictFields(
     targetTransaction: OnyxEntry<Transaction>,
     sourceTransaction: OnyxEntry<Transaction>,
-    localeCompare: LocaleContextProps['localeCompare'],
+    localeCompare: LocaleContextValue['localeCompare'],
     searchReports: Array<OnyxEntry<Report>> = [],
 ) {
     const conflictFields: string[] = [];
@@ -449,7 +449,7 @@ function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<
  * @param translate - The translation function
  * @returns The formatted display string for the field value
  */
-function getDisplayValue(field: MergeFieldKey, transaction: Transaction, translate: LocaleContextProps['translate'], reports?: Array<OnyxEntry<Report>>): string {
+function getDisplayValue(field: MergeFieldKey, transaction: Transaction, translate: LocaleContextValue['translate'], reports?: Array<OnyxEntry<Report>>): string {
     const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
 
     if (isEmptyMergeValue(fieldValue) || fieldValue === undefined) {
@@ -498,7 +498,7 @@ function buildMergeFieldsData(
     targetTransaction: Transaction | undefined,
     sourceTransaction: Transaction | undefined,
     mergeTransaction: MergeTransaction | null | undefined,
-    translate: LocaleContextProps['translate'],
+    translate: LocaleContextValue['translate'],
     reports: Array<OnyxEntry<Report>> = [],
 ): MergeFieldData[] {
     if (!targetTransaction || !sourceTransaction) {

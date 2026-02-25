@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Timers from '@libs/Timers';
-import type {LocaleContextProps} from '@src/components/LocaleContextProvider';
+import type {LocaleContextValue} from '@src/components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 
@@ -14,7 +14,7 @@ type ParticipantLocalTimeProps = {
     participant: PersonalDetails;
 };
 
-function getParticipantLocalTime(participant: PersonalDetails, getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime']) {
+function getParticipantLocalTime(participant: PersonalDetails, getLocalDateFromDatetime: LocaleContextValue['getLocalDateFromDatetime']) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     const reportRecipientTimezone = participant.timezone || CONST.DEFAULT_TIME_ZONE;
     const reportTimezone = getLocalDateFromDatetime(undefined, reportRecipientTimezone.selected);

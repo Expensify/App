@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -63,7 +63,7 @@ function getTagListSections({
     translate,
 }: {
     tags: PolicyTags | Array<SelectedTagOption | PolicyTag>;
-    localeCompare: LocaleContextProps['localeCompare'];
+    localeCompare: LocaleContextValue['localeCompare'];
     recentlyUsedTags?: string[];
     selectedOptions?: SelectedTagOption[];
     searchValue?: string;
@@ -179,7 +179,7 @@ function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists
 /**
  * Sorts tags alphabetically by name.
  */
-function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>, localeCompare: LocaleContextProps['localeCompare']) {
+function sortTags(tags: Record<string, PolicyTag | SelectedTagOption> | Array<PolicyTag | SelectedTagOption>, localeCompare: LocaleContextValue['localeCompare']) {
     return Object.values(tags ?? {}).sort((a, b) => localeCompare(a.name, b.name)) as PolicyTag[];
 }
 

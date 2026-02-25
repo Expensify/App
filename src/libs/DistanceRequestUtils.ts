@@ -1,6 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextValue} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -140,8 +140,8 @@ function getRateForDisplay(
     unit: Unit | undefined,
     rate: number | undefined,
     currency: string | undefined,
-    translate: LocaleContextProps['translate'],
-    toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    translate: LocaleContextValue['translate'],
+    toLocaleDigit: LocaleContextValue['toLocaleDigit'],
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     isOffline?: boolean,
     useShortFormUnit?: boolean,
@@ -175,7 +175,7 @@ function getDistanceForDisplay(
     distanceInMeters: number,
     unit: Unit | undefined,
     rate: number | undefined,
-    translate: LocaleContextProps['translate'],
+    translate: LocaleContextValue['translate'],
     useShortFormUnit?: boolean,
     isManualDistanceRequest?: boolean,
 ): string {
@@ -220,8 +220,8 @@ function getDistanceMerchant(
     unit: Unit | undefined,
     rate: number | undefined,
     currency: string,
-    translate: LocaleContextProps['translate'],
-    toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    translate: LocaleContextValue['translate'],
+    toLocaleDigit: LocaleContextValue['toLocaleDigit'],
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     isManualDistanceRequest?: boolean,
 ): string {

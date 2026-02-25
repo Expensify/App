@@ -5,7 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextValue} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -29,7 +29,7 @@ type DisplayNamePageProps = WithCurrentUserPersonalDetailsProps;
  */
 const updateDisplayName = (
     values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
     currentUserAccountID: number,
     currentUserEmail: string,
 ) => {

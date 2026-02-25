@@ -4,7 +4,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextValue} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
 
 type AvailableCompanyCardTypes = {
-    translate: LocaleContextProps['translate'];
+    translate: LocaleContextValue['translate'];
     typeSelected?: CardFeedProvider;
     styles: StyleProp<ViewStyle>;
     companyCardBankIcons: ReturnType<typeof useCompanyCardBankIcons>;

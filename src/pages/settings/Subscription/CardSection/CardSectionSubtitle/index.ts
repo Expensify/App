@@ -1,7 +1,7 @@
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextValue} from '@components/LocaleContextProvider';
 
 type GetSectionSubtitleProps = {
-    translate: LocaleContextProps['translate'];
+    translate: LocaleContextValue['translate'];
     hasDefaultCard: boolean;
     nextPaymentDate?: string;
 };

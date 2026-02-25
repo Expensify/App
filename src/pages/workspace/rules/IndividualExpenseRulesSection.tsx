@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextValue} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -31,7 +31,7 @@ type IndividualExpenseRulesSectionProps = {
 
 type IndividualExpenseRulesSectionSubtitleProps = {
     policy?: Policy;
-    translate: LocaleContextProps['translate'];
+    translate: LocaleContextValue['translate'];
     styles: ThemeStyles;
     environmentURL: string;
 };

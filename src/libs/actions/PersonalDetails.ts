@@ -1,7 +1,7 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextValue} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     OpenPublicProfilePageParams,
@@ -56,7 +56,7 @@ function updatePronouns(pronouns: string, currentUserAccountID: number) {
     });
 }
 
-function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentUserAccountID: number, currentUserEmail: string) {
+function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextValue['formatPhoneNumber'], currentUserAccountID: number, currentUserEmail: string) {
     if (!currentUserAccountID) {
         return;
     }
@@ -77,7 +77,7 @@ function setDisplayName(firstName: string, lastName: string, formatPhoneNumber: 
     });
 }
 
-function updateDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], currentUserAccountID: number, currentUserEmail: string) {
+function updateDisplayName(firstName: string, lastName: string, formatPhoneNumber: LocaleContextValue['formatPhoneNumber'], currentUserAccountID: number, currentUserEmail: string) {
     if (!currentUserAccountID) {
         return;
     }
@@ -111,7 +111,7 @@ function updateDisplayName(firstName: string, lastName: string, formatPhoneNumbe
 function updateLegalName(
     legalFirstName: string,
     legalLastName: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
     currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'>,
 ) {
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};

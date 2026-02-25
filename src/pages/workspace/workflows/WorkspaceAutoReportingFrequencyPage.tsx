@@ -2,7 +2,7 @@ import React from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextValue} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -37,7 +37,7 @@ type WorkspaceAutoReportingFrequencyPageItem = {
 
 type AutoReportingFrequencyDisplayNames = Record<AutoReportingFrequencyKey, string>;
 
-const getAutoReportingFrequencyDisplayNames = (translate: LocaleContextProps['translate']): AutoReportingFrequencyDisplayNames => ({
+const getAutoReportingFrequencyDisplayNames = (translate: LocaleContextValue['translate']): AutoReportingFrequencyDisplayNames => ({
     [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: translate('workflowsPage.frequencies.monthly'),
     [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: translate('workflowsPage.frequencies.daily'),
     [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: translate('workflowsPage.frequencies.weekly'),

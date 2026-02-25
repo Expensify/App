@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextValue} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
@@ -38,7 +38,7 @@ type HelpLinkComponentProps = {
     importCustomField: ImportCustomFieldsKeys;
 
     /** Callback to localize content */
-    translate: LocaleContextProps['translate'];
+    translate: LocaleContextValue['translate'];
 
     /** Theme styles to apply to the component */
     styles: ThemeStyles;

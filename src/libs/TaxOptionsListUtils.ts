@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextValue} from '@components/LocaleContextProvider';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
@@ -27,7 +27,7 @@ type Tax = {
 /**
  * Sorts tax rates alphabetically by name.
  */
-function sortTaxRates(taxRates: TaxRates, localeCompare: LocaleContextProps['localeCompare']): TaxRate[] {
+function sortTaxRates(taxRates: TaxRates, localeCompare: LocaleContextValue['localeCompare']): TaxRate[] {
     const sortedTaxRates = Object.values(taxRates).sort((a, b) => localeCompare(a.name, b.name));
     return sortedTaxRates;
 }
@@ -60,7 +60,7 @@ function getTaxRatesSection({
 }: {
     policy: OnyxEntry<Policy> | undefined;
     searchValue: string;
-    localeCompare: LocaleContextProps['localeCompare'];
+    localeCompare: LocaleContextValue['localeCompare'];
     selectedOptions?: Tax[];
     transaction?: OnyxEntry<Transaction>;
 }): Array<Section<TaxRatesOption>> {

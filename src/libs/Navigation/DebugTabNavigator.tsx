@@ -3,7 +3,7 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextValue} from '@components/LocaleContextProvider';
 import getBackgroundColor from '@components/TabSelector/getBackground';
 import getOpacity from '@components/TabSelector/getOpacity';
 import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
@@ -19,7 +19,7 @@ type IconAndTitle = {
     title: string;
 };
 
-function getIconAndTitle(icons: Record<'Document' | 'Exclamation' | 'Eye' | 'Info', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconAndTitle {
+function getIconAndTitle(icons: Record<'Document' | 'Exclamation' | 'Eye' | 'Info', IconAsset>, route: string, translate: LocaleContextValue['translate']): IconAndTitle {
     switch (route) {
         case CONST.DEBUG.DETAILS:
             return {icon: icons.Info, title: translate('debug.details')};

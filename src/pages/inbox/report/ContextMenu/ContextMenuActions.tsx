@@ -5,7 +5,7 @@ import type {GestureResponderEvent, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
 import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -277,7 +277,7 @@ type ContextMenuActionPayload = {
     childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
-    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
+    getLocalDateFromDatetime: LocaleContextValue['getLocalDateFromDatetime'];
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;

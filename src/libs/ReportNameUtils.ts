@@ -4,7 +4,7 @@
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -204,7 +204,7 @@ const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'var
  * Returns the report name if the report is a group chat
  */
 function getGroupChatName(
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
     participants?: SelectedParticipant[],
     shouldApplyLimit = false,
     report?: OnyxEntry<Report>,

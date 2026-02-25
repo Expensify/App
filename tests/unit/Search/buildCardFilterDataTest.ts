@@ -1,6 +1,6 @@
 // The cards_ object keys don't follow normal naming convention, so to test this reliably we have to disable liner
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextValue} from '@components/LocaleContextProvider';
 import {buildCardFeedsData, buildCardsData} from '@libs/CardFeedUtils';
 import type {DomainFeedData} from '@libs/CardFeedUtils';
 import type IllustrationsType from '@styles/theme/illustrations/types';
@@ -406,7 +406,7 @@ describe('buildCardFeedsData', () => {
         domainFeedDataMock,
         mockPolicies,
         [],
-        translateMock as LocaleContextProps['translate'],
+        translateMock as LocaleContextValue['translate'],
         illustrationsMock as IllustrationsType,
         companyCardIconsMock,
     );
@@ -444,7 +444,7 @@ describe('buildCardFeedsData', () => {
 
 describe('buildIndividualCardsData with empty argument objects', () => {
     it('Return empty array when domainCardFeeds and workspaceCardFeeds are empty', () => {
-        const result = buildCardFeedsData({}, {}, mockPolicies, [], translateMock as LocaleContextProps['translate'], illustrationsMock as IllustrationsType, companyCardIconsMock);
+        const result = buildCardFeedsData({}, {}, mockPolicies, [], translateMock as LocaleContextValue['translate'], illustrationsMock as IllustrationsType, companyCardIconsMock);
         expect(result).toEqual({selected: [], unselected: []});
     });
 });
