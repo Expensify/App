@@ -6,7 +6,7 @@ import {getHybridAppSettings} from './libs/actions/HybridApp';
 import type HybridAppSettings from './libs/actions/HybridApp/types';
 import {setupNewDotAfterTransitionFromOldDot} from './libs/actions/Session';
 import Log from './libs/Log';
-import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
+import {endSpan, endSpanAt, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
@@ -18,16 +18,27 @@ function HybridAppHandler() {
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const onyxHydrationStarted = useRef(false);
 
+    // Timestamp captured when JS first executes in HybridAppHandler.
+    // Used to measure the native-to-JS bridge gap.
+    // eslint-disable-next-line react-hooks/purity
+    const jsEntryTimestamp = useRef(Date.now());
+
+    // Store durations of early spans (created before root transition span exists).
+    // These are later attached as attributes on the root span.
+    const onyxHydrationDuration = useRef<number | undefined>(undefined);
+    const getSettingsDuration = useRef<number | undefined>(undefined);
+
     useEffect(() => {
         if (!CONFIG.IS_HYBRID_APP || onyxHydrationStarted.current) {
             return;
         }
-        const transitionSpanName = CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_HYDRATION;
         onyxHydrationStarted.current = true;
+        // Note: no parentSpan — the root transition span doesn't exist yet at this point
+        // (it's created later in getHybridAppSettings callback). This span runs as an
+        // independent sibling. Its duration is recorded as an attribute on the root span.
         startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_HYDRATION, {
             name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_HYDRATION,
             op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_HYDRATION,
-            parentSpan: getSpan(transitionSpanName),
         });
     }, []);
 
@@ -62,15 +73,24 @@ function HybridAppHandler() {
             return;
         }
 
+        const onyxHydrationEnd = Date.now();
         endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.ONYX_HYDRATION);
 
+        // Note: no parentSpan — same as ONYX_HYDRATION, the root transition span
+        // doesn't exist yet. Duration is recorded as an attribute on the root span.
+        const getSettingsStart = Date.now();
         startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.GET_HYBRID_APP_SETTINGS, {
             name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.GET_HYBRID_APP_SETTINGS,
             op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.GET_HYBRID_APP_SETTINGS,
         });
 
         getHybridAppSettings().then((hybridAppSettings: HybridAppSettings | null) => {
+            const getSettingsEnd = Date.now();
             endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.GET_HYBRID_APP_SETTINGS);
+
+            // Store early span durations for later attachment to the root span
+            onyxHydrationDuration.current = onyxHydrationEnd - jsEntryTimestamp.current;
+            getSettingsDuration.current = getSettingsEnd - getSettingsStart;
 
             if (!hybridAppSettings) {
                 // Native method can send non-null value only once per NewDot lifecycle. It prevents issues with multiple initializations during reloads on debug builds.
@@ -85,11 +105,28 @@ function HybridAppHandler() {
                     startTime: hybridAppSettings.hybridApp.transitionStartTimestamp,
                 });
             } else if (hybridAppSettings.hybridApp.pressedTryNewExpensify) {
-                startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, {
+                const transitionStartTimestamp = hybridAppSettings.hybridApp.transitionStartTimestamp;
+                const rootSpan = startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, {
                     name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
                     op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
-                    startTime: hybridAppSettings.hybridApp.transitionStartTimestamp,
+                    startTime: transitionStartTimestamp,
                 });
+
+                // Attach early span durations as attributes on the root span,
+                // since these spans couldn't be children (root didn't exist yet).
+                rootSpan.setAttribute('js_entry_time', jsEntryTimestamp.current);
+                rootSpan.setAttribute('onyx_hydration_duration_ms', onyxHydrationDuration.current ?? -1);
+                rootSpan.setAttribute('get_settings_duration_ms', getSettingsDuration.current ?? -1);
+
+                // Create a retroactive JS_BRIDGE span covering the native→JS gap
+                // (from OldDot tap to first JS execution in HybridAppHandler).
+                startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.JS_BRIDGE, {
+                    name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.JS_BRIDGE,
+                    op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.JS_BRIDGE,
+                    startTime: transitionStartTimestamp,
+                    parentSpan: getSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION),
+                });
+                endSpanAt(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.JS_BRIDGE, jsEntryTimestamp.current);
             }
 
             finalizeTransitionFromOldDot(hybridAppSettings);
