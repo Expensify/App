@@ -55,7 +55,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
 
         if (shouldCollectPin) {
             baseItems.push({
-                description: translate('common.pin'),
+                description: translate('cardPage.physicalCardPin'),
                 title: '••••',
                 shouldShowRightIcon: true,
                 onPress: () => {
