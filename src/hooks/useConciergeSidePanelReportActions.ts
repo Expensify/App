@@ -97,6 +97,9 @@ function useConciergeSidePanelReportActions({
                 return actions;
             }
             const filtered = actions.filter(isCurrentSessionAction);
+            if (filtered.length === 0) {
+                return actions;
+            }
             if (conciergeGreetingAction) {
                 const createdIndex = filtered.findIndex(isCreatedAction);
                 filtered.splice(createdIndex === -1 ? filtered.length : createdIndex, 0, conciergeGreetingAction);

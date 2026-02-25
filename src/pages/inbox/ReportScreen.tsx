@@ -323,14 +323,22 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const {shouldHideSidePanel} = useSidePanelState();
     const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
     const sessionStartActionIDs = useRef<Set<string> | null>(null);
+    const isSessionStartLocked = useRef(false);
 
     const shouldResetSession = !isConciergeSidePanel || (prevShouldHideSidePanel && !shouldHideSidePanel);
     if (shouldResetSession && sessionStartActionIDs.current !== null) {
         sessionStartActionIDs.current = null;
+        isSessionStartLocked.current = false;
     }
 
-    if (isConciergeSidePanel && sessionStartActionIDs.current === null && reportActions.length > 0) {
+    // Keep updating sessionStartActionIDs while the initial load is in progress so we
+    // capture the full set of pre-existing actions. Once loading finishes, lock it so
+    // new user messages aren't accidentally included in the snapshot.
+    if (isConciergeSidePanel && reportActions.length > 0 && !isSessionStartLocked.current) {
         sessionStartActionIDs.current = new Set(reportActions.map((action) => action.reportActionID));
+        if (!reportMetadata.isLoadingInitialReportActions) {
+            isSessionStartLocked.current = true;
+        }
     }
 
     const hasUserSentMessage = useMemo(() => {

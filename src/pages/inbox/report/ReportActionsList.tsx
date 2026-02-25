@@ -730,39 +730,39 @@ function ReportActionsList({
                             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
                         </View>
                     )}
-                <ReportActionsListItemRenderer
-                    policies={policies}
-                    reportAction={reportAction}
-                    parentReportAction={parentReportAction}
-                    parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                    index={index}
-                    report={report}
-                    transactionThreadReport={transactionThreadReport}
-                    linkedReportActionID={linkedReportActionID}
-                    displayAsGroup={
-                        !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
-                        isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)
-                    }
-                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                    shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                    shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
-                    isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                    shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                    userWalletTierName={userWalletTierName}
-                    isUserValidated={isUserValidated}
-                    personalDetails={personalDetailsList}
-                    draftMessage={matchingDraftMessageString}
-                    emojiReactions={actionEmojiReactions}
-                    allDraftMessages={draftMessage}
-                    allEmojiReactions={emojiReactions}
-                    isReportArchived={isReportArchived}
-                    userBillingFundID={userBillingFundID}
-                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
-                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
-                />
- </>
+                    <ReportActionsListItemRenderer
+                        policies={policies}
+                        reportAction={reportAction}
+                        parentReportAction={parentReportAction}
+                        parentReportActionForTransactionThread={parentReportActionForTransactionThread}
+                        index={index}
+                        report={report}
+                        transactionThreadReport={transactionThreadReport}
+                        linkedReportActionID={linkedReportActionID}
+                        displayAsGroup={
+                            !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
+                            isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)
+                        }
+                        mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                        shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
+                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                        shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                        userWalletTierName={userWalletTierName}
+                        isUserValidated={isUserValidated}
+                        personalDetails={personalDetailsList}
+                        draftMessage={matchingDraftMessageString}
+                        emojiReactions={actionEmojiReactions}
+                        allDraftMessages={draftMessage}
+                        allEmojiReactions={emojiReactions}
+                        isReportArchived={isReportArchived}
+                        userBillingFundID={userBillingFundID}
+                        isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                        reportNameValuePairsOrigin={reportNameValuePairs?.origin}
+                        reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                    />
+                </>
             );
         },
         [
