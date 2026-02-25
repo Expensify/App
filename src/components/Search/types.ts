@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {
     ReportActionListItemType,
@@ -131,7 +132,7 @@ type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
 // PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
-type ChartView = Exclude<SearchView, 'table' | 'pie'>;
+type ChartView = Exclude<SearchView, 'table'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
@@ -153,6 +154,7 @@ type SearchCustomColumnIds =
 
 type SearchContextData = {
     currentSearchHash: number;
+    currentRecentSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: SearchQueryJSON | undefined;
     currentSearchResults: SearchResults | undefined;
@@ -168,7 +170,7 @@ type SearchContextProps = SearchContextData & {
     currentSearchResults: SearchResults | undefined;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
-    setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
+    setCurrentSearchHashAndKey: (hash: number, recentHash: number, key: SearchKey | undefined) => void;
     setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
@@ -335,6 +337,35 @@ type GroupedItem =
     | TransactionYearGroupListItemType
     | TransactionQuarterGroupListItemType;
 
+type SearchChartProps = {
+    /** Grouped transaction data from search results */
+    data: GroupedItem[];
+
+    /** Chart title */
+    title: string;
+
+    /** Chart title icon */
+    titleIcon: IconAsset;
+
+    /** Function to extract label from grouped item */
+    getLabel: (item: GroupedItem) => string;
+
+    /** Function to build filter query from grouped item */
+    getFilterQuery: (item: GroupedItem) => string;
+
+    /** Callback when a chart item is pressed - receives the filter query to apply */
+    onItemPress?: (filterQuery: string) => void;
+
+    /** Whether data is loading */
+    isLoading?: boolean;
+
+    /** Currency unit with font fallback support */
+    unit?: UnitWithFallback;
+
+    /** Position of currency symbol relative to value */
+    unitPosition?: UnitPosition;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -382,4 +413,5 @@ export type {
     BankAccountMenuItem,
     SearchCustomColumnIds,
     GroupedItem,
+    SearchChartProps,
 };
