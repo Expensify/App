@@ -4131,20 +4131,25 @@ function getColumnsToShow(
     const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column));
 
     if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
-        const requiredColumns = isExpenseReportView
-            ? new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.COMMENTS, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT])
-            : new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+        // For expense report view, prepend only RECEIPT, TYPE (in order)
+        // For search page, prepend AVATAR, TYPE
+        const prependColumns = isExpenseReportView
+            ? [CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.TYPE]
+            : [CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TYPE];
         const result: SearchColumnType[] = [];
+        const addedColumns = new Set<SearchColumnType>();
 
-        // Add required columns that aren't in visibleColumns at the start
-        for (const col of requiredColumns) {
-            if (!filteredVisibleColumns.includes(col as SearchCustomColumnIds)) {
-                result.push(col);
-            }
+        // Add prepend columns first (in order)
+        for (const col of prependColumns) {
+            result.push(col);
+            addedColumns.add(col);
         }
 
+        // Add remaining visible columns that weren't already added
         for (const col of filteredVisibleColumns) {
-            result.push(col);
+            if (!addedColumns.has(col)) {
+                result.push(col);
+            }
         }
 
         return result;

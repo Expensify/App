@@ -513,7 +513,7 @@ function MoneyRequestReportTransactionList({
     );
 
     const transactionListContent = (
-        <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
+        <View style={[listHorizontalPadding, styles.gap2, styles.pb4, styles.mb2]}>
             {shouldShowGroupedTransactions
                 ? groupedTransactions.map((group) => {
                       const selectionState = groupSelectionState.get(group.groupKey) ?? {
@@ -693,8 +693,7 @@ function MoneyRequestReportTransactionList({
                     shouldShowAddExpenseButton ? styles.justifyContentBetween : styles.justifyContentEnd,
                     styles.gap6,
                     listHorizontalPadding,
-                    styles.mb2,
-                    styles.mt1,
+                    styles.mv2,
                     styles.alignItemsStart,
                     styles.minHeight7,
                     shouldUseNarrowLayout && styles.flexColumn,
