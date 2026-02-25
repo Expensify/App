@@ -2988,11 +2988,11 @@ ${amount} para ${merchant} - ${date}`,
         lockedBankAccount: 'Cuenta bancaria bloqueada',
         unlockBankAccount: 'Desbloquear cuenta bancaria',
         youCantPayThis: 'No puedes pagar este informe porque tienes una',
-        tapBelow: 'Toca abajo y el Concierge te ayudará con los próximos pasos para desbloquearla.',
+        tapBelow: 'Haz clic abajo y Concierge te ayudará con los próximos pasos para desbloquearla.',
         htmlUnlockMessage: (maskedAccountNumber: string) =>
-            `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>Gracias por enviar una solicitud para desbloquear tu cuenta bancaria. Las solicitudes de retiro pueden ser rechazadas por fondos insuficientes o si la cuenta bancaria no ha sido habilitada para débito directo. Revisaremos tu caso y nos comunicaremos contigo si necesitamos algo más para resolver este problema.</p>`,
+            `<h1>Cuenta Bancaria de Expensify ${maskedAccountNumber}</h1><p>Gracias por enviar una solicitud para desbloquear tu cuenta bancaria. Las solicitudes de retiro pueden ser rechazadas por fondos insuficientes o si la cuenta bancaria no ha sido habilitada para débito directo. Revisaremos tu caso y nos comunicaremos contigo si necesitamos algo más para resolver el problema.</p>`,
         textUnlockMessage: (maskedAccountNumber: string) =>
-            `Expensify Business Bank Account ${maskedAccountNumber}\nGracias por enviar una solicitud para desbloquear tu cuenta bancaria. Las solicitudes de retiro pueden ser rechazadas por fondos insuficientes o si la cuenta bancaria no ha sido habilitada para débito directo. Revisaremos tu caso y nos comunicaremos contigo si necesitamos algo más para resolver este problema.`,
+            `Cuenta Bancaria de Expensify ${maskedAccountNumber}\nGracias por enviar una solicitud para desbloquear tu cuenta bancaria. Las solicitudes de retiro pueden ser rechazadas por fondos insuficientes o si la cuenta bancaria no ha sido habilitada para débito directo. Revisaremos tu caso y nos comunicaremos contigo si necesitamos algo más para resolver el problema.`,
         error: {
             youNeedToSelectAnOption: 'Debes seleccionar una opción para continuar',
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
