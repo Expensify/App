@@ -5,15 +5,15 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchGroupBy} from '@components/Search/types';
-import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getGroupByOptions} from '@libs/SearchUIUtils';
+import {getGroupBySections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -23,11 +23,15 @@ function SearchFiltersGroupByPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.groupBy);
 
-    const listData: Array<ListItem<SearchGroupBy>> = useMemo(() => {
-        return getGroupByOptions(translate).map((groupOption) => ({
-            text: groupOption.text,
-            keyForList: groupOption.value,
-            isSelected: selectedItem === groupOption.value,
+    const sections = useMemo(() => {
+        return getGroupBySections(translate).map((section, sectionIndex) => ({
+            title: section.title,
+            sectionIndex,
+            data: section.options.map((groupOption) => ({
+                text: groupOption.text,
+                keyForList: groupOption.value,
+                isSelected: selectedItem === groupOption.value,
+            })),
         }));
     }, [translate, selectedItem]);
 
@@ -60,9 +64,9 @@ function SearchFiltersGroupByPage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SelectionList
+                <SelectionListWithSections
                     shouldSingleExecuteRowSelect
-                    data={listData}
+                    sections={sections}
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                 />
