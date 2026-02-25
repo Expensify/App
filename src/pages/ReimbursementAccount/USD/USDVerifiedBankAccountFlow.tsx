@@ -32,7 +32,7 @@ function USDVerifiedBankAccountFlow({
     setShouldShowConnectedVerifiedBankAccount,
 }: USDVerifiedBankAccountFlowProps) {
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     let CurrentStep: React.JSX.Element | null;
     switch (USDBankAccountStep) {
