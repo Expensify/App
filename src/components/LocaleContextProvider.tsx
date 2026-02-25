@@ -1,5 +1,5 @@
 import {format as formatDate} from 'date-fns';
-import React, {createContext, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useEffect, useMemo, useState} from 'react';
 import {importEmojiLocale} from '@assets/emojis';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -293,14 +293,6 @@ function LocaleContextProvider({children}: ChildrenProps) {
     );
 }
 
-function useStateLocaleContext(): LocaleStateContextValue {
-    return useContext(LocaleStateContext);
-}
-
-function useActionsLocaleContext(): LocaleActionsContextValue {
-    return useContext(LocaleActionsContext);
-}
-
-export {LocaleContext, LocaleContextProvider, LocaleStateContext, LocaleActionsContext, useStateLocaleContext, useActionsLocaleContext};
+export {LocaleContext, LocaleContextProvider, LocaleStateContext, LocaleActionsContext};
 
 export type {Locale, LocaleContextValue, LocaleStateContextValue, LocaleActionsContextValue, LocalizedTranslate};
