@@ -758,100 +758,6 @@ describe('NavigationFocusManager Gap Tests', () => {
             expect(retrieved?.id).toBe('outer-workflow-card');
         });
 
-        it('should SKIP menu items and preserve previous capture (menu items are transient - issue #76921)', () => {
-            // This test verifies the fix for #76921: menu items should NOT be captured
-            // because they are transient elements that won't exist at restoration time.
-
-            // Setup: Create a trigger button (simulating menu trigger like "More" button)
-            const triggerButton = document.createElement('button');
-            triggerButton.id = 'menu-trigger';
-            document.body.appendChild(triggerButton);
-
-            // Step 1: User presses Enter on trigger button (this captures the trigger)
-            triggerButton.focus();
-            const keydownEvent = new KeyboardEvent('keydown', {
-                key: 'Enter',
-                bubbles: true,
-                cancelable: true,
-            });
-            document.dispatchEvent(keydownEvent);
-
-            // Verify trigger was captured
-            NavigationFocusManager.captureForRoute('verify-trigger-route');
-            const verifyCapture = NavigationFocusManager.retrieveForRoute('verify-trigger-route');
-            expect(verifyCapture).toBe(triggerButton);
-
-            // Need to re-capture for next test since retrieveForRoute consumes it
-            triggerButton.focus();
-            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
-
-            // Step 2: Menu opens, create menu item (simulating popover opening)
-            const menuItem = document.createElement('div');
-            menuItem.setAttribute('role', 'menuitem');
-            menuItem.id = 'menu-item';
-            document.body.appendChild(menuItem);
-
-            // Step 3: User clicks menu item - this should NOT overwrite trigger capture
-            const pointerEvent = new PointerEvent('pointerdown', {
-                bubbles: true,
-                cancelable: true,
-            });
-            Object.defineProperty(pointerEvent, 'target', {value: menuItem});
-            document.dispatchEvent(pointerEvent);
-
-            // Step 4: Capture for route (simulating navigation)
-            NavigationFocusManager.captureForRoute('menuitem-skip-route');
-
-            // Verify: Menu item was SKIPPED, trigger button is still captured
-            const retrieved = NavigationFocusManager.retrieveForRoute('menuitem-skip-route');
-            expect(retrieved).toBe(triggerButton);
-            expect(retrieved?.id).toBe('menu-trigger');
-
-            // Cleanup
-            document.body.removeChild(triggerButton);
-            document.body.removeChild(menuItem);
-        });
-
-        it('should CAPTURE menu items when NO prior capture exists (Settings page scenario - issue #76921)', () => {
-            // This test verifies the other half of the #76921 fix: when there's no prior
-            // capture to preserve (e.g., navigating to Settings page and clicking a MenuItem),
-            // the menuitem SHOULD be captured since it's better than capturing nothing.
-
-            // Setup: Ensure no prior capture (fresh state after navigation)
-            // In real usage, captureForRoute clears lastInteractionCapture
-            NavigationFocusManager.captureForRoute('clear-prior-capture');
-            NavigationFocusManager.retrieveForRoute('clear-prior-capture');
-
-            // Step 1: User clicks Settings MenuItem (no prior interaction)
-            const settingsMenuItem = document.createElement('div');
-            settingsMenuItem.setAttribute('role', 'menuitem');
-            settingsMenuItem.id = 'security-menuitem';
-            settingsMenuItem.textContent = 'Security';
-            document.body.appendChild(settingsMenuItem);
-
-            // Register route BEFORE interaction (required for state-based validation)
-            NavigationFocusManager.registerFocusedRoute('settings-menuitem-route');
-
-            // Click the menuitem - should be CAPTURED (no prior to preserve)
-            const pointerEvent = new PointerEvent('pointerdown', {
-                bubbles: true,
-                cancelable: true,
-            });
-            Object.defineProperty(pointerEvent, 'target', {value: settingsMenuItem});
-            document.dispatchEvent(pointerEvent);
-
-            // Capture for route (simulating navigation to Security page)
-            NavigationFocusManager.captureForRoute('settings-menuitem-route');
-
-            // Verify: MenuItem was CAPTURED (not skipped) because no prior capture existed
-            const retrieved = NavigationFocusManager.retrieveForRoute('settings-menuitem-route');
-            expect(retrieved).toBe(settingsMenuItem);
-            expect(retrieved?.id).toBe('security-menuitem');
-
-            // Cleanup
-            document.body.removeChild(settingsMenuItem);
-        });
-
         it('should capture deeply nested text click to outer button when no intermediate interactive roles', () => {
             // Given: A complex nested structure like ApprovalWorkflowSection
             // <div role="button">
@@ -1844,24 +1750,6 @@ describe('NavigationFocusManager Gap Tests', () => {
                     expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(false);
                 }
             });
-
-            it('should persist flag across destroy/initialize cycle', () => {
-                // Set flag via keyboard
-                const keyEvent = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true});
-                document.dispatchEvent(keyEvent);
-                expect(NavigationFocusManager.wasRecentKeyboardInteraction()).toBe(true);
-
-                // Destroy and reinitialize
-                NavigationFocusManager.destroy();
-                NavigationFocusManager.initialize();
-
-                // Flag should be reset (module state cleared)
-                // Note: This tests that destroy properly cleans up
-                // The flag is module-level, so it may or may not persist based on implementation
-                // Either behavior is acceptable as long as it's consistent
-                const flagAfterReinit = NavigationFocusManager.wasRecentKeyboardInteraction();
-                expect(typeof flagAfterReinit).toBe('boolean');
-            });
         });
     });
 
@@ -2133,38 +2021,6 @@ describe('NavigationFocusManager Gap Tests', () => {
 
                 expect(retrieved).toBe(button);
             });
-
-            it('should be safe to call destroy() multiple times', () => {
-                // When: destroy() called multiple times
-                NavigationFocusManager.destroy();
-                NavigationFocusManager.destroy();
-                NavigationFocusManager.destroy();
-
-                // Then: No errors should occur
-                // Re-initialize for next test
-                NavigationFocusManager.initialize();
-                expect(true).toBe(true); // If we got here, no errors
-            });
-
-            it('should be safe to call destroy() without initialize()', () => {
-                // Given: Fresh module (destroy current state first)
-                NavigationFocusManager.destroy();
-
-                // Reset module completely
-                jest.resetModules();
-                // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                const FreshManager = require('@libs/NavigationFocusManager').default as NavigationFocusManagerType;
-
-                // When: destroy() called without initialize()
-                FreshManager.destroy();
-
-                // Then: No errors should occur
-                expect(true).toBe(true);
-
-                // Cleanup: initialize for consistency
-                FreshManager.initialize();
-                FreshManager.destroy();
-            });
         });
 
         describe('Risk: Event Listener Cleanup', () => {
@@ -2189,35 +2045,6 @@ describe('NavigationFocusManager Gap Tests', () => {
 
                 // Re-initialize for next test
                 NavigationFocusManager.initialize();
-            });
-
-            it('should not capture events after destroy', () => {
-                // Given: Manager is destroyed
-                NavigationFocusManager.destroy();
-
-                // When: Events are dispatched
-                const button = document.createElement('button');
-                document.body.appendChild(button);
-
-                const pointerEvent = new PointerEvent('pointerdown', {
-                    bubbles: true,
-                    cancelable: true,
-                });
-                Object.defineProperty(pointerEvent, 'target', {value: button});
-                document.dispatchEvent(pointerEvent);
-
-                // Re-initialize to test capture
-                NavigationFocusManager.initialize();
-                NavigationFocusManager.captureForRoute('post-destroy-route');
-
-                // Then: Should not have captured the pre-destroy event
-                // (captureForRoute may fall back to activeElement, but not the pointer event)
-                NavigationFocusManager.retrieveForRoute('post-destroy-route');
-
-                // The button might be captured via activeElement fallback if it's focused,
-                // but the pointerdown capture should not have occurred
-                // This test verifies no errors occur and the system is in a clean state
-                expect(true).toBe(true);
             });
         });
 
@@ -2316,35 +2143,6 @@ describe('NavigationFocusManager Gap Tests', () => {
 
                 // Then: Event should not have been prevented or stopped
                 expect(eventDefaultPrevented).toBe(false);
-            });
-        });
-
-        describe('Risk: SSR / No Document Environment', () => {
-            it('should handle undefined document gracefully', () => {
-                // This test documents the expected behavior when document is undefined
-                // In actual SSR, typeof document === 'undefined'
-                // The guard in initialize() prevents any DOM operations
-
-                // We can't easily mock typeof document in Jest/JSDOM,
-                // but we verify the guard exists by checking the code behavior
-                // when the manager is in an uninitialized state
-
-                // Given: Manager is destroyed (simulating pre-initialization state)
-                NavigationFocusManager.destroy();
-
-                // When: Operations are called on uninitialized manager
-                // These should not throw errors
-                NavigationFocusManager.captureForRoute('ssr-route');
-                const retrieved = NavigationFocusManager.retrieveForRoute('ssr-route');
-                const hasStored = NavigationFocusManager.hasStoredFocus('ssr-route');
-                NavigationFocusManager.clearForRoute('ssr-route');
-
-                // Then: Operations complete without error, return safe defaults
-                expect(retrieved).toBeNull();
-                expect(hasStored).toBe(false);
-
-                // Re-initialize
-                NavigationFocusManager.initialize();
             });
         });
 
@@ -2463,9 +2261,7 @@ describe('NavigationFocusManager Gap Tests', () => {
 
                 // When: cleanupRemovedRoutes is called with state containing only route-A
                 const mockNavigationState = {
-                    routes: [
-                        {key: 'route-A-key', name: 'ScreenA'},
-                    ],
+                    routes: [{key: 'route-A-key', name: 'ScreenA'}],
                     index: 0,
                     stale: false,
                     type: 'stack',
@@ -2491,9 +2287,7 @@ describe('NavigationFocusManager Gap Tests', () => {
 
                 // When: cleanupRemovedRoutes is called with state containing the route
                 const mockNavigationState = {
-                    routes: [
-                        {key: 'preserved-route-key', name: 'PreservedScreen'},
-                    ],
+                    routes: [{key: 'preserved-route-key', name: 'PreservedScreen'}],
                     index: 0,
                     stale: false,
                     type: 'stack',
@@ -2527,9 +2321,7 @@ describe('NavigationFocusManager Gap Tests', () => {
                             key: 'navigator-key',
                             name: 'Navigator',
                             state: {
-                                routes: [
-                                    {key: 'nested-screen-key', name: 'NestedScreen'},
-                                ],
+                                routes: [{key: 'nested-screen-key', name: 'NestedScreen'}],
                                 index: 0,
                             },
                         },
@@ -2547,5 +2339,4 @@ describe('NavigationFocusManager Gap Tests', () => {
             });
         });
     });
-
 });

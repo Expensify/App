@@ -82,6 +82,8 @@ describe('MenuItem interactive prop behavior - Issue #76921', () => {
 
             // accessible={false} means screen readers won't announce this as interactive
             expect(menuItem.props.accessible).toBe(false);
+            // onPress must be omitted so the outer wrapper can handle the interaction
+            expect(menuItem.props.onPress).toBeUndefined();
         });
 
         it('should NOT have menuitem role when interactive={false}', () => {
