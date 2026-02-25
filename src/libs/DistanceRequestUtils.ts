@@ -136,7 +136,7 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
  * @returns A string that displays the rate used for expense calculation
  */
-function getRateForDisplay(
+function getFormattedRateValue(
     unit: Unit | undefined,
     rate: number | undefined,
     currency: string | undefined,
@@ -180,7 +180,7 @@ function getRateForExpenseDisplay(
     isOffline?: boolean,
 ): string {
     if (!rateName) {
-        return getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
+        return getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
     }
     if (isCustomUnitOutOfPolicy) {
         return translate('common.rateOutOfPolicy');
@@ -261,7 +261,7 @@ function getDistanceMerchant(
     }
 
     const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isManualDistanceRequest);
-    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
+    const ratePerUnit = getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
 
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
 }
@@ -449,7 +449,7 @@ export default {
     getDefaultMileageRate,
     getDistanceMerchant,
     getDistanceRequestAmount,
-    getRateForDisplay,
+    getFormattedRateValue,
     getMileageRates,
     getDistanceForDisplay,
     getRoundedDistanceInUnits,
