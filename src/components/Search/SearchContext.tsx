@@ -7,6 +7,7 @@ import useTodos from '@hooks/useTodos';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
+import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
@@ -31,6 +32,7 @@ const defaultSearchInfo: SearchResultsInfo = {
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
+    currentRecentSearchHash: -1,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
@@ -76,14 +78,14 @@ function SearchContextProvider({children}: ChildrenProps) {
     const searchContextDataRef = useRef(searchContextData);
     searchContextDataRef.current = searchContextData;
 
-    const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContextData.currentSearchHash}`, {canBeMissing: true});
+    const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContextData.currentSearchHash}`);
     const todoSearchResultsData = useTodos();
 
     const currentSearchKey = searchContextData.currentSearchKey;
-    const currentSearchHash = searchContextData.currentSearchHash;
+    const currentRecentSearchHash = searchContextData.currentRecentSearchHash;
     const {accountID} = useCurrentUserPersonalDetails();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID), [accountID]);
-    const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentSearchHash, suggestedSearches);
+    const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentRecentSearchHash, suggestedSearches);
 
     // If viewing a to-do search, use live data from useTodos, otherwise return the snapshot data
     // We do this so that we can show the counters for the to-do search results without visiting the specific to-do page, e.g. show `Approve [3]` while viewing the `Submit` to-do search.
@@ -108,15 +110,16 @@ function SearchContextProvider({children}: ChildrenProps) {
         return snapshotSearchResults ?? undefined;
     }, [shouldUseLiveData, currentSearchKey, todoSearchResultsData, snapshotSearchResults]);
 
-    const setCurrentSearchHashAndKey = useCallback((searchHash: number, searchKey: SearchKey | undefined) => {
+    const setCurrentSearchHashAndKey = useCallback((searchHash: number, recentHash: number, searchKey: SearchKey | undefined) => {
         setSearchContextData((prevState) => {
-            if (searchHash === prevState.currentSearchHash && searchKey === prevState.currentSearchKey) {
+            if (searchHash === prevState.currentSearchHash && recentHash === prevState.currentRecentSearchHash && searchKey === prevState.currentSearchKey) {
                 return prevState;
             }
 
             return {
                 ...prevState,
                 currentSearchHash: searchHash,
+                currentRecentSearchHash: recentHash,
                 currentSearchKey: searchKey,
             };
         });
@@ -174,15 +177,20 @@ function SearchContextProvider({children}: ChildrenProps) {
         } else if (data.length && data.every(isTransactionListItemType)) {
             selectedReports = data
                 .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency, report}) => ({
-                    reportID,
-                    action,
-                    total,
-                    policyID,
-                    allActions,
-                    currency,
-                    chatReportID: report?.chatReportID,
-                }));
+                .map((item) => {
+                    const total = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : (item.amount ?? CONST.DEFAULT_NUMBER_ID);
+                    const action = item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
+
+                    return {
+                        reportID: item.reportID,
+                        action,
+                        total,
+                        policyID: item.policyID,
+                        allActions: item.allActions ?? [action],
+                        currency: item.currency,
+                        chatReportID: item.report?.chatReportID,
+                    };
+                });
         }
 
         setSearchContextData((prevState) => ({

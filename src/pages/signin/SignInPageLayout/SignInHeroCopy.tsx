@@ -6,6 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {SignInPageLayoutProps} from './types';
 
 type SignInHeroCopyProps = Pick<SignInPageLayoutProps, 'customHeadline' | 'customHeroBody'>;
@@ -24,6 +25,7 @@ function SignInHeroCopy({customHeadline, customHeroBody}: SignInHeroCopyProps) {
                     isMediumScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroMedium),
                     isLargeScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroLarge),
                 ]}
+                accessibilityRole={CONST.ROLE.HEADER}
             >
                 {customHeadline ?? translate('login.hero.header')}
             </Text>

@@ -1,4 +1,3 @@
-import reportsSelector from '@selectors/Attributes';
 import lodashPick from 'lodash/pick';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
@@ -12,7 +11,9 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useUserToInviteReports from '@hooks/useUserToInviteReports';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
 import {
@@ -55,21 +56,21 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const reportAttributesDerived = useReportAttributes();
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -140,6 +141,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
 
+    const {userToInviteExpenseReport, userToInviteChatReport} = useUserToInviteReports(chatOptions?.userToInvite);
+
     /**
      * Returns the sections needed for the OptionsSelector
      */
@@ -186,11 +189,10 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             )
         ) {
             newSections.push({
-                title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, userToInviteExpenseReport, userToInviteChatReport, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 sectionIndex: 3,
@@ -214,6 +216,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         chatOptions.userToInvite,
         debouncedSearchTerm,
         personalDetails,
+        userToInviteExpenseReport,
+        userToInviteChatReport,
         reportAttributesDerived,
         translate,
         loginList,
@@ -276,7 +280,6 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             showLoadingPlaceholder={showLoadingPlaceholder}
             isLoadingNewOptions={!!isSearchingForReports}
             showListEmptyContent={shouldShowListEmptyContent}
-            disableMaintainingScrollPosition
         />
     );
 }

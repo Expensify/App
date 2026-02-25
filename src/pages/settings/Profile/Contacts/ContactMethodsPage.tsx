@@ -2,7 +2,7 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
@@ -28,12 +28,13 @@ type ContactMethodsPageProps = PlatformStackScreenProps<SettingsNavigatorParamLi
 function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const navigateBackTo = route?.params?.backTo;
 
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: false});
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const options = useMemo(() => getContactMethodsOptions(translate, loginList, session?.email), [translate, loginList, session?.email]);

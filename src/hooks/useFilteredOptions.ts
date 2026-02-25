@@ -1,4 +1,3 @@
-import reportsSelector from '@selectors/Attributes';
 import {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
@@ -8,6 +7,7 @@ import type Beta from '@src/types/onyx/Beta';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
+import useReportAttributes from './useReportAttributes';
 
 type UseFilteredOptionsConfig = {
     /** Maximum number of recent reports to pre-filter and process (default: 500). */
@@ -72,15 +72,12 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-        canBeMissing: true,
-        selector: reportsSelector,
-    });
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const reportAttributesDerived = useReportAttributes();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 

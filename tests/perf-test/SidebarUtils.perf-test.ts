@@ -84,6 +84,7 @@ describe('SidebarUtils', () => {
                 policy,
                 invoiceReceiverPolicy: undefined,
                 parentReportAction,
+                conciergeReportID: '',
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 lastAction: undefined,
@@ -92,6 +93,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 1,
+                chatReport: undefined,
             }),
         );
     });
