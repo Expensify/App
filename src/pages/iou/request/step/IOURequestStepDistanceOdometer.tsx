@@ -448,6 +448,7 @@ function IOURequestStepDistanceOdometer({
             odometerEnd: end,
             odometerDistance: calculatedDistance,
             betas,
+            recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,
         });
