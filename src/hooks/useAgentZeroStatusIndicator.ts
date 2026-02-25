@@ -145,7 +145,7 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
         setOptimisticStartTime(Date.now());
     }, [isConciergeChat]);
 
-    const isProcessing = isConciergeChat && (!!serverLabel || !!optimisticStartTime);
+    const isProcessing = isConciergeChat && !isOffline && (!!serverLabel || !!optimisticStartTime);
 
     return useMemo(
         () => ({
