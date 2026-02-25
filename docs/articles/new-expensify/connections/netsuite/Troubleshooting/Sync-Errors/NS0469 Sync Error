@@ -1,0 +1,88 @@
+---
+title: NS0469 Sync Error: Unable to Query NetSuite for 'Currency'
+description: Learn why the NS0469 sync error occurs and how to enable Multi-Currency and update role permissions in NetSuite.
+keywords: NS0469, NetSuite currency error, enable multi-currency NetSuite, OneWorld multi-currency, Expensify Integration role currency permission, NetSuite sync error
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0469 sync error related to Multi-Currency and Currency permissions in OneWorld accounts. Does not cover token formatting or bundle update issues.
+---
+
+# NS0469 Sync Error: Unable to Query NetSuite for 'Currency'
+
+If you see the error message **“NS0469 Sync Error: Unable to query NetSuite for 'currency'. Please enable 'Multi-Currency' in OneWorld account in NetSuite to resolve.”**, it means Multi-Currency is not enabled in your NetSuite OneWorld account.
+
+Without Multi-Currency enabled, Expensify cannot query currency records during sync.
+
+---
+
+## Why the NS0469 Sync Error Happens
+
+The NS0469 sync error occurs when:
+
+- You are using a **NetSuite OneWorld** account, and  
+- The **Multi-Currency** feature is not enabled  
+
+Currency access is required for the NetSuite integration to sync properly.
+
+---
+
+## How to Fix the NS0469 Sync Error
+
+Follow the steps below to enable Multi-Currency and confirm role permissions.
+
+---
+
+## Step 1: Enable Multi-Currency in NetSuite
+
+In NetSuite:
+
+1. Go to **Setup > Company > Enable Features > Company**.
+2. Enable **Multi-Currency**.
+3. Save your changes.
+
+---
+
+## Step 2: Confirm Currency Permissions on the Expensify Integration Role
+
+In NetSuite:
+
+1. Go to **Setup > Users/Roles > Manage Roles**.
+2. Select **Expensify Integration**.
+3. Click **Edit**.
+4. Scroll to **Permissions > Lists**.
+5. Confirm **Currency** is set to **View**.
+6. Save your changes if updates were made.
+
+---
+
+## Step 3: Sync the Connection in Expensify
+
+After enabling Multi-Currency and confirming permissions:
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the NetSuite connection.
+5. Click **Sync now**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the NetSuite connection.
+5. Tap **Sync now**.
+
+Retry the export or sync once the process completes.
+
+---
+
+# FAQ
+
+## Does the NS0469 Sync Error affect all exports?
+
+Yes. If Expensify cannot query currency records, syncing and exports to NetSuite will fail.
+
+## Do I need NetSuite admin access to fix the NS0469 Sync Error?
+
+Yes. Enabling Multi-Currency and updating role permissions requires NetSuite admin access.
