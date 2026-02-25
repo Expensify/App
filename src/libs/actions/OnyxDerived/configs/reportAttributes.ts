@@ -111,8 +111,18 @@ export default createOnyxDerivedValueConfig({
         const reportMetadataUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_METADATA] ?? {};
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS] ?? {};
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
+        const policyUpdates = sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
+
+        // Detect policy updates that changed the title field formula
+        const policyIDsWithTitleUpdates = new Set<string>();
+        for (const [policyKey, policyUpdate] of Object.entries(policyUpdates)) {
+            const update = policyUpdate as {fieldList?: Record<string, {defaultValue?: string}>} | undefined;
+            if (update?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE] !== undefined) {
+                policyIDsWithTitleUpdates.add(policyKey.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+            }
+        }
 
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
@@ -141,7 +151,7 @@ export default createOnyxDerivedValueConfig({
 
         if (isFullyComputed) {
             // if there are report-related updates, iterate over the updates
-            if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates) {
+            if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates || policyIDsWithTitleUpdates.size > 0) {
                 if (updates.length > 0) {
                     dataToIterate = prepareReportKeys(updates);
 
@@ -156,6 +166,18 @@ export default createOnyxDerivedValueConfig({
                     if (parentChatReportIDsToUpdate.size > 0) {
                         dataToIterate.push(...Array.from(parentChatReportIDsToUpdate));
                     }
+                }
+                if (policyIDsWithTitleUpdates.size > 0) {
+                    const affectedPolicyReportKeys = Object.entries(reports)
+                        .filter(([, report]) => !!report?.policyID && policyIDsWithTitleUpdates.has(report.policyID))
+                        .map(([reportKey]) => reportKey);
+                    // When only policy title changed (no report-level updates), start fresh with just affected reports
+                    if (updates.length === 0) {
+                        dataToIterate = affectedPolicyReportKeys;
+                    } else {
+                        dataToIterate.push(...affectedPolicyReportKeys);
+                    }
+                    dataToIterate = prepareReportKeys(dataToIterate);
                 }
                 if (!!transactionsUpdates || !!transactionViolationsUpdates) {
                     let transactionReportIDs: string[] = [];
