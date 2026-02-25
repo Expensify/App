@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
 import {applySavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
 import {buildColumnLayout, buildTransactionListFromSpreadsheet, getColumnIndexes} from '@libs/actions/ImportTransactions';
