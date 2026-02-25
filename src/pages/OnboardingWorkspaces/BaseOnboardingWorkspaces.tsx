@@ -87,7 +87,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
             conciergeReportID,
             archivedReportsIdSet,
-            betas,
             policy.automaticJoiningEnabled ? policy.policyID : undefined,
             undefined,
             false,
