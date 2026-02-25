@@ -4,12 +4,13 @@ import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Text from '@components/Text';
+import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
+import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
 import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,6 +40,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+
+    const personalDetailLogins = useDeepCompareRef(Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])));
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
@@ -313,6 +316,15 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     }, [isInitialCreationFlow, translate, shouldShowListEmptyContent, selectedMembers.length, nextStep, styles]);
 
     const toggleMember = useCallback((members: SelectionListApprover[]) => setSelectedMembers(members), []);
+
+    // Clean up invite draft when leaving the expenses-from page to prevent
+    // stale non-member data from persisting in the approval workflow.
+    useEffect(() => {
+        return () => {
+            clearInviteDraft(route.params.policyID);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [route.params.policyID]);
 
     return (
         <AccessOrNotFoundWrapper
