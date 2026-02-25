@@ -1,10 +1,9 @@
 import type {VideoPlayer} from 'expo-video';
-import type {RefObject} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type CONST from '@src/CONST';
-import type {ResponsiveLayoutProperties} from './FullScreenContext';
+import type {FullScreenActionsContextType, FullScreenStateContextType} from './FullScreenContextProvider';
 
 type VolumeContext = {
     /**
@@ -55,29 +54,7 @@ type VideoPopoverMenuContext = {
     updateSource: (source: string) => void;
 };
 
-type FullScreenContext = {
-    /**
-     * Whether the application is currently in fullscreen mode.
-     */
-    isFullScreenRef: RefObject<boolean>;
-
-    /**
-     * Window dimensions saved before entering fullscreen mode.
-     * Used to preserve UI state without triggering excessive re-renders.
-     */
-    lockedWindowDimensionsRef: RefObject<ResponsiveLayoutProperties | null>;
-
-    /**
-     * Sets the locked window dimensions.
-     * @param newResponsiveLayoutResult The window dimensions to lock.
-     */
-    lockWindowDimensions: (newResponsiveLayoutResult: ResponsiveLayoutProperties) => void;
-
-    /**
-     * Clears the locked window dimensions.
-     */
-    unlockWindowDimensions: () => void;
-};
+type FullScreenContext = FullScreenStateContextType & FullScreenActionsContextType;
 
 type PlaybackSpeed = TupleToUnion<typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS>;
 
