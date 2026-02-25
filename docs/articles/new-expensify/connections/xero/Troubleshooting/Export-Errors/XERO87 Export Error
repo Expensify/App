@@ -1,0 +1,86 @@
+---
+title: XERO87 Export Error: Missing or Invalid Bank Account
+description: Learn why the XERO87 export error occurs in New Expensify and how to select a valid Xero bank account for exports.
+keywords: XERO87, Xero missing bank account, invalid bank account Xero export, select bank account Expensify, non-reimbursable export bank account
+internalScope: Audience is Workspace Admins using the Xero integration in New Expensify. Covers the XERO87 export error related to missing or invalid bank account selection in Workspace settings. Does not cover authentication or category configuration issues.
+---
+
+# XERO87 Export Error: Missing or Invalid Bank Account
+
+If you see the error message **“XERO87 Export Error: Missing or invalid bank account. Please confirm an active bank account has been selected in the Expensify configurations before exporting.”**, it means the bank account selected in Expensify is not valid or no longer exists in Xero.
+
+Xero requires a valid, active bank account for certain export types.
+
+---
+
+## Why the XERO87 Export Error Happens
+
+The XERO87 export error occurs when:
+
+- The destination bank account selected in Expensify is missing in Xero  
+- The bank account has been deleted or made inactive in Xero  
+- No bank account has been selected in the Workspace’s export settings  
+
+If the bank account cannot be validated in Xero, the export fails.
+
+---
+
+## How to Fix the XERO87 Export Error
+
+### Step 1: Select a Valid Bank Account in Expensify
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Select **Export**.
+5. Under **Non-reimbursable expenses**, choose a valid **Xero bank account**.
+6. Click **Save**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap **Export**.
+5. Select the appropriate **Xero bank account**.
+6. Tap **Save**.
+
+---
+
+### Step 2: Create a Bank Account in Xero (If Needed)
+
+If no bank account appears in the dropdown:
+
+1. Log in to Xero.
+2. Go to **Accounting > Chart of Accounts**.
+3. Create a new **Bank** account (if one does not already exist).
+4. Save the account.
+
+Then return to Expensify and:
+
+1. Go to **Workspaces > [Workspace Name] > Accounting**.
+2. Click the **three-dot icon** next to the Xero connection.
+3. Click **Sync now**.
+
+---
+
+### Step 3: Retry the Export
+
+After selecting or creating the bank account and syncing:
+
+1. Open the report.
+2. Retry exporting to Xero.
+
+---
+
+# FAQ
+
+## Does the XERO87 Export Error affect reimbursable reports?
+
+It typically affects non-reimbursable exports that require a specific bank account.
+
+## Do I need Xero admin access to fix the XERO87 Export Error?
+
+Yes. Creating or activating bank accounts in Xero requires appropriate permissions.
