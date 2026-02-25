@@ -1,0 +1,73 @@
+---
+title: NS0739 Sync Error: Unexpected Error When Logging in With Tokens
+description: Learn why the NS0739 sync error occurs and how to correct NetSuite token permissions and formatting issues.
+keywords: NS0739, NetSuite token error, unexpected error logging in with tokens, SOAP Web Services permission, Expensify Integration role, NetSuite sandbox token format, NetSuite sync error
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0739 sync error related to token permissions and formatting. Does not cover bundle updates or general NetSuite login credential errors.
+---
+
+# NS0739 Sync Error: Unexpected Error When Logging in With Tokens
+
+If you see the error message **“NS0739 Sync Error: Unexpected error when logging in with tokens.”**, it usually means the NetSuite tokens were created with incorrect permissions or are not formatted properly.
+
+This prevents Expensify from authenticating with NetSuite.
+
+---
+
+## Why the NS0739 Sync Error Happens
+
+The NS0739 sync error typically occurs when:
+
+- The generated tokens do not have the correct permissions in NetSuite  
+- The **SOAP Web Services** permission is not set correctly  
+- The token is formatted incorrectly (especially in Sandbox environments)  
+
+If the token configuration does not meet NetSuite’s requirements, the login attempt will fail.
+
+---
+
+## How to Fix the NS0739 Sync Error
+
+Follow the steps below to verify permissions and token formatting.
+
+---
+
+## Step 1: Confirm SOAP Web Services Permission
+
+In NetSuite:
+
+1. Go to **Setup > Users/Roles > Manage Users**.
+2. Click **Edit** for the **Expensify Integration role**.
+3. Click **Permissions**.
+4. Scroll to the **Setup** section.
+5. Confirm that **SOAP Web Services** is set to **Full**.
+6. Save your changes if you made updates.
+
+After updating the permission, return to Expensify and retry the sync.
+
+---
+
+## Step 2: Confirm Token Formatting (Sandbox Only)
+
+If you are connected to a **NetSuite Sandbox** environment, confirm the token is formatted correctly.
+
+Correct format example:
+- `12345678_SB1`
+
+Incorrect format example:
+- `12345678-sb1`
+
+Note: Sandbox tokens are case-sensitive and must use the correct capitalization and underscore format.
+
+After confirming formatting, retry the sync in Expensify.
+
+---
+
+# FAQ
+
+## Does the NS0739 Sync Error affect all exports?
+
+Yes. If Expensify cannot authenticate using the NetSuite tokens, all syncing and exports will fail.
+
+## Do I need NetSuite admin access to fix the NS0739 Sync Error?
+
+Yes. You must have permission to edit roles and manage token settings in NetSuite to resolve this issue.
