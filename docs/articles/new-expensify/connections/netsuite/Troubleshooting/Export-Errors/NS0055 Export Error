@@ -1,0 +1,73 @@
+---
+title: NS0055 Export Error: Vendor Doesn’t Have Access to the Transaction Currency
+description: Learn why the NS0055 export error occurs and how to add the correct currency to the vendor’s Financial tab in NetSuite.
+keywords: NS0055, NetSuite vendor currency error, vendor does not have access to currency, add currency to vendor NetSuite, transaction currency error, Expensify NetSuite integration
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0055 export error related to vendor currency access in NetSuite. Does not cover subsidiary or employee record mismatches.
+---
+
+# NS0055 Export Error: Vendor Doesn’t Have Access to the Transaction Currency
+
+If you see the error message **“NS0055 Export Error: The vendor doesn’t have access to the transaction currency. Add the currency to the vendor’s 'Financial tab' in NetSuite.”**, it means the vendor record in NetSuite does not support the currency used on the report.
+
+NetSuite requires vendors to have access to the transaction currency before the export can succeed.
+
+---
+
+## Why the NS0055 Export Error Happens
+
+The NS0055 export error occurs when:
+
+- The report currency in Expensify differs from the vendor’s allowed currencies in NetSuite, and  
+- The vendor record does not include that currency on the **Financial** tab  
+
+If the vendor does not have the transaction currency assigned, NetSuite blocks the export.
+
+---
+
+## How to Fix the NS0055 Export Error
+
+### Step 1: Add the Currency to the Vendor Record in NetSuite
+
+In NetSuite:
+
+1. Locate the vendor record associated with the report creator or submitter.
+2. Open the vendor profile.
+3. Navigate to the **Financial** tab.
+4. Add the corresponding transaction currency.
+5. Save the vendor record.
+
+---
+
+### Step 2: Sync the Connection in Expensify
+
+After updating the vendor record:
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the NetSuite connection.
+5. Click **Sync now**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the NetSuite connection.
+5. Tap **Sync now**.
+
+Retry exporting the report once the sync completes.
+
+---
+
+# FAQ
+
+## Does the NS0055 Export Error affect only certain currencies?
+
+Yes. The error appears only when the report currency is not enabled on the vendor record in NetSuite.
+
+## Do I need NetSuite admin access to fix the NS0055 Export Error?
+
+Yes. Updating vendor currency settings requires appropriate NetSuite permissions.
