@@ -395,8 +395,6 @@ function SearchPage({route}: SearchPageProps) {
         selectedReportIDs,
         selectedTransactionReportIDs,
         selectedTransactionsKeys,
-        selectedTransactionReportIDs,
-        selectedReportIDs,
         translate,
         clearSelectedTransactions,
         showConfirmModal,
