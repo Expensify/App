@@ -40,10 +40,10 @@ describe('ImportTransactions', () => {
 
         it('should extract correct indexes for valid columns', () => {
             const columns = {
-                0: 'date',
-                1: 'merchant',
-                2: 'amount',
-                3: 'category',
+                [0]: 'date',
+                [1]: 'merchant',
+                [2]: 'amount',
+                [3]: 'category',
             };
             const result = getColumnIndexes(columns);
             expect(result).toEqual({
@@ -56,9 +56,9 @@ describe('ImportTransactions', () => {
 
         it('should handle sparse column mappings', () => {
             const columns = {
-                0: 'ignore',
-                2: 'date',
-                5: 'amount',
+                [0]: 'ignore',
+                [2]: 'date',
+                [5]: 'amount',
             };
             const result = getColumnIndexes(columns);
             expect(result).toEqual({
@@ -71,10 +71,10 @@ describe('ImportTransactions', () => {
 
         it('should ignore non-transaction columns', () => {
             const columns = {
-                0: 'date',
-                1: 'ignore',
-                2: 'amount',
-                3: 'someOtherColumn',
+                [0]: 'date',
+                [1]: 'ignore',
+                [2]: 'amount',
+                [3]: 'someOtherColumn',
             };
             const result = getColumnIndexes(columns);
             expect(result).toEqual({
@@ -136,10 +136,10 @@ describe('ImportTransactions', () => {
                     ['Category', 'Food', 'Travel'],
                 ],
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
-                    3: 'category',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
+                    [3]: 'category',
                 },
                 containsHeader: true,
             };
@@ -174,9 +174,9 @@ describe('ImportTransactions', () => {
                     ['10.00', '20.00'],
                 ],
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
                 },
                 containsHeader: false,
             };
@@ -207,9 +207,9 @@ describe('ImportTransactions', () => {
                     ['Merchant', 'Store A'],
                 ],
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    10: 'amount', // Out of bounds
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [10]: 'amount', // Out of bounds
                 },
                 containsHeader: true,
             };
@@ -229,9 +229,9 @@ describe('ImportTransactions', () => {
             const spreadsheet: ImportedSpreadsheet = {
                 data: [],
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
                 },
                 containsHeader: true,
             };
@@ -249,9 +249,9 @@ describe('ImportTransactions', () => {
                     ['Amount', '5.50', '25.00'],
                 ],
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
                 },
                 containsHeader: true,
             };
@@ -284,10 +284,10 @@ describe('ImportTransactions', () => {
                     ['Category', 'Office Supplies'],
                 ],
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
-                    3: 'category',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
+                    [3]: 'category',
                 },
                 containsHeader: true,
             };
@@ -306,9 +306,9 @@ describe('ImportTransactions', () => {
                     ['Amount', '10.00', '20.00', ''],
                 ],
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
                 },
                 containsHeader: true,
             };
@@ -328,9 +328,9 @@ describe('ImportTransactions', () => {
                     ['Amount', '10.00'],
                 ],
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
                 },
                 containsHeader: true,
             };
@@ -349,9 +349,9 @@ describe('ImportTransactions', () => {
                     ['Amount', '$1,234.56', '€999.99'],
                 ],
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
                 },
                 containsHeader: true,
             };
@@ -371,9 +371,9 @@ describe('ImportTransactions', () => {
                     ['Amount', '-50.00'],
                 ],
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
                 },
                 containsHeader: true,
             };
@@ -392,9 +392,9 @@ describe('ImportTransactions', () => {
                     ['10.00', '20.00'],
                 ],
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
                 },
                 containsHeader: false,
             };
@@ -417,9 +417,9 @@ describe('ImportTransactions', () => {
                     ['Amount', '10', '20', '30', '40'],
                 ],
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
                 },
                 containsHeader: true,
             };
@@ -441,9 +441,9 @@ describe('ImportTransactions', () => {
                     ['Amount', '10.00', '20.00', '30.00'],
                 ],
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
                 },
                 containsHeader: true,
             };
@@ -463,8 +463,8 @@ describe('ImportTransactions', () => {
                     ['Category', 'Food'],
                 ],
                 columns: {
-                    0: 'date',
-                    1: 'amount',
+                    [0]: 'date',
+                    [1]: 'amount',
                     // No merchant column mapped
                 },
                 containsHeader: true,
@@ -551,10 +551,10 @@ describe('ImportTransactions', () => {
 
             expect(Onyx.merge).toHaveBeenCalledWith(ONYXKEYS.IMPORTED_SPREADSHEET, {
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
-                    3: 'category',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
+                    [3]: 'category',
                 },
             });
         });
@@ -599,9 +599,9 @@ describe('ImportTransactions', () => {
 
             expect(Onyx.merge).toHaveBeenCalledWith(ONYXKEYS.IMPORTED_SPREADSHEET, {
                 columns: {
-                    0: 'date',
-                    1: 'merchant',
-                    2: 'amount',
+                    [0]: 'date',
+                    [1]: 'merchant',
+                    [2]: 'amount',
                 },
             });
         });
@@ -646,8 +646,8 @@ describe('ImportTransactions', () => {
 
             expect(Onyx.merge).toHaveBeenCalledWith(ONYXKEYS.IMPORTED_SPREADSHEET, {
                 columns: {
-                    0: 'date',
-                    2: 'amount',
+                    [0]: 'date',
+                    [2]: 'amount',
                     // merchant is skipped because its saved name is false
                 },
             });
@@ -692,7 +692,7 @@ describe('ImportTransactions', () => {
 
             expect(Onyx.merge).toHaveBeenCalledWith(ONYXKEYS.IMPORTED_SPREADSHEET, {
                 columns: {
-                    0: 'date',
+                    [0]: 'date',
                     // Only date is mapped because merchant and amount headers don't match
                 },
             });
