@@ -69,7 +69,7 @@ const reportCollectionDataSet: ReportCollectionDataSet = {
 
 const getReportFromUseOnyx = async (reportID: string) => {
     const {result} = renderHook(() => {
-        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
         return {report};
     });
     return result.current.report;

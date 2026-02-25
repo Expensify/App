@@ -224,6 +224,16 @@ function BasePicker<TPickerValue>({
                         allowFontScaling: false,
                         accessibilityRole: CONST.ROLE.COMBOBOX,
                         accessibilityLabel: enhancedAccessibilityLabel,
+                        importantForAccessibility: 'no-hide-descendants',
+                    }}
+                    touchableDoneProps={{
+                        accessibilityRole: CONST.ROLE.BUTTON,
+                    }}
+                    touchableWrapperProps={{
+                        accessible: true,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
+                        accessibilityLabel,
+                        accessibilityState: {disabled: isDisabled, expanded: isHighlighted},
                     }}
                     pickerProps={{
                         ref: picker,
