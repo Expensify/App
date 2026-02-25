@@ -191,7 +191,6 @@ function ReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
@@ -701,7 +700,6 @@ function ReportActionsList({
 
             return (
                 <ReportActionsListItemRenderer
-                    allReports={allReports}
                     policies={policies}
                     reportAction={reportAction}
                     parentReportAction={parentReportAction}
@@ -738,7 +736,6 @@ function ReportActionsList({
         [
             draftMessage,
             emojiReactions,
-            allReports,
             policies,
             parentReportAction,
             parentReportActionForTransactionThread,
