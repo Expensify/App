@@ -1,5 +1,5 @@
 import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -46,13 +46,13 @@ function ShareTab({ref}: ShareTabProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -63,38 +63,35 @@ function ShareTab({ref}: ShareTabProps) {
 
     const {options, areOptionsInitialized} = useOptionsList();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
-    const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
+    const showLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
-    const searchOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return defaultListOptions;
-        }
-        return getSearchOptions({
-            options,
-            draftComments,
-            nvpDismissedProductTraining,
-            betas: betas ?? [],
-            isUsedInChatFinder: false,
-            includeReadOnly: false,
-            searchQuery: textInputValue,
-            maxResults: 20,
-            includeUserToInvite: true,
-            countryCode,
-            loginList,
-            currentUserAccountID,
-            currentUserEmail,
-            policyCollection: allPolicies,
-            personalDetails,
-        });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
+    const searchOptions = areOptionsInitialized
+        ? getSearchOptions({
+              options,
+              draftComments,
+              nvpDismissedProductTraining,
+              betas: betas ?? [],
+              isUsedInChatFinder: false,
+              includeReadOnly: false,
+              searchQuery: textInputValue,
+              maxResults: 20,
+              includeUserToInvite: true,
+              countryCode,
+              loginList,
+              currentUserAccountID,
+              currentUserEmail,
+              policyCollection: allPolicies,
+              personalDetails,
+          })
+        : defaultListOptions;
 
-    const recentReportsOptions = useMemo(() => {
-        if (textInputValue.trim() === '') {
-            return optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20);
-        }
+    let recentReportsOptions: OptionData[];
+    if (textInputValue.trim() === '') {
+        recentReportsOptions = optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20);
+    } else {
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
@@ -104,27 +101,23 @@ function ShareTab({ref}: ShareTabProps) {
         if (searchOptions.userToInvite) {
             reportOptions.push(searchOptions.userToInvite);
         }
-        return reportOptions.slice(0, 20);
-    }, [searchOptions, textInputValue]);
+        recentReportsOptions = reportOptions.slice(0, 20);
+    }
 
+    const trimmedDebouncedTextInputValue = debouncedTextInputValue.trim();
     useEffect(() => {
-        searchInServer(debouncedTextInputValue.trim());
-    }, [debouncedTextInputValue]);
+        searchInServer(trimmedDebouncedTextInputValue);
+    }, [trimmedDebouncedTextInputValue]);
 
-    const styledRecentReports = useMemo(() => {
-        return recentReportsOptions.map((item, index) => ({
-            ...item,
-            pressableStyle: styles.br2,
-            text: StringUtils.lineBreaksToSpaces(item.text),
-            wrapperStyle: [styles.pr3, styles.pl3],
-            keyForList: `${item.reportID}-${index}`,
-        }));
-    }, [recentReportsOptions, styles]);
+    const styledRecentReports = recentReportsOptions.map((item, index) => ({
+        ...item,
+        pressableStyle: styles.br2,
+        text: StringUtils.lineBreaksToSpaces(item.text),
+        wrapperStyle: [styles.pr3, styles.pl3],
+        keyForList: `${item.reportID}-${index}`,
+    }));
 
-    const header = useMemo(() => {
-        const headerMessage = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
-        return headerMessage;
-    }, [textInputValue, styledRecentReports.length, countryCode]);
+    const header = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
 
     const onSelectRow = (item: OptionData) => {
         let reportID = item?.reportID ?? CONST.DEFAULT_NUMBER_ID;
@@ -143,27 +136,21 @@ function ShareTab({ref}: ShareTabProps) {
         }
     };
 
-    const textInputOptions = useMemo(
-        () => ({
-            value: textInputValue,
-            label: translate('selectionList.nameEmailOrPhoneNumber'),
-            hint: offlineMessage,
-            onChangeText: setTextInputValue,
-            headerMessage: header,
-            disableAutoFocus: true,
-        }),
-        [textInputValue, setTextInputValue, translate, offlineMessage, header],
-    );
+    const textInputOptions = {
+        value: textInputValue,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        hint: offlineMessage,
+        onChangeText: setTextInputValue,
+        headerMessage: header,
+        disableAutoFocus: true,
+    };
 
-    const customListHeader = useMemo(
-        () =>
-            textInputValue.trim() === '' ? (
-                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
-                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('search.recentChats')}</Text>
-                </View>
-            ) : undefined,
-        [textInputValue, styles, translate],
-    );
+    const customListHeader =
+        textInputValue.trim() === '' ? (
+            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('search.recentChats')}</Text>
+            </View>
+        ) : undefined;
 
     return (
         <SelectionList
