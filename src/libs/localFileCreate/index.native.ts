@@ -1,5 +1,5 @@
 import RNFetchBlob from 'react-native-blob-util';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {appendTimeToFileName, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import type LocalFileCreate from './types';
 
 /**
@@ -9,8 +9,9 @@ import type LocalFileCreate from './types';
  * @returns path, filename and size of the newly created file
  */
 const localFileCreate: LocalFileCreate = (fileName, textContent) => {
-    const fileNameWithExtension = fileName.includes('.') ? fileName : `${fileName}.txt`;
-    const newFileName = FileUtils.appendTimeToFileName(fileNameWithExtension);
+    const {fileExtension} = splitExtensionFromFileName(fileName);
+    const fileNameWithExtension = fileExtension ? fileName : `${fileName}.txt`;
+    const newFileName = appendTimeToFileName(fileNameWithExtension);
     const dir = RNFetchBlob.fs.dirs.DocumentDir;
     const path = `${dir}/${newFileName}`;
 

@@ -8,8 +8,7 @@ import type LocalFileDownload from './types';
  * is downloaded by the browser.
  */
 const localFileDownload: LocalFileDownload = (fileName, textContent, translate, successMessage) => {
-    const fileNameWithExtension = fileName.includes('.') ? fileName : `${fileName}.txt`;
-    localFileCreate(fileNameWithExtension, textContent).then(({path, newFileName}) => {
+    localFileCreate(fileName, textContent).then(({path, newFileName}) => {
         const link = document.createElement('a');
         link.download = newFileName;
         link.href = path;
