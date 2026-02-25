@@ -185,33 +185,6 @@ function SettlementButton({
         return false;
     };
 
-    const getPaymentSubItems = (payAsBusiness: boolean) => {
-        const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
-
-        return formattedPaymentMethods
-            .filter((method) => {
-                const accountData = method?.accountData as AccountData;
-                const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-                return accountData?.type === requiredAccountType && !isPartiallySetup;
-            })
-            .map((formattedPaymentMethod) => ({
-                text: formattedPaymentMethod?.title ?? '',
-                description: formattedPaymentMethod?.description ?? '',
-                icon: formattedPaymentMethod?.icon,
-                shouldUpdateSelectedIndex: true,
-                onSelected: () => {
-                    if (checkForNecessaryAction()) {
-                        return;
-                    }
-                    onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType, undefined);
-                },
-                iconStyles: formattedPaymentMethod?.iconStyles,
-                iconHeight: formattedPaymentMethod?.iconSize,
-                iconWidth: formattedPaymentMethod?.iconSize,
-                value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-            }));
-    };
-
     const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
     const latestBankItem = policy?.achAccount?.bankAccountID
         ? formattedPaymentMethods
@@ -329,23 +302,51 @@ function SettlementButton({
             // For individual receivers, allow if user has an active admin policy with supported currency OR user's local currency is supported
             const isPolicyCurrencySupported = invoiceReceiverPolicy ? isInvoiceReceiverPolicyCurrencySupported : canUseActivePolicy || isUserCurrencySupported;
 
+            const getPaymentSubItems = (payAsBusiness: boolean) => {
+                const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
+
+                return formattedPaymentMethods
+                    .filter((method) => {
+                        const accountData = method?.accountData as AccountData;
+                        const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
+                        return accountData?.type === requiredAccountType && !isPartiallySetup;
+                    })
+                    .map((formattedPaymentMethod) => ({
+                        text: formattedPaymentMethod?.title ?? '',
+                        description: formattedPaymentMethod?.description ?? '',
+                        icon: formattedPaymentMethod?.icon,
+                        shouldUpdateSelectedIndex: true,
+                        onSelected: () => {
+                            if (checkForNecessaryAction()) {
+                                return;
+                            }
+                            onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType, undefined);
+                        },
+                        iconStyles: formattedPaymentMethod?.iconStyles,
+                        iconHeight: formattedPaymentMethod?.iconSize,
+                        iconWidth: formattedPaymentMethod?.iconSize,
+                        value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                    }));
+            };
+
+            const getPolicyID = () => {
+                if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
+                    return chatReport?.invoiceReceiver?.policyID;
+                }
+
+                if (canUseActivePolicy) {
+                    return activePolicy.id;
+                }
+
+                return createWorkspace({
+                    introSelected,
+                    activePolicyID,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                }).policyID;
+            };
+
             const getInvoicesOptions = (payAsBusiness: boolean) => {
-                const getPolicyID = () => {
-                    if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
-                        return chatReport?.invoiceReceiver?.policyID;
-                    }
-
-                    if (canUseActivePolicy) {
-                        return activePolicy.id;
-                    }
-
-                    return createWorkspace({
-                        introSelected,
-                        activePolicyID,
-                        currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                        currentUserEmailParam: currentUserPersonalDetails.email ?? '',
-                    }).policyID;
-                };
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
                     icon: icons.Bank,

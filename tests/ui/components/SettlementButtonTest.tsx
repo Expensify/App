@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
@@ -82,17 +83,11 @@ const BANK_ACCOUNT_ID = 12345;
 
 function SettlementButtonWrapper({children}: {children: React.ReactNode}) {
     return (
-        <OnyxListItemProvider>
-            <LocaleContextProvider>
-                <CurrentUserPersonalDetailsProvider>
-                    <DelegateNoAccessModalProvider>
-                        <LockedAccountModalProvider>
-                            <KYCWallContextProvider>{children}</KYCWallContextProvider>
-                        </LockedAccountModalProvider>
-                    </DelegateNoAccessModalProvider>
-                </CurrentUserPersonalDetailsProvider>
-            </LocaleContextProvider>
-        </OnyxListItemProvider>
+        <ComposeProviders
+            components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider, DelegateNoAccessModalProvider, LockedAccountModalProvider, KYCWallContextProvider]}
+        >
+            {children}
+        </ComposeProviders>
     );
 }
 
