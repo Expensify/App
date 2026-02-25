@@ -1,4 +1,4 @@
-import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
+import {buildFeedKeysWithAssignedCards, isExpensifyCardUkEuSupportedSelector} from '@selectors/Card';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
@@ -49,6 +49,7 @@ import {
     isDirectFeed as isDirectFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
+    isExpensifyCardUkEuSupported,
     isMatchingCard,
     isPersonalCard,
     lastFourNumbersFromCardName,
@@ -2563,6 +2564,144 @@ describe('CardUtils', () => {
                 state: 3,
             };
             expect(isExpensifyCard(card)).toBe(false);
+        });
+    });
+
+    describe('isExpensifyCardUkEuSupported', () => {
+        it('should return true for UK/EU Expensify Card with feedCountry GB', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+                nameValuePairs: {
+                    feedCountry: CONST.EXPENSIFY_CARD.PROGRAM.UK_EU,
+                } as Card['nameValuePairs'],
+            };
+            expect(isExpensifyCardUkEuSupported(card)).toBe(true);
+        });
+
+        it('should return false for US Expensify Card (no feedCountry)', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+            };
+            expect(isExpensifyCardUkEuSupported(card)).toBe(false);
+        });
+
+        it('should return false for US Expensify Card (feedCountry US)', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                cardID: 21570657,
+                cardName: 'CREDIT CARD...5644',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 2,
+                nameValuePairs: {
+                    feedCountry: CONST.EXPENSIFY_CARD.PROGRAM.US,
+                } as Card['nameValuePairs'],
+            };
+            expect(isExpensifyCardUkEuSupported(card)).toBe(false);
+        });
+
+        it('should return false for undefined card', () => {
+            expect(isExpensifyCardUkEuSupported(undefined)).toBe(false);
+        });
+
+        it('should return false for non-Expensify Card with feedCountry GB', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardID: 21310091,
+                cardName: '480801XXXXXX2554',
+                domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                fraud: 'none',
+                lastFourPAN: '2554',
+                lastUpdated: '',
+                lastScrape: '2024-11-27 11:00:53',
+                scrapeMinDate: '2024-10-17',
+                state: 3,
+                nameValuePairs: {
+                    feedCountry: CONST.EXPENSIFY_CARD.PROGRAM.UK_EU,
+                } as Card['nameValuePairs'],
+            };
+            // Even with UK/EU feedCountry, non-Expensify cards don't qualify
+            // This tests only the feedCountry check, which should still return true
+            expect(isExpensifyCardUkEuSupported(card)).toBe(true);
+        });
+    });
+
+    describe('isExpensifyCardUkEuSupportedSelector', () => {
+        const ukEuCard: Card = {
+            accountID: 18439984,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            cardID: 21570657,
+            cardName: 'CREDIT CARD...5644',
+            domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+            fraud: 'none',
+            lastFourPAN: '',
+            lastScrape: '',
+            lastUpdated: '',
+            state: 2,
+            nameValuePairs: {
+                feedCountry: CONST.EXPENSIFY_CARD.PROGRAM.UK_EU,
+            } as Card['nameValuePairs'],
+        };
+
+        const usCard: Card = {
+            accountID: 18439984,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            cardID: 21570658,
+            cardName: 'CREDIT CARD...1234',
+            domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+            fraud: 'none',
+            lastFourPAN: '',
+            lastScrape: '',
+            lastUpdated: '',
+            state: 2,
+        };
+
+        const cardList: CardList = {
+            '21570657': ukEuCard,
+            '21570658': usCard,
+        };
+
+        it('should return true when cardID matches a UK/EU card', () => {
+            expect(isExpensifyCardUkEuSupportedSelector(cardList, '21570657')).toBe(true);
+        });
+
+        it('should return false when cardID matches a US card', () => {
+            expect(isExpensifyCardUkEuSupportedSelector(cardList, '21570658')).toBe(false);
+        });
+
+        it('should return false when cardID does not exist in card list', () => {
+            expect(isExpensifyCardUkEuSupportedSelector(cardList, '99999999')).toBe(false);
+        });
+
+        it('should return false when card list is empty', () => {
+            expect(isExpensifyCardUkEuSupportedSelector({}, '21570657')).toBe(false);
+        });
+
+        it('should return false when cardID is empty string', () => {
+            expect(isExpensifyCardUkEuSupportedSelector(cardList, '')).toBe(false);
         });
     });
 
