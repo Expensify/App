@@ -158,6 +158,7 @@ type SearchCustomColumnIds =
 
 type SearchContextData = {
     currentSearchHash: number;
+    currentRecentSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: SearchQueryJSON | undefined;
     currentSearchResults: SearchResults | undefined;
@@ -173,7 +174,7 @@ type SearchContextProps = SearchContextData & {
     currentSearchResults: SearchResults | undefined;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
-    setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
+    setCurrentSearchHashAndKey: (hash: number, recentHash: number, key: SearchKey | undefined) => void;
     setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
