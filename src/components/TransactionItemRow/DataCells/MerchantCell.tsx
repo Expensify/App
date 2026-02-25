@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
+import type {EditableProps} from '@components/Table/EditableCell/types';
 import TextInput from '@components/TextInput';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,6 +11,7 @@ function MerchantOrDescriptionCell({
     shouldShowTooltip,
     shouldUseNarrowLayout,
     isDescription,
+    isEditable,
     canEdit,
     onSave,
 }: {
@@ -17,9 +19,7 @@ function MerchantOrDescriptionCell({
     shouldUseNarrowLayout?: boolean;
     shouldShowTooltip: boolean;
     isDescription?: boolean;
-    canEdit?: boolean;
-    onSave?: (newValue: string) => void;
-}) {
+} & EditableProps<string>) {
     const styles = useThemeStyles();
 
     const text = useMemo(() => {
@@ -37,6 +37,7 @@ function MerchantOrDescriptionCell({
 
     return (
         <EditableCell
+            isEditable={isEditable}
             canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={startEditing}

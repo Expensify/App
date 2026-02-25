@@ -328,7 +328,7 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false)]}
                 >
                     <DateCell
-                        canEdit={canInlineEdit}
+                        canEdit={canEditCell}
                         date={createdAt}
                         onSave={onEditDate}
                         showTooltip={shouldShowTooltip}
@@ -637,7 +637,6 @@ function TransactionItemRow({
             isTaxAmountColumnWide,
             isLargeScreenWidth,
             reportActions,
-            canInlineEdit,
             canEditCell,
             onEditDate,
             onEditMerchant,

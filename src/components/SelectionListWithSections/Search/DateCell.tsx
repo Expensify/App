@@ -2,6 +2,7 @@ import {setYear} from 'date-fns';
 import React from 'react';
 import DatePickerModal from '@components/DatePicker/DatePickerModal';
 import {EditableCell, usePopoverEditState} from '@components/Table/EditableCell';
+import type {EditableProps} from '@components/Table/EditableCell/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -11,11 +12,9 @@ type DateCellProps = {
     date: string;
     showTooltip: boolean;
     isLargeScreenWidth: boolean;
-    canEdit?: boolean;
-    onSave?: (date: string) => void;
-};
+} & EditableProps<string>;
 
-function DateCell({date, showTooltip, isLargeScreenWidth, canEdit, onSave}: DateCellProps) {
+function DateCell({date, showTooltip, isLargeScreenWidth, isEditable, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, closePopover} = usePopoverEditState({
         anchorEdge: 'left',
@@ -38,6 +37,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, canEdit, onSave}: Date
 
     return (
         <EditableCell
+            isEditable={isEditable}
             canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={startEditing}

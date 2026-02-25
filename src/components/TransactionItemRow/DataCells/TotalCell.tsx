@@ -1,6 +1,7 @@
 import React, {useRef} from 'react';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
+import type {EditableProps} from '@components/Table/EditableCell/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -11,12 +12,9 @@ import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-type TotalCellProps = TransactionDataCellProps & {
-    canEdit?: boolean;
-    onSave?: (amount: number) => void;
-};
+type TotalCellProps = TransactionDataCellProps & EditableProps<number>;
 
-function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalCellProps) {
+function TotalCell({shouldShowTooltip, transactionItem, isEditable, canEdit, onSave}: TotalCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currency = getTransactionCurrency(transactionItem);
@@ -65,13 +63,10 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
         />
     );
 
-    if (!canEdit || isScanning(transactionItem)) {
-        return displayContent;
-    }
-
     return (
         <EditableCell
-            canEdit={canEdit}
+            isEditable={isEditable}
+            canEdit={canEdit && !isScanning(transactionItem)}
             isEditing={isEditing}
             onStartEditing={startEditing}
             editContent={

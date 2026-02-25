@@ -18,7 +18,19 @@ type EditableCellProps = {
     /** Whether the cell is currently in editing mode */
     isEditing: boolean;
 
-    /** Whether editing is allowed */
+    /**
+     * Whether this cell type architecturally supports inline editing at all (e.g. false on narrow/mobile layouts).
+     * When false the cell renders bare children with no wrapper — use this only for permanent, layout-driven decisions.
+     * For transient states (loading, insufficient permissions) use `canEdit=false` with `isEditable=true` so the
+     * cell keeps its container and padding consistent with its editable siblings.
+     */
+    isEditable?: boolean;
+
+    /**
+     * Whether editing is currently permitted.
+     * Only meaningful when `isEditable=true`. When false the styled container is still rendered (maintaining layout
+     * consistency) but the pressable is disabled and editing cannot be triggered.
+     */
     canEdit?: boolean;
 
     /** Callback when edit mode should be activated */
@@ -33,15 +45,17 @@ type EditableCellProps = {
  * Does not manage editing state — the consumer controls that via hooks.
  *
  * Modes:
- *   1. canEdit=false              → renders children as-is
+ *   1. isEditable=false           → renders children as-is (narrow/mobile layout — no container needed)
  *   2. isEditing + editContent    → replaces children with editContent (inline edit)
  *   3. isEditing + no editContent → shows children with active border (popover edit)
- *   4. default                    → PressableWithFeedback (hover border, click triggers edit)
+ *   4. canEdit=false              → styled container View, no pressable (transient: loading / no permission)
+ *   5. default                    → PressableWithFeedback (hover border, click triggers edit)
  */
-function EditableCell({children, editContent, popoverContent, isEditing, canEdit = true, onStartEditing, anchorRef}: EditableCellProps) {
+function EditableCell({children, editContent, popoverContent, isEditing, isEditable, canEdit, onStartEditing, anchorRef}: EditableCellProps) {
     const styles = useThemeStyles();
 
-    if (!canEdit) {
+    // Architectural exclusion (e.g. narrow layout) — no container, no padding.
+    if (!isEditable) {
         return children;
     }
 
@@ -60,6 +74,17 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
                 >
                     {children}
                 </View>
+                {popoverContent}
+            </>
+        );
+    }
+
+    // Transient non-editable state (loading, permissions pending): render the container for layout
+    // consistency but skip the pressable so the user cannot trigger edit mode.
+    if (!canEdit) {
+        return (
+            <>
+                <View style={[styles.editableCell]}>{children}</View>
                 {popoverContent}
             </>
         );

@@ -3,19 +3,19 @@ import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal'
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
 import {EditableCell, usePopoverEditState} from '@components/Table/EditableCell';
+import type {EditableProps} from '@components/Table/EditableCell/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-type CategoryCellProps = TransactionDataCellProps & {
-    canEdit?: boolean;
-    onSave?: (category: string) => void;
-    policyID?: string;
-};
+type CategoryCellProps = TransactionDataCellProps &
+    EditableProps<string> & {
+        policyID?: string;
+    };
 
-function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, canEdit, onSave, policyID}: CategoryCellProps) {
+function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, isEditable, canEdit, onSave, policyID}: CategoryCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, closePopover} = usePopoverEditState({
@@ -51,6 +51,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
 
     return (
         <EditableCell
+            isEditable={isEditable}
             canEdit={canEdit && !!policyID}
             isEditing={isEditing}
             onStartEditing={startEditing}

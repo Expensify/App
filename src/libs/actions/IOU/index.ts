@@ -4871,20 +4871,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         },
     });
 
-    // Roll back the snapshot copy of the transaction so the search row reverts to its pre-edit state
-    if (hash) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction ?? null,
-                },
-            },
-        });
-    }
-
     if (iouReport) {
         // Reset the iouReport to its original state
         failureData.push({
