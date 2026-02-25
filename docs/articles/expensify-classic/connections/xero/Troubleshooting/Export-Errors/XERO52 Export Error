@@ -1,0 +1,88 @@
+---
+title: XERO52 Export Error: All Expenses Must Have a Xero Account Selected
+description: Learn why the XERO52 export error occurs in Expensify Classic and how to ensure all expenses are categorized with valid Xero accounts.
+keywords: XERO52, Xero account not selected, expense not categorized Xero, chart of accounts sync error, Expensify Classic Xero export error
+internalScope: Audience is Workspace Admins using the Xero integration in Expensify Classic. Covers the XERO52 export error related to missing or invalid Xero expense account categories. Does not cover authentication or organization selection issues.
+---
+
+# XERO52 Export Error: All Expenses Must Have a Xero Account Selected
+
+If you see the error message **“XERO52 Export Error: All expenses must have a Xero account selected as the category.”**, it means one or more expenses on the report are not categorized with a valid Xero expense account.
+
+Every expense must be assigned to an active Xero account before export.
+
+---
+
+## Why the XERO52 Export Error Happens
+
+The XERO52 export error occurs when:
+
+- An expense is not categorized in Expensify, or  
+- The selected category no longer exists in Xero, or  
+- The category is inactive or not enabled for expense claims  
+
+If the category is missing or invalid, Xero blocks the export.
+
+---
+
+## How to Fix the XERO52 Export Error
+
+### Step 1: Confirm Expense Accounts in Xero
+
+In Xero:
+
+1. Go to **Settings > Chart of Accounts**.
+2. Confirm that all expense accounts used in Expensify:
+   - Exist
+   - Are active
+   - Are set to **Expense** type
+   - Have **Show in Expense Claims** enabled
+
+If an account is missing:
+
+- Create the appropriate expense account.
+- Enable **Show in Expense Claims**.
+- Save the account.
+
+---
+
+### Step 2: Sync the Workspace in Expensify Classic
+
+In Expensify:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync now**.
+
+This refreshes the imported Xero accounts.
+
+---
+
+### Step 3: Categorize or Recategorize the Expenses
+
+1. Open the report.
+2. Look for expenses flagged with a **red violation**.
+3. Select a valid, active Xero account as the category.
+4. Save the report.
+
+---
+
+### Step 4: Retry the Export
+
+After correcting all categories:
+
+1. Return to the report.
+2. Retry exporting to Xero.
+
+---
+
+# FAQ
+
+## Does the XERO52 Export Error affect only one expense?
+
+It can affect one or multiple expenses. All expenses on the report must have valid Xero categories.
+
+## Do I need Xero admin access to fix the XERO52 Export Error?
+
+Yes. Updating or creating accounts in Xero requires appropriate permissions.
