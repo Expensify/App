@@ -22,6 +22,7 @@ import ChooseCustomListStep from './subPages/ChooseCustomListStep';
 import ConfirmCustomListStep from './subPages/ConfirmCustomListStep';
 import CustomListMappingStep from './subPages/CustomListMappingStep';
 import TransactionFieldIDStep from './subPages/TransactionFieldIDStep';
+import ScreenWrapper from '@components/ScreenWrapper';
 
 type NetSuiteImportAddCustomListContentProps = {
     policy: OnyxEntry<Policy>;
@@ -106,7 +107,11 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
     }, [isEditing, goBackToConfirmStep, nextPage]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator />;
+        return (
+            <ScreenWrapper testID="NetSuiteImportAddCustomListContent">
+                <FullScreenLoadingIndicator />
+            </ScreenWrapper>
+        );
     }
 
     return (
