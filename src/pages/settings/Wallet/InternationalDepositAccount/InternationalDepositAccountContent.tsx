@@ -165,7 +165,7 @@ function InternationalDepositAccountContent({
         nextPage();
     }, [isEditing, goBackToConfirmStep, nextPage]);
 
-    if (isRedirecting || isAccountLoading) {
+    if (isAccountLoading) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -175,17 +175,23 @@ function InternationalDepositAccountContent({
             testID="InternationalDepositAccountContent"
             shouldShowOfflineIndicatorInWideScreen={pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
-            <HeaderWithBackButton
-                title={translate('bankAccount.addBankAccount')}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            <CurrentPage
-                isEditing={isEditing}
-                onNext={handleNextScreen}
-                onMove={moveTo}
-                formValues={values}
-                fieldsMap={fieldsMap}
-            />
+            {isRedirecting ? (
+                <FullScreenLoadingIndicator />
+            ) : (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('bankAccount.addBankAccount')}
+                        onBackButtonPress={handleBackButtonPress}
+                    />
+                    <CurrentPage
+                        isEditing={isEditing}
+                        onNext={handleNextScreen}
+                        onMove={moveTo}
+                        formValues={values}
+                        fieldsMap={fieldsMap}
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 }
