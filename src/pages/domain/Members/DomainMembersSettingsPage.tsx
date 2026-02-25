@@ -14,7 +14,7 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainSettingsPage from '@pages/domain/BaseDomainSettingsPage';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {clearToggleTwoFactorAuthRequiredForDomainError, toggleTwoFactorAuthRequiredForDomain} from '@userActions/Domain';
+import {clearToggleTwoFactorAuthRequiredForDomainError, clearValidateDomainTwoFactorCodeError, toggleTwoFactorAuthRequiredForDomain} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -28,18 +28,13 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        canBeMissing: true,
-    });
-    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
-        canBeMissing: true,
-    });
+    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
     const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
-        canBeMissing: false,
         selector: domainMemberSettingsSelector,
     });
-    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: domainNameSelector});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const {environmentURL} = useEnvironment();
     const samlPageUrl = `${environmentURL}${addLeadingForwardSlash(ROUTES.DOMAIN_SAML.getRoute(domainAccountID))}`;
@@ -58,6 +53,7 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
 
                     if (!value && account?.requiresTwoFactorAuth) {
                         clearToggleTwoFactorAuthRequiredForDomainError(domainAccountID);
+                        clearValidateDomainTwoFactorCodeError();
                         Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS_TWO_FACTOR_AUTH.getRoute(domainAccountID));
                     } else {
                         toggleTwoFactorAuthRequiredForDomain(domainAccountID, domainName, value);

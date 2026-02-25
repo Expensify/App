@@ -4,8 +4,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
 const useHasPhoneNumberLogin = () => {
-    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
 
     const isPrimaryEmailPhone = Str.endsWith(session?.email ?? '', CONST.SMS.DOMAIN);
 
