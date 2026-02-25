@@ -51,7 +51,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
             if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
                 exportToIntegration(reportID, connectionName);
             } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                markAsManuallyExported([reportID], connectionName);
+                markAsManuallyExported(reportID, connectionName);
             }
             Navigation.dismissModal();
         },

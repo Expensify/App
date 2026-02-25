@@ -5203,34 +5203,23 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName) {
     API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData});
 }
 
-function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionName) {
+function markAsManuallyExported(reportID: string, connectionName: ConnectionName) {
+    const action = buildOptimisticExportIntegrationAction(connectionName, true);
     const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+    const optimisticReportActionID = action.reportActionID;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-    const reportData: Array<{reportID: string; label: string; optimisticReportActionID: string}> = [];
-
-    // Process each report ID
-    for (const reportID of reportIDs) {
-        const action = buildOptimisticExportIntegrationAction(connectionName, true);
-        const optimisticReportActionID = action.reportActionID;
-
-        reportData.push({
-            reportID,
-            label,
-            optimisticReportActionID,
-        });
-
-        optimisticData.push({
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [optimisticReportActionID]: action,
             },
-        });
+        },
+    ];
 
-        successData.push({
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
@@ -5238,9 +5227,11 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
                     pendingAction: null,
                 },
             },
-        });
+        },
+    ];
 
-        failureData.push({
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
@@ -5248,12 +5239,18 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
-        });
-    }
+        },
+    ];
 
     const params = {
         markedManually: true,
-        data: JSON.stringify(reportData),
+        data: JSON.stringify([
+            {
+                reportID,
+                label,
+                optimisticReportActionID,
+            },
+        ]),
     } satisfies MarkAsExportedParams;
 
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
