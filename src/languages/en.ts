@@ -3928,6 +3928,8 @@ const translations = {
             workspaceOwner: 'Owner',
             workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
+            clientID: 'Client ID',
+            clientIDInputHint: "Enter the client's unique identifier",
             mustBeOnlineToViewMembers: 'You need to be online in order to view members of this workspace.',
             moreFeatures: 'More features',
             requested: 'Requested',
@@ -6312,6 +6314,7 @@ const translations = {
                 adultEntertainment: 'Adult entertainment',
                 requireCompanyCard: 'Require company cards for all purchases',
                 requireCompanyCardDescription: 'Flag all cash spend, including mileage and per-diem expenses.',
+                requireCompanyCardDisabledTooltip: 'Enable Company cards (under More features) to unlock.',
             },
             expenseReportRules: {
                 title: 'Advanced',
@@ -7173,6 +7176,7 @@ const translations = {
             table: 'Table',
             bar: 'Bar',
             line: 'Line',
+            pie: 'Pie',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'From',
@@ -8443,15 +8447,16 @@ const translations = {
                 removeMember: 'Unable to remove this user. Please try again.',
                 vacationDelegate: 'Unable to set this user as a vacation delegate. Please try again.',
             },
+            cannotSetVacationDelegateForMember: (email: string) => `You can't set a vacation delegate for ${email} because they're currently the delegate for the following members:`,
+        },
+        common: {
+            settings: 'Settings',
             forceTwoFactorAuth: 'Force two-factor authentication',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>Please disable <a href="${samlPageUrl}">SAML</a> to force two-factor authentication.</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>Require two-factor authentication for all members of this domain. Domain members will be prompted to set up two-factor authentication on their account when they sign in.</muted-text>`,
             forceTwoFactorAuthError: "Force two-factor authentication couldn't be changed. Please try again later.",
-            cannotSetVacationDelegateForMember: (email: string) => `You can't set a vacation delegate for ${email} because they're currently the delegate for the following members:`,
-        },
-        common: {
-            settings: 'Settings',
+            resetTwoFactorAuth: 'Reset two-factor authentication',
         },
         groups: {
             title: 'Groups',

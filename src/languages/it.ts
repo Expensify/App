@@ -3886,6 +3886,8 @@ ${
             workspaceOwner: 'Proprietario',
             workspaceType: 'Tipo di workspace',
             workspaceAvatar: 'Avatar spazio di lavoro',
+            clientID: 'ID cliente',
+            clientIDInputHint: "Inserisci l'identificativo univoco del cliente",
             mustBeOnlineToViewMembers: 'Devi essere online per visualizzare i membri di questo spazio di lavoro.',
             moreFeatures: 'Altre funzionalità',
             requested: 'Richiesto',
@@ -6348,6 +6350,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 adultEntertainment: 'Intrattenimento per adulti',
                 requireCompanyCard: 'Richiedi le carte aziendali per tutti gli acquisti',
                 requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, inclusi chilometraggio e indennità giornaliere.',
+                requireCompanyCardDisabledTooltip: 'Abilita Carte aziendali (in Altre funzionalità) per sbloccare.',
             },
             expenseReportRules: {
                 title: 'Avanzate',
@@ -7202,6 +7205,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             table: 'Tabella',
             bar: 'Bar',
             line: 'Linea',
+            pie: 'Torta',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
@@ -7236,7 +7240,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         exportedTo: 'Esportato in',
         exportAll: {
             selectAllMatchingItems: 'Seleziona tutti gli elementi corrispondenti',
-            allMatchingItemsSelected: 'Tutti gli elementi corrispondenti sono stati selezionati',
+            allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
         },
         spendOverTime: 'Spesa nel tempo',
     },
@@ -8479,14 +8483,17 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
                 addMember: 'Impossibile aggiungere questo membro. Riprova.',
                 vacationDelegate: 'Impossibile impostare questo utente come delegato per le ferie. Riprova.',
             },
+            cannotSetVacationDelegateForMember: (email: string) => `Non puoi impostare un delegato per le vacanze per ${email} perché al momento è il delegato per i seguenti membri:`,
+        },
+        common: {
+            settings: 'Impostazioni',
             forceTwoFactorAuth: 'Imponi l’autenticazione a due fattori',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>Disabilita <a href="${samlPageUrl}">SAML</a> per imporre l’autenticazione a due fattori.</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>Richiedi l’autenticazione a due fattori per tutti i membri di questo dominio. Ai membri del dominio verrà chiesto di configurare l’autenticazione a due fattori sul proprio account quando effettuano l’accesso.</muted-text>`,
             forceTwoFactorAuthError: 'Impossibile modificare l’impostazione “Forza l’autenticazione a due fattori”. Riprova più tardi.',
-            cannotSetVacationDelegateForMember: (email: string) => `Non puoi impostare un delegato per le vacanze per ${email} perché al momento è il delegato per i seguenti membri:`,
+            resetTwoFactorAuth: 'Reimposta l’autenticazione a due fattori',
         },
-        common: {settings: 'Impostazioni'},
         groups: {title: 'Gruppi', memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membri`})},
     },
     proactiveAppReview: {

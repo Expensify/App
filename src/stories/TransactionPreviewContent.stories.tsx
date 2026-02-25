@@ -6,7 +6,7 @@ import type {ValueOf} from 'type-fest';
 import TransactionPreviewContent from '@components/ReportActionItem/TransactionPreview/TransactionPreviewContent';
 import type {TransactionPreviewContentProps} from '@components/ReportActionItem/TransactionPreview/types';
 import ThemeProvider from '@components/ThemeProvider';
-import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
