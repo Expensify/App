@@ -1536,12 +1536,8 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
     let newQuantity: number | undefined;
 
     if (customUnitRateID && transaction) {
-        // Pre-set FAKE_P2P_ID on the transaction so getRate identifies it as P2P and returns the correct unit.
-        const transactionForRate = isFakeP2PRate
-            ? {...transaction, comment: {...transaction.comment, customUnit: {...transaction.comment?.customUnit, customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID}}}
-            : transaction;
         const distanceRate = isFakeP2PRate
-            ? DistanceRequestUtils.getRate({transaction: transactionForRate, useTransactionDistanceUnit: false, policy})
+            ? DistanceRequestUtils.getRate({transaction, useTransactionDistanceUnit: false, policy})
             : DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID});
 
         const transactionDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
