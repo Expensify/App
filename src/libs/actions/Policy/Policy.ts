@@ -1681,7 +1681,7 @@ function updateWorkspaceAvatar(policyID: string, currentAvatarURL: string | unde
 /**
  * Deletes the avatar image for the workspace
  */
-function deleteWorkspaceAvatar(policyID: string, currentAvatarURL: string, currentOriginalFileName: string) {
+function deleteWorkspaceAvatar(policyID: string, currentAvatarURL: string, currentOriginalFileName: string | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

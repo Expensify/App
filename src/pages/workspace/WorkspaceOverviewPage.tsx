@@ -601,7 +601,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 updateWorkspaceAvatar(policyID, policy.avatarURL, file as File);
                             }}
                             onImageRemoved={() => {
-                                if (!policyID || !policy.avatarURL || !policy.originalFileName) {
+                                if (!policyID || !policy.avatarURL) {
                                     return;
                                 }
                                 deleteWorkspaceAvatar(policyID, policy.avatarURL, policy.originalFileName);
