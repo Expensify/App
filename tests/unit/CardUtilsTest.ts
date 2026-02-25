@@ -43,6 +43,7 @@ import {
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    isCardAlreadyAssigned,
     isCardFrozen,
     isCSVFeedOrExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
@@ -3120,45 +3121,140 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('getBrokenConnectionUrlToFixPersonalCard', () => {
-        const environmentURL = 'https://dev.new.expensify.com';
+    describe('isCardAlreadyAssigned', () => {
+        it('should detect Plaid card assigned in the same workspace', () => {
+            const workspaceCardFeeds = {
+                [`cards_100_plaid.ins_19`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        state: 3,
+                        domainName: 'workspace1.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
 
-        it('Should return undefined when cards is undefined', () => {
-            expect(getBrokenConnectionUrlToFixPersonalCard(undefined as unknown as Record<string, Card>, environmentURL)).toBeUndefined();
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(true);
         });
 
-        it('Should return undefined when cards is null', () => {
-            expect(getBrokenConnectionUrlToFixPersonalCard(null as unknown as Record<string, Card>, environmentURL)).toBeUndefined();
+        it('should detect Plaid card assigned in a different workspace with the same feed', () => {
+            const workspaceCardFeeds = {
+                [`cards_200_plaid.ins_19`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        state: 3,
+                        domainName: 'workspace2.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Workspace 100 checking, card is assigned in workspace 200 — should be detected
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(true);
         });
 
-        it('Should return wallet URL when cards is empty object', () => {
-            const result = getBrokenConnectionUrlToFixPersonalCard({}, environmentURL);
-            expect(result).toBe(`${environmentURL}/settings/wallet`);
+        it('should not match Plaid card from a different institution', () => {
+            const workspaceCardFeeds = {
+                [`cards_200_plaid.ins_99`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        state: 3,
+                        domainName: 'workspace2.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Different institution feed (plaid.ins_19 vs plaid.ins_99)
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(false);
         });
 
-        it('Should return personal card details URL when there is exactly one card', () => {
-            const cards: Record<string, Card> = {
-                '1': {cardID: 12345} as Card,
-            };
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
-            expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/12345`);
+        it('should detect commercial card assigned in the same domain', () => {
+            const workspaceCardFeeds = {
+                cards_100_vcf: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'ENCRYPTED_ABC',
+                        state: 3,
+                        domainName: 'company.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('ENCRYPTED_ABC', workspaceCardFeeds, 100, 'vcf')).toBe(true);
         });
 
-        it('Should return wallet URL when there are multiple cards', () => {
-            const cards: Record<string, Card> = {
-                '1': {cardID: 111} as Card,
-                '2': {cardID: 222} as Card,
-            };
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
-            expect(result).toBe(`${environmentURL}/settings/wallet`);
+        it('should not match commercial card with same display name in a different domain', () => {
+            const workspaceCardFeeds = {
+                cards_200_vcf: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'ENCRYPTED_DOMAIN_200',
+                        state: 3,
+                        domainName: 'other-company.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Different domain, different encrypted number — should not match
+            expect(isCardAlreadyAssigned('ENCRYPTED_DOMAIN_100', workspaceCardFeeds, 100, 'vcf')).toBe(false);
         });
 
-        it('Should use first card cardID for single-card URL', () => {
-            const cards: Record<string, Card> = {
-                cardKey: {cardID: 99999} as Card,
-            };
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
-            expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/99999`);
+        it('should not match card pending deletion', () => {
+            const workspaceCardFeeds = {
+                [`cards_100_plaid.ins_19`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        state: 3,
+                        domainName: 'workspace1.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(false);
+        });
+
+        it('should detect OAuth card assigned in a different workspace', () => {
+            const workspaceCardFeeds = {
+                [`cards_200_oauth.chase.com`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'CREDIT CARD...6607',
+                        encryptedCardNumber: 'CREDIT CARD...6607',
+                        state: 3,
+                        domainName: 'workspace2.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('CREDIT CARD...6607', workspaceCardFeeds, 100, 'oauth.chase.com')).toBe(true);
+        });
+
+        it('should fall back to domain-scoped check when feedName is not provided', () => {
+            const workspaceCardFeeds = {
+                cards_200_vcf: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'ENCRYPTED_ABC',
+                        state: 3,
+                        domainName: 'other.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Without feedName, falls back to domain-scoped — domain 100 vs 200, should not match
+            expect(isCardAlreadyAssigned('ENCRYPTED_ABC', workspaceCardFeeds, 100)).toBe(false);
+            // Same domain should match
+            expect(isCardAlreadyAssigned('ENCRYPTED_ABC', workspaceCardFeeds, 200)).toBe(true);
         });
     });
 });
