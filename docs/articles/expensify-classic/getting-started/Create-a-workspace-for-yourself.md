@@ -27,12 +27,24 @@ Your personal assistant, **Concierge**, is available on your Expensify Home page
 
 # 3. Create a Workspace
 
+## Individual vs. Group Workspaces
+- **Individual Workspace**: A private space for managing your personal expenses.
+- **Group Workspace**: Designed for teams, even if you're the only member. Group workspaces include features like expense approval flows and integrations with accounting, HR, and travel tools.
+
+## Set Up Your Individual Workspace
+1. Go to **Settings** > **Workspaces**.
+2. Click the **Individual** tab on the left.
+3. Click the workspace name to set up your Individual Workspace.
+4. Go to Plan on the workspace menu to select the workspace type that fits your needs.
+5. Configure your workspace details (e.g., workspace name, categories, tags, etc).
+
+Note: The Individual Workspace is an underlying component of Expensify Classic. It cannot be deleted, and you can't add additional Individual Workspaces. Only additional Group Workspaces can be added manually (see below). Individual workspaces don't connect directly to accounting software or have the ability to add users.
+
+## Create a Group Workspace
 1. Go to **Settings** > **Workspaces**.
 2. Click the **Group** tab on the left.
 3. Click **New Workspace**.
 4. Set up the workspace details (e.g., name, expense rules, categories).
-
-Workspaces include features like expense approval flows and integrations with accounting, HR, and travel tools — even if you're the only member.
 
 ---
 
