@@ -174,7 +174,7 @@ jobs:
           FORCE_NATIVE_BUILD: ${{ inputs.force-native-build == 'true' && github.run_id || '' }}
         with:
           variant: ${{ inputs.variant }}
-          aab: true
+          aab: ${{ inputs.variant == 'Release' }}
           sign: true
           re-sign: true
           ad-hoc: ${{ inputs.variant == 'Adhoc' }}
@@ -187,6 +187,35 @@ jobs:
           comment-bot: false
           rock-build-extra-params: ${{ inputs.variant == 'Adhoc' && '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"' || '--extra-params "--profile"' }}
           custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
+          validate-elf-alignment: false
+
+      - name: Set artifact URL output
+        id: set-artifact-url
+        if: ${{ inputs.variant == 'Adhoc' }}
+        run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Rock Remote Build - Android AAB (Sentry size analysis, AAB format is required)
+        if: ${{ inputs.variant == 'Adhoc' }}
+        uses: callstackincubator/android@4cedf4d9b5c167452c96fe67233577e0fde9a025
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          IS_HYBRID_APP: true
+        with:
+          variant: ${{ inputs.variant }}
+          aab: true
+          sign: true
+          re-sign: true
+          ad-hoc: false
+          keystore-file: './upload-key.keystore'
+          keystore-store-file: 'upload-key.keystore'
+          keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          keystore-key-alias: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
+          keystore-key-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          keystore-path: '../tools/buildtools/upload-key.keystore'
+          comment-bot: false
+          rock-build-extra-params: '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"'
+          custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}-aab
           validate-elf-alignment: false
 
       - name: Upload Android build to Sentry for size analysis
@@ -213,11 +242,6 @@ jobs:
           name: ${{ inputs.artifact-prefix }}gradle-profile-report
           path: Mobile-Expensify/Android/build/reports/profile/
           if-no-files-found: ignore
-
-      - name: Set artifact URL output
-        id: set-artifact-url
-        if: ${{ inputs.variant == 'Adhoc' }}
-        run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
 
       - name: Collect build artifacts
         id: collectArtifacts
