@@ -155,8 +155,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         }
 
         // Has settlement account - enable Travel Invoicing directly
-        const existingPaymentBankAccountID =
-            cardSettings?.TRAVEL_US?.paymentBankAccountID ?? cardSettings?.paymentBankAccountID ?? settlementAccount?.bankAccountID;
+        const existingPaymentBankAccountID = cardSettings?.TRAVEL_US?.paymentBankAccountID ?? cardSettings?.paymentBankAccountID ?? settlementAccount?.bankAccountID;
         if (existingPaymentBankAccountID) {
             configureTravelInvoicingForPolicy(policyID, workspaceAccountID, existingPaymentBankAccountID);
         }
