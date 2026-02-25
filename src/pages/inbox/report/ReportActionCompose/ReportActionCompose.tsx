@@ -473,8 +473,7 @@ function ReportActionCompose({
 
     const hasReportRecipient = !isEmptyObject(reportRecipient);
 
-    const isNewCommentEmpty = isCommentEmpty && !isEditingInComposer;
-    const isSendDisabled = !isEditingInComposer && (isBlockedFromConcierge || isExceedingMaxLength || isNewCommentEmpty);
+    const isSendDisabled = !isEditingInComposer && (isBlockedFromConcierge || isExceedingMaxLength || isCommentEmpty);
 
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
