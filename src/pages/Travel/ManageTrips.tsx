@@ -6,6 +6,7 @@ import BookTravelButton from '@components/BookTravelButton';
 import Button from '@components/Button';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
+import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -25,7 +26,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
     const {translate} = useLocalize();
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts', 'EmptyStateTravel'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts'] as const);
 
     const tripsFeatures: FeatureListItem[] = [
         {
@@ -65,7 +66,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
                         menuItems={tripsFeatures}
                         title={translate('travel.title')}
                         subtitle={translate('travel.subtitle')}
-                        illustration={illustrations.EmptyStateTravel}
+                        illustration={LottieAnimations.TripsEmptyState}
                         illustrationStyle={[styles.mv4]}
                         illustrationBackgroundColor={colors.blue600}
                         titleStyles={styles.textHeadlineH1}
@@ -84,6 +85,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
                                     shouldRenderErrorMessageBelowButton
                                     setShouldScrollToBottom={setShouldScrollToBottom}
                                     activePolicyID={policyID}
+                                    large
                                 />
                             </>
                         }

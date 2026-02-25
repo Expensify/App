@@ -79,6 +79,11 @@ const DotLottieAnimations = {
         w: 180,
         h: 200,
     },
+    TripsEmptyState: {
+        file: require<LottieViewProps['source']>('@assets/animations/TripsEmptyState.lottie'),
+        w: 375,
+        h: 240,
+    },
     BankVault: {
         file: require<LottieViewProps['source']>('@assets/animations/BankVault.lottie'),
         w: 375,

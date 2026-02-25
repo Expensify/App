@@ -5323,8 +5323,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tripEmptyStateIllustration: {
-            width: 335,
-            height: 220,
+            width: 190,
+            height: 170,
         },
 
         offlineFeedbackDeleted: {
