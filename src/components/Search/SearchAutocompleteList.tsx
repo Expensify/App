@@ -38,6 +38,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
+import useSearchAutocompleteTransition from './useSearchAutocompleteTransition';
 
 type AutocompleteListItem = NewListItem & Partial<Omit<OptionData, keyof NewListItem>> & Partial<Omit<SearchQueryItem, keyof NewListItem>>;
 
@@ -414,7 +415,10 @@ function SearchAutocompleteList({
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
-    const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
+
+    const shouldRender = useSearchAutocompleteTransition();
+
+    const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized || !shouldRender;
 
     if (isLoading) {
         return (
