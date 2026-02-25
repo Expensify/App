@@ -26,6 +26,7 @@ import CustomSegmentInternalIdStep from './substeps/CustomSegmentInternalIdStep'
 import CustomSegmentMappingStep from './substeps/CustomSegmentMappingStep';
 import CustomSegmentNameStep from './substeps/CustomSegmentNameStep';
 import CustomSegmentScriptIdStep from './substeps/CustomSegmentScriptIdStep';
+import ScreenWrapper from '@components/ScreenWrapper';
 
 type NetSuiteImportAddCustomSegmentContentProps = {
     policy: OnyxEntry<Policy>;
@@ -112,7 +113,11 @@ function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValu
     }, [goBackToConfirmStep, isEditing, nextPage]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator />;
+        return (
+            <ScreenWrapper testID='NetSuiteImportAddCustomSegmentContent'>
+                <FullScreenLoadingIndicator />    
+            </ScreenWrapper>
+        );
     }
 
     return (
