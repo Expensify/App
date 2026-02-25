@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {setTravelInvoicingSettlementAccount, toggleTravelInvoicing} from '@libs/actions/TravelInvoicing';
+import {configureTravelInvoicingForPolicy, setTravelInvoicingSettlementAccount} from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -65,13 +65,15 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
             return;
         }
 
-        const previousPaymentBankAccountID = cardSettings?.previousPaymentBankAccountID ?? cardSettings?.paymentBankAccountID;
-        setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, value, previousPaymentBankAccountID);
+        const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(cardSettings);
 
-        // If Travel Invoicing is not yet enabled, enable it after setting the settlement account
-        // Backend requires settlement account to be configured before enabling
-        if (!getIsTravelInvoicingEnabled(cardSettings)) {
-            toggleTravelInvoicing(policyID, workspaceAccountID, true);
+        if (!isTravelInvoicingEnabled) {
+            // Enable Travel Invoicing with selected settlement account (single API call)
+            configureTravelInvoicingForPolicy(policyID, workspaceAccountID, value);
+        } else {
+            // Already enabled - just update the settlement account
+            const previousPaymentBankAccountID = cardSettings?.previousPaymentBankAccountID ?? cardSettings?.paymentBankAccountID;
+            setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, value, previousPaymentBankAccountID);
         }
 
         Navigation.goBack();

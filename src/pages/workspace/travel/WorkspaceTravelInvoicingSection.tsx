@@ -10,10 +10,11 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {
-    clearToggleTravelInvoicingErrors,
+    clearTravelInvoicingErrors,
     clearTravelInvoicingSettlementAccountErrors,
     clearTravelInvoicingSettlementFrequencyErrors,
-    toggleTravelInvoicing,
+    configureTravelInvoicingForPolicy,
+    deactivateTravelInvoicing,
 } from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
@@ -110,9 +111,9 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     /**
      * Handle toggle change for Central Invoicing.
      * When turning ON:
-     *   - If has settlement account: call toggleTravelInvoicing(true)
+     *   - If has settlement account: call configureTravelInvoicingForPolicy
      *   - If no settlement account: navigate to selection (enable happens after selection)
-     * When turning OFF: show confirmation modal, then call toggleTravelInvoicing(false).
+     * When turning OFF: show confirmation modal, then call deactivateTravelInvoicing.
      */
     const handleToggle = (isEnabled: boolean) => {
         // Check if user is on a public domain - Travel Invoicing requires a private domain
@@ -154,12 +155,16 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         }
 
         // Has settlement account - enable Travel Invoicing directly
-        toggleTravelInvoicing(policyID, workspaceAccountID, true);
+        const existingPaymentBankAccountID =
+            cardSettings?.TRAVEL_US?.paymentBankAccountID ?? cardSettings?.paymentBankAccountID ?? settlementAccount?.bankAccountID;
+        if (existingPaymentBankAccountID) {
+            configureTravelInvoicingForPolicy(policyID, workspaceAccountID, existingPaymentBankAccountID);
+        }
     };
 
     const handleConfirmDisable = () => {
         setIsDisableConfirmModalVisible(false);
-        toggleTravelInvoicing(policyID, workspaceAccountID, false);
+        deactivateTravelInvoicing(policyID, workspaceAccountID);
     };
 
     const getCentralInvoicingSubtitle = () => {
@@ -254,7 +259,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     isActive={isTravelInvoicingEnabled}
                     pendingAction={togglePendingAction}
                     errors={toggleErrors}
-                    onCloseError={() => clearToggleTravelInvoicingErrors(workspaceAccountID)}
+                    onCloseError={() => clearTravelInvoicingErrors(workspaceAccountID)}
                     subMenuItems={centralInvoicingSubMenuItems}
                 />
             </Section>
