@@ -1,15 +1,13 @@
 import {StackActions} from '@react-navigation/native';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FloatingCameraButton from '@components/FloatingCameraButton';
 import FloatingGPSButton from '@components/FloatingGPSButton';
-import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import {PressableWithFeedback} from '@components/Pressable';
-import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,13 +24,11 @@ import getAccountTabScreenToOpen from '@libs/Navigation/helpers/getAccountTabScr
 import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import Navigation from '@libs/Navigation/Navigation';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,9 +36,9 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import getLastRoute from './getLastRoute';
-import getTabIconFill from './getTabIconFill';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import SearchTabButton from './SearchTabButton';
+import TabBarItem from './TabBarItem';
 import WorkspacesTabButton from './WorkspacesTabButton';
 
 type NavigationTabBarProps = {
@@ -60,7 +56,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {orderedReportIDs} = useSidebarOrderedReports();
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const subscriptionPlan = useSubscriptionPlan();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Inbox']);
 
@@ -71,29 +67,33 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         return getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
     });
     const lastReportRouteReportID = (lastReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportID;
-    const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {canBeMissing: true, selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
+    const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
 
     const reportAttributes = useReportAttributes();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
+    const chatTabBrickRoad = getChatTabBrickRoad(orderedReportIDs, reportAttributes);
 
     const StyleUtils = useStyleUtils();
 
-    // On a wide layout DebugTabView should be rendered only within the navigation tab bar displayed directly on screens.
     const shouldRenderDebugTabViewOnWideLayout = !!isDebugModeEnabled && !isTopLevelBar;
 
-    useEffect(() => {
-        setChatTabBrickRoad(getChatTabBrickRoad(orderedReportIDs, reportAttributes));
-    }, [orderedReportIDs, reportAttributes]);
+    let inboxStatusIndicatorColor: string | undefined;
+    if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+        inboxStatusIndicatorColor = theme.iconSuccessFill;
+    } else if (chatTabBrickRoad) {
+        inboxStatusIndicatorColor = theme.danger;
+    }
 
-    const navigateToNewDotHome = useCallback(() => {
+    const inboxAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.INBOX};
+
+    const navigateToNewDotHome = () => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
             return;
         }
         Navigation.navigate(ROUTES.HOME);
-    }, [selectedTab]);
+    };
 
-    const navigateToChats = useCallback(() => {
+    const navigateToChats = () => {
         if (selectedTab === NAVIGATION_TABS.INBOX) {
             return;
         }
@@ -111,16 +111,15 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             }
 
             if (isRoutePreloaded(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
-                // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
                 navigationRef.dispatch(StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
                 return;
             }
         }
 
         Navigation.navigate(ROUTES.INBOX);
-    }, [selectedTab, shouldUseNarrowLayout, doesLastReportExist, lastReportRoute]);
+    };
 
-    const navigateToSettings = useCallback(() => {
+    const navigateToSettings = () => {
         if (selectedTab === NAVIGATION_TABS.SETTINGS) {
             return;
         }
@@ -128,15 +127,12 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             const accountTabPayload = getAccountTabScreenToOpen(subscriptionPlan);
 
             if (isRoutePreloaded(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR)) {
-                // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
                 navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, params: accountTabPayload}});
                 return;
             }
             navigationRef.dispatch(StackActions.push(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, accountTabPayload));
         });
-    }, [selectedTab, subscriptionPlan]);
-
-    const inboxAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.INBOX}), [selectedTab]);
+    };
 
     if (!shouldUseNarrowLayout) {
         return (
@@ -174,28 +170,12 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                         >
                             {({hovered}) => (
-                                <>
-                                    <View>
-                                        <Icon
-                                            src={expensifyIcons.Home}
-                                            fill={getTabIconFill(theme, {isSelected: selectedTab === NAVIGATION_TABS.HOME, isHovered: hovered})}
-                                            width={variables.iconBottomBar}
-                                            height={variables.iconBottomBar}
-                                        />
-                                    </View>
-                                    <Text
-                                        numberOfLines={2}
-                                        style={[
-                                            styles.textSmall,
-                                            styles.textAlignCenter,
-                                            styles.mt1Half,
-                                            selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
-                                            styles.navigationTabBarLabel,
-                                        ]}
-                                    >
-                                        {translate('common.home')}
-                                    </Text>
-                                </>
+                                <TabBarItem
+                                    icon={expensifyIcons.Home}
+                                    label={translate('common.home')}
+                                    isSelected={selectedTab === NAVIGATION_TABS.HOME}
+                                    isHovered={hovered}
+                                />
                             )}
                         </PressableWithFeedback>
                         <PressableWithFeedback
@@ -207,37 +187,13 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
                         >
                             {({hovered}) => (
-                                <>
-                                    <View>
-                                        <Icon
-                                            src={expensifyIcons.Inbox}
-                                            fill={getTabIconFill(theme, {isSelected: selectedTab === NAVIGATION_TABS.INBOX, isHovered: hovered})}
-                                            width={variables.iconBottomBar}
-                                            height={variables.iconBottomBar}
-                                        />
-                                        {!!chatTabBrickRoad && (
-                                            <View
-                                                style={[
-                                                    styles.navigationTabBarStatusIndicator,
-                                                    styles.statusIndicatorColor(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger),
-                                                    hovered && {borderColor: theme.sidebarHover},
-                                                ]}
-                                            />
-                                        )}
-                                    </View>
-                                    <Text
-                                        numberOfLines={2}
-                                        style={[
-                                            styles.textSmall,
-                                            styles.textAlignCenter,
-                                            styles.mt1Half,
-                                            selectedTab === NAVIGATION_TABS.INBOX ? styles.textBold : styles.textSupporting,
-                                            styles.navigationTabBarLabel,
-                                        ]}
-                                    >
-                                        {translate('common.inbox')}
-                                    </Text>
-                                </>
+                                <TabBarItem
+                                    icon={expensifyIcons.Inbox}
+                                    label={translate('common.inbox')}
+                                    isSelected={selectedTab === NAVIGATION_TABS.INBOX}
+                                    isHovered={hovered}
+                                    statusIndicatorColor={inboxStatusIndicatorColor}
+                                />
                             )}
                         </PressableWithFeedback>
                         <SearchTabButton
@@ -282,26 +238,11 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                 >
-                    <View>
-                        <Icon
-                            src={expensifyIcons.Home}
-                            fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                    </View>
-                    <Text
-                        numberOfLines={2}
-                        style={[
-                            styles.textSmall,
-                            styles.textAlignCenter,
-                            styles.mt1Half,
-                            selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
-                            styles.navigationTabBarLabel,
-                        ]}
-                    >
-                        {translate('common.home')}
-                    </Text>
+                    <TabBarItem
+                        icon={expensifyIcons.Home}
+                        label={translate('common.home')}
+                        isSelected={selectedTab === NAVIGATION_TABS.HOME}
+                    />
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     onPress={navigateToChats}
@@ -312,34 +253,13 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
                 >
-                    <View>
-                        <Icon
-                            src={expensifyIcons.Inbox}
-                            fill={selectedTab === NAVIGATION_TABS.INBOX ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                        {!!chatTabBrickRoad && (
-                            <View
-                                style={[
-                                    styles.navigationTabBarStatusIndicator,
-                                    styles.statusIndicatorColor(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger),
-                                ]}
-                            />
-                        )}
-                    </View>
-                    <Text
+                    <TabBarItem
+                        icon={expensifyIcons.Inbox}
+                        label={translate('common.inbox')}
+                        isSelected={selectedTab === NAVIGATION_TABS.INBOX}
+                        statusIndicatorColor={inboxStatusIndicatorColor}
                         numberOfLines={1}
-                        style={[
-                            styles.textSmall,
-                            styles.textAlignCenter,
-                            styles.mt1Half,
-                            selectedTab === NAVIGATION_TABS.INBOX ? styles.textBold : styles.textSupporting,
-                            styles.navigationTabBarLabel,
-                        ]}
-                    >
-                        {translate('common.inbox')}
-                    </Text>
+                    />
                 </PressableWithFeedback>
                 <SearchTabButton
                     selectedTab={selectedTab}
@@ -369,4 +289,4 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
     );
 }
 
-export default memo(NavigationTabBar);
+export default NavigationTabBar;
