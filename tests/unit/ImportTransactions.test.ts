@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {applySavedColumnMappings} from '@libs/actions/ImportSpreadsheet';
-import {getColumnIndexes, buildColumnLayout, buildTransactionListFromSpreadsheet} from '@libs/actions/ImportTransactions';
+import {buildColumnLayout, buildTransactionListFromSpreadsheet, getColumnIndexes} from '@libs/actions/ImportTransactions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
