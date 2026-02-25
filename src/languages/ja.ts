@@ -3867,6 +3867,8 @@ ${
             workspaceOwner: 'オーナー',
             workspaceType: 'ワークスペースの種類',
             workspaceAvatar: 'ワークスペースのアバター',
+            clientID: 'クライアントID',
+            clientIDInputHint: 'クライアントの一意の識別子を入力してください',
             mustBeOnlineToViewMembers: 'このワークスペースのメンバーを表示するには、オンライン接続が必要です。',
             moreFeatures: 'その他の機能',
             requested: 'リクエスト済み',
@@ -8390,14 +8392,17 @@ ${reportName}
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
                 vacationDelegate: 'このユーザーを休暇代理人として設定できませんでした。もう一度お試しください。',
             },
+            cannotSetVacationDelegateForMember: (email: string) => `${email} に休暇代理人を設定できません。現在、このユーザーは次のメンバーの代理人になっています。`,
+        },
+        common: {
+            settings: '設定',
             forceTwoFactorAuth: '2要素認証を必須にする',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>2 要素認証を必須にするには、<a href="${samlPageUrl}">SAML</a> を無効にしてください。</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>このドメインのすべてのメンバーに二要素認証を必須にします。ドメインメンバーは、サインイン時に自分のアカウントで二要素認証を設定するよう求められます。</muted-text>`,
             forceTwoFactorAuthError: '2要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',
-            cannotSetVacationDelegateForMember: (email: string) => `${email} に休暇代理人を設定できません。現在、このユーザーは次のメンバーの代理人になっています。`,
+            resetTwoFactorAuth: '2 要素認証をリセット',
         },
-        common: {settings: '設定'},
         groups: {title: 'グループ', memberCount: () => ({one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`})},
     },
     proactiveAppReview: {

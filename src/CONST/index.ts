@@ -2290,6 +2290,12 @@ const CONST = {
         INITIAL: 'initial',
     },
 
+    IMAGE_LOADING_PRIORITY: {
+        LOW: 'low',
+        NORMAL: 'normal',
+        HIGH: 'high',
+    },
+
     FILE_TYPE_REGEX: {
         // Image MimeTypes allowed by iOS photos app.
         IMAGE: /\.(jpg|jpeg|png|webp|gif|tiff|bmp|heic|heif)$/,
