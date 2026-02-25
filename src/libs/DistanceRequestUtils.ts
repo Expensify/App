@@ -162,6 +162,20 @@ function getRateForDisplay(
 }
 
 /**
+ * Get the rate title to display on the expense page.
+ * Shows the rate name (e.g., "Default Rate") so that updating a rate's value on the workspace
+ * does not retroactively change the displayed rate on historical expenses.
+ * For P2P expenses (no policy), displays "Default rate".
+ * When the rate is out of policy, displays a localized "Rate out of policy" message.
+ */
+function getRateForExpenseDisplay(rateName: string | undefined, isCustomUnitOutOfPolicy: boolean, translate: LocaleContextProps['translate']): string {
+    if (isCustomUnitOutOfPolicy) {
+        return translate('common.rateOutOfPolicy');
+    }
+    return rateName ?? translate('iou.defaultRate');
+}
+
+/**
  * @param hasRoute Whether the route exists for the distance expense
  * @param distanceInMeters Distance traveled
  * @param unit Unit that should be used to display the distance
@@ -436,6 +450,7 @@ export default {
     getRateByCustomUnitRateID,
     getDistanceForDisplayLabel,
     convertDistanceUnit,
+    getRateForExpenseDisplay,
 };
 
 export type {MileageRate};

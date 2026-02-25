@@ -9,10 +9,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -46,9 +44,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 
 function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
-    const {translate, toLocaleDigit} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {translate} = useLocalize();
     const {currentSearchResults} = useSearchStateContext();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
@@ -131,17 +127,14 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
     const isOdometerDistance = isOdometerDistanceRequest(splitExpenseDraftTransaction);
-    const {unit, rate} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: currentPolicy});
+    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: currentPolicy});
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
-    const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, rate, translate, false, isManualDistance);
     const currentRateID = getRateID(splitExpenseDraftTransaction);
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
 
     const isCustomUnitOutOfPolicy = !rates[currentRateID] || (isDistance && !rate);
-    const rateToDisplay = isCustomUnitOutOfPolicy
-        ? translate('common.rateOutOfPolicy')
-        : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
+    const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, translate);
 
     const getErrorForField = (field: ViolationField) => {
         if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {

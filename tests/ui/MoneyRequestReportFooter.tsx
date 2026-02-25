@@ -98,6 +98,7 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         policyTags: {},
         policyTagLists: [],
         rate: undefined,
+        rateName: undefined,
         receiptFilename: '',
         receiptPath: '',
         reportActionID: '',

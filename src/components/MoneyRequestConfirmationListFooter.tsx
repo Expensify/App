@@ -7,10 +7,8 @@ import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -177,6 +175,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The rate of the transaction */
     rate: number | undefined;
 
+    /** The name of the rate */
+    rateName: string | undefined;
+
     /** The filename of the receipt */
     receiptFilename: string;
 
@@ -256,6 +257,7 @@ type ConfirmationField = {
 
 function MoneyRequestConfirmationListFooter({
     action,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     currency,
     didConfirm,
     distance,
@@ -290,6 +292,7 @@ function MoneyRequestConfirmationListFooter({
     policyTags,
     policyTagLists,
     rate,
+    rateName,
     receiptFilename,
     receiptPath,
     reportActionID,
@@ -317,9 +320,7 @@ function MoneyRequestConfirmationListFooter({
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid', 'Sparkles', 'DownArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, toLocaleDigit, localeCompare} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
-    const {isOffline} = useNetwork();
+    const {translate, localeCompare} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -594,7 +595,9 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
                     shouldShowRightIcon={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
-                    title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
+                    // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
+                    // confirmation screen where a rate violation is not applicable yet.
+                    title={DistanceRequestUtils.getRateForExpenseDisplay(rateName, false, translate)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
