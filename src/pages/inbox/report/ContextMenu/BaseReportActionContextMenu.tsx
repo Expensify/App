@@ -134,22 +134,23 @@ function BaseReportActionContextMenu({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const icons = useMemoizedLazyExpensifyIcons([
-        'Download',
-        'ThreeDots',
+        'Bell',
+        'Bug',
         'ChatBubbleReply',
         'ChatBubbleUnread',
-        'Mail',
-        'Pencil',
-        'Stopwatch',
-        'Bell',
-        'Copy',
-        'LinkCopy',
-        'Pin',
-        'Flag',
-        'Bug',
-        'Trashcan',
         'Checkmark',
         'Concierge',
+        'Copy',
+        'Download',
+        'Exit',
+        'Flag',
+        'LinkCopy',
+        'Mail',
+        'Pencil',
+        'Pin',
+        'Stopwatch',
+        'ThreeDots',
+        'Trashcan',
     ] as const);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();

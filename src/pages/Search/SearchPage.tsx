@@ -15,7 +15,7 @@ import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -39,11 +39,12 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {deleteAppReport, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
+import {deleteAppReport, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     bulkDeleteReports,
     exportSearchItemsToCSV,
+    exportToIntegrationOnSearch,
     getExportTemplates,
     getLastPolicyBankAccountID,
     getLastPolicyPaymentMethod,
@@ -66,9 +67,10 @@ import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
+import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
+    getIntegrationIcon,
     getReportOrDraftReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
@@ -103,17 +105,8 @@ function SearchPage({route}: SearchPageProps) {
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {
-        selectedTransactions,
-        clearSelectedTransactions,
-        selectedReports,
-        lastSearchType,
-        setLastSearchType,
-        areAllMatchingItemsSelected,
-        selectAllMatchingItems,
-        currentSearchKey,
-        currentSearchResults,
-    } = useSearchContext();
+    const {selectedTransactions, selectedReports, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {clearSelectedTransactions, setLastSearchType, selectAllMatchingItems} = useSearchActionsContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const allTransactions = useAllTransactions();
@@ -163,6 +156,12 @@ function SearchPage({route}: SearchPageProps) {
         'SmartScan',
         'MoneyBag',
         'ArrowSplit',
+        'QBOSquare',
+        'XeroSquare',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'QBDSquare',
+        'Pencil',
     ] as const);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
@@ -202,10 +201,12 @@ function SearchPage({route}: SearchPageProps) {
             const report = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReportID = report?.chatReportID;
             const chatReport = chatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+            const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
+            const invoiceReceiverPolicy = invoiceReceiverPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
             return (
                 report &&
-                !canIOUBePaid(report, chatReport, selectedPolicy, bankAccountList, undefined, false) &&
-                canIOUBePaid(report, chatReport, selectedPolicy, bankAccountList, undefined, true)
+                !canIOUBePaid(report, chatReport, selectedPolicy, bankAccountList, undefined, false, undefined, invoiceReceiverPolicy) &&
+                canIOUBePaid(report, chatReport, selectedPolicy, bankAccountList, undefined, true, undefined, invoiceReceiverPolicy)
             );
         });
     }, [currentSearchResults?.data, selectedPolicyIDs, selectedReportIDs, selectedTransactionReportIDs, bankAccountList]);
@@ -387,6 +388,7 @@ function SearchPage({route}: SearchPageProps) {
         selectedTransactionsKeys,
         translate,
         clearSelectedTransactions,
+        setIsDownloadErrorModalVisible,
         showConfirmModal,
         hash,
         selectAllMatchingItems,
@@ -738,20 +740,9 @@ function SearchPage({route}: SearchPageProps) {
         const typeExpenseReport = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
         // Gets the list of options for the export sub-menu
-        // Gets the list of options for the export sub-menu
         const getExportOptions = () => {
             // We provide the basic and expense level export options by default
-            const exportOptions: PopoverMenuItem[] = [
-                {
-                    text: translate('export.basicExport'),
-                    icon: expensifyIcons.Table,
-                    onSelected: () => {
-                        handleBasicExport();
-                    },
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                },
-            ];
+            const exportOptions: PopoverMenuItem[] = [];
 
             // Determine if only full reports are selected by comparing the reportIDs of the selected transactions and the reportIDs of the selected reports
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
@@ -763,8 +754,119 @@ function SearchPage({route}: SearchPageProps) {
             // the selected expenses are the only expenses of their parent expense report include the report level export option.
             const includeReportLevelExport = ((typeExpenseReport || typeInvoice) && areFullReportsSelected) || (typeExpense && !typeExpenseReport && isAllOneTransactionReport);
 
-            // Collect a list of export templates available to the user from their account, policy, and custom integrations templates
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
+            const connectedIntegration = getConnectedIntegration(policy);
+            const isReportsTab = typeExpenseReport;
+
+            const canReportBeExported = (report: (typeof selectedReports)[0]) => {
+                if (!report.reportID) {
+                    return false;
+                }
+
+                const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const completeReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+
+                if (!completeReport) {
+                    return false;
+                }
+
+                const reportExportOptions = getSecondaryExportReportActions(
+                    currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserPersonalDetails?.login ?? '',
+                    completeReport,
+                    bankAccountList,
+                    reportPolicy,
+                );
+
+                return reportExportOptions.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+            };
+
+            const canExportAllReports = isReportsTab && selectedReportIDs.length > 0 && includeReportLevelExport && selectedReports.every(canReportBeExported);
+
+            if (canExportAllReports && connectedIntegration) {
+                const connectionNameFriendly = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectedIntegration];
+                const integrationIcon = getIntegrationIcon(connectedIntegration, expensifyIcons);
+
+                const handleExportAction = (exportAction: () => void) => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const exportedReportNames: string[] = [];
+                    let areAnyReportsExported = false;
+
+                    for (const reportID of selectedReportIDs) {
+                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+                        if (!report?.isExportedToIntegration) {
+                            continue;
+                        }
+
+                        areAnyReportsExported = true;
+
+                        if (report.reportName) {
+                            exportedReportNames.push(report.reportName);
+                        }
+                    }
+
+                    if (areAnyReportsExported) {
+                        showConfirmModal({
+                            title: translate('workspace.exportAgainModal.title'),
+                            prompt: translate('workspace.exportAgainModal.description', {
+                                connectionName: connectedIntegration,
+                                reportName: exportedReportNames.join('\n'),
+                            }),
+                            confirmText: translate('workspace.exportAgainModal.confirmText'),
+                            cancelText: translate('workspace.exportAgainModal.cancelText'),
+                        }).then((result) => {
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
+                            }
+
+                            if (hash) {
+                                clearSelectedTransactions();
+                                exportAction();
+                            }
+                        });
+                    } else if (hash) {
+                        exportAction();
+                        clearSelectedTransactions();
+                    }
+                };
+
+                exportOptions.push(
+                    {
+                        text: connectionNameFriendly,
+                        icon: integrationIcon,
+                        onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, selectedReportIDs, connectedIntegration)),
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
+                        displayInDefaultIconColor: true,
+                        additionalIconStyles: styles.integrationIcon,
+                    },
+                    {
+                        text: translate('workspace.common.markAsExported'),
+                        icon: integrationIcon,
+                        onSelected: () => handleExportAction(() => markAsManuallyExported(selectedReportIDs, connectedIntegration)),
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
+                        displayInDefaultIconColor: true,
+                        additionalIconStyles: styles.integrationIcon,
+                    },
+                );
+            }
+
+            exportOptions.push({
+                text: translate('export.basicExport'),
+                icon: expensifyIcons.Table,
+                onSelected: () => {
+                    handleBasicExport();
+                },
+                shouldCloseModalOnSelect: true,
+                shouldCallAfterModalHide: true,
+            });
+
             const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
             for (const template of exportTemplates) {
                 exportOptions.push({
@@ -1072,19 +1174,7 @@ function SearchPage({route}: SearchPageProps) {
         hash,
         selectedTransactions,
         queryJSON?.type,
-        expensifyIcons.Export,
-        expensifyIcons.ArrowRight,
-        expensifyIcons.Table,
-        expensifyIcons.ThumbsUp,
-        expensifyIcons.ThumbsDown,
-        expensifyIcons.Send,
-        expensifyIcons.MoneyBag,
-        expensifyIcons.Stopwatch,
-        expensifyIcons.ArrowCollapse,
-        expensifyIcons.DocumentMerge,
-        expensifyIcons.ArrowSplit,
-        expensifyIcons.Trashcan,
-        expensifyIcons.Exclamation,
+        expensifyIcons,
         translate,
         areAllMatchingItemsSelected,
         isOffline,
@@ -1099,6 +1189,9 @@ function SearchPage({route}: SearchPageProps) {
         policies,
         integrationsExportTemplates,
         csvExportLayouts,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails?.login,
+        bankAccountList,
         handleBasicExport,
         beginExportWithTemplate,
         handleApproveWithDEWCheck,
@@ -1111,8 +1204,8 @@ function SearchPage({route}: SearchPageProps) {
         onBulkPaySelected,
         areAllTransactionsFromSubmitter,
         dismissedHoldUseExplanation,
-        currentUserPersonalDetails.accountID,
         localeCompare,
+        allReports,
         firstTransaction,
         firstTransactionPolicy,
         handleDeleteSelectedTransactions,
@@ -1120,6 +1213,8 @@ function SearchPage({route}: SearchPageProps) {
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
+        styles.integrationIcon,
+        showConfirmModal,
     ]);
 
     const {initScanRequest, PDFValidationComponent, ErrorModal} = useReceiptScanDrop();

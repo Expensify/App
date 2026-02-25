@@ -2125,6 +2125,27 @@ describe('CardUtils', () => {
             expect(description).toBe('Visa • 2554');
         });
 
+        it('should return the CSV card display name instead of card ID', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV,
+                cardID: 21310091,
+                cardName: 'CSV_CARD_ID_123',
+                domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                fraud: 'none',
+                lastFourPAN: '123',
+                lastUpdated: '',
+                lastScrape: '2024-11-27 11:00:53',
+                scrapeMinDate: '2024-10-17',
+                state: 3,
+                nameValuePairs: {
+                    cardTitle: 'Marketing Team Card',
+                } as Card['nameValuePairs'],
+            };
+            const description = getCardDescription(card, translateLocal);
+            expect(description).toBe('Marketing Team Card');
+        });
+
         it('should return the correct card description for Expensify card', () => {
             const card: Card = {
                 accountID: 18439984,
