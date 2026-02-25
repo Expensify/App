@@ -82,14 +82,19 @@ function AddPlaidBankAccount({
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>(undefined);
     const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {initWithStoredValues: false});
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
+    const hasInitialized = useRef(false);
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
+    // Ignore stale plaidLinkToken from storage on first render. After the mount effect
+    // runs (which calls openPlaidBankLogin to fetch a fresh token), subsequent values are valid.
+    const effectivePlaidLinkToken = hasInitialized.current ? plaidLinkToken : undefined;
+
     const getPlaidLinkToken = (): string | undefined => {
-        if (plaidLinkToken) {
-            return plaidLinkToken;
+        if (effectivePlaidLinkToken) {
+            return effectivePlaidLinkToken;
         }
 
         if (receivedRedirectURI && plaidLinkOAuthToken) {
@@ -135,6 +140,7 @@ function AddPlaidBankAccount({
     };
 
     useEffect(() => {
+        hasInitialized.current = true;
         subscribeToNavigationShortcuts();
 
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
