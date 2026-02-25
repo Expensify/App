@@ -147,6 +147,17 @@ function IOURequestStepScan({
             endSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
         }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+
+        // Pre-create upload directory to avoid latency during capture
+        const path = getReceiptsUploadFolderPath();
+        ReactNativeBlobUtil.fs.isDir(path).then((isDir) => {
+            if (isDir) {
+                return;
+            }
+            ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
+                Log.warn('Error creating the receipts upload directory', error);
+            });
+        });
     }, []);
 
     const askForPermissions = useCallback(() => {
@@ -336,76 +347,58 @@ function IOURequestStepScan({
 
         const path = getReceiptsUploadFolderPath();
 
-        ReactNativeBlobUtil.fs
-            .isDir(path)
-            .then((isDir) => {
-                if (isDir) {
-                    return;
-                }
+        camera?.current
+            ?.takePhoto({
+                flash: flash && hasFlash ? 'on' : 'off',
+                enableShutterSound: !isPlatformMuted,
+                path,
+            })
+            .then((photo: PhotoFile) => {
+                // Freeze camera preview now that photo is captured
+                setDidCapturePhoto(true);
 
-                ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
-                    Log.warn('Error creating the directory', error);
+                // Store the receipt on the transaction object in Onyx
+                const transaction =
+                    isMultiScanEnabled && initialTransaction?.receipt?.source
+                        ? buildOptimisticTransactionAndCreateDraft({
+                              initialTransaction,
+                              currentUserPersonalDetails,
+                              reportID,
+                          })
+                        : initialTransaction;
+                const transactionID = transaction?.transactionID ?? initialTransactionID;
+                const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
+                cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation).then(({file, filename, source}) => {
+                    // Add source property to file for prepareRequestPayload compatibility
+                    const cameraFile = {
+                        ...file,
+                        source,
+                    };
+
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
+
+                    if (isEditing) {
+                        updateScanAndNavigate(cameraFile as FileObject, source);
+                        return;
+                    }
+
+                    const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
+                    setReceiptFiles(newReceiptFiles);
+
+                    if (isMultiScanEnabled) {
+                        setDidCapturePhoto(false);
+                        isCapturingPhoto.current = false;
+                        return;
+                    }
+
+                    submitReceipts(newReceiptFiles);
                 });
             })
             .catch((error: string) => {
-                Log.warn('Error checking if the directory exists', error);
-            })
-            .then(() => {
-                camera?.current
-                    ?.takePhoto({
-                        flash: flash && hasFlash ? 'on' : 'off',
-                        enableShutterSound: !isPlatformMuted,
-                        path,
-                    })
-                    .then((photo: PhotoFile) => {
-                        // Freeze camera preview now that photo is captured
-                        setDidCapturePhoto(true);
-
-                        // Store the receipt on the transaction object in Onyx
-                        const transaction =
-                            isMultiScanEnabled && initialTransaction?.receipt?.source
-                                ? buildOptimisticTransactionAndCreateDraft({
-                                      initialTransaction,
-                                      currentUserPersonalDetails,
-                                      reportID,
-                                  })
-                                : initialTransaction;
-                        const transactionID = transaction?.transactionID ?? initialTransactionID;
-                        const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
-                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation).then(
-                            ({file, filename, source}) => {
-                                // Add source property to file for prepareRequestPayload compatibility
-                                const cameraFile = {
-                                    ...file,
-                                    source,
-                                };
-
-                                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
-
-                                if (isEditing) {
-                                    updateScanAndNavigate(cameraFile as FileObject, source);
-                                    return;
-                                }
-
-                                const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
-                                setReceiptFiles(newReceiptFiles);
-
-                                if (isMultiScanEnabled) {
-                                    setDidCapturePhoto(false);
-                                    isCapturingPhoto.current = false;
-                                    return;
-                                }
-
-                                submitReceipts(newReceiptFiles);
-                            },
-                        );
-                    })
-                    .catch((error: string) => {
-                        isCapturingPhoto.current = false;
-                        maybeCancelShutterSpan();
-                        showCameraAlert();
-                        Log.warn('Error taking photo', error);
-                    });
+                isCapturingPhoto.current = false;
+                maybeCancelShutterSpan();
+                showCameraAlert();
+                Log.warn('Error taking photo', error);
             });
         // eslint-disable-next-line react-hooks/exhaustive-deps -- askForPermissions is not needed
     }, [
