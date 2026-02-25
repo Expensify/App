@@ -1,0 +1,55 @@
+---
+title: XERO83 Export Error: XML Post Data Has an Invalid Character
+description: Learn why the XERO83 export error occurs in Expensify Classic and how to resolve invalid character issues when exporting to Xero.
+keywords: XERO83, Xero XML invalid character, export invalid character Xero, special characters Xero export error, Expensify Classic Xero integration
+internalScope: Audience is Workspace Admins using the Xero integration in Expensify Classic. Covers the XERO83 export error related to invalid characters in exported data. Does not cover authentication or chart of accounts issues.
+---
+
+# XERO83 Export Error: XML Post Data Has an Invalid Character
+
+If you see the error message **“XERO83 Export Error: XML post data has an invalid character. Please reach out to Concierge for additional assistance.”**, it means the export contains a character that Xero cannot process.
+
+Xero rejects XML data that includes unsupported or invalid characters.
+
+---
+
+## Why the XERO83 Export Error Happens
+
+The XERO83 export error occurs when:
+
+- A field in the report (such as merchant name, description, or tag) contains an unsupported special character, and  
+- Xero cannot process the character during export  
+
+Common causes include:
+
+- Special symbols
+- Unsupported punctuation
+- Hidden formatting characters copied from external sources
+
+Because this error occurs at the XML level, it may not clearly identify the specific field causing the issue.
+
+---
+
+## How to Fix the XERO83 Export Error
+
+Please reach out to **Concierge** for assistance.
+
+We’ll review the report data, identify the invalid character, and guide you through correcting the issue so the export can proceed successfully.
+
+---
+
+# FAQ
+
+## Can I fix this error by editing the merchant name or description?
+
+You may try removing unusual symbols or special characters from:
+- Merchant names
+- Descriptions
+- Tags
+- Comments
+
+If the error persists, contact Concierge for further troubleshooting.
+
+## Does this error affect other reports?
+
+Only reports containing unsupported characters will fail. Other reports should export normally.
