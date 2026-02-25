@@ -42,10 +42,6 @@ function AmexCustomFeed() {
         });
     };
 
-    const handleBackButtonPress = () => {
-        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
-    };
-
     const data = [
         {
             value: CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.CORPORATE,
@@ -85,7 +81,9 @@ function AmexCustomFeed() {
         >
             <HeaderWithBackButton
                 title={translate('workspace.companyCards.addCards')}
-                onBackButtonPress={handleBackButtonPress}
+                onBackButtonPress={() => {
+                    setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+                }}
             />
 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.howDoYouWantToConnect')}</Text>
