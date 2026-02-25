@@ -95,7 +95,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         if (!policy) {
             return;
         }
-        updatePolicyGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
+        updatePolicyGeneralSettings(policy, policy.name, CONST.CURRENCY.USD);
         setIsCurrencyModalOpen(false);
         startFlow();
     }, [policy, startFlow, setIsCurrencyModalOpen]);
