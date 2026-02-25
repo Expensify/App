@@ -54,8 +54,8 @@ import {
     buildOptimisticNextStepForDEWOffline,
     buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
-    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
+    getReportNextStep,
 } from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
@@ -519,7 +519,7 @@ function MoneyReportHeader({
         hasDuplicates ||
         shouldShowMarkAsResolved;
 
-    let optimisticNextStep = isBlockSubmitDueToPreventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
+    let optimisticNextStep = getReportNextStep(nextStep, moneyRequestReport, transactions, policy, allTransactionViolations, email ?? '', accountID);
 
     // Check for DEW submit/approve failed or pending - show appropriate next step
     if (isDEWPolicy && (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {

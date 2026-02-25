@@ -30,8 +30,6 @@ type WalletStatementPageProps = PlatformStackScreenProps<WalletStatementNavigato
 
 function WalletStatementPage({route}: WalletStatementPageProps) {
     const [walletStatement] = useOnyx(ONYXKEYS.WALLET_STATEMENT);
-    const session = useSession();
-    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const themePreference = useThemePreference();
     const yearMonth = route.params.yearMonth ?? null;
@@ -39,6 +37,8 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     const prevIsWalletStatementGenerating = usePrevious(isWalletStatementGenerating);
     const [isDownloading, setIsDownloading] = useState(isWalletStatementGenerating);
     const {translate} = useLocalize();
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const {environment} = useEnvironment();
     const {isOffline} = useNetwork();
 
@@ -70,7 +70,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         }
 
         generateStatementPDF(yearMonth);
-    }, [baseURL, currentUserLogin, encryptedAuthToken, isWalletStatementGenerating, translate, walletStatement, yearMonth]);
+    }, [baseURL, currentUserLogin, isWalletStatementGenerating, translate, walletStatement, yearMonth, encryptedAuthToken]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {

@@ -18,7 +18,6 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
-import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -26,6 +25,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';

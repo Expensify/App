@@ -6323,6 +6323,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 adultEntertainment: 'Rozrywka dla dorosłych',
                 requireCompanyCard: 'Wymagaj kart służbowych dla wszystkich zakupów',
                 requireCompanyCardDescription: 'Oznacz wszystkie wydatki gotówkowe, w tym koszty za przejechane kilometry i ryczałty dzienne.',
+                requireCompanyCardDisabledTooltip: 'Włącz karty firmowe (w sekcji Więcej funkcji), aby odblokować.',
             },
             expenseReportRules: {
                 title: 'Zaawansowane',

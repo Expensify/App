@@ -6329,6 +6329,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 adultEntertainment: 'Volwassenenentertainment',
                 requireCompanyCard: 'Verplicht bedrijfskaarten voor alle aankopen',
                 requireCompanyCardDescription: 'Markeer alle contante uitgaven, inclusief kilometer- en dagvergoedingen.',
+                requireCompanyCardDisabledTooltip: 'Schakel Bedrijfskaarten in (onder Meer functies) om te ontgrendelen.',
             },
             expenseReportRules: {
                 title: 'Geavanceerd',

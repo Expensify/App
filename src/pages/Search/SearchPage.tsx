@@ -95,6 +95,7 @@ type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamLi
 
 function SearchPage({route}: SearchPageProps) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    useDocumentTitle(translate('common.search'));
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -226,8 +227,6 @@ function SearchPage({route}: SearchPageProps) {
     useEffect(() => {
         updateAdvancedFilters(formValues, true);
     }, [formValues]);
-
-    useDocumentTitle(translate('common.search'));
 
     useConfirmReadyToOpenApp();
 
