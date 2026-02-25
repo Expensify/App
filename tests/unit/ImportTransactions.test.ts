@@ -89,11 +89,11 @@ describe('ImportTransactions', () => {
 
     describe('buildColumnLayout', () => {
         it('should build a basic layout with no column mappings', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [],
                 columns: {},
                 containsHeader: true,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildColumnLayout(spreadsheet, 'Test Card', 'USD', true, false);
 
@@ -129,7 +129,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should build layout with column mappings and extract header names', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [
                     ['Date', '2024-01-01', '2024-01-02'],
                     ['Merchant', 'Store A', 'Store B'],
@@ -143,7 +143,7 @@ describe('ImportTransactions', () => {
                     3: 'category',
                 },
                 containsHeader: true,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildColumnLayout(spreadsheet, 'My Card', 'EUR', false, true);
 
@@ -168,7 +168,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should handle missing headers when containsHeader is false', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [
                     ['2024-01-01', '2024-01-02'],
                     ['Store A', 'Store B'],
@@ -180,7 +180,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: false,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildColumnLayout(spreadsheet, 'Card', 'USD', true, false);
 
@@ -202,7 +202,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should handle out of bounds column indexes gracefully', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [
                     ['Date', '2024-01-01'],
                     ['Merchant', 'Store A'],
@@ -213,7 +213,7 @@ describe('ImportTransactions', () => {
                     10: 'amount', // Out of bounds
                 },
                 containsHeader: true,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildColumnLayout(spreadsheet, 'Card', 'USD', true, false);
 
@@ -227,7 +227,7 @@ describe('ImportTransactions', () => {
 
     describe('buildTransactionListFromSpreadsheet', () => {
         it('should return empty array when data is empty', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [],
                 columns: {
                     0: 'date',
@@ -235,7 +235,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -243,7 +243,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should build transactions from valid spreadsheet data', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [
                     ['Date', '2024-01-15', '2024-01-20'],
                     ['Merchant', 'Coffee Shop', 'Restaurant'],
@@ -255,7 +255,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -271,13 +271,13 @@ describe('ImportTransactions', () => {
                 amount: 2500,
             });
             // Check that transactionIDs are generated
-            expect(result.at(0).transactionID).toBeTruthy();
-            expect(result.at(1).transactionID).toBeTruthy();
-            expect(result.at(0).transactionID).not.toBe(result.at(1).transactionID);
+            expect(result.at(0)!.transactionID).toBeTruthy();
+            expect(result.at(1)!.transactionID).toBeTruthy();
+            expect(result.at(0)!.transactionID).not.toBe(result.at(1)!.transactionID);
         });
 
         it('should include category when provided', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [
                     ['Date', '2024-01-15'],
                     ['Merchant', 'Store'],
@@ -291,16 +291,16 @@ describe('ImportTransactions', () => {
                     3: 'category',
                 },
                 containsHeader: true,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(1);
-            expect(result.at(0).category).toBe('Office Supplies');
+            expect(result.at(0)!.category).toBe('Office Supplies');
         });
 
         it('should skip rows with missing required fields (date or amount)', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [
                     ['Date', '2024-01-15', '', '2024-01-20'],
                     ['Merchant', 'Store A', 'Store B', 'Store C'],
@@ -312,17 +312,17 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             // Should only have 1 transaction (row 1), skipping rows 2 (no date) and 3 (no amount)
             expect(result).toHaveLength(1);
-            expect(result.at(0).merchant).toBe('Store A');
+            expect(result.at(0)!.merchant).toBe('Store A');
         });
 
         it('should flip amount sign when flipAmountSign is true', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [
                     ['Date', '2024-01-15'],
                     ['Merchant', 'Store'],
@@ -334,16 +334,16 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {flipAmountSign: true});
 
             expect(result).toHaveLength(1);
-            expect(result.at(0).amount).toBe(-1000); // Flipped
+            expect(result.at(0)!.amount).toBe(-1000); // Flipped
         });
 
         it('should handle amounts with currency symbols and commas', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [
                     ['Date', '2024-01-15', '2024-01-16'],
                     ['Merchant', 'Store A', 'Store B'],
@@ -355,17 +355,17 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(2);
-            expect(result.at(0).amount).toBe(123456); // $1,234.56 in cents
-            expect(result.at(1).amount).toBe(99999); // €999.99 in cents
+            expect(result.at(0)!.amount).toBe(123456); // $1,234.56 in cents
+            expect(result.at(1)!.amount).toBe(99999); // €999.99 in cents
         });
 
         it('should handle negative amounts', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [
                     ['Date', '2024-01-15'],
                     ['Merchant', 'Refund'],
@@ -377,16 +377,16 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(1);
-            expect(result.at(0).amount).toBe(-5000);
+            expect(result.at(0)!.amount).toBe(-5000);
         });
 
         it('should work with containsHeader false', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [
                     ['2024-01-15', '2024-01-16'],
                     ['Store A', 'Store B'],
@@ -398,7 +398,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: false,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -411,7 +411,7 @@ describe('ImportTransactions', () => {
         });
 
         it('should handle various date formats', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [
                     ['Date', '2024-01-15', '01/20/2024', '20-01-2024', 'Jan 25, 2024'],
                     ['Merchant', 'A', 'B', 'C', 'D'],
@@ -423,19 +423,19 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(4);
-            expect(result.at(0).created).toBe('2024-01-15');
-            expect(result.at(1).created).toBe('2024-01-20');
-            expect(result.at(2).created).toBe('2024-01-20');
-            expect(result.at(3).created).toBe('2024-01-25');
+            expect(result.at(0)!.created).toBe('2024-01-15');
+            expect(result.at(1)!.created).toBe('2024-01-20');
+            expect(result.at(2)!.created).toBe('2024-01-20');
+            expect(result.at(3)!.created).toBe('2024-01-25');
         });
 
         it('should skip rows with invalid dates', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [
                     ['Date', '2024-01-15', 'invalid-date', '2024-01-20'],
                     ['Merchant', 'Store A', 'Store B', 'Store C'],
@@ -447,17 +447,17 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(2);
-            expect(result.at(0).merchant).toBe('Store A');
-            expect(result.at(1).merchant).toBe('Store C');
+            expect(result.at(0)!.merchant).toBe('Store A');
+            expect(result.at(1)!.merchant).toBe('Store C');
         });
 
         it('should handle missing merchant gracefully', () => {
-            const spreadsheet: ImportedSpreadsheet = {
+            const spreadsheet = {
                 data: [
                     ['Date', '2024-01-15'],
                     ['Amount', '10.00'],
@@ -469,12 +469,12 @@ describe('ImportTransactions', () => {
                     // No merchant column mapped
                 },
                 containsHeader: true,
-            };
+            } as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(1);
-            expect(result.at(0).merchant).toBe('');
+            expect(result.at(0)!.merchant).toBe('');
         });
     });
 
