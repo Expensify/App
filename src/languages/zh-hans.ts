@@ -1357,7 +1357,12 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: '其中有些重复项已经被批准或支付。',
         reviewDuplicates: '查看重复项',
         keepAll: '全部保留',
-        confirmApprovalWithHeldAmount: '报告包含暂停的费用。仅批准合规的费用，还是批准整个报告？',
+        confirmApprove: '确认批准金额',
+        confirmApprovalAmount: '仅批准合规报销，或批准整份报销报告。',
+        confirmApprovalAllHoldAmount: () => ({
+            one: '此报销已被搁置。仍要批准吗？',
+            other: '这些报销当前被搁置。你仍然想要批准吗？',
+        }),
         confirmPay: '确认付款金额',
         confirmPayAmount: '支付未冻结的部分，或支付整份报告。',
         confirmPayAllHoldAmount: () => ({
@@ -6184,6 +6189,7 @@ ${reportName}
                 adultEntertainment: '成人娱乐',
                 requireCompanyCard: '所有消费均需使用公司卡',
                 requireCompanyCardDescription: '标记所有现金支出，包括里程和每日津贴报销。',
+                requireCompanyCardDisabledTooltip: '启用“公司卡”（位于“更多功能”下）以解锁。',
             },
             expenseReportRules: {
                 title: '高级',
@@ -7354,6 +7360,9 @@ ${reportName}
             endTitle: '结束里程表照片',
             deleteOdometerPhoto: '删除里程表照片',
             deleteOdometerPhotoConfirmation: '确定要删除这个里程表照片吗？',
+            cameraAccessRequired: '拍照需要启用相机访问权限。',
+            snapPhotoStart: '<muted-text-label>在行程<strong>开始</strong>时拍一张里程表照片。</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>在行程<strong>结束</strong>时拍一张里程表的照片。</muted-text-label>',
         },
     },
     gps: {
