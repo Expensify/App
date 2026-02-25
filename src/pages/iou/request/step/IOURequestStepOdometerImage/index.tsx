@@ -163,6 +163,15 @@ function IOURequestStepOdometerImage({
         if (!isMobile() || !isTabActive) {
             return;
         }
+        if (!navigator.permissions?.query) {
+            // Defer to match the async behaviour of the .finally() branch below,
+            // avoiding a synchronous setState inside the effect body (lint rule).
+            const timer = setTimeout(() => setIsQueriedPermissionState(true), 0);
+            return () => {
+                clearTimeout(timer);
+                setVideoConstraints(undefined);
+            };
+        }
         navigator.permissions
             .query({
                 name: 'camera',
@@ -251,7 +260,7 @@ function IOURequestStepOdometerImage({
                     getScreenshotTimeoutRef.current = setTimeout(() => {
                         getScreenshot();
                         clearTorchConstraints();
-                    }, 2000);
+                    }, CONST.RECEIPT.FLASH_DELAY_MS);
                 });
             return;
         }
@@ -371,8 +380,8 @@ function IOURequestStepOdometerImage({
                             }}
                         >
                             <Icon
-                                height={32}
-                                width={32}
+                                height={variables.iconSizeMenuItem}
+                                width={variables.iconSizeMenuItem}
                                 src={lazyIcons.Gallery}
                                 fill={theme.textSupporting}
                             />
