@@ -735,6 +735,7 @@ describe('actions/Report', () => {
 
     it('should show a notification for report action updates with shouldNotify', () => {
         const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@user.com';
         const REPORT_ID = '1';
         const REPORT_ACTION = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -763,7 +764,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Ensure we show a notification for this new report action
-                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID);
+                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             });
     });
 

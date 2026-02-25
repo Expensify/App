@@ -10451,8 +10451,8 @@ function isReportParticipant(accountID: number | undefined, report: OnyxEntry<Re
 /**
  * Check to see if the current user has access to view the report.
  */
-function canCurrentUserOpenReport(report: OnyxEntry<Report>, isReportArchived = false): boolean {
-    return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, allBetas, isReportArchived);
+function canCurrentUserOpenReport(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>, isReportArchived = false): boolean {
+    return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, betas, isReportArchived);
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
@@ -10909,13 +10909,14 @@ function shouldCreateNewMoneyRequestReport(
     existingIOUReport: OnyxInputOrEntry<Report> | undefined,
     chatReport: OnyxInputOrEntry<Report>,
     isScanRequest: boolean,
+    betas: OnyxEntry<Beta[]>,
     action?: IOUAction,
 ): boolean {
     if (existingIOUReport && !!existingIOUReport.errorFields?.createChat) {
         return true;
     }
 
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
     return (
         !existingIOUReport ||
         hasIOUWaitingOnCurrentUserBankAccount(chatReport) ||

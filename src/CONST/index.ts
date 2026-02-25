@@ -8414,6 +8414,7 @@ const CONST = {
             PURE_REPORT_ACTION_ITEM: 'Report-PureReportActionItem',
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
+            MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
         },
         SIDEBAR: {
@@ -8664,6 +8665,11 @@ const CONST = {
                 CHOOSE_FILES: 'Scan-ChooseFiles',
                 SHUTTER: 'Scan-Shutter',
             },
+            ODOMETER_IMAGE: {
+                FLASH: 'OdometerImage-Flash',
+                GALLERY: 'OdometerImage-Gallery',
+                SHUTTER: 'OdometerImage-Shutter',
+            },
         },
         NEW_CHAT: {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
@@ -8672,6 +8678,7 @@ const CONST = {
             CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
         },
         WORKSPACE: {
+            APPROVAL_WORKFLOW_SECTION: 'Workspace-ApprovalWorkflowSection',
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
             DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
             WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
@@ -8818,6 +8825,9 @@ const CONST = {
             SKIP: 'Onboarding-Skip',
             JOIN_WORKSPACE: 'Onboarding-JoinWorkspace',
             CREATE_WORKSPACE: 'Onboarding-CreateWorkspace',
+        },
+        BASE_ANCHOR_FOR_ATTACHMENTS_ONLY: {
+            DOWNLOAD_BUTTON: 'BaseAnchorForAttachmentsOnly-DownloadButton',
         },
         REPORT_HEADER_SKELETON: {
             GO_BACK: 'ReportHeaderSkeleton-GoBack',
