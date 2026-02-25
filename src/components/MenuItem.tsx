@@ -215,6 +215,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Label to be displayed on the right */
         rightLabel?: string;
 
+        /** Icon to be displayed next to the right label */
+        rightLabelIcon?: IconAsset;
+
         /** Text to display for the item */
         title?: string;
 
@@ -506,6 +509,7 @@ function MenuItem({
     titleContainerStyle,
     subtitle,
     shouldShowBasicTitle,
+    rightLabelIcon,
     label,
     shouldTruncateTitle = false,
     characterLimit = 200,
@@ -575,7 +579,7 @@ function MenuItem({
     rightIconWrapperStyle,
     titleAccessibilityRole,
 }: MenuItemProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark', 'NewWindow']);
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -585,7 +589,6 @@ function MenuItem({
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
     const deviceHasHoverSupport = hasHoverSupport();
-
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
@@ -726,6 +729,12 @@ function MenuItem({
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
+    const isNewWindowIcon = iconRight === icons.NewWindow;
+    let enhancedAccessibilityLabel = accessibilityLabel ?? defaultAccessibilityLabel;
+    if (isNewWindowIcon) {
+        enhancedAccessibilityLabel = `${enhancedAccessibilityLabel}. ${translate('common.opensInNewTab')}`;
+    }
+
     return (
         <View
             style={rootWrapperStyle}
@@ -776,10 +785,10 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                role={role}
-                                accessibilityLabel={`${accessibilityLabel ?? defaultAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
+                                role={interactive ? role : undefined}
+                                accessibilityLabel={`${enhancedAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                                 accessible={shouldBeAccessible}
-                                tabIndex={tabIndex}
+                                tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
                             >
@@ -1029,7 +1038,15 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {!title && !!rightLabel && !errorText && (
-                                                    <View style={styles.justifyContentCenter}>
+                                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap1]}>
+                                                        {!!rightLabelIcon && (
+                                                            <Icon
+                                                                src={rightLabelIcon}
+                                                                fill={theme.icon}
+                                                                width={variables.iconSizeSmall}
+                                                                height={variables.iconSizeSmall}
+                                                            />
+                                                        )}
                                                         <Text style={styles.rightLabelMenuItem}>{rightLabel}</Text>
                                                     </View>
                                                 )}
