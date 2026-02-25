@@ -222,12 +222,11 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
-                            isEnabled: true,
-                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
-                                isEnabled: true,
-                                paymentBankAccountID: settlementBankAccountID,
-                            }),
+                            isLoading: true,
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            pendingFields: expect.objectContaining({
+                                paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            }),
                             errors: null,
                         }),
                     }),
@@ -236,10 +235,10 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
+                            isLoading: false,
                             pendingAction: null,
-                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
-                                isEnabled: true,
-                                paymentBankAccountID: settlementBankAccountID,
+                            pendingFields: expect.objectContaining({
+                                paymentBankAccountID: null,
                             }),
                         }),
                     }),
@@ -248,11 +247,12 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
-                            isEnabled: false,
-                            [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
-                                isEnabled: false,
-                            }),
+                            isLoading: false,
                             pendingAction: null,
+                            pendingFields: expect.objectContaining({
+                                paymentBankAccountID: null,
+                            }),
+                            errors: expect.anything() as unknown,
                         }),
                     }),
                 ]),
