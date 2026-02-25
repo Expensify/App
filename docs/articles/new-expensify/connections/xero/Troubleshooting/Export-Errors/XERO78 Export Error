@@ -1,0 +1,93 @@
+---
+title: XERO78 Export Error: Invalid Category or Tag
+description: Learn why the XERO78 export error occurs in New Expensify and how to resolve invalid or inactive categories and tags in Xero.
+keywords: XERO78, Xero invalid category, Xero invalid tag, category inactive Xero, tag inactive Xero, Expensify Xero export error
+internalScope: Audience is Workspace Admins using the Xero integration in New Expensify. Covers the XERO78 export error related to inactive or deleted categories and tracking tags in Xero. Does not cover authentication or currency configuration issues.
+---
+
+# XERO78 Export Error: Invalid Category or Tag
+
+If you see the error message **“XERO78 Export Error: Expense [merchant name] has an invalid category or tag. Please confirm the selected category or tag is active within Xero.”**, it means the category or tracking tag selected in Expensify is no longer valid in Xero.
+
+Xero must have active categories and tracking options for exports to succeed.
+
+---
+
+## Why the XERO78 Export Error Happens
+
+The XERO78 export error occurs when:
+
+- The selected expense category has been deleted or made inactive in Xero, or  
+- A tracking category or tracking option (tag) has been deleted or made inactive  
+
+If Xero cannot recognize the selected category or tag, it blocks the export.
+
+---
+
+## How to Fix the XERO78 Export Error
+
+### Step 1: Confirm the Category or Tag in Xero
+
+In Xero:
+
+1. Go to **Settings > Chart of Accounts** and confirm the expense account:
+   - Exists  
+   - Is active  
+   - Is set to **Expense** type  
+   - Has **Show in Expense Claims** enabled  
+
+2. If the issue is related to a tag (tracking category):
+   - Go to **Settings > Tracking Categories**.
+   - Confirm the tracking category and option are active.
+
+If the category or tag is inactive, reactivate it or create a new valid one.
+
+---
+
+### Step 2: Sync the Workspace in New Expensify
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the Xero connection.
+5. Click **Sync now**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the Xero connection.
+5. Tap **Sync now**.
+
+---
+
+### Step 3: Recategorize or Retag the Expense
+
+1. Open the report.
+2. Locate expenses highlighted with a **red violation**.
+3. Select a valid, active category or tag.
+4. Save the report.
+
+---
+
+### Step 4: Retry the Export
+
+After correcting all flagged expenses:
+
+1. Return to the report.
+2. Retry exporting to Xero.
+
+---
+
+# FAQ
+
+## Does the XERO78 Export Error affect only one expense?
+
+It can affect one or multiple expenses depending on how many use inactive categories or tags.
+
+## Do I need Xero admin access to fix the XERO78 Export Error?
+
+Yes. Updating or reactivating categories and tracking options in Xero requires appropriate permissions.
