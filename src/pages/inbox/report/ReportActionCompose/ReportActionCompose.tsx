@@ -453,11 +453,6 @@ function ReportActionCompose({
         onComposerFocus?.();
     }, [onComposerFocus]);
 
-    useEffect(() => {
-        const valueToCheck = shouldUseNarrowLayout ? editingMessage : draftComment;
-        setIsCommentEmpty(!valueToCheck || !!valueToCheck.match(CONST.REGEX.EMPTY_COMMENT));
-    }, [editingMessage, draftComment, shouldUseNarrowLayout]);
-
     // We are returning a callback here as we want to invoke the method on unmount only
     useEffect(
         () => () => {
