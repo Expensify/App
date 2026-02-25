@@ -75,6 +75,8 @@ function IOURequestStepScan({
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
     const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}]);
+    // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
+    const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
 
     const navigateBack = () => {
         Navigation.goBack();
@@ -487,9 +489,9 @@ function IOURequestStepScan({
                         </View>
                     )}
                     {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                        <View style={[styles.cameraView]}>
+                        <View style={[styles.cameraView, styles.alignItemsCenter]}>
                             <GestureDetector gesture={tapGesture}>
-                                <View style={styles.flex1}>
+                                <View style={cameraAspectRatio ? {aspectRatio: cameraAspectRatio, width: '100%', maxHeight: '100%'} : styles.flex1}>
                                     <NavigationAwareCamera
                                         ref={camera}
                                         device={device}
