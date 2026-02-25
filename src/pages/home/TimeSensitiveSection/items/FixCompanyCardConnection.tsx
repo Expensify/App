@@ -27,7 +27,7 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
     const icons = useMemoizedLazyExpensifyIcons(['Connect']);
 
     // Get the card feeds data to access custom nicknames
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`, {canBeMissing: true});
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`);
     const customFeedName = cardFeeds?.settings?.companyCardNicknames?.[card.bank as CompanyCardFeed];
     const feedName = getCustomOrFormattedFeedName(translate, card.bank as CompanyCardFeed, customFeedName, false) ?? '';
     const subtitle = policyName

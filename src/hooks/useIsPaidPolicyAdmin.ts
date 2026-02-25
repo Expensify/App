@@ -16,7 +16,6 @@ function useIsPaidPolicyAdmin() {
     };
 
     const [isCurrentUserPolicyAdmin = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
         selector: isUserPaidPolicyAdminSelector,
     });
 

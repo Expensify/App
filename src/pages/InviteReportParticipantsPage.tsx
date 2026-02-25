@@ -41,7 +41,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
