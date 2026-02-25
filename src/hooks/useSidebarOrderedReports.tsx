@@ -1,5 +1,6 @@
 import {deepEqual} from 'fast-equals';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, startTransition, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
@@ -81,6 +82,19 @@ function SidebarOrderedReportsContextProvider({
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
+
+    // On native, defer expensive computations so they don't block SplashScreenHider from mounting
+    // during the initial app load or OD→ND transition (when isLoadingApp is true).
+    // On warm restarts (isLoadingApp persisted as false), start fully activated to avoid
+    // a brief flash of the "All caught up" empty state.
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isActivated, setIsActivated] = useState(() => Platform.OS === 'web' || isLoadingApp === false);
+    useEffect(() => {
+        if (isActivated) {
+            return;
+        }
+        startTransition(() => setIsActivated(true));
+    }, [isActivated]);
 
     // we need to force reportsToDisplayInLHN to re-compute when we clear currentReportsToDisplay, but the way it currently works relies on not having currentReportsToDisplay as a memo dependency, so we just need something we can change to trigger it
     // I don't like it either, but clearing the cache is only a hack for the debug modal and I will endeavor to make it better as I work to improve the cache correctness of the LHN more broadly
@@ -173,6 +187,10 @@ function SidebarOrderedReportsContextProvider({
     ]);
 
     const reportsToDisplayInLHN = useMemo(() => {
+        if (!isActivated) {
+            return {};
+        }
+
         const updatedReports = getUpdatedReports();
         const shouldDoIncrementalUpdate = updatedReports.length > 0 && Object.keys(currentReportsToDisplay).length > 0;
         let reportsToDisplay = {};
@@ -208,6 +226,7 @@ function SidebarOrderedReportsContextProvider({
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
+        isActivated,
         getUpdatedReports,
         chatReports,
         derivedCurrentReportID,
@@ -260,6 +279,16 @@ function SidebarOrderedReportsContextProvider({
     }, []);
 
     const contextValue: SidebarOrderedReportsContextValue = useMemo(() => {
+        if (!isActivated) {
+            return {
+                orderedReports: [],
+                orderedReportIDs: [],
+                currentReportID: derivedCurrentReportID,
+                policyMemberAccountIDs: [],
+                clearLHNCache,
+            };
+        }
+
         // We need to make sure the current report is in the list of reports, but we do not want
         // to have to re-generate the list every time the currentReportID changes. To do that
         // we first generate the list as if there was no current report, then we check if
@@ -294,7 +323,7 @@ function SidebarOrderedReportsContextProvider({
             policyMemberAccountIDs,
             clearLHNCache,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports, clearLHNCache]);
+    }, [isActivated, getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports, clearLHNCache]);
 
     const currentDeps = {
         priorityMode,

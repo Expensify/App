@@ -1,4 +1,5 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, startTransition, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {Platform} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -44,6 +45,18 @@ const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails, personalDeta
     prevPersonalDetail?.displayName === personalDetail?.displayName;
 
 function OptionsListContextProvider({children}: OptionsListProviderProps) {
+    // On native, defer expensive computations so they don't block SplashScreenHider from mounting
+    // during the initial app load or OD→ND transition (when isLoadingApp is true).
+    // On warm restarts (isLoadingApp persisted as false), start fully activated.
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isActivated, setIsActivated] = useState(() => Platform.OS === 'web' || isLoadingApp === false);
+    useEffect(() => {
+        if (isActivated) {
+            return;
+        }
+        startTransition(() => setIsActivated(true));
+    }, [isActivated]);
+
     const areOptionsInitialized = useRef(false);
     const [options, setOptions] = useState<OptionList>({
         reports: [],
@@ -62,12 +75,15 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
 
     const loadOptions = useCallback(() => {
+        if (!isActivated) {
+            return;
+        }
         const optionLists = createOptionList(personalDetails, currentUserAccountID, privateIsArchivedMap, reports, reportAttributes?.reports);
         setOptions({
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
         });
-    }, [personalDetails, currentUserAccountID, privateIsArchivedMap, reports, reportAttributes?.reports]);
+    }, [isActivated, personalDetails, currentUserAccountID, privateIsArchivedMap, reports, reportAttributes?.reports]);
 
     /**
      * This effect is responsible for generating the options list when their data is not yet initialized
@@ -93,6 +109,10 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, [prevReportAttributesLocale, loadOptions, reportAttributes?.locale]);
 
     const changedReportsEntries = useMemo(() => {
+        if (!isActivated) {
+            return {};
+        }
+
         const result: OnyxCollection<OnyxEntry<Report> | null> = {};
 
         for (const key of Object.keys(changedReports ?? {})) {
@@ -103,7 +123,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             }
         }
         return result;
-    }, [changedReports, reports, prevReports]);
+    }, [isActivated, changedReports, reports, prevReports]);
 
     /**
      * This effect is responsible for updating the options only for changed reports

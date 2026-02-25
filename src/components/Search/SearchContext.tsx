@@ -1,4 +1,5 @@
-import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {Platform} from 'react-native';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
@@ -67,6 +68,18 @@ const defaultSearchContext: SearchContextProps = {
 const SearchContext = React.createContext<SearchContextProps>(defaultSearchContext);
 
 function SearchContextProvider({children}: ChildrenProps) {
+    // On native, defer expensive computations so they don't block SplashScreenHider from mounting
+    // during the initial app load or OD→ND transition (when isLoadingApp is true).
+    // On warm restarts (isLoadingApp persisted as false), start fully activated.
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isActivated, setIsActivated] = useState(() => Platform.OS === 'web' || isLoadingApp === false);
+    useEffect(() => {
+        if (isActivated) {
+            return;
+        }
+        startTransition(() => setIsActivated(true));
+    }, [isActivated]);
+
     const [showSelectAllMatchingItems, shouldShowSelectAllMatchingItems] = useState(false);
     const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
     const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
@@ -270,8 +283,12 @@ function SearchContextProvider({children}: ChildrenProps) {
         }));
     }, []);
 
-    const searchContext = useMemo<SearchContextProps>(
-        () => ({
+    const searchContext = useMemo<SearchContextProps>(() => {
+        if (!isActivated) {
+            return defaultSearchContext;
+        }
+
+        return {
             ...searchContextData,
             currentSearchResults,
             shouldUseLiveData,
@@ -289,24 +306,24 @@ function SearchContextProvider({children}: ChildrenProps) {
             areAllMatchingItemsSelected,
             selectAllMatchingItems,
             setShouldResetSearchQuery,
-        }),
-        [
-            searchContextData,
-            currentSearchResults,
-            shouldUseLiveData,
-            removeTransaction,
-            setCurrentSearchHashAndKey,
-            setCurrentSearchQueryJSON,
-            setSelectedTransactions,
-            clearSelectedTransactions,
-            shouldShowFiltersBarLoading,
-            lastSearchType,
-            shouldShowSelectAllMatchingItems,
-            showSelectAllMatchingItems,
-            areAllMatchingItemsSelected,
-            setShouldResetSearchQuery,
-        ],
-    );
+        };
+    }, [
+        isActivated,
+        searchContextData,
+        currentSearchResults,
+        shouldUseLiveData,
+        removeTransaction,
+        setCurrentSearchHashAndKey,
+        setCurrentSearchQueryJSON,
+        setSelectedTransactions,
+        clearSelectedTransactions,
+        shouldShowFiltersBarLoading,
+        lastSearchType,
+        shouldShowSelectAllMatchingItems,
+        showSelectAllMatchingItems,
+        areAllMatchingItemsSelected,
+        setShouldResetSearchQuery,
+    ]);
 
     return <SearchContext.Provider value={searchContext}>{children}</SearchContext.Provider>;
 }
