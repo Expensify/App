@@ -20,7 +20,6 @@ import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.modules.i18nmanager.I18nUtil
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
-import com.oblador.performance.RNPerformance
 import expo.modules.ApplicationLifecycleDispatcher
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 
@@ -47,7 +46,6 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         ReactFontManager.getInstance().addCustomFont(this, "Expensify New Kansas", R.font.expensify_new_kansas)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify Neue", R.font.expensify_neue)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify Mono", R.font.expensify_mono)
-        RNPerformance.getInstance().mark("appCreationStart", false);
 
         if (isOnfidoProcess()) {
             return
