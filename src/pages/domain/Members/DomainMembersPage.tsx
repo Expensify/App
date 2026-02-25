@@ -123,6 +123,20 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         },
     ];
 
+    const onDownloadCSV = async () => {
+        if (isOffline) {
+            await showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: true,
+            });
+            return;
+        }
+        // API call responsible for downloading members as a CSV file
+    };
+
     const getHeaderButtons = () => {
         return (shouldUseNarrowLayout ? canSelectMultiple : selectedMembers.length > 0) ? (
             <ButtonWithDropdownMenu<DomainMemberBulkActionType>
@@ -139,14 +153,14 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             />
         ) : (
             <>
-            <Button
-                success
-                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
-                text={translate('domain.members.addMember')}
-                icon={icons.Plus}
-                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
-            />
+                <Button
+                    success
+                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
+                    text={translate('domain.members.addMember')}
+                    icon={icons.Plus}
+                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                    style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+                />
                 <ButtonWithDropdownMenu
                     success={false}
                     onPress={() => {}}
@@ -156,24 +170,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                         {
                             text: translate('spreadsheet.downloadCSV'),
                             icon: icons.Download,
-                            onSelected: () => {
-                                if (isOffline) {
-                                    close(() => {
-                                        showConfirmModal({
-                                            title: translate('common.youAppearToBeOffline'),
-                                            prompt: translate('common.thisFeatureRequiresInternet'),
-                                            confirmText: translate('common.buttonConfirm'),
-                                            shouldShowCancelButton: false,
-                                            shouldHandleNavigationBack: true,
-                                        });
-                                    });
-                                    return;
-                                }
-
-                                close(() => {
-                                    // API call responsible for downloading members as a CSV file
-                                });
-                            },
+                            onSelected: onDownloadCSV,
                             value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SAVE_TO_CSV,
                         },
                     ]}
