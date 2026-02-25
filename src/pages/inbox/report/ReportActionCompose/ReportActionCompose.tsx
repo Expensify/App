@@ -171,15 +171,8 @@ function ReportActionCompose({
 
     const isEditingInComposer = shouldUseNarrowLayout && !!editingReportActionID;
 
-    const isEditingLastReportAction = useMemo(() => {
-        if (!reportActions) {
-            return false;
-        }
-
-        const lastIndex = Object.keys(reportActions).length - 1;
-
-        return editingReportActionID === reportActions[lastIndex]?.reportActionID;
-    }, [editingReportActionID, reportActions]);
+    const reportActionEntries = useMemo(() => (reportActions ? Object.entries(reportActions) : []), [reportActions]);
+    const isEditingLastReportAction = useMemo(() => editingReportActionID === reportActionEntries.at(-1)?.[0], [editingReportActionID, reportActionEntries]);
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
@@ -242,7 +235,7 @@ function ReportActionCompose({
 
     const personalDetail = useCurrentUserPersonalDetails();
 
-    const iouAction = reportActions ? Object.values(reportActions).find((action) => isMoneyRequestAction(action)) : null;
+    const iouAction = reportActionEntries.find(([, action]) => isMoneyRequestAction(action))?.[1];
     const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
 
     const transactionID = useMemo(() => getTransactionID(report) ?? linkedTransactionID, [report, linkedTransactionID]);
