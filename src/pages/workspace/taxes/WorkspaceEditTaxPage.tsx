@@ -90,7 +90,12 @@ function WorkspaceEditTaxPage({
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <Text>{translate('workspace.taxes.actions.enable')}</Text>
+                                <Text
+                                    accessible={false}
+                                    aria-hidden
+                                >
+                                    {translate('workspace.taxes.actions.enable')}
+                                </Text>
                                 <Switch
                                     isOn={!currentTaxRate?.isDisabled}
                                     accessibilityLabel={translate('workspace.taxes.actions.enable')}

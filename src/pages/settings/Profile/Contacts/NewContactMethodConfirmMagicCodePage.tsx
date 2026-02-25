@@ -17,10 +17,10 @@ type NewContactMethodConfirmMagicCodePageProps = PlatformStackScreenProps<Settin
 function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMagicCodePageProps) {
     const {translate} = useLocalize();
     const navigateBackTo = route?.params?.backTo;
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
-    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION, {canBeMissing: false});
+    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
     const validateCodeError = getLatestErrorField(pendingContactAction, 'addedLogin');
 
     useEffect(() => {
