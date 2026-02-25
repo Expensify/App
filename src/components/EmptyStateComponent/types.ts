@@ -2,10 +2,8 @@ import type {ImageStyle} from 'expo-image';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
 type HeaderMedia = IconAsset;
 type EmptyStateButton = {
     buttonText?: string;
@@ -21,7 +19,8 @@ type EmptyStateButton = {
     >;
 };
 
-type SharedProps<TMediaType> = {
+type EmptyStateComponentProps = {
+    headerMedia: IconAsset;
     title: string;
     titleStyles?: StyleProp<TextStyle>;
     subtitle?: string;
@@ -31,19 +30,11 @@ type SharedProps<TMediaType> = {
     cardStyles?: StyleProp<ViewStyle>;
     cardContentStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
-    headerMediaType: TMediaType;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
     minModalHeight?: number;
     subtitleText?: React.ReactNode;
 };
 
-type MediaType<THeaderMedia, TMediaType extends MediaTypes> = SharedProps<TMediaType> & {
-    headerMedia: THeaderMedia;
-};
+type GenericEmptyStateComponentProps = EmptyStateComponentProps;
 
-type IllustrationProps = MediaType<IconAsset, 'illustration'>;
-
-type EmptyStateComponentProps = IllustrationProps;
-type GenericEmptyStateComponentProps = SharedProps<MediaTypes> & {headerMedia: HeaderMedia};
-
-export type {EmptyStateComponentProps, EmptyStateButton, GenericEmptyStateComponentProps, MediaTypes, HeaderMedia};
+export type {EmptyStateComponentProps, EmptyStateButton, GenericEmptyStateComponentProps, HeaderMedia};

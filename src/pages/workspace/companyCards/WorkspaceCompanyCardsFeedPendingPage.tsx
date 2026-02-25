@@ -21,7 +21,6 @@ function WorkspaceCompanyCardsFeedPendingPage() {
         <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
             <EmptyStateComponent
                 containerStyles={styles.mt5}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                 headerMedia={LaptopReviewCard}
                 headerStyles={styles.emptyStateCardIllustrationContainer}
                 headerContentStyles={styles.pendingStateCardIllustration}

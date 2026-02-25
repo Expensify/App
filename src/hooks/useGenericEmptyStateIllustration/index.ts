@@ -1,6 +1,5 @@
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import type UseGenericEmptyStateIllustration from './types';
 
 const useGenericEmptyStateIllustration: UseGenericEmptyStateIllustration = () => {
@@ -8,7 +7,6 @@ const useGenericEmptyStateIllustration: UseGenericEmptyStateIllustration = () =>
     const styles = useThemeStyles();
 
     return {
-        headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
         headerMedia: illustrations.FolderWithPapersAndWatch,
         headerContentStyles: [styles.emptyStateFolderStaticIllustration],
     };

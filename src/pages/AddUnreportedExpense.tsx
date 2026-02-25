@@ -257,7 +257,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 <EmptyStateComponent
                     cardStyles={[styles.appBG]}
                     cardContentStyles={[styles.pt5, styles.pb0]}
-                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                     headerMedia={illustrations.FolderWithPapersAndWatch}
                     title={translate('iou.emptyStateUnreportedExpenseTitle')}
                     subtitle={translate('iou.emptyStateUnreportedExpenseSubtitle')}

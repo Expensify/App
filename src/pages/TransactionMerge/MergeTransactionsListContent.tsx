@@ -17,7 +17,6 @@ import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransact
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
 import {getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
 import {getCreated, isExpenseUnreported} from '@libs/TransactionUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -135,7 +134,6 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 <EmptyStateComponent
                     cardStyles={[styles.appBG]}
                     cardContentStyles={[styles.p0]}
-                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                     headerMedia={illustrations.EmptyShelves}
                     title={translate('transactionMerge.listPage.noEligibleExpenseFound')}
                     subtitleText={subTitleContent}

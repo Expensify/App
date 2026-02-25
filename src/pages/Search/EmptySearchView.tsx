@@ -8,7 +8,7 @@ import {Linking, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
-import type {EmptyStateButton, HeaderMedia, MediaTypes} from '@components/EmptyStateComponent/types';
+import type {EmptyStateButton, HeaderMedia} from '@components/EmptyStateComponent/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
@@ -64,7 +64,6 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
 };
 
 type EmptySearchViewItem = {
-    headerMediaType: MediaTypes;
     headerMedia: HeaderMedia;
     title: string;
     subtitle?: string;
@@ -267,7 +266,6 @@ function EmptySearchViewContent({
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 content = {
-                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ILLUSTRATION,
                     headerMedia: illustrations.EmptyStateTravel,
                     headerContentStyles: [styles.tripEmptyStateIllustration],
                     title: translate('travel.title'),
@@ -450,7 +448,6 @@ function EmptySearchViewContent({
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
             >
                 <GenericEmptyStateComponent
-                    headerMediaType={content.headerMediaType}
                     headerMedia={content.headerMedia}
                     headerStyles={styles.emptyStateCardIllustrationContainer}
                     title={content.title}

@@ -5,7 +5,6 @@ import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 
 type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
     /** Whether to disable GB disclaimer */
@@ -23,7 +22,6 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({shouldShowGBDisclaimer}: Works
             addBottomSafeAreaPadding
         >
             <EmptyStateComponent
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                 headerMedia={illustrations.LaptopAssignCard}
                 containerStyles={styles.mt5}
                 headerStyles={styles.emptyStateCardIllustrationContainer}

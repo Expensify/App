@@ -11,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import CONST from '@src/CONST';
 
 type EmptyCardViewProps = {
     /** Whether the bank account is verified */
@@ -40,7 +39,6 @@ function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardView
         >
             <View style={[{minHeight: windowHeight - headerHeight}, styles.pt5]}>
                 <EmptyStateComponent
-                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                     headerMedia={isBankAccountVerified ? lazyIllustrations.ExpensifyCardCoins : lazyIllustrations.CompanyCardsPendingState}
                     headerStyles={styles.emptyStateCardIllustrationContainer}
                     title={translate(`workspace.expensifyCard.${isBankAccountVerified ? 'issueAndManageCards' : 'verificationInProgress'}`)}

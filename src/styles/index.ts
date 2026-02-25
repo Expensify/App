@@ -5656,6 +5656,8 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
         },
         emptyStateHeader: {
+            alignItems: 'center',
+            justifyContent: 'center',
             marginBottom: 24,
         },
         sidePanelOverlay: {
@@ -6081,11 +6083,6 @@ const dynamicStyles = (theme: ThemeColors) =>
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
-
-        emptyStateHeaderPosition: () => ({
-            alignItems: 'center' as const,
-            justifyContent: 'center' as const,
-        }),
 
         emojiHeaderContainerWidth: (isSmallScreenWidth: boolean, windowWidth: number) =>
             ({

@@ -377,7 +377,6 @@ function ReportFieldsListValuesPage({
                         <EmptyStateComponent
                             title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
                             subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
-                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                             headerMedia={illustrations.FolderWithPapers}
                             headerStyles={styles.emptyStateCardIllustrationContainer}
                             headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
