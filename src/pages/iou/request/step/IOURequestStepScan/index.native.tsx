@@ -23,6 +23,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
@@ -65,6 +66,7 @@ function IOURequestStepScan({
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isLoaderVisible} = useFullScreenLoaderState();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
@@ -486,7 +488,7 @@ function IOURequestStepScan({
                     {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
                         <View style={[styles.cameraView, styles.alignItemsCenter]}>
                             <GestureDetector gesture={tapGesture}>
-                                <View style={cameraAspectRatio ? {aspectRatio: cameraAspectRatio, width: '100%', maxHeight: '100%'} : styles.flex1}>
+                                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio)}>
                                     <NavigationAwareCamera
                                         ref={camera}
                                         device={device}
@@ -501,7 +503,7 @@ function IOURequestStepScan({
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                                     <Animated.View
                                         pointerEvents="none"
-                                        style={[StyleSheet.absoluteFillObject, {backgroundColor: theme.appBG}, blinkStyle, styles.zIndex10]}
+                                        style={[StyleSheet.absoluteFillObject, StyleUtils.getBackgroundColorStyle(theme.appBG), blinkStyle, styles.zIndex10]}
                                     />
                                 </View>
                             </GestureDetector>
