@@ -172,7 +172,7 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 function downloadTravelInvoiceStatementPDF(
     translate: LocalizedTranslate,
     baseURL: string,
-    fileName: string | true,
+    fileName: string,
     startDate: string,
     endDate: string,
     currentUserEmail: string,

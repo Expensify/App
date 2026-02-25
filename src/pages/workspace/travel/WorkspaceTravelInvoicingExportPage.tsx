@@ -102,7 +102,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
 
         setIsDownloading(true);
 
-        if (travelInvoiceStatement?.[cacheKey]) {
+        if (typeof travelInvoiceStatement?.[cacheKey] === 'string') {
             // We already have a cached file for this statement, download it immediately
             const fileName = travelInvoiceStatement[cacheKey];
             downloadTravelInvoiceStatementPDF(translate, baseURL, fileName, startDate, endDate, currentUserPersonalDetails?.login ?? '').finally(() => setIsDownloading(false));

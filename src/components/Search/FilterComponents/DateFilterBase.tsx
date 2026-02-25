@@ -1,4 +1,4 @@
-import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -20,11 +20,11 @@ type DateFilterBaseProps = {
     onSubmit: (values: SearchDateValues) => void;
     customFooter?: React.ReactNode;
     Wrapper?: React.ComponentType<{children: React.ReactNode}>;
+    ref?: React.Ref<SearchDatePresetFilterBaseHandle>;
 };
 
-// Use forwardRef so parent can get the selected date values via the exposed method
-const DateFilterBase = forwardRef<SearchDatePresetFilterBaseHandle, DateFilterBaseProps>(
-    ({title, defaultDateValues, presets, isSearchAdvancedFiltersFormLoading, onBackButtonPress, onSubmit, customFooter, Wrapper}, ref) => {
+// Component uses ref as a prop, which is supported in modern React
+function DateFilterBase({title, defaultDateValues, presets, isSearchAdvancedFiltersFormLoading, onBackButtonPress, onSubmit, customFooter, Wrapper, ref}: DateFilterBaseProps) {
         const styles = useThemeStyles();
         const {translate} = useLocalize();
 
@@ -133,7 +133,6 @@ const DateFilterBase = forwardRef<SearchDatePresetFilterBaseHandle, DateFilterBa
         }
 
         return content;
-    },
-);
+}
 
 export default DateFilterBase;
