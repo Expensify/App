@@ -1,0 +1,46 @@
+---
+title: XERO08 Export Error: Report PDF Is Too Large
+description: Learn why the XERO08 export error occurs in Expensify Classic and how to resolve PDF size limits when exporting to Xero.
+keywords: XERO08, Xero PDF too large, report exceeds 10MB Xero, Xero attachment size limit, Expensify Classic Xero export error
+internalScope: Audience is Workspace Admins using the Xero integration in Expensify Classic. Covers the XERO08 export error related to Xero’s 10MB attachment size limit. Does not cover chart of accounts or authentication issues.
+---
+
+# XERO08 Export Error: Report PDF Is Too Large
+
+If you see the error message **“XERO08 Export Error: PDF of report is too large to export (>10MB). Please reach out to Concierge for additional assistance.”**, it means the report PDF exceeds Xero’s 10MB attachment size limit.
+
+Xero does not allow attachments larger than 10MB.
+
+---
+
+## Why the XERO08 Export Error Happens
+
+The XERO08 export error occurs when:
+
+- The generated PDF of the report is larger than **10MB**, and  
+- Xero rejects the attachment during export  
+
+Large PDFs are typically caused by:
+
+- High-resolution receipt images  
+- Multiple large attachments on a single report  
+
+---
+
+## How to Fix the XERO08 Export Error
+
+Please reach out to **Concierge** for assistance.
+
+We’ll help review the report, determine the cause of the oversized PDF, and provide guidance on how to successfully export it to Xero.
+
+---
+
+# FAQ
+
+## Can I reduce the PDF size myself?
+
+You may try removing unnecessary or duplicate attachments from the report. However, if the error persists, contact Concierge for support.
+
+## Does this error affect other exports?
+
+Only reports with PDFs larger than 10MB will fail. Smaller reports will export normally.
