@@ -14,8 +14,8 @@ function MissingPersonalDetails({route: {params: {cardID = ''} = {}}}) {
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, draftValuesMetadata);
 
     const handleComplete = useCallback(() => {
-        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
-    }, []);
+        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE.getRoute(cardID));
+    }, [cardID]);
 
     if (isLoading) {
         return <FullScreenLoadingIndicator />;

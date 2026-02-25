@@ -19,12 +19,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function Pin({onNext}: CustomSubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {setPin} = usePin();
+    const {pin: savedPin, setPin} = usePin();
 
-    // Track whether we're on the initial entry or verification step
     const [isConfirmStep, setIsConfirmStep] = useState(false);
-    const [enteredPin, setEnteredPin] = useState('');
-    const [confirmPin, setConfirmPin] = useState('');
+    const [enteredPin, setEnteredPin] = useState(savedPin);
+    const [confirmPin, setConfirmPin] = useState(savedPin);
     const [isPinHidden, setIsPinHidden] = useState(true);
     const [error, setError] = useState('');
 
@@ -67,7 +66,6 @@ function Pin({onNext}: CustomSubPageProps) {
         if (!isConfirmStep) {
             // Move to verification step
             setIsConfirmStep(true);
-            setConfirmPin('');
             setError('');
             return;
         }
@@ -105,7 +103,6 @@ function Pin({onNext}: CustomSubPageProps) {
                         value={currentPin}
                         maxLength={CONST.EXPENSIFY_CARD.PIN.LENGTH}
                         onChangeText={handlePinChange}
-                        onFulfill={handleSubmit}
                         hasError={!!error}
                         autoFocus
                         secureTextEntry={isPinHidden}

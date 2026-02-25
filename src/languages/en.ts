@@ -714,6 +714,9 @@ const translations = {
             dismiss: 'Got it',
             error: 'Request failed. Try again later.',
         },
+        setPin: {
+            didNotShipCard: 'We didn’t ship your card. Please try again.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

@@ -1,4 +1,5 @@
 import React from 'react';
+import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
 import {
     DefaultClientFailureScreen,
     DefaultServerFailureScreen,
@@ -41,6 +42,14 @@ function isSetPinOrderCardPayload(payload: MultifactorAuthenticationScenarioAddi
     return !!payload && 'cardID' in payload && 'pin' in payload;
 }
 
+const SetPINClientFailureScreen = createScreenWithDefaults(
+    DefaultClientFailureScreen,
+    {
+        subtitle: 'multifactorAuthentication.setPin.didNotShipCard',
+    },
+    'SetPINClientFailureScreen',
+);
+
 /**
  * Configuration for the SET_PIN_ORDER_CARD multifactor authentication scenario.
  * This scenario is used when a UK/EU cardholder sets their PIN during the card ordering process.
@@ -56,6 +65,7 @@ export default {
 
     callback: async (isSuccessful, _callbackInput, payload) => {
         if (isSuccessful && isSetPinOrderCardPayload(payload)) {
+            Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(payload.cardID)));
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN;
         }
@@ -64,7 +74,7 @@ export default {
     },
 
     // Failure screens for different error scenarios
-    defaultClientFailureScreen: <DefaultClientFailureScreen />,
+    defaultClientFailureScreen: <SetPINClientFailureScreen />,
     defaultServerFailureScreen: <DefaultServerFailureScreen />,
     failureScreens: {
         [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS]: <NoEligibleMethodsFailureScreen />,
