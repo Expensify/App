@@ -11501,7 +11501,7 @@ function prepareOnboardingOnyxData({
     };
 
     // When the user is MICRO and using followups, generate a bespoke welcome message from Concierge.
-    // The frontend displays it optimistically; the backend passes it to the agent which appends followups.
+    // The frontend displays it optimistically; the server uses it to generate suggested followups.
     let bespokeWelcomeMessage: string | undefined;
     let optimisticConciergeReportActionID: string | undefined;
     let bespokeAction: OptimisticReportAction | undefined;
