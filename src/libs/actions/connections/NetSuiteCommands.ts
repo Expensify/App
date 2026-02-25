@@ -583,12 +583,16 @@ function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, i
 }
 
 function updateNetSuiteCustomSegments(
-    policyID: string,
+    policyID: string | undefined,
     records: NetSuiteCustomSegment[],
     oldRecords: NetSuiteCustomSegment[],
     modifiedSegmentID: string,
     pendingAction: OnyxCommon.PendingAction,
 ) {
+    if (!policyID) {
+        return;
+    }
+
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, records, oldRecords, modifiedSegmentID, pendingAction);
 
     API.write(

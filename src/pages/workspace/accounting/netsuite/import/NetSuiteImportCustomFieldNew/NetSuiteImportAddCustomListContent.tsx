@@ -5,6 +5,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import type {FormRef} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,7 +23,6 @@ import ChooseCustomListStep from './subPages/ChooseCustomListStep';
 import ConfirmCustomListStep from './subPages/ConfirmCustomListStep';
 import CustomListMappingStep from './subPages/CustomListMappingStep';
 import TransactionFieldIDStep from './subPages/TransactionFieldIDStep';
-import ScreenWrapper from '@components/ScreenWrapper';
 
 type NetSuiteImportAddCustomListContentProps = {
     policy: OnyxEntry<Policy>;

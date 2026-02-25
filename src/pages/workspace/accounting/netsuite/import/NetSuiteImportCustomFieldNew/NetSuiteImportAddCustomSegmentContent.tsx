@@ -36,7 +36,7 @@ type NetSuiteImportAddCustomSegmentContentProps = {
 const formSteps = [ChooseSegmentTypeStep, CustomSegmentNameStep, CustomSegmentInternalIdStep, CustomSegmentScriptIdStep, CustomSegmentMappingStep, ConfirmCustomSegmentStep];
 
 function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteImportAddCustomSegmentContentProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
     const formRef = useRef<FormRef | null>(null);
@@ -132,7 +132,6 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
                     onNext={handleNextScreen}
                     onMove={moveTo}
                     screenIndex={screenIndex}
-                    policyID={policyID}
                     policy={policy}
                     importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS}
                     customSegmentType={customSegmentType}
