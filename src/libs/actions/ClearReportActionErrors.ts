@@ -32,16 +32,19 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, o
     }
 
     if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || reportAction.isOptimisticAction) {
+        // If there's a linked transaction, delete that too
         const linkedTransactionID = getLinkedTransactionID(reportAction);
         if (linkedTransactionID) {
             Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`, null);
         }
 
+        // Delete the optimistic action
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
             [reportAction.reportActionID]: null,
         });
 
+        // Delete the failed task report too
         const taskReportID = getReportActionMessage(reportAction)?.taskReportID;
         if (taskReportID && isCreatedTaskReportAction(reportAction)) {
             deleteReport(taskReportID);

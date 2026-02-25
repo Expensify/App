@@ -354,6 +354,8 @@ describe('ClearReportActionErrors', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {
                 [CHILD_REPORT_ACTION_ID]: childReportAction1,
+
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '301': childReportAction2,
             });
             await waitForBatchedUpdates();
