@@ -637,7 +637,7 @@ function PureReportActionItem({
             clearError(transactionID);
         }
         clearAllRelatedReportActionErrors(reportID, action, originalReportID);
-    }, [action, isSendingMoney, reportID, clearAllRelatedReportActionErrors, report, chatReport, clearError]);
+    }, [action, isSendingMoney, reportID, clearAllRelatedReportActionErrors, originalReportID, report, chatReport, clearError]);
 
     const showDismissReceiptErrorModal = useCallback(async () => {
         const result = await showConfirmModal({
@@ -1835,7 +1835,7 @@ function PureReportActionItem({
                 ?.split(',')
                 .map((accountID) => Number(accountID))
                 .filter((accountID): accountID is number => typeof accountID === 'number') ?? [];
-        const draftMessageRightAlign = draftMessage !== undefined ? styles.chatItemReactionsDraftRight : {};
+        const draftMessageRightAlign = isEditingInline ? styles.chatItemReactionsDraftRight : {};
 
         const itemContent = (
             <>
