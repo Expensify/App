@@ -1018,7 +1018,15 @@ type OpenReimbursementAccountPageActionParams = {
  * @param bankAccountID - bank account ID
  * @param shouldPreserveDraft - if the draft should be preserved
  */
-function openReimbursementAccountPage({stepToOpen = '', subStep = '', localCurrentStep = '', policyID, bankAccountID, shouldPreserveDraft, shouldShowLoading = true}: OpenReimbursementAccountPageActionParams) {
+function openReimbursementAccountPage({
+    stepToOpen = '',
+    subStep = '',
+    localCurrentStep = '',
+    policyID,
+    bankAccountID,
+    shouldPreserveDraft,
+    shouldShowLoading = true,
+}: OpenReimbursementAccountPageActionParams) {
     const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
         optimisticData: [
             {
