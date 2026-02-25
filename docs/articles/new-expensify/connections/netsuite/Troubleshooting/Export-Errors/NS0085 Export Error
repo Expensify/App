@@ -1,0 +1,70 @@
+---
+title: NS0085 Export Error: No Permission to Set Exchange Rate
+description: Learn why the NS0085 export error occurs and how to make the Exchange Rate field visible in NetSuite to allow successful exports.
+keywords: NS0085, NetSuite exchange rate permission error, exchange rate field not visible NetSuite, transaction form exchange rate, Expensify NetSuite integration
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0085 export error related to Exchange Rate field visibility in NetSuite forms. Does not cover currency enablement or subsidiary configuration issues.
+---
+
+# NS0085 Export Error: No Permission to Set Exchange Rate
+
+If you see the error message **“NS0085 Export Error: Expenses do not have appropriate permissions for setting an exchange rate in NetSuite.”**, it means the **Exchange Rate** field is not visible on the preferred export form in NetSuite.
+
+Expensify must be able to access and populate the Exchange Rate field during export.
+
+---
+
+## Why the NS0085 Export Error Happens
+
+The NS0085 export error occurs when the **Exchange Rate** field is hidden on the NetSuite transaction form used for exports.
+
+If the field is not visible, NetSuite prevents Expensify from setting its value.
+
+---
+
+## How to Fix the NS0085 Export Error
+
+### Step 1: Make the Exchange Rate Field Visible in NetSuite
+
+In NetSuite:
+
+1. Go to **Customization > Forms > Transaction Forms**.
+2. Click **Edit** next to the export form marked as preferred.
+3. Locate the **Exchange Rate** field.
+4. Ensure the field is marked as **Show**.
+5. Save your changes.
+
+---
+
+### Step 2: Sync the Connection in Expensify
+
+After updating the form:
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the NetSuite connection.
+5. Click **Sync now**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the NetSuite connection.
+5. Tap **Sync now**.
+
+Retry exporting the report once the sync completes.
+
+---
+
+# FAQ
+
+## Does the NS0085 Export Error affect multi-currency reports only?
+
+Yes. This error typically appears when exporting transactions that require an exchange rate.
+
+## Do I need NetSuite admin access to fix the NS0085 Export Error?
+
+Yes. Updating transaction form field visibility in NetSuite requires appropriate permissions.
