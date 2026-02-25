@@ -606,6 +606,7 @@ function MoneyRequestParticipantsSelector({
                 textInputAutoFocus={textInputAutoFocus}
                 ref={selectionListRef}
                 onEndReached={onListEndReached}
+                onEndReachedThreshold={0.75}
             />
         </>
     );
