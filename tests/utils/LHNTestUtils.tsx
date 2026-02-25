@@ -4,7 +4,7 @@ import {render} from '@testing-library/react-native';
 import type {ReactElement} from 'react';
 import React from 'react';
 import ComposeProviders from '@components/ComposeProviders';
-import {EnvironmentProvider} from '@components/EnvironmentContext';
+import EnvironmentProvider from '@components/EnvironmentContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';

@@ -1784,6 +1784,8 @@ const CONST = {
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
+        SPAN_CAMERA_INIT: 'ManualCameraInit',
+        SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
         SPAN_SUBMIT_EXPENSE: 'ManualCreateExpenseSubmit',
         SPAN_NAVIGATE_AFTER_EXPENSE_CREATE: 'ManualCreateExpenseNavigation',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
@@ -2285,6 +2287,12 @@ const CONST = {
     IMAGE_OBJECT_POSITION: {
         TOP: 'top',
         INITIAL: 'initial',
+    },
+
+    IMAGE_LOADING_PRIORITY: {
+        LOW: 'low',
+        NORMAL: 'normal',
+        HIGH: 'high',
     },
 
     FILE_TYPE_REGEX: {
@@ -7428,6 +7436,7 @@ const CONST = {
             TABLE: 'table',
             BAR: 'bar',
             LINE: 'line',
+            PIE: 'pie',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
