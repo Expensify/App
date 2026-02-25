@@ -9,6 +9,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,6 +45,7 @@ function BasePicker<TPickerValue>({
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     const [isHighlighted, setIsHighlighted] = useState(false);
 
@@ -172,10 +174,10 @@ function BasePicker<TPickerValue>({
             return selectedLabel || '';
         }
         if (selectedLabel) {
-            return `${defaultAccessibilityLabel}, ${selectedLabel}`;
+            return `${defaultAccessibilityLabel}, ${selectedLabel}, ${translate(isHighlighted ? 'common.expanded' : 'common.collapsed')}`;
         }
         return defaultAccessibilityLabel;
-    }, [accessibilityLabel, label, selectedLabel]);
+    }, [accessibilityLabel, label, selectedLabel, isHighlighted, translate]);
 
     if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (
@@ -232,7 +234,7 @@ function BasePicker<TPickerValue>({
                     touchableWrapperProps={{
                         accessible: true,
                         accessibilityRole: CONST.ROLE.COMBOBOX,
-                        accessibilityLabel,
+                        accessibilityLabel: enhancedAccessibilityLabel,
                         accessibilityState: {disabled: isDisabled, expanded: isHighlighted},
                     }}
                     pickerProps={{
