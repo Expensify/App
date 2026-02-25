@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, use
 // eslint-disable-next-line no-restricted-imports
 import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 import {DeviceEventEmitter, StyleSheet} from 'react-native';
-import type {ComposerProps} from '@components/Composer/types';
+import type {ComposerProps, ComposerRef} from '@components/Composer/types';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
