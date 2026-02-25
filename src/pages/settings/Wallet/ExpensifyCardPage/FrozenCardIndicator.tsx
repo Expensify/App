@@ -6,8 +6,8 @@ import cardScarf from '@assets/images/card-scarf.svg';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -29,6 +29,7 @@ function FrozenCardIndicator({cardID, onUnfreezePress}: FrozenCardIndicatorProps
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['FreezeCard'] as const);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
@@ -67,7 +68,7 @@ function FrozenCardIndicator({cardID, onUnfreezePress}: FrozenCardIndicatorProps
             />
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt9]}>
                 <Icon
-                    src={Expensicons.FreezeCard}
+                    src={icons.FreezeCard}
                     fill={theme.icon}
                     small
                 />
