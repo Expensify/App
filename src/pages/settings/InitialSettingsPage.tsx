@@ -1,5 +1,4 @@
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
-import {filterOutPersonalCards} from '@selectors/Card';
 import {differenceInDays} from 'date-fns';
 import {stopLocationUpdatesAsync} from 'expo-location';
 import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
@@ -27,6 +26,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -110,23 +110,24 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'Wallet',
         'Bolt',
     ] as const);
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
-    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [retryBillingSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, {canBeMissing: true});
-    const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
-    const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
-    const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+    const allCards = useNonPersonalCardList();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [retryBillingSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL);
+    const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING);
+    const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
+    const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
+    const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
     const theme = useTheme();
@@ -138,14 +139,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {canBeMissing: true});
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
+    const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
 
     const freeTrialText = getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
@@ -153,6 +154,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const {
         all: {shouldShowRBR},
+        personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
     } = useCardFeedErrors();
 
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
@@ -162,7 +164,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         !isEmptyObject(userWallet?.errors) ||
         !isEmptyObject(walletTerms?.errors) ||
         !isEmptyObject(unsharedBankAccount?.errors) ||
-        shouldShowRBR
+        shouldShowRBR ||
+        shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPendingCardAction) {
@@ -276,7 +279,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
             brickRoadIndicator:
                 !!privateSubscription?.errors ||
-                hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, ownerBillingGraceEndPeriod)
+                hasSubscriptionRedDotError(
+                    stripeCustomerId,
+                    retryBillingSuccessful,
+                    billingDisputePending,
+                    retryBillingFailed,
+                    fundList,
+                    billingStatus,
+                    amountOwed,
+                    ownerBillingGraceEndPeriod,
+                )
                     ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                     : undefined,
             badgeText: freeTrialText,
@@ -299,6 +311,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         classicRedirectMenuItem = {
             translationKey: 'exitSurvey.goToExpensifyClassic',
             icon: icons.ExpensifyLogoNew,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.GO_TO_CLASSIC,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
                       action: () => closeReactNativeApp({shouldSetNVP: true, isTrackingGPS}),
@@ -339,6 +352,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: icons.QuestionMark,
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.HELP,
                 link: CONST.NEWHELP_URL,
                 action: () => {
                     openExternalLink(CONST.NEWHELP_URL);
@@ -349,6 +363,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: icons.TreasureChest,
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.WHATS_NEW,
                 link: CONST.WHATS_NEW_URL,
                 action: () => {
                     openExternalLink(CONST.WHATS_NEW_URL);
@@ -358,23 +373,27 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 translationKey: 'initialSettingsPage.about',
                 icon: icons.Info,
                 screenName: SCREENS.SETTINGS.ABOUT,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.ABOUT,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_ABOUT),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
                 icon: icons.Lightbulb,
                 screenName: SCREENS.SETTINGS.TROUBLESHOOT,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.TROUBLESHOOT,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT),
             },
             {
                 translationKey: 'sidebarScreen.saveTheWorld',
                 icon: icons.Heart,
                 screenName: SCREENS.SETTINGS.SAVE_THE_WORLD,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.SAVE_THE_WORLD,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD),
             },
             {
                 translationKey: signOutTranslationKey,
                 icon: icons.Exit,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.SIGN_OUT,
                 action: () => {
                     signOut(false);
                 },
@@ -414,7 +433,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
         return (
             <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
-                <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
+                <Text
+                    style={styles.sectionTitle}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate(menuItemsData.sectionTranslationKey)}
+                </Text>
                 {menuItemsData.items.map((item) => {
                     const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
                     const isFocused = focusedRouteName ? focusedRouteName === item.screenName : false;

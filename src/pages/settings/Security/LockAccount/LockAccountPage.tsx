@@ -20,7 +20,7 @@ function LockAccountPage() {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [isLoading, setIsLoading] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const {showConfirmModal} = useConfirmModal();
     const showReportSuspiciousActivityModal = async () => {
