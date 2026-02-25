@@ -1157,17 +1157,11 @@ function getOptionData({
         isReportArchived,
     );
 
-    // B2B invoice reports (2 workspace icons) should render diagonal, not subscript.
-    // Force shouldShowSubscript=false so LHNAvatar uses diagonal layout.
-    const isBothWorkspaceIcons = result.icons.length === 2 && result.icons.every((icon) => icon.type === CONST.ICON_TYPE_WORKSPACE);
-    if (isInvoiceReport(report) && isBothWorkspaceIcons) {
-        result.shouldShowSubscript = false;
-    }
-
     // When subscript is not shown, only a single icon should be displayed in the LHN.
     // Prefer the other person's avatar over the current user's (e.g. IOU reports put
     // the manager first, but the LHN should show the counterpart).
     // Exception: keep both icons for B2B invoices (2 workspace icons shown diagonally).
+    const isBothWorkspaceIcons = result.icons.length === 2 && result.icons.every((icon) => icon.type === CONST.ICON_TYPE_WORKSPACE);
     if (!result.shouldShowSubscript && result.icons.length > 1 && !isBothWorkspaceIcons) {
         const otherIcon = result.icons.find((icon) => icon.type === CONST.ICON_TYPE_AVATAR && icon.id !== currentUserAccountID);
         result.icons = otherIcon ? [otherIcon] : result.icons.slice(0, 1);
