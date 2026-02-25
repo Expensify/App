@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
+import {isInvoiceReport, isIOUReport, shouldEnableNegative} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
@@ -78,6 +78,15 @@ function SearchEditMultipleAmountPage() {
             return shouldEnableNegative(iouReport, transactionPolicy, iouType);
         });
     }, [selectedTransactionIDs, allTransactions, allReports, policies]);
+    const isP2P = selectedTransactionIDs.some((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction) {
+            return false;
+        }
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        return isIOUReport(report);
+    });
+
     const amountForForm = allowNegative ? amount : Math.abs(amount);
 
     const saveAmount = (currentMoney: CurrentMoney) => {
@@ -117,6 +126,7 @@ function SearchEditMultipleAmountPage() {
                 amount={amountForForm}
                 currency={selectedCurrency}
                 isEditing
+                isP2P={isP2P}
                 // TODO: Enable currency picker in a separate PR
                 isCurrencyPressable={false}
                 // TODO: Enable currency symbol in a separate PR
