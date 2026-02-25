@@ -5296,7 +5296,7 @@ function updateMoneyRequestDate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, true, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -8629,7 +8629,7 @@ function updateMoneyRequestAmountAndCurrency({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, true, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,

@@ -333,6 +333,7 @@ function TransactionItemRow({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false)]}
                     >
                         <DateCell
+                            isEditable={canInlineEdit}
                             canEdit={canEditCell}
                             date={createdAt}
                             onSave={onEditDate}
@@ -403,6 +404,7 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            isEditable={canInlineEdit}
                             canEdit={canEditCell}
                             onSave={onEditCategory}
                             policyID={report?.policyID ?? transactionItem.report?.policyID}
@@ -460,6 +462,7 @@ function TransactionItemRow({
                             merchantOrDescription={merchant ?? ''}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
+                            isEditable={canInlineEdit}
                             canEdit={canEditCell}
                             onSave={onEditMerchant}
                         />
@@ -476,6 +479,7 @@ function TransactionItemRow({
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
                             isDescription
+                            isEditable={canInlineEdit}
                             canEdit={canEditCell}
                             onSave={onEditDescription}
                         />
@@ -550,6 +554,7 @@ function TransactionItemRow({
                         <TotalCell
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
+                            isEditable={canInlineEdit}
                             canEdit={canEditCell}
                             onSave={onEditAmount}
                         />

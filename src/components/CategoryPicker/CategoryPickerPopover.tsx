@@ -57,6 +57,7 @@ function CategoryPickerPopover({policyID, selectedCategory, onCategorySelected, 
             shouldEnableNewFocusManagement
             shouldSkipRemeasurement
             shouldDisplayBelowModals
+            // PopoverWithMeasuredContentProps are forwarded directly to control popover behavior
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...popoverProps}
         >
