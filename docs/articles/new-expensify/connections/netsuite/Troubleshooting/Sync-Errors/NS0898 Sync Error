@@ -1,0 +1,73 @@
+---
+title: NS0898 Sync Error: Incorrect Approval Settings
+description: Learn why the NS0898 sync error occurs and how to align approval levels between NetSuite and Expensify.
+keywords: NS0898, NetSuite approval settings error, incorrect approval level, adjust approval level Expensify, NetSuite approval mismatch, Expensify NetSuite integration
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0898 sync error related to approval level configuration in Expensify. Does not cover token permissions or bundle update issues.
+---
+
+# NS0898 Sync Error: Incorrect Approval Settings
+
+If you see the error message **“NS0898 Sync Error: Incorrect approval settings. Please adjust approval level in either NetSuite or Expensify configurations.”**, it means the approval settings in Expensify do not match your NetSuite configuration.
+
+When approval levels are misaligned, the export will fail.
+
+---
+
+## Why the NS0898 Sync Error Happens
+
+The NS0898 sync error occurs when the approval level selected in Expensify does not match the approval workflow configured in NetSuite.
+
+This typically happens during export of:
+
+- Expense reports  
+- Journal entries  
+- Vendor bills  
+
+If the export type is set to an approval level that NetSuite does not accept, the sync will fail.
+
+---
+
+## How to Fix the NS0898 Sync Error
+
+You’ll need to update the approval level in Expensify to match your NetSuite configuration.
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Select **Advanced**.
+5. Locate the approval level setting for the export type:
+   - Expense report  
+   - Journal entry  
+   - Vendor bill  
+6. Adjust the approval level as needed.
+7. Click **Save**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap **Advanced**.
+5. Update the approval level for the relevant export type.
+6. Tap **Save**.
+
+After saving:
+
+1. Return to **Accounting**.
+2. Tap the **three-dot icon** next to the NetSuite connection.
+3. Select **Sync now**.
+4. Retry the export.
+
+---
+
+# FAQ
+
+## Should I update approval settings in NetSuite or Expensify?
+
+You can update either side, but the settings must match. Most commonly, the adjustment is made in Expensify under **Accounting > Advanced**.
+
+## Does the NS0898 Sync Error affect all exports?
+
+It can. Any export type with mismatched approval settings may fail until the configuration is aligned.
