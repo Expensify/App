@@ -79,7 +79,13 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
 
     const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
-    const startFrom = useMemo(() => findPageIndex<CustomSubPageProps>(formPages, getInitialSubPage(values)), [formPages, values]);
+    const startFrom = useMemo(() => {
+        const initialPage = getInitialSubPage(values);
+        if (isUKEUCard && initialPage === CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM && !pin) {
+            return findPageIndex<CustomSubPageProps>(formPages, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN);
+        }
+        return findPageIndex<CustomSubPageProps>(formPages, initialPage);
+    }, [formPages, values, isUKEUCard, pin]);
 
     const handleFinishStep = () => {
         if (isUKEUCard) {

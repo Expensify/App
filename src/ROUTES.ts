@@ -3349,6 +3349,9 @@ const ROUTES = {
             if (!cardID && !subPage) {
                 return 'missing-personal-details' as const;
             }
+            if (!cardID && subPage) {
+                return `missing-personal-details/${subPage}${action ? `/${action}` : ''}` as const;
+            }
             if (!subPage) {
                 return `missing-personal-details/${cardID}` as const;
             }
