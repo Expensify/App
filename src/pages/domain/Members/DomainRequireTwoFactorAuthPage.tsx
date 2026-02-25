@@ -30,17 +30,12 @@ function DomainRequireTwoFactorAuthPage({route}: DomainRequireTwoFactorAuthPageP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: domainNameSelector});
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
-        canBeMissing: false,
         selector: domainMemberSettingsSelector,
     });
-    const [validateDomainTwoFactorCodeErrors] = useOnyx(ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE, {
-        canBeMissing: true,
-    });
-    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        canBeMissing: true,
-    });
+    const [validateDomainTwoFactorCodeErrors] = useOnyx(ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE);
+    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
 
     const baseTwoFactorAuthRef = useRef<BaseTwoFactorAuthFormRef>(null);
     const isUnmounted = useRef(false);
