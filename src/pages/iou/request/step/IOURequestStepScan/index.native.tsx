@@ -71,7 +71,7 @@ function IOURequestStepScan({
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
-    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}]);
+    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {videoResolution: 'max'}, {photoResolution: 'max'}]);
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
 
