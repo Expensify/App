@@ -221,14 +221,10 @@ function IOURequestStepDistanceOdometer({
         }
     }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing]);
 
-    const normalizeOdometerText = (text: string): string => DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
-
-    const parseOdometerReading = (text: string): number => parseFloat(normalizeOdometerText(text));
-
     // Calculate total distance - updated live after every input change
     const totalDistance = (() => {
-        const start = parseOdometerReading(startReading);
-        const end = parseOdometerReading(endReading);
+        const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
+        const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
         if (Number.isNaN(start) || Number.isNaN(end) || !startReading || !endReading) {
             return null;
         }
@@ -296,7 +292,7 @@ function IOURequestStepDistanceOdometer({
         if (!text) {
             return true;
         }
-        const stripped = normalizeOdometerText(text);
+        const stripped = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
         const parts = stripped.split('.');
         if (parts.length > 2) {
             return false;
@@ -308,7 +304,7 @@ function IOURequestStepDistanceOdometer({
         // Allow edits that reduce the value (e.g. backspacing a legacy over-max reading),
         // but reject keystrokes that would increase beyond the max.
         if (!Number.isNaN(value) && value > CONST.IOU.ODOMETER_MAX_VALUE) {
-            const previousValue = parseFloat(normalizeOdometerText(previousText));
+            const previousValue = parseFloat(DistanceRequestUtils.normalizeOdometerText(previousText, fromLocaleDigit));
             if (Number.isNaN(previousValue) || value >= previousValue) {
                 return false;
             }
@@ -368,8 +364,8 @@ function IOURequestStepDistanceOdometer({
     const icons = useMemoizedLazyExpensifyIcons(['GalleryPlus'] as const);
     // Navigate to next page following Manual tab pattern
     const navigateToNextPage = () => {
-        const start = parseOdometerReading(startReading);
-        const end = parseOdometerReading(endReading);
+        const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
+        const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
 
         // Store odometer readings in transaction.comment.odometerStart/odometerEnd
         setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
@@ -484,8 +480,8 @@ function IOURequestStepDistanceOdometer({
             return;
         }
 
-        const start = parseOdometerReading(startReading);
-        const end = parseOdometerReading(endReading);
+        const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
+        const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
 
         if (Number.isNaN(start) || Number.isNaN(end)) {
             setFormError(translate('iou.error.invalidReadings'));
