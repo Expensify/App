@@ -1,0 +1,72 @@
+---
+title: NS0669 Export Error: NetSuite Default Vendor -Accountant- Cannot Be Used
+description: Learn why the NS0669 export error occurs and how to select a valid default vendor in Expensify instead of NetSuite’s -Accountant- vendor.
+keywords: NS0669, NetSuite default vendor Accountant, vendor ID -3 NetSuite, default vendor export error, Expensify default vendor setting, Expensify NetSuite integration
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0669 export error related to selecting the -Accountant- default vendor in NetSuite. Does not cover vendor email or subsidiary mismatches.
+---
+
+# NS0669 Export Error: NetSuite Default Vendor -Accountant- Cannot Be Used
+
+If you see the error message **“NS0669 Export Error: NetSuite’s default vendor '-Accountant-' (ID -3) cannot be used for exports. Please choose or create a different vendor and retry.”**, it means the default NetSuite vendor **-Accountant-** is selected as the export vendor in Expensify.
+
+The **-Accountant-** vendor (Internal ID **-3**) is automatically created by NetSuite and cannot be used for exports from Expensify.
+
+---
+
+## Why the NS0669 Export Error Happens
+
+NetSuite provides a default vendor called **-Accountant-** in every NetSuite environment.
+
+- Internal ID: **-3**
+- This vendor is system-generated.
+- It cannot be used as a valid export vendor in Expensify.
+
+If **-Accountant-** is selected as the **Default Vendor** in Expensify, exports will fail.
+
+---
+
+## How to Fix the NS0669 Export Error
+
+### Step 1: Select a Different Default Vendor in Expensify
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Select **Export**.
+5. Locate the **Default Vendor** setting.
+6. Choose a different, valid vendor from the dropdown.
+7. Click **Save**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap **Export**.
+5. Update the **Default Vendor** field.
+6. Tap **Save**.
+
+---
+
+### Step 2: Retry the Export
+
+After selecting a valid vendor:
+
+1. Return to the report.
+2. Retry exporting the report.
+
+If needed, click the **three-dot icon** next to the NetSuite connection and select **Sync now** before retrying.
+
+---
+
+# FAQ
+
+## Can I use the -Accountant- vendor for any exports?
+
+No. The **-Accountant-** vendor (ID -3) is a NetSuite system default and cannot be used for exports from Expensify.
+
+## Do I need NetSuite admin access to fix the NS0669 Export Error?
+
+No. You only need Workspace Admin access in Expensify to update the Default Vendor setting.
