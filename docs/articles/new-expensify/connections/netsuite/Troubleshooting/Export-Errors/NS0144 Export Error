@@ -1,0 +1,46 @@
+---
+title: NS0144 Export Error: Internal Server Error When Exporting to NetSuite
+description: Learn why the NS0144 export error occurs and how to resolve connection issues between Expensify and NetSuite.
+keywords: NS0144, NetSuite internal server error, export to NetSuite failed, NetSuite connection issue, Expensify NetSuite integration error
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0144 export error related to connection issues between Expensify and NetSuite. Does not cover specific configuration or permission troubleshooting steps.
+---
+
+# NS0144 Export Error: Internal Server Error When Exporting to NetSuite
+
+If you see the error message **“NS0144 Export Error: Internal server error when attempting to export to NetSuite.”**, it means there is a connection issue between Expensify and NetSuite.
+
+This error is typically returned by NetSuite during the export process.
+
+---
+
+## Why the NS0144 Export Error Happens
+
+The NS0144 export error occurs when there is a disruption or failure in communication between Expensify and NetSuite.
+
+This may be caused by:
+
+- A temporary NetSuite outage  
+- An integration interruption  
+- An internal NetSuite server error  
+
+Because the error originates from NetSuite, additional investigation is required to determine the root cause.
+
+---
+
+## How to Fix the NS0144 Export Error
+
+Please reach out to **Concierge** for assistance.
+
+We’ll review the connection, check integration logs, and help determine the next steps to restore the export.
+
+---
+
+# FAQ
+
+## Should I retry the export before contacting Concierge?
+
+You can try exporting again in case the issue was temporary. If the error persists, contact Concierge for support.
+
+## Does the NS0144 Export Error affect all exports?
+
+It can. If the issue is related to the NetSuite connection, multiple exports may fail until the connection is restored.
