@@ -8,7 +8,7 @@ import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
-import useDocumentTitle from '@hooks/useDocumentTitle';
+import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,7 +30,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
-    useDocumentTitle(domainName ? `${domainName} - ${translate('domain.groups.title')}` : '');
+    useDomainDocumentTitle(domainName, 'domain.groups.title');
     const illustrations = useMemoizedLazyIllustrations(['Members']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 

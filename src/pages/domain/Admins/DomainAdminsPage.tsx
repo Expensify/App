@@ -3,7 +3,7 @@ import React from 'react';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDocumentTitle from '@hooks/useDocumentTitle';
+import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,7 +26,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {domainAccountID} = route.params;
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const {translate} = useLocalize();
-    useDocumentTitle(domainName ? `${domainName} - ${translate('domain.domainAdmins')}` : '');
+    useDomainDocumentTitle(domainName, 'domain.domainAdmins');
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

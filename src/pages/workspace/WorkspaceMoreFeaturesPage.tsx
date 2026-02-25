@@ -9,7 +9,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useDocumentTitle from '@hooks/useDocumentTitle';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -85,7 +85,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    useDocumentTitle(policy?.name ? `${policy.name} - ${translate('workspace.common.moreFeatures')}` : '');
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.moreFeatures');
     const {isBetaEnabled} = usePermissions();
     const hasAccountingConnection = hasAccountingConnections(policy);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);

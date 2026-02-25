@@ -21,7 +21,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
-import useDocumentTitle from '@hooks/useDocumentTitle';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -75,7 +75,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime} = useLocalize();
-    useDocumentTitle(policy?.name ? `${policy.name} - ${translate('workspace.common.accounting')}` : '');
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.accounting');
     const {environment} = useEnvironment();
     const oldDotEnvironmentURL = getOldDotURLFromEnvironment(environment);
     const {isOffline} = useNetwork();

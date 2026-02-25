@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
-import useDocumentTitle from '@hooks/useDocumentTitle';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -22,7 +22,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {translate} = useLocalize();
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
-    useDocumentTitle(policy?.name ? `${policy.name} - ${translate('workspace.common.rules')}` : '');
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Rules']);

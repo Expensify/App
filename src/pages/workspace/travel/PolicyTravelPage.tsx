@@ -5,7 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDocumentTitle from '@hooks/useDocumentTitle';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -41,7 +41,7 @@ function WorkspaceTravelPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
-    useDocumentTitle(policy?.name ? `${policy.name} - ${translate('workspace.common.travel')}` : '');
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.travel');
     const illustrations = useMemoizedLazyIllustrations(['Luggage'] as const);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 

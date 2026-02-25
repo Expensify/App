@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
-import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +20,7 @@ function WorkspaceTimeTrackingPage({route}: WorkspaceTimeTrackingPageProps) {
     const {policyID} = route.params;
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
-    useDocumentTitle(policy?.name ? `${policy.name} - ${translate('workspace.moreFeatures.timeTracking.title')}` : '');
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.moreFeatures.timeTracking.title');
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Clock']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();

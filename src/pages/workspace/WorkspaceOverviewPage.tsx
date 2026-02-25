@@ -17,7 +17,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useDocumentTitle from '@hooks/useDocumentTitle';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -96,7 +96,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const policyID = policy?.id;
-    useDocumentTitle(policy?.name ? `${policy.name} - ${translate('workspace.common.profile')}` : '');
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.profile');
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const isBankAccountVerified = !!cardSettings?.paymentBankAccountID;

@@ -10,7 +10,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import useDocumentTitle from '@hooks/useDocumentTitle';
+import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -46,7 +46,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const isSamlEnabled = !!domainSettings?.samlEnabled;
     const isSamlRequired = !!domainSettings?.samlRequired;
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
-    useDocumentTitle(domainName ? `${domainName} - ${translate('domain.saml')}` : '');
+    useDomainDocumentTitle(domainName, 'domain.saml');
     const doesDomainExist = !!domain;
 
     const samlFeatures: FeatureListItem[] = useMemo(

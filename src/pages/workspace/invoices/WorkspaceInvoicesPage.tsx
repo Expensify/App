@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import useDocumentTitle from '@hooks/useDocumentTitle';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -23,7 +23,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['InvoiceBlue']);
     const policy = usePolicy(route.params.policyID);
-    useDocumentTitle(policy?.name ? `${policy.name} - ${translate('workspace.common.invoices')}` : '');
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.invoices');
 
     return (
         <AccessOrNotFoundWrapper
