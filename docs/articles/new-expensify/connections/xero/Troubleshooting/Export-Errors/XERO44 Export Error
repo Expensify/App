@@ -1,0 +1,72 @@
+---
+title: XERO44 Export Error: Voided Invoice Cannot Be Updated
+description: Learn why the XERO44 export error occurs in New Expensify and how to handle invoices that were voided in Xero.
+keywords: XERO44, Xero invoice status cannot be modified, voided invoice Xero, re-export invoice Xero, Expensify Xero export error
+internalScope: Audience is Workspace Admins using the Xero integration in New Expensify. Covers the XERO44 export error related to previously voided invoices in Xero. Does not cover bill exports or authentication issues.
+---
+
+# XERO44 Export Error: Voided Invoice Cannot Be Updated
+
+If you see the error message **“XERO44 Export Error: Invoice status in Xero cannot be modified. This invoice was previously exported and then voided in Xero. Voided invoices can’t be updated or re-exported.”**, it means the invoice was exported once and later marked as **Voided** in Xero.
+
+Xero does not allow voided invoices to be reopened, edited, or re-exported.
+
+---
+
+## Why the XERO44 Export Error Happens
+
+The XERO44 export error occurs when:
+
+- An invoice was previously exported from Expensify to Xero  
+- The invoice was marked as **Voided** in Xero  
+- A re-export or update is attempted  
+
+Once an invoice is voided in Xero, it is permanently locked and cannot be modified.
+
+---
+
+## How to Fix the XERO44 Export Error
+
+Xero does not allow voided invoices to be updated or unvoided. There are two options:
+
+---
+
+## Option 1: Recreate the Invoice in Expensify (If Possible)
+
+If the invoice status in Expensify is:
+
+- **Approved**
+- **Done**
+- **Paid** (not reimbursed via ACH in Expensify)
+
+1. Open the invoice in Expensify.
+2. Click **Unapprove** or **Retract** in the upper left corner.
+3. Move the expenses to a new invoice.
+4. Resubmit the new invoice.
+5. Retry exporting to Xero.
+
+Important:  
+If the invoice is listed as **Paid: Confirmed**, it cannot be reopened. Proceed to Option 2.
+
+---
+
+## Option 2: Manually Recreate the Invoice in Xero
+
+If the invoice cannot be reopened in Expensify:
+
+- The invoice must be manually recreated in Xero.
+- Enter the required information directly in Xero.
+
+Because the original invoice was voided, it cannot be replaced via re-export.
+
+---
+
+# FAQ
+
+## Can a voided invoice be unvoided in Xero?
+
+No. Xero permanently locks voided invoices and does not allow them to be restored.
+
+## Will re-exporting create a duplicate invoice?
+
+No. Xero blocks re-exporting to prevent duplicates when an invoice has already been voided.
