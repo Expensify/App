@@ -12568,9 +12568,9 @@ function getSearchOnyxUpdate({
                 });
             }
             // Building this object sequentially resolves TypeScript type inference issues
-            const optimisticDataSnapshotValueData: SearchResultDataType = {};
+            const optimisticSnapshotData: SearchResultDataType = {};
 
-            optimisticDataSnapshotValueData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
+            optimisticSnapshotData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
                 [toAccountID]: {
                     accountID: toAccountID,
                     displayName: participant?.displayName,
@@ -12584,22 +12584,22 @@ function getSearchOnyxUpdate({
                 },
             };
 
-            optimisticDataSnapshotValueData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
                 ...(transactionThreadReportID && {transactionThreadReportID}),
                 ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
                 ...transaction,
             };
 
             if (policy) {
-                optimisticDataSnapshotValueData[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
             }
 
             if (iouReport) {
-                optimisticDataSnapshotValueData[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] = iouReport;
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] = iouReport;
             }
 
             if (iouReport && iouAction) {
-                optimisticDataSnapshotValueData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] = {[iouAction.reportActionID]: iouAction};
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] = {[iouAction.reportActionID]: iouAction};
             }
 
             const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
@@ -12607,7 +12607,7 @@ function getSearchOnyxUpdate({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
                     value: {
-                        data: optimisticDataSnapshotValueData,
+                        data: optimisticSnapshotData,
                     },
                 },
             ];
@@ -12640,7 +12640,7 @@ function getSearchOnyxUpdate({
                                 hasResults: true,
                                 isLoading: false,
                             },
-                            data: optimisticDataSnapshotValueData,
+                            data: optimisticSnapshotData,
                         },
                     });
                 }

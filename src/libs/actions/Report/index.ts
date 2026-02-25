@@ -3136,21 +3136,21 @@ function buildNewReportOptimisticData(
         });
     } else if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.CHAT) {
         // Building this object sequentially resolves TypeScript type inference issues
-        const optimisticDataSnapshotValueData = {} as SearchResultDataType;
+        const optimisticSnapshotData = {} as SearchResultDataType;
 
-        optimisticDataSnapshotValueData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`] = {
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`] = {
             [reportPreviewReportActionID]: {...optimisticReportPreview, reportID: parentReport?.reportID},
         };
         if (parentReport) {
-            optimisticDataSnapshotValueData[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`] = parentReport;
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`] = parentReport;
         }
-        optimisticDataSnapshotValueData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = optimisticReportData;
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = optimisticReportData;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
             value: {
-                data: optimisticDataSnapshotValueData,
+                data: optimisticSnapshotData,
             },
         });
     }
