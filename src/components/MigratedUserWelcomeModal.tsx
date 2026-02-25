@@ -1,11 +1,8 @@
-import {useRoute} from '@react-navigation/native';
-import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,16 +10,8 @@ import {openExternalLink} from '@libs/actions/Link';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
 import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MigratedUserModalNavigatorParamList} from '@libs/Navigation/types';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
@@ -36,9 +25,6 @@ function MigratedUserWelcomeModal() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isModalDisabled, setIsModalDisabled] = useState(true);
-    const route = useRoute<PlatformStackRouteProp<MigratedUserModalNavigatorParamList, typeof SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT>>();
-    const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
     const illustrations = useMemoizedLazyIllustrations(['ChatBubbles']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
@@ -59,31 +45,6 @@ function MigratedUserWelcomeModal() {
         ],
         [illustrations.ChatBubbles],
     );
-
-    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
-        selector: tryNewDotOnyxSelector,
-    });
-    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
-
-    useEffect(() => {
-        if (isLoadingOnyxValue(tryNewDotMetadata, dismissedProductTrainingMetadata)) {
-            return;
-        }
-        const {hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
-
-        Log.hmmm(
-            `[MigratedUserWelcomeModal] useEffect triggered - hasBeenAddedToNudgeMigration: ${hasBeenAddedToNudgeMigration}, hasDismissedTraining: ${!!dismissedProductTraining?.migratedUserWelcomeModal}, shouldOpenSearch: ${shouldOpenSearch}`,
-        );
-
-        if (!!(hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) || !shouldOpenSearch) {
-            Log.hmmm('[MigratedUserWelcomeModal] Conditions not met, keeping modal disabled');
-            return;
-        }
-
-        Log.hmmm('[MigratedUserWelcomeModal] Enabling modal and navigating to search');
-        setIsModalDisabled(false);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
-    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, shouldOpenSearch]);
 
     return (
         <FeatureTrainingModal
@@ -112,7 +73,6 @@ function MigratedUserWelcomeModal() {
             contentInnerContainerStyles={[styles.mb5, styles.gap2]}
             contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
             modalInnerContainerStyle={{...styles.pt0, ...(shouldUseNarrowLayout ? {} : styles.pb8)}}
-            isModalDisabled={isModalDisabled}
             shouldUseScrollView
         >
             <View

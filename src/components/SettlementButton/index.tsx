@@ -11,7 +11,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -168,7 +168,8 @@ function SettlementButton({
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
 
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const kycWallRef = useContext(KYCWallContext);
