@@ -1,0 +1,60 @@
+---
+title: XERO11 Sync Error: Xero Connection Has Expired
+description: Learn why the XERO11 sync error occurs in Expensify Classic and how to reconnect your Xero account.
+keywords: XERO11, Xero connection expired, reconnect Xero Expensify Classic, Xero sync error, Expensify Classic Xero integration
+internalScope: Audience is Workspace Admins using the Xero integration in Expensify Classic. Covers the XERO11 sync error related to expired Xero credentials and reconnection steps. Does not cover Xero export mapping or permission configuration.
+---
+
+# XERO11 Sync Error: Xero Connection Has Expired
+
+If you see the error message **“XERO11 Sync Error: The connection to Xero has expired. Please follow prompts in the workspace to reconnect.”**, it means the authentication credentials for your Xero connection have expired in Expensify Classic.
+
+Until the connection is reauthenticated, syncing and exports to Xero will fail.
+
+---
+
+## Why the XERO11 Sync Error Happens
+
+The XERO11 sync error occurs when:
+
+- The Xero authentication token has expired, or  
+- The Xero connection was revoked or disconnected  
+
+Xero requires periodic reauthentication to maintain a secure connection.
+
+---
+
+## How to Fix the XERO11 Sync Error in Expensify Classic
+
+### Step 1: Reconnect the Xero Integration
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync now**.
+5. When prompted, click **Reconnect**.
+6. Log in using the Xero admin credentials that were originally used to set up the connection.
+
+Once reconnected, the integration will refresh and syncing can resume.
+
+---
+
+## Step 2: Retry the Sync or Export
+
+After reconnecting:
+
+1. Return to **Settings > Workspaces > [Workspace Name] > Accounting**.
+2. Click **Sync now** again.
+3. Retry exporting the report if needed.
+
+---
+
+# FAQ
+
+## Do I need admin access to reconnect Xero?
+
+Yes. You must use the Xero account with admin permissions that was originally used to connect Expensify Classic to Xero.
+
+## Will previously failed exports sync automatically?
+
+After reconnecting, you may need to manually retry exporting any reports that failed while the connection was expired.
