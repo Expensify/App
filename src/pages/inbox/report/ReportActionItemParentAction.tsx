@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {isTripPreview} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction, isTripPreview} from '@libs/ReportActionsUtils';
 import {
     canCurrentUserOpenReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
@@ -20,19 +20,18 @@ import {
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
 
 type ReportActionItemParentActionProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<OnyxTypes.Report>;
-
     /** All the data of the policy collection */
-    policies: OnyxCollection<OnyxTypes.Policy>;
+    policies: OnyxCollection<Policy>;
+
+    /** All the data of the action item */
+    action: ReportAction;
 
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
@@ -45,13 +44,13 @@ type ReportActionItemParentActionProps = {
     reportID: string;
 
     /** The current report is displayed */
-    report: OnyxEntry<OnyxTypes.Report>;
+    report: OnyxEntry<Report>;
 
     /** The transaction thread report associated with the current report, if any */
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReport: OnyxEntry<Report>;
 
     /** Report actions belonging to the report's parent */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    parentReportAction: OnyxEntry<ReportAction>;
 
     /** Whether we should display "Replies" divider */
     shouldDisplayReplyDivider: boolean;
@@ -69,16 +68,13 @@ type ReportActionItemParentActionProps = {
     isUserValidated: boolean | undefined;
 
     /** Personal details list */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** All draft messages collection */
-    allDraftMessages?: OnyxCollection<OnyxTypes.ReportActionsDrafts>;
+    allDraftMessages?: OnyxCollection<ReportActionsDrafts>;
 
     /** All emoji reactions collection */
-    allEmojiReactions?: OnyxCollection<OnyxTypes.ReportActionReactions>;
-
-    /** Linked transaction route error */
-    linkedTransactionRouteError?: OnyxEntry<Errors>;
+    allEmojiReactions?: OnyxCollection<ReportActionReactions>;
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
@@ -91,9 +87,9 @@ type ReportActionItemParentActionProps = {
 };
 
 function ReportActionItemParentAction({
-    allReports,
     policies,
     report,
+    action,
     transactionThreadReport,
     parentReportAction,
     index = 0,
@@ -106,7 +102,6 @@ function ReportActionItemParentAction({
     personalDetails,
     allDraftMessages,
     allEmojiReactions,
-    linkedTransactionRouteError,
     userBillingFundID,
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
@@ -115,13 +110,21 @@ function ReportActionItemParentAction({
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
+    const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
+
+    const getLinkedTransactionRouteError = useCallback((transaction: OnyxEntry<Transaction>) => {
+        return transaction?.errorFields?.route;
+    }, []);
+
+    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
 
     const ancestorReportNameValuePairsSelector = useCallback(
-        (allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>) => {
+        (allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>) => {
             if (!allReportNameValuePairs) {
                 return {};
             }
-            const ancestorReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs> = {};
+            const ancestorReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {};
             for (const ancestor of ancestors) {
                 ancestorReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`] =
                     allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`];
@@ -134,14 +137,13 @@ function ReportActionItemParentAction({
     const [ancestorsReportNameValuePairs] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         {
-            canBeMissing: true,
             selector: ancestorReportNameValuePairsSelector,
         },
         [ancestors],
     );
 
     const ancestorReportActionsSelector = useCallback(
-        (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+        (allReportActions: OnyxCollection<ReportActions>) => {
             const reportIDs = ancestors.map((ancestor) => ancestor.report.reportID);
             return getReportActionsForReportIDs(allReportActions, reportIDs);
         },
@@ -151,12 +153,11 @@ function ReportActionItemParentAction({
     const [ancestorsReportActions] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         {
-            canBeMissing: true,
             selector: ancestorReportActionsSelector,
         },
         [ancestors],
     );
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     return (
         <View style={[styles.pRelative]}>
@@ -197,14 +198,13 @@ function ReportActionItemParentAction({
                             {shouldDisplayThreadDivider && (
                                 <ThreadDivider
                                     ancestor={ancestor}
-                                    isLinkDisabled={!canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)}
+                                    isLinkDisabled={!canCurrentUserOpenReport(ancestorReport, allBetas, isAncestorReportArchived)}
                                 />
                             )}
                             <ReportActionItem
-                                allReports={allReports}
                                 policies={policies}
                                 onPress={
-                                    canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)
+                                    canCurrentUserOpenReport(ancestorReport, allBetas, isAncestorReportArchived)
                                         ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)
                                         : undefined
                                 }

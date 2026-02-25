@@ -31,7 +31,7 @@ const getTypeIcon = (icons: Record<'Car' | 'CreditCard' | 'Cash' | 'Clock' | 'Ca
 
 function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: TransactionDataCellProps) {
     const {translate} = useLocalize();
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Car', 'CreditCard', 'CreditCardHourglass', 'Cash', 'Clock', 'CalendarSolid']);
     const type = getTransactionType(transactionItem, cardList);

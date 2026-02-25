@@ -1,7 +1,7 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useMappedPolicies from '@hooks/useMappedPolicies';
 import type {OnyxEntry} from 'react-native-onyx';
+import useMappedPolicies from '@hooks/useMappedPolicies';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
