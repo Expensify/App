@@ -9,9 +9,14 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    buildUserReadableQueryString,
+    shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery,
+} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getItemBadgeText, getActiveSearchItemIndex, getOverflowMenu as getOverflowMenuUtil, updateQueryStringOnSearchTypeChange} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getActiveSearchItemIndex, getItemBadgeText, getOverflowMenu as getOverflowMenuUtil, updateQueryStringOnSearchTypeChange} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -226,6 +231,10 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
                                 if (section.translationPath === 'common.explore' && !isEmptyObject(allSearchAdvancedFilters)) {
                                     queryString = updateQueryStringOnSearchTypeChange(item.type, allSearchAdvancedFilters, queryJSON);
+                                    // If the focused menu item is not in the explore section, but the queryString matches the current one, it will fall back to the default value
+                                    if (!isExploreSectionActive && queryString === buildSearchQueryString(queryJSON)) {
+                                        queryString = item.searchQuery;
+                                    }
                                 }
                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
                             }),
@@ -236,7 +245,20 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 return sectionItems;
             })
             .flat();
-    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, expensifyIcons, theme.border, singleExecution, reportCounts, allSearchAdvancedFilters, queryJSON]);
+    }, [
+        typeMenuSections,
+        translate,
+        styles.textSupporting,
+        savedSearchesMenuItems,
+        activeItemIndex,
+        expensifyIcons,
+        theme.border,
+        singleExecution,
+        reportCounts,
+        allSearchAdvancedFilters,
+        queryJSON,
+        isExploreSectionActive,
+    ]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);

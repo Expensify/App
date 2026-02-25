@@ -27,9 +27,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    buildUserReadableQueryString,
+    shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery,
+} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getItemBadgeText, getActiveSearchItemIndex, getOverflowMenu as getOverflowMenuUtil, updateQueryStringOnSearchTypeChange} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getActiveSearchItemIndex, getItemBadgeText, getOverflowMenu as getOverflowMenuUtil, updateQueryStringOnSearchTypeChange} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,6 +42,7 @@ import ROUTES from '@src/ROUTES';
 import todosReportCountsSelector from '@src/selectors/Todos';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
@@ -51,7 +57,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [savedSearches, savedSearchesMetadata] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const isLoadingSavedSearches = isLoadingOnyxValue(savedSearchesMetadata);
     const {typeMenuSections, CreateReportConfirmationModal, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
     const isFocused = useIsFocused();
     const {
@@ -239,7 +246,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON?.type],
     );
 
-    const allSearchAdvancedFilters = useStickySearchFilters(isExploreSectionActive && !shouldShowSuggestedSearchSkeleton);
+    const allSearchAdvancedFilters = useStickySearchFilters(isExploreSectionActive && !shouldShowSuggestedSearchSkeleton && !isLoadingSavedSearches);
     return (
         <>
             {CreateReportConfirmationModal}
@@ -280,6 +287,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
                                                 if (section.translationPath === 'common.explore' && !isEmptyObject(allSearchAdvancedFilters)) {
                                                     queryString = updateQueryStringOnSearchTypeChange(item.type, allSearchAdvancedFilters, queryJSON);
+                                                    // If the focused menu item is not in the explore section, but the queryString matches the current one, it will fall back to the default value
+                                                    if (!isExploreSectionActive && queryString === buildSearchQueryString(queryJSON)) {
+                                                        queryString = item.searchQuery;
+                                                    }
                                                 }
                                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
                                             });
