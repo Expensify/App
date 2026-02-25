@@ -1,0 +1,76 @@
+---
+title: NS0042 Export Error: Vendor Already Exists in NetSuite
+description: Learn why the NS0042 export error occurs and how to match vendor subsidiary and email settings between NetSuite and Expensify.
+keywords: NS0042, NetSuite vendor already exists, vendor subsidiary mismatch, vendor email mismatch NetSuite, Expensify NetSuite export error
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0042 export error related to vendor record subsidiary and email mismatches. Does not cover employee record mismatches or role permission issues.
+---
+
+# NS0042 Export Error: Vendor Already Exists in NetSuite
+
+If you see the error message **“NS0042 Export Error: Vendor already exists in NetSuite. Please make sure vendor record subsidiary and email matches between NetSuite and Expensify.”**, it means Expensify attempted to create a new vendor record but NetSuite already has one on file.
+
+This typically happens when Expensify cannot match the existing vendor record due to a subsidiary or email mismatch.
+
+---
+
+## Why the NS0042 Export Error Happens
+
+The NS0042 export error occurs when:
+
+- Expensify is unable to locate an existing vendor record in NetSuite, and  
+- The connection attempts to create a new vendor record, but  
+- A vendor with the same name already exists  
+
+This mismatch usually happens because:
+
+- The **email address** does not match between NetSuite and Expensify, or  
+- The **subsidiary** assigned to the vendor record does not match the subsidiary used in Expensify  
+
+---
+
+## How to Fix the NS0042 Export Error
+
+### Step 1: Confirm Vendor Settings in NetSuite
+
+In NetSuite:
+
+1. Locate the vendor record associated with the report creator or submitter.
+2. Confirm the **email address** matches the email used in Expensify.
+3. Confirm the **subsidiary** matches the subsidiary used in the Workspace.
+4. Save any updates if changes are made.
+
+---
+
+### Step 2: Sync the Connection in Expensify
+
+After confirming or updating the vendor record:
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the NetSuite connection.
+5. Click **Sync now**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the NetSuite connection.
+5. Tap **Sync now**.
+
+Retry exporting the report once the sync completes.
+
+---
+
+# FAQ
+
+## Why is Expensify trying to create a new vendor?
+
+If Expensify cannot find an existing vendor record that matches both the email and subsidiary, it attempts to create a new one during export.
+
+## Do I need NetSuite admin access to fix the NS0042 Export Error?
+
+Yes. Updating vendor records in NetSuite requires appropriate permissions.
