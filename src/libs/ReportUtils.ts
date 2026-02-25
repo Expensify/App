@@ -11381,10 +11381,11 @@ type PrepareOnboardingOnyxDataParams = {
 };
 
 function getBespokeWelcomeMessage(userReportedIntegration?: OnboardingAccounting): string {
+    // Use markdown (not HTML) because buildOptimisticAddCommentReportAction -> getParsedComment
+    // escapes HTML entities before parsing, so raw HTML tags would render as literal text.
     let message =
-        "<h1>Your free trial has started! Let's get you set up.</h1>" +
-        '<br />' +
-        "👋 Hey there! I'm your Expensify setup specialist. " +
+        "# Your free trial has started! Let's get you set up.\n" +
+        "Hey there! I'm your Expensify setup specialist. " +
         'For a small team like yours, the fastest way to get value is to set up a few expense categories, ' +
         'invite your team members, and have them start snapping receipts right away. ' +
         "I'm here to walk you through each step — just ask!";
@@ -11392,7 +11393,7 @@ function getBespokeWelcomeMessage(userReportedIntegration?: OnboardingAccounting
     if (userReportedIntegration && userReportedIntegration !== 'other') {
         const friendlyName = CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING];
         if (friendlyName) {
-            message += `<br /><br />Since you use ${friendlyName}, I can help you connect it so your expenses sync automatically — just say the word!`;
+            message += `\n\nSince you use ${friendlyName}, I can help you connect it so your expenses sync automatically — just say the word!`;
         }
     }
 
