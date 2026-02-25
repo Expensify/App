@@ -56,7 +56,6 @@ function ReportActionComposeSendButton({isDisabled: isDisabledProp = false, isEd
                     <SendOrSaveButton
                         isDisabled={isDisabledProp}
                         isEditing={isEditing}
-                        onSendOrSave={onSend}
                         accessible={false}
                         focusable={false}
                     />
