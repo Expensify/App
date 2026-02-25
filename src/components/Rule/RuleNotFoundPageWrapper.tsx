@@ -18,7 +18,7 @@ type RuleNotFoundPageWrapperProps = {
 };
 
 function RuleNotFoundPageWrapper({children, hash, shouldPreventShow}: RuleNotFoundPageWrapperProps) {
-    const [expenseRules = getEmptyArray<ExpenseRule>(), rulesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES, {canBeMissing: true});
+    const [expenseRules = getEmptyArray<ExpenseRule>(), rulesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
     const doesRuleExist = !!hash && expenseRules.some((rule) => getKeyForRule(rule) === hash);
 
     const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(rulesMetadata);

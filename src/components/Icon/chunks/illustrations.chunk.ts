@@ -12,6 +12,9 @@ import PlaidCompanyCardDetail from '@assets/images/companyCards/card-plaid.svg';
 import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
+import CompanyCardsEmptyStateGeneric from '@assets/images/companyCards/companycards-generic.svg';
+import CompanyCardsEmptyStateUKEU from '@assets/images/companyCards/companycards-uk_eu.svg';
+import CompanyCardsEmptyStateUSCA from '@assets/images/companyCards/companycards-us_ca.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
 import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
@@ -170,6 +173,7 @@ import VirtualCard from '@assets/images/simple-illustrations/simple-illustration
 import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 // Create the illustrations object with all imported illustrations
@@ -198,6 +202,9 @@ const Illustrations = {
     VisaCompanyCardDetailLarge,
     WellsFargoCompanyCardDetailLarge,
     CompanyCardsEmptyState,
+    CompanyCardsEmptyStateGeneric,
+    CompanyCardsEmptyStateUKEU,
+    CompanyCardsEmptyStateUSCA,
     EmptyCardState,
     PendingBank,
     CompanyCardsPendingState,
@@ -259,6 +266,7 @@ const Illustrations = {
     RunningTurtle,
     Shutter,
     ExpensifyApprovedLogo,
+    TravelCVV,
     TurtleInShell,
 
     // Simple Illustrations

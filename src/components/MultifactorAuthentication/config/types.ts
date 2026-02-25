@@ -56,7 +56,6 @@ type MultifactorAuthenticationOutcomeScreens = {
     successScreen: React.ReactElement;
     defaultClientFailureScreen: React.ReactElement;
     defaultServerFailureScreen: React.ReactElement;
-    failureHeaderTitle?: TranslationPaths;
     failureScreens?: FailureScreenOverrides;
 };
 
