@@ -1,0 +1,64 @@
+---
+title: NS0021 Export Error: Invalid Tax Code Reference
+description: Learn why the NS0021 export error occurs and how to correct tax group mappings in NetSuite.
+keywords: NS0021, NetSuite invalid tax code reference, GST mapping NetSuite, tax group mapping error, NCT-AU, TS-AU, NCF-AU, TFS-AU, Expensify NetSuite integration
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0021 export error related to incorrect tax group mappings in NetSuite. Does not cover role permissions or currency configuration issues.
+---
+
+# NS0021 Export Error: Invalid Tax Code Reference
+
+If you see the error message **“NS0021 Export Error: Invalid tax code reference.”**, it means there is an incorrect tax group mapping in NetSuite.
+
+The tax code selected in Expensify must match the correct tax group configuration in NetSuite for the export to succeed.
+
+---
+
+## Why the NS0021 Export Error Happens
+
+The NS0021 export error occurs when tax groups in NetSuite are mapped incorrectly.
+
+This is commonly related to Australian GST tax codes and incorrect tax group assignments.
+
+If the wrong NetSuite tax group is mapped to a tax rate, NetSuite will reject the export.
+
+---
+
+## How to Fix the NS0021 Export Error
+
+In NetSuite, review your tax group mappings and confirm the following:
+
+- **GST 10%** should map to **NCT-AU**, not **TS-AU**.
+- **No GST 0%** should map to **NCF-AU**, not **TFS-AU**.
+
+Update the tax group mappings if needed and save your changes.
+
+After correcting the tax mappings:
+
+1. Return to Expensify.
+2. Go to the **navigation tabs on the left** and select **Workspaces**.
+3. Select your Workspace.
+4. Select **Accounting**.
+5. Click the **three-dot icon** next to the NetSuite connection.
+6. Click **Sync now**.
+7. Retry exporting the report.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the NetSuite connection.
+5. Tap **Sync now**.
+6. Retry exporting the report.
+
+---
+
+# FAQ
+
+## Does the NS0021 Export Error affect all tax codes?
+
+It affects only the tax codes that are incorrectly mapped in NetSuite.
+
+## Do I need NetSuite admin access to fix the NS0021 Export Error?
+
+Yes. Updating tax group mappings in NetSuite requires appropriate admin permissions.
