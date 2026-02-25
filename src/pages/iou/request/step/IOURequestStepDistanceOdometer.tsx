@@ -30,7 +30,6 @@ import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
-import {replaceAllDigits} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
@@ -222,21 +221,9 @@ function IOURequestStepDistanceOdometer({
         }
     }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing]);
 
-    /**
-     * Normalize odometer text by standardizing locale digits and stripping all
-     * non-numeric characters except the decimal point. fromLocaleDigit converts
-     * each locale character to its standard equivalent (e.g. German ',' → '.'
-     * for decimal, German '.' → ',' for group separator), then we keep only
-     * digits and the standard decimal point.
-     */
-    const normalizeOdometerText = (text: string): string => {
-        const standardized = replaceAllDigits(text, fromLocaleDigit);
-        return standardized.replaceAll(/[^0-9.]/g, '');
-    };
+    const normalizeOdometerText = (text: string): string => DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
 
-    const parseOdometerReading = (text: string): number => {
-        return parseFloat(normalizeOdometerText(text));
-    };
+    const parseOdometerReading = (text: string): number => parseFloat(normalizeOdometerText(text));
 
     // Calculate total distance - updated live after every input change
     const totalDistance = (() => {

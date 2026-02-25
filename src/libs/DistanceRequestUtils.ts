@@ -6,6 +6,7 @@ import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@sr
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {replaceAllDigits} from './MoneyRequestUtils';
 // This will be fixed as part of https://github.com/Expensify/App/issues/66397
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
@@ -435,6 +436,18 @@ function isDistanceAmountWithinLimit(distance: number, rate: number): boolean {
     return amount <= CONST.IOU.MAX_SAFE_AMOUNT;
 }
 
+/**
+ * Normalize odometer text by standardizing locale digits and stripping all
+ * non-numeric characters except the decimal point. fromLocaleDigit converts
+ * each locale character to its standard equivalent (e.g. German ',' → '.'
+ * for decimal, German '.' → ',' for group separator), then we keep only
+ * digits and the standard decimal point.
+ */
+function normalizeOdometerText(text: string, fromLocaleDigit: (char: string) => string): string {
+    const standardized = replaceAllDigits(text, fromLocaleDigit);
+    return standardized.replaceAll(/[^0-9.]/g, '');
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -454,6 +467,7 @@ export default {
     getDistanceForDisplayLabel,
     convertDistanceUnit,
     isDistanceAmountWithinLimit,
+    normalizeOdometerText,
 };
 
 export type {MileageRate};
