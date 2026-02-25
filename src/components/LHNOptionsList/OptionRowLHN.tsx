@@ -108,36 +108,25 @@ function OptionRowLHN({
         [optionItem?.parentReportAction],
     );
 
-    const {icons, principalAccountID} = useMemo(() => {
+    const icons = useMemo<OnyxIcon[]>(() => {
         const baseIcons = optionItem?.icons ?? [];
-        // For money reports (expense reports, IOU reports, invoice reports, expense requests /
-        // transaction threads) the primary icon represents the expense owner or submitter, not
-        // the copilot who acted on their behalf. Skip the delegate replacement so the correct
-        // owner avatar is shown.
-        if (!delegateAccountID || optionItem?.isMoneyRequestReport || optionItem?.isExpenseRequest || optionItem?.isInvoiceReport) {
-            return {icons: baseIcons, principalAccountID: undefined};
+        if (!delegateAccountID) {
+            return baseIcons;
         }
         const delegateDetails = personalDetails?.[delegateAccountID];
         if (!delegateDetails) {
-            return {icons: baseIcons, principalAccountID: undefined};
+            return baseIcons;
         }
-        const primaryIconID = baseIcons.at(0)?.id;
         const delegateIcon: OnyxIcon = {
             source: delegateDetails.avatar ?? '',
             name: delegateDetails.displayName,
-            // Use COPILOT's accountID so the subscript tooltip shows the actual actor (matches main codebase).
-            // For Single avatar, the principalAccountID is used separately to override accountID for the
-            // "as copilot for PRINCIPAL" tooltip text.
             id: delegateDetails.accountID,
             type: CONST.ICON_TYPE_AVATAR,
             fill: undefined,
             fallbackIcon: baseIcons.at(0)?.fallbackIcon,
         };
-        return {
-            icons: [delegateIcon, ...baseIcons.slice(1)],
-            principalAccountID: typeof primaryIconID === 'number' ? primaryIconID : undefined,
-        };
-    }, [delegateAccountID, optionItem?.icons, optionItem?.isMoneyRequestReport, optionItem?.isExpenseRequest, optionItem?.isInvoiceReport, personalDetails]);
+        return [delegateIcon, ...baseIcons.slice(1)];
+    }, [delegateAccountID, optionItem?.icons, personalDetails]);
 
     const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
 
@@ -313,7 +302,6 @@ function OptionRowLHN({
                                                     singleAvatarContainerStyle={singleAvatarContainerStyle}
                                                     shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
                                                     delegateAccountID={delegateAccountID}
-                                                    principalAccountID={principalAccountID}
                                                 />
                                             )}
                                             <View style={contentContainerStyles}>

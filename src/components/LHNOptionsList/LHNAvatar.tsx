@@ -17,9 +17,6 @@ type LHNAvatarProps = {
     useMidSubscriptSize?: boolean;
     shouldShowTooltip?: boolean;
     delegateAccountID?: number;
-    /** PRINCIPAL's accountID — used as tooltip accountID for Single avatar when a delegate/copilot is present,
-     *  enabling "COPILOT (as copilot for PRINCIPAL)" tooltip text. */
-    principalAccountID?: number;
 };
 
 /**
@@ -36,7 +33,6 @@ function LHNAvatar({
     useMidSubscriptSize,
     shouldShowTooltip = false,
     delegateAccountID,
-    principalAccountID,
 }: LHNAvatarProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -52,7 +48,7 @@ function LHNAvatar({
     if (icons.length === 1 || !secondaryIcon) {
         return (
             <ReportActionAvatar.Single
-                accountID={Number(principalAccountID ?? primaryIcon.id ?? CONST.DEFAULT_NUMBER_ID)}
+                accountID={Number(primaryIcon.id ?? CONST.DEFAULT_NUMBER_ID)}
                 avatar={primaryIcon}
                 shouldShowTooltip={shouldShowTooltip}
                 size={size}
