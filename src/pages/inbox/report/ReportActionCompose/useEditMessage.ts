@@ -67,8 +67,6 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
             return;
         }
 
-        didSubmitEditRef.current = true;
-
         deleteReportActionDraft(reportID, reportAction);
 
         if (isActive()) {
@@ -99,6 +97,8 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
         if (!debouncedCommentMaxLengthValidation.flush()) {
             return;
         }
+
+        didSubmitEditRef.current = true;
 
         const trimmedNewDraft = draftMessage.trim();
 

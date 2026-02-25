@@ -313,6 +313,10 @@ function ComposerWithSuggestions({
     );
 
     useEffect(() => {
+        if (didSubmitEditRef.current) {
+            return;
+        }
+
         const isEditing = !!editingReportActionID;
         const previousEditingReportActionID = previousEditingReportActionIDRef.current;
         const currentEditingReportActionID = editingReportActionID ?? null;
@@ -370,7 +374,7 @@ function ComposerWithSuggestions({
             const nextValue = editingMessage ?? '';
             applyComposerValue(nextValue, false);
         }
-    }, [applyComposerValue, currentEditMessageSelection, draftComment, editingMessage, editingReportActionID, shouldUseNarrowLayout]);
+    }, [applyComposerValue, currentEditMessageSelection, didSubmitEditRef, draftComment, editingMessage, editingReportActionID, shouldUseNarrowLayout]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
