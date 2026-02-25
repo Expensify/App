@@ -1,0 +1,81 @@
+---
+title: NS0176 Export Error: Issue With Advance to Apply Amount
+description: Learn why the NS0176 export error occurs and how to resolve cash advance or prepaid expense settings in NetSuite.
+keywords: NS0176, NetSuite advance to apply error, cash advance NetSuite, prepaid expense NetSuite, employee record cash advance, Expensify NetSuite integration
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0176 export error related to cash advances or prepaid expenses on employee records in NetSuite. Does not cover role permission or subsidiary configuration issues.
+---
+
+# NS0176 Export Error: Issue With Advance to Apply Amount
+
+If you see the error message **“NS0176 Export Error: Issue with ‘Advance to Apply’ amount. Please check the employee record for any cash advances or prepaid expenses in NetSuite.”**, it means NetSuite has detected an issue related to cash advances or prepaid expenses on the employee record.
+
+These settings can interfere with report exports from Expensify.
+
+---
+
+## Why the NS0176 Export Error Happens
+
+The NS0176 export error occurs when:
+
+- The report creator or submitter’s employee record in NetSuite has **cash advances** or **prepaid expenses** enabled or applied  
+- NetSuite attempts to apply an advance amount during export  
+
+If an advance balance exists or the feature is enabled, NetSuite may block the transaction.
+
+---
+
+## How to Fix the NS0176 Export Error
+
+### Step 1: Review the Employee Record in NetSuite
+
+In NetSuite:
+
+1. Locate the employee record associated with the report creator or submitter.
+2. Review the record for any **cash advances** or **prepaid expenses**.
+3. Confirm whether any advance amounts are listed.
+
+---
+
+### Step 2: Disable or Clear Cash Advance Settings (If Applicable)
+
+If cash advances or prepaid expenses are enabled or listed:
+
+1. Disable the cash advance or prepaid expense feature, or  
+2. Clear any outstanding advance amounts if appropriate.
+3. Save the employee record.
+
+---
+
+### Step 3: Sync the Connection in Expensify
+
+After updating the employee record:
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the NetSuite connection.
+5. Click **Sync now**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the NetSuite connection.
+5. Tap **Sync now**.
+
+Retry exporting the report once the sync completes.
+
+---
+
+# FAQ
+
+## Does the NS0176 Export Error affect only specific employees?
+
+Yes. This error is tied to the employee record associated with the report being exported.
+
+## Do I need NetSuite admin access to fix the NS0176 Export Error?
+
+Yes. Updating employee records and disabling cash advance features requires appropriate NetSuite permissions.
