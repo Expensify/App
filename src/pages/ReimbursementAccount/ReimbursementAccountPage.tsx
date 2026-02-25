@@ -207,13 +207,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     /**
      * Retrieve verified business bank account currently being set up.
      */
-    function fetchData(preserveCurrentStep = false) {
+    function fetchData(preserveCurrentStep = false, shouldShowLoading = true) {
         if ((!policyIDParam && !bankAccountIDParam) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
             return;
         }
         if (bankAccountIDParam) {
             // we don't need to send the stepToOpen and subStep when opening by bankAccountID - the step is returned from the backend
-            openReimbursementAccountPage({bankAccountID: Number(bankAccountIDParam)});
+            openReimbursementAccountPage({bankAccountID: Number(bankAccountIDParam), shouldShowLoading});
             return;
         }
         // We can specify a step to navigate to by using route params when the component mounts.
@@ -230,7 +230,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
         // When preserving the current step (e.g., coming back online), also preserve the draft
         // to prevent losing user selections made while offline
-        openReimbursementAccountPage({stepToOpen, subStep, localCurrentStep, policyID: policyIDParam, shouldPreserveDraft: preserveCurrentStep});
+        openReimbursementAccountPage({stepToOpen, subStep, localCurrentStep, policyID: policyIDParam, shouldPreserveDraft: preserveCurrentStep, shouldShowLoading});
     }
 
     useEffect(() => {
@@ -291,7 +291,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         () => {
             // Check for network change from offline to online
             if (prevIsOffline && !isOffline && prevReimbursementAccount && prevReimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                fetchData(true);
+                // Don't show loading indicator when refreshing after reconnection to keep the form interactive
+                fetchData(true, false);
             }
 
             if (!hasACHDataBeenLoaded) {
