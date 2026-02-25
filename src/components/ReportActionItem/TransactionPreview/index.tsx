@@ -31,7 +31,6 @@ import type {TransactionPreviewProps} from './types';
 function TransactionPreview(props: TransactionPreviewProps) {
     const {translate} = useLocalize();
     const {
-        allReports,
         action,
         chatReportID,
         reportID,
@@ -45,19 +44,20 @@ function TransactionPreview(props: TransactionPreviewProps) {
         contextAction,
     } = props;
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
-    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`);
     const violations = useTransactionViolations(transaction?.transactionID);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const session = useSession();
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const personalDetails = usePersonalDetails();
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
@@ -83,8 +83,10 @@ function TransactionPreview(props: TransactionPreviewProps) {
     }, [chatReportID]);
 
     const navigateToReviewFields = useCallback(() => {
-        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policy, policyCategories, transactionReport));
-    }, [route.params?.threadReportID, transaction, duplicates, policy, policyCategories, transactionReport]);
+        Navigation.navigate(
+            getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, transactionReport),
+        );
+    }, [route.params?.threadReportID, transaction, duplicates, policy, policyCategories, policyTags, transactionReport]);
 
     const transactionPreview = transaction;
 

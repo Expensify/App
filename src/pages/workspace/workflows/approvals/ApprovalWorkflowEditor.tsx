@@ -12,16 +12,14 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {personalDetailsByEmailSelector} from '@src/selectors/PersonalDetails';
 import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -47,10 +45,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const styles = useThemeStyles();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
-    const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
-        selector: personalDetailsByEmailSelector,
-    });
+    const personalDetailsByEmail = usePersonalDetailsByEmail();
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -161,6 +156,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     brickRoadIndicator={approvalWorkflow?.errors?.members ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     shouldShowRightIcon={!approvalWorkflow.isDefault}
                     interactive={!approvalWorkflow.isDefault}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_MEMBERS}
                 />
 
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
@@ -187,6 +183,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 errorText={errorText}
                                 shouldRenderErrorAsHTML
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER}
                             />
                         </OfflineWithFeedback>
                     );

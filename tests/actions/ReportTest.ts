@@ -735,6 +735,7 @@ describe('actions/Report', () => {
 
     it('should show a notification for report action updates with shouldNotify', () => {
         const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@user.com';
         const REPORT_ID = '1';
         const REPORT_ACTION = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -763,7 +764,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Ensure we show a notification for this new report action
-                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID);
+                expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION, TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             });
     });
 
@@ -2338,6 +2339,7 @@ describe('actions/Report', () => {
                 onboardingPolicyID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
                 userReportedIntegration: null,
+                introSelected: {choice: engagementChoice},
             });
 
             await waitForBatchedUpdates();
@@ -3507,6 +3509,7 @@ describe('actions/Report', () => {
             onboardingPolicyID,
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             userReportedIntegration: null,
+            introSelected: {choice: engagementChoice},
         });
 
         await waitForBatchedUpdates();
@@ -4188,7 +4191,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Verify the followup-list was marked as selected
-            let reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
             const updatedHtml = (reportActions?.[REPORT_ACTION_ID]?.message as Message[])?.at(0)?.html;
             expect(updatedHtml).toContain('<followup-list selected>');
 
@@ -4196,18 +4199,15 @@ describe('actions/Report', () => {
             // With pre-generated response, the API call should include the optimistic Concierge response params
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
 
-            // Wait for the delayed Concierge response (1500ms delay in SuggestedFollowup.ts)
-            await new Promise((resolve) => {
-                setTimeout(resolve, CONCIERGE_RESPONSE_DELAY_MS + 100);
-            });
-            await waitForBatchedUpdates();
+            // Verify the pending concierge response was written to Onyx (the hook will process it)
+            const pendingResponse = await getOnyxValue(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}` as const);
+            expect(pendingResponse).not.toBeNull();
+            expect(pendingResponse?.reportAction.actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+            expect(pendingResponse?.displayAfter).toBeGreaterThan(Date.now() - CONCIERGE_RESPONSE_DELAY_MS);
 
-            // Verify an optimistic Concierge report action was created
-            reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
-            const allReportActions = Object.values(reportActions ?? {});
-            const conciergeActions = allReportActions.filter((action) => action?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE);
-            // Should have 2 Concierge actions: the original one and the optimistic response
-            expect(conciergeActions.length).toBe(2);
+            // Verify the typing indicator was set
+            const typingStatus = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${REPORT_ID}` as const);
+            expect(typingStatus?.[CONST.ACCOUNT_ID.CONCIERGE]).toBe(true);
         });
     });
 
@@ -4492,6 +4492,131 @@ describe('actions/Report', () => {
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}` as const);
             // Chat threads should only hide notification preference, not close the report
             expect(updatedReport?.participants?.[TEST_CURRENT_USER_ACCOUNT_ID]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+        });
+    });
+
+    describe('createTransactionThreadReport', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@test.com';
+
+        beforeEach(async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await waitForBatchedUpdates();
+        });
+
+        it('should return undefined when no valid report is provided', () => {
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, undefined, undefined);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when report has no reportID', () => {
+            const reportWithoutID = {} as OnyxTypes.Report;
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, reportWithoutID, undefined);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return an optimistic transaction thread report when given a valid report and action', async () => {
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(100, undefined),
+                reportID: '100',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await waitForBatchedUpdates();
+
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(1),
+                reportActionID: 'action-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, parentReport, reportAction);
+
+            expect(result).toBeDefined();
+            expect(result?.reportID).toBeDefined();
+            expect(result?.parentReportID).toBe(parentReport.reportID);
+        });
+
+        it('should accept introSelected as first parameter and not bypass it', async () => {
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(200, undefined),
+                reportID: '200',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await waitForBatchedUpdates();
+
+            const introSelected: OnyxTypes.IntroSelected = {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                isInviteOnboardingComplete: true,
+            };
+
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(4),
+                reportActionID: 'action-4',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            // Should not throw when called with introSelected and return a valid thread report
+            const result = Report.createTransactionThreadReport(introSelected, parentReport, reportAction);
+            expect(result).toBeDefined();
+            expect(result?.reportID).toBeDefined();
+            expect(result?.parentReportID).toBe(parentReport.reportID);
+        });
+
+        it('should work with undefined introSelected', async () => {
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(300, undefined),
+                reportID: '300',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await waitForBatchedUpdates();
+
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(2),
+                reportActionID: 'action-2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            // Should work fine with undefined introSelected - it's OnyxEntry<IntroSelected> which allows undefined
+            const result = Report.createTransactionThreadReport(undefined, parentReport, reportAction);
+            expect(result).toBeDefined();
+            expect(result?.reportID).toBeDefined();
+        });
+
+        it('should pass transaction and violations when provided', async () => {
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(400, undefined),
+                reportID: '400',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await waitForBatchedUpdates();
+
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(3),
+                reportActionID: 'action-3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            const transaction = createRandomTransaction(1);
+            const violations: OnyxTypes.TransactionViolation[] = [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                },
+            ];
+
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, parentReport, reportAction, transaction, violations);
+            expect(result).toBeDefined();
+            expect(result?.reportID).toBeDefined();
+            expect(result?.parentReportID).toBe(parentReport.reportID);
         });
     });
 });

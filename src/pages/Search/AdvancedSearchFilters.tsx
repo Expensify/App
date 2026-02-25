@@ -568,14 +568,15 @@ function AdvancedSearchFilters() {
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const [searchCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true, selector: filterCardsHiddenFromSearch});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [allSearchCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const searchCards = filterCardsHiddenFromSearch(allSearchCards);
     const personalDetails = usePersonalDetails();
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const taxRates = getAllTaxRates(policies);
 
@@ -701,7 +702,12 @@ function AdvancedSearchFilters() {
                                         style={[styles.reportHorizontalRule]}
                                     />
                                 )}
-                                <Text style={[styles.headerText, styles.reportHorizontalRule, index === 0 ? null : styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
+                                <Text
+                                    style={[styles.headerText, styles.reportHorizontalRule, index === 0 ? null : styles.mt4, styles.mb2]}
+                                    accessibilityRole={CONST.ROLE.HEADER}
+                                >
+                                    {translate(section.titleTranslationKey)}
+                                </Text>
                                 {section.items.map((item) => {
                                     return (
                                         <MenuItemWithTopDescription
@@ -711,6 +717,7 @@ function AdvancedSearchFilters() {
                                             description={item.description}
                                             shouldShowRightIcon
                                             onPress={item.onPress}
+                                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER_ITEM}
                                         />
                                     );
                                 })}
@@ -725,6 +732,7 @@ function AdvancedSearchFilters() {
                     onPress={onSaveSearch}
                     style={[styles.mh4, styles.mt4]}
                     large
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_SEARCH_BUTTON}
                 />
             )}
             <FormAlertWithSubmitButton
@@ -732,6 +740,7 @@ function AdvancedSearchFilters() {
                 containerStyles={[styles.m4, styles.mb5]}
                 onSubmit={applyFiltersAndNavigate}
                 enabledWhenOffline
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.VIEW_RESULTS_BUTTON}
             />
         </>
     );

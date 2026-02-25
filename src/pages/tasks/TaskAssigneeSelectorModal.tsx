@@ -8,7 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
@@ -39,13 +39,13 @@ function TaskAssigneeSelectorModal() {
     const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: false});
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [task] = useOnyx(ONYXKEYS.TASK);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -226,7 +226,7 @@ function TaskAssigneeSelectorModal() {
                     onBackButtonPress={handleBackButtonPress}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
+                    <SelectionListWithSections
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
                         onSelectRow={selectReport}
@@ -236,7 +236,6 @@ function TaskAssigneeSelectorModal() {
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
-                        disableMaintainingScrollPosition
                         shouldUpdateFocusedIndex
                         shouldShowTextInput
                     />
