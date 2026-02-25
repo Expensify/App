@@ -35,9 +35,8 @@ type ReportActionEditMessageContextProviderProps = {
 function ReportActionEditMessageContextProvider({reportID, children}: ReportActionEditMessageContextProviderProps) {
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
-        canBeMissing: true,
     });
-    const [reportActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {canBeMissing: true});
+    const [reportActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
 
     const [editingReportActionID, setEditingReportActionID] = useState<string | null>(null);
     const [editingReportAction, setEditingReportAction] = useState<OnyxTypes.ReportAction | null>(null);
