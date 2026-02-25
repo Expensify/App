@@ -561,6 +561,9 @@ const translations: TranslationDeepObject<typeof en> = {
             dismiss: 'Entendido',
             error: 'La solicitud ha fallado. Inténtalo de nuevo más tarde.',
         },
+        setPin: {
+            didNotShipCard: 'No enviamos tu tarjeta. Por favor, inténtalo de nuevo.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',

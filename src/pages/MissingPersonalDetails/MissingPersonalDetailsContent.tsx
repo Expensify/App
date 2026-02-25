@@ -43,8 +43,8 @@ type MissingPersonalDetailsContentProps = {
     /** Completion handler */
     onComplete: () => void;
 
-    /** Optional card ID for UK/EU card PIN flow */
-    cardID?: string;
+    /** Card ID for the card that the user is adding personal details to */
+    cardID: string;
 };
 
 const baseFormPages = [
