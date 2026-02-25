@@ -142,7 +142,10 @@ function FormWrapper({
     };
 
     const scrollToEnd = () => {
-        formRef.current?.scrollToEnd({animated: true});
+        // We need to wait for the keyboard animation to complete before scrolling to the end
+        setTimeout(() => {
+            formRef.current?.scrollToEnd({animated: true});
+        }, CONST.ANIMATED_TRANSITION);
     };
 
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,

@@ -60,6 +60,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     }, [isBetaEnabled, isEditing, issueNewCard?.data?.cardType]);
 
     const onInputFocus = useCallback(() => {
+        console.log("scroll to end");
         formRef.current?.scrollToEnd();
     }, []);
 
