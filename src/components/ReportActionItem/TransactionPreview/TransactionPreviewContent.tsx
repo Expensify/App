@@ -6,6 +6,7 @@ import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
 import {DotIndicator} from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import UserInfoCellsWithArrow from '@components/SelectionListWithSections/Search/UserInfoCellsWithArrow';
@@ -32,7 +33,6 @@ import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
-import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
@@ -161,7 +161,7 @@ function TransactionPreviewContent({
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
 
-    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const description = Parser.truncateHTML(requestComment ?? '', 32);
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
     const pendingAction = action?.pendingAction;
@@ -170,7 +170,6 @@ function TransactionPreviewContent({
     const isTransactionScanning = isScanning(transaction);
     const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;
     const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];
-    const merchantOrDescription = shouldShowMerchant ? requestMerchant : description || '';
     const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? (getOriginalMessage(action)?.participantAccountIDs ?? []) : [managerID, ownerAccountID];
     const isCardTransaction = isCardTransactionUtils(transaction);
 
@@ -312,15 +311,20 @@ function TransactionPreviewContent({
                                                     styles.gap2,
                                                 ]}
                                             >
-                                                {shouldShowMerchantOrDescription && (
-                                                    <Text
-                                                        fontSize={variables.fontSizeNormal}
-                                                        style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
-                                                        numberOfLines={1}
-                                                    >
-                                                        {merchantOrDescription}
-                                                    </Text>
-                                                )}
+                                                {shouldShowMerchantOrDescription &&
+                                                    (shouldShowMerchant ? (
+                                                        <Text
+                                                            fontSize={variables.fontSizeNormal}
+                                                            style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
+                                                            numberOfLines={1}
+                                                        >
+                                                            {requestMerchant}
+                                                        </Text>
+                                                    ) : (
+                                                        <View style={[isDeleted && styles.lineThrough, styles.flexShrink1]}>
+                                                            <RenderHTML html={description} />
+                                                        </View>
+                                                    ))}
                                                 {!shouldWrapDisplayAmount && (
                                                     <Text
                                                         fontSize={variables.fontSizeNormal}
