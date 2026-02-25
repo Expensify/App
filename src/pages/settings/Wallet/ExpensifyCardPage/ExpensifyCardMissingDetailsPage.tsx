@@ -5,6 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import MissingPersonalDetailsContent from '@pages/MissingPersonalDetails/MissingPersonalDetailsContent';
+import {PinContextProvider} from '@pages/MissingPersonalDetails/PinContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -25,13 +26,15 @@ function ExpensifyCardMissingDetailsPage({
     }, [cardID]);
 
     return (
-        <MissingPersonalDetailsContent
-            privatePersonalDetails={privatePersonalDetails}
-            draftValues={draftValues}
-            headerTitle={translate('cardPage.cardDetails.revealDetails')}
-            onComplete={handleComplete}
-            cardID={cardID}
-        />
+        <PinContextProvider>
+            <MissingPersonalDetailsContent
+                privatePersonalDetails={privatePersonalDetails}
+                draftValues={draftValues}
+                headerTitle={translate('cardPage.cardDetails.revealDetails')}
+                onComplete={handleComplete}
+                cardID={cardID}
+            />
+        </PinContextProvider>
     );
 }
 

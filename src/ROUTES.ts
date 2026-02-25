@@ -3347,7 +3347,7 @@ const ROUTES = {
         route: 'missing-personal-details/:cardID?/:subPage?/:action?',
         getRoute: (cardID: string, subPage?: string, action?: 'edit') => {
             if (!subPage) {
-                return 'missing-personal-details' as const;
+                return `missing-personal-details/${cardID}` as const;
             }
             return `missing-personal-details/${cardID}/${subPage}${action ? `/${action}` : ''}` as const;
         },
