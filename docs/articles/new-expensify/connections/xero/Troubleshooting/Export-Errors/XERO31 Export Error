@@ -1,0 +1,75 @@
+---
+title: XERO31 Export Error: Expense Already Marked as Paid in Xero
+description: Learn why the XERO31 export error occurs in New Expensify and how to remove and redo the payment in Xero before re-exporting.
+keywords: XERO31, Xero expense already paid, re-export reimbursable expense Xero, remove and redo payment Xero, Expensify Xero export error
+internalScope: Audience is Workspace Admins using the Xero integration in New Expensify. Covers the XERO31 export error related to re-exporting reimbursable expenses already marked as paid in Xero. Does not cover category or authentication errors.
+---
+
+# XERO31 Export Error: Expense Already Marked as Paid in Xero
+
+If you see the error message **“XERO31 Export Error: This expense has already been marked as paid in Xero, so it can’t be updated.”**, it means the report was previously exported and marked as paid in Xero.
+
+Xero does not allow updates to bills that are already marked as paid.
+
+---
+
+## Why the XERO31 Export Error Happens
+
+The XERO31 export error occurs when:
+
+- A reimbursable expense report has already been exported to Xero  
+- The bill has been marked as **Paid** in Xero  
+- You attempt to re-export or update the report  
+
+Because the bill is already paid, Xero blocks modifications.
+
+---
+
+## How to Fix the XERO31 Export Error
+
+### Step 1: Remove the Payment in Xero
+
+In Xero:
+
+1. Go to **Business > Bills to Pay**.
+2. Select the **Paid** tab.
+3. Locate and open the bill associated with the report.
+4. Click the blue **Payment** link.
+5. Click **Options > Remove and Redo**.
+
+Important:  
+Do **not** void the bill. Use **Remove and Redo** to remove the payment while keeping the bill active.
+
+---
+
+### Step 2: Retry the Export in New Expensify
+
+After removing the payment:
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Reports** and open the affected report.
+4. Retry exporting the report to Xero.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Open the affected report.
+4. Retry exporting to Xero.
+
+The new export will override the previous report in Xero while retaining the same report ID.
+
+---
+
+# FAQ
+
+## Should I void the bill instead of removing the payment?
+
+No. Voiding the bill will prevent it from being updated or re-exported. Always use **Remove and Redo**.
+
+## Will the new export create a duplicate bill?
+
+No. Removing and redoing the payment allows the export to update the existing bill rather than creating a duplicate.
