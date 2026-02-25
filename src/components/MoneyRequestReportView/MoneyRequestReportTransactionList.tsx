@@ -47,18 +47,7 @@ import {
     isIOUReport,
 } from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {
-    getAmount,
-    getCategory,
-    getCreated,
-    getMerchant,
-    getTag,
-    getTransactionPendingAction,
-    isTransactionPendingDelete,
-    mergeProhibitedViolations,
-    shouldShowExpenseBreakdown,
-    shouldShowViolation,
-} from '@libs/TransactionUtils';
+import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -96,9 +85,6 @@ type MoneyRequestReportTransactionListProps = {
 
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
-
-    /** Violations indexed by transaction ID */
-    violations?: Record<string, OnyxTypes.TransactionViolation[]>;
 
     /** scrollToNewTransaction callback used for scrolling to new transaction when it is created */
     scrollToNewTransaction: (offset: number) => void;
@@ -159,7 +145,6 @@ function MoneyRequestReportTransactionList({
     transactions,
     newTransactions,
     reportActions,
-    violations,
     hasPendingDeletionTransaction = false,
     scrollToNewTransaction,
     policy,
@@ -211,30 +196,6 @@ function MoneyRequestReportTransactionList({
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-
-    // Filter violations based on user visibility
-    const filteredViolations = useMemo(() => {
-        if (!violations || !report || !policy || !transactions) {
-            return violations;
-        }
-
-        const filtered: Record<string, OnyxTypes.TransactionViolation[]> = {};
-
-        for (const transaction of transactions) {
-            const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
-            if (transactionViolations) {
-                const filteredTransactionViolations = mergeProhibitedViolations(
-                    transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails.email ?? '', true, transaction)),
-                );
-
-                if (filteredTransactionViolations.length > 0) {
-                    filtered[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = filteredTransactionViolations;
-                }
-            }
-        }
-
-        return filtered;
-    }, [violations, report, policy, transactions, currentUserDetails.email]);
 
     const toggleTransaction = useCallback(
         (transactionID: string) => {
@@ -558,7 +519,6 @@ function MoneyRequestReportTransactionList({
                                           <MoneyRequestReportTransactionItem
                                               key={transaction.transactionID}
                                               transaction={originalTransaction}
-                                              violations={filteredViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
                                               columns={columnsToShow}
                                               report={report}
                                               isSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -581,7 +541,6 @@ function MoneyRequestReportTransactionList({
                           <MoneyRequestReportTransactionItem
                               key={transaction.transactionID}
                               transaction={transaction}
-                              violations={filteredViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
                               columns={columnsToShow}
                               report={report}
                               isSelectionModeEnabled={isMobileSelectionModeEnabled}

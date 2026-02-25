@@ -5,22 +5,23 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, use
 // eslint-disable-next-line no-restricted-imports
 import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 import {DeviceEventEmitter, StyleSheet} from 'react-native';
-import type {ComposerProps, ComposerRef} from '@components/Composer/types';
-import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
-import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
-import useHtmlPaste from '@hooks/useHtmlPaste';
-import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
-import useMarkdownStyle from '@hooks/useMarkdownStyle';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import {isMobileSafari, isSafari} from '@libs/Browser';
-import {containsOnlyEmojis} from '@libs/EmojiUtils';
-import {base64ToFile} from '@libs/fileDownload/FileUtils';
-import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import Parser from '@libs/Parser';
-import CONST from '@src/CONST';
+import type {ComposerProps, ComposerRef} from './src/components/Composer/types';
+import {useSession} from './src/components/OnyxListItemProvider';
+import type {AnimatedMarkdownTextInputRef} from './src/components/RNMarkdownTextInput';
+import RNMarkdownTextInput from './src/components/RNMarkdownTextInput';
+import CONST from './src/CONST';
+import useHtmlPaste from './src/hooks/useHtmlPaste';
+import useIsScrollBarVisible from './src/hooks/useIsScrollBarVisible';
+import useMarkdownStyle from './src/hooks/useMarkdownStyle';
+import useStyleUtils from './src/hooks/useStyleUtils';
+import useTheme from './src/hooks/useTheme';
+import useThemeStyles from './src/hooks/useThemeStyles';
+import addEncryptedAuthTokenToURL from './src/libs/addEncryptedAuthTokenToURL';
+import {isMobileSafari, isSafari} from './src/libs/Browser';
+import {containsOnlyEmojis} from './src/libs/EmojiUtils';
+import {base64ToFile} from './src/libs/fileDownload/FileUtils';
+import isEnterWhileComposition from './src/libs/KeyboardShortcut/isEnterWhileComposition';
+import Parser from './src/libs/Parser';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -55,6 +56,12 @@ function Composer({
     const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+    // The addAuthTokenToImageURL is created on every render without memoization.
+    // This causes the RNMarkdownTextInput component to receive a new function reference on every render, potentially causing unnecessary re-renders
+    // So we need to use useCallback to manual memoize the function. Without this, we hit the issue https://github.com/Expensify/App/issues/82465
+    const addAuthTokenToImageURL = useCallback((url: string) => addEncryptedAuthTokenToURL(url, encryptedAuthToken), [encryptedAuthToken]);
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const StyleUtils = useStyleUtils();
     const textInputRef = useRef<AnimatedMarkdownTextInputRef | null>(null);
@@ -359,7 +366,7 @@ function Composer({
             }}
             disabled={isDisabled}
             onKeyPress={handleKeyPress}
-            addAuthTokenToImageURLCallback={addEncryptedAuthTokenToURL}
+            addAuthTokenToImageURLCallback={addAuthTokenToImageURL}
             imagePreviewAuthRequiredURLs={imagePreviewAuthRequiredURLs}
         />
     );

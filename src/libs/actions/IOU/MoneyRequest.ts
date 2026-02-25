@@ -147,6 +147,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     odometerEnd?: number;
     odometerDistance?: number;
     betas: OnyxEntry<Beta[]>;
+    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     unit?: Unit;
     personalOutputCurrency?: string;
 };
@@ -540,13 +541,13 @@ function handleMoneyRequestStepDistanceNavigation({
     odometerEnd,
     odometerDistance,
     betas,
+    recentWaypoints,
     unit,
     personalOutputCurrency,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
-    const recentWaypoints = getRecentWaypoints();
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction);
@@ -653,6 +654,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                personalDetails,
                 recentWaypoints,
                 betas,
             });

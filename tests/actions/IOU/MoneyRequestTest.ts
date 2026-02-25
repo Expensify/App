@@ -777,6 +777,7 @@ describe('MoneyRequest', () => {
             quickAction: fakeQuickAction,
             selfDMReport,
             betas: [CONST.BETAS.ALL],
+            recentWaypoints: [] as RecentWaypoint[],
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -788,6 +789,7 @@ describe('MoneyRequest', () => {
         };
 
         beforeEach(async () => {
+            baseParams.recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, {
                 ...fakeReport,
                 participants: {
@@ -840,8 +842,6 @@ describe('MoneyRequest', () => {
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
 
-            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
-
             expect(IOU.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
                 isDraftPolicy: false,
@@ -877,7 +877,7 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
-                recentWaypoints,
+                recentWaypoints: baseParams.recentWaypoints,
                 betas: [CONST.BETAS.ALL],
             });
 
@@ -904,8 +904,6 @@ describe('MoneyRequest', () => {
             expect(updatedDraftTransaction?.pendingFields).toMatchObject({
                 waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
-
-            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             expect(IOU.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -942,7 +940,7 @@ describe('MoneyRequest', () => {
                     currentUserAccountIDParam: baseParams.currentUserAccountID,
                     currentUserEmailParam: baseParams.currentUserLogin,
                     quickAction: baseParams.quickAction,
-                    recentWaypoints,
+                    recentWaypoints: baseParams.recentWaypoints,
                 }),
             );
         });

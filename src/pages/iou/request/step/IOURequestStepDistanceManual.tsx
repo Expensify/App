@@ -232,6 +232,7 @@ function IOURequestStepDistanceManual({
                 selfDMReport,
                 policyForMovingExpenses,
                 betas,
+                recentWaypoints,
                 unit,
                 personalOutputCurrency: personalPolicy?.outputCurrency,
             });
