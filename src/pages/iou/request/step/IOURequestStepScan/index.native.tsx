@@ -234,6 +234,7 @@ function IOURequestStepScan({
 
             return () => {
                 subscription.remove();
+                cancelSpan(CONST.TELEMETRY.SPAN_TAKE_PHOTO);
                 cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
 
                 if (isLoaderVisible) {
@@ -306,6 +307,8 @@ function IOURequestStepScan({
     const viewfinderLayout = useRef<LayoutRectangle>(null);
 
     const maybeCancelShutterSpan = useCallback(() => {
+        cancelSpan(CONST.TELEMETRY.SPAN_TAKE_PHOTO);
+
         if (isMultiScanEnabled) {
             return;
         }
@@ -314,6 +317,11 @@ function IOURequestStepScan({
     }, [isMultiScanEnabled]);
 
     const capturePhoto = useCallback(() => {
+        startSpan(CONST.TELEMETRY.SPAN_TAKE_PHOTO, {
+            name: CONST.TELEMETRY.SPAN_TAKE_PHOTO,
+            op: CONST.TELEMETRY.SPAN_TAKE_PHOTO,
+        });
+
         if (!isMultiScanEnabled) {
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
@@ -370,6 +378,8 @@ function IOURequestStepScan({
                 const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                 cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation).then(({file, filename, source}) => {
                     // Add source property to file for prepareRequestPayload compatibility
+                    endSpan(CONST.TELEMETRY.SPAN_TAKE_PHOTO);
+
                     const cameraFile = {
                         ...file,
                         source,
