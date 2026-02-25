@@ -97,6 +97,9 @@ function IOURequestStepScan({
     const cameraInitSpanStarted = useRef(false);
     const cameraInitialized = useRef(false);
 
+    // Ref for double-tap protection (doesn't trigger re-render)
+    const isCapturingPhoto = useRef(false);
+
     // Start camera init span when permission is granted and camera is ready
     useEffect(() => {
         if (cameraInitSpanStarted.current || cameraPermissionStatus !== RESULTS.GRANTED || device == null) {
@@ -200,6 +203,7 @@ function IOURequestStepScan({
     useFocusEffect(
         useCallback(() => {
             setDidCapturePhoto(false);
+            isCapturingPhoto.current = false;
             const refreshCameraPermissionStatus = () => {
                 CameraPermission?.getCameraPermissionStatus?.()
                     .then(setCameraPermissionStatus)
@@ -322,16 +326,13 @@ function IOURequestStepScan({
             return;
         }
 
-        if (didCapturePhoto) {
+        if (isCapturingPhoto.current) {
             maybeCancelShutterSpan();
             return;
         }
 
-        if (isMultiScanEnabled) {
-            showBlink();
-        }
-
-        setDidCapturePhoto(true);
+        isCapturingPhoto.current = true;
+        showBlink();
 
         const path = getReceiptsUploadFolderPath();
 
@@ -357,6 +358,9 @@ function IOURequestStepScan({
                         path,
                     })
                     .then((photo: PhotoFile) => {
+                        // Freeze camera preview now that photo is captured
+                        setDidCapturePhoto(true);
+
                         // Store the receipt on the transaction object in Onyx
                         const transaction =
                             isMultiScanEnabled && initialTransaction?.receipt?.source
@@ -388,6 +392,7 @@ function IOURequestStepScan({
 
                                 if (isMultiScanEnabled) {
                                     setDidCapturePhoto(false);
+                                    isCapturingPhoto.current = false;
                                     return;
                                 }
 
@@ -396,7 +401,7 @@ function IOURequestStepScan({
                         );
                     })
                     .catch((error: string) => {
-                        setDidCapturePhoto(false);
+                        isCapturingPhoto.current = false;
                         maybeCancelShutterSpan();
                         showCameraAlert();
                         Log.warn('Error taking photo', error);
@@ -405,7 +410,6 @@ function IOURequestStepScan({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- askForPermissions is not needed
     }, [
         cameraPermissionStatus,
-        didCapturePhoto,
         isMultiScanEnabled,
         translate,
         showBlink,
@@ -490,13 +494,13 @@ function IOURequestStepScan({
                                         photo
                                         cameraTabIndex={1}
                                         onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
-                                        forceInactive={isAttachmentPickerActive}
+                                        forceInactive={isAttachmentPickerActive || didCapturePhoto}
                                         onInitialized={handleCameraInitialized}
                                     />
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                                     <Animated.View
                                         pointerEvents="none"
-                                        style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                                        style={[StyleSheet.absoluteFillObject, {backgroundColor: theme.appBG}, blinkStyle, styles.zIndex10]}
                                     />
                                 </View>
                             </GestureDetector>
