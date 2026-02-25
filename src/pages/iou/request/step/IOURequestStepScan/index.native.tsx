@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/core';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Alert, AppState, StyleSheet, View} from 'react-native';
-import type {LayoutRectangle} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
@@ -47,8 +46,6 @@ import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
-import {cropImageToAspectRatio} from './cropImageToAspectRatio';
-import type {ImageObject} from './cropImageToAspectRatio';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
@@ -307,8 +304,6 @@ function IOURequestStepScan({
         setIsMultiScanEnabled,
     });
 
-    const viewfinderLayout = useRef<LayoutRectangle>(null);
-
     const maybeCancelShutterSpan = useCallback(() => {
         cancelSpan(CONST.TELEMETRY.SPAN_TAKE_PHOTO);
 
@@ -500,7 +495,6 @@ function IOURequestStepScan({
                                         zoom={device.neutralZoom}
                                         photo
                                         cameraTabIndex={1}
-                                        onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
                                         forceInactive={isAttachmentPickerActive || didCapturePhoto}
                                         onInitialized={handleCameraInitialized}
                                     />
