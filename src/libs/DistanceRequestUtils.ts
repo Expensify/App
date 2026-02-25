@@ -165,14 +165,14 @@ function getRateForDisplay(
  * Get the rate title to display on the expense page.
  * Shows the rate name (e.g., "Default Rate") so that updating a rate's value on the workspace
  * does not retroactively change the displayed rate on historical expenses.
- * For P2P expenses (no policy), displays "Default rate".
+ * For P2P expenses (no rate name), falls back to formattedRateFallback (the formatted rate value).
  * When the rate is out of policy, displays a localized "Rate out of policy" message.
  */
-function getRateForExpenseDisplay(rateName: string | undefined, isCustomUnitOutOfPolicy: boolean, translate: LocaleContextProps['translate']): string {
+function getRateForExpenseDisplay(rateName: string | undefined, isCustomUnitOutOfPolicy: boolean, formattedRateFallback: string): string {
     if (isCustomUnitOutOfPolicy) {
-        return translate('common.rateOutOfPolicy');
+        return formattedRateFallback;
     }
-    return rateName ?? translate('iou.defaultRate');
+    return rateName ?? formattedRateFallback;
 }
 
 /**

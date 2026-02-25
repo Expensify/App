@@ -180,23 +180,25 @@ describe('DistanceRequestUtils', () => {
     });
 
     describe('getRateForExpenseDisplay', () => {
+        const formattedRate = '$0.67 / mi';
+
         it('should return rate name when available', () => {
-            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', false, translateLocal);
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', false, formattedRate);
             expect(result).toBe('Default Rate');
         });
 
-        it('should return "Default rate" for P2P expenses with no name', () => {
-            const result = DistanceRequestUtils.getRateForExpenseDisplay(undefined, false, translateLocal);
-            expect(result).toBe(translateLocal('iou.defaultRate'));
+        it('should return formatted rate for P2P expenses with no name', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay(undefined, false, formattedRate);
+            expect(result).toBe(formattedRate);
         });
 
-        it('should return out-of-policy message when rate is out of policy', () => {
-            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, translateLocal);
-            expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
+        it('should return formatted rate when rate is out of policy', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, formattedRate);
+            expect(result).toBe(formattedRate);
         });
 
         it('should return rate name regardless of what name it is', () => {
-            const result = DistanceRequestUtils.getRateForExpenseDisplay('Standard Mileage', false, translateLocal);
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Standard Mileage', false, formattedRate);
             expect(result).toBe('Standard Mileage');
         });
     });

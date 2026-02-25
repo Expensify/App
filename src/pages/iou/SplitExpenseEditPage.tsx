@@ -9,8 +9,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -44,7 +46,9 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 
 function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {translate, toLocaleDigit} = useLocalize();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const {currentSearchResults} = useSearchStateContext();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
@@ -133,8 +137,10 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const currentRateID = getRateID(splitExpenseDraftTransaction);
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
 
+    const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
     const isCustomUnitOutOfPolicy = !rates[currentRateID] || (isDistance && !rate);
-    const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, translate);
+    const formattedRate = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
+    const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, formattedRate);
 
     const getErrorForField = (field: ViolationField) => {
         if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
