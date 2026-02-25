@@ -1,0 +1,106 @@
+---
+title: NS0521 Sync Error: Permission Error Querying NetSuite for 'Subsidiary'
+description: Learn why the NS0521 sync error occurs in NetSuite and how to fix subsidiary permission issues for OneWorld and Non-OneWorld accounts.
+keywords: NS0521, NetSuite subsidiary permission error, OneWorld NetSuite permissions, Non-OneWorld NetSuite bundle, Expensify Integration role, Expensify Connect bundle, NetSuite sync error
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0521 sync error related to subsidiary permissions in OneWorld and Non-OneWorld accounts. Does not cover token formatting or general login errors.
+---
+
+# NS0521 Sync Error: Permission Error Querying NetSuite for 'Subsidiary'
+
+If you see the error message **“NS0521 Sync Error: Permission error querying NetSuite for 'Subsidiary'.”**, it means the NetSuite integration does not have proper access to subsidiary records.
+
+This error is typically related to permission restrictions in **OneWorld** or **Non-OneWorld** NetSuite accounts.
+
+---
+
+## Why the NS0521 Sync Error Happens
+
+The NS0521 sync error occurs because of permission restrictions tied to how subsidiaries are configured in NetSuite.
+
+The resolution depends on whether your account is:
+
+- A **OneWorld** account, or  
+- A **Non-OneWorld** account  
+
+---
+
+## How to Fix the NS0521 Sync Error for OneWorld Accounts
+
+In OneWorld accounts, the Expensify Integration role must have access to all required subsidiaries.
+
+In NetSuite:
+
+1. Go to **Setup > Users/Roles > Manage Roles**.
+2. Select **Expensify Integration**.
+3. Click **Edit**.
+4. Confirm that either:
+   - **All** is selected for subsidiaries, or  
+   - **Selected** is chosen and all required subsidiaries are highlighted.
+5. Save your changes.
+
+After updating the role permissions:
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the NetSuite connection.
+5. Click **Sync now**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the NetSuite connection.
+5. Tap **Sync now**.
+
+Retry the export or sync once complete.
+
+---
+
+## How to Fix the NS0521 Sync Error for Non-OneWorld Accounts
+
+In Non-OneWorld accounts, the issue is typically related to the Expensify Connect bundle configuration.
+
+In NetSuite:
+
+1. Go to **Customization > SuiteBundler > Search & Install Bundles > List**.
+2. Locate the **Expensify Connect bundle**.
+3. Uninstall the bundle.
+4. Delete the **Expensify Integration role**.
+
+When reinstalling the bundle:
+
+- Do not edit the permissions for the role during installation.
+
+After reinstalling:
+
+On web:
+
+1. Go to **Workspaces** from the navigation tabs on the left.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the NetSuite connection.
+5. Click **Sync now**.
+
+On mobile:
+
+1. Tap **Workspaces** from the navigation tabs on the bottom.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the NetSuite connection.
+5. Tap **Sync now**.
+
+---
+
+# FAQ
+
+## Does the NS0521 Sync Error affect all Workspaces?
+
+It can. If the NetSuite role or bundle configuration is incorrect, all Workspaces connected to that NetSuite account may experience syncing issues.
+
+## Do I need NetSuite admin access to fix the NS0521 Sync Error?
+
+Yes. Updating roles, managing subsidiaries, and reinstalling bundles require NetSuite admin permissions.
