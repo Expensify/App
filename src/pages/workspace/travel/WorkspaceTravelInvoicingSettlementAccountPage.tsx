@@ -68,10 +68,8 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
         const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(cardSettings);
 
         if (!isTravelInvoicingEnabled) {
-            // Enable Travel Invoicing with selected settlement account (single API call)
             configureTravelInvoicingForPolicy(policyID, workspaceAccountID, value);
         } else {
-            // Already enabled - just update the settlement account
             const previousPaymentBankAccountID = cardSettings?.previousPaymentBankAccountID ?? cardSettings?.paymentBankAccountID;
             setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, value, previousPaymentBankAccountID);
         }
