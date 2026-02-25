@@ -11385,7 +11385,7 @@ function getBespokeWelcomeMessage(userReportedIntegration?: OnboardingAccounting
     // escapes HTML entities before parsing, so raw HTML tags would render as literal text.
     let message =
         "# Your free trial has started! Let's get you set up.\n" +
-        "Hey there! I'm your Expensify setup specialist. " +
+        "👋 Hey there! I'm your Expensify setup specialist. " +
         'For a small team like yours, the fastest way to get value is to set up a few expense categories, ' +
         'invite your team members, and have them start snapping receipts right away. ' +
         "I'm here to walk you through each step — just ask!";
