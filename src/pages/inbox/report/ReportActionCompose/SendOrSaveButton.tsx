@@ -1,6 +1,5 @@
 import React from 'react';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
@@ -25,7 +24,7 @@ function SendOrSaveButton({isDisabled: isDisabledProp = false, isEditing = false
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
+    const icons = useMemoizedLazyExpensifyIcons(['Send', 'Checkmark']);
     const label = translate(isEditing ? 'common.saveChanges' : 'common.send');
     const sentryLabel = isEditing ? CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON : CONST.SENTRY_LABEL.REPORT.SEND_BUTTON;
 
@@ -47,7 +46,7 @@ function SendOrSaveButton({isDisabled: isDisabledProp = false, isEditing = false
             >
                 {({pressed}) => (
                     <Icon
-                        src={isEditing ? icons.Checkmark : Expensicons.Send}
+                        src={isEditing ? icons.Checkmark : icons.Send}
                         fill={isDisabledProp || pressed ? theme.icon : theme.textLight}
                     />
                 )}

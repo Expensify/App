@@ -1,6 +1,7 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +26,7 @@ function ReportActionComposeSendButton({isDisabled: isDisabledProp = false, isEd
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to manage GestureDetector correctly
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['Send'] as const);
     const Tap = Gesture.Tap()
         .enabled(!isDisabledProp)
         .onEnd(() => {
