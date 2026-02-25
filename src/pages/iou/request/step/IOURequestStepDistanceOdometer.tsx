@@ -214,21 +214,14 @@ function IOURequestStepDistanceOdometer({
 
     /**
      * Normalize odometer text by standardizing locale digits and stripping all
-     * non-numeric characters except the decimal point.  This single function is
-     * used by both validation and parsing so the two paths always agree on the
-     * numeric interpretation of the input.
+     * non-numeric characters except the decimal point. fromLocaleDigit converts
+     * each locale character to its standard equivalent (e.g. German ',' → '.'
+     * for decimal, German '.' → ',' for group separator), then we keep only
+     * digits and the standard decimal point.
      */
     const normalizeOdometerText = (text: string): string => {
         const standardized = replaceAllDigits(text, fromLocaleDigit);
-        const stripped = standardized.replaceAll(/[^0-9.,]/g, '');
-        // After locale conversion '.' is decimal and ',' is group separator.
-        // When no dot is present, treat comma as decimal fallback — handles
-        // users on web keyboards typing '.' in comma-decimal locales, where
-        // fromLocaleDigit converts the dot to a comma.
-        if (!stripped.includes('.') && stripped.includes(',')) {
-            return stripped.replaceAll(',', '.');
-        }
-        return stripped.replaceAll(',', '');
+        return standardized.replaceAll(/[^0-9.]/g, '');
     };
 
     const parseOdometerReading = (text: string): number => {
