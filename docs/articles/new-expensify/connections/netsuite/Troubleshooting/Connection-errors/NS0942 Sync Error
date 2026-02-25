@@ -1,0 +1,98 @@
+---
+title: NS0942 Sync Error: 'Parent Company' Not Found for Subsidiaries
+description: Learn why the NS0942 sync error occurs when switching to a NetSuite OneWorld account and how to disconnect and reconnect the NetSuite integration.
+keywords: NS0942, NetSuite OneWorld error, Parent Company not found, NetSuite subsidiaries not importing, disconnect NetSuite, reconnect NetSuite integration, Expensify NetSuite sync error
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0942 sync error related to moving from non-OneWorld to OneWorld accounts and reconnecting NetSuite. Does not cover bundle updates or token permission troubleshooting.
+---
+
+# NS0942 Sync Error: 'Parent Company' Not Found for Subsidiaries
+
+If you see the error message **“NS0942: Sync Error: 'Parent Company' not found for subsidiaries. Please disconnect and reconnect the NetSuite connection to import the subsidiaries.”**, it means your NetSuite account type has changed.
+
+This error commonly appears when switching from a **non-OneWorld** NetSuite account to a **OneWorld** account after the connection has already been established in Expensify.
+
+---
+
+## Why the NS0942 Sync Error Happens
+
+The NS0942 sync error occurs when:
+
+- Your NetSuite account was previously non-OneWorld  
+- You upgraded or migrated to a **OneWorld** account  
+- The existing Expensify connection was not reconfigured after the change  
+
+Because OneWorld accounts use subsidiaries and a parent company structure, the original connection does not properly import subsidiary data. The integration must be reconnected to refresh the account structure.
+
+---
+
+## How to Fix the NS0942 Sync Error
+
+You will need to disconnect and reconnect the NetSuite integration in each affected Workspace.
+
+---
+
+## Step 1: Save Your Current Configuration (Recommended)
+
+Before disconnecting, take screenshots of your current configuration in Expensify, including:
+
+- Imported categories  
+- Imported tags  
+- Mapping settings  
+- Any custom configuration  
+
+This makes it easier to reconfigure the Workspace after reconnecting.
+
+---
+
+## Step 2: Disconnect the NetSuite Connection
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the NetSuite connection.
+5. Click **Disconnect**.
+6. Click **Disconnect** in the confirmation window.
+7. Manually refresh the page to confirm the connection has been removed.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the NetSuite connection.
+5. Tap **Disconnect**.
+6. Confirm the disconnection.
+7. Refresh the app to confirm the connection is removed.
+
+---
+
+## Step 3: Reconnect to NetSuite
+
+After confirming the connection has been removed:
+
+1. Click **Connect to NetSuite**.
+2. Follow the steps in this guide to complete the setup:
+
+[Connect to NetSuite](https://help.expensify.com/articles/expensify-classic/connections/netsuite/Connect-To-NetSuite)
+
+Once the connection is re-established, subsidiaries and parent company data should import correctly.
+
+---
+
+## Step 4: Repeat for Each Connected Workspace
+
+If multiple Workspaces are connected to NetSuite, repeat the disconnect and reconnect process in each one.
+
+---
+
+# FAQ
+
+## Will disconnecting remove my configuration?
+
+Yes. Disconnecting resets the NetSuite connection and may remove imported settings. That’s why taking screenshots beforehand is strongly recommended.
+
+## Does the NS0942 Sync Error fix itself automatically?
+
+No. The integration must be manually disconnected and reconnected after switching to a OneWorld account.
