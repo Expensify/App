@@ -27,7 +27,7 @@ type NavigationTabBarAvatarProps = {
 function NavigationTabBarAvatar({onPress, isSelected = false, style}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const delegateEmail = account?.delegatedAccess?.delegate ?? '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

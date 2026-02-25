@@ -55,14 +55,14 @@ function KYCWall({
     shouldShowPersonalBankAccountOption = false,
     ref,
 }: KYCWallProps) {
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
-    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const {formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -81,7 +81,7 @@ function KYCWall({
         anchorPositionHorizontal: 0,
     });
 
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
 
     const getAnchorPosition = useCallback(
         (domRect: DomRect): AnchorPosition => {

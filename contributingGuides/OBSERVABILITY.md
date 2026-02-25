@@ -18,7 +18,7 @@ When users encounter issues in live sessions that we can't reproduce locally, bu
 ## Tools & implementation
 
 We use **Sentry** for observability across all platforms (Web, iOS, Android) and environments (production, staging, development). Sentry collects traces, spans, and contextual data from user sessions to identify and diagnose issues. For a better understanding of Sentry visit [Sentry docs](https://docs.sentry.io/). 
-For testing Sentry locally remember to set env variable `ENABLE_SENTRY_ON_DEV=true` in your local .env file. 
+For testing Sentry locally, remember to see the section [Debugging Spans](#debugging-spans) below.
 
 ### Working with Spans
 
@@ -61,6 +61,24 @@ cancelSpan(spanId); // Operation abandoned (e.g., user navigated away, component
 ```
 
 The difference is that the latter adds a `canceled` attribute to the span indicating that it was canceled.
+
+### Debugging Spans
+
+Sentry is disabled in development by default. To enable it, add `ENABLE_SENTRY_ON_DEV=true` to your `.env` file. This activates an internal debug transport that logs span data locally instead of sending it to Sentry.
+
+To view spans in the DevConsole, go to **Account → Troubleshoot → Log Sentry requests to console**.
+
+In rare cases where you need to inspect spans directly in the Sentry dashboard, comment out the `transport` line in [`src/setup/telemetry/index.ts`](../src/setup/telemetry/index.ts):
+
+```typescript
+Sentry.init({
+    dsn: CONFIG.SENTRY_DSN,
+    // transport: isDevelopment() ? makeDebugTransport : undefined,
+    ...
+});
+```
+
+This sends spans to the real Sentry project instead of the local console.
 
 ### Constants
 
@@ -181,6 +199,22 @@ Add metrics when:
 - Debugging requires operation visibility
 
 Don't add metrics for:
-- Internal operations invisible to users
+- Internal operations, invisible to users
 - Operations already covered by parent spans
 - Operations too granular to be actionable
+
+## Working with Sentry Dashboard
+
+### Filtering Spans
+
+When debugging our manual spans, always filter out canceled spans to avoid noise. Use the following query (you can copy & paste it into the filter bar):
+
+```
+span.status:ok !has:canceled has:tags[finished_manually,number]
+```
+
+| Filter | Purpose |
+|--------|---------|
+| `span.status:ok` | Only show spans that completed without errors |
+| `!has:canceled` | Exclude spans abandoned mid-flight (e.g. user navigated away) |
+| `has:finished_manually` | Only show spans finished by our instrumentation, not auto-collected ones |

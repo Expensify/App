@@ -241,10 +241,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
                             path: ROUTES.SETTINGS_REPORT_FRAUD.route,
                             exact: true,
@@ -1294,6 +1290,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.DOMAIN.RESET_DOMAIN]: {
                             path: ROUTES.DOMAIN_RESET_DOMAIN.route,
+                        },
+                        [SCREENS.DOMAIN.VACATION_DELEGATE]: {
+                            path: ROUTES.DOMAIN_VACATION_DELEGATE.route,
                         },
                         [SCREENS.DOMAIN.ADD_MEMBER]: {
                             path: ROUTES.DOMAIN_ADD_MEMBER.route,
