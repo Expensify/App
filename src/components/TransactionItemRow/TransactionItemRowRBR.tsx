@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {DotIndicator} from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +20,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, TransactionViolation} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+
+const HTML_TAG_PATTERN = /<\/?[a-z][^>]*>/i;
 
 type TransactionItemRowRBRProps = {
     /** Transaction item */
@@ -65,6 +68,7 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
         cardList,
         isMarkAsCash,
     );
+    const hasHTMLTags = HTML_TAG_PATTERN.test(RBRMessages);
 
     return (
         RBRMessages.length > 0 && (
@@ -79,7 +83,17 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
                     width={variables.iconSizeExtraSmall}
                 />
                 <View style={[styles.pre, styles.flexShrink1, {color: theme.danger}]}>
-                    <RenderHTML html={`<rbr shouldShowEllipsis="1" issmall >${RBRMessages}</rbr>`} />
+                    {hasHTMLTags ? (
+                        <RenderHTML html={`<rbr shouldShowEllipsis="1" issmall >${RBRMessages}</rbr>`} />
+                    ) : (
+                        <Text
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                            style={[styles.textLabelError, styles.textMicro]}
+                        >
+                            {RBRMessages}
+                        </Text>
+                    )}
                 </View>
             </View>
         )

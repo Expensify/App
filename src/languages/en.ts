@@ -1404,7 +1404,12 @@ const translations = {
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
-        confirmApprovalWithHeldAmount: 'Report contains held expenses. Approve only compliant expenses, or approve the entire report?',
+        confirmApprove: 'Confirm approval amount',
+        confirmApprovalAmount: 'Approve only compliant expenses, or approve the entire report.',
+        confirmApprovalAllHoldAmount: () => ({
+            one: 'This expense is on hold. Do you want to approve anyway?',
+            other: 'These expenses are on hold. Do you want to approve anyway?',
+        }),
         confirmPay: 'Confirm payment amount',
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: () => ({
@@ -3923,6 +3928,8 @@ const translations = {
             workspaceOwner: 'Owner',
             workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
+            clientID: 'Client ID',
+            clientIDInputHint: "Enter the client's unique identifier",
             mustBeOnlineToViewMembers: 'You need to be online in order to view members of this workspace.',
             moreFeatures: 'More features',
             requested: 'Requested',
@@ -6307,6 +6314,7 @@ const translations = {
                 adultEntertainment: 'Adult entertainment',
                 requireCompanyCard: 'Require company cards for all purchases',
                 requireCompanyCardDescription: 'Flag all cash spend, including mileage and per-diem expenses.',
+                requireCompanyCardDisabledTooltip: 'Enable Company cards (under More features) to unlock.',
             },
             expenseReportRules: {
                 title: 'Advanced',
@@ -7168,6 +7176,7 @@ const translations = {
             table: 'Table',
             bar: 'Bar',
             line: 'Line',
+            pie: 'Pie',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'From',
@@ -7516,6 +7525,9 @@ const translations = {
             deleteOdometerPhotoConfirmation: 'Are you sure you want to delete this odometer photo?',
             startMessageWeb: 'Add a photo of your odometer from the <strong>start</strong> of your trip. Drag a file here or choose one to upload.',
             endMessageWeb: 'Add a photo of your odometer from the <strong>end</strong> of your trip. Drag a file here or choose one to upload.',
+            cameraAccessRequired: 'Camera access is required to take pictures.',
+            snapPhotoStart: '<muted-text-label>Snap a photo of your odometer at the <strong>start</strong> of your trip.</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>Snap a photo of your odometer at the <strong>end</strong> of your trip.</muted-text-label>',
         },
     },
     gps: {
@@ -8435,15 +8447,16 @@ const translations = {
                 removeMember: 'Unable to remove this user. Please try again.',
                 vacationDelegate: 'Unable to set this user as a vacation delegate. Please try again.',
             },
+            cannotSetVacationDelegateForMember: (email: string) => `You can't set a vacation delegate for ${email} because they're currently the delegate for the following members:`,
+        },
+        common: {
+            settings: 'Settings',
             forceTwoFactorAuth: 'Force two-factor authentication',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>Please disable <a href="${samlPageUrl}">SAML</a> to force two-factor authentication.</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>Require two-factor authentication for all members of this domain. Domain members will be prompted to set up two-factor authentication on their account when they sign in.</muted-text>`,
             forceTwoFactorAuthError: "Force two-factor authentication couldn't be changed. Please try again later.",
-            cannotSetVacationDelegateForMember: (email: string) => `You can't set a vacation delegate for ${email} because they're currently the delegate for the following members:`,
-        },
-        common: {
-            settings: 'Settings',
+            resetTwoFactorAuth: 'Reset two-factor authentication',
         },
         groups: {
             title: 'Groups',

@@ -226,6 +226,9 @@ type CardFeeds = {
 
         /** Whether 2FA is required for all members */
         twoFactorAuthRequired?: boolean;
+
+        /** List of member emails exempt from the domain's 2FA requirement */
+        twoFactorAuthExemptEmails?: string[];
     };
 } & CardFeedsStatus &
     DomainSettings;
