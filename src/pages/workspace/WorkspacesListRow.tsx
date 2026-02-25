@@ -218,6 +218,7 @@ function WorkspacesListRow({
                         disabled={shouldDisableThreeDotsMenu}
                         isNested
                         threeDotsMenuRef={threeDotsMenuRef}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
                     />
                 </View>
             )}
@@ -228,7 +229,10 @@ function WorkspacesListRow({
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, styles.br3]}>
             <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide && styles.gap5, styles.p5, styles.pr3, animatedHighlightStyle]}>
                 <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
+                    <View
+                        role={isWide ? CONST.ROLE.CELL : undefined}
+                        style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}
+                    >
                         <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
                             <Avatar
                                 imageStyles={[styles.alignSelfCenter]}
@@ -247,7 +251,10 @@ function WorkspacesListRow({
                         </View>
                         {isNarrow && ThreeDotMenuOrPendingIcon}
                     </View>
-                    <View style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}>
+                    <View
+                        role={isWide ? CONST.ROLE.CELL : undefined}
+                        style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}
+                    >
                         {!!ownerDetails && (
                             <>
                                 <Avatar
@@ -272,7 +279,10 @@ function WorkspacesListRow({
                             </>
                         )}
                     </View>
-                    <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
+                    <View
+                        role={isWide ? CONST.ROLE.CELL : undefined}
+                        style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}
+                    >
                         <Icon
                             src={workspaceTypeIcon(workspaceType)}
                             width={variables.workspaceTypeIconWidth}
@@ -298,7 +308,10 @@ function WorkspacesListRow({
                     </View>
                 </View>
 
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                <View
+                    role={isWide ? CONST.ROLE.CELL : undefined}
+                    style={[styles.flexRow, styles.alignItemsCenter]}
+                >
                     {!isNarrow && ThreeDotMenuOrPendingIcon}
                     {!isNarrow && (
                         <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.touchableButtonImage]}>

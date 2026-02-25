@@ -1,10 +1,48 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {areAllExpensifyCardsShipped, defaultExpensifyCardSelector, filterCardsHiddenFromSearch, filterOutPersonalCards, timeSensitiveCardsSelector} from '@selectors/Card';
+import {areAllExpensifyCardsShipped, defaultExpensifyCardSelector, filterCardsHiddenFromSearch, filterOutPersonalCards} from '@selectors/Card';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import type {Card, CardList} from '@src/types/onyx';
 import createRandomCard, {createRandomCompanyCard, createRandomExpensifyCard} from '../../utils/collections/card';
 import {translateLocal} from '../../utils/TestHelper';
+
+/**
+ * Test helper replicating the logic that was moved inline into useTimeSensitiveCards hook.
+ */
+function timeSensitiveCardsSelector(cards: OnyxEntry<CardList>) {
+    const result: {cardsNeedingShippingAddress: Card[]; cardsNeedingActivation: Card[]; cardsWithFraud: Card[]} = {
+        cardsNeedingShippingAddress: [],
+        cardsNeedingActivation: [],
+        cardsWithFraud: [],
+    };
+
+    for (const card of Object.values(cards ?? {})) {
+        if (!isCard(card) || !isExpensifyCard(card)) {
+            continue;
+        }
+
+        if (isCardWithPotentialFraud(card) && card.nameValuePairs?.possibleFraud?.fraudAlertReportID) {
+            result.cardsWithFraud.push(card);
+        }
+
+        const isPhysicalCard = !card.nameValuePairs?.isVirtual;
+        if (!isPhysicalCard) {
+            continue;
+        }
+
+        if (isCardPendingIssue(card)) {
+            result.cardsNeedingShippingAddress.push(card);
+        }
+
+        if (isCardPendingActivate(card)) {
+            result.cardsNeedingActivation.push(card);
+        }
+    }
+
+    return result;
+}
 
 describe('filterCardsHiddenFromSearch', () => {
     it('returns empty object when cardList is undefined or empty', () => {

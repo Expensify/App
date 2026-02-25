@@ -575,6 +575,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello',
                     unchanged: '[it] Unchanged',
@@ -662,6 +663,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello',
                     farewell: '[it] Goodbye',
@@ -737,6 +739,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello (existing)',
                     common: {
@@ -806,6 +809,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello (existing)',
                     common: {
@@ -913,6 +917,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     greeting: '[it] Hello (existing)',
                     common: {
@@ -1176,6 +1181,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     deepTemplate: (user: User, settings: Settings) => \`[it] Old complex template\`,
                     unchanged: '[it] Keep this (existing)'
@@ -1248,6 +1254,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     keep: {
                         this: '[it] Keep this section (existing)'
@@ -1348,6 +1355,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     existingSection: {
                         keep: '[it] Keep this existing translation',
@@ -1427,6 +1435,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     existingSection: {
                         keep: '[it] Keep this existing translation',
@@ -1500,6 +1509,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     testDrive: {
                         modal: {
@@ -1593,6 +1603,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     onboarding: {
                         tasks: {
@@ -1651,6 +1662,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     common: {
                         tasks: '[it] Tasks',
@@ -1703,6 +1715,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     unchanged: '[it] This stays the same',
                     pin: '[it] Pin',
@@ -1780,6 +1793,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     unchanged: '[it] This stays the same',
                     // @context original context
@@ -1866,6 +1880,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     unchanged: '[it] This stays the same',
                     // @context as a verb, not a noun
@@ -1948,6 +1963,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     unchanged: '[it] This stays the same',
                     pin: '[it] Pin (existing)',
@@ -2021,6 +2037,7 @@ describe('generateTranslations', () => {
                 IT_PATH,
                 dedent(`
                 import type en from './en';
+
                 const strings = {
                     unchanged: '[it] This stays the same',
                     // TODO: fix this
