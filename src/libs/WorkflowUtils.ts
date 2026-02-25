@@ -10,6 +10,7 @@ import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
+import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -80,6 +81,16 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
     return approvers;
 }
 
+/** Build a Member from a policy employee using personal details for avatar/displayName */
+function buildMemberFromEmployee(employee: PolicyEmployee, personalDetailsByEmail: PersonalDetailsList, email: string): Member {
+    return {
+        email,
+        avatar: personalDetailsByEmail[email]?.avatar,
+        displayName: personalDetailsByEmail[email]?.displayName ?? email,
+        pendingFields: employee.pendingFields,
+    };
+}
+
 type PolicyConversionParams = {
     /** Policy data containing employees and approver information */
     policy: OnyxEntry<Policy>;
@@ -110,35 +121,27 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     const employees = policy?.employeeList ?? {};
     const defaultApprover = getDefaultApprover(policy);
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
-    const membersWithoutWorkflow: Member[] = [];
 
     // Keep track of used approver emails to display hints in the UI
     const usedApproverEmails = new Set<string>();
     const personalDetailsByEmail = lodashMapKeys(personalDetails, (value, key) => value?.login ?? key);
+    const availableMembers: Member[] = [];
 
-    // Add each employee to the appropriate workflow
     for (const employee of Object.values(employees)) {
         const {email, submitsTo, pendingAction} = employee;
-        if (!email || !submitsTo || !employees[submitsTo] || pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            // If the employee doesn't have submitsTo but has a valid email,
-            // they should still be available for selection in new workflows
-            if (email && !submitsTo && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                membersWithoutWorkflow.push({
-                    email,
-                    avatar: personalDetailsByEmail[email]?.avatar,
-                    displayName: personalDetailsByEmail[email]?.displayName ?? email,
-                    pendingFields: employee.pendingFields,
-                });
-            }
+        if (!email) {
             continue;
         }
 
-        const member: Member = {
-            email,
-            avatar: personalDetailsByEmail[email]?.avatar,
-            displayName: personalDetailsByEmail[email]?.displayName ?? email,
-            pendingFields: employee.pendingFields,
-        };
+        const member = buildMemberFromEmployee(employee, personalDetailsByEmail, email);
+
+        if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            availableMembers.push(member);
+        }
+
+        if (!submitsTo || !employees[submitsTo]) {
+            continue;
+        }
 
         if (!approvalWorkflows[submitsTo]) {
             const approvers = calculateApprovers({employees, firstEmail: submitsTo, personalDetailsByEmail});
@@ -193,9 +196,10 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         });
     }
 
-    const workflowMembers =
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC ? sortedApprovalWorkflows?.flatMap((workflow) => workflow.members) : (sortedApprovalWorkflows.at(0)?.members ?? []);
-    const availableMembers = [...workflowMembers, ...membersWithoutWorkflow];
+    // availableMembers built in loop above: all employees with email, excluding pending delete.
+    // Includes members with orphaned submitsTo/forwardsTo so admins can fix chains from Expenses From picker.
+    // See https://github.com/Expensify/Expensify/issues/598876
+    availableMembers.sort((a, b) => localeCompare(a.displayName ?? a.email, b.displayName ?? b.email));
 
     return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
 }
@@ -570,6 +574,15 @@ function getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList: BankAccou
     });
 }
 
+/**
+ * Combine workflow members with available members, deduplicating by email.
+ */
+function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], allAvailableMembers: Member[]): Member[] {
+    const memberEmails = new Set(workflowMembers.map((m) => m.email));
+    const additionalMembers = allAvailableMembers.filter((m) => !memberEmails.has(m.email));
+    return [...workflowMembers, ...additionalMembers];
+}
+
 export {
     calculateApprovers,
     convertPolicyEmployeesToApprovalWorkflows,
@@ -578,5 +591,6 @@ export {
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     INITIAL_APPROVAL_WORKFLOW,
+    mergeWorkflowMembersWithAvailableMembers,
     updateWorkflowDataOnApproverRemoval,
 };
