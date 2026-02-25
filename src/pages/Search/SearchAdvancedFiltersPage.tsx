@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {resetStickySearchFiltersValues} from '@hooks/useStickySearchFilters';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAdvancedFilters} from '@libs/actions/Search';
 import CONST from '@src/CONST';
@@ -44,7 +45,16 @@ function SearchAdvancedFiltersPage() {
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.filtersHeader')}>
-                {shouldShowResetFilters && <TextLink onPress={clearAdvancedFilters}>{translate('search.resetFilters')}</TextLink>}
+                {shouldShowResetFilters && (
+                    <TextLink
+                        onPress={() => {
+                            resetStickySearchFiltersValues();
+                            clearAdvancedFilters();
+                        }}
+                    >
+                        {translate('search.resetFilters')}
+                    </TextLink>
+                )}
             </HeaderWithBackButton>
             <AdvancedSearchFilters />
         </ScreenWrapper>

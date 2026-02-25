@@ -6,11 +6,20 @@ import useOnyx from './useOnyx';
 
 const allSearchAdvancedFilters: {current: Partial<SearchAdvancedFiltersForm>} = {current: {}};
 const prevSearchAdvancedFiltersFormsByType: {current: Record<string, Partial<SearchAdvancedFiltersForm> | undefined>} = {current: {}};
+
+/**
+ * Reset all values of the sticky search filters
+ */
+function resetStickySearchFiltersValues() {
+    allSearchAdvancedFilters.current = {};
+    prevSearchAdvancedFiltersFormsByType.current = {};
+}
+
 /**
  * This hook helps retain all filter values and will only update the filters that have changed
  */
 export default function useStickySearchFilters(shouldUpdate?: boolean) {
-    const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     const currentAllSearchAdvancedFilters = useMemo(() => {
         if (!shouldUpdate || !searchAdvancedFiltersForm.type) {
@@ -56,3 +65,5 @@ export default function useStickySearchFilters(shouldUpdate?: boolean) {
 
     return currentAllSearchAdvancedFilters;
 }
+
+export {resetStickySearchFiltersValues};
