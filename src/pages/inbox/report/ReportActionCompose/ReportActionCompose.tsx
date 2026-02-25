@@ -359,7 +359,6 @@ function ReportActionCompose({
 
             if (isEditingInComposer && !attachmentFileRef.current) {
                 publishDraft(draftMessageTrimmed);
-                deleteDraft();
                 return;
             }
 
@@ -407,7 +406,6 @@ function ReportActionCompose({
             isEditingInComposer,
             isConciergeChat,
             publishDraft,
-            deleteDraft,
             kickoffWaitingIndicator,
             transactionThreadReport,
             report,
