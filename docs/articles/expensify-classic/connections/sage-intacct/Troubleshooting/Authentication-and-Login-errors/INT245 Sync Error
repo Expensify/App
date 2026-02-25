@@ -1,0 +1,105 @@
+---
+title: INT245 Sync Error: Invalid Credentials for Sage Intacct
+description: Learn why the INT245 sync error occurs in Expensify Classic and how to update Sage Intacct user permissions or reimbursable export settings.
+keywords: INT245, Sage Intacct invalid credentials, Sage Intacct web services permissions, reimbursable export option vendor bill, Expensify Classic Sage Intacct integration
+internalScope: Audience is Workspace Admins using the Sage Intacct integration in Expensify Classic. Covers the INT245 sync error related to missing Sage Intacct user permissions and reimbursable export configuration. Does not cover Sender ID authentication errors.
+---
+
+# INT245 Sync Error: Invalid Credentials for Sage Intacct
+
+If you see the error message **“INT245 Sync Error: Invalid credentials for Sage Intacct. The Sage Intacct user is missing required permissions or the reimbursable export option isn’t fully configured.”**, it means either:
+
+- The Sage Intacct Web Services user is missing required permissions, or  
+- The reimbursable export option in Expensify was not fully configured during setup.
+
+---
+
+## Why the INT245 Sync Error Happens
+
+The INT245 sync error occurs when:
+
+- The Sage Intacct Web Services user does not have the required module permissions, or  
+- The connection was established, but the reimbursable export option (expense report vs. vendor bill) was not properly configured.
+
+The resolution depends on how expenses are being exported.
+
+---
+
+# If Exporting as Expense Reports
+
+### Step 1: Update Sage Intacct Web Services User Permissions
+
+In Sage Intacct:
+
+1. Go to **Company > Web Services Users**.
+2. Locate the Web Services user.
+3. Click the **Subscription** link for that user.
+4. Check the box next to the relevant Application/Module.
+5. Click **Permissions** and configure the following:
+
+- **Administration:** All  
+- **Company:** Read-only  
+- **Cash Management:** All  
+- **General Ledger:** All  
+- **Time & Expense:** All  
+- **Projects:** Read-only  
+  - (Only required if importing projects and customers into Expensify)  
+- **Accounts Payable:** All  
+  - (Only required if exporting non-reimbursable expenses as vendor bills)
+
+6. Save your changes.
+
+---
+
+### Step 2: Sync in Expensify
+
+In Expensify:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync now**.
+
+Retry the export after syncing.
+
+---
+
+# If Exporting as Vendor Bills
+
+This typically happens when the connection was established but not fully configured.
+
+During the connection process to Sage Intacct, the configuration step may have been skipped:
+
+[Connect to Sage Intacct (Expensify Classic)](https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Connect-To-Sage-Intacct#connect-to-sage-intacct)
+
+---
+
+## Step 1: Complete Reimbursable Export Configuration
+
+After the initial sync in Expensify:
+
+1. You may see the error **“No expense types found”** if not using the Time & Expense module.
+2. Close the error message.
+3. The Expensify configuration window will open.
+4. Change the **Reimbursable export option** to **Vendor Bill**.
+5. Click **Save**.
+
+---
+
+## Step 2: Retry the Sync
+
+1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
+2. Click **Sync now**.
+3. Retry exporting the report.
+
+---
+
+# FAQ
+
+## Does this always mean the credentials are wrong?
+
+Not necessarily. It often means the Sage Intacct user is missing required permissions rather than having incorrect login credentials.
+
+## Do I need Sage Intacct admin access to fix this?
+
+Yes. Updating Web Services user permissions requires appropriate administrative access in Sage Intacct.
