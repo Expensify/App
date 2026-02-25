@@ -34,9 +34,8 @@ const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.Report
 };
 
 function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates}: MoneyRequestReportRHPNavigationButtonsProps) {
-    const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {
-        canBeMissing: true,
-    });
+    const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const {markReportIDAsExpense} = useWideRHPActions();
 
@@ -63,7 +62,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     );
 
     const [[currentTransaction, prevTransaction, nextTransaction] = getEmptyArray<OnyxTypes.Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        canBeMissing: true,
         selector: prevNextTransactionsSelector,
     });
 
@@ -79,7 +77,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     );
 
     const [parentReportActions = new Map<string, OnyxTypes.ReportAction>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        canBeMissing: true,
         selector: parentReportActionsSelector,
     });
 
@@ -94,9 +91,9 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         };
     }, [nextTransactionID, parentReportActions, prevTransactionID, transactionIDsList]);
 
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`, {canBeMissing: true});
-    const [prevThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportAction?.childReportID}`, {canBeMissing: true});
-    const [nextThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`);
+    const [prevThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportAction?.childReportID}`);
+    const [nextThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`);
 
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
@@ -137,7 +134,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
         // The transaction thread doesn't exist yet, so we should create it
         if (!nextThreadReportID) {
-            const transactionThreadReport = createTransactionThreadReport(parentReport, nextParentReportAction, nextTransaction);
+            const transactionThreadReport = createTransactionThreadReport(introSelected, parentReport, nextParentReportAction, nextTransaction);
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
@@ -165,7 +162,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
         // The transaction thread doesn't exist yet, so we should create it
         if (!prevThreadReportID) {
-            const transactionThreadReport = createTransactionThreadReport(parentReport, prevParentReportAction, prevTransaction);
+            const transactionThreadReport = createTransactionThreadReport(introSelected, parentReport, prevParentReportAction, prevTransaction);
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
