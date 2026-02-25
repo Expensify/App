@@ -59,6 +59,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     // For Travel Invoicing, we use a travel-specific card settings key
     // Uses the same key pattern as Expensify Card: private_expensifyCardSettings_{workspaceAccountID}
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -107,6 +108,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     // Determine if Travel Invoicing is enabled based on isEnabled field
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(cardSettings);
+    const isOnWaitlist = !!cardOnWaitlist;
+    const isLoading = !!cardSettings?.isLoading;
 
     /**
      * Handle toggle change for Central Invoicing.
@@ -154,10 +157,11 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             return;
         }
 
-        // Has settlement account - enable Travel Invoicing directly
+        // Has settlement account - enable Travel Invoicing and navigate to settlement page to show verification state
         const existingPaymentBankAccountID = cardSettings?.TRAVEL_US?.paymentBankAccountID ?? cardSettings?.paymentBankAccountID ?? settlementAccount?.bankAccountID;
         if (existingPaymentBankAccountID) {
             configureTravelInvoicingForPolicy(policyID, workspaceAccountID, existingPaymentBankAccountID);
+            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
         }
     };
 
@@ -256,6 +260,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     switchAccessibilityLabel={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subtitle')}
                     onToggle={handleToggle}
                     isActive={isTravelInvoicingEnabled}
+                    disabled={isLoading || isOnWaitlist}
+                    disabledAction={isOnWaitlist ? () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)) : undefined}
                     pendingAction={togglePendingAction}
                     errors={toggleErrors}
                     onCloseError={() => clearTravelInvoicingErrors(workspaceAccountID)}

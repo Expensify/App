@@ -260,11 +260,7 @@ function configureTravelInvoicingForPolicy(policyID: string, workspaceAccountID:
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                isEnabled: true,
-                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
-                    isEnabled: true,
-                    paymentBankAccountID: settlementBankAccountID,
-                },
+                isLoading: true,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 pendingFields: {
                     paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -282,13 +278,10 @@ function configureTravelInvoicingForPolicy(policyID: string, workspaceAccountID:
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
+                isLoading: false,
                 pendingAction: null,
                 pendingFields: {
                     paymentBankAccountID: null,
-                },
-                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
-                    isEnabled: true,
-                    paymentBankAccountID: settlementBankAccountID,
                 },
             },
         },
@@ -299,15 +292,12 @@ function configureTravelInvoicingForPolicy(policyID: string, workspaceAccountID:
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
-                isEnabled: false,
-                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
-                    isEnabled: false,
-                    paymentBankAccountID: undefined,
-                },
+                isLoading: false,
                 pendingAction: null,
                 pendingFields: {
                     paymentBankAccountID: null,
                 },
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
