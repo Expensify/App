@@ -8,6 +8,7 @@ function init() {
     // Exit early if the Cache API is not supported in the current browser.
     if (!('caches' in window)) {
         Log.warn('Cache API is not supported');
+        return;
     }
     const keys = Object.values(CONST.CACHE_API_KEYS);
     for (const key of keys) {
