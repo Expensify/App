@@ -63,6 +63,7 @@ import {getIOUActionForReportID, getOriginalMessage, getReportAction, hasPending
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
+    canEditReportTitle,
     changeMoneyRequestHoldStatus,
     generateReportID,
     getAddExpenseDropdownOptions,
@@ -79,7 +80,6 @@ import {
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
-    canEditReportTitle,
     isCurrentUserSubmitter,
     isDM,
     isExported as isExportedUtils,
