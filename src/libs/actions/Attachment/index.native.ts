@@ -99,7 +99,6 @@ async function removeCachedAttachment({attachmentID, localSource}: RemoveCachedA
 
 async function clearCachedAttachments(): Promise<void> {
     try {
-        // TODO: Improve this to only clear the attachments directory
         const exists = await RNFS.exists(ATTACHMENT_DIR);
         if (exists) {
             await RNFS.unlink(ATTACHMENT_DIR);
