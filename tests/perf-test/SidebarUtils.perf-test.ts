@@ -82,7 +82,9 @@ describe('SidebarUtils', () => {
                 reportNameValuePairs,
                 personalDetails,
                 policy,
+                invoiceReceiverPolicy: undefined,
                 parentReportAction,
+                conciergeReportID: '',
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 lastAction: undefined,
@@ -90,6 +92,8 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 1,
+                chatReport: undefined,
             }),
         );
     });

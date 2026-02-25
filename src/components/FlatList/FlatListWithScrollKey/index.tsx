@@ -1,14 +1,11 @@
-import type {ForwardedRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import React, {forwardRef} from 'react';
-import type {FlatList as RNFlatList} from 'react-native';
+import React from 'react';
 import BaseFlatListWithScrollKey from './BaseFlatListWithScrollKey';
 import type {FlatListWithScrollKeyProps} from './types';
 
 /**
  * FlatList component that handles initial scroll key.
  */
-function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: ForwardedRef<RNFlatList>) {
+function FlatListWithScrollKey<T>({ref, ...props}: FlatListWithScrollKeyProps<T>) {
     return (
         <BaseFlatListWithScrollKey
             ref={ref}
@@ -18,4 +15,4 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
     );
 }
 
-export default forwardRef(FlatListWithScrollKey);
+export default FlatListWithScrollKey;

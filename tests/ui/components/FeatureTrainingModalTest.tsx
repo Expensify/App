@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import ReceiptDoc from '@assets/images/receipt-doc.png';
 import ComposeProviders from '@components/ComposeProviders';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {FullScreenContextProvider} from '@components/VideoPlayerContexts/FullScreenContext';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
@@ -28,9 +29,6 @@ jest.mock('@components/ImageSVG', () => {
     return (props: ViewProps) => <View {...props} />;
 });
 
-jest.unmock('react-native-reanimated');
-jest.unmock('react-native-worklets');
-
 describe('FeatureTrainingModal', () => {
     beforeAll(() => {
         Onyx.init({
@@ -45,7 +43,7 @@ describe('FeatureTrainingModal', () => {
     describe('renderIllustration', () => {
         it('renders video', () => {
             render(
-                <ComposeProviders components={[PlaybackContextProvider, FullScreenContextProvider, VolumeContextProvider, VideoPopoverMenuContextProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, PlaybackContextProvider, FullScreenContextProvider, VolumeContextProvider, VideoPopoverMenuContextProvider]}>
                     <FeatureTrainingModal
                         confirmText={CONFIRM_TEXT}
                         videoURL={CONST.WELCOME_VIDEO_URL}

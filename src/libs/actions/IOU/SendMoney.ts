@@ -31,9 +31,28 @@ import {dismissModalAndOpenReportInInboxTab} from '.';
 
 type SendMoneyParamsData = {
     params: SendMoneyParams;
-    optimisticData: OnyxUpdate[];
-    successData: OnyxUpdate[];
-    failureData: OnyxUpdate[];
+    optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+        >
+    >;
+    successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        >
+    >;
+    failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    >;
 };
 
 /**
@@ -406,7 +425,6 @@ function getSendMoneyParams({
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT
@@ -457,7 +475,7 @@ function getSendMoneyParams({
 }
 
 /**
- * @param managerID - Account ID of the person sending the money
+ * @param currentUserAccountID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
 function sendMoneyElsewhere(
@@ -466,7 +484,7 @@ function sendMoneyElsewhere(
     amount: number,
     currency: string,
     comment: string,
-    managerID: number,
+    currentUserAccountID: number,
     recipient: Participant,
     created?: string,
     merchant?: string,
@@ -479,7 +497,7 @@ function sendMoneyElsewhere(
         currency,
         commentParam: comment,
         paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-        managerID,
+        managerID: currentUserAccountID,
         recipient,
         created,
         merchant,
@@ -489,11 +507,11 @@ function sendMoneyElsewhere(
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
     dismissModalAndOpenReportInInboxTab(params.chatReportID);
-    notifyNewAction(params.chatReportID, managerID);
+    notifyNewAction(params.chatReportID, undefined, true);
 }
 
 /**
- * @param managerID - Account ID of the person sending the money
+ * @param currentUserAccountID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
 function sendMoneyWithWallet(
@@ -502,7 +520,7 @@ function sendMoneyWithWallet(
     amount: number,
     currency: string,
     comment: string,
-    managerID: number,
+    currentUserAccountID: number,
     recipient: Participant | OptionData,
     created?: string,
     merchant?: string,
@@ -515,7 +533,7 @@ function sendMoneyWithWallet(
         currency,
         commentParam: comment,
         paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-        managerID,
+        managerID: currentUserAccountID,
         recipient,
         created,
         merchant,
@@ -525,7 +543,7 @@ function sendMoneyWithWallet(
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
     dismissModalAndOpenReportInInboxTab(params.chatReportID);
-    notifyNewAction(params.chatReportID, managerID);
+    notifyNewAction(params.chatReportID, undefined, true);
 }
 
 export {sendMoneyElsewhere, sendMoneyWithWallet};

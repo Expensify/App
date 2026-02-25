@@ -1,10 +1,10 @@
 ---
 title: Billing and Subscriptions
-description: Learn how Expensify bills for Collect and Control plans, including localized pricing, billing eligibility, and how to transfer billing ownership.
-keywords: [billing, subscription, pricing, Collect, Control, plan comparison, currency, transfer billing, New Expensify]
+description: Learn how Collect and Control plans are billed in different currencies, how card usage affects pricing, and which members are charged.
+keywords: [localized billing, pricing, Collect, Control, subscription, billing currency, seat count, Expensify Card, workspace eligibility]
+internalScope: Audience is Workspace Admins. Covers pricing for Collect and Control plans across multiple currencies, eligibility rules, and how billing is calculated. Does not cover ownership transfer or billing issue resolution.
 ---
 
-<div id="new-expensify" markdown="1">
 
 Expensify offers two subscription plans — **Collect** and **Control** — designed to scale with your team's needs. This article explains how each plan is billed, pricing by currency, and how to manage your billing setup.
 
@@ -47,13 +47,11 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
   <ul>
     <li>£5 per unique member/month</li>
     <li>Fully flexible — add/remove members anytime</li>
-    <li>Optional Expensify Card with 1% cash back (USD only)</li>
   </ul>
   <strong>Control</strong>
   <ul>
-    <li>£14 per active member/month with Annual Subscription + Card</li>
-    <li>£28 without Card or for pay-per-use</li>
-    <li>Earn up to 2% cash back</li>
+    <li>£14 per active member/month with Annual Subscription</li>
+    <li>£28 pay-per-use</li>
   </ul>
 </div>
 
@@ -63,12 +61,11 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
   <ul>
     <li>€5 per unique member/month</li>
     <li>Month-to-month — no contract</li>
-    <li>Optional Expensify Card</li>
   </ul>
   <strong>Control</strong>
   <ul>
-    <li>€16 per active member/month with Annual Subscription + Card</li>
-    <li>€32 without Card or for pay-per-use</li>
+    <li>€16 per active member/month with Annual Subscription</li>
+    <li>€32 pay-per-use</li>
   </ul>
 </div>
 
@@ -81,8 +78,8 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
   </ul>
   <strong>Control</strong>
   <ul>
-    <li>AU$30 per active member/month with Annual Subscription + Card</li>
-    <li>AU$60 without Card or for pay-per-use</li>
+    <li>AU$30 per active member/month with Annual Subscription</li>
+    <li>AU$60 pay-per-use</li>
   </ul>
 </div>
 
@@ -95,8 +92,8 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
   </ul>
   <strong>Control</strong>
   <ul>
-    <li>NZ$32 per active member/month with Annual Subscription + Card</li>
-    <li>NZ$64 without Card or for pay-per-use</li>
+    <li>NZ$32 per active member/month with Annual Subscription</li>
+    <li>NZ$64 pay-per-use</li>
   </ul>
 </div>
 
@@ -138,7 +135,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 
 # Billing eligibility and details
 
-## 💳 Expensify Card usage
+## 💳 Expensify Card usage (US Only)
 
 - **Collect:** Card is optional — but earns 1% cash back on US spend
 - **Control:** Card is required for discounted pricing and cash back
@@ -191,4 +188,7 @@ Yes! To change your plan:
 - Go to **Settings > Workspaces > [Workspace Name] > Settings**
 - Choose between **Collect** and **Control** based on your team's needs
 
-</div>
+## What if I need to change the billing owner?
+
+See [How to transfer billing ownership](#) for step-by-step instructions on how another Workspace Admin can take over billing responsibilities.
+

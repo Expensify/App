@@ -69,7 +69,7 @@ const reportCollectionDataSet: ReportCollectionDataSet = {
 
 const getReportFromUseOnyx = async (reportID: string) => {
     const {result} = renderHook(() => {
-        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
         return {report};
     });
     return result.current.report;
@@ -990,20 +990,6 @@ describe('Transaction', () => {
 
             expect(transaction?.comment?.waypoints?.[`waypoint${index}`]).toEqual(waypoint);
             expect(updatedRecentWaypoints?.[0]?.address).toBe('123 Main St');
-        });
-
-        it('should not save waypoint if missing lat/lng', async () => {
-            const transactionID = 'txn2';
-            const index = '1';
-            const waypoint: RecentWaypoint = {
-                address: 'No LatLng',
-            };
-            const recentWaypointsList: RecentWaypoint[] = [];
-            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
-            await waitForBatchedUpdates();
-
-            const updatedRecentWaypoints = await OnyxUtils.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
-            expect(updatedRecentWaypoints?.length ?? 0).toBe(0);
         });
 
         it('should not save waypoint if address is YOUR_LOCATION_TEXT', async () => {

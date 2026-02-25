@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useInitial from '@hooks/useInitial';
@@ -22,9 +23,9 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const primaryLogin = account?.primaryLogin ?? '';
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const validateError = getLatestErrorMessageField(issueNewCard);
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
@@ -32,14 +33,18 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
     const {isBetaEnabled} = usePermissions();
     const firstAssigneeEmail = useInitial(issueNewCard?.data?.assigneeEmail);
     const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;
+    const personalDetails = usePersonalDetails();
+    const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === data?.assigneeEmail);
+    const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
 
     useEffect(() => {
         if (!isSuccessful) {
             return;
         }
         if (backTo && shouldUseBackToParam) {
-            Navigation.goBack(backTo);
+            Navigation.goBack(backTo, {compareParams: false});
         } else {
+            Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID), {forceReplace: true});
         }
         clearIssueNewCardFlow(policyID);
@@ -48,9 +53,9 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
     const handleSubmit = useCallback(
         (validateCode: string) => {
             // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
-            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, data);
+            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, assigneeTimeZone, data);
         },
-        [isBetaEnabled, data, defaultFundID, policyID],
+        [isBetaEnabled, data, defaultFundID, policyID, assigneeTimeZone],
     );
 
     const handleClose = useCallback(() => {
