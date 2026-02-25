@@ -16,10 +16,10 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import {getOriginalReportID} from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
+import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import KeyboardUtils from '@src/utils/keyboard';
-import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 
 type UseEditMessageProps = {
     reportID: string | undefined;
