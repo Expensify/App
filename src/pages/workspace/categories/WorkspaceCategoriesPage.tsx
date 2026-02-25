@@ -713,15 +713,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                                 !policyHasAccountingConnections
                                     ? [
                                           {
+                                              icon: icons.Table,
+                                              buttonText: translate('common.import'),
+                                              buttonAction: navigateToImportSpreadsheet,
+                                          },
+                                          {
                                               icon: icons.Plus,
                                               buttonText: translate('workspace.categories.addCategory'),
                                               buttonAction: navigateToCreateCategoryPage,
                                               success: true,
-                                          },
-                                          {
-                                              icon: icons.Table,
-                                              buttonText: translate('common.import'),
-                                              buttonAction: navigateToImportSpreadsheet,
                                           },
                                       ]
                                     : undefined

@@ -822,15 +822,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                     !hasAccountingConnections
                                         ? [
                                               {
+                                                  icon: expensifyIcons.Table,
+                                                  buttonText: translate('common.import'),
+                                                  buttonAction: navigateToImportSpreadsheet,
+                                              },
+                                              {
                                                   success: true,
                                                   buttonAction: navigateToCreateTagPage,
                                                   icon: expensifyIcons.Plus,
                                                   buttonText: translate('workspace.tags.addTag'),
-                                              },
-                                              {
-                                                  icon: expensifyIcons.Table,
-                                                  buttonText: translate('common.import'),
-                                                  buttonAction: navigateToImportSpreadsheet,
                                               },
                                           ]
                                         : undefined
