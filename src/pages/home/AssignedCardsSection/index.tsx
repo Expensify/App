@@ -69,8 +69,8 @@ function AssignedCardsSection() {
                                             <Icon
                                                 src={icons.ArrowRight}
                                                 fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
-                                                width={variables.iconSizeSmall}
-                                                height={variables.iconSizeSmall}
+                                                width={variables.iconSizeNormal}
+                                                height={variables.iconSizeNormal}
                                                 additionalStyles={styles.opacitySemiTransparent}
                                             />
                                         </View>
