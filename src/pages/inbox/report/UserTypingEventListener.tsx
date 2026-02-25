@@ -16,7 +16,7 @@ type UserTypingEventListenerProps = {
     report: OnyxTypes.Report;
 };
 function UserTypingEventListener({report}: UserTypingEventListenerProps) {
-    const [lastVisitedPath = ''] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
+    const [lastVisitedPath = ''] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const didSubscribeToReportTypingEvents = useRef(false);
     const reportID = report.reportID;

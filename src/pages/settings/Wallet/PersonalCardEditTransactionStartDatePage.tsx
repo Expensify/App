@@ -32,7 +32,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true, selector: cardByIdSelector(cardID)});
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
     const currentStartDate = card?.scrapeMinDate;
 
     const [dateOptionSelected, setDateOptionSelected] = useState<DateOption>(CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);

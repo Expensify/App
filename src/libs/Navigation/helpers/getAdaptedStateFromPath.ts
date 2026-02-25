@@ -80,38 +80,6 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         return getMatchingFullScreenRoute(focusedStateForBackToRoute);
     }
 
-    // Handle dynamic routes: find the appropriate full screen route
-    if (route.path) {
-        const dynamicRouteSuffix = getLastSuffixFromPath(route.path);
-        if (isDynamicRouteSuffix(dynamicRouteSuffix)) {
-            // Remove dynamic suffix to get the base path
-            const pathWithoutDynamicSuffix = route.path?.replace(`/${dynamicRouteSuffix}`, '');
-
-            // Get navigation state for the base path without dynamic suffix
-            const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix as RoutePath);
-            const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
-
-            if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
-                return undefined;
-            }
-
-            const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
-
-            if (isLastRouteFullScreen) {
-                return lastRoute;
-            }
-
-            const focusedStateForDynamicRoute = findFocusedRoute(stateUnderDynamicRoute);
-
-            if (!focusedStateForDynamicRoute) {
-                return undefined;
-            }
-
-            // Recursively find the matching full screen route for the focused dynamic route
-            return getMatchingFullScreenRoute(focusedStateForDynamicRoute);
-        }
-    }
-
     const routeNameForLookup = getSearchScreenNameForRoute(route);
     if (RHP_TO_SEARCH[routeNameForLookup]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_SEARCH[routeNameForLookup]);
@@ -198,6 +166,38 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
+    }
+
+    // Handle dynamic routes: find the appropriate full screen route
+    if (route.path) {
+        const dynamicRouteSuffix = getLastSuffixFromPath(route.path);
+        if (isDynamicRouteSuffix(dynamicRouteSuffix)) {
+            // Remove dynamic suffix to get the base path
+            const pathWithoutDynamicSuffix = route.path?.replace(`/${dynamicRouteSuffix}`, '');
+
+            // Get navigation state for the base path without dynamic suffix
+            const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix as RoutePath);
+            const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
+
+            if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
+                return undefined;
+            }
+
+            const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
+
+            if (isLastRouteFullScreen) {
+                return lastRoute;
+            }
+
+            const focusedStateForDynamicRoute = findFocusedRoute(stateUnderDynamicRoute);
+
+            if (!focusedStateForDynamicRoute) {
+                return undefined;
+            }
+
+            // Recursively find the matching full screen route for the focused dynamic route
+            return getMatchingFullScreenRoute(focusedStateForDynamicRoute);
+        }
     }
 
     return undefined;
@@ -307,11 +307,12 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
  * see the NAVIGATION.md documentation.
  *
  * @param path - The path to generate state from
- * @param options - Extra options to fine-tune how to parse the path
- * @param shouldReplacePathInNestedState - Whether to replace the path in nested state
+ * @param options - Extra options kept for react-navigation compatibility
+ * @param shouldReplacePathInNestedState - Whether to replace the path in nested state (if passing this arg, pass `undefined` for `options`, otherwise omit both)
  * @returns The adapted navigation state
  * @throws Error if unable to get state from path
  */
+// We keep `options` in the signature for `linkingConfig` compatibility with react-navigation.
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     normalizedPath = getRedirectedPath(normalizedPath);

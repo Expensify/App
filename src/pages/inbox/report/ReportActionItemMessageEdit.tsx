@@ -110,7 +110,7 @@ function ReportActionItemMessageEdit({
     shouldDisableEmojiPicker = false,
     ref,
 }: ReportActionItemMessageEditProps) {
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const {email} = useCurrentUserPersonalDetails();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -139,8 +139,8 @@ function ReportActionItemMessageEdit({
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
-    const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
-    const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
+    const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL);
+    const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
 
     const {isScrolling, startScrollBlock, endScrollBlock} = useScrollBlocker();
 
@@ -150,8 +150,8 @@ function ReportActionItemMessageEdit({
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {canBeMissing: true});
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const originalParentReportID = getOriginalReportID(originalReportID, action, reportActions);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);

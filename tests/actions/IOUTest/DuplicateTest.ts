@@ -895,6 +895,13 @@ describe('actions/Duplicate', () => {
         const mockOptimisticChatReportID = '789';
         const mockOptimisticIOUReportID = '987';
         const mockIsASAPSubmitBetaEnabled = false;
+        const mockPersonalDetails = {
+            [RORY_ACCOUNT_ID]: {
+                accountID: RORY_ACCOUNT_ID,
+                login: RORY_EMAIL,
+                displayName: 'Rory',
+            },
+        };
 
         const mockTransaction = createRandomTransaction(1);
         const mockPolicy = createRandomPolicy(1);
@@ -952,8 +959,8 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
+                personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
                 recentWaypoints,
             });
 
@@ -1012,8 +1019,8 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
+                personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
                 recentWaypoints,
             });
 
@@ -1072,8 +1079,8 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
+                personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {},
                 recentWaypoints,
             });
 

@@ -33,6 +33,10 @@ type ReportAttributes = {
      * The errors of the report.
      */
     reportErrors: Errors;
+    /**
+     * The reportID of the one-transaction thread report, if applicable.
+     */
+    oneTransactionThreadReportID?: string;
 };
 
 /**
