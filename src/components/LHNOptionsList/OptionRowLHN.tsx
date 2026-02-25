@@ -34,7 +34,6 @@ import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Icon as OnyxIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import LHNAvatar from './LHNAvatar';
 import type {OptionRowLHNProps} from './types';
@@ -65,6 +64,7 @@ function OptionRowLHN({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil', 'DotIndicator', 'Pin']);
 
     const session = useSession();
+    const personalDetails = usePersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurpose);
@@ -88,8 +88,6 @@ function OptionRowLHN({
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
-
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
         isInFocusMode
@@ -108,25 +106,29 @@ function OptionRowLHN({
         [optionItem?.parentReportAction],
     );
 
-    const icons = useMemo<OnyxIcon[]>(() => {
+    // Match the header's delegate avatar logic: when a delegate exists on the
+    // parent report action, the header (useReportActionAvatars) shows the
+    // delegate's avatar as primary instead of the report owner's.
+    const icons = useMemo(() => {
         const baseIcons = optionItem?.icons ?? [];
-        if (!delegateAccountID) {
-            return baseIcons;
+        if (delegateAccountID && personalDetails && baseIcons.length > 0) {
+            const delegateDetails = personalDetails[delegateAccountID];
+            if (delegateDetails) {
+                const updatedIcons = [...baseIcons];
+                const firstIcon = updatedIcons.at(0);
+                if (firstIcon) {
+                    updatedIcons[0] = {
+                        ...firstIcon,
+                        source: delegateDetails.avatar ?? '',
+                        name: delegateDetails.displayName ?? '',
+                        id: delegateAccountID,
+                    };
+                }
+                return updatedIcons;
+            }
         }
-        const delegateDetails = personalDetails?.[delegateAccountID];
-        if (!delegateDetails) {
-            return baseIcons;
-        }
-        const delegateIcon: OnyxIcon = {
-            source: delegateDetails.avatar ?? '',
-            name: delegateDetails.displayName,
-            id: delegateDetails.accountID,
-            type: CONST.ICON_TYPE_AVATAR,
-            fill: undefined,
-            fallbackIcon: baseIcons.at(0)?.fallbackIcon,
-        };
-        return [delegateIcon, ...baseIcons.slice(1)];
-    }, [delegateAccountID, optionItem?.icons, personalDetails]);
+        return baseIcons;
+    }, [optionItem?.icons, delegateAccountID, personalDetails]);
 
     const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
 

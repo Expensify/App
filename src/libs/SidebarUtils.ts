@@ -160,6 +160,7 @@ import {
     isInvoiceReport,
     isInvoiceRoom,
     isIOUOwnedByCurrentUser,
+    isIOUReport,
     isJoinRequestInAdminRoom,
     isMoneyRequestReport,
     isOneOnOneChat,
@@ -762,7 +763,10 @@ function getOptionData({
     result.isMoneyRequestReport = isMoneyRequestReport(report);
     // Chat threads and workspace tasks should not show subscript in LHN even if shouldReportShowSubscript
     // returns true — the workspace icon is suppressed to show only the actor avatar.
-    result.shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived) && !(isChatThread(report) && !isTripRoom(report)) && !isWorkspaceTaskReport(report);
+    const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
+    const threadSuppression = isChatThread(report) && !isTripRoom(report) && !isExpenseRequest(report) && !isExpenseReport(report) && !isIOUReport(report) && !isInvoiceReport(report);
+    const taskSuppression = isWorkspaceTaskReport(report);
+    result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
@@ -1150,16 +1154,20 @@ function getOptionData({
         isReportArchived,
     );
 
-    // When subscript is not shown, trim to a single icon in two cases:
-    //  1. Mixed-type pair (person+workspace) — e.g. workspace chat thread shows only the actor avatar.
-    //  2. More than 2 icons — diagonal rendering only applies to exactly 2 same-type icons (IOU or
-    //     B2B invoice). Multi-participant chats may return many AVATAR icons; those must show as single.
-    if (!result.shouldShowSubscript && result.icons.length > 1) {
-        const primaryIcon = result.icons.at(0);
-        const secondaryIcon = result.icons.at(1);
-        if (primaryIcon?.type !== secondaryIcon?.type || result.icons.length > 2) {
-            result.icons = result.icons.slice(0, 1);
-        }
+    // B2B invoice reports (2 workspace icons) should render diagonal, not subscript.
+    // Force shouldShowSubscript=false so LHNAvatar uses diagonal layout.
+    const isBothWorkspaceIcons = result.icons.length === 2 && result.icons.every((icon) => icon.type === CONST.ICON_TYPE_WORKSPACE);
+    if (isInvoiceReport(report) && isBothWorkspaceIcons) {
+        result.shouldShowSubscript = false;
+    }
+
+    // When subscript is not shown, only a single icon should be displayed in the LHN.
+    // Prefer the other person's avatar over the current user's (e.g. IOU reports put
+    // the manager first, but the LHN should show the counterpart).
+    // Exception: keep both icons for B2B invoices (2 workspace icons shown diagonally).
+    if (!result.shouldShowSubscript && result.icons.length > 1 && !isBothWorkspaceIcons) {
+        const otherIcon = result.icons.find((icon) => icon.type === CONST.ICON_TYPE_AVATAR && icon.id !== currentUserAccountID);
+        result.icons = otherIcon ? [otherIcon] : result.icons.slice(0, 1);
     }
 
     result.displayNamesWithTooltips = displayNamesWithTooltips;

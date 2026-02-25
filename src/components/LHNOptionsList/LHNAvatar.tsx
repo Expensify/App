@@ -59,7 +59,7 @@ function LHNAvatar({
         );
     }
 
-    // Subscript avatar (workspace + user)
+    // Subscript avatar (user + workspace, or invoice room with 2 workspaces)
     if (shouldShowSubscript) {
         return (
             <ReportActionAvatar.Subscript
@@ -72,7 +72,7 @@ function LHNAvatar({
         );
     }
 
-    // Diagonal avatar (two same-type icons: two people (e.g. IOU reports) or two workspaces (e.g. B2B invoice reports))
+    // Diagonal avatar (two workspace icons for B2B invoices, or two people)
     const secondaryAvatarContainerStyle = secondaryAvatarBackgroundColor ? StyleUtils.getBackgroundAndBorderStyle(secondaryAvatarBackgroundColor) : undefined;
 
     return (
