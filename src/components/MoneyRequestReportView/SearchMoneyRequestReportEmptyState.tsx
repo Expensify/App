@@ -1,8 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,7 +24,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'Plus'] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
@@ -36,7 +34,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
             text: translate('iou.createExpense'),
-            icon: Expensicons.Plus,
+            icon: expensifyIcons.Plus,
             onSelected: () => {
                 if (!reportId) {
                     return;

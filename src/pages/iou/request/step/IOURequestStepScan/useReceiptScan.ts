@@ -124,6 +124,8 @@ function useReceiptScan({
         HapticFeedback.press();
     }
 
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+
     function navigateToConfirmationStep(files: ReceiptFile[], locationPermissionGranted = false, isTestTransaction = false) {
         handleMoneyRequestStepScanParticipants({
             iouType,
@@ -165,6 +167,7 @@ function useReceiptScan({
             policyForMovingExpenses,
             isSelfTourViewed,
             betas,
+            recentWaypoints,
         });
     }
 

@@ -899,7 +899,7 @@ function MoneyReportHeader({
         if (exportModalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
             exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
         } else if (exportModalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-            markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
+            markAsManuallyExported([moneyRequestReport?.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegration);
         }
     }, [connectedIntegration, exportModalStatus, moneyRequestReport?.reportID]);
 
@@ -990,7 +990,7 @@ function MoneyReportHeader({
                         setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
                         return;
                     }
-                    markAsManuallyExported(moneyRequestReport?.reportID, connectedIntegration);
+                    markAsManuallyExported([moneyRequestReport?.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegration);
                 },
             },
         };
