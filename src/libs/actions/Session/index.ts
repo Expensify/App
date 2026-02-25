@@ -70,6 +70,7 @@ import type {AutoAuthState} from '@src/types/onyx/Session';
 import pkg from '../../../../package.json';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
+import { clearCachedAttachments } from '../Attachment';
 
 const INVALID_TOKEN = 'pizza';
 
@@ -1016,6 +1017,7 @@ function cleanupSession() {
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });
+    clearCachedAttachments();
     clearSoundAssetsCache();
 }
 
