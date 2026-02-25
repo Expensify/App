@@ -30,7 +30,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant} from '@src/types/onyx/Report';
@@ -1017,6 +1017,15 @@ describe('split expense', () => {
             },
         });
 
+        let allPolicyTags: OnyxCollection<PolicyTagLists>;
+        await getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allPolicyTags = value;
+            },
+        });
+
         // Start a scan split bill
         const {splitTransactionID} = startSplitBill({
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -1033,6 +1042,7 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
+            allPolicyTags,
         });
 
         await waitForBatchedUpdates();
@@ -1217,6 +1227,16 @@ describe('split expense', () => {
 });
 
 describe('startSplitBill', () => {
+    let allPolicyTags: OnyxCollection<PolicyTagLists>;
+    beforeEach(async () => {
+        await getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allPolicyTags = value;
+            },
+        });
+    });
     it('should update the policyRecentlyUsedTags when tag is provided', async () => {
         // Given a policy recently used tags
         const policyID = 'A';
@@ -1230,6 +1250,14 @@ describe('startSplitBill', () => {
             [tagName]: {name: tagName},
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
+
+        await getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allPolicyTags = value;
+            },
+        });
 
         // When doing a split bill with a receipt
         startSplitBill({
@@ -1246,6 +1274,7 @@ describe('startSplitBill', () => {
             policyRecentlyUsedTags,
             quickAction: {},
             policyRecentlyUsedCurrencies: [],
+            allPolicyTags,
         });
 
         waitForBatchedUpdates();
@@ -1286,6 +1315,7 @@ describe('startSplitBill', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
+            allPolicyTags,
         });
 
         await waitForBatchedUpdates();
@@ -1329,6 +1359,7 @@ describe('startSplitBill', () => {
             quickAction: existingQuickAction,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
+            allPolicyTags,
         });
 
         await waitForBatchedUpdates();
