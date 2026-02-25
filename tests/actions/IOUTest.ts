@@ -5474,6 +5474,15 @@ describe('actions/IOU', () => {
                 },
             });
 
+            let allPolicyTags: OnyxCollection<PolicyTagLists>;
+            await getOnyxData({
+                waitForCollectionCallback: true,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+                callback: (tags) => {
+                    allPolicyTags = tags;
+                },
+            });
+
             // Start a scan split bill
             const {splitTransactionID} = startSplitBill({
                 participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -5490,6 +5499,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
+                allPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -5690,6 +5700,15 @@ describe('actions/IOU', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
 
+            let allPolicyTags: OnyxCollection<PolicyTagLists>;
+            await getOnyxData({
+                waitForCollectionCallback: true,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+                callback: (tags) => {
+                    allPolicyTags = tags;
+                },
+            });
+
             // When doing a split bill with a receipt
             startSplitBill({
                 participants: [{isPolicyExpenseChat: true, policyID}],
@@ -5705,6 +5724,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags,
                 quickAction: {},
                 policyRecentlyUsedCurrencies: [],
+                allPolicyTags,
             });
 
             waitForBatchedUpdates();

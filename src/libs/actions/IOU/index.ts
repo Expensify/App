@@ -830,6 +830,7 @@ type StartSplitBilActionParams = {
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
 };
 
 type ReplaceReceipt = {
