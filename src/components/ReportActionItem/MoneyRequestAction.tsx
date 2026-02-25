@@ -2,7 +2,6 @@ import {useRoute} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useContext, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -36,9 +35,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TransactionPreview from './TransactionPreview';
 
 type MoneyRequestActionProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<OnyxTypes.Report>;
-
     /** All the data of the action */
     action: OnyxTypes.ReportAction;
 
@@ -74,7 +70,6 @@ type MoneyRequestActionProps = {
 };
 
 function MoneyRequestAction({
-    allReports,
     action,
     chatReportID,
     requestReportID,
@@ -88,9 +83,10 @@ function MoneyRequestAction({
     shouldDisplayContextMenu = true,
 }: MoneyRequestActionProps) {
     const {shouldOpenReportInRHP, onPreviewPressed} = useContext(ReportActionItemContext);
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`];
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -125,7 +121,7 @@ function MoneyRequestAction({
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
 
         if (!action?.childReportID && transactionID && action.reportActionID) {
-            const transactionThreadReport = createTransactionThreadReport(iouReport, action);
+            const transactionThreadReport = createTransactionThreadReport(introSelected, iouReport, action);
             if (shouldOpenReportInRHP) {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo: Navigation.getActiveRoute()}));
                 return;
@@ -172,7 +168,6 @@ function MoneyRequestAction({
 
     return (
         <TransactionPreview
-            allReports={allReports}
             iouReportID={requestReportID}
             chatReportID={chatReportID}
             reportID={reportID}
