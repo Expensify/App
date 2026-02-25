@@ -18,6 +18,9 @@ function BaseImage({onLoad, onLoadStart, source, ...props}: BaseImageProps) {
     }, []);
 
     useEffect(() => {
+        if (!source) {
+            return;
+        }
         // expo-image doesn't support onLoadStart on web, so we call it manually when the source changes, matching react-native-web's Image behavior
         onLoadStart?.();
     }, [source, onLoadStart]);
