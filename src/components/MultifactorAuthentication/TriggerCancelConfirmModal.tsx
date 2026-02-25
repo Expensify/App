@@ -1,40 +1,32 @@
 import React from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import type {TranslationPaths} from '@src/languages/types';
+import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI} from './config';
+import type {MultifactorAuthenticationScenarioConfig} from './config/types';
 
 type MultifactorAuthenticationTriggerCancelConfirmModalProps = {
     isVisible: boolean;
     onConfirm: () => void;
     onCancel: () => void;
+    scenario?: MultifactorAuthenticationScenarioConfig;
 };
 
-// TODO: this config will be part of the scenario configuration, the current implementation is for testing purposes (https://github.com/Expensify/App/issues/79373)
-const mockedConfig = {
-    title: 'common.areYouSure',
-    description: 'multifactorAuthentication.biometricsTest.areYouSureToReject',
-    confirmButtonText: 'multifactorAuthentication.biometricsTest.rejectAuthentication',
-    cancelButtonText: 'common.cancel',
-} as const satisfies Record<string, TranslationPaths>;
-
-function MultifactorAuthenticationTriggerCancelConfirmModal({isVisible, onConfirm, onCancel}: MultifactorAuthenticationTriggerCancelConfirmModalProps) {
+function MultifactorAuthenticationTriggerCancelConfirmModal({isVisible, onConfirm, onCancel, scenario}: MultifactorAuthenticationTriggerCancelConfirmModalProps) {
     const {translate} = useLocalize();
 
-    const title = translate(mockedConfig.title);
-    const description = translate(mockedConfig.description);
-    const confirmButtonText = translate(mockedConfig.confirmButtonText);
-    const cancelButtonText = translate(mockedConfig.cancelButtonText);
+    const defaults = MULTIFACTOR_AUTHENTICATION_DEFAULT_UI.MODALS.cancelConfirmation;
+    const cancelConfirmation = scenario?.MODALS.cancelConfirmation;
 
     return (
         <ConfirmModal
             danger
-            title={title}
+            title={translate(cancelConfirmation?.title ?? defaults.title)}
             onConfirm={onConfirm}
             onCancel={onCancel}
             isVisible={isVisible}
-            prompt={description}
-            confirmText={confirmButtonText}
-            cancelText={cancelButtonText}
+            prompt={translate(cancelConfirmation?.description ?? defaults.description)}
+            confirmText={translate(cancelConfirmation?.confirmButtonText ?? defaults.confirmButtonText)}
+            cancelText={translate(cancelConfirmation?.cancelButtonText ?? defaults.cancelButtonText)}
             shouldShowCancelButton
         />
     );
