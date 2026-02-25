@@ -207,13 +207,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     /**
      * Retrieve verified business bank account currently being set up.
      */
-    function fetchData(preserveCurrentStep = false, shouldShowLoading = true) {
+    function fetchData(preserveCurrentStep = false) {
         if ((!policyIDParam && !bankAccountIDParam) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
             return;
         }
         if (bankAccountIDParam) {
             // we don't need to send the stepToOpen and subStep when opening by bankAccountID - the step is returned from the backend
-            openReimbursementAccountPage({bankAccountID: Number(bankAccountIDParam), shouldShowLoading});
+            openReimbursementAccountPage({bankAccountID: Number(bankAccountIDParam)});
             return;
         }
         // We can specify a step to navigate to by using route params when the component mounts.
@@ -228,9 +228,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             localCurrentStep = achData?.currentStep ?? '';
         }
 
-        // When preserving the current step (e.g., coming back online), also preserve the draft
-        // to prevent losing user selections made while offline
-        openReimbursementAccountPage({stepToOpen, subStep, localCurrentStep, policyID: policyIDParam, shouldPreserveDraft: preserveCurrentStep, shouldShowLoading});
+        openReimbursementAccountPage({stepToOpen, subStep, localCurrentStep, policyID: policyIDParam, shouldPreserveDraft: preserveCurrentStep});
     }
 
     useEffect(() => {
@@ -289,11 +287,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     useEffect(
         () => {
-            // Check for network change from offline to online
-            if (prevIsOffline && !isOffline && prevReimbursementAccount && prevReimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                // Don't show loading indicator when refreshing after reconnection to keep the form interactive
-                fetchData(true, false);
-            }
+            // When transitioning from offline to online, do NOT re-fetch the reimbursement account page data.
+            // Calling openReimbursementAccountPage here sets isLoading on ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            // which shares the same Onyx key as ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM. This causes
+            // FormProvider to block form submission (via formState.isLoading check), making the Next button
+            // unresponsive. The form data is already loaded and the user can continue their flow.
+            // General data syncing is handled by the ReconnectApp flow.
 
             if (!hasACHDataBeenLoaded) {
                 if (hasLoadedData) {
