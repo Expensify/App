@@ -301,6 +301,7 @@ function IOURequestStepDistanceOdometer({
             return false;
         }
         const value = parseFloat(stripped);
+
         // Allow edits that reduce the value (e.g. backspacing a legacy over-max reading),
         // but reject keystrokes that would increase beyond the max.
         if (!Number.isNaN(value) && value > CONST.IOU.ODOMETER_MAX_VALUE) {
