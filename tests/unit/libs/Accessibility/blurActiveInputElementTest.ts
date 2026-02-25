@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 // eslint-disable-next-line import/extensions
-import blurActiveInputElement from '@libs/Accessibility/blurActiveInputElement/index.ts';
+import blurActiveInputElement from '@libs/Accessibility/blurActiveInputElement';
 
 jest.mock('@libs/Accessibility/blurActiveElement', () => ({
     __esModule: true,

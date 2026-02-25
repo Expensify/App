@@ -93,12 +93,10 @@ type ElementRefCandidateMetadata =
 
 type ElementRefCandidateSource = 'interactionValidated' | 'activeElementFallback';
 
-type IdentifierCandidateMetadata =
-    | {
-          source: 'identifierMatchReady';
-          confidence: 2;
-      }
-    | null;
+type IdentifierCandidateMetadata = {
+    source: 'identifierMatchReady';
+    confidence: 2;
+} | null;
 
 type RouteFocusMetadata = {
     interactionType: InteractionType;
@@ -126,8 +124,7 @@ type CandidateMatch = {
     isPrefixOnlyMatch: boolean;
 };
 
-const defaultElementQueryStrategy: ElementQueryStrategy = (tagNameSelector) =>
-    Array.from(document.querySelectorAll<HTMLElement>(tagNameSelector));
+const defaultElementQueryStrategy: ElementQueryStrategy = (tagNameSelector) => Array.from(document.querySelectorAll<HTMLElement>(tagNameSelector));
 
 type ListenerRegistry = {
     pointerdown: ((event: PointerEvent) => void) | null;
@@ -620,11 +617,7 @@ function destroy(): void {
 
         if (!listenerRegistry.pointerdown && !listenerRegistry.keydown) {
             listenerRegistry.owner = null;
-        } else if (
-            listenerRegistry.owner === listenerOwnerToken &&
-            listenerRegistry.pointerdown !== handleInteraction &&
-            listenerRegistry.keydown !== handleKeyDown
-        ) {
+        } else if (listenerRegistry.owner === listenerOwnerToken && listenerRegistry.pointerdown !== handleInteraction && listenerRegistry.keydown !== handleKeyDown) {
             listenerRegistry.owner = null;
         }
     }

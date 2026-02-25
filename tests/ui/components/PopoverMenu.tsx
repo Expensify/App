@@ -258,13 +258,7 @@ jest.mock('@components/FocusableMenuItem', () => {
     return {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
-        default: (props: {
-            title: string;
-            pressableTestID?: string;
-            onPress?: (event: GestureResponderEvent) => void;
-            onFocus?: () => void;
-            focused?: boolean;
-        }) => (
+        default: (props: {title: string; pressableTestID?: string; onPress?: (event: GestureResponderEvent) => void; onFocus?: () => void; focused?: boolean}) => (
             <Pressable
                 testID={props.pressableTestID}
                 onPress={props.onPress}
@@ -455,10 +449,7 @@ describe('PopoverMenu keyboard focusedIndex synchronization', () => {
 
     it('syncs focusedIndex via onFocus and Enter activates the auto-focused row', () => {
         const onItemSelected = jest.fn();
-        const menuItems: PopoverMenuItem[] = [
-            {text: 'First action'},
-            {text: 'Second action'},
-        ];
+        const menuItems: PopoverMenuItem[] = [{text: 'First action'}, {text: 'Second action'}];
 
         render(
             <PopoverMenu

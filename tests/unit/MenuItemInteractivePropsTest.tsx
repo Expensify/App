@@ -192,6 +192,7 @@ describe('MenuItem interactive prop behavior - Issue #76921', () => {
                     accessibilityRole="button"
                     accessibilityLabel="Card"
                     onPress={() => {}}
+                    sentryLabel="MenuItemInteractivePropsTest-OuterWrapper"
                     testID="focusable-outer"
                 >
                     <MenuItem

@@ -10,12 +10,7 @@ import NavigationFocusManager from '@libs/NavigationFocusManager';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import ConfirmContent from './ConfirmContent';
-import {
-    getInitialFocusTarget,
-    isWebPlatform,
-    restoreCapturedAnchorFocus,
-    shouldTryKeyboardInitialFocus,
-} from './ConfirmModal/focusRestore';
+import {getInitialFocusTarget, isWebPlatform, restoreCapturedAnchorFocus, shouldTryKeyboardInitialFocus} from './ConfirmModal/focusRestore';
 import Modal from './Modal';
 import type BaseModalProps from './Modal/types';
 
@@ -186,7 +181,7 @@ function ConfirmModal({
     // useLayoutEffect ensures this runs synchronously before FocusTrap activates
     useLayoutEffect(() => {
         if (isVisible && !prevVisible) {
-            // STRICTMODE GUARD: Only capture if we haven't already
+            // StrictMode guard: Only capture if we haven't already
             // In StrictMode, effects run twice. Without this guard:
             //   1st run: reads true, clears flag, stores true in ref
             //   2nd run: reads false (already cleared!), overwrites ref with false ← BUG!

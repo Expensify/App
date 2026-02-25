@@ -23,7 +23,7 @@
  * P0-2: Navigation back - focus restored to trigger element
  * P0-3: Input field focus preserved during navigation
  * P0-4: Previously focused element removed from DOM - fallback used
- * P0-5: Element focusability checks
+ * P0-5: Element focus checks
  */
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -399,7 +399,7 @@ describe('FocusTrapForScreen', () => {
         });
     });
 
-    describe('P0-5: Element focusability checks', () => {
+    describe('P0-5: Element focus checks', () => {
         it('should use fallback when previously focused element becomes hidden (display: none)', () => {
             // Given: A button was focused before navigation
             const hiddenButton = createMockElement('button', 'hidden-button');

@@ -1,9 +1,4 @@
-import {
-    getInitialFocusTarget,
-    isWebPlatform,
-    restoreCapturedAnchorFocus,
-    shouldTryKeyboardInitialFocus,
-} from '@components/ConfirmModal/focusRestore/index.web';
+import {getInitialFocusTarget, isWebPlatform, restoreCapturedAnchorFocus, shouldTryKeyboardInitialFocus} from '@components/ConfirmModal/focusRestore/index.web';
 import CONST from '@src/CONST';
 
 describe('ConfirmModal focusRestore (web)', () => {
