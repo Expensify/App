@@ -172,7 +172,8 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 function downloadTravelInvoiceStatementPDF(translate: LocalizedTranslate, baseURL: string, fileName: string, startDate: string, endDate: string, currentUserEmail: string): Promise<void> {
     const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
-    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', false);
+    const authenticatedURL = addEncryptedAuthTokenToURL(pdfURL, true);
+    return fileDownload(translate, authenticatedURL, downloadFileName, '');
 }
 
 /**
