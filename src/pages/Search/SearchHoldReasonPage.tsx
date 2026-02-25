@@ -32,7 +32,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const selectedTransactionsList = Object.values(context.selectedTransactions);
     const isSubmitter = report
         ? report.ownerAccountID === currentUserAccountID
-        : selectedTransactionsList.length === 0 || selectedTransactionsList.every((t) => t.ownerAccountID === currentUserAccountID);
+        : selectedTransactionsList.length === 0 || selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
 
     const ancestors = useAncestors(report);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
