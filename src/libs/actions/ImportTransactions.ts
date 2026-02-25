@@ -438,4 +438,5 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCar
     });
 }
 
+export {getColumnIndexes, buildColumnLayout, buildTransactionListFromSpreadsheet};
 export default importTransactionsFromCSV;
