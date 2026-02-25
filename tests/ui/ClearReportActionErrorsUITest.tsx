@@ -108,17 +108,15 @@ describe('ClearReportActionErrors UI', () => {
         options?: {
             clearErrorFn?: typeof clearAllRelatedReportActionErrors;
             originalReportID?: string;
-            allReports?: Record<string, Report>;
         },
     ) {
-        const {clearErrorFn, originalReportID = report.reportID, allReports} = options ?? {};
+        const {clearErrorFn, originalReportID = report.reportID} = options ?? {};
         return render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                 <OptionsListContextProvider>
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <PureReportActionItem
-                                allReports={allReports ?? {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report}}
                                 policies={undefined}
                                 personalPolicyID={undefined}
                                 report={report}
@@ -134,6 +132,7 @@ describe('ClearReportActionErrors UI', () => {
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
                                 allTransactionDrafts={undefined}
+                                userBillingGraceEndPeriodCollection={undefined}
                                 clearAllRelatedReportActionErrors={clearErrorFn}
                                 originalReportID={originalReportID}
                             />
@@ -269,10 +268,6 @@ describe('ClearReportActionErrors UI', () => {
             renderReportActionItem(parentAction, parentReport, {
                 clearErrorFn: clearAllRelatedReportActionErrors,
                 originalReportID: REPORT_ID,
-                allReports: {
-                    [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: parentReport,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`]: childReport,
-                },
             });
             await waitForBatchedUpdatesWithAct();
 
