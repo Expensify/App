@@ -2,7 +2,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {MoneyRequestStepScanParticipantsFlowParams} from '@libs/actions/IOU/MoneyRequest';
 import {createTransaction, handleMoneyRequestStepDistanceNavigation, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
-import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -10,9 +9,10 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {QuickAction} from '@src/types/onyx';
+import type {QuickAction, RecentWaypoint} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
+import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as ReportUtils from '../../../src/libs/ReportUtils';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
@@ -26,15 +26,16 @@ jest.mock('@libs/actions/IOU', () => {
         ...actualNav,
         requestMoney: jest.fn(),
         trackExpense: jest.fn(),
-        startSplitBill: jest.fn(),
         createDistanceRequest: jest.fn(),
-        resetSplitShares: jest.fn(),
     };
 });
 
 jest.mock('@libs/actions/IOU/Split', () => {
+    const actualSplit = jest.requireActual<typeof Split>('@libs/actions/IOU/Split');
     return {
+        ...actualSplit,
         startSplitBill: jest.fn(),
+        resetSplitShares: jest.fn(),
     };
 });
 
@@ -94,7 +95,12 @@ describe('MoneyRequest', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            recentWaypoints: [] as RecentWaypoint[],
         };
+
+        beforeEach(async () => {
+            baseParams.recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        });
 
         afterEach(() => {
             jest.clearAllMocks();
@@ -247,6 +253,41 @@ describe('MoneyRequest', () => {
                 }),
             );
         });
+
+        it('should pass billable and reimbursable flags to trackExpense', () => {
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                billable: true,
+                reimbursable: false,
+            });
+
+            expect(IOU.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        billable: true,
+                        reimbursable: false,
+                    }),
+                }),
+            );
+        });
+
+        it('should pass gpsPoint to trackExpense when provided', () => {
+            const gpsPoint = {lat: TEST_LATITUDE, long: TEST_LONGITUDE};
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                gpsPoint,
+            });
+
+            expect(IOU.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        gpsPoint,
+                    }),
+                }),
+            );
+        });
     });
 
     describe('handleMoneyRequestStepScanParticipants', () => {
@@ -378,7 +419,7 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
-            expect(startSplitBill).toHaveBeenCalledWith(
+            expect(Split.startSplitBill).toHaveBeenCalledWith(
                 expect.objectContaining({
                     participants: [
                         expect.objectContaining({
@@ -736,6 +777,7 @@ describe('MoneyRequest', () => {
             quickAction: fakeQuickAction,
             selfDMReport,
             betas: [CONST.BETAS.ALL],
+            recentWaypoints: [] as RecentWaypoint[],
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -747,6 +789,7 @@ describe('MoneyRequest', () => {
         };
 
         beforeEach(async () => {
+            baseParams.recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, {
                 ...fakeReport,
                 participants: {
@@ -786,7 +829,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
             });
 
-            expect(IOU.resetSplitShares).toHaveBeenCalledWith(splitTransaction);
+            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction);
         });
 
         it('call trackExpense for TRACK iouType when from manual distance step and skipping confirmation', async () => {
@@ -797,9 +840,7 @@ describe('MoneyRequest', () => {
                 iouType: CONST.IOU.TYPE.TRACK,
             });
 
-            expect(IOU.resetSplitShares).not.toHaveBeenCalled();
-
-            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+            expect(Split.resetSplitShares).not.toHaveBeenCalled();
 
             expect(IOU.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
@@ -836,7 +877,7 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
-                recentWaypoints,
+                recentWaypoints: baseParams.recentWaypoints,
                 betas: [CONST.BETAS.ALL],
             });
 
@@ -854,7 +895,7 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
-            expect(IOU.resetSplitShares).not.toHaveBeenCalled();
+            expect(Split.resetSplitShares).not.toHaveBeenCalled();
 
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${baseParams.transactionID}`);
             const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`);
@@ -863,8 +904,6 @@ describe('MoneyRequest', () => {
             expect(updatedDraftTransaction?.pendingFields).toMatchObject({
                 waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
-
-            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             expect(IOU.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -901,7 +940,7 @@ describe('MoneyRequest', () => {
                     currentUserAccountIDParam: baseParams.currentUserAccountID,
                     currentUserEmailParam: baseParams.currentUserLogin,
                     quickAction: baseParams.quickAction,
-                    recentWaypoints,
+                    recentWaypoints: baseParams.recentWaypoints,
                 }),
             );
         });

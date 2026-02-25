@@ -104,9 +104,10 @@ export default {
     sideBarWidth: 375,
     sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
+    receiptPreviewMaxWidth: 440,
+    receiptPreviewMaxHeight: 440,
     homePageLeftColumnMaxWidth: 680,
     homePageRightColumnMaxWidth: 488,
-    superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
@@ -183,6 +184,7 @@ export default {
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
+    tabSelectorScrollMarginInline: 20,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
@@ -269,6 +271,9 @@ export default {
 
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
+    cardScarfOverlayWidth: 264,
+    cardScarfOverlayHeight: 172,
+    cardScarfOverlayZIndex: 2,
     cardIconWidth: 40,
     cardIconHeight: 26,
     cardBorderRadius: 4,
@@ -408,4 +413,12 @@ export default {
     runOutOfTimeHeight: 200,
     humptyDumptyWidth: 245,
     humptyDumptyHeight: 165,
+    magnifyingGlassSpyMouthClosedWidth: 161,
+    magnifyingGlassSpyMouthClosedHeight: 169,
+
+    // Odometer photo information container
+    leftPositionOdometerPhotoInformationContainer: 20,
+    rightPositionOdometerPhotoInformationContainer: 20,
+    bottomPositionOdometerPhotoInformationContainer: 20,
+    paddingOdometerPhotoInformationContainer: 13.5,
 } as const;

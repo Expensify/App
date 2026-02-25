@@ -1,11 +1,11 @@
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 // We need direct access to useOnyx to fetch live policy data at render time
 // without triggering the wrapper's additional logic, ensuring violations
 // sync immediately when category settings change
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
@@ -22,12 +22,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
+import {isInvoiceReport, isOpenExpenseReport, isProcessingReport} from '@libs/ReportUtils';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
+import isActionLoadingSelector from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 
@@ -52,16 +52,16 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchContext();
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
-    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
     // Fetch live policy categories from Onyx to sync violations at render time
-    const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`, {canBeMissing: true});
-    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.reportID)}`, {canBeMissing: true});
-    const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`, {canBeMissing: true});
+    const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
+    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
+    const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
 
     const searchData = currentSearchResults?.data;
 
@@ -88,11 +88,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
     // newly created reports aren't in the search snapshot yet
     const policyForViolations = parentPolicy ?? snapshotPolicy;
     const reportForViolations = parentReport ?? snapshotReport;
-
-    // Use live report data (parentReport) for pending delete check as search snapshot (reportItem) can be stale.
-    // parentReport is fetched from Onyx and reflects real-time state, while reportItem comes from cached search results.
-    const reportForPendingDeleteCheck = parentReport ?? reportItem;
-    const isPendingDelete = isReportPendingDelete(reportForPendingDeleteCheck);
 
     // Sync missingAttendees violation at render time for each transaction in the report
     // This ensures violations show immediately when category settings change, without needing to click the row
@@ -123,7 +118,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
         });
     }, [reportItem, policyCategories, policyForViolations, reportForViolations, currentUserDetails]);
 
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -168,9 +164,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
-            isPendingDelete && styles.cursorDisabled,
         ],
-        [styles, item.isSelected, isPendingDelete],
+        [styles, item.isSelected],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -244,11 +239,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isPendingDelete && styles.cursorDisabled]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             shouldShowRightCaret={false}
             shouldUseDefaultRightHandSideCheckmark={false}
-            isDisabled={isPendingDelete}
-            shouldDisableHoverStyle={isPendingDelete}
         >
             {(hovered) => (
                 <View style={[styles.flex1]}>

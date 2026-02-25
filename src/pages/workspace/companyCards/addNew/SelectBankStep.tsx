@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isUsingStagingApi} from '@libs/ApiUtils';
 import {getBankCardDetailsImage, getCorrectStepForPlaidSelectedBank} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
@@ -34,9 +35,10 @@ function SelectBankStep() {
     const companyCardBankIcons = useCompanyCardBankIcons();
     const {isOffline} = useNetwork();
 
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
-    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
-    const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [localBankSelected, setLocalBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();
+    const bankSelected = localBankSelected ?? addNewCard?.data.selectedBank;
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
 
@@ -56,10 +58,6 @@ function SelectBankStep() {
         }
     }, [bankSelected, isOtherBankSelected]);
 
-    useEffect(() => {
-        setBankSelected(addNewCard?.data.selectedBank);
-    }, [addNewCard?.data.selectedBank]);
-
     const handleBackButtonPress = () => {
         if (route?.params?.backTo) {
             Navigation.navigate(route.params.backTo);
@@ -70,9 +68,9 @@ function SelectBankStep() {
 
     const data = Object.values(CONST.COMPANY_CARDS.BANKS)
         .filter((bank) => {
-            // Only show Mock Bank when Debug Mode is active and not in production
+            // Only show Mock Bank when the frontend environment is not production or when using the staging server
             if (bank === CONST.COMPANY_CARDS.BANKS.MOCK_BANK) {
-                return isDebugModeEnabled && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION;
+                return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || shouldUseStagingServer;
             }
             return true;
         })
@@ -118,10 +116,10 @@ function SelectBankStep() {
                 data={data}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => {
-                    setBankSelected(value);
+                    setLocalBankSelected(value);
                     setHasError(false);
                 }}
-                initiallyFocusedItemKey={addNewCard?.data.selectedBank ?? undefined}
+                initiallyFocusedItemKey={bankSelected ?? undefined}
                 confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
