@@ -21,9 +21,9 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 function SearchFiltersTypePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
 
     const listData: Array<ListItem<SearchDataTypes>> = useMemo(() => {

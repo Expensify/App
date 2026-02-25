@@ -20,7 +20,7 @@ type ProfileAvatarWithIndicatorProps = {
 function ProfileAvatarWithIndicator({isSelected = false, containerStyles}: ProfileAvatarWithIndicatorProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     return (
         <OfflineWithFeedback

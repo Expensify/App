@@ -6,8 +6,8 @@ import useCardFeedErrors from './useCardFeedErrors';
 import useOnyx from './useOnyx';
 
 function usePoliciesWithCardFeedErrors() {
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking

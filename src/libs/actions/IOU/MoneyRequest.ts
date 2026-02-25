@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, RecentWaypoint, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -26,7 +26,6 @@ import type {GpsPoint} from './index';
 import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
-    getRecentWaypoints,
     requestMoney,
     setCustomUnitRateID,
     setMoneyRequestDistance,
@@ -62,6 +61,7 @@ type CreateTransactionParams = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
+    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
 };
 
 type InitialTransactionParams = {
@@ -106,6 +106,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     selfDMReport: OnyxEntry<Report>;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
+    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -146,6 +147,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     odometerEnd?: number;
     odometerDistance?: number;
     betas: OnyxEntry<Beta[]>;
+    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     unit?: Unit;
     personalOutputCurrency?: string;
 };
@@ -173,9 +175,8 @@ function createTransaction({
     isSelfTourViewed,
     betas,
     personalDetails,
+    recentWaypoints,
 }: CreateTransactionParams) {
-    const recentWaypoints = getRecentWaypoints();
-
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
@@ -296,6 +297,7 @@ function handleMoneyRequestStepScanParticipants({
     selfDMReport,
     isSelfTourViewed,
     betas,
+    recentWaypoints,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -399,6 +401,7 @@ function handleMoneyRequestStepScanParticipants({
                             isSelfTourViewed,
                             betas,
                             personalDetails,
+                            recentWaypoints,
                         });
                     },
                     (errorData) => {
@@ -424,6 +427,7 @@ function handleMoneyRequestStepScanParticipants({
                             isSelfTourViewed,
                             betas,
                             personalDetails,
+                            recentWaypoints,
                         });
                     },
                 );
@@ -449,6 +453,7 @@ function handleMoneyRequestStepScanParticipants({
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                recentWaypoints,
             });
             return;
         }
@@ -534,13 +539,13 @@ function handleMoneyRequestStepDistanceNavigation({
     odometerEnd,
     odometerDistance,
     betas,
+    recentWaypoints,
     unit,
     personalOutputCurrency,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
-    const recentWaypoints = getRecentWaypoints();
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction);
@@ -647,6 +652,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                personalDetails,
                 recentWaypoints,
                 betas,
             });

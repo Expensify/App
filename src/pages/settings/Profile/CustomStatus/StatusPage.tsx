@@ -40,7 +40,7 @@ import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
 const initialEmoji = '💬';
 
 function StatusPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Trashcan'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -53,13 +53,13 @@ function StatusPage() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const [draftStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT, {canBeMissing: true});
-    const [formState] = useOnyx(ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM, {canBeMissing: true});
+    const [draftStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
+    const [formState] = useOnyx(ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const formRef = useRef<FormRef>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>>();
 
-    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
     const isFormLoading = !!formState?.isLoading;
 

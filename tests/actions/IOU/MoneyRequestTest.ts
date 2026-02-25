@@ -9,7 +9,7 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {QuickAction} from '@src/types/onyx';
+import type {QuickAction, RecentWaypoint} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
 import * as Split from '../../../src/libs/actions/IOU/Split';
@@ -95,7 +95,12 @@ describe('MoneyRequest', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            recentWaypoints: [] as RecentWaypoint[],
         };
+
+        beforeEach(async () => {
+            baseParams.recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        });
 
         afterEach(() => {
             jest.clearAllMocks();
@@ -248,6 +253,41 @@ describe('MoneyRequest', () => {
                 }),
             );
         });
+
+        it('should pass billable and reimbursable flags to trackExpense', () => {
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                billable: true,
+                reimbursable: false,
+            });
+
+            expect(IOU.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        billable: true,
+                        reimbursable: false,
+                    }),
+                }),
+            );
+        });
+
+        it('should pass gpsPoint to trackExpense when provided', () => {
+            const gpsPoint = {lat: TEST_LATITUDE, long: TEST_LONGITUDE};
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                gpsPoint,
+            });
+
+            expect(IOU.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        gpsPoint,
+                    }),
+                }),
+            );
+        });
     });
 
     describe('handleMoneyRequestStepScanParticipants', () => {
@@ -303,6 +343,7 @@ describe('MoneyRequest', () => {
             selfDMReport,
             isSelfTourViewed: false,
             betas: [],
+            recentWaypoints: [] as RecentWaypoint[],
         };
 
         beforeEach(async () => {
@@ -315,6 +356,7 @@ describe('MoneyRequest', () => {
                     },
                 },
             });
+            baseParams.recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
         });
 
         afterEach(async () => {
@@ -737,6 +779,7 @@ describe('MoneyRequest', () => {
             quickAction: fakeQuickAction,
             selfDMReport,
             betas: [CONST.BETAS.ALL],
+            recentWaypoints: [] as RecentWaypoint[],
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -748,6 +791,7 @@ describe('MoneyRequest', () => {
         };
 
         beforeEach(async () => {
+            baseParams.recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, {
                 ...fakeReport,
                 participants: {
@@ -800,8 +844,6 @@ describe('MoneyRequest', () => {
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
 
-            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
-
             expect(IOU.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
                 isDraftPolicy: false,
@@ -837,7 +879,7 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
-                recentWaypoints,
+                recentWaypoints: baseParams.recentWaypoints,
                 betas: [CONST.BETAS.ALL],
             });
 
@@ -864,8 +906,6 @@ describe('MoneyRequest', () => {
             expect(updatedDraftTransaction?.pendingFields).toMatchObject({
                 waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
-
-            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             expect(IOU.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -902,7 +942,7 @@ describe('MoneyRequest', () => {
                     currentUserAccountIDParam: baseParams.currentUserAccountID,
                     currentUserEmailParam: baseParams.currentUserLogin,
                     quickAction: baseParams.quickAction,
-                    recentWaypoints,
+                    recentWaypoints: baseParams.recentWaypoints,
                 }),
             );
         });

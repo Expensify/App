@@ -23,7 +23,7 @@ type ViolationMessagesProps = {
 export default function ViolationMessages({violations, isLast, containerStyle, textStyle, canEdit, companyCardPageURL, connectionLink, isMarkAsCash}: ViolationMessagesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const filteredViolations = useMemo(() => filterReceiptViolations(violations), [violations]);
 

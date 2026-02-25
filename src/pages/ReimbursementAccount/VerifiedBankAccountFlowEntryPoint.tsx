@@ -4,8 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import {Connect, RotateLeft} from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -90,14 +88,14 @@ function VerifiedBankAccountFlowEntryPoint({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Lock', 'Bank']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock', 'RotateLeft'] as const);
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const errors = reimbursementAccount?.errors ?? {};
     const pendingAction = reimbursementAccount?.pendingAction ?? null;
-    const [reimbursementAccountOptionPressed] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED, {canBeMissing: true});
+    const [reimbursementAccountOptionPressed] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED);
     const isAccountValidated = account?.validated ?? false;
 
     const personalBankAccounts = bankAccountList ? Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) : [];
@@ -235,7 +233,7 @@ function VerifiedBankAccountFlowEntryPoint({
                             >
                                 <MenuItem
                                     title={translate('workspace.bankAccount.continueWithSetup')}
-                                    icon={Connect}
+                                    icon={expensifyIcons.Connect}
                                     onPress={onContinuePress}
                                     shouldShowRightIcon
                                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
@@ -243,7 +241,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 />
                                 <MenuItem
                                     title={translate('workspace.bankAccount.startOver')}
-                                    icon={RotateLeft}
+                                    icon={expensifyIcons.RotateLeft}
                                     onPress={requestResetBankAccount}
                                     shouldShowRightIcon
                                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
@@ -264,7 +262,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 )}
                                 <MenuItem
                                     title={translate('bankAccount.connectManually')}
-                                    icon={Connect}
+                                    icon={expensifyIcons.Connect}
                                     onPress={handleConnectManually}
                                     shouldShowRightIcon
                                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
@@ -279,6 +277,7 @@ function VerifiedBankAccountFlowEntryPoint({
                         onPress={() => openExternalLink(CONST.ENCRYPTION_AND_SECURITY_HELP_URL)}
                         style={[styles.flexRow, styles.alignItemsCenter]}
                         accessibilityLabel={translate('bankAccount.yourDataIsSecure')}
+                        sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.DATA_SECURE_LINK}
                     >
                         <TextLink href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}>{translate('bankAccount.yourDataIsSecure')}</TextLink>
                         <View style={styles.ml1}>
