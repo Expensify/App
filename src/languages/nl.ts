@@ -7095,6 +7095,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         groupColumns: 'Kolommen groeperen',
         expenseColumns: 'Onkostencolommen',
         statements: 'Afschriften',
+        cardStatements: 'Kaartafschriften',
+        monthlyAccrual: 'Maandelijkse opbouw',
         unapprovedCash: 'Niet-goedgekeurde contante uitgaven',
         unapprovedCard: 'Niet-goedgekeurde kaart',
         reconciliation: 'Afstemming',

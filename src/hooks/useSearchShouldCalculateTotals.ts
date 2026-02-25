@@ -24,6 +24,7 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, search
             CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
             CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
             CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
+            CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD,
             CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
         ];
 

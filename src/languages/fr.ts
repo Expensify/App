@@ -7151,6 +7151,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',
         statements: 'Relevés',
+        cardStatements: 'Relevés de carte',
+        monthlyAccrual: 'Régularisation mensuelle',
         unapprovedCash: 'Espèces non approuvées',
         unapprovedCard: 'Carte non approuvée',
         reconciliation: 'Rapprochement',

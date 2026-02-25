@@ -7041,6 +7041,8 @@ ${reportName}
         groupColumns: '列をグループ化',
         expenseColumns: '経費列',
         statements: 'ステートメント',
+        cardStatements: 'カード明細',
+        monthlyAccrual: '月次発生',
         unapprovedCash: '未承認の現金',
         unapprovedCard: '未承認のカード',
         reconciliation: '照合',
