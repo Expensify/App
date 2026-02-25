@@ -30,8 +30,7 @@ function ReportActionComposeSendButton({isDisabled: isDisabledProp = false, isEd
         .onEnd(() => {
             onSend();
         })
-        .runOnJS(true)
-        .withTestId(CONST.COMPOSER.SEND_BUTTON_TEST_ID);
+        .runOnJS(true);
 
     const accessibilityLabel = translate(isEditing ? 'common.saveChanges' : 'common.send');
 

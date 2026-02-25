@@ -1681,7 +1681,6 @@ const CONST = {
         MAX_LINES_FULL: -1,
         // The minimum height needed to enable the full screen composer
         FULL_COMPOSER_MIN_HEIGHT: 60,
-        SEND_BUTTON_TEST_ID: 'send-button',
     },
     MODAL: {
         MODAL_TYPE: {
