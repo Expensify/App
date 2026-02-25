@@ -23,6 +23,8 @@ const isDev = process.env.ENVIRONMENT === undefined || process.env.ENVIRONMENT =
  *
  * @type {import('metro-config').MetroConfig}
  */
+const defaultGetPolyfills = defaultConfig.serializer?.getPolyfills ?? (() => []);
+
 const config = {
     resolver: {
         assetExts: [...defaultConfig.resolver.assetExts, 'lottie'],
@@ -37,11 +39,10 @@ const config = {
             },
         }),
     },
-    serializer: !isDev
-        ? {
-              customSerializer: createSentryMetroSerializer(),
-          }
-        : {},
+    serializer: {
+        getPolyfills: (opts) => [...defaultGetPolyfills(opts), path.resolve(__dirname, 'src/setup/moduleInitPolyfill.js')],
+        ...(!isDev ? {customSerializer: createSentryMetroSerializer()} : {}),
+    },
 };
 
 const mergedConfig = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config));

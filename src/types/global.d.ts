@@ -39,6 +39,10 @@ interface NodeRequire {
     <T = any>(id: string): T;
 }
 
+// Globals injected by src/setup/moduleInitPolyfill.js
+declare var __moduleInitTimes: Record<number, number> | undefined;
+declare var __moduleNames: Record<number, string> | undefined;
+
 // Define ArrayBuffer.transfer as its a relatively new API and not yet present in all environments
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface ArrayBuffer {
