@@ -265,7 +265,7 @@ function callSAMLSignOut(params: LogOutParams, authToken: string): Promise<void 
         })
         .then((result) => {
             if (result && result.type !== 'success') {
-                if (CONFIG.IS_HYBRID_APP){
+                if (CONFIG.IS_HYBRID_APP) {
                     HybridAppModule.cancelSignOut();
                 }
                 return Promise.reject(Error('Logout cancelled'));
