@@ -1,6 +1,9 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import type {PropsWithChildren} from 'react';
+// Import after mocks
+// eslint-disable-next-line import/first
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 
 type CapturedPopoverProps = {
     isVisible?: boolean;
@@ -96,10 +99,6 @@ jest.mock('@hooks/usePopoverPosition', () => ({
         calculatePopoverPosition: () => mockCalculatePopoverPosition(),
     }),
 }));
-
-// Import after mocks
-// eslint-disable-next-line import/first
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 
 describe('ButtonWithDropdownMenu focus coverage', () => {
     const options = [

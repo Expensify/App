@@ -14,10 +14,9 @@
  * Focus restoration uses `initialFocus` (trap activation), not `setReturnFocus`
  * (trap deactivation), because we restore focus when RETURNING to a screen.
  */
-
+import Log from './Log';
 import extractNavigationKeys from './Navigation/helpers/extractNavigationKeys';
 import type {State} from './Navigation/types';
-import Log from './Log';
 
 /**
  * Scoring weights for element matching during focus restoration.

@@ -33,6 +33,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
+import NavigationFocusManager from '@libs/NavigationFocusManager';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
@@ -44,7 +45,6 @@ import type {SuggestionsRef} from '@pages/inbox/report/ReportActionCompose/Repor
 import SilentCommentUpdater from '@pages/inbox/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/inbox/report/ReportActionCompose/Suggestions';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
-import NavigationFocusManager from '@libs/NavigationFocusManager';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
 import {areAllModalsHidden} from '@userActions/Modal';

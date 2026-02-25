@@ -23,7 +23,6 @@
  * - src/components/ApprovalWorkflowSection.tsx
  * - src/libs/NavigationFocusManager.ts
  */
-
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import MenuItem from '@components/MenuItem';

@@ -25,11 +25,16 @@
  * P0-4: Previously focused element removed from DOM - fallback used
  * P0-5: Element focus checks
  */
-
 /* eslint-disable @typescript-eslint/naming-convention */
 import {render} from '@testing-library/react-native';
 import type {ReactNode} from 'react';
 import React from 'react';
+// ============================================================================
+// Imports (must come after mocks)
+// ============================================================================
+
+// eslint-disable-next-line import/first
+import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen/index.web';
 
 // ============================================================================
 // Test-specific configurable mocks (kept inline as they need per-test values)
@@ -116,13 +121,6 @@ jest.mock('@components/FocusTrap/TOP_TAB_SCREENS');
 
 // Uses: src/components/FocusTrap/__mocks__/WIDE_LAYOUT_INACTIVE_SCREENS.ts
 jest.mock('@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS');
-
-// ============================================================================
-// Imports (must come after mocks)
-// ============================================================================
-
-// eslint-disable-next-line import/first
-import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen/index.web';
 
 // ============================================================================
 // Test Helpers
