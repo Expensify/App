@@ -1387,7 +1387,12 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Alcuni di questi duplicati sono già stati approvati o pagati.',
         reviewDuplicates: 'Controlla i duplicati',
         keepAll: 'Mantieni tutto',
-        confirmApprovalWithHeldAmount: "Il rapporto contiene spese in sospeso. Approvare solo le spese conformi o approvare l'intero rapporto?",
+        confirmApprove: 'Conferma l’importo approvato',
+        confirmApprovalAmount: 'Approva solo le spese conformi oppure approva l’intero rapporto.',
+        confirmApprovalAllHoldAmount: () => ({
+            one: 'Questa spesa è in sospeso. Vuoi approvarla comunque?',
+            other: 'Queste note spese sono in sospeso. Vuoi approvarle comunque?',
+        }),
         confirmPay: 'Conferma l’importo del pagamento',
         confirmPayAmount: 'Paga le voci non in sospeso oppure paga l’intero resoconto.',
         confirmPayAllHoldAmount: () => ({
@@ -6343,6 +6348,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 adultEntertainment: 'Intrattenimento per adulti',
                 requireCompanyCard: 'Richiedi le carte aziendali per tutti gli acquisti',
                 requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, inclusi chilometraggio e indennità giornaliere.',
+                requireCompanyCardDisabledTooltip: 'Abilita Carte aziendali (in Altre funzionalità) per sbloccare.',
             },
             expenseReportRules: {
                 title: 'Avanzate',
@@ -7197,6 +7203,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             table: 'Tabella',
             bar: 'Bar',
             line: 'Linea',
+            pie: 'Torta',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
@@ -7231,7 +7238,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         exportedTo: 'Esportato in',
         exportAll: {
             selectAllMatchingItems: 'Seleziona tutti gli elementi corrispondenti',
-            allMatchingItemsSelected: 'Tutti gli elementi corrispondenti sono stati selezionati',
+            allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
         },
         spendOverTime: 'Spesa nel tempo',
     },
@@ -7549,6 +7556,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             endTitle: 'Foto contachilometri finale',
             deleteOdometerPhoto: 'Elimina foto del contachilometri',
             deleteOdometerPhotoConfirmation: 'Sei sicuro di voler eliminare questa foto del contachilometri?',
+            cameraAccessRequired: 'Per scattare foto è necessario l’accesso alla fotocamera.',
+            snapPhotoStart: "<muted-text-label>Scatta una foto del contachilometri all'<strong>inizio</strong> del viaggio.</muted-text-label>",
+            snapPhotoEnd: '<muted-text-label>Scatta una foto del contachilometri alla <strong>fine</strong> del viaggio.</muted-text-label>',
         },
     },
     gps: {
