@@ -630,110 +630,23 @@ describe('TransactionUtils', () => {
             expect(merchant).toBe('Modified Merchant');
         });
 
-        it('should return distance merchant if transaction is distance expense and pending create', () => {
+        it('should return the stored merchant for a distance expense', () => {
             const transaction = generateTransaction({
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                merchant: '10.00 mi @ USD 0.67 / mi',
             });
-            const policy: Policy = {
-                ...createRandomPolicy(10),
-                role: CONST.POLICY.ROLE.ADMIN,
-                customUnits: {},
-            };
-            const merchant = TransactionUtils.getMerchant(transaction, policy);
-            expect(merchant).toBe('Pending...');
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('10.00 mi @ USD 0.67 / mi');
         });
 
-        it('should return distance merchant if transaction is created distance expense', () => {
-            return waitForBatchedUpdates()
-                .then(async () => {
-                    const fakePolicy: Policy = {
-                        ...createRandomPolicy(0),
-                        customUnits: {
-                            Unit1: {
-                                customUnitID: 'Unit1',
-                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                                rates: {
-                                    Rate1: {
-                                        customUnitRateID: 'Rate1',
-                                        currency: CONST.CURRENCY.USD,
-                                        rate: 100,
-                                    },
-                                },
-                                enabled: true,
-                                attributes: {
-                                    unit: 'mi',
-                                },
-                            },
-                        },
-                        outputCurrency: CONST.CURRENCY.USD,
-                    };
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`, {policyID: fakePolicy.id});
-                })
-                .then(() => {
-                    const transaction = generateTransaction({
-                        comment: {
-                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                            customUnit: {
-                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                                customUnitID: 'Unit1',
-                                customUnitRateID: 'Rate1',
-                                quantity: 100,
-                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                            },
-                        },
-                        reportID: FAKE_OPEN_REPORT_ID,
-                    });
-                    const merchant = TransactionUtils.getMerchant(transaction);
-                    expect(merchant).toBe('100.00 mi @ USD 1.00 / mi');
-                });
-        });
-
-        it('should return stored modifiedMerchant for distance expense even when policy rate changes', () => {
-            return waitForBatchedUpdates()
-                .then(async () => {
-                    const fakePolicy: Policy = {
-                        ...createRandomPolicy(0),
-                        customUnits: {
-                            Unit1: {
-                                customUnitID: 'Unit1',
-                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                                rates: {
-                                    Rate1: {
-                                        customUnitRateID: 'Rate1',
-                                        currency: CONST.CURRENCY.USD,
-                                        rate: 200,
-                                    },
-                                },
-                                enabled: true,
-                                attributes: {
-                                    unit: 'mi',
-                                },
-                            },
-                        },
-                        outputCurrency: CONST.CURRENCY.USD,
-                    };
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`, {policyID: fakePolicy.id});
-                })
-                .then(() => {
-                    const transaction = generateTransaction({
-                        comment: {
-                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                            customUnit: {
-                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                                customUnitID: 'Unit1',
-                                customUnitRateID: 'Rate1',
-                                quantity: 100,
-                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                            },
-                        },
-                        modifiedMerchant: '100.00 mi @ USD 1.00 / mi',
-                        reportID: FAKE_OPEN_REPORT_ID,
-                    });
-                    const merchant = TransactionUtils.getMerchant(transaction);
-                    expect(merchant).toBe('100.00 mi @ USD 1.00 / mi');
-                });
+        it('should return modifiedMerchant over merchant for a distance expense', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                merchant: '10.00 mi @ USD 0.67 / mi',
+                modifiedMerchant: '10.00 mi @ USD 1.00 / mi',
+            });
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('10.00 mi @ USD 1.00 / mi');
         });
     });
     describe('getTransactionPendingAction', () => {

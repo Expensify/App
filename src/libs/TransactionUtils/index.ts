@@ -1136,35 +1136,7 @@ function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInput
 /**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
-function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined): string {
-    if (transaction && isDistanceRequest(transaction)) {
-        // Use the stored merchant when available so that workspace rate changes don't
-        // retroactively alter the merchant displayed on historical expenses.
-        if (transaction.modifiedMerchant) {
-            return transaction.modifiedMerchant;
-        }
-
-        const report = getReportOrDraftReport(transaction.reportID);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const policy = policyParam ?? getPolicy(report?.policyID);
-        const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
-        const {unit, rate} = mileageRate;
-        const distanceInMeters = getDistanceInMeters(transaction, unit);
-        if ((policy?.customUnits && !isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) || transaction?.modifiedCurrency) {
-            return DistanceRequestUtils.getDistanceMerchant(
-                true,
-                distanceInMeters,
-                unit,
-                rate,
-                getCurrency(transaction),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal,
-                (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-                getCurrencySymbol,
-                isManualDistanceRequest(transaction),
-            );
-        }
-    }
+function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
 }
 
