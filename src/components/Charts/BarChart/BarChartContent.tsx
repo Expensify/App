@@ -3,11 +3,12 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
-import type {ChartBounds, PointsArray, Scale} from 'victory-native';
+import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
+import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
@@ -40,6 +41,8 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
     const [chartWidth, setChartWidth] = useState(0);
     const [barAreaWidth, setBarAreaWidth] = useState(0);
+    const [boundsLeft, setBoundsLeft] = useState(0);
+    const [boundsRight, setBoundsRight] = useState(0);
     const defaultBarColor = DEFAULT_CHART_COLOR;
 
     // prepare data for display
@@ -75,6 +78,8 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         font,
         tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
         labelAreaWidth: barAreaWidth,
+        firstTickLeftSpace: boundsLeft,
+        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight : 0,
     });
 
     const domainPadding = useMemo(() => {
@@ -85,14 +90,11 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
     }, [chartWidth, data.length]);
 
-    const {formatLabel, formatValue} = useChartLabelFormats({
+    const {formatValue} = useChartLabelFormats({
         data,
         font,
         unit: yAxisUnit,
         unitPosition: yAxisUnitPosition,
-        labelSkipInterval,
-        labelRotation,
-        truncatedLabels,
     });
 
     // Store bar geometry for hit-testing (only constants, no arrays)
@@ -108,6 +110,8 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
             chartBottom.set(bounds.bottom);
             yZero.set(0);
             setBarAreaWidth(domainWidth);
+            setBoundsLeft(bounds.left);
+            setBoundsRight(bounds.right);
         },
         [data.length, barWidth, chartBottom, yZero],
     );
@@ -170,6 +174,27 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         [data, useSingleColor, defaultBarColor],
     );
 
+    const renderCustomXLabels = useCallback(
+        (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+            if (!font) {
+                return null;
+            }
+            return (
+                <ChartXAxisLabels
+                    labels={truncatedLabels}
+                    labelRotation={labelRotation}
+                    labelSkipInterval={labelSkipInterval}
+                    font={font}
+                    labelColor={theme.textSupporting}
+                    xScale={args.xScale}
+                    chartBoundsBottom={args.chartBounds.bottom}
+                    centerRotatedLabels
+                />
+            );
+        },
+        [font, truncatedLabels, labelRotation, labelSkipInterval, theme.textSupporting],
+    );
+
     // When labels are rotated 90°, add measured label height to container
     // This keeps bar area at ~250px while giving labels their needed vertical space
     const dynamicChartStyle = useMemo(
@@ -204,24 +229,17 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 {chartWidth > 0 && (
                     <CartesianChart
                         xKey="x"
-                        padding={CHART_PADDING}
+                        padding={{top: CHART_PADDING, left: CHART_PADDING, right: CHART_PADDING, bottom: AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0) + CHART_PADDING}}
                         yKeys={['y']}
                         domainPadding={domainPadding}
                         actionsRef={actionsRef}
                         customGestures={customGestures}
                         onChartBoundsChange={handleChartBoundsChange}
                         onScaleChange={handleScaleChange}
+                        renderOutside={renderCustomXLabels}
                         xAxis={{
-                            font,
                             tickCount: data.length,
-                            labelColor: theme.textSupporting,
                             lineWidth: X_AXIS_LINE_WIDTH,
-                            // Victory-native positions x-axis labels at: chartBounds.bottom + labelOffset + fontSize.
-                            // We subtract descent (fontSize - ascent) so the gap from chart to the ascent line equals AXIS_LABEL_GAP.
-                            labelOffset: AXIS_LABEL_GAP - Math.abs(font?.getMetrics().descent ?? 0),
-                            formatXLabel: formatLabel,
-                            labelRotate: labelRotation,
-                            labelOverflow: 'visible',
                         }}
                         yAxis={[
                             {

@@ -1,0 +1,75 @@
+import {Group, Text as SkiaText, vec} from '@shopify/react-native-skia';
+import type {SkFont} from '@shopify/react-native-skia';
+import React, {useMemo} from 'react';
+import {AXIS_LABEL_GAP} from '@components/Charts/constants';
+import {measureTextWidth, rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
+
+type ChartXAxisLabelsProps = {
+    labels: string[];
+    labelRotation: number;
+    labelSkipInterval: number;
+    font: SkFont;
+    labelColor: string;
+    xScale: (value: number) => number;
+    chartBoundsBottom: number;
+    /** When true, rotated labels are centered on the tick. When false, they are right-aligned (end of text at tick). */
+    centerRotatedLabels?: boolean;
+};
+
+function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, font, labelColor, xScale, chartBoundsBottom, centerRotatedLabels = false}: ChartXAxisLabelsProps) {
+    const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
+
+    const fontMetrics = font.getMetrics();
+    const ascent = Math.abs(fontMetrics.ascent);
+    const descent = Math.abs(fontMetrics.descent);
+    const labelY = chartBoundsBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad);
+    const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
+
+    const labelWidths = useMemo(() => {
+        return labels.map((label) => measureTextWidth(label, font));
+    }, [labels, font]);
+
+    return labels.map((label, i) => {
+        if (i % labelSkipInterval !== 0 || label.length === 0) {
+            return null;
+        }
+
+        const tickX = xScale(i);
+        const labelWidth = labelWidths.at(i) ?? 0;
+
+        if (angleRad === 0) {
+            return (
+                <SkiaText
+                    key={`x-label-${label}`}
+                    x={tickX - labelWidth / 2}
+                    y={labelY}
+                    text={label}
+                    font={font}
+                    color={labelColor}
+                />
+            );
+        }
+
+        const textX = centerRotatedLabels ? tickX - labelWidth / 2 : tickX - labelWidth;
+        const origin = vec(tickX, labelY);
+
+        return (
+            <Group
+                key={`x-label-${label}`}
+                origin={origin}
+                transform={[{translateX: correction}, {rotate: -angleRad}]}
+            >
+                <SkiaText
+                    x={textX}
+                    y={labelY}
+                    text={label}
+                    font={font}
+                    color={labelColor}
+                />
+            </Group>
+        );
+    });
+}
+
+export default ChartXAxisLabels;
+export type {ChartXAxisLabelsProps};
