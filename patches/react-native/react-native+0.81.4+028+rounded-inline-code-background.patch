@@ -124,7 +124,7 @@ index 216bb23..65afb2a 100644
 +                         }];
 +                         NSUInteger count = rects.count;
 +                         for (NSUInteger i = 0; i < count; i++) {
-+                             CGRect rect = CGRectInset(CGRectOffset([rects[i] CGRectValue], frame.origin.x, frame.origin.y), 0, 1);
++                             CGRect rect = UIEdgeInsetsInsetRect(CGRectOffset([rects[i] CGRectValue], frame.origin.x, frame.origin.y), UIEdgeInsetsMake(3, 0, 0, 0));
 +                             UIRectCorner corners = 0;
 +                             if (count == 1) {
 +                                 corners = UIRectCornerAllCorners;
