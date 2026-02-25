@@ -647,7 +647,7 @@ const CONST = {
             FINISH: 'FinishStep',
         },
         PAGE_NAME: {
-            COUNTRY: 'country',
+            CURRENCY_AND_COUNTRY: 'currency-and-country',
             BANK_INFO: 'bank-info',
             BUSINESS_INFO: 'business-info',
             BENEFICIAL_OWNER_INFO: 'beneficial-owner-info',

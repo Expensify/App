@@ -68,7 +68,7 @@ function getStartPageForContinueSetup(
         return PAGE_NAME.FINISH;
     }
 
-    return PAGE_NAME.COUNTRY;
+    return PAGE_NAME.CURRENCY_AND_COUNTRY;
 }
 
 export default getStartPageForContinueSetup;

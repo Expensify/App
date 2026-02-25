@@ -71,7 +71,7 @@ function WorkspaceResetBankAccountModal({
                 setShouldShowContinueSetupButton(false);
             }
 
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? '', page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.COUNTRY}));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? '', page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.CURRENCY_AND_COUNTRY}));
         } else {
             resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod);
 

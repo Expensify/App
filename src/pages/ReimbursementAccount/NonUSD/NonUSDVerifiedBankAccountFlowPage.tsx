@@ -28,7 +28,7 @@ type PageEntry = {
 };
 
 const allPages: PageEntry[] = [
-    {pageName: PAGE_NAME.COUNTRY, component: Country},
+    {pageName: PAGE_NAME.CURRENCY_AND_COUNTRY, component: Country},
     {pageName: PAGE_NAME.BANK_INFO, component: BankInfo},
     {pageName: PAGE_NAME.BUSINESS_INFO, component: BusinessInfo},
     {pageName: PAGE_NAME.BENEFICIAL_OWNER_INFO, component: BeneficialOwnerInfo},
