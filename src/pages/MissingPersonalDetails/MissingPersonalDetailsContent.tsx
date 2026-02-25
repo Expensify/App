@@ -97,6 +97,11 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 return;
             }
 
+            if (!pin) {
+                Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN));
+                return;
+            }
+
             const personalDetailsParams: Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
 
             // The reason for using it, despite it being deprecated: https://github.com/Expensify/App/pull/79473/files#r2745847379
