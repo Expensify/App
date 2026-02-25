@@ -270,6 +270,15 @@ function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): M
 }
 
 /**
+ * Rounds a distance (already in the target unit) to 2 decimal places,
+ * multiplies by the rate, and rounds to the nearest integer (cents).
+ */
+function roundDistanceAmount(distanceInUnits: number, rate: number): number {
+    const roundedDistance = parseFloat(distanceInUnits.toFixed(2));
+    return Math.round(roundedDistance * rate);
+}
+
+/**
  * Calculates the expense amount based on distance, unit, and rate.
  *
  * @param distance - The distance traveled in meters
@@ -278,9 +287,7 @@ function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): M
  * @returns The computed expense amount (rounded) in "cents".
  */
 function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): number {
-    const convertedDistance = convertDistanceUnit(distance, unit);
-    const roundedDistance = parseFloat(convertedDistance.toFixed(2));
-    return Math.round(roundedDistance * rate);
+    return roundDistanceAmount(convertDistanceUnit(distance, unit), rate);
 }
 
 /**
@@ -428,12 +435,7 @@ function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID
  * @returns true if the amount is within limits, false if it would exceed the backend limit
  */
 function isDistanceAmountWithinLimit(distance: number, rate: number): boolean {
-    // Match the 2-decimal rounding used by getDistanceRequestAmount so boundary
-    // values produce identical results in both the limit check and the actual
-    // amount calculation.
-    const roundedDistance = parseFloat(distance.toFixed(2));
-    const amount = Math.abs(Math.round(roundedDistance * rate));
-    return amount <= CONST.IOU.MAX_SAFE_AMOUNT;
+    return Math.abs(roundDistanceAmount(distance, rate)) <= CONST.IOU.MAX_SAFE_AMOUNT;
 }
 
 /**
