@@ -245,12 +245,12 @@ function EmptySearchViewContent({
     let content: EmptySearchViewItem | undefined;
 
     // Begin by going through all of our searches, and returning their empty state
-    // if it exists. Use fireworks only for To-do items, folder for everything else.
+    // if it exists. Use fireworks for celebratory items (To-do, Unapproved Cash), folder for everything else.
     for (const menuItem of typeMenuItems) {
         if (menuItem.similarSearchHash === similarSearchHash && menuItem.emptyState) {
-            const isTodoItem = todoMenuItems.has(menuItem);
+            const useFireworks = todoMenuItems.has(menuItem) || menuItem.key === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH;
             content = {
-                ...(isTodoItem ? defaultViewItemHeader.fireworks : defaultViewItemHeader.folder),
+                ...(useFireworks ? defaultViewItemHeader.fireworks : defaultViewItemHeader.folder),
                 title: translate(menuItem.emptyState.title),
                 subtitle: translate(menuItem.emptyState.subtitle),
                 buttons: menuItem.emptyState.buttons?.map((button) => ({
