@@ -6323,6 +6323,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 adultEntertainment: 'Rozrywka dla dorosłych',
                 requireCompanyCard: 'Wymagaj kart służbowych dla wszystkich zakupów',
                 requireCompanyCardDescription: 'Oznacz wszystkie wydatki gotówkowe, w tym koszty za przejechane kilometry i ryczałty dzienne.',
+                requireCompanyCardDisabledTooltip: 'Włącz karty firmowe (w sekcji Więcej funkcji), aby odblokować.',
             },
             expenseReportRules: {
                 title: 'Zaawansowane',
@@ -7169,6 +7170,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             table: 'Tabela',
             bar: 'Bar',
             line: 'Linia',
+            pie: 'Wykres kołowy',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
@@ -7520,6 +7522,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             endTitle: 'Końcowe zdjęcie licznika przebiegu',
             deleteOdometerPhoto: 'Usuń zdjęcie licznika przebiegu',
             deleteOdometerPhotoConfirmation: 'Na pewno chcesz usunąć to zdjęcie licznika?',
+            cameraAccessRequired: 'Aby robić zdjęcia, wymagany jest dostęp do aparatu.',
+            snapPhotoStart: '<muted-text-label>Zrób zdjęcie licznika kilometrów na <strong>początku</strong> podróży.</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>Zrób zdjęcie licznika kilometrów na <strong>koniec</strong> swojej podróży.</muted-text-label>',
         },
     },
     gps: {

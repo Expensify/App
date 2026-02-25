@@ -677,6 +677,7 @@ function getOptionData({
     movedFromReport,
     movedToReport,
     currentUserAccountID,
+    chatReport,
     reportAttributesDerived,
 }: {
     report: OnyxEntry<Report>;
@@ -698,6 +699,7 @@ function getOptionData({
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number;
+    chatReport: OnyxEntry<Report>;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
@@ -837,6 +839,7 @@ function getOptionData({
             movedToReport,
             policy,
             isReportArchived,
+            chatReport,
             reportAttributesDerived,
         });
     }

@@ -6288,6 +6288,7 @@ ${reportName}
                 adultEntertainment: 'アダルトエンターテインメント',
                 requireCompanyCard: 'すべての購入に会社カードを必須にする',
                 requireCompanyCardDescription: 'マイレージや日当経費を含む、すべての現金支出にフラグを付ける。',
+                requireCompanyCardDisabledTooltip: 'ロック解除するには、「その他の機能」内の「会社カード」を有効にしてください。',
             },
             expenseReportRules: {
                 title: '詳細設定',
@@ -7122,12 +7123,7 @@ ${reportName}
         },
         has: '持っている',
         groupBy: 'グループ化基準',
-        view: {
-            label: '表示',
-            table: 'テーブル',
-            bar: 'バー',
-            line: '折れ線',
-        },
+        view: {label: '表示', table: 'テーブル', bar: 'バー', line: '折れ線', pie: '円グラフ'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
             [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
@@ -7477,6 +7473,9 @@ ${reportName}
             endTitle: '走行距離計（終了時）の写真',
             deleteOdometerPhoto: '走行距離計の写真を削除',
             deleteOdometerPhotoConfirmation: 'この走行距離計の写真を削除してもよろしいですか？',
+            cameraAccessRequired: '写真を撮影するにはカメラへのアクセス権限が必要です。',
+            snapPhotoStart: '<muted-text-label>移動を<strong>開始</strong>するときに、走行距離計の写真を撮影してください。</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>走行の<strong>終了時</strong>に、オドメーターの写真を撮影してください。</muted-text-label>',
         },
     },
     gps: {

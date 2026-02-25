@@ -6312,6 +6312,7 @@ const translations = {
                 adultEntertainment: 'Adult entertainment',
                 requireCompanyCard: 'Require company cards for all purchases',
                 requireCompanyCardDescription: 'Flag all cash spend, including mileage and per-diem expenses.',
+                requireCompanyCardDisabledTooltip: 'Enable Company cards (under More features) to unlock.',
             },
             expenseReportRules: {
                 title: 'Advanced',
@@ -7173,6 +7174,7 @@ const translations = {
             table: 'Table',
             bar: 'Bar',
             line: 'Line',
+            pie: 'Pie',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'From',
@@ -7521,6 +7523,9 @@ const translations = {
             deleteOdometerPhotoConfirmation: 'Are you sure you want to delete this odometer photo?',
             startMessageWeb: 'Add a photo of your odometer from the <strong>start</strong> of your trip. Drag a file here or choose one to upload.',
             endMessageWeb: 'Add a photo of your odometer from the <strong>end</strong> of your trip. Drag a file here or choose one to upload.',
+            cameraAccessRequired: 'Camera access is required to take pictures.',
+            snapPhotoStart: '<muted-text-label>Snap a photo of your odometer at the <strong>start</strong> of your trip.</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>Snap a photo of your odometer at the <strong>end</strong> of your trip.</muted-text-label>',
         },
     },
     gps: {
