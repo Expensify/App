@@ -7,7 +7,7 @@ import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
-import {useCameraDevice} from 'react-native-vision-camera';
+import {useCameraDevice, useCameraFormat} from 'react-native-vision-camera';
 import {scheduleOnRN} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -74,6 +74,7 @@ function IOURequestStepScan({
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
+    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}]);
 
     const navigateBack = () => {
         Navigation.goBack();
@@ -492,6 +493,7 @@ function IOURequestStepScan({
                                     <NavigationAwareCamera
                                         ref={camera}
                                         device={device}
+                                        format={format}
                                         style={styles.flex1}
                                         zoom={device.neutralZoom}
                                         photo
