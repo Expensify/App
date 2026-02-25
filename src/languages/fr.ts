@@ -6384,6 +6384,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 adultEntertainment: 'Divertissement pour adultes',
                 requireCompanyCard: "Exiger l'utilisation de cartes d'entreprise pour tous les achats",
                 requireCompanyCardDescription: 'Signaler toutes les dépenses en espèces, y compris le kilométrage et les indemnités journalières.',
+                requireCompanyCardDisabledTooltip: 'Activez les cartes d’entreprise (dans Plus de fonctionnalités) pour déverrouiller.',
             },
             expenseReportRules: {
                 title: 'Avancé',
@@ -7590,6 +7591,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             endTitle: 'Photo du compteur (arrivée)',
             deleteOdometerPhoto: 'Supprimer la photo du compteur kilométrique',
             deleteOdometerPhotoConfirmation: 'Voulez-vous vraiment supprimer cette photo de l’odomètre ?',
+            cameraAccessRequired: "L'accès à l'appareil photo est requis pour prendre des photos.",
+            snapPhotoStart: '<muted-text-label>Prenez une photo de votre compteur kilométrique au <strong>début</strong> de votre trajet.</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>Prenez une photo de votre compteur kilométrique à la <strong>fin</strong> de votre trajet.</muted-text-label>',
         },
     },
     gps: {

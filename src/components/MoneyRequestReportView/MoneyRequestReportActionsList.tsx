@@ -111,9 +111,6 @@ type MoneyRequestReportListProps = {
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
-    /** Violations indexed by transaction ID */
-    violations?: Record<string, OnyxTypes.TransactionViolation[]>;
-
     /** If the report has newer actions to load */
     hasNewerActions: boolean;
 
@@ -133,7 +130,6 @@ function MoneyRequestReportActionsList({
     reportActions = [],
     transactions = [],
     newTransactions,
-    violations,
     hasNewerActions,
     hasOlderActions,
     hasPendingDeletionTransaction,
@@ -156,7 +152,6 @@ function MoneyRequestReportActionsList({
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const parentReportAction = useParentReportAction(report);
@@ -652,7 +647,6 @@ function MoneyRequestReportActionsList({
 
             return (
                 <ReportActionsListItemRenderer
-                    allReports={allReports}
                     policies={policies}
                     reportAction={reportAction}
                     parentReportAction={parentReportAction}
@@ -690,7 +684,6 @@ function MoneyRequestReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            allReports,
             policies,
             userWalletTierName,
             isUserValidated,
@@ -856,7 +849,6 @@ function MoneyRequestReportActionsList({
                                     newTransactions={newTransactions}
                                     hasPendingDeletionTransaction={hasPendingDeletionTransaction}
                                     reportActions={reportActions}
-                                    violations={violations}
                                     scrollToNewTransaction={scrollToNewTransaction}
                                     policy={policy}
                                     hasComments={visibleReportActions.length > 0}

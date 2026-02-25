@@ -3060,7 +3060,7 @@ const ROUTES = {
         route: 'onboarding/migrated-user-welcome',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (shouldOpenSearch?: boolean) => getUrlWithBackToParam(`onboarding/migrated-user-welcome?${shouldOpenSearch ? 'shouldOpenSearch=true' : ''}`, undefined, false),
+        getRoute: (backTo?: string) => getUrlWithBackToParam('onboarding/migrated-user-welcome', backTo, false),
     },
 
     TRANSACTION_RECEIPT: {

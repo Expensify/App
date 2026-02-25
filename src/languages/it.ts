@@ -6348,6 +6348,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 adultEntertainment: 'Intrattenimento per adulti',
                 requireCompanyCard: 'Richiedi le carte aziendali per tutti gli acquisti',
                 requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, inclusi chilometraggio e indennità giornaliere.',
+                requireCompanyCardDisabledTooltip: 'Abilita Carte aziendali (in Altre funzionalità) per sbloccare.',
             },
             expenseReportRules: {
                 title: 'Avanzate',
@@ -7554,6 +7555,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             endTitle: 'Foto contachilometri finale',
             deleteOdometerPhoto: 'Elimina foto del contachilometri',
             deleteOdometerPhotoConfirmation: 'Sei sicuro di voler eliminare questa foto del contachilometri?',
+            cameraAccessRequired: 'Per scattare foto è necessario l’accesso alla fotocamera.',
+            snapPhotoStart: "<muted-text-label>Scatta una foto del contachilometri all'<strong>inizio</strong> del viaggio.</muted-text-label>",
+            snapPhotoEnd: '<muted-text-label>Scatta una foto del contachilometri alla <strong>fine</strong> del viaggio.</muted-text-label>',
         },
     },
     gps: {
