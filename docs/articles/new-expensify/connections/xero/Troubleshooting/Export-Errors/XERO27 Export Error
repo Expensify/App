@@ -1,0 +1,96 @@
+---
+title: XERO27 Export Error: Category Not Found
+description: Learn why the XERO27 export error occurs in New Expensify and how to restore or replace inactive expense categories in Xero.
+keywords: XERO27, Xero category not found, Xero chart of accounts inactive, expense category deleted Xero, Expensify Xero export error
+internalScope: Audience is Workspace Admins using the Xero integration in New Expensify. Covers the XERO27 export error related to inactive or deleted expense categories in Xero. Does not cover authentication or organization selection issues.
+---
+
+# XERO27 Export Error: Category Not Found
+
+If you see the error message **“XERO27 Export Error: Category not found. The category may be deleted or inactive in Xero so please select new category.”**, it means the expense category used on the report no longer exists or is inactive in Xero.
+
+Xero must have an active expense account in its Chart of Accounts for the export to succeed.
+
+---
+
+## Why the XERO27 Export Error Happens
+
+The XERO27 export error occurs when:
+
+- An expense in Expensify is categorized under an account that no longer exists in Xero, or  
+- The account has been marked as inactive in Xero’s Chart of Accounts  
+
+If the category is missing or inactive, Xero rejects the export.
+
+---
+
+## How to Fix the XERO27 Export Error
+
+### Step 1: Confirm Expense Accounts in Xero
+
+In Xero:
+
+1. Go to **Settings > Chart of Accounts**.
+2. Confirm that all expense accounts used in Expensify:
+   - Exist  
+   - Are active  
+   - Are set to **Expense** type  
+   - Have **Show in Expense Claims** enabled  
+
+If an account is missing:
+
+- Create the appropriate expense account.
+- Enable **Show in Expense Claims**.
+- Save the account.
+
+---
+
+### Step 2: Sync the Workspace in New Expensify
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the Xero connection.
+5. Click **Sync now**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the Xero connection.
+5. Tap **Sync now**.
+
+This refreshes the imported categories.
+
+---
+
+### Step 3: Recategorize Flagged Expenses
+
+1. Open the report.
+2. Look for expenses highlighted with a **red violation**.
+3. Select a valid, active category.
+4. Save the report.
+
+---
+
+### Step 4: Retry the Export
+
+After correcting all flagged expenses:
+
+1. Return to the report.
+2. Retry exporting to Xero.
+
+---
+
+# FAQ
+
+## Does the XERO27 Export Error affect only one category?
+
+Yes. It affects only expenses tied to inactive or deleted categories.
+
+## Do I need Xero admin access to fix the XERO27 Export Error?
+
+Yes. Updating or creating expense accounts in Xero requires appropriate permissions.
