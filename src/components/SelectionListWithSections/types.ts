@@ -733,9 +733,6 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** The policies which the user has access to */
     policies?: OnyxCollection<Policy>;
 
-    /** All the data of the report collection */
-    allReports?: OnyxCollection<Report>;
-
     /** The report data */
     report?: Report;
 
