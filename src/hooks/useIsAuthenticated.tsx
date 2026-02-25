@@ -1,10 +1,10 @@
-import {useMemo} from 'react';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {authTokenSelector} from '@src/selectors/Session';
 import useOnyx from './useOnyx';
 
 function useIsAuthenticated() {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session?.authToken]);
+    const [authToken] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenSelector});
+    const isAuthenticated = !!authToken;
     return isAuthenticated;
 }
 
