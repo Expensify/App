@@ -1,7 +1,8 @@
 ---
 title: Merge Expenses
-description: Learn how to merge two expenses to eliminate duplicates and simplify your reports.
-keywords: [New Expensify, merge expenses, duplicate expenses, SmartScan, manual merge, combine expenses, combine duplicate expenses, merge receipts, expense matching]
+description: Learn how to merge duplicate expenses in Expensify, including cash and card transactions, eligibility rules, and step-by-step instructions for web and mobile.
+keywords: [merge expenses, duplicate expenses, combine expenses, merge duplicate expenses, merge receipts, SmartScan duplicate, cash expense, card expense, expense matching, fix duplicate expense]
+internalScope: Audience is all members. Covers manually merging duplicate expenses and eligibility rules. Does not cover SmartScan automation logic or expense deletion workflows.
 ---
 
 
@@ -9,49 +10,92 @@ Use merging to resolve duplicates when SmartScan doesn’t catch them. This guid
 
 # Merge expenses
 
-You can merge two expenses if at least one is a cash expense. You cannot merge two card expenses. Merging is only available for editable expenses (such as those that are unsubmitted or awaiting first-level approval).
+If you have duplicate expenses that SmartScan didn’t automatically match, you can manually merge them. Merging helps clean up duplicates and keeps your reports accurate.
 
-## Merging from an individual expense
+You can merge:
+- Two cash expenses
+- One cash expense and one card expense
+
+You cannot merge two card expenses.
+
+---
+
+## Who can merge expenses 
+
+You can merge expenses if you have permission to edit both expenses.
+
+- **Submitters** can merge their own:
+  - Unreported expenses  
+  - Expenses on Draft reports  
+  - Expenses on Outstanding reports  
+
+- **Approvers and Workspace Admins** can merge expenses on the same Draft or Outstanding report.
+
+You cannot merge expenses that are fully approved or paid.
+
+---
+
+## What types of expenses can be merged 
+
+To merge two expenses, one of the following must be true:
+
+- Both expenses are cash expenses  
+- One expense is a cash expense and the other is an imported card expense  
+
+You cannot merge two imported card expenses.
+
+Note: Merging does not convert expense types.
+
+---
+
+## How to merge duplicate expenses from an individual expense
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Reports > Expenses**
-2. Tap the expense you'd like to merge from.
-3. Tap the **More** button, then select **Merge**.
-4. Choose another eligible expense to merge with.
-   - You can only select one.
-   - Expenses are sorted by date (newest first).
-   - If there are no eligible matches, you'll see:
-     *"You don’t have any expenses that can be merged with this one. [Learn more](#eligible-expenses)."*
-5. If only one expense has a receipt, it’s selected automatically. If both do, you’ll be asked to choose.
-6. Select the details you want to keep from each expense—like merchant name, amount, or category.
-7. Tap **Continue**, then **Confirm** to complete the merge.
+2. Click on the expense you want to merge to open it. 
+3. Choose **More**, then select **Merge**.
+4. Choose one eligible expense to merge with.
+5. If both expenses have receipts, select which receipt to keep.
+6. Choose the details to keep from each expense such as merchant name, date or report.
+7. Select **Continue**, then **Merge expenses**.
 
-## Eligible expenses for merging
+---
 
-To merge two expenses, they must meet all of the following:
+## How to merge duplicate expenses from the Expenses page
 
-- **By type**:
-  - You can merge a cash expense with another cash expense, or a cash expense with a card expense.
-  - You cannot merge two card expenses.
+Use this method when you already see both duplicate expenses in a list.
 
-- **By permission**:
-  - **Submitters** can merge their own expenses (including unreported and in-progress ones).
-  - **Approvers and Admins** can merge expenses on the same report
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Reports > Expenses**
+2. Select two expenses to merge.
+3. Choose **Selected**, then select **Merge**.
+4. If both expenses have receipts, select the one you want to keep.
+5. Choose the details to keep from each expense such as merchant name, date or report. 
+6. Select **Continue**, then **Merge expenses**.
 
-- **By status**:
-  - Both expenses must be editable. That includes unreported expenses, or ones on a Draft or Outstanding report that hasn’t yet been approved.
+---
 
-## What happens when you merge?
+## What happens when expenses are merged
 
-- One expense is kept, and the details you choose will be used for the final version.
-- The other expense is **merged into the final one** and no longer shown separately.
-- If one expense is a card transaction, it will always be the one that’s kept.
-- If both are cash expenses, the one you started the merge from will be kept.
+When you merge expenses:
 
-## Can I change an expense from cash to credit card?
-You can’t change an expense from cash to credit card, or the other way around.  
+- One expense becomes the final expense.
+- The other expense is merged into it and no longer appears separately.
+- The details you selected are applied to the final expense.
 
-- Expenses imported directly from a connected credit card are always **credit card expenses**.  
-- Expenses you create manually, or those created from uploaded receipts, are always **cash expenses**.  
+**Additional rules:**
+
+- If one expense is a card transaction, the card expense is always kept.
+- If both expenses are cash expenses, the one you started the merge from is kept.
+
+---
+
+## Can expenses be converted from cash to card?
+
+You can’t change an expense from cash to card, or card to cash.
+
+- Expenses imported directly from a connected credit card are always **card expenses**.  
+- Expenses you create manually or from uploaded receipts are always **cash expenses**.  
+
+---
 
 # FAQ
 
@@ -61,18 +105,20 @@ No. Only one card expense can be part of a merge. You can merge:
 - Two cash expenses
 - One cash and one card expense
 
-## What happens to the other expense?
+## What happens to the other expense after merging?
 
-It’s merged into the final expense and no longer appears separately. Its details are combined based on what you selected.
+The second expense is merged into the final expense and no longer appears separately. The final expense reflects the details you selected during the merge process.
 
 ## What if the expenses have the same details?
 
-If there are no differences to resolve, the system automatically keeps the shared values without prompting you.
+If there are no differences between the two expenses, Expensify automatically keeps the shared values without prompting you to choose.
 
-## Why don’t I see the Merge option?
+## Why is the Merge option not showing?
 
-Check these conditions:
-- You must have permission to edit both expenses.
-- At least one expense must be a cash transaction.
-- The expenses must be editable (not submitted or fully approved).
+You won’t see **Merge** if:
+
+- You don’t have permission to edit both expenses.
+- Both expenses are card transactions.
+- One or both expenses are fully approved or paid.
+- The expenses are no longer editable.
 
