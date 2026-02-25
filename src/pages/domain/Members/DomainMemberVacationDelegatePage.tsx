@@ -1,5 +1,5 @@
 import {vacationDelegateSelector} from '@selectors/Domain';
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
+import personalDetailsSelector from '@selectors/PersonalDetails';
 import React from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import ScreenWrapper from '@components/ScreenWrapper';
