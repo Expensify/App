@@ -98,7 +98,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const {isOffline} = useNetwork();
     const requestorStepRef = useRef<View>(null);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
-    const prevIsOffline = usePrevious(isOffline);
     const achData = reimbursementAccount?.achData;
     const policyCurrency = policy ? policy.outputCurrency : (achData?.currency ?? reimbursementAccountDraft?.currency);
     const prevPolicyCurrency = usePrevious(policyCurrency);
