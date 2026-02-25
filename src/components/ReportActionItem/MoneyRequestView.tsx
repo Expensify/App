@@ -80,7 +80,6 @@ import {
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getBillable,
-    getChildTransactions,
     getCurrency,
     getDescription,
     getDistanceInMeters,
@@ -108,6 +107,7 @@ import {
     isScanning,
     isTimeRequest as isTimeRequestTransactionUtils,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+    hasMultipleSplitChildren,
 } from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -332,13 +332,10 @@ function MoneyRequestView({
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const hasMultipleSplits = useMemo(() => {
-        if (!transaction?.comment?.originalTransactionID) {
-            return false;
-        }
-        const children = getChildTransactions(allTransactions, allReports, transaction.comment.originalTransactionID);
-        return children.length > 1;
-    }, [allTransactions, allReports, transaction?.comment?.originalTransactionID]);
+    const hasMultipleSplits = useMemo(
+        () => hasMultipleSplitChildren(allTransactions, allReports, transaction?.comment?.originalTransactionID),
+        [allTransactions, allReports, transaction?.comment?.originalTransactionID],
+    );
     const isReportOpen = isOpenReport(moneyRequestReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const isSplitAvailable =

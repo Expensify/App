@@ -48,8 +48,8 @@ import {
 } from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {
-    getChildTransactions,
     getOriginalTransactionWithSplitInfo,
+    hasMultipleSplitChildren,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
@@ -155,13 +155,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const hasMultipleSplits = useMemo(() => {
-        if (!transaction?.comment?.originalTransactionID) {
-            return false;
-        }
-        const children = getChildTransactions(allTransactions, allReports, transaction.comment.originalTransactionID);
-        return children.length > 1;
-    }, [allTransactions, allReports, transaction?.comment?.originalTransactionID]);
+    const hasMultipleSplits = useMemo(
+        () => hasMultipleSplitChildren(allTransactions, allReports, transaction?.comment?.originalTransactionID),
+        [allTransactions, allReports, transaction?.comment?.originalTransactionID],
+    );
     const isReportOpen = isOpenReport(parentReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
