@@ -456,15 +456,13 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
                     >
-                        {(!!merchant || canEditCell) && (
-                            <MerchantOrDescriptionCell
-                                merchantOrDescription={merchant ?? ''}
-                                shouldShowTooltip={shouldShowTooltip}
-                                shouldUseNarrowLayout={false}
-                                canEdit={canEditCell}
-                                onSave={onEditMerchant}
-                            />
-                        )}
+                        <MerchantOrDescriptionCell
+                            merchantOrDescription={merchant ?? ''}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={false}
+                            canEdit={canEditCell}
+                            onSave={onEditMerchant}
+                        />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
@@ -473,16 +471,14 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}
                     >
-                        {(!!description || canEditCell) && (
-                            <MerchantOrDescriptionCell
-                                merchantOrDescription={description}
-                                shouldShowTooltip={shouldShowTooltip}
-                                shouldUseNarrowLayout={false}
-                                isDescription
-                                canEdit={canEditCell}
-                                onSave={onEditDescription}
-                            />
-                        )}
+                        <MerchantOrDescriptionCell
+                            merchantOrDescription={description}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={false}
+                            isDescription
+                            canEdit={canEditCell}
+                            onSave={onEditDescription}
+                        />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TO:
