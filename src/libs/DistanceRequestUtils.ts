@@ -163,16 +163,29 @@ function getRateForDisplay(
 
 /**
  * Get the rate title to display on the expense page.
- * Shows the rate name (e.g., "Default Rate") so that updating a rate's value on the workspace
- * does not retroactively change the displayed rate on historical expenses.
- * For P2P expenses (no rate name), falls back to formattedRateFallback (the formatted rate value).
- * When the rate is out of policy, displays a localized "Rate out of policy" message.
+ * For workspace expenses, shows the rate name (e.g., "Default Rate") so that updating a rate's
+ * value on the workspace does not retroactively change the displayed rate on historical expenses.
+ * For workspace expenses where the rate is out of policy, displays "Rate out of policy".
+ * For P2P expenses (no rate name), shows the formatted rate value (e.g., "$0.67 / mi").
  */
-function getRateForExpenseDisplay(rateName: string | undefined, isCustomUnitOutOfPolicy: boolean, formattedRateFallback: string): string {
-    if (isCustomUnitOutOfPolicy) {
-        return formattedRateFallback;
+function getRateForExpenseDisplay(
+    rateName: string | undefined,
+    isCustomUnitOutOfPolicy: boolean,
+    unit: Unit | undefined,
+    rate: number | undefined,
+    currency: string | undefined,
+    translate: LocaleContextProps['translate'],
+    toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
+    isOffline?: boolean,
+): string {
+    if (!rateName) {
+        return getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
     }
-    return rateName ?? formattedRateFallback;
+    if (isCustomUnitOutOfPolicy) {
+        return translate('common.rateOutOfPolicy');
+    }
+    return rateName;
 }
 
 /**

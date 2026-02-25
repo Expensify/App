@@ -180,26 +180,33 @@ describe('DistanceRequestUtils', () => {
     });
 
     describe('getRateForExpenseDisplay', () => {
-        const formattedRate = '$0.67 / mi';
+        const toLocaleDigitMock = (dot: string): string => dot;
+        const getCurrencySymbolMock = (currency: string): string | undefined => {
+            if (currency === 'USD') {
+                return '$';
+            }
+            return currency;
+        };
+        const rateParams = ['mi' as const, 67, 'USD', translateLocal, toLocaleDigitMock, getCurrencySymbolMock, false] as const;
 
-        it('should return rate name when available', () => {
-            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', false, formattedRate);
+        it('should return rate name for workspace expenses', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', false, ...rateParams);
             expect(result).toBe('Default Rate');
         });
 
-        it('should return formatted rate for P2P expenses with no name', () => {
-            const result = DistanceRequestUtils.getRateForExpenseDisplay(undefined, false, formattedRate);
-            expect(result).toBe(formattedRate);
+        it('should return formatted rate value for P2P expenses (no rate name)', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay(undefined, false, ...rateParams);
+            expect(result).toBe(`$0.67 / ${translateLocal('common.mile')}`);
         });
 
-        it('should return formatted rate when rate is out of policy', () => {
-            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, formattedRate);
-            expect(result).toBe(formattedRate);
+        it('should return out-of-policy message for workspace expenses with invalid rate', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, ...rateParams);
+            expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
         });
 
-        it('should return rate name regardless of what name it is', () => {
-            const result = DistanceRequestUtils.getRateForExpenseDisplay('Standard Mileage', false, formattedRate);
-            expect(result).toBe('Standard Mileage');
+        it('should not show out-of-policy for P2P expenses, just the formatted rate', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay(undefined, true, ...rateParams);
+            expect(result).toBe(`$0.67 / ${translateLocal('common.mile')}`);
         });
     });
 });

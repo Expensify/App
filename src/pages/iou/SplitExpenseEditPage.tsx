@@ -139,8 +139,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
     const isCustomUnitOutOfPolicy = !rates[currentRateID] || (isDistance && !rate);
-    const formattedRate = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
-    const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, formattedRate);
+    const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
     const getErrorForField = (field: ViolationField) => {
         if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
