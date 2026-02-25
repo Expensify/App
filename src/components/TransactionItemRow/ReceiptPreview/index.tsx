@@ -108,6 +108,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
 
     const shouldShowImage = source && !(isEReceipt || isDistanceEReceipt || isPerDiemEReceipt);
     const shouldShowDistanceEReceipt = isDistanceEReceipt && !isEReceipt && !isPerDiemEReceipt;
+    const sourceObject = typeof source === 'string' ? {uri: source} : source;
 
     return ReactDOM.createPortal(
         <Animated.View
@@ -127,12 +128,8 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                     )}
 
                     <Image
-                        source={typeof source === 'string' ? {uri: source} : source}
-                        style={[
-                            styles.w100,
-                            {aspectRatio: imageAspectRatio ?? 1},
-                            isLoading && {opacity: 0}, // hide until loaded
-                        ]}
+                        source={sourceObject}
+                        style={[styles.w100, {aspectRatio: imageAspectRatio ?? 1}]}
                         onLoadStart={() => {
                             if (isLoading) {
                                 return;
