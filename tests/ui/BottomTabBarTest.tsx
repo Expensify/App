@@ -8,40 +8,40 @@ import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
+import type Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+// Mock useRootNavigationState - invoke selector with mock state so getLastRoute returns undefined
 jest.mock('@src/hooks/useRootNavigationState', () => {
-    return jest.fn(() => ({
+    const mockRootState = {
         routes: [
             {
                 name: 'Main',
                 state: {
-                    routes: [
-                        {
-                            name: 'Home',
-                            params: {},
-                        },
-                    ],
+                    routes: [{name: 'Home', params: {}}],
                     index: 0,
                 },
             },
         ],
         index: 0,
-    }));
+    };
+    return jest.fn((selector: (state: unknown) => unknown) => selector(mockRootState));
 });
 
-// Mock useNavigationState to avoid "Couldn't get the navigation state" error
+// Mock useResponsiveLayout for consistent layout in tests
+jest.mock('@hooks/useResponsiveLayout', () => (): {shouldUseNarrowLayout: boolean} => ({shouldUseNarrowLayout: true}));
+
+// Mock useNavigationState to avoid "Couldn't get the navigation state" error from child components
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
-        useNavigationState: jest.fn(() => ({
-            name: 'Home',
-            params: {},
-        })),
+        useNavigationState: () => ({
+            routes: [],
+        }),
     };
 });
 

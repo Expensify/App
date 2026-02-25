@@ -1,8 +1,8 @@
 diff --git a/node_modules/@react-navigation/core/lib/module/useDescriptors.js b/node_modules/@react-navigation/core/lib/module/useDescriptors.js
-index 710df03..07ae763 100644
+index 7f57f2c..b1290d4 100644
 --- a/node_modules/@react-navigation/core/lib/module/useDescriptors.js
 +++ b/node_modules/@react-navigation/core/lib/module/useDescriptors.js
-@@ -16,6 +16,8 @@ import { jsx as _jsx } from "react/jsx-runtime";
+@@ -15,6 +15,8 @@ import { jsx as _jsx } from "react/jsx-runtime";
   * - Helper method to render a screen
   * - Options specified by the screen for the navigator
   * - Navigation object intended for the route
@@ -11,7 +11,7 @@ index 710df03..07ae763 100644
   */
  export function useDescriptors({
    state,
-@@ -31,7 +33,7 @@ export function useDescriptors({
+@@ -30,7 +32,7 @@ export function useDescriptors({
    onRouteFocus,
    router,
    emitter
@@ -20,7 +20,7 @@ index 710df03..07ae763 100644
    const theme = React.useContext(ThemeContext);
    const [options, setOptions] = React.useState({});
    const {
-@@ -68,15 +70,26 @@ export function useDescriptors({
+@@ -67,15 +69,26 @@ export function useDescriptors({
    const getOptions = (route, navigation, overrides) => {
      const config = screens[route.name];
      const screen = config.props;
@@ -57,10 +57,10 @@ index 710df03..07ae763 100644
      // @ts-expect-error: we check for function but TS still complains
      typeof curr !== 'function' ? curr : curr({
 diff --git a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
-index 1c8d466..1393e4c 100644
+index cd5e325..9385c4a 100644
 --- a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
 +++ b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
-@@ -155,9 +155,11 @@ const getStateFromParams = params => {
+@@ -158,9 +158,11 @@ const getStateFromParams = params => {
   *
   * @param createRouter Factory method which returns router object.
   * @param options Options object containing `children` and additional options for the router.
@@ -72,8 +72,8 @@ index 1c8d466..1393e4c 100644
 +export function useNavigationBuilder(createRouter, options, convertCustomScreenOptions) {
    const navigatorKey = useRegisterNavigator();
    const route = React.useContext(NavigationRouteContext);
-   const {
-@@ -534,7 +536,7 @@ export function useNavigationBuilder(createRouter, options) {
+   const isNestedParamsConsumed = typeof route?.params === 'object' && route.params != null ? CONSUMED_PARAMS in route.params && route.params[CONSUMED_PARAMS] === route.params : false;
+@@ -575,7 +577,7 @@ export function useNavigationBuilder(createRouter, options) {
      router,
      // @ts-expect-error: this should have both core and custom events, but too much work right now
      emitter
@@ -83,10 +83,10 @@ index 1c8d466..1393e4c 100644
      state,
      navigation,
 diff --git a/node_modules/@react-navigation/core/lib/typescript/src/index.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/index.d.ts
-index 69b9100..82d55b2 100644
+index 220e113..cef6d53 100644
 --- a/node_modules/@react-navigation/core/lib/typescript/src/index.d.ts
 +++ b/node_modules/@react-navigation/core/lib/typescript/src/index.d.ts
-@@ -23,6 +23,7 @@ export { useFocusEffect } from './useFocusEffect';
+@@ -24,6 +24,7 @@ export { useFocusEffect } from './useFocusEffect';
  export { useIsFocused } from './useIsFocused';
  export { useNavigation } from './useNavigation';
  export { useNavigationBuilder } from './useNavigationBuilder';

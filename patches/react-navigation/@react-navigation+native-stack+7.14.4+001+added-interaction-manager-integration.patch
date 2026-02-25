@@ -1,17 +1,17 @@
 diff --git a/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js b/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
-index a9ab3e0..3796e78 100644
+index ad1365b..b2d2478 100644
 --- a/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
 +++ b/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
 @@ -3,7 +3,7 @@
  import { getDefaultHeaderHeight, getHeaderTitle, HeaderBackContext, HeaderHeightContext, HeaderShownContext, SafeAreaProviderCompat, useFrameSize } from '@react-navigation/elements';
- import { NavigationContext, NavigationRouteContext, StackActions, usePreventRemoveContext, useTheme } from '@react-navigation/native';
+ import { NavigationProvider, StackActions, usePreventRemoveContext, useTheme } from '@react-navigation/native';
  import * as React from 'react';
 -import { Animated, Platform, StatusBar, StyleSheet, useAnimatedValue, View } from 'react-native';
 +import { Animated, InteractionManager, Platform, StatusBar, StyleSheet, useAnimatedValue, View } from 'react-native';
  import { useSafeAreaInsets } from 'react-native-safe-area-context';
  import { compatibilityFlags, ScreenStack, ScreenStackItem } from 'react-native-screens';
  import { debounce } from "../utils/debounce.js";
-@@ -136,6 +136,31 @@ const SceneView = ({
+@@ -137,6 +137,31 @@ const SceneView = ({
    const {
      preventedRoutes
    } = usePreventRemoveContext();
@@ -43,12 +43,12 @@ index a9ab3e0..3796e78 100644
    const [headerHeight, setHeaderHeight] = React.useState(defaultHeaderHeight);
  
    // eslint-disable-next-line react-hooks/exhaustive-deps
-@@ -271,7 +296,7 @@ const SceneView = ({
-         transitionDuration: animationDuration,
-         onWillAppear: onWillAppear,
-         onWillDisappear: onWillDisappear,
--        onAppear: onAppear,
-+        onAppear: onAppearCallback,
-         onDisappear: onDisappear,
-         onDismissed: onDismissed,
-         onGestureCancel: onGestureCancel,
+@@ -272,7 +297,7 @@ const SceneView = ({
+       transitionDuration: animationDuration,
+       onWillAppear: onWillAppear,
+       onWillDisappear: onWillDisappear,
+-      onAppear: onAppear,
++      onAppear: onAppearCallback,
+       onDisappear: onDisappear,
+       onDismissed: onDismissed,
+       onGestureCancel: onGestureCancel,

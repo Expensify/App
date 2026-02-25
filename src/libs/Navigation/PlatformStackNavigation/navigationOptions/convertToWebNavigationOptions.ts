@@ -16,7 +16,7 @@ function convertToWebNavigationOptions(screenOptions: ScreenOptionsOrCallback<Pl
     }
 
     if (isRouteBasedScreenOptions(screenOptions)) {
-        return (props: PlatformStackScreenProps<ParamListBase, string>) => {
+        return (props: ScreenOptionsProps) => {
             const routeBasedScreenOptions = screenOptions(props);
             return {...buildPlatformSpecificNavigationOptions(routeBasedScreenOptions), ...routeBasedScreenOptions.web};
         };

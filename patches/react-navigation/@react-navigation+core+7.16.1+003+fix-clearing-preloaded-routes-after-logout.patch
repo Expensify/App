@@ -1,0 +1,43 @@
+diff --git a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
+index 9385c4a..75c2953 100644
+--- a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
++++ b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
+@@ -578,14 +578,15 @@ export function useNavigationBuilder(createRouter, options, convertCustomScreenO
+     // @ts-expect-error: this should have both core and custom events, but too much work right now
+     emitter
+   }, convertCustomScreenOptions);
++  const validState = state?.preloadedRoutes?.some(preloadedRoute => !state.routeNames.includes(preloadedRoute.name)) ? {...state, preloadedRoutes: []} : state;
+   useCurrentRender({
+-    state,
++    state: validState,
+     navigation,
+     descriptors
+   });
+   const NavigationContent = useComponent(children => {
+     const element = layout != null ? layout({
+-      state,
++      state: validState,
+       descriptors,
+       navigation,
+       children
+@@ -595,9 +596,9 @@ export function useNavigationBuilder(createRouter, options, convertCustomScreenO
+       children: /*#__PURE__*/_jsx(NavigationHelpersContext.Provider, {
+         value: navigation,
+         children: /*#__PURE__*/_jsx(NavigationStateListenerProvider, {
+-          state: state,
++          state: validState,
+           children: /*#__PURE__*/_jsx(FocusedRouteKeyContext.Provider, {
+-            value: state.routes[state.index].key,
++            value: validState.routes[validState.index].key,
+             children: /*#__PURE__*/_jsx(PreventRemoveProvider, {
+               children: element
+             })
+@@ -607,7 +608,7 @@ export function useNavigationBuilder(createRouter, options, convertCustomScreenO
+     });
+   });
+   return {
+-    state,
++    state: validState,
+     navigation,
+     describe,
+     descriptors,
