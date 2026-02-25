@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
 import {
+    canEditReportTitle,
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
     getParentNavigationSubtitle,
@@ -34,7 +36,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
 import type DisplayNamesProps from './DisplayNames/types';
@@ -85,8 +87,8 @@ type AvatarWithDisplayNameProps = {
     /** The style of the parent navigation status container */
     parentNavigationStatusContainerStyles?: StyleProp<ViewStyle>;
 
-    /** Whether to show an edit button near the report title */
-    shouldShowReportTitleEditButton?: boolean;
+    /** The policy associated with the report */
+    policy?: OnyxEntry<Policy>;
 };
 
 function getCustomDisplayName(
@@ -167,6 +169,7 @@ function getCustomDisplayName(
 
 function AvatarWithDisplayName({
     report,
+    policy,
     isAnonymous = false,
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldEnableDetailPageNavigation = false,
@@ -179,7 +182,6 @@ function AvatarWithDisplayName({
     customDisplayNameStyle = {},
     parentNavigationSubtitleTextStyles,
     parentNavigationStatusContainerStyles = {},
-    shouldShowReportTitleEditButton = false,
 }: AvatarWithDisplayNameProps) {
     const {localeCompare, formatPhoneNumber} = useLocalize();
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false});
@@ -188,6 +190,9 @@ function AvatarWithDisplayName({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to display the edit button only on large screens
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : undefined}`,
@@ -209,6 +214,7 @@ function AvatarWithDisplayName({
     const statusText = shouldDisplayStatus ? getReportStatusTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
     const reportStatusColorStyle = shouldDisplayStatus ? getReportStatusColorStyle(theme, report?.stateNum, report?.statusNum) : {};
     const icons = useMemoizedLazyExpensifyIcons(['Pencil']);
+    const shouldShowReportTitleEditButton = shouldEnableDetailPageNavigation && !isSmallScreenWidth && canEditReportTitle(report, policy);
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {

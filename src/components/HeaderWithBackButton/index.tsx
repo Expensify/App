@@ -38,6 +38,7 @@ function HeaderWithBackButton({
     onRotateButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
+    policy,
     policyAvatar,
     shouldShowReportAvatarWithDisplay = false,
     shouldDisplayStatus,
@@ -76,7 +77,6 @@ function HeaderWithBackButton({
     subTitleLink = '',
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
-    shouldShowReportTitleEditButton = false,
 }: HeaderWithBackButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'Rotate', 'BackArrow', 'Close']);
     const theme = useTheme();
@@ -121,10 +121,10 @@ function HeaderWithBackButton({
             return (
                 <AvatarWithDisplayName
                     report={report}
+                    policy={policy}
                     shouldDisplayStatus={shouldDisplayStatus}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     openParentReportInCurrentTab={openParentReportInCurrentTab}
-                    shouldShowReportTitleEditButton={shouldShowReportTitleEditButton}
                 />
             );
         }
@@ -144,6 +144,7 @@ function HeaderWithBackButton({
         shouldUseHeadlineHeader,
         progressBarPercentage,
         report,
+        policy,
         shouldEnableDetailPageNavigation,
         shouldShowReportAvatarWithDisplay,
         stepCounter,
@@ -158,7 +159,6 @@ function HeaderWithBackButton({
         translate,
         openParentReportInCurrentTab,
         shouldDisplayStatus,
-        shouldShowReportTitleEditButton,
     ]);
     const ThreeDotMenuButton = useMemo(() => {
         if (shouldShowThreeDotsButton) {

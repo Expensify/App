@@ -63,7 +63,6 @@ import {getIOUActionForReportID, getOriginalMessage, getReportAction, hasPending
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
-    canEditReportTitle,
     changeMoneyRequestHoldStatus,
     generateReportID,
     getAddExpenseDropdownOptions,
@@ -1697,7 +1696,6 @@ function MoneyReportHeader({
     }, [hasFinishedPDFDownload, reportPDFFilename, moneyRequestReport?.reportName, translate, currentUserLogin]);
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
-    const shouldShowReportTitleEditButton = !isSmallScreenWidth && canEditReportTitle(moneyRequestReport, policy);
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
@@ -1836,13 +1834,13 @@ function MoneyReportHeader({
                 shouldDisplayStatus
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
+                policy={policy}
                 shouldShowBackButton={shouldShowBackButton}
                 shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab
-                shouldShowReportTitleEditButton={shouldShowReportTitleEditButton}
             >
                 {shouldDisplayNarrowMoreButton && (
                     <View style={[styles.flexRow, styles.gap2]}>
