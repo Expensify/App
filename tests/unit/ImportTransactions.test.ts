@@ -40,10 +40,10 @@ describe('ImportTransactions', () => {
 
         it('should extract correct indexes for valid columns', () => {
             const columns = {
-                [0]: 'date',
-                [1]: 'merchant',
-                [2]: 'amount',
-                [3]: 'category',
+                0: 'date',
+                1: 'merchant',
+                2: 'amount',
+                3: 'category',
             };
             const result = getColumnIndexes(columns);
             expect(result).toEqual({
@@ -56,9 +56,9 @@ describe('ImportTransactions', () => {
 
         it('should handle sparse column mappings', () => {
             const columns = {
-                [0]: 'ignore',
-                [2]: 'date',
-                [5]: 'amount',
+                0: 'ignore',
+                2: 'date',
+                5: 'amount',
             };
             const result = getColumnIndexes(columns);
             expect(result).toEqual({
@@ -71,10 +71,10 @@ describe('ImportTransactions', () => {
 
         it('should ignore non-transaction columns', () => {
             const columns = {
-                [0]: 'date',
-                [1]: 'ignore',
-                [2]: 'amount',
-                [3]: 'someOtherColumn',
+                0: 'date',
+                1: 'ignore',
+                2: 'amount',
+                3: 'someOtherColumn',
             };
             const result = getColumnIndexes(columns);
             expect(result).toEqual({
@@ -136,10 +136,10 @@ describe('ImportTransactions', () => {
                     ['Category', 'Food', 'Travel'],
                 ],
                 columns: {
-                    [0]: 'date',
-                    [1]: 'merchant',
-                    [2]: 'amount',
-                    [3]: 'category',
+                    0: 'date',
+                    1: 'merchant',
+                    2: 'amount',
+                    3: 'category',
                 },
                 containsHeader: true,
             };
@@ -259,20 +259,20 @@ describe('ImportTransactions', () => {
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(2);
-            expect(result[0]).toMatchObject({
+            expect(result.at(0)).toMatchObject({
                 created: '2024-01-15',
                 merchant: 'Coffee Shop',
                 amount: 550, // In cents
             });
-            expect(result[1]).toMatchObject({
+            expect(result.at(1)).toMatchObject({
                 created: '2024-01-20',
                 merchant: 'Restaurant',
                 amount: 2500,
             });
             // Check that transactionIDs are generated
-            expect(result[0].transactionID).toBeTruthy();
-            expect(result[1].transactionID).toBeTruthy();
-            expect(result[0].transactionID).not.toBe(result[1].transactionID);
+            expect(result.at(0).transactionID).toBeTruthy();
+            expect(result.at(1).transactionID).toBeTruthy();
+            expect(result.at(0).transactionID).not.toBe(result.at(1).transactionID);
         });
 
         it('should include category when provided', () => {
@@ -295,7 +295,7 @@ describe('ImportTransactions', () => {
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(1);
-            expect(result[0].category).toBe('Office Supplies');
+            expect(result.at(0).category).toBe('Office Supplies');
         });
 
         it('should skip rows with missing required fields (date or amount)', () => {
@@ -317,7 +317,7 @@ describe('ImportTransactions', () => {
 
             // Should only have 1 transaction (row 1), skipping rows 2 (no date) and 3 (no amount)
             expect(result).toHaveLength(1);
-            expect(result[0].merchant).toBe('Store A');
+            expect(result.at(0).merchant).toBe('Store A');
         });
 
         it('should flip amount sign when flipAmountSign is true', () => {
@@ -338,7 +338,7 @@ describe('ImportTransactions', () => {
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {flipAmountSign: true});
 
             expect(result).toHaveLength(1);
-            expect(result[0].amount).toBe(-1000); // Flipped
+            expect(result.at(0).amount).toBe(-1000); // Flipped
         });
 
         it('should handle amounts with currency symbols and commas', () => {
@@ -359,8 +359,8 @@ describe('ImportTransactions', () => {
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(2);
-            expect(result[0].amount).toBe(123456); // $1,234.56 in cents
-            expect(result[1].amount).toBe(99999); // €999.99 in cents
+            expect(result.at(0).amount).toBe(123456); // $1,234.56 in cents
+            expect(result.at(1).amount).toBe(99999); // €999.99 in cents
         });
 
         it('should handle negative amounts', () => {
@@ -381,7 +381,7 @@ describe('ImportTransactions', () => {
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(1);
-            expect(result[0].amount).toBe(-5000);
+            expect(result.at(0).amount).toBe(-5000);
         });
 
         it('should work with containsHeader false', () => {
@@ -402,7 +402,7 @@ describe('ImportTransactions', () => {
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(2);
-            expect(result[0]).toMatchObject({
+            expect(result.at(0)).toMatchObject({
                 created: '2024-01-15',
                 merchant: 'Store A',
                 amount: 1000,
@@ -427,10 +427,10 @@ describe('ImportTransactions', () => {
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(4);
-            expect(result[0].created).toBe('2024-01-15');
-            expect(result[1].created).toBe('2024-01-20');
-            expect(result[2].created).toBe('2024-01-20');
-            expect(result[3].created).toBe('2024-01-25');
+            expect(result.at(0).created).toBe('2024-01-15');
+            expect(result.at(1).created).toBe('2024-01-20');
+            expect(result.at(2).created).toBe('2024-01-20');
+            expect(result.at(3).created).toBe('2024-01-25');
         });
 
         it('should skip rows with invalid dates', () => {
@@ -451,8 +451,8 @@ describe('ImportTransactions', () => {
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(2);
-            expect(result[0].merchant).toBe('Store A');
-            expect(result[1].merchant).toBe('Store C');
+            expect(result.at(0).merchant).toBe('Store A');
+            expect(result.at(1).merchant).toBe('Store C');
         });
 
         it('should handle missing merchant gracefully', () => {
@@ -473,7 +473,7 @@ describe('ImportTransactions', () => {
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
             expect(result).toHaveLength(1);
-            expect(result[0].merchant).toBe('');
+            expect(result.at(0).merchant).toBe('');
         });
     });
 
