@@ -25,7 +25,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     const {translate} = useLocalize();
 
     // Re-render this component when account.shouldUseStagingServer changes
-    useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER, {canBeMissing: true});
+    useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
 
     const htmlAttribs = tnode.attributes;
     const isDeleted = isDeletedNode(tnode);

@@ -14,6 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
+import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import IconSection from './IconSection';
@@ -186,7 +187,16 @@ function Section({
                         />
                     )}
                     <View style={[styles.flexShrink1, styles.w100]}>
-                        {renderTitle ? renderTitle() : !!title && <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>}
+                        {renderTitle
+                            ? renderTitle()
+                            : !!title && (
+                                  <Text
+                                      style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}
+                                      accessibilityRole={CONST.ROLE.HEADER}
+                                  >
+                                      {title}
+                                  </Text>
+                              )}
                     </View>
                     {cardLayout === CARD_LAYOUT.ICON_ON_RIGHT && (
                         <IconSection

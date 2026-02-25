@@ -17,7 +17,7 @@ const defaultLoginContext: LoginContextType = {
 const Context = React.createContext<LoginContextType>(defaultLoginContext);
 
 function LoginProvider({children}: ChildrenProps) {
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [login, setLoginState] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
 
     const setLogin = useCallback((newLogin: string) => {
