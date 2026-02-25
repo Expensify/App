@@ -1,0 +1,111 @@
+---
+title: NS0295 Export Error: Employee or Vendor Record Not Found by Email
+description: Learn why the NS0295 export error occurs and how to match employee or vendor email addresses between NetSuite and Expensify.
+keywords: NS0295, NetSuite employee not found by email, NetSuite vendor not found by email, email mismatch NetSuite Expensify, employee record email error, vendor record email error
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0295 export error related to missing or mismatched employee or vendor email records. Does not cover subsidiary mismatches or role permission issues.
+---
+
+# NS0295 Export Error: Employee or Vendor Record Not Found by Email
+
+If you see the error message **“NS0295 Export Error: NetSuite couldn’t find an employee or vendor record with the email [XXXX].”**, it means NetSuite cannot locate a matching employee or vendor record using the email address associated with the report creator or submitter.
+
+The email address must match exactly between NetSuite and Expensify.
+
+---
+
+## Why the NS0295 Export Error Happens
+
+The NS0295 export error occurs when:
+
+- The report creator or submitter does not have an associated **employee** or **vendor** record in NetSuite, or  
+- The email address on the NetSuite record does not exactly match the email used in Expensify  
+
+Even small differences (such as capitalization or spacing) can cause the export to fail.
+
+---
+
+# How to Fix the NS0295 Export Error for Vendor Bills
+
+If you are exporting **vendor bills**, update the vendor record in NetSuite.
+
+## Step 1: Confirm Vendor Email in NetSuite
+
+In NetSuite:
+
+1. Go to **Lists > Vendors**.
+2. Locate and edit the vendor record associated with the report creator or submitter.
+3. Confirm the **Email** field exactly matches the email used in Expensify.
+4. Save the vendor record.
+
+---
+
+## Step 2: Sync the Connection in Expensify
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the NetSuite connection.
+5. Click **Sync now**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the NetSuite connection.
+5. Tap **Sync now**.
+
+Retry exporting the report once the sync completes.
+
+---
+
+# How to Fix the NS0295 Export Error for Journal Entries or Expense Reports
+
+If you are exporting **journal entries** or **expense reports**, update the employee record in NetSuite.
+
+## Step 1: Confirm Employee Email in NetSuite
+
+In NetSuite:
+
+1. Go to **Lists > Employees**.
+2. Locate and edit the employee record associated with the report creator or submitter.
+3. Confirm the **Email** field exactly matches the email used in Expensify.
+4. Save the employee record.
+
+---
+
+## Step 2: Sync the Connection in Expensify
+
+After updating the employee record:
+
+On web:
+
+1. Go to **Workspaces** from the navigation tabs on the left.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the NetSuite connection.
+5. Click **Sync now**.
+
+On mobile:
+
+1. Tap **Workspaces** from the navigation tabs on the bottom.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the NetSuite connection.
+5. Tap **Sync now**.
+
+Retry exporting the report once the sync completes.
+
+---
+
+# FAQ
+
+## Does the NS0295 Export Error affect only one user?
+
+Yes. This error is specific to the employee or vendor record associated with the report.
+
+## Do I need NetSuite admin access to fix the NS0295 Export Error?
+
+Yes. Editing employee or vendor records in NetSuite requires appropriate permissions.
