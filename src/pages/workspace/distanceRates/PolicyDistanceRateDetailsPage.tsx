@@ -171,7 +171,12 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         onClose={() => clearErrorFields('enabled')}
                     >
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.p5]}>
-                            <Text>{translate('workspace.distanceRates.enableRate')}</Text>
+                            <Text
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('workspace.distanceRates.enableRate')}
+                            </Text>
                             <Switch
                                 isOn={rate?.enabled ?? false}
                                 onToggle={toggleRate}

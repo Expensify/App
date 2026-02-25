@@ -779,6 +779,18 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
     return isOnHoldTransactionUtils(reportTransaction) && policy?.role === CONST.POLICY.ROLE.ADMIN && !isHoldCreator(reportTransaction, report.reportID);
 }
 
+function isDuplicateReportAction(report: Report): boolean {
+    if (!isCurrentUserSubmitter(report)) {
+        return false;
+    }
+
+    if (!isExpenseReportUtils(report)) {
+        return false;
+    }
+
+    return true;
+}
+
 function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
     // Only single transactions are supported for now
     if (reportTransactions.length !== 1) {
@@ -936,6 +948,10 @@ function getSecondaryReportActions({
 
     if (isDuplicateAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
+    }
+
+    if (isDuplicateReportAction(report)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
