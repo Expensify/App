@@ -261,6 +261,7 @@ import ReportActionItemMessageWithExplain from './ReportActionItemMessageWithExp
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import TripSummary from './TripSummary';
+import Parser from '@libs/Parser';
 
 type PureReportActionItemProps = {
     /** All the data of the policy collection */
@@ -1361,8 +1362,16 @@ function PureReportActionItem({
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
             }
         } else if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
-            const errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
-            children = <ReportActionItemBasicMessage message={errorMessage} />;
+            const wasSubmittedViaHarvesting = getOriginalMessage(action)?.harvesting ?? false;
+
+            let errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
+            if (wasSubmittedViaHarvesting) {
+                errorMessage = translate('iou.failedToAutoSubmitViaDEW', errorMessage);
+            }
+
+            children = (<ReportActionItemBasicMessage>
+                <RenderHTML html={`<comment><muted-text>${errorMessage}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>);
         } else if (isDynamicExternalWorkflowApproveFailedAction(action)) {
             const errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
             children = <ReportActionItemBasicMessage message={errorMessage} />;
