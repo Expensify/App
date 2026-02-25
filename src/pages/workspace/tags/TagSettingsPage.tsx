@@ -179,7 +179,12 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                         >
                             <View style={[styles.mt2, styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Text>{translate('workspace.tags.enableTag')}</Text>
+                                    <Text
+                                        accessible={false}
+                                        aria-hidden
+                                    >
+                                        {translate('workspace.tags.enableTag')}
+                                    </Text>
                                     <Switch
                                         isOn={currentPolicyTag.enabled}
                                         accessibilityLabel={translate('workspace.tags.enableTag')}
