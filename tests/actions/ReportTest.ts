@@ -3477,6 +3477,101 @@ describe('actions/Report', () => {
             expect((nonMatchingOptimisticData?.value as OnyxTypes.Transaction)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             expect((nonMatchingOptimisticData?.value as OnyxTypes.Transaction)?.convertedAmount).toBeNull();
         });
+
+        it('should optimistically close an OPEN report when moving to a workspace with instant submit, submit-and-close, and no payments', () => {
+            const reportID = 'testReportOpenClose';
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const policy = {
+                ...createRandomPolicy(Number(1)),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+
+            const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
+
+            const reportOptimisticData = optimisticData.find(
+                (data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}` && (data.value as OnyxTypes.Report)?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
+            );
+            expect(reportOptimisticData).toBeDefined();
+            expect((reportOptimisticData?.value as OnyxTypes.Report)?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect((reportOptimisticData?.value as OnyxTypes.Report)?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
+
+            const reportFailureData = failureData.find(
+                (data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}` && (data.value as OnyxTypes.Report)?.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
+            );
+            expect(reportFailureData).toBeDefined();
+            expect((reportFailureData?.value as OnyxTypes.Report)?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect((reportFailureData?.value as OnyxTypes.Report)?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+        });
+
+        it('should optimistically close a PROCESSING report when moving to a workspace with instant submit, submit-and-close, and no payments', () => {
+            const reportID = 'testReportProcessingClose';
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const policy = {
+                ...createRandomPolicy(Number(1)),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+
+            const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
+
+            const reportOptimisticData = optimisticData.find(
+                (data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}` && (data.value as OnyxTypes.Report)?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
+            );
+            expect(reportOptimisticData).toBeDefined();
+            expect((reportOptimisticData?.value as OnyxTypes.Report)?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect((reportOptimisticData?.value as OnyxTypes.Report)?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
+
+            const reportFailureData = failureData.find(
+                (data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}` && (data.value as OnyxTypes.Report)?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
+            );
+            expect(reportFailureData).toBeDefined();
+            expect((reportFailureData?.value as OnyxTypes.Report)?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect((reportFailureData?.value as OnyxTypes.Report)?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+        });
+
+        it('should NOT optimistically close a report when the workspace does not have instant submit enabled', () => {
+            const reportID = 'testReportNoInstantSubmit';
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const policy = {
+                ...createRandomPolicy(Number(1)),
+                autoReporting: false,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+
+            const {optimisticData} = Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
+
+            const reportCloseData = optimisticData.find(
+                (data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}` && (data.value as OnyxTypes.Report)?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
+            );
+            expect(reportCloseData).toBeUndefined();
+        });
     });
 
     describe('searchInServer', () => {
