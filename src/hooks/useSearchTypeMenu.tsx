@@ -24,6 +24,7 @@ import ROUTES from '@src/ROUTES';
 import todosReportCountsSelector from '@src/selectors/Todos';
 import type {Report} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useDeleteSavedSearch from './useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
@@ -54,7 +55,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [reports = getEmptyObject<NonNullable<OnyxCollection<Report>>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates(allPolicies);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [savedSearches, savedSearchesMetadata] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const isLoadingSavedSearches = isLoadingOnyxValue(savedSearchesMetadata);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -192,7 +194,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON?.type],
     );
 
-    const allSearchAdvancedFilters = useStickySearchFilters(isExploreSectionActive && !shouldShowSuggestedSearchSkeleton);
+    const allSearchAdvancedFilters = useStickySearchFilters(isExploreSectionActive && !shouldShowSuggestedSearchSkeleton && !isLoadingSavedSearches);
 
     const popoverMenuItems = useMemo(() => {
         return typeMenuSections
