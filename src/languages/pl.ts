@@ -65,8 +65,11 @@ import type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -391,6 +394,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Karta',
         whyDoWeAskForThis: 'Dlaczego o to prosimy?',
         required: 'Wymagane',
+        automatic: 'Automatyczny',
         showing: 'Wyświetlanie',
         of: 'z',
         default: 'Domyślne',
@@ -526,6 +530,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Wymagane działanie',
         duplicate: 'Duplikuj',
         duplicated: 'Zduplikowano',
+        opensInNewTab: 'Otwiera się w nowej karcie',
         locked: 'Zablokowane',
         duplicateExpense: 'Zduplikowany wydatek',
         exchangeRate: 'Kurs wymiany',
@@ -1170,6 +1175,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Oczekuje na dopasowanie paragonu do transakcji kartą. Oznacz jako gotówkę, aby anulować.',
         markAsCash: 'Oznacz jako gotówkę',
         routePending: 'Trasa w toku…',
+        automaticallyEnterExpenseDetails: 'Concierge automatycznie wprowadzi szczegóły wydatku za Ciebie lub możesz dodać je ręcznie.',
         receiptScanning: () => ({
             one: 'Skanowanie paragonu...',
             other: 'Skanowanie paragonów...',
@@ -1378,7 +1384,12 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Niektóre z tych duplikatów zostały już zatwierdzone lub opłacone.',
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystko',
-        confirmApprovalWithHeldAmount: 'Raport zawiera wstrzymane wydatki. Zatwierdzić tylko zgodne wydatki, czy zatwierdzić cały raport?',
+        confirmApprove: 'Potwierdź kwotę zatwierdzenia',
+        confirmApprovalAmount: 'Zatwierdź tylko zgodne wydatki lub zatwierdź cały raport.',
+        confirmApprovalAllHoldAmount: () => ({
+            one: 'Ten wydatek jest wstrzymany. Czy mimo to chcesz go zatwierdzić?',
+            other: 'Te wydatki są wstrzymane. Czy mimo to chcesz je zatwierdzić?',
+        }),
         confirmPay: 'Potwierdź kwotę płatności',
         confirmPayAmount: 'Zapłać to, co nie jest wstrzymane, lub zapłać cały raport.',
         confirmPayAllHoldAmount: () => ({
@@ -3866,6 +3877,8 @@ ${
             workspaceOwner: 'Właściciel',
             workspaceType: 'Typ przestrzeni roboczej',
             workspaceAvatar: 'Awatar przestrzeni roboczej',
+            clientID: 'ID klienta',
+            clientIDInputHint: 'Wprowadź unikalny identyfikator klienta',
             mustBeOnlineToViewMembers: 'Musisz być online, aby wyświetlić członków tego workspace.',
             moreFeatures: 'Więcej funkcji',
             requested: 'Zamówiono',
@@ -6312,6 +6325,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 adultEntertainment: 'Rozrywka dla dorosłych',
                 requireCompanyCard: 'Wymagaj kart służbowych dla wszystkich zakupów',
                 requireCompanyCardDescription: 'Oznacz wszystkie wydatki gotówkowe, w tym koszty za przejechane kilometry i ryczałty dzienne.',
+                requireCompanyCardDisabledTooltip: 'Włącz karty firmowe (w sekcji Więcej funkcji), aby odblokować.',
             },
             expenseReportRules: {
                 title: 'Zaawansowane',
@@ -6770,6 +6784,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 ? `zmienił(a) upoważnioną osobę zwracającą wydatki na „${newReimburser}” (wcześniej „${previousReimburser}”)`
                 : `zmienił(a) upoważnionego płatnika na „${newReimburser}”`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'włączone' : 'wyłączone'} zwrotów kosztów`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `zmieniono niestandardową nazwę podatku na „${newName}" (poprzednio „${oldName}")`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
+            `zmienił domyślną stawkę podatku waluty w przestrzeni roboczej na „${newName}" (wcześniej „${oldName}")`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
+            `zmieniono domyślną stawkę podatku dla obcej waluty na „${newName}" (wcześniej „${oldName}")`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `dodano podatek „${taxName}”`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `usunął(-ę) podatek „${taxName}”`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7153,6 +7172,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             table: 'Tabela',
             bar: 'Bar',
             line: 'Linia',
+            pie: 'Wykres kołowy',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
@@ -7385,6 +7405,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         scrollToNewestMessages: 'Przewiń do najnowszych wiadomości',
         preStyledText: 'Wstępnie ostylowany tekst',
         viewAttachment: 'Zobacz załącznik',
+        selectAllFeatures: 'Zaznacz wszystkie funkcje',
+        selectAllTransactions: 'Zaznacz wszystkie transakcje',
+        selectAllItems: 'Zaznacz wszystkie elementy',
     },
     parentReportAction: {
         deletedReport: 'Usunięty raport',
@@ -7501,6 +7524,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             endTitle: 'Końcowe zdjęcie licznika przebiegu',
             deleteOdometerPhoto: 'Usuń zdjęcie licznika przebiegu',
             deleteOdometerPhotoConfirmation: 'Na pewno chcesz usunąć to zdjęcie licznika?',
+            cameraAccessRequired: 'Aby robić zdjęcia, wymagany jest dostęp do aparatu.',
+            snapPhotoStart: '<muted-text-label>Zrób zdjęcie licznika kilometrów na <strong>początku</strong> podróży.</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>Zrób zdjęcie licznika kilometrów na <strong>koniec</strong> swojej podróży.</muted-text-label>',
         },
     },
     gps: {
@@ -8420,15 +8446,24 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 addMember: 'Nie można dodać tego członka. Spróbuj ponownie.',
                 vacationDelegate: 'Nie można ustawić tego użytkownika jako zastępującego na czas nieobecności. Spróbuj ponownie.',
             },
+            cannotSetVacationDelegateForMember: (email: string) => `Nie możesz ustawić zastępstwa urlopowego dla ${email}, ponieważ jest on/ona obecnie zastępcą dla następujących członków:`,
+        },
+        common: {
+            settings: 'Ustawienia',
             forceTwoFactorAuth: 'Wymuś uwierzytelnianie dwuskładnikowe',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>Wyłącz proszę <a href="${samlPageUrl}">SAML</a>, aby wymusić uwierzytelnianie dwuskładnikowe.</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>Wymagaj uwierzytelniania dwuskładnikowego od wszystkich członków tej domeny. Członkowie domeny zostaną poproszeni o skonfigurowanie uwierzytelniania dwuskładnikowego na swoim koncie po zalogowaniu.</muted-text>`,
             forceTwoFactorAuthError: 'Nie udało się zmienić wymuszania uwierzytelniania dwuskładnikowego. Spróbuj ponownie później.',
-            cannotSetVacationDelegateForMember: (email: string) => `Nie możesz ustawić zastępstwa urlopowego dla ${email}, ponieważ jest on/ona obecnie zastępcą dla następujących członków:`,
+            resetTwoFactorAuth: 'Zresetuj uwierzytelnianie dwuskładnikowe',
         },
-        common: {settings: 'Ustawienia'},
         groups: {title: 'Grupy', memberCount: () => ({one: '1 członek', other: (count: number) => `${count} członków`})},
+    },
+    proactiveAppReview: {
+        title: 'Podoba Ci się nowy Expensify?',
+        description: 'Daj nam znać, abyśmy mogli pomóc uczynić Twoje rozliczanie wydatków jeszcze lepszym.',
+        positiveButton: 'Tak!',
+        negativeButton: 'Niekoniecznie',
     },
 };
 export default translations;

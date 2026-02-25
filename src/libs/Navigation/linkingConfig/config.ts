@@ -241,10 +241,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
                             path: ROUTES.SETTINGS_REPORT_FRAUD.route,
                             exact: true,
@@ -767,6 +763,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {path: ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.route},
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_DESCRIPTION.route,
+                        },
+                        [SCREENS.WORKSPACE.CLIENT_ID]: {
+                            path: ROUTES.WORKSPACE_OVERVIEW_CLIENT_ID.route,
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.route,
@@ -1306,6 +1305,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.DOMAIN.MEMBERS_SETTINGS_TWO_FACTOR_AUTH]: {
                             path: ROUTES.DOMAIN_MEMBERS_SETTINGS_TWO_FACTOR_AUTH.route,
+                        },
+                        [SCREENS.DOMAIN.MEMBER_FORCE_TWO_FACTOR_AUTH]: {
+                            path: ROUTES.DOMAIN_MEMBER_FORCE_TWO_FACTOR_AUTH.route,
+                        },
+                        [SCREENS.DOMAIN.MEMBER_RESET_TWO_FACTOR_AUTH]: {
+                            path: ROUTES.DOMAIN_MEMBER_RESET_TWO_FACTOR_AUTH.route,
                         },
                     },
                 },

@@ -65,8 +65,11 @@ import type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -391,6 +394,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Carte',
         whyDoWeAskForThis: 'Pourquoi demandons-nous cela ?',
         required: 'Obligatoire',
+        automatic: 'Automatique',
         showing: 'Affichage',
         of: 'de',
         default: 'Par défaut',
@@ -531,6 +535,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: 'Taux de change',
         reimbursableTotal: 'Total remboursable',
         nonReimbursableTotal: 'Total non remboursable',
+        opensInNewTab: 'S’ouvre dans un nouvel onglet',
         locked: 'Verrouillé',
         month: 'Mois',
         week: 'Semaine',
@@ -1177,6 +1182,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Reçu en attente de rapprochement avec une transaction par carte. Marquez comme paiement en espèces pour annuler.',
         markAsCash: 'Marquer comme espèces',
         routePending: 'Acheminement en attente...',
+        automaticallyEnterExpenseDetails: 'Concierge saisira automatiquement les détails de la dépense pour vous, ou vous pouvez les ajouter manuellement.',
         receiptScanning: () => ({
             one: 'Scan des reçus...',
             other: 'Scan des reçus...',
@@ -1388,7 +1394,12 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Certains de ces doublons ont déjà été approuvés ou payés.',
         reviewDuplicates: 'Examiner les doublons',
         keepAll: 'Tout garder',
-        confirmApprovalWithHeldAmount: "Le rapport contient des dépenses en attente. Approuver uniquement les dépenses conformes, ou approuver l'ensemble du rapport ?",
+        confirmApprove: 'Confirmer le montant approuvé',
+        confirmApprovalAmount: 'Approuvez uniquement les dépenses conformes, ou approuvez l’intégralité de la note de frais.',
+        confirmApprovalAllHoldAmount: () => ({
+            one: 'Cette dépense est en attente. Voulez-vous l’approuver quand même ?',
+            other: 'Ces dépenses sont en attente. Voulez-vous tout de même approuver ?',
+        }),
         confirmPay: 'Confirmer le montant du paiement',
         confirmPayAmount: 'Payez ce qui n’est pas en attente, ou payez l’intégralité de la note de frais.',
         confirmPayAllHoldAmount: () => ({
@@ -3898,6 +3909,8 @@ ${
             workspaceOwner: 'Responsable',
             workspaceType: 'Type d’espace de travail',
             workspaceAvatar: "Avatar de l'espace de travail",
+            clientID: 'ID client',
+            clientIDInputHint: "Entrez l'identifiant unique du client",
             mustBeOnlineToViewMembers: 'Vous devez être en ligne pour voir les membres de cet espace de travail.',
             moreFeatures: 'Plus de fonctionnalités',
             requested: 'Demandé',
@@ -6373,6 +6386,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 adultEntertainment: 'Divertissement pour adultes',
                 requireCompanyCard: "Exiger l'utilisation de cartes d'entreprise pour tous les achats",
                 requireCompanyCardDescription: 'Signaler toutes les dépenses en espèces, y compris le kilométrage et les indemnités journalières.',
+                requireCompanyCardDisabledTooltip: 'Activez les cartes d’entreprise (dans Plus de fonctionnalités) pour déverrouiller.',
             },
             expenseReportRules: {
                 title: 'Avancé',
@@ -6836,6 +6850,11 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `a modifié le payeur autorisé en « ${newReimburser} » (auparavant « ${previousReimburser} »)` : `a modifié le payeur autorisé en « ${newReimburser} »`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `Remboursements ${enabled ? 'Activé' : 'Désactivé'}`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `a modifié le nom de taxe personnalisé en « ${newName} » (auparavant « ${oldName} »)`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
+            `a modifié le taux de taxe par défaut de la devise de l'espace de travail en « ${newName} » (auparavant « ${oldName} »)`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
+            `a modifié le taux de taxe par défaut en devise étrangère en « ${newName} » (auparavant « ${oldName} »)`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `a ajouté la taxe « ${taxName} »`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `a supprimé la taxe « ${taxName} »`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7221,6 +7240,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             table: 'Table',
             bar: 'Bar',
             line: 'Ligne',
+            pie: 'Tarte',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
@@ -7454,6 +7474,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         scrollToNewestMessages: 'Aller au dernier message',
         preStyledText: 'Texte pré-stylé',
         viewAttachment: 'Afficher la pièce jointe',
+        selectAllFeatures: 'Sélectionner toutes les fonctionnalités',
+        selectAllTransactions: 'Sélectionner toutes les transactions',
+        selectAllItems: 'Sélectionner tous les éléments',
     },
     parentReportAction: {
         deletedReport: 'Note de frais supprimée',
@@ -7571,6 +7594,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             endTitle: 'Photo du compteur (arrivée)',
             deleteOdometerPhoto: 'Supprimer la photo du compteur kilométrique',
             deleteOdometerPhotoConfirmation: 'Voulez-vous vraiment supprimer cette photo de l’odomètre ?',
+            cameraAccessRequired: "L'accès à l'appareil photo est requis pour prendre des photos.",
+            snapPhotoStart: '<muted-text-label>Prenez une photo de votre compteur kilométrique au <strong>début</strong> de votre trajet.</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>Prenez une photo de votre compteur kilométrique à la <strong>fin</strong> de votre trajet.</muted-text-label>',
         },
     },
     gps: {
@@ -8493,16 +8519,25 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
                 addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.',
                 vacationDelegate: 'Impossible de définir cet utilisateur comme délégué de vacances. Veuillez réessayer.',
             },
+            cannotSetVacationDelegateForMember: (email: string) =>
+                `Vous ne pouvez pas définir un délégué de vacances pour ${email}, car cette personne est actuellement le délégué des membres suivants :`,
+        },
+        common: {
+            settings: 'Paramètres',
             forceTwoFactorAuth: 'Imposer l’authentification à deux facteurs',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>Veuillez désactiver <a href="${samlPageUrl}">SAML</a> pour imposer l’authentification à deux facteurs.</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>Exiger l’authentification à deux facteurs pour tous les membres de ce domaine. Les membres du domaine seront invités à configurer l’authentification à deux facteurs sur leur compte lorsqu’ils se connectent.</muted-text>`,
             forceTwoFactorAuthError: 'L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.',
-            cannotSetVacationDelegateForMember: (email: string) =>
-                `Vous ne pouvez pas définir un délégué de vacances pour ${email}, car cette personne est actuellement le délégué des membres suivants :`,
+            resetTwoFactorAuth: 'Réinitialiser l’authentification à deux facteurs',
         },
-        common: {settings: 'Paramètres'},
         groups: {title: 'Groupes', memberCount: () => ({one: '1 membre', other: (count: number) => `${count} membres`})},
+    },
+    proactiveAppReview: {
+        title: 'Vous appréciez le nouveau Expensify ?',
+        description: 'Faites-le-nous savoir afin que nous puissions rendre votre expérience de gestion de notes de frais encore meilleure.',
+        positiveButton: 'Oui !',
+        negativeButton: 'Pas vraiment',
     },
 };
 export default translations;

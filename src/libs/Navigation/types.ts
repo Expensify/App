@@ -197,7 +197,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
         policyID: string;
     };
-    [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS]: undefined;
@@ -291,6 +290,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
+    [SCREENS.WORKSPACE.CLIENT_ID]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
     [SCREENS.WORKSPACE.INVITE]: {
         policyID: string;
@@ -1540,6 +1540,14 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
         accountID: number;
     };
+    [SCREENS.DOMAIN.MEMBER_FORCE_TWO_FACTOR_AUTH]: {
+        domainAccountID: number;
+        accountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBER_RESET_TWO_FACTOR_AUTH]: {
+        domainAccountID: number;
+        accountID: number;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {
@@ -2782,9 +2790,7 @@ type ExplanationModalNavigatorParamList = {
 };
 
 type MigratedUserModalNavigatorParamList = {
-    [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: {
-        shouldOpenSearch?: string;
-    };
+    [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: undefined;
 };
 
 type TestDriveModalNavigatorParamList = {

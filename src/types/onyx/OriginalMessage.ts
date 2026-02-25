@@ -1081,7 +1081,7 @@ type OriginalMessageExportIntegration = {
     /**
      * Whether the export was done via an automation
      */
-    automaticAction: false;
+    automaticAction?: boolean;
 
     /**
      * The integration that was exported to (display text)
@@ -1096,7 +1096,7 @@ type OriginalMessageExportIntegration = {
     /**
      * Whether the report was manually marked as exported
      */
-    markedManually: boolean;
+    markedManually?: boolean;
 
     /**
      * An list of URLs to the report in the integration for company card expenses
