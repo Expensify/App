@@ -86,9 +86,10 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
         return getFieldRequiredErrors(values, [COUNTRY], translate);
     };
 
+    // Clear any stale errors on mount
     useEffect(() => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-    });
+    }, []);
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
