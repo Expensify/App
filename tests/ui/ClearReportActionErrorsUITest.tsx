@@ -185,11 +185,7 @@ describe('ClearReportActionErrors UI', () => {
             const dismissButton = screen.getByLabelText('Dismiss');
             fireEvent.press(dismissButton);
 
-            expect(mockClearErrors).toHaveBeenCalledWith(
-                REPORT_ID,
-                expect.objectContaining({reportActionID: REPORT_ACTION_ID}),
-                REPORT_ID,
-            );
+            expect(mockClearErrors).toHaveBeenCalledWith(REPORT_ID, expect.objectContaining({reportActionID: REPORT_ACTION_ID}), REPORT_ID);
         });
 
         it('should clear error from Onyx when dismissed', async () => {

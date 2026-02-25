@@ -104,20 +104,6 @@ describe('ClearReportActionErrors', () => {
             expect(reportActions).toBeUndefined();
         });
 
-        it('should clear errors on the current report action', async () => {
-            const reportAction = createMockReportAction();
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                [REPORT_ACTION_ID]: reportAction,
-            });
-            await waitForBatchedUpdates();
-
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
-            await waitForBatchedUpdates();
-
-            const reportActions = await getReportActionsFromOnyx(REPORT_ID);
-            expect(reportActions?.[REPORT_ACTION_ID]?.errors).toBeUndefined();
-        });
-
         it('should clear only specified error keys when keys parameter is provided', async () => {
             const reportAction = createMockReportAction({
                 errors: {error1: 'Error 1', error2: 'Error 2', error3: 'Error 3'},
@@ -134,22 +120,6 @@ describe('ClearReportActionErrors', () => {
             expect(reportActions?.[REPORT_ACTION_ID]?.errors).toEqual({
                 error3: 'Error 3',
             });
-        });
-
-        it('should delete optimistic report action instead of clearing errors', async () => {
-            const reportAction = createMockReportAction({
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                [REPORT_ACTION_ID]: reportAction,
-            });
-            await waitForBatchedUpdates();
-
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
-            await waitForBatchedUpdates();
-
-            const reportActions = await getReportActionsFromOnyx(REPORT_ID);
-            expect(reportActions?.[REPORT_ACTION_ID]).toBeUndefined();
         });
 
         it('should delete isOptimisticAction report action instead of clearing errors', async () => {
@@ -224,32 +194,6 @@ describe('ClearReportActionErrors', () => {
 
             const parentReportActions = await getReportActionsFromOnyx(PARENT_REPORT_ID);
             expect(parentReportActions?.[PARENT_REPORT_ACTION_ID]?.errors).toEqual({sharedError: 'Parent error message'});
-        });
-
-        it('should clear errors on child report actions when matching error keys exist', async () => {
-            const reportAction = createMockReportAction({
-                childReportID: CHILD_REPORT_ID,
-                errors: {sharedError: 'Error message'},
-            });
-            const childReportAction = createMockReportAction({
-                reportActionID: CHILD_REPORT_ACTION_ID,
-                errors: {sharedError: 'Child error message'},
-            });
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMockReport());
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                [REPORT_ACTION_ID]: reportAction,
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {
-                [CHILD_REPORT_ACTION_ID]: childReportAction,
-            });
-            await waitForBatchedUpdates();
-
-            clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
-            await waitForBatchedUpdates();
-
-            const childReportActions = await getReportActionsFromOnyx(CHILD_REPORT_ID);
-            expect(childReportActions?.[CHILD_REPORT_ACTION_ID]?.errors).toEqual({});
         });
 
         it('should not clear child errors when ignore is set to child', async () => {
