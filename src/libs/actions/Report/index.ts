@@ -1092,7 +1092,7 @@ function getGuidedSetupDataForOpenReport(introSelected: OnyxEntry<IntroSelected>
     const allPersistedRequests = getAll();
     const hasOpenReportWithGuidedSetupData = allPersistedRequests.some(
         (request) =>
-            (request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.guidedSetupData) ||
+            (request.command === WRITE_COMMANDS.OPEN_REPORT && !!request.data?.guidedSetupData) ||
             request.command === WRITE_COMMANDS.COMPLETE_GUIDED_SETUP ||
             request.command === SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP,
     );
