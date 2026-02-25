@@ -29,7 +29,7 @@ PODS:
   - AppLogs (0.1.0)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
-  - EXConstants (55.0.3):
+  - EXConstants (55.0.7):
     - ExpoModulesCore
   - expensify-react-native-background-task (0.0.0):
     - boost
@@ -88,7 +88,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - Expo (55.0.0-preview.9):
+  - Expo (55.0.0):
     - boost
     - DoubleConversion
     - ExpoModulesCore
@@ -123,7 +123,7 @@ PODS:
     - ExpoModulesCore
   - ExpoAudio (55.0.4):
     - ExpoModulesCore
-  - ExpoDomWebView (55.0.2):
+  - ExpoDomWebView (55.0.3):
     - ExpoModulesCore
   - ExpoFont (14.0.8):
     - ExpoModulesCore
@@ -139,7 +139,7 @@ PODS:
     - SDWebImageWebPCoder
   - ExpoLocation (55.0.3):
     - ExpoModulesCore
-  - ExpoLogBox (55.0.5):
+  - ExpoLogBox (55.0.7):
     - React-Core
   - ExpoModulesCore (55.0.4):
     - boost
@@ -4723,18 +4723,18 @@ SPEC CHECKSUMS:
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
-  EXConstants: 9b0ceaa3eb81fc2501ba4f857c1c108a5148c792
+  EXConstants: b3c63be5f8648e4ab8e6ff5099b62f629247f969
   expensify-react-native-background-task: 03c640e1f5649692d058cba48c0a138f024a6dd3
   ExpensifyNitroUtils: 86109fe1ab88351ed63ffe11b760d537c70019d7
-  Expo: 62d99b907188b1cef8c4386d7b75eec50d103119
+  Expo: 941aee686e1fcc486956cdeb5961d9244e9da0aa
   ExpoAsset: afaa23466e93da462b918bff8d6a9fe15c646dc8
   ExpoAudio: 14c5909ec48267bfc514bb44c546fcf6fac93837
-  ExpoDomWebView: c0343b93dabed758db1e14ef1d1e570a1498562a
+  ExpoDomWebView: f101fb3db4b6eec4163fca51f7507189b7e48661
   ExpoFont: 86ceec09ffed1c99cfee36ceb79ba149074901b5
   ExpoImage: 8f835720453ed5be7764d9650aa1efde8109abc7
   ExpoImageManipulator: ae244131e2c3da68a030332fcbd87287fbdd8f97
   ExpoLocation: fec7703a4922c4748b380723669f771376ffbd05
-  ExpoLogBox: 10ba15b7428e0020da6743a309f53fd553165112
+  ExpoLogBox: 89b634d5a8a64c4a6a7caad8f9985a28463c7002
   ExpoModulesCore: 1158e7941ddcff1677846dfdec27630e036e3904
   ExpoModulesJSI: 455acaa72cb963ceb247df889c8e8cce3e6bbfe6
   ExpoSecureStore: 3f1b632d6d40bcc62b4983ef9199cd079592a50a
@@ -4881,7 +4881,7 @@ SPEC CHECKSUMS:
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: 4db26426b6098e3d87bd26d8c9a9afa3b6674123
   RNGoogleSignin: 89877c73f0fbf6af2038fbdb7b73b5a25b8330cc
-  RNLiveMarkdown: 60621617bc0504ac39669e3a8d1e9cadf1ada34f
+  RNLiveMarkdown: 589e31da57c2cb6d98b37ac68ae8b0b256247172
   RNLocalize: 05e367a873223683f0e268d0af9a8a8e6aed3b26
   rnmapbox-maps: 392ac61c42a9ff01a51d4c2f6775d9131b5951fb
   RNNitroSQLite: fb251387cfbee73b100cd484a3c886fda681b3b5
