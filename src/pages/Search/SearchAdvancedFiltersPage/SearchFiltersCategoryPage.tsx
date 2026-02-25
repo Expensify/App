@@ -20,8 +20,8 @@ function SearchFiltersCategoryPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const selectedCategoriesItems = searchAdvancedFiltersForm?.category?.map((category) => {
         if (category === CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
             return {name: translate('search.noCategory'), value: category};
@@ -46,7 +46,6 @@ function SearchFiltersCategoryPage() {
     const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(
         ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
         {
-            canBeMissing: false,
             selector: availableNonPersonalPolicyCategoriesSelector,
         },
         [availableNonPersonalPolicyCategoriesSelector],

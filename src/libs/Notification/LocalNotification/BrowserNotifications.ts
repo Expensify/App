@@ -130,13 +130,14 @@ export default {
         push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, usesIcon = false}: LocalNotificationModifiedExpensePushParams) {
+    pushModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, usesIcon = false, currentUserLogin}: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const body = getForReportAction({
             reportAction,
             policyID: report.policyID,
             movedFromReport,
             movedToReport,
+            currentUserLogin,
         });
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
