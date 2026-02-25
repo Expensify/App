@@ -1,10 +1,8 @@
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import {getImageCacheFileExtension, isInternalAttachment} from '@libs/AttachmentUtils';
+import {getImageCacheFileExtension} from '@libs/AttachmentUtils';
 import Log from '@libs/Log';
-import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CacheAttachmentProps, GetCachedAttachmentProps, RemoveCachedAttachmentProps} from './types';
@@ -33,11 +31,9 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
         return;
     }
 
-    const attachmentURL = isInternalAttachment(uri) ? addEncryptedAuthTokenToURL(tryResolveUrlFromApiRoot(uri)) : uri;
-
     try {
         // HEAD first to validate size and type before downloading
-        const headResponse = await fetch(attachmentURL, {method: 'HEAD'});
+        const headResponse = await fetch(uri, {method: 'HEAD'});
         const contentType = headResponse.headers.get('content-type') ?? '';
         const contentSize = Number(headResponse.headers.get('content-length') ?? 0);
 
@@ -57,7 +53,7 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
 
         const fileName = `${attachmentID}.${attachmentFileType}`;
         const filePath = `${ATTACHMENT_DIR}/${fileName}`;
-        await RNFetchBlob.config({path: filePath}).fetch('GET', attachmentURL);
+        await RNFetchBlob.config({path: filePath}).fetch('GET', uri);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
             attachmentID,

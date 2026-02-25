@@ -102,10 +102,6 @@ function isDirectoryCheck(data: FileObject) {
     return true;
 }
 
-function isInternalAttachment(url: string) {
-    return new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(url) || url.startsWith('/chat-attachments');
-}
-
 /**
  * Returns image cache file extension based from mime type
  */
@@ -114,5 +110,5 @@ function getImageCacheFileExtension(contentType: string) {
     return imageCacheFileTypes[contentType] ?? '';
 }
 
-export {validateAttachmentFile, isInternalAttachment, getImageCacheFileExtension};
+export {validateAttachmentFile, getImageCacheFileExtension};
 export type {AttachmentValidationResult};
