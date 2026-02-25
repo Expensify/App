@@ -1,0 +1,74 @@
+---
+title: NS0023 Export Error: Employee Does Not Exist in NetSuite
+description: Learn why the NS0023 export error occurs and how to match employee subsidiary and email settings between NetSuite and Expensify.
+keywords: NS0023, NetSuite employee does not exist, employee subsidiary mismatch, employee email mismatch NetSuite, Expensify NetSuite export error
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0023 export error related to employee subsidiary and email mismatches. Does not cover role permission or token configuration issues.
+---
+
+# NS0023 Export Error: Employee Does Not Exist in NetSuite
+
+If you see the error message **“NS0023 Export Error: Employee does not exist in NetSuite. Please make sure employee’s subsidiary and email matches between NetSuite and Expensify.”**, it means NetSuite cannot find a matching employee record for the report creator or submitter.
+
+Exports require the employee’s subsidiary and email address to match exactly between NetSuite and Expensify.
+
+---
+
+## Why the NS0023 Export Error Happens
+
+The NS0023 export error occurs when:
+
+- The employee’s **subsidiary** in NetSuite does not match the subsidiary used in Expensify, or  
+- The employee’s **email address** does not match between NetSuite and Expensify  
+
+If either value differs, NetSuite cannot match the employee during export.
+
+---
+
+## How to Fix the NS0023 Export Error
+
+### Step 1: Confirm Employee Settings in NetSuite
+
+In NetSuite:
+
+1. Go to **Lists > Employees**.
+2. Locate the employee profile associated with the report creator or submitter.
+3. Confirm the following:
+   - The **subsidiary** is correct.
+   - The **email address** matches the email used in Expensify.
+4. Save any changes if updates are made.
+
+---
+
+### Step 2: Sync the Connection in Expensify
+
+After confirming or updating the employee record:
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the NetSuite connection.
+5. Click **Sync now**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the NetSuite connection.
+5. Tap **Sync now**.
+
+Retry exporting the report once the sync completes.
+
+---
+
+# FAQ
+
+## Does the NS0023 Export Error affect all reports from this employee?
+
+Yes. If the employee record does not match, all exports tied to that employee will fail until the mismatch is corrected.
+
+## Do I need NetSuite admin access to fix the NS0023 Export Error?
+
+Yes. Updating employee records in NetSuite requires appropriate permissions.
