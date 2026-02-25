@@ -1,0 +1,59 @@
+---
+title: XERO99 Export Error: Xero Invoice Approval Limit Reached
+description: Learn why the XERO99 export error occurs in Expensify Classic and how to resolve Xero plan limits on bill approvals.
+keywords: XERO99, Xero invoice approval limit, Xero Early plan bill limit, Xero 5 bills per month limit, upgrade Xero plan, Expensify Classic Xero export error
+internalScope: Audience is Workspace Admins using the Xero integration in Expensify Classic. Covers the XERO99 export error related to Xero subscription plan limits. Does not cover authentication or category configuration issues.
+---
+
+# XERO99 Export Error: Xero Invoice Approval Limit Reached
+
+If you see the error message **“XERO99 Export Error: Xero invoice approval limit reached. The 'Early' Xero plan allows up to 5 bills per month. Please upgrade your plan or retry after the billing cycle resets.”**, it means your Xero subscription plan has reached its monthly bill limit.
+
+The **Early** Xero plan allows only five approved bills per month.
+
+---
+
+## Why the XERO99 Export Error Happens
+
+The XERO99 export error occurs when:
+
+- Your Xero account is on the **Early** plan, and  
+- You have already approved five bills in the current billing cycle  
+
+Once the monthly limit is reached, Xero blocks additional bill approvals until:
+
+- The billing cycle resets, or  
+- The subscription is upgraded  
+
+---
+
+## How to Fix the XERO99 Export Error
+
+### Option 1: Upgrade Your Xero Plan
+
+Upgrade your Xero subscription to a plan that allows more bill approvals, such as **Growing** or **Established**.
+
+Review Xero pricing plans here:  
+[Xero Pricing Plans](https://www.xero.com/us/pricing-plans/)
+
+---
+
+### Option 2: Wait for the Billing Cycle to Reset
+
+If you prefer not to upgrade:
+
+1. Wait until the next Xero billing cycle begins.
+2. Once the limit resets, return to Expensify.
+3. Retry exporting the report.
+
+---
+
+# FAQ
+
+## Does this error affect all exports?
+
+It affects bill exports that count toward the monthly approval limit on the Early plan.
+
+## Do I need Xero admin access to upgrade the plan?
+
+Yes. Updating your Xero subscription requires account-level admin permissions.
