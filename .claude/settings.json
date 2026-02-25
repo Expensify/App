@@ -6,7 +6,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "FILE=$(jq -r '.tool_input.file_path') && [ -f \"$FILE\" ] && ./node_modules/.bin/prettier --experimental-cli --write --ignore-unknown \"$FILE\""
+                        "command": "FILE=$(jq -r '.tool_input.file_path') && [ -f \"$FILE\" ] && ./node_modules/.bin/prettier --experimental-cli --no-cache --write --ignore-unknown \"$FILE\""
                     }
                 ]
             }
