@@ -6328,6 +6328,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 adultEntertainment: 'Entretenimento adulto',
                 requireCompanyCard: 'Exigir cartões corporativos para todas as compras',
                 requireCompanyCardDescription: 'Sinalize todos os gastos em dinheiro, incluindo despesas com quilometragem e diárias.',
+                requireCompanyCardDisabledTooltip: 'Ative Cartões corporativos (em Mais recursos) para desbloquear.',
             },
             expenseReportRules: {
                 title: 'Avançado',
@@ -7525,6 +7526,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             endTitle: 'Foto final do hodômetro',
             deleteOdometerPhoto: 'Excluir foto do odômetro',
             deleteOdometerPhotoConfirmation: 'Tem certeza de que deseja excluir esta foto do odômetro?',
+            cameraAccessRequired: 'É necessário acessar a câmera para tirar fotos.',
+            snapPhotoStart: '<muted-text-label>Tire uma foto do odômetro no <strong>início</strong> da sua viagem.</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>Tire uma foto do odômetro no <strong>final</strong> da sua viagem.</muted-text-label>',
         },
     },
     gps: {

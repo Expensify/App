@@ -6189,6 +6189,7 @@ ${reportName}
                 adultEntertainment: '成人娱乐',
                 requireCompanyCard: '所有消费均需使用公司卡',
                 requireCompanyCardDescription: '标记所有现金支出，包括里程和每日津贴报销。',
+                requireCompanyCardDisabledTooltip: '启用“公司卡”（位于“更多功能”下）以解锁。',
             },
             expenseReportRules: {
                 title: '高级',
@@ -7359,6 +7360,9 @@ ${reportName}
             endTitle: '结束里程表照片',
             deleteOdometerPhoto: '删除里程表照片',
             deleteOdometerPhotoConfirmation: '确定要删除这个里程表照片吗？',
+            cameraAccessRequired: '拍照需要启用相机访问权限。',
+            snapPhotoStart: '<muted-text-label>在行程<strong>开始</strong>时拍一张里程表照片。</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>在行程<strong>结束</strong>时拍一张里程表的照片。</muted-text-label>',
         },
     },
     gps: {
