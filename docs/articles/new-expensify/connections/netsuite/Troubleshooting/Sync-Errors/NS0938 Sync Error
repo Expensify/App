@@ -1,0 +1,75 @@
+---
+title: NS0938 Sync Error: Permission Error Querying NetSuite for 'CustomRecord'
+description: Learn why the NS0938 sync error occurs and how to update the Expensify Integration role to access Custom Records in NetSuite.
+keywords: NS0938, NetSuite CustomRecord permission error, Expensify Integration role Custom Record, NetSuite role permissions, Custom Record access NetSuite, Expensify NetSuite integration
+internalScope: Audience is Workspace Admins using the NetSuite integration. Covers the NS0938 sync error related to Custom Record permissions in NetSuite. Does not cover ScriptID formatting or bundle reinstall steps.
+---
+
+# NS0938 Sync Error: Permission Error Querying NetSuite for 'CustomRecord'
+
+If you see the error message **“NS0938 Sync Error: Permissions error querying NetSuite for 'CustomRecord'. Please ensure the connected role has access to this record type in NetSuite.”**, it means the NetSuite role used for the integration does not have permission to access Custom Records.
+
+Without proper Custom Record access, Expensify cannot query or sync custom data from NetSuite.
+
+---
+
+## Why the NS0938 Sync Error Happens
+
+The NS0938 sync error occurs when the **Expensify Integration role** in NetSuite does not have access to **Custom Records**.
+
+If the role does not include Custom Record permissions, NetSuite blocks the query during sync.
+
+---
+
+## How to Fix the NS0938 Sync Error
+
+Follow the steps below to confirm Custom Record permissions are enabled.
+
+---
+
+## Step 1: Confirm Custom Record Permissions in NetSuite
+
+In NetSuite:
+
+1. Go to **Setup > Users/Roles > Manage Roles**.
+2. Select **Expensify Integration**.
+3. Click **Edit**.
+4. Under **Permissions**, confirm that **Custom Record** is listed as a tab option.
+5. If it is not listed, add the required Custom Record permissions.
+6. Save your changes.
+
+---
+
+## Step 2: Sync the Connection in Expensify
+
+After updating permissions:
+
+On web:
+
+1. Go to the **navigation tabs on the left** and select **Workspaces**.
+2. Select your Workspace.
+3. Select **Accounting**.
+4. Click the **three-dot icon** next to the NetSuite connection.
+5. Click **Sync now**.
+
+On mobile:
+
+1. Tap the **navigation tabs on the bottom** and select **Workspaces**.
+2. Select your Workspace.
+3. Tap **Accounting**.
+4. Tap the **three-dot icon** next to the NetSuite connection.
+5. Tap **Sync now**.
+
+Retry the export or sync once the process completes.
+
+---
+
+# FAQ
+
+## Does the NS0938 Sync Error affect custom fields?
+
+Yes. If Custom Record permissions are missing, any custom fields or custom record mappings may fail to sync.
+
+## Do I need NetSuite admin access to fix the NS0938 Sync Error?
+
+Yes. Updating role permissions in NetSuite requires admin-level access.
