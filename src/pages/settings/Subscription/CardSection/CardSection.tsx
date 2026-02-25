@@ -45,7 +45,7 @@ function CardSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'CreditCard']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'CreditCard', 'Close'] as const);
     const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
@@ -102,6 +102,7 @@ function CardSection() {
             retryBillingFailed: subscriptionRetryBillingStatusFailed,
             billingStatus: billingStatusOnyx,
             creditCardEyesIcon: illustrations.CreditCardEyes,
+            closeIcon: expensifyIcons.Close,
             fundList,
             amountOwed,
             ownerBillingGraceEndPeriod,
@@ -128,6 +129,7 @@ function CardSection() {
                 retryBillingFailed: subscriptionRetryBillingStatusFailed,
                 billingStatus: billingStatusOnyx,
                 creditCardEyesIcon: illustrations.CreditCardEyes,
+                closeIcon: expensifyIcons.Close,
                 fundList,
                 amountOwed,
                 ownerBillingGraceEndPeriod,
@@ -144,6 +146,7 @@ function CardSection() {
         billingDisputePending,
         billingStatusOnyx,
         illustrations.CreditCardEyes,
+        expensifyIcons.Close,
         fundList,
         amountOwed,
         ownerBillingGraceEndPeriod,

@@ -538,6 +538,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: '季度',
         vacationDelegate: '休假代理',
         expensifyLogo: 'Expensify徽标',
+        duplicateReport: '重复报销单',
     },
     socials: {
         podcast: '在播客上关注我们',

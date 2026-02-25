@@ -529,7 +529,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Ação necessária',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
-        duplicateExpense: 'Despesa duplicada',
+        duplicateExpense: 'Duplicar despesa',
         exchangeRate: 'Taxa de câmbio',
         reimbursableTotal: 'Total reembolsável',
         nonReimbursableTotal: 'Total não reembolsável',
@@ -541,6 +541,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Delegado de férias',
         expensifyLogo: 'Logo da Expensify',
+        duplicateReport: 'Duplicar relatório',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',

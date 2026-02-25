@@ -551,6 +551,7 @@ const translations = {
         duplicate: 'Duplicate',
         duplicated: 'Duplicated',
         duplicateExpense: 'Duplicate expense',
+        duplicateReport: 'Duplicate report',
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',

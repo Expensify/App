@@ -8,8 +8,6 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import {Plus} from '@components/Icon/Expensicons';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
@@ -65,7 +63,7 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
 function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const backTo = route.params.backTo;
-    const icons = useMemoizedLazyExpensifyIcons(['User', 'MakeAdmin', 'RemoveMembers', 'FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'User'] as const);
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
@@ -364,7 +362,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                                     success
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_INVITE.getRoute(report.reportID, backTo))}
                                     text={translate('workspace.invite.member')}
-                                    icon={Plus}
+                                    icon={icons.Plus}
                                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                                     style={[shouldUseNarrowLayout && styles.flexGrow1]}
                                 />

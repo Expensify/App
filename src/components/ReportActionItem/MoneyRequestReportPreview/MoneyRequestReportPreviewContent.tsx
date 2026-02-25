@@ -187,8 +187,9 @@ function MoneyRequestReportPreviewContent({
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
     const getCanIOUBePaid = useCallback(
-        (shouldShowOnlyPayElsewhere = false) => canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, shouldShowOnlyPayElsewhere),
-        [iouReport, chatReport, policy, bankAccountList, transactions],
+        (shouldShowOnlyPayElsewhere = false) =>
+            canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, shouldShowOnlyPayElsewhere, undefined, invoiceReceiverPolicy),
+        [iouReport, chatReport, policy, bankAccountList, transactions, invoiceReceiverPolicy],
     );
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
