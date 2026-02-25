@@ -4131,18 +4131,25 @@ function getColumnsToShow(
     const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column));
 
     if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
-        // For expense report view, prepend only RECEIPT, TYPE (in order)
-        // For search page, prepend AVATAR, TYPE
-        const prependColumns = isExpenseReportView
-            ? [CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.TYPE]
-            : [CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TYPE];
+        // For expense report view, prepend TYPE (always required), and RECEIPT only if selected
         const result: SearchColumnType[] = [];
         const addedColumns = new Set<SearchColumnType>();
 
-        // Add prepend columns first (in order)
-        for (const col of prependColumns) {
-            result.push(col);
-            addedColumns.add(col);
+        if (isExpenseReportView) {
+            // RECEIPT is optional - only add if user selected it, but ensure it comes first
+            if (filteredVisibleColumns.includes(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)) {
+                result.push(CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
+                addedColumns.add(CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
+            }
+            // TYPE is always prepended
+            result.push(CONST.SEARCH.TABLE_COLUMNS.TYPE);
+            addedColumns.add(CONST.SEARCH.TABLE_COLUMNS.TYPE);
+        } else {
+            // Search page: prepend AVATAR, TYPE
+            result.push(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
+            addedColumns.add(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
+            result.push(CONST.SEARCH.TABLE_COLUMNS.TYPE);
+            addedColumns.add(CONST.SEARCH.TABLE_COLUMNS.TYPE);
         }
 
         // Add remaining visible columns that weren't already added
