@@ -152,14 +152,19 @@ function IOURequestStepScan({
 
         // Pre-create upload directory to avoid latency during capture
         const path = getReceiptsUploadFolderPath();
-        ReactNativeBlobUtil.fs.isDir(path).then((isDir) => {
-            if (isDir) {
-                return;
-            }
-            ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
-                Log.warn('Error creating the receipts upload directory', error);
+        ReactNativeBlobUtil.fs
+            .isDir(path)
+            .then((isDir) => {
+                if (isDir) {
+                    return;
+                }
+                ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
+                    Log.warn('Error creating the receipts upload directory', error);
+                });
+            })
+            .catch((error: string) => {
+                Log.warn('Error checking if the upload directory exists', error);
             });
-        });
     }, []);
 
     const askForPermissions = useCallback(() => {
