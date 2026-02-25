@@ -200,7 +200,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {
             const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
-            createTransactionThreadReport(report, iouAction);
+            createTransactionThreadReport(introSelected, report, iouAction);
             return;
         }
 
@@ -262,10 +262,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         hasCreatedLegacyThreadRef.current = true;
 
         const violations = allReportViolations[transaction.transactionID] ?? snapshotViolations;
-        createTransactionThreadReport(report, undefined, transaction, violations);
+        createTransactionThreadReport(introSelected, report, undefined, transaction, violations);
     }, [
         allReportTransactions,
         allReportViolations,
+        introSelected,
         report,
         reportActions,
         reportIDFromRoute,
