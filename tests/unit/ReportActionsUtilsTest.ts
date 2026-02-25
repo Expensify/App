@@ -1022,7 +1022,7 @@ describe('ReportActionsUtils', () => {
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
 
             // Then the whisper with deleted set should be filtered out, leaving only the ADD_COMMENT
-            expect(result).toStrictEqual([input[0]]);
+            expect(result).toStrictEqual([input.at(0)]);
         });
     });
 
