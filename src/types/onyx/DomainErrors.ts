@@ -20,6 +20,11 @@ type DomainMemberErrors = {
     vacationDelegateErrors?: OnyxCommon.Errors;
 
     /**
+     * Errors related to the list of emails exempt from the 2FA requirement
+     */
+    twoFactorAuthExemptEmailsError?: OnyxCommon.Errors;
+
+    /**
      * Errors related to specific domain member lock account status.
      */
     lockAccountErrors?: OnyxCommon.Errors;
