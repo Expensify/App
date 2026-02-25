@@ -44,7 +44,7 @@ import {
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, getUserFriendlyKey, getUserFriendlyValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
-import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -192,6 +192,13 @@ function SearchAutocompleteList({
         });
         computeSpanStarted.current = true;
     }
+
+    useEffect(() => {
+        return () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS);
+            cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
+        };
+    }, []);
 
     const searchOptions = (() => {
         if (!areOptionsInitialized) {

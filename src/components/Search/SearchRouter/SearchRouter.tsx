@@ -73,13 +73,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const shouldShowList = isRecentSearchesDataLoaded && areOptionsInitialized;
 
     const coldStartAttributeSet = useRef(false);
-    if (!coldStartAttributeSet.current) {
+    useEffect(() => {
+        if (coldStartAttributeSet.current) {
+            return;
+        }
         const parentSpan = getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
         if (parentSpan) {
             parentSpan.setAttribute('cold_start', !areOptionsInitialized);
             coldStartAttributeSet.current = true;
         }
-    }
+    }, [areOptionsInitialized]);
 
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
