@@ -75,7 +75,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     const policy = usePolicy(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const {environmentURL} = useEnvironment();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -254,6 +254,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
                     disabled={disableRequireCompanyCardToggle}
                     showLockIcon={disableRequireCompanyCardToggle}
+                    disabledText={translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip')}
                     wrapperStyle={[styles.mt3]}
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}

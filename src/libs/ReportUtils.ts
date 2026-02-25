@@ -1712,15 +1712,6 @@ function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Checks if an invoice report's receiver matches a given participant.
- * Used to validate that an invoice chat report corresponds to the correct recipient
- * when the recipient may have been changed (e.g., while offline).
- */
-function doesReportReceiverMatchParticipant(report: OnyxEntry<Report>, receiverParticipantAccountID: number | undefined): boolean {
-    return !!(report?.invoiceReceiver && receiverParticipantAccountID && 'accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverParticipantAccountID);
-}
-
-/**
  * Whether the provided report belongs to a Control policy and is an expense chat
  */
 function isControlPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
@@ -10460,8 +10451,8 @@ function isReportParticipant(accountID: number | undefined, report: OnyxEntry<Re
 /**
  * Check to see if the current user has access to view the report.
  */
-function canCurrentUserOpenReport(report: OnyxEntry<Report>, isReportArchived = false): boolean {
-    return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, allBetas, isReportArchived);
+function canCurrentUserOpenReport(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>, isReportArchived = false): boolean {
+    return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, betas, isReportArchived);
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
@@ -10918,13 +10909,14 @@ function shouldCreateNewMoneyRequestReport(
     existingIOUReport: OnyxInputOrEntry<Report> | undefined,
     chatReport: OnyxInputOrEntry<Report>,
     isScanRequest: boolean,
+    betas: OnyxEntry<Beta[]>,
     action?: IOUAction,
 ): boolean {
     if (existingIOUReport && !!existingIOUReport.errorFields?.createChat) {
         return true;
     }
 
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
     return (
         !existingIOUReport ||
         hasIOUWaitingOnCurrentUserBankAccount(chatReport) ||
@@ -11088,6 +11080,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
     introSelected: OnyxEntry<IntroSelected>,
     allTransactionDrafts: OnyxCollection<Transaction>,
     activePolicy: OnyxEntry<Policy>,
+    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>,
     isRestrictedToPreferredPolicy = false,
     preferredPolicyID?: string,
 ): void {
@@ -11153,7 +11146,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
     }
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
-        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id)) {
+        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriodCollection)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
             return;
         }
@@ -11397,7 +11390,7 @@ function prepareOnboardingOnyxData({
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
-    // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM and TRACK_WORKSPACE onboarding actions, except for emails that have a '+'.
+    // Only the MANAGE_TEAM onboarding action uses the #admins room (with a guide); TRACK_WORKSPACE uses Concierge. Excludes emails that have a '+'.
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
     // When posting to admins room and the user is in the suggestedFollowups beta, we skip tasks in favor of backend-generated followups.
     const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, allBetas, betaConfiguration);
@@ -11415,7 +11408,7 @@ function prepareOnboardingOnyxData({
     const integrationName = userReportedIntegration ? CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING] : '';
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? 'Setup Specialist';
+    const assignedGuideEmail = getPolicy(targetChatPolicyID)?.assignedGuide?.email ?? CONST.SETUP_SPECIALIST_LOGIN;
     const assignedGuidePersonalDetail = getPersonalDetailByEmail(assignedGuideEmail);
     let assignedGuideAccountID: number;
     let isOptimisticAssignedGuide = false;
@@ -11428,6 +11421,7 @@ function prepareOnboardingOnyxData({
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [assignedGuideAccountID]: {
+                accountID: assignedGuideAccountID,
                 isOptimisticPersonalDetail: !assignedGuidePersonalDetail,
                 login: assignedGuideEmail,
                 displayName: assignedGuideEmail,
@@ -12061,15 +12055,13 @@ function isChatUsedForOnboarding(
 
 /**
  * Whether onboarding tasks should be posted in the #admins room instead of Concierge.
- * Onboarding guides are assigned to signup with emails that do not contain a '+' and select the "Manage my team's expenses" intent.
+ * Only the "Manage my team's expenses" (MANAGE_TEAM) intent uses the #admins room with a guide;
+ * Track and budget expenses (TRACK_WORKSPACE) uses Concierge chat. Guides are assigned to users who sign up
+ * with emails that do not contain a '+' and who select MANAGE_TEAM.
  */
 function isPostingTasksInAdminsRoom(engagementChoice?: OnboardingPurpose): boolean {
     const userHasPhonePrimaryEmail = Str.endsWith(currentUserEmail ?? '', CONST.SMS.DOMAIN);
-    return (
-        engagementChoice !== undefined &&
-        [CONST.ONBOARDING_CHOICES.MANAGE_TEAM, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE].includes(engagementChoice as 'newDotManageTeam' | 'newDotTrackWorkspace') &&
-        (!currentUserEmail?.includes('+') || userHasPhonePrimaryEmail)
-    );
+    return engagementChoice !== undefined && engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && (!currentUserEmail?.includes('+') || userHasPhonePrimaryEmail);
 }
 
 /**
@@ -13056,7 +13048,6 @@ export {
     isCompletedTaskReport,
     isConciergeChatReport,
     isControlPolicyExpenseChat,
-    doesReportReceiverMatchParticipant,
     isControlPolicyExpenseReport,
     isCurrentUserSubmitter,
     isCurrentUserTheOnlyParticipant,

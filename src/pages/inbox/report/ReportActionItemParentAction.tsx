@@ -27,9 +27,6 @@ import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
 
 type ReportActionItemParentActionProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<Report>;
-
     /** All the data of the policy collection */
     policies: OnyxCollection<Policy>;
 
@@ -90,7 +87,6 @@ type ReportActionItemParentActionProps = {
 };
 
 function ReportActionItemParentAction({
-    allReports,
     policies,
     report,
     action,
@@ -115,12 +111,13 @@ function ReportActionItemParentAction({
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
 
     const getLinkedTransactionRouteError = useCallback((transaction: OnyxEntry<Transaction>) => {
         return transaction?.errorFields?.route;
     }, []);
 
-    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true, selector: getLinkedTransactionRouteError});
+    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
 
     const ancestorReportNameValuePairsSelector = useCallback(
         (allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>) => {
@@ -140,7 +137,6 @@ function ReportActionItemParentAction({
     const [ancestorsReportNameValuePairs] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         {
-            canBeMissing: true,
             selector: ancestorReportNameValuePairsSelector,
         },
         [ancestors],
@@ -157,12 +153,11 @@ function ReportActionItemParentAction({
     const [ancestorsReportActions] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         {
-            canBeMissing: true,
             selector: ancestorReportActionsSelector,
         },
         [ancestors],
     );
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     return (
         <View style={[styles.pRelative]}>
@@ -203,14 +198,13 @@ function ReportActionItemParentAction({
                             {shouldDisplayThreadDivider && (
                                 <ThreadDivider
                                     ancestor={ancestor}
-                                    isLinkDisabled={!canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)}
+                                    isLinkDisabled={!canCurrentUserOpenReport(ancestorReport, allBetas, isAncestorReportArchived)}
                                 />
                             )}
                             <ReportActionItem
-                                allReports={allReports}
                                 policies={policies}
                                 onPress={
-                                    canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)
+                                    canCurrentUserOpenReport(ancestorReport, allBetas, isAncestorReportArchived)
                                         ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)
                                         : undefined
                                 }

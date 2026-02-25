@@ -57,7 +57,7 @@ function createPolicyCollectionSelector(email: string | undefined) {
  * 3. Otherwise → return default canned search query (expenses)
  */
 function useDefaultSearchQuery(): string {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionSelector, canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionSelector});
     const email = session?.email;
     const accountID = session?.accountID;
 
@@ -65,7 +65,6 @@ function useDefaultSearchQuery(): string {
         ONYXKEYS.COLLECTION.POLICY,
         {
             selector: createPolicyCollectionSelector(email),
-            canBeMissing: true,
         },
         [email],
     );

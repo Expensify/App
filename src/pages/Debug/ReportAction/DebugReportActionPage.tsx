@@ -47,7 +47,6 @@ function DebugReportActionPage({
         {
             canEvict: false,
             selector: getReportActionSelector,
-            canBeMissing: true,
         },
         [getReportActionSelector],
     );
