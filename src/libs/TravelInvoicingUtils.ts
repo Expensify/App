@@ -1,14 +1,14 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import fileDownload from '@libs/fileDownload';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, WorkspaceCardsList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
-import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getLastFourDigits} from './BankAccountUtils';
 import {isDevelopment, isInternalTestBuild, isStaging} from './Environment/Environment';
-import fileDownload from './fileDownload';
 
 /**
  * Gets the Travel Invoicing settings from the nested TRAVEL_US object.
@@ -172,8 +172,7 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 function downloadTravelInvoiceStatementPDF(translate: LocalizedTranslate, baseURL: string, fileName: string, startDate: string, endDate: string, currentUserEmail: string): Promise<void> {
     const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
-    const authenticatedURL = addEncryptedAuthTokenToURL(pdfURL, true);
-    return fileDownload(translate, authenticatedURL, downloadFileName, '');
+    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '');
 }
 
 /**
