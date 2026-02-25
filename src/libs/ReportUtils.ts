@@ -9987,7 +9987,7 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>, isReportArchived =
     }
 
     // B2B invoice reports should render diagonal (two workspace icons), not subscript.
-    if (isInvoiceReport(report) && !isBusinessInvoiceRoom(report)) {
+    if (isInvoiceReport(report) && !isBusinessInvoiceRoom(report?.parentReportID)) {
         return true;
     }
 
