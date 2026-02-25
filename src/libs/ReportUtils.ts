@@ -11282,7 +11282,6 @@ function createDraftTransactionAndNavigateToParticipantSelector(
     actionName: IOUAction,
     reportActionID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
-    allTransactionDrafts: OnyxCollection<Transaction>,
     activePolicy: OnyxEntry<Policy>,
     isRestrictedToPreferredPolicy = false,
     preferredPolicyID?: string,
@@ -11310,7 +11309,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         attendees: transaction?.modifiedAttendees ?? baseComment.attendees,
     };
 
-    removeDraftTransactions(false, allTransactionDrafts);
+    removeDraftTransactions(false);
 
     createDraftTransaction({
         ...transaction,
