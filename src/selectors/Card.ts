@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {isCard, isCardHiddenFromSearch, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
+import {isCard, isCardHiddenFromSearch, isExpensifyCard, isExpensifyCardUkEuSupported, isPersonalCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,4 +79,15 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
         .filter((card) => isCard(card) && isExpensifyCard(card))
         .every((card) => card.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
 
-export {filterCardsHiddenFromSearch, filterOutPersonalCards, defaultExpensifyCardSelector, cardByIdSelector, areAllExpensifyCardsShipped, buildFeedKeysWithAssignedCards};
+const isExpensifyCardUkEuSupportedSelector = (cardList: OnyxEntry<CardList>, cardID?: string): boolean =>
+    !!cardID && Object.values(cardList ?? {}).filter((card) => card.cardID === Number(cardID) && isExpensifyCardUkEuSupported(card)).length > 0;
+
+export {
+    filterCardsHiddenFromSearch,
+    filterOutPersonalCards,
+    defaultExpensifyCardSelector,
+    cardByIdSelector,
+    areAllExpensifyCardsShipped,
+    buildFeedKeysWithAssignedCards,
+    isExpensifyCardUkEuSupportedSelector,
+};

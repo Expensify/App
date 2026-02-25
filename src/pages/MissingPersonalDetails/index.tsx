@@ -7,11 +7,7 @@ import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MissingPersonalDetailsContent from './MissingPersonalDetailsContent';
 
-function MissingPersonalDetails({
-    route: {
-        params: {cardID = ''},
-    },
-}) {
+function MissingPersonalDetails({route: {params: {cardID = ''} = {}}}) {
     const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
 

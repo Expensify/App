@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -14,15 +14,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/PersonalDetails';
 import type SetPersonalDetailsAndShipExpensifyCardsParams from '@libs/API/parameters/SetPersonalDetailsAndShipExpensifyCardsParams';
-import {isExpensifyCardUkEuSupported} from '@libs/CardUtils';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {findPageIndex} from '@libs/SubPageUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isExpensifyCardUkEuSupportedSelector} from '@src/selectors/Card';
 import type {PersonalDetailsForm} from '@src/types/form';
-import type {PrivatePersonalDetails} from '@src/types/onyx';
+import type {CardList, PrivatePersonalDetails} from '@src/types/onyx';
 import {usePin} from './PinContext';
 import Address from './subPages/Address';
 import Confirmation from './subPages/Confirmation';
@@ -62,12 +62,10 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const {isOffline} = useNetwork();
     const {executeScenario} = useMultifactorAuthentication();
     const {translate} = useLocalize();
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const isUKEUCardSelector = useCallback((cardList: OnyxEntry<CardList>) => isExpensifyCardUkEuSupportedSelector(cardList, cardID), [cardID]);
+    const [isUKEUCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: isUKEUCardSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const card = cardList?.[Number(cardID)];
     const {pin} = usePin();
-
-    const isUKEUCard = !!cardID && isExpensifyCardUkEuSupported(card);
 
     // Build form pages dynamically based on whether this is a UK/EU card
     const formPages = useMemo(() => {
@@ -154,7 +152,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 onMove={moveTo}
                 currentPageName={currentPageName}
                 personalDetailsValues={values}
-                isUKEUCard={isUKEUCard}
+                isUKEUCard={isUKEUCard ?? false}
             />
         </ScreenWrapper>
     );
