@@ -779,7 +779,9 @@ function computeReportName(
         if (reportNameValuePair?.expensify_text_title?.type === CONST.REPORT_FIELD_TYPES.FORMULA && titleFormula) {
             // We use dynamic require here to avoid a circular dependency between ReportNameUtils and Formula
             // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-            const Formula = require('./Formula') as {compute: (formula?: string, context?: {report: Report; policy: OnyxEntry<Policy>; allTransactions?: Record<string, Transaction>}) => string};
+            const Formula = require('./Formula') as {
+                compute: (formula?: string, context?: {report: Report; policy: OnyxEntry<Policy>; allTransactions?: Record<string, Transaction>}) => string;
+            };
             const computedName = Formula.compute(titleFormula, {report, policy: reportPolicy});
             return computedName || report.reportName;
         }
