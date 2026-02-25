@@ -79,9 +79,6 @@ type ExpenseRouteParams = {
 };
 
 type CustomFieldSubStepWithPolicy = SubStepProps & {
-    /** Policy ID of the current policy */
-    policyID: string;
-
     /** Current policy in the form steps */
     policy: Policy | undefined;
 
