@@ -22,7 +22,7 @@ function Nationality({onNext, isEditing, isUserEnteringHisOwnData, ownerBeingMod
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const nationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
     const countryDefaultValue = SafeString(reimbursementAccountDraft?.[nationalityInputID]);
     const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);

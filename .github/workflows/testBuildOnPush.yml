@@ -89,5 +89,4 @@ jobs:
       BUILD_WEB: ${{ needs.prep.outputs.BUILD_WEB }}
       BUILD_IOS: ${{ needs.prep.outputs.BUILD_MOBILE }}
       BUILD_ANDROID: ${{ needs.prep.outputs.BUILD_MOBILE }}
-      TRIGGER_ACTOR: ${{ github.actor }}
     secrets: inherit

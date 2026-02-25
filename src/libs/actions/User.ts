@@ -444,6 +444,7 @@ function requestValidateCodeAction() {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {
+                validateCodeSent: false,
                 isLoading: true,
                 pendingFields: {
                     actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -696,7 +697,8 @@ function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServe
 
         for (const action of reportActions) {
             if (action) {
-                showReportActionNotification(reportID, action, currentUserAccountIDParam);
+                // They aren't connected to a UI anywhere, it's OK to use currentEmail
+                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail);
             }
         }
     }
@@ -943,7 +945,9 @@ function subscribeToUserEvents(currentUserAccountIDParam: number) {
         const updates = {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
             lastUpdateID: Number(pushEventData.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
-            updates: (pushEventData.updates as OnyxUpdateEvent[]) ?? [],
+            // specific key type is not known from the Pusher event data
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            updates: (pushEventData.updates as Array<OnyxUpdateEvent<any>>) ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
         Log.info('[subscribeToUserEvents] Applying Onyx updates');

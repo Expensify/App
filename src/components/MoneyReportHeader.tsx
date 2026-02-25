@@ -40,7 +40,9 @@ import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransacti
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
+import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -52,8 +54,8 @@ import {
     buildOptimisticNextStepForDEWOffline,
     buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
-    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
+    getReportNextStep,
 } from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
@@ -102,6 +104,7 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
+    isTransactionPendingDelete,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import type {ExportType} from '@pages/inbox/report/ReportDetailsExportPage';
@@ -122,7 +125,6 @@ import {
     submitReport,
     unapproveExpenseReport,
 } from '@userActions/IOU';
-import {initSplitExpense} from '@userActions/IOU/Split';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -209,23 +211,24 @@ function MoneyReportHeader({
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
     >();
     const {login: currentUserLogin, accountID, email} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
-    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END, {canBeMissing: true});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${moneyRequestReport?.reportID}`, {canBeMissing: true}) ?? null;
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${moneyRequestReport?.reportID}`) ?? null;
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
-    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
-    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID, {canBeMissing: true});
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
-    const personalDetails = usePersonalDetails();
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
+    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
+
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Buildings',
         'Plus',
@@ -262,18 +265,17 @@ function MoneyReportHeader({
         'ExpenseCopy',
         'Checkmark',
     ] as const);
-    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`, {canBeMissing: true});
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
     const {translate, localeCompare} = useLocalize();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
     const exportTemplates = useMemo(
         () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
         [integrationsExportTemplates, csvExportLayouts, policy, translate],
     );
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -286,8 +288,16 @@ function MoneyReportHeader({
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
-    const transactions = useMemo(() => {
-        return Object.values(reportTransactions);
+    const {transactions, nonPendingDeleteTransactions} = useMemo(() => {
+        const all: OnyxTypes.Transaction[] = [];
+        const filtered: OnyxTypes.Transaction[] = [];
+        for (const transaction of Object.values(reportTransactions)) {
+            all.push(transaction);
+            if (!isTransactionPendingDelete(transaction)) {
+                filtered.push(transaction);
+            }
+        }
+        return {transactions: all, nonPendingDeleteTransactions: filtered};
     }, [reportTransactions]);
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
@@ -303,16 +313,14 @@ function MoneyReportHeader({
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
 
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`, {
-        canBeMissing: true,
-    });
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
 
-    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
-    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
+    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
+    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
 
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
-        {canBeMissing: true},
+        {},
     );
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
@@ -329,11 +337,12 @@ function MoneyReportHeader({
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const currentTransaction = transactions.at(0);
-    const [originalIOUTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
-    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [originalIOUTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransaction?.comment?.originalTransactionID)}`);
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
@@ -351,7 +360,7 @@ function MoneyReportHeader({
     const {isOffline} = useNetwork();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
@@ -369,8 +378,9 @@ function MoneyReportHeader({
     const canTriggerAutomaticPDFDownload = useRef(false);
     const hasFinishedPDFDownload = reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
 
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     useEffect(() => {
         canTriggerAutomaticPDFDownload.current = isPDFModalVisible;
@@ -399,9 +409,9 @@ function MoneyReportHeader({
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
-    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason, canBeMissing: true});
+    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`);
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false) => canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
         [moneyRequestReport, chatReport, policy, bankAccountList, transaction],
@@ -420,7 +430,7 @@ function MoneyReportHeader({
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey, currentSearchHash, currentSearchResults} = useSearchContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const [network] = useOnyx(ONYXKEYS.NETWORK);
 
     const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
 
@@ -509,7 +519,7 @@ function MoneyReportHeader({
         hasDuplicates ||
         shouldShowMarkAsResolved;
 
-    let optimisticNextStep = isBlockSubmitDueToPreventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
+    let optimisticNextStep = getReportNextStep(nextStep, moneyRequestReport, transactions, policy, allTransactionViolations, email ?? '', accountID);
 
     // Check for DEW submit/approve failed or pending - show appropriate next step
     if (isDEWPolicy && (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
@@ -548,10 +558,10 @@ function MoneyReportHeader({
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const kycWallRef = useContext(KYCWallContext);
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const isReportInRHP = route.name !== SCREENS.REPORT;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
@@ -709,6 +719,7 @@ function MoneyReportHeader({
                     targetReport: activePolicyExpenseChat,
                     betas,
                     personalDetails,
+                    recentWaypoints,
                 });
             }
         },
@@ -725,6 +736,7 @@ function MoneyReportHeader({
             isSelfTourViewed,
             betas,
             personalDetails,
+            recentWaypoints,
         ],
     );
 
@@ -762,6 +774,14 @@ function MoneyReportHeader({
         // Show the broken connection violation message only if it's part of transactionViolations (i.e., visible to the user).
         // This prevents displaying an empty message.
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
+            const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
+            const cardID = brokenConnectionError?.data?.cardID;
+            const card = cardID ? cardList?.[cardID] : undefined;
+            const isBrokenPersonalCard = isPersonalCard(card);
+
+            if (isBrokenPersonalCard && brokenConnectionError) {
+                return undefined;
+            }
             return {
                 icon: getStatusIcon(expensifyIcons.Hourglass),
                 description: (
@@ -838,7 +858,7 @@ function MoneyReportHeader({
             currentUserAccountID: accountID,
             report: moneyRequestReport,
             chatReport,
-            reportTransactions: transactions,
+            reportTransactions: nonPendingDeleteTransactions,
             violations,
             bankAccountList,
             policy,
@@ -857,7 +877,7 @@ function MoneyReportHeader({
         isSubmittingAnimationRunning,
         moneyRequestReport,
         chatReport,
-        transactions,
+        nonPendingDeleteTransactions,
         violations,
         policy,
         reportNameValuePairs,
@@ -1146,7 +1166,7 @@ function MoneyReportHeader({
                         );
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                        const createdTransactionThreadReport = createTransactionThreadReport(moneyRequestReport, iouAction);
+                        const createdTransactionThreadReport = createTransactionThreadReport(introSelected, moneyRequestReport, iouAction);
                         threadID = createdTransactionThreadReport?.reportID;
                     }
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
@@ -1169,7 +1189,7 @@ function MoneyReportHeader({
             currentUserAccountID: accountID,
             report: moneyRequestReport,
             chatReport,
-            reportTransactions: transactions,
+            reportTransactions: nonPendingDeleteTransactions,
             originalTransaction: originalIOUTransaction,
             violations,
             bankAccountList,
@@ -1185,7 +1205,7 @@ function MoneyReportHeader({
         currentUserLogin,
         accountID,
         chatReport,
-        transactions,
+        nonPendingDeleteTransactions,
         originalIOUTransaction,
         violations,
         policy,
@@ -1382,7 +1402,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                initSplitExpense(allTransactions, allReports, currentTransaction);
+                initSplitExpense(currentTransaction, policy);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
@@ -1429,6 +1449,7 @@ function MoneyReportHeader({
             icon: expensifyIcons.Buildings,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.CHANGE_WORKSPACE,
+            shouldShow: transactions.length === 0 || nonPendingDeleteTransactions.length > 0,
             onSelected: () => {
                 if (!moneyRequestReport) {
                     return;
@@ -1627,9 +1648,9 @@ function MoneyReportHeader({
         if (!hasFinishedPDFDownload || !canTriggerAutomaticPDFDownload.current) {
             return;
         }
-        downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '', translate, currentUserLogin ?? '');
+        downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '', translate, currentUserLogin ?? '', encryptedAuthToken);
         canTriggerAutomaticPDFDownload.current = false;
-    }, [hasFinishedPDFDownload, reportPDFFilename, moneyRequestReport?.reportName, translate, currentUserLogin]);
+    }, [hasFinishedPDFDownload, reportPDFFilename, moneyRequestReport?.reportName, translate, currentUserLogin, encryptedAuthToken]);
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
@@ -1710,6 +1731,10 @@ function MoneyReportHeader({
                 return {
                     ...option,
                     onSelected: () => {
+                        if (isDelegateAccessRestricted) {
+                            showDelegateNoAccessModal();
+                            return;
+                        }
                         if (dismissedRejectUseExplanation) {
                             option.onSelected?.();
                         } else {
@@ -1968,7 +1993,7 @@ function MoneyReportHeader({
                                 if (!hasFinishedPDFDownload) {
                                     setIsPDFModalVisible(false);
                                 } else {
-                                    downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '', translate, currentUserLogin ?? '');
+                                    downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '', translate, currentUserLogin ?? '', encryptedAuthToken);
                                 }
                             }}
                             text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
