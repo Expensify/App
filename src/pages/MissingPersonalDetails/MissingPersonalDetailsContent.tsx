@@ -45,6 +45,9 @@ type MissingPersonalDetailsContentProps = {
 
     /** Card ID for the card that the user is adding personal details to */
     cardID: string;
+
+    /** Whether this is the card-ordering flow */
+    isCardOrderFlow?: boolean;
 };
 
 const baseFormPages = [
@@ -57,7 +60,7 @@ const baseFormPages = [
 const pinPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN, component: Pin};
 const confirmPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation};
 
-function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID}: MissingPersonalDetailsContentProps) {
+function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID, isCardOrderFlow = false}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {executeScenario} = useMultifactorAuthentication();
@@ -66,29 +69,30 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const [isUKEUCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: isUKEUCardSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const {pin} = usePin();
+    const shouldCollectPin = isCardOrderFlow && !!isUKEUCard;
 
     // Build form pages dynamically based on whether this is a UK/EU card
     const formPages = useMemo(() => {
-        if (isUKEUCard) {
+        if (shouldCollectPin) {
             return [...baseFormPages, pinPage, confirmPage];
         }
         return [...baseFormPages, confirmPage];
-    }, [isUKEUCard]);
+    }, [shouldCollectPin]);
 
-    const stepIndexList = isUKEUCard ? CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST;
+    const stepIndexList = shouldCollectPin ? CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST;
 
     const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const startFrom = useMemo(() => {
         const initialPage = getInitialSubPage(values);
-        if (isUKEUCard && initialPage === CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM && !pin) {
+        if (shouldCollectPin && initialPage === CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM && !pin) {
             return findPageIndex<CustomSubPageProps>(formPages, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN);
         }
         return findPageIndex<CustomSubPageProps>(formPages, initialPage);
-    }, [formPages, values, isUKEUCard, pin]);
+    }, [formPages, values, shouldCollectPin, pin]);
 
     const handleFinishStep = () => {
-        if (isUKEUCard) {
+        if (shouldCollectPin) {
             if (isOffline || !cardID) {
                 return;
             }
@@ -158,7 +162,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 onMove={moveTo}
                 currentPageName={currentPageName}
                 personalDetailsValues={values}
-                isUKEUCard={isUKEUCard ?? false}
+                shouldCollectPin={shouldCollectPin}
             />
         </ScreenWrapper>
     );

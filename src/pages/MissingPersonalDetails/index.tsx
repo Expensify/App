@@ -27,6 +27,7 @@ function MissingPersonalDetails({route: {params: {cardID = ''} = {}}}) {
             draftValues={draftValues}
             onComplete={handleComplete}
             cardID={cardID}
+            isCardOrderFlow
         />
     );
 }

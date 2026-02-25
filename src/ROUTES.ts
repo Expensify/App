@@ -3344,7 +3344,7 @@ const ROUTES = {
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
     },
     MISSING_PERSONAL_DETAILS: {
-        route: 'missing-personal-details/:cardID?/:subPage?/:action?',
+        route: 'missing-personal-details/:cardID/:subPage?/:action?',
         getRoute: (cardID: string, subPage?: string, action?: 'edit') => {
             if (!subPage) {
                 return `missing-personal-details/${cardID}` as const;

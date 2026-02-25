@@ -5,11 +5,10 @@ import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
-function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing, isUKEUCard = false}: CustomSubPageProps) {
+function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing, shouldCollectPin = false}: CustomSubPageProps) {
     const {translate} = useLocalize();
 
-    // Get specific page indexes based on card type
-    const pageIndexes = isUKEUCard ? CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
+    const pageIndexes = shouldCollectPin ? CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
     const legalNameIndex = pageIndexes.LEGAL_NAME;
     const dateOfBirthIndex = pageIndexes.DATE_OF_BIRTH;
     const addressIndex = pageIndexes.ADDRESS;
@@ -54,7 +53,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
             },
         ];
 
-        if (isUKEUCard) {
+        if (shouldCollectPin) {
             baseItems.push({
                 description: translate('common.pin'),
                 title: '••••',
@@ -66,7 +65,7 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
         }
 
         return baseItems;
-    }, [translate, values, onMove, legalNameIndex, dateOfBirthIndex, addressIndex, phoneNumberIndex, pinIndex, isUKEUCard]);
+    }, [translate, values, onMove, legalNameIndex, dateOfBirthIndex, addressIndex, phoneNumberIndex, pinIndex, shouldCollectPin]);
 
     return (
         <ConfirmationStep

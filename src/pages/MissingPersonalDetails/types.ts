@@ -5,8 +5,8 @@ type CustomSubPageProps = SubPageProps & {
     /** User's personal details values */
     personalDetailsValues: PersonalDetailsForm;
 
-    /** Whether this is a UK/EU card (requires PIN) */
-    isUKEUCard: boolean;
+    /** Whether the flow should collect a PIN */
+    shouldCollectPin: boolean;
 };
 
 type CountryZipRegex = {

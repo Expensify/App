@@ -12,7 +12,13 @@ type PinContextType = {
     clearPin: () => void;
 };
 
-const PinContext = createContext<PinContextType | null>(null);
+const defaultPinContext: PinContextType = {
+    pin: '',
+    setPin: () => {},
+    clearPin: () => {},
+};
+
+const PinContext = createContext<PinContextType>(defaultPinContext);
 
 type PinContextProviderProps = {
     children: ReactNode;
@@ -54,11 +60,7 @@ function PinContextProvider({children}: PinContextProviderProps) {
  * Must be used within a PinContextProvider.
  */
 function usePin(): PinContextType {
-    const context = useContext(PinContext);
-    if (!context) {
-        throw new Error('usePin must be used within a PinContextProvider');
-    }
-    return context;
+    return useContext(PinContext);
 }
 
 PinContextProvider.displayName = 'PinContextProvider';
