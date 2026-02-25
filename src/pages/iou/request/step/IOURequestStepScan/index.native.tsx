@@ -378,34 +378,34 @@ function IOURequestStepScan({
                           })
                         : initialTransaction;
                 const transactionID = transaction?.transactionID ?? initialTransactionID;
-                const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
-                cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation).then(({file, filename, source}) => {
-                    // Add source property to file for prepareRequestPayload compatibility
-                    endSpan(CONST.TELEMETRY.SPAN_TAKE_PHOTO);
+                const source = getPhotoSource(photo.path);
+                const filename = photo.path;
+                endSpan(CONST.TELEMETRY.SPAN_TAKE_PHOTO);
 
-                    const cameraFile = {
-                        ...file,
-                        source,
-                    };
+                const cameraFile = {
+                    uri: source,
+                    name: filename,
+                    type: 'image/jpeg',
+                    source,
+                };
 
-                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
+                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
 
-                    if (isEditing) {
-                        updateScanAndNavigate(cameraFile as FileObject, source);
-                        return;
-                    }
+                if (isEditing) {
+                    updateScanAndNavigate(cameraFile as FileObject, source);
+                    return;
+                }
 
-                    const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
-                    setReceiptFiles(newReceiptFiles);
+                const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
+                setReceiptFiles(newReceiptFiles);
 
-                    if (isMultiScanEnabled) {
-                        setDidCapturePhoto(false);
-                        isCapturingPhoto.current = false;
-                        return;
-                    }
+                if (isMultiScanEnabled) {
+                    setDidCapturePhoto(false);
+                    isCapturingPhoto.current = false;
+                    return;
+                }
 
-                    submitReceipts(newReceiptFiles);
-                });
+                submitReceipts(newReceiptFiles);
             })
             .catch((error: string) => {
                 isCapturingPhoto.current = false;
