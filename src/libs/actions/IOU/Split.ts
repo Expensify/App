@@ -1949,7 +1949,7 @@ function initSplitExpenseItemData(
 }
 
 /**
- * Create a draft ztransaction to set up split expense details for edit split details
+ * Create a draft transaction to set up split expense details for edit split details
  */
 function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string, reportID: string, transactionID?: string) {
     if (!draftTransaction || !splitExpenseTransactionID) {
