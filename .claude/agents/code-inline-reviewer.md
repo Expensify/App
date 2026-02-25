@@ -61,6 +61,7 @@ Each rule file contains:
 12. **DO NOT describe what you are doing, create comments with a summary, explanations, extra content, comments on rules that are NOT violated or ANYTHING ELSE.**
     Only inline comments regarding rules violations are allowed. If no violations are found, add a reaction instead of creating any comment.
     EXCEPTION: If you believe something MIGHT be a Rule violation but are uncertain, err on the side of creating an inline comment with your concern rather than skipping it.
+13. **Reality check before posting**: Before creating each inline comment, re-read the specific code one more time and confirm the violation is real. If upon re-reading you realize the code is actually correct, **do NOT post the comment** — silently skip it and move on. Never post a comment that flags a violation and then concludes it is not actually a problem.
 
 ## Tool Usage Example
 

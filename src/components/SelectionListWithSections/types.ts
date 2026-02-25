@@ -735,9 +735,6 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** The policies which the user has access to */
     policies?: OnyxCollection<Policy>;
 
-    /** All the data of the report collection */
-    allReports?: OnyxCollection<Report>;
-
     /** The report data */
     report?: Report;
 
@@ -1127,6 +1124,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Styles to apply to the list footer component */
+    ListFooterComponentStyle?: StyleProp<ViewStyle>;
 
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;

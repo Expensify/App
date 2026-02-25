@@ -1,7 +1,7 @@
-import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 // eslint-disable-next-line no-restricted-imports
 import type * as Illustrations from '@src/components/Icon/Illustrations';
@@ -24,7 +24,6 @@ import {
     getCardDescription,
     getCardFeedIcon,
     getCardFeedWithDomainID,
-    getDisplayableExpensifyCards,
     getCardsByCardholderName,
     getCompanyCardDescription,
     getCompanyCardFeed,
@@ -32,6 +31,7 @@ import {
     getCustomFeedNameFromFeeds,
     getCustomOrFormattedFeedName,
     getDefaultExpensifyCardLimitType,
+    getDisplayableExpensifyCards,
     getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
@@ -2123,6 +2123,27 @@ describe('CardUtils', () => {
             };
             const description = getCardDescription(card, translateLocal);
             expect(description).toBe('Visa • 2554');
+        });
+
+        it('should return the CSV card display name instead of card ID', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV,
+                cardID: 21310091,
+                cardName: 'CSV_CARD_ID_123',
+                domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                fraud: 'none',
+                lastFourPAN: '123',
+                lastUpdated: '',
+                lastScrape: '2024-11-27 11:00:53',
+                scrapeMinDate: '2024-10-17',
+                state: 3,
+                nameValuePairs: {
+                    cardTitle: 'Marketing Team Card',
+                } as Card['nameValuePairs'],
+            };
+            const description = getCardDescription(card, translateLocal);
+            expect(description).toBe('Marketing Team Card');
         });
 
         it('should return the correct card description for Expensify card', () => {

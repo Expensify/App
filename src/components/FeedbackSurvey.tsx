@@ -51,7 +51,7 @@ type FeedbackSurveyProps = {
 function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading, formID, enabledWhenOffline = true}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [draft, draftResults] = useOnyx(`${formID}Draft`, {canBeMissing: true});
+    const [draft, draftResults] = useOnyx(`${formID}Draft`);
     const [reason, setReason] = useState<string | undefined>(draft?.reason);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
 
