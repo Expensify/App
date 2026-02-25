@@ -13,8 +13,6 @@ import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import {Close} from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
 import TextWithMiddleEllipsis from './TextWithMiddleEllipsis';
 
@@ -66,7 +64,7 @@ function UploadFile({
     totalFilesSizeLimit = 0,
     fileLimit = 0,
 }: UploadFileProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Paperclip']);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -144,9 +142,10 @@ function UploadFile({
                         onPress={() => onRemove(file?.name ?? '')}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.remove')}
+                        sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
                     >
                         <Icon
-                            src={Close}
+                            src={icons.Close}
                             fill={theme.icon}
                             medium
                         />

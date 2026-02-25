@@ -20,7 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {inviteToRoom, inviteToRoomAction, searchInServer} from '@libs/actions/Report';
+import {inviteToRoom, inviteToRoomAction, searchUserInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -205,7 +205,7 @@ function RoomInvitePage({
     const ancestors = useAncestors(report);
 
     const inviteUsers = () => {
-        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
 
         if (selectedOptions.length === 0) {
             return;
@@ -251,7 +251,7 @@ function RoomInvitePage({
 
     useEffect(() => {
         updateUserSearchPhrase(debouncedSearchTerm);
-        searchInServer(debouncedSearchTerm);
+        searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     let subtitleKey: '' | TranslationPaths | undefined;

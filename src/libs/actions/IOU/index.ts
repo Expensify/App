@@ -206,7 +206,9 @@ import {
     getCurrency,
     getDistanceInMeters,
     getMerchant,
+    getRateID,
     getUpdatedTransaction,
+    getWaypoints,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
     hasSubmissionBlockingViolations,
@@ -1007,12 +1009,6 @@ Onyx.connectWithoutView({
     callback: (value) => (recentAttendees = value),
 });
 
-let deprecatedRecentWaypoints: OnyxTypes.RecentWaypoint[] = [];
-Onyx.connect({
-    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-    callback: (val) => (deprecatedRecentWaypoints = val ?? []),
-});
-
 function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
     return allPersonalDetails;
 }
@@ -1039,10 +1035,6 @@ function getCurrentUserEmail(): string {
 
 function getUserAccountID(): number {
     return userAccountID;
-}
-
-function getRecentWaypoints(): OnyxTypes.RecentWaypoint[] {
-    return deprecatedRecentWaypoints;
 }
 
 /**
@@ -6061,6 +6053,9 @@ type ConvertTrackedExpenseToRequestParams = {
         transactionThreadReportID?: string;
         distance?: number;
         isLinkedTrackedExpenseReportArchived: boolean | undefined;
+        waypoints?: string;
+        customUnitRateID?: string;
+        isDistance?: boolean;
     };
     chatParams: {
         reportID: string;
@@ -6097,6 +6092,9 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         attendees,
         transactionThreadReportID,
         isLinkedTrackedExpenseReportArchived,
+        waypoints,
+        customUnitRateID,
+        isDistance,
     } = transactionParams;
     const optimisticData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
     const successData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
@@ -6186,6 +6184,9 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         transactionThreadReportID,
         modifiedExpenseReportActionID: convertTrackedExpenseInformation.modifiedExpenseReportActionID,
         reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
+        isDistance,
+        customUnitRateID,
+        waypoints,
     };
     API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
 }
@@ -6336,6 +6337,10 @@ function convertBulkTrackedExpensesToIOU({
             betas,
         });
 
+        const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+        const transactionWaypoints = getWaypoints(transaction);
+        const sanitizedWaypointsForBulk = transactionWaypoints ? JSON.stringify(sanitizeRecentWaypoints(transactionWaypoints)) : undefined;
+
         const convertParams: ConvertTrackedExpenseToRequestParams = {
             payerParams: {
                 accountID: moneyRequestPayerAccountID,
@@ -6354,6 +6359,10 @@ function convertBulkTrackedExpensesToIOU({
                 linkedTrackedExpenseReportID: selfDMReportID,
                 transactionThreadReportID: moneyRequestTransactionThreadReportID,
                 isLinkedTrackedExpenseReportArchived: false,
+                isDistance: isDistanceRequest,
+                customUnitRateID: isDistanceRequest ? getRateID(transaction) : undefined,
+                waypoints: isDistanceRequest ? sanitizedWaypointsForBulk : undefined,
+                distance: isDistanceRequest ? (transaction.comment?.customUnit?.quantity ?? undefined) : undefined,
             },
             chatParams: {
                 reportID: moneyRequestChatReport.reportID,
@@ -6711,6 +6720,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                           ...customUnitParams,
                       }
                     : undefined;
+            const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
             convertTrackedExpenseToRequest({
                 payerParams: {
                     accountID: payerAccountID,
@@ -6730,6 +6740,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     linkedTrackedExpenseReportID,
                     transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
                     isLinkedTrackedExpenseReportArchived,
+                    isDistance: isDistanceRequest,
+                    customUnitRateID: isDistanceRequest ? customUnitRateID : undefined,
+                    waypoints: isDistanceRequest ? sanitizedWaypoints : undefined,
                 },
                 chatParams: {
                     reportID: chatReport.reportID,
@@ -10441,9 +10454,7 @@ function canIOUBePaid(
         if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
             return chatReport?.invoiceReceiver?.accountID === userAccountID;
         }
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return (invoiceReceiverPolicy ?? getPolicy(chatReport?.invoiceReceiver?.policyID))?.role === CONST.POLICY.ROLE.ADMIN;
+        return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     }
 
     const isPayer = isPayerReportUtils(userAccountID, currentUserEmail, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
@@ -10514,6 +10525,7 @@ function getIOUReportActionToApproveOrPay(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     updatedIouReport: OnyxEntry<OnyxTypes.Report>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
+    invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
 ): OnyxEntry<ReportAction> {
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
@@ -10526,7 +10538,8 @@ function getIOUReportActionToApproveOrPay(
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policy = getPolicy(iouReport?.policyID);
         // Only show to the actual payer, exclude admins with bank account access
-        const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy, undefined) || canApproveIOU(iouReport, policy, reportMetadata);
+        const shouldShowSettlementButton =
+            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy) || canApproveIOU(iouReport, policy, reportMetadata);
         return action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton && !isDeletedAction(action);
     });
 }
@@ -13879,7 +13892,6 @@ export {
     getAllReportActionsFromIOU,
     getCurrentUserEmail,
     getUserAccountID,
-    getRecentWaypoints,
     getReceiptError,
     getSearchOnyxUpdate,
     getPolicyTags,
