@@ -102,6 +102,7 @@ import Folder from '@assets/images/folder.svg';
 import FreezeCard from '@assets/images/freeze-card.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
 import GalleryNotFound from '@assets/images/gallery-not-found.svg';
+import GalleryPlus from '@assets/images/gallery-plus.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
 import Globe from '@assets/images/globe.svg';
@@ -337,6 +338,7 @@ const Expensicons = {
     Coins,
     Thread,
     Gallery,
+    GalleryPlus,
     Gear,
     Globe,
     GoogleLogo,
