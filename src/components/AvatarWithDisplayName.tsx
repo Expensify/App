@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ColorValue, GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -229,7 +229,8 @@ function AvatarWithDisplayName({
         navigateToDetailsPage(report, Navigation.getActiveRoute());
     };
 
-    const navigateToEditReportTitle = () => {
+    const navigateToEditReportTitle = (event?: GestureResponderEvent | KeyboardEvent) => {
+        event?.stopPropagation?.();
         Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID, Navigation.getReportRHPActiveRoute()));
     };
 
