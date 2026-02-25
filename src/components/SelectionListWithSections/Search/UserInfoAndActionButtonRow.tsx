@@ -9,7 +9,7 @@ import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
+import isActionLoadingSelector from '@src/selectors/ReportMetaData';
 import ActionCell from './ActionCell';
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
@@ -19,17 +19,19 @@ function UserInfoAndActionButtonRow({
     shouldShowUserInfo,
     containerStyles,
     isInMobileSelectionMode,
+    isDisabledItem = false,
 }: {
     item: TransactionReportGroupListItemType | TransactionListItemType;
     handleActionButtonPress: () => void;
     shouldShowUserInfo: boolean;
     containerStyles?: StyleProp<ViewStyle>;
     isInMobileSelectionMode: boolean;
+    isDisabledItem?: boolean;
 }) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const transactionItem = item as unknown as TransactionListItemType;
-    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
     const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
     const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
     const participantFromDisplayName = item.formattedFrom ?? item?.from?.displayName ?? '';
@@ -73,7 +75,7 @@ function UserInfoAndActionButtonRow({
                     hash={item.hash}
                     amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
                     extraSmall={!isLargeScreenWidth}
-                    shouldDisablePointerEvents={isInMobileSelectionMode}
+                    shouldDisablePointerEvents={isInMobileSelectionMode || isDisabledItem}
                 />
             </View>
         </View>

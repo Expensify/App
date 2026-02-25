@@ -4,10 +4,10 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SelectedTransactions} from '@components/Search/types';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
-import {initSplitExpense} from '@libs/actions/IOU';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
+import initSplitExpense from '@libs/actions/SplitExpenses';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,8 +29,9 @@ jest.mock('@libs/actions/Search', () => ({
     getExportTemplates: jest.fn(() => []),
 }));
 
-jest.mock('@libs/actions/IOU', () => ({
-    initSplitExpense: jest.fn(),
+jest.mock('@libs/actions/SplitExpenses.ts', () => ({
+    __esModule: true,
+    default: jest.fn(),
 }));
 
 jest.mock('@libs/actions/IOU/Hold', () => ({
@@ -618,6 +619,8 @@ describe('useSelectedTransactionsActions', () => {
             isExpenseSplit: false,
             originalTransaction: transaction,
         });
+
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
 
         const {result} = renderHook(() =>
             useSelectedTransactionsActions({

@@ -1,51 +1,72 @@
-import {useCallback} from 'react';
-import type {ChartDataPoint, YAxisUnitPosition} from '@components/Charts/types';
+import type {SkFont} from '@shopify/react-native-skia';
+import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/Charts/types';
+import useLocalize from '@hooks/useLocalize';
 import {LABEL_ROTATIONS} from './useChartLabelLayout';
 
 type UseChartLabelFormatsProps = {
     data: ChartDataPoint[];
-    yAxisUnit?: string;
-    yAxisUnitPosition?: YAxisUnitPosition;
+    font?: SkFont | null;
+    unit?: UnitWithFallback | string;
+    unitPosition?: UnitPosition;
     labelSkipInterval?: number;
     labelRotation?: number;
     truncatedLabels?: string[];
 };
 
-export default function useChartLabelFormats({data, yAxisUnit, yAxisUnitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels}: UseChartLabelFormatsProps) {
-    const formatYAxisLabel = useCallback(
-        (value: number) => {
-            const formatted = value.toLocaleString();
-            if (!yAxisUnit) {
-                return formatted;
-            }
-            // Add space for multi-character codes (e.g., "PLN 100") but not for symbols (e.g., "$100")
-            const separator = yAxisUnit.length > 1 ? ' ' : '';
-            return yAxisUnitPosition === 'left' ? `${yAxisUnit}${separator}${formatted}` : `${formatted}${separator}${yAxisUnit}`;
-        },
-        [yAxisUnit, yAxisUnitPosition],
-    );
+/**
+ * Checks if all characters in the text can be rendered by the font.
+ * Returns true if all glyphs are supported (no glyph ID is 0).
+ */
+function canFontRenderText(font: SkFont, text: string): boolean {
+    const glyphIDs = font.getGlyphIDs(text);
+    return glyphIDs.every((id) => id !== 0);
+}
 
-    const formatXAxisLabel = useCallback(
-        (value: number) => {
-            const index = Math.round(value);
+/**
+ * Resolves the display unit based on font support.
+ * If unit is a string, returns it directly.
+ * If unit is an object, checks if font can render the value and uses fallback if not.
+ */
+function resolveDisplayUnit(font: SkFont | null | undefined, unit: UnitWithFallback | string | undefined): string | undefined {
+    if (!unit) {
+        return undefined;
+    }
 
-            // Skip labels based on calculated interval
-            if (index % labelSkipInterval !== 0) {
-                return '';
-            }
+    if (typeof unit === 'string') {
+        return unit;
+    }
 
-            // Use pre-truncated labels
-            // If rotation is vertical (-90), we usually want full labels
-            // because they have more space vertically.
-            const sourceToUse = labelRotation === -LABEL_ROTATIONS.VERTICAL || !truncatedLabels ? data.map((p) => p.label) : truncatedLabels;
+    return !font || canFontRenderText(font, unit.value) ? unit.value : unit.fallback;
+}
 
-            return sourceToUse.at(index) ?? '';
-        },
-        [labelSkipInterval, labelRotation, truncatedLabels, data],
-    );
+export default function useChartLabelFormats({data, font, unit, unitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels}: UseChartLabelFormatsProps) {
+    const {numberFormat} = useLocalize();
+
+    const displayUnit = resolveDisplayUnit(font, unit);
+
+    const formatValue = (value: number) => {
+        const formatted = numberFormat(value);
+        if (!displayUnit) {
+            return formatted;
+        }
+        const separator = displayUnit.length > 1 ? ' ' : '';
+        return unitPosition === 'left' ? `${displayUnit}${separator}${formatted}` : `${formatted}${separator}${displayUnit}`;
+    };
+
+    const formatLabel = (value: number) => {
+        const index = Math.round(value);
+
+        if (index % labelSkipInterval !== 0) {
+            return '';
+        }
+
+        const sourceToUse = labelRotation === -LABEL_ROTATIONS.VERTICAL || !truncatedLabels ? data.map((p) => p.label) : truncatedLabels;
+
+        return sourceToUse.at(index) ?? '';
+    };
 
     return {
-        formatXAxisLabel,
-        formatYAxisLabel,
+        formatLabel,
+        formatValue,
     };
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
@@ -9,15 +10,16 @@ type TableListItemSkeletonProps = {
     fixedNumItems?: number;
     gradientOpacityEnabled?: boolean;
     useCompanyCardsLayout?: boolean;
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
 const barHeight = '8';
 const shortBarWidth = '60';
 const longBarWidth = '124';
 
-function TableListItemSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, useCompanyCardsLayout = false}: TableListItemSkeletonProps) {
+function TableListItemSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, useCompanyCardsLayout = false, reasonAttributes}: TableListItemSkeletonProps) {
     const styles = useThemeStyles();
-    useSkeletonSpan('TableRowSkeleton');
+    useSkeletonSpan('TableRowSkeleton', reasonAttributes);
 
     const circleX = useCompanyCardsLayout ? 36 : 40;
     const circleY = useCompanyCardsLayout ? 36 : 32;

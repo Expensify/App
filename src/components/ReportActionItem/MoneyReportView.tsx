@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {resolveReportFieldValue} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
+import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {
     getBillableAndTaxTotal,
     getFieldViolation,
@@ -92,7 +93,8 @@ function MoneyReportView({
     const transactions = useReportTransactions(report?.reportID);
     const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactions);
 
-    const shouldShowBreakdown = (nonReimbursableSpend && reimbursableSpend) || !!billableTotal || !!taxTotal;
+    const isTaxEnabled = isPolicyTaxEnabled(policy);
+    const shouldShowBreakdown = nonReimbursableSpend || !!billableTotal || (!!taxTotal && isTaxEnabled);
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
@@ -107,7 +109,7 @@ function MoneyReportView({
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`, {canBeMissing: true});
+    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`);
 
     const {sortedPolicyReportFields, fieldValues, fieldsByName} = useMemo(() => {
         const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {});
@@ -240,10 +242,10 @@ function MoneyReportView({
                         {!!shouldShowBreakdown && (
                             <>
                                 {[
-                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: !!nonReimbursableSpend && !!reimbursableSpend},
-                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: !!nonReimbursableSpend && !!reimbursableSpend},
+                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: !!nonReimbursableSpend},
+                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: !!nonReimbursableSpend},
                                     {label: 'common.billable', value: formattedBillableAmount, show: !!billableTotal},
-                                    {label: 'common.tax', value: formattedTaxAmount, show: !!taxTotal},
+                                    {label: 'common.tax', value: formattedTaxAmount, show: !!taxTotal && isTaxEnabled},
                                 ]
                                     .filter(({show}) => show)
                                     .map(({label, value}) => (

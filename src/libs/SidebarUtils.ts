@@ -23,8 +23,7 @@ import {
     shouldShowLastActorDisplayName,
 } from './OptionsListUtils';
 import Parser from './Parser';
-import Performance from './Performance';
-import {getCleanedTagName, getPolicy} from './PolicyUtils';
+import {getCleanedTagName} from './PolicyUtils';
 import {
     getActionableCardFraudAlertResolutionMessage,
     getAddedApprovalRuleMessage,
@@ -36,9 +35,12 @@ import {
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
     getDeletedBudgetMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
@@ -375,7 +377,12 @@ function updateReportsToDisplayInLHN({
 /**
  * Categorizes reports into their respective LHN groups
  */
-function categorizeReportsForLHN(reportsToDisplay: ReportsToDisplayInLHN, reportsDrafts: OnyxCollection<string> | undefined, reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>) {
+function categorizeReportsForLHN(
+    reportsToDisplay: ReportsToDisplayInLHN,
+    reportsDrafts: OnyxCollection<string> | undefined,
+    conciergeReportID: string | undefined,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+) {
     const pinnedAndGBRReports: MiniReport[] = [];
     const errorReports: MiniReport[] = [];
     const draftReports: MiniReport[] = [];
@@ -401,7 +408,7 @@ function categorizeReportsForLHN(reportsToDisplay: ReportsToDisplayInLHN, report
 
         const reportID = report.reportID;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const displayName = getReportName(report);
+        const displayName = getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, conciergeReportID);
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -536,10 +543,9 @@ function sortReportsToDisplayInLHN(
     priorityMode: OnyxEntry<PriorityMode>,
     localeCompare: LocaleContextProps['localeCompare'],
     reportsDrafts: OnyxCollection<string> | undefined,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
+    conciergeReportID: string | undefined,
 ): string[] {
-    Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
-
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -554,7 +560,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportNameValuePairs);
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, conciergeReportID, reportNameValuePairs);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
@@ -568,7 +574,6 @@ function sortReportsToDisplayInLHN(
         sortedCategories.archivedReports,
     );
 
-    Performance.markEnd(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     return result;
 }
 
@@ -660,8 +665,9 @@ function getOptionData({
     personalDetails,
     policy,
     parentReportAction,
-    lastMessageTextFromReport: lastMessageTextFromReportProp,
+    conciergeReportID,
     invoiceReceiverPolicy,
+    lastMessageTextFromReport: lastMessageTextFromReportProp,
     card,
     lastAction,
     translate,
@@ -671,26 +677,29 @@ function getOptionData({
     movedFromReport,
     movedToReport,
     currentUserAccountID,
+    chatReport,
     reportAttributesDerived,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
-    policy: OnyxEntry<Policy> | undefined;
+    policy: OnyxEntry<Policy>;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
+    conciergeReportID: string | undefined;
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
     lastMessageTextFromReport?: string;
-    invoiceReceiverPolicy?: OnyxEntry<Policy>;
     reportAttributes: OnyxEntry<ReportAttributes>;
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     translate: LocalizedTranslate;
     localeCompare: LocaleContextProps['localeCompare'];
     isReportArchived: boolean | undefined;
-    lastActionReport: OnyxEntry<Report> | undefined;
+    lastActionReport: OnyxEntry<Report>;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number;
+    chatReport: OnyxEntry<Report>;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
@@ -778,7 +787,7 @@ function getOptionData({
     result.tooltipText = getReportParticipantsTitle(visibleParticipantAccountIDs);
     result.hasOutstandingChildTask = report.hasOutstandingChildTask;
     result.hasParentAccess = report.hasParentAccess;
-    result.isConciergeChat = isConciergeChatReport(report);
+    result.isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     result.participants = report.participants;
 
     const isExpense = isExpenseReport(report);
@@ -830,6 +839,7 @@ function getOptionData({
             movedToReport,
             policy,
             isReportArchived,
+            chatReport,
             reportAttributesDerived,
         });
     }
@@ -929,6 +939,12 @@ function getOptionData({
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX)
         ) {
             result.alternateText = getWorkspaceTaxUpdateMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME)) {
+            result.alternateText = getCustomTaxNameUpdateMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX)) {
+            result.alternateText = getCurrencyDefaultTaxUpdateMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX)) {
+            result.alternateText = getForeignCurrencyDefaultTaxUpdateMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME)) {
             result.alternateText = getCleanedTagName(getTagListNameUpdatedMessage(translate, lastAction) ?? '');
         } else if (isTagModificationAction(lastAction?.actionName ?? '')) {
@@ -1078,7 +1094,7 @@ function getOptionData({
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(
-                    getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ??
+                    getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ??
                         translate('report.noActivityYet'),
                 );
             }
@@ -1088,7 +1104,7 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ||
+                getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ||
                     translate('report.noActivityYet'),
             );
         }
@@ -1115,7 +1131,7 @@ function getOptionData({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived);
+    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived, undefined, undefined, conciergeReportID);
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -1145,6 +1161,7 @@ function getOptionData({
 function getWelcomeMessage(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    invoiceReceiverPolicy: OnyxEntry<Policy>,
     participantPersonalDetailList: PersonalDetails[],
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
@@ -1159,7 +1176,7 @@ function getWelcomeMessage(
     }
 
     if (isChatRoom(report)) {
-        return getRoomWelcomeMessage(translate, report, isReportArchived, reportDetailsLink);
+        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, isReportArchived, reportDetailsLink);
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -1203,7 +1220,7 @@ function getWelcomeMessage(
         messageHtml += translate('reportActionsView.usePlusButton', {additionalText});
     }
     if (isConciergeChatReport(report)) {
-        messageHtml += translate('reportActionsView.askConcierge');
+        messageHtml = translate('reportActionsView.askConcierge');
     }
 
     welcomeMessage.messageHtml = messageHtml;
@@ -1214,7 +1231,13 @@ function getWelcomeMessage(
 /**
  * Get welcome message based on room type
  */
-function getRoomWelcomeMessage(translate: LocalizedTranslate, report: OnyxEntry<Report>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
+function getRoomWelcomeMessage(
+    translate: LocalizedTranslate,
+    report: OnyxEntry<Report>,
+    invoiceReceiverPolicy: OnyxEntry<Policy>,
+    isReportArchived = false,
+    reportDetailsLink = '',
+): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1238,9 +1261,7 @@ function getRoomWelcomeMessage(translate: LocalizedTranslate, report: OnyxEntry<
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
                 ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils})
-                : // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                  // eslint-disable-next-line @typescript-eslint/no-deprecated
-                  getPolicy(report?.invoiceReceiver?.policyID)?.name;
+                : invoiceReceiverPolicy?.name;
         const receiver = getPolicyName({report});
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
     } else {
