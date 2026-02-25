@@ -93,7 +93,7 @@ describe('ImportTransactions', () => {
                 data: [],
                 columns: {},
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildColumnLayout(spreadsheet, 'Test Card', 'USD', true, false);
 
@@ -143,7 +143,7 @@ describe('ImportTransactions', () => {
                     3: 'category',
                 },
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildColumnLayout(spreadsheet, 'My Card', 'EUR', false, true);
 
@@ -180,7 +180,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: false,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildColumnLayout(spreadsheet, 'Card', 'USD', true, false);
 
@@ -213,7 +213,7 @@ describe('ImportTransactions', () => {
                     10: 'amount', // Out of bounds
                 },
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildColumnLayout(spreadsheet, 'Card', 'USD', true, false);
 
@@ -235,7 +235,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -255,7 +255,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -293,7 +293,7 @@ describe('ImportTransactions', () => {
                     3: 'category',
                 },
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -314,7 +314,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -336,7 +336,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {flipAmountSign: true});
 
@@ -357,7 +357,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -379,7 +379,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -400,7 +400,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: false,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -425,7 +425,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -449,7 +449,7 @@ describe('ImportTransactions', () => {
                     2: 'amount',
                 },
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
@@ -471,7 +471,7 @@ describe('ImportTransactions', () => {
                     // No merchant column mapped
                 },
                 containsHeader: true,
-            } as ImportedSpreadsheet;
+            } as Partial<ImportedSpreadsheet> as ImportedSpreadsheet;
 
             const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
 
