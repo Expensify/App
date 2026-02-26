@@ -1,11 +1,11 @@
 import {deepEqual} from 'fast-equals';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
+import useInitialValue from '@hooks/useInitialValue';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import {clearCardListErrors, requestReplacementExpensifyCard} from '@libs/actions/Card';
 import {setErrors} from '@libs/actions/FormActions';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
@@ -32,18 +32,10 @@ function ReportCardLostConfirmMagicCodePage({
     const primaryLogin = account?.primaryLogin ?? '';
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const physicalCard = cardList?.[cardID];
-    const [newCardID, setNewCardID] = useState<string>('');
-    const previousCardList = usePrevious(cardList);
+    const initialCardKeys = useInitialValue(() => new Set(Object.keys(cardList ?? {})));
     const validateError = getLatestErrorMessageField(physicalCard);
 
-    const [prevCardList, setPrevCardList] = useState(cardList);
-    if (prevCardList !== cardList) {
-        setPrevCardList(cardList);
-        const newID = Object.keys(cardList ?? {}).find((cardKey) => cardList?.[cardKey]?.cardID && !(cardKey in (previousCardList ?? {})));
-        if (newID && !physicalCard?.cardID) {
-            setNewCardID(newID);
-        }
-    }
+    const newCardID = Object.keys(cardList ?? {}).find((key) => !initialCardKeys.has(key) && cardList?.[key]?.cardID) ?? '';
 
     useEffect(() => {
         if (formData?.isLoading) {
