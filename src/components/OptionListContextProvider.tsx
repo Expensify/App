@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -49,18 +49,16 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         ? createOptionList(personalDetails, currentUserAccountID, privateIsArchivedMap, reports, reportAttributes?.reports)
         : EMPTY_OPTIONS;
 
-    const initializeOptions = useCallback(() => {
+    const initializeOptions = () => {
         setAreOptionsInitialized(true);
-    }, []);
+    };
 
-    const resetOptions = useCallback(() => {
+    const resetOptions = () => {
         setAreOptionsInitialized(false);
-    }, []);
+    };
 
     return (
-        <OptionsListContext.Provider
-            value={useMemo(() => ({options, initializeOptions, areOptionsInitialized, resetOptions}), [options, initializeOptions, areOptionsInitialized, resetOptions])}
-        >
+        <OptionsListContext.Provider value={{options, initializeOptions, areOptionsInitialized, resetOptions}}>
             {children}
         </OptionsListContext.Provider>
     );
@@ -105,20 +103,17 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
         initializeOptions();
     }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
 
-    const resetInternalOptions = useCallback(() => {
+    const resetInternalOptions = () => {
         setAreInternalOptionsInitialized(false);
         resetOptions();
-    }, [resetOptions]);
+    };
 
-    return useMemo(
-        () => ({
-            initializeOptions,
-            options: internalOptions,
-            areOptionsInitialized: areInternalOptionsInitialized,
-            resetOptions: resetInternalOptions,
-        }),
-        [initializeOptions, internalOptions, resetInternalOptions, areInternalOptionsInitialized],
-    );
+    return {
+        initializeOptions,
+        options: internalOptions,
+        areOptionsInitialized: areInternalOptionsInitialized,
+        resetOptions: resetInternalOptions,
+    };
 };
 
 export default OptionsListContextProvider;
