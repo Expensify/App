@@ -841,6 +841,7 @@ function getOptionData({
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
+        const currentUserLogin = personalDetails[currentUserAccountID]?.login ?? '';
         lastMessageTextFromReport = getLastMessageTextForReport({
             translate,
             report,
@@ -852,6 +853,7 @@ function getOptionData({
             reportMetadata,
             reportAttributesDerived,
             lastAction,
+            currentUserLogin,
         });
     }
 
