@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {View} from 'react-native';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -41,7 +41,6 @@ function AnimatedSettlementButton({
     const height = useSharedValue<number>(variables.componentSizeNormal);
     const [canShow, setCanShow] = useState(true);
     const [minWidth, setMinWidth] = useState<number>(0);
-    const viewRef = useRef<HTMLElement | null>(null);
 
     const containerStyles = useAnimatedStyle(() => ({
         height: height.get(),
@@ -97,10 +96,10 @@ function AnimatedSettlementButton({
     }
 
     const animatedViewRef = (el: View | null) => {
-        viewRef.current = el as unknown as HTMLElement | null;
-        if (el && isAnimationRunning) {
-            setMinWidth((el as unknown as HTMLElement).getBoundingClientRect?.().width ?? 0);
+        if (!el || !isAnimationRunning) {
+            return;
         }
+        setMinWidth((el as unknown as HTMLElement).getBoundingClientRect?.().width ?? 0);
     };
 
     useEffect(() => {
