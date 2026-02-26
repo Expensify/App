@@ -26,7 +26,7 @@ Onyx.connectWithoutView({
     },
 });
 
-function clearReportActionErrors(reportID: string, reportAction: ReportAction, originalReportID: string | undefined, keys?: string[]) {
+function clearReportActionErrors(reportAction: ReportAction, originalReportID: string | undefined, keys?: string[]) {
     if (!reportAction?.reportActionID) {
         return;
     }
@@ -90,7 +90,7 @@ function clearAllRelatedReportActionErrors(
         return;
     }
 
-    clearReportActionErrors(reportID, reportAction, originalReportID, keys);
+    clearReportActionErrors(reportAction, originalReportID, keys);
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.parentReportID && report?.parentReportActionID && ignore !== 'parent') {
