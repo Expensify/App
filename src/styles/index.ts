@@ -1100,6 +1100,7 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.editableCellHeight,
             maxHeight: variables.editableCellHeight,
             overflow: 'hidden',
+            justifyContent: 'center',
         },
 
         editableCellHover: {
