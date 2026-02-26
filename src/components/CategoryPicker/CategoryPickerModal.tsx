@@ -106,13 +106,11 @@ function CategoryPickerModal({
                         onSubmit={setPendingItem}
                     />
                 </View>
-                <View style={styles.p4}>
-                    <ConfirmCancelButtonRow
-                        onConfirm={handleConfirm}
-                        onCancel={handleCancel}
-                        isConfirmDisabled={!pendingItem}
-                    />
-                </View>
+                <ConfirmCancelButtonRow
+                    onConfirm={handleConfirm}
+                    onCancel={handleCancel}
+                    isConfirmDisabled={!pendingItem}
+                />
             </View>
         </PopoverWithMeasuredContent>
     );

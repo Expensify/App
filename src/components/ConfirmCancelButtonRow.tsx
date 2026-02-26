@@ -20,7 +20,7 @@ function ConfirmCancelButtonRow({onConfirm, onCancel, isConfirmDisabled = false}
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flexRow, styles.gap2]}>
+        <View style={[styles.flexRow, styles.gap2, styles.ph4, styles.pb4]}>
             <Button
                 style={[styles.flex1]}
                 text={translate('common.cancel')}

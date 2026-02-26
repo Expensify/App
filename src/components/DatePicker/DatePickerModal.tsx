@@ -107,13 +107,11 @@ function DatePickerModal({
                 />
             </View>
             {showConfirmButtons && (
-                <View style={[styles.p4]}>
-                    <ConfirmCancelButtonRow
-                        onConfirm={handleConfirm}
-                        onCancel={handleCancel}
-                        isConfirmDisabled={!pendingDate}
-                    />
-                </View>
+                <ConfirmCancelButtonRow
+                    onConfirm={handleConfirm}
+                    onCancel={handleCancel}
+                    isConfirmDisabled={!pendingDate}
+                />
             )}
         </PopoverWithMeasuredContent>
     );
