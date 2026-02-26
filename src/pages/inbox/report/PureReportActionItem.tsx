@@ -178,8 +178,6 @@ import {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
-    isDynamicExternalWorkflowApproveFailedAction,
-    isDynamicExternalWorkflowSubmitFailedAction,
     isIOURequestReportAction,
     isMarkAsClosedAction,
     isMessageDeleted,
@@ -1360,28 +1358,6 @@ function PureReportActionItem({
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
             }
-        } else if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
-            const wasSubmittedViaHarvesting = getOriginalMessage(action)?.harvesting ?? false;
-
-            const message = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
-            const failedSubmitReason = wasSubmittedViaHarvesting ? translate('iou.failedToAutoSubmitViaDEW', message) : translate('iou.failedToSubmitViaDEW', message);
-
-            children = (
-                <ReportActionItemBasicMessage>
-                    <RenderHTML html={`<comment><muted-text>${failedSubmitReason}</muted-text></comment>`} />
-                </ReportActionItemBasicMessage>
-            );
-        } else if (isDynamicExternalWorkflowApproveFailedAction(action)) {
-            const wasAutoApproveAction = getOriginalMessage(action)?.automaticAction ?? false;
-
-            const message = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
-            const failedApproveReason = wasAutoApproveAction ? translate('iou.failedToAutoApproveViaDEW', message) : translate('iou.failedToApproveViaDEW', message);
-
-            children = (
-                <ReportActionItemBasicMessage>
-                    <RenderHTML html={`<comment><muted-text>${failedApproveReason}</muted-text></comment>`} />
-                </ReportActionItemBasicMessage>
-            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
             const paymentType = getOriginalMessage(action)?.paymentType;
