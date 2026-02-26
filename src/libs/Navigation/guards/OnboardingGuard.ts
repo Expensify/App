@@ -171,7 +171,8 @@ const OnboardingGuard: NavigationGuard = {
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 
-        const shouldSkipOnboarding = context.isLoading || isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
+        const shouldSkipOnboarding =
+            context.isLoading || isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember || CONFIG.SKIP_ONBOARDING;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
