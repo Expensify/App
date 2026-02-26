@@ -41,7 +41,15 @@ function isLoggingInAsDelegate(transitionURL?: string): boolean {
     const params = new URLSearchParams(transitionURL);
     const delegatorEmail = params.get('delegatorEmail');
 
-    return !!delegatorEmail;
+    if (delegatorEmail) {
+        return true;
+    }
+
+    // If URLSearchParams didn't find it (e.g. transitionURL is a full URL which
+    // mangles the first query-param key), fall back to regex
+    const delegatorEmailParamRegex = /[?&]delegatorEmail=([^&]*)/g;
+    const delegatorMatches = delegatorEmailParamRegex.exec(transitionURL ?? '');
+    return !!delegatorMatches?.[1];
 }
 
 let loggedInDuringSession: boolean | undefined;
