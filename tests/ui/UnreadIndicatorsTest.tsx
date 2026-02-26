@@ -672,7 +672,7 @@ describe('Unread Indicators', () => {
         // Given a read report
         await signInAndGetAppWithUnreadChat();
 
-        readNewestAction(REPORT_ID, true);
+        readNewestAction(REPORT_ID, true, true);
 
         await waitForBatchedUpdates();
 

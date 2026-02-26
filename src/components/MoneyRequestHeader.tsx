@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import type {ReactNode} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -29,6 +30,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getExistingTransactionID} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -163,6 +165,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {removeTransaction} = useSearchActionsContext();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
+    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
+
     const {deleteTransactions} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -209,6 +214,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
 
             for (const item of transactions) {
+                const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
+                const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
+
                 duplicateTransactionAction({
                     transaction: item,
                     optimisticChatReportID,
@@ -223,6 +231,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
+                    existingTransactionDraft,
+                    draftTransactionIDs,
                     betas,
                     personalDetails,
                     recentWaypoints,
@@ -232,7 +242,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         [
             activePolicyExpenseChat,
             allPolicyCategories,
+            transactionDrafts,
             defaultExpensePolicy,
+            draftTransactionIDs,
             isASAPSubmitBetaEnabled,
             introSelected,
             activePolicyID,
