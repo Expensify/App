@@ -21,7 +21,19 @@ import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
+const FALLBACK_OFFSET = 2;
+
 const cachedImageDimensions = new Map<string, Dimensions | undefined>();
+
+function getImagePriority(isActive: boolean, isLightboxVisible: boolean) {
+    if (isActive) {
+        return CONST.IMAGE_LOADING_PRIORITY.HIGH;
+    }
+    if (isLightboxVisible) {
+        return CONST.IMAGE_LOADING_PRIORITY.NORMAL;
+    }
+    return CONST.IMAGE_LOADING_PRIORITY.LOW;
+}
 
 type LightboxProps = Pick<Attachment, 'attachmentID'> & {
     /** Whether source url requires authentication */
@@ -77,13 +89,14 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
             externalGestureHandler: undefined,
         };
     } else {
-        const foundPage = state.pagerItems.findIndex((item) => item.attachmentID === attachmentID);
+        const identifier = attachmentID ?? uri;
+        const foundPage = state.pagerItems.findIndex((item) => (item.attachmentID ?? item.source) === identifier);
         carouselContext = {
             ...state,
             ...actions,
             isUsedInCarousel: !!state.pagerRef,
             isSingleCarouselItem: state.pagerItems.length === 1,
-            page: foundPage,
+            page: foundPage === -1 ? 0 : foundPage,
         };
     }
     const {
@@ -125,21 +138,15 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
         setContentSize({width, height});
     };
 
-    // Enables/disables the lightbox based on the number of concurrent lightboxes
-    // On higher-end devices, we can render lightboxes at the same time,
-    // while on lower-end devices we want to only render the active carousel item as a lightbox
-    // to avoid performance issues.
     const indexCanvasOffset = Math.floor((NUMBER_OF_CONCURRENT_LIGHTBOXES - 1) / 2) || 0;
     const isPageInRange = page >= activePage - indexCanvasOffset && page <= activePage + indexCanvasOffset;
     const isLightboxVisible = !hasSiblingCarouselItems || isPageInRange;
+
+    const isFallbackInRange = !hasSiblingCarouselItems || Math.abs(page - activePage) <= FALLBACK_OFFSET;
+
     const [isLightboxImageLoaded, setLightboxImageLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    /**
-     * Derived: show fallback (non-gesture image) when we don't have all conditions to show the lightbox.
-     * Hide fallback when: active + lightbox in view + lightbox image loaded.
-     * Show fallback when: inactive, or lightbox out of view, or lightbox image still loading.
-     */
     const isFallbackVisible = !hasSiblingCarouselItems ? !isLightboxVisible : !(isActive && isLightboxVisible && isLightboxImageLoaded);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
     const previousUri = usePrevious(uri);
@@ -198,6 +205,8 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
         onScaleChangedContext?.(scale);
     };
 
+    const imagePriority = getImagePriority(isActive, isLightboxVisible);
+
     const isALocalFile = isLocalFile(uri);
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
 
@@ -212,6 +221,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     return (
         <View
+            testID="lightbox-wrapper"
             style={[StyleSheet.absoluteFill, style]}
             onLayout={updateCanvasSize}
         >
@@ -237,6 +247,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                                     source={{uri}}
                                     style={[contentSize ?? styles.invisibleImage]}
                                     isAuthTokenRequired={isAuthTokenRequired}
+                                    priority={imagePriority}
                                     onError={onError}
                                     onLoad={(e) => {
                                         updateContentSize(e);
@@ -259,13 +270,14 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                     )}
 
                     {/* Keep rendering the image without gestures as fallback if the carousel item is not active and while the lightbox is loading the image */}
-                    {isFallbackVisible && (
+                    {isFallbackVisible && isFallbackInRange && (
                         <View style={StyleUtils.getFullscreenCenteredContentStyles()}>
                             <Image
                                 source={{uri}}
                                 resizeMode="contain"
                                 style={[fallbackSize ?? styles.invisibleImage]}
                                 isAuthTokenRequired={isAuthTokenRequired}
+                                priority={imagePriority}
                                 onLoad={(e) => {
                                     updateContentSize(e);
                                     setFallbackImageLoaded(true);

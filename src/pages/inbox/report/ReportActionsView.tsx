@@ -269,7 +269,7 @@ function ReportActionsView({
 
         didLayout.current = true;
 
-        markOpenReportEnd(report);
+        markOpenReportEnd(report, {warm: true});
     }, [report]);
 
     // Check if the first report action in the list is the one we're currently linked to
@@ -304,8 +304,16 @@ function ReportActionsView({
 
     // Show skeleton while the app is loading and we're online
     const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
+    const shouldShowSkeleton = shouldShowSkeletonForInitialLoad ?? shouldShowSkeletonForAppLoad;
 
-    if (shouldShowSkeletonForInitialLoad ?? shouldShowSkeletonForAppLoad) {
+    useEffect(() => {
+        if (!shouldShowSkeleton) {
+            return;
+        }
+        markOpenReportEnd(report, {warm: false});
+    }, [report, shouldShowSkeleton]);
+
+    if (shouldShowSkeleton) {
         return <ReportActionsSkeletonView />;
     }
 

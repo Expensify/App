@@ -4,6 +4,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -50,6 +51,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from './types';
 
@@ -172,7 +174,7 @@ function SearchAutocompleteList({
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
-    const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
+    const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -891,6 +893,19 @@ function SearchAutocompleteList({
             onHighlightFirstItem?.();
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
+
+    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
+    const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
+
+    if (isLoading) {
+        return (
+            <OptionsListSkeletonView
+                fixedNumItems={4}
+                shouldStyleAsTable
+                speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+            />
+        );
+    }
 
     return (
         <SelectionListWithSections<AutocompleteListItem>

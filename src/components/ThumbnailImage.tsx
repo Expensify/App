@@ -152,7 +152,6 @@ function ThumbnailImage({
                 <ImageWithSizeCalculation
                     url={previewSourceURL}
                     altText={altText}
-                    style={style}
                     onMeasure={(args) => {
                         updateImageSize(args);
                         onMeasure?.();

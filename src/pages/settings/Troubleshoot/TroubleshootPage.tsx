@@ -10,7 +10,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext} from '@components/Search/SearchContext';
 import Section from '@components/Section';
 import SentryDebugToolMenu from '@components/SentryDebugToolMenu';
 import Switch from '@components/Switch';
@@ -63,9 +63,8 @@ function TroubleshootPage() {
     const {resetOptions} = useOptionsList({shouldInitialize: false});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
-    const {setShouldResetSearchQuery} = useSearchContext();
+    const {setShouldResetSearchQuery} = useSearchActionsContext();
     useDocumentTitle(`${translate('common.settings')} - ${translate('initialSettingsPage.aboutPage.troubleshoot')}`);
-
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
             const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);

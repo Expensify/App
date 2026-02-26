@@ -3,7 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
-import {Star} from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -32,6 +32,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
 
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Star'] as const);
 
     const freeTrialText = privateSubscription || isOffline ? getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial) : undefined;
 
@@ -41,7 +42,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
 
     const freeTrial = pressable ? (
         <Button
-            icon={Star}
+            icon={icons.Star}
             success={success}
             text={freeTrialText}
             iconWrapperStyles={[styles.mw100]}
