@@ -41,12 +41,6 @@ export default function (): void {
         op: CONST.TELEMETRY.SPAN_APP_STARTUP,
     });
 
-    // getEntriesByName() queries the JS-side entry store, which is only populated after
-    // CONTENT_APPEARED fires (emitBufferedMarks). Since this code runs during JS bundle
-    // execution — before content appears — the sync check always returns [].
-    // Use a PerformanceObserver with type 'react-native-mark' (native marks arrive as
-    // PerformanceReactNativeMark, not PerformanceMark) and buffered: true so it fires
-    // when CONTENT_APPEARED flushes the native mark buffer to JS.
     let jsParseStartMs: number | undefined;
     const observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
