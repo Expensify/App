@@ -39,6 +39,36 @@ beforeEach(async () => {
 });
 
 describe('Middleware', () => {
+    describe('SaveResponseInOnyx', () => {
+        test('preserves the response for side-effect requests when the update is already applied', async () => {
+            // Given the client already has a lastUpdateID applied
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
+            await waitForBatchedUpdates();
+
+            Request.addMiddleware(SaveResponseInOnyx, 'SaveResponseInOnyx');
+
+            const mockResponse = {
+                jsonCode: 200,
+                lastUpdateID: 100,
+                previousUpdateID: 99,
+                transactionsPending3DSReview: {
+                    txn123: {amount: 500, currency: 'USD', created: '2026-02-23', expires: '2026-02-24', lastFourPAN: 1234, merchant: 'TestMerchant'},
+                },
+            };
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce(mockResponse);
+
+            // When we process a side-effect request with no successData/failureData/finallyData
+            const result = await Request.processWithMiddleware({
+                command: 'GetTransactionsPending3DSReview',
+                data: {apiRequestType: 'makeRequestWithSideEffects'},
+            });
+
+            // Then the response should not be undefined — the caller may need the raw response for side effects
+            expect(result).toBeDefined();
+            expect(result?.jsonCode).toBe(200);
+        });
+    });
+
     describe('HandleUnusedOptimisticID', () => {
         test('Normal request', async () => {
             Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
