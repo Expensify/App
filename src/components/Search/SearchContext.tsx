@@ -1,4 +1,4 @@
-import React, {useContext, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
@@ -6,7 +6,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useTodos from '@hooks/useTodos';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,7 +52,6 @@ const defaultSearchStateContext: SearchStateContextValue = {
 
 const defaultSearchActionsContext: SearchActionsContextValue = {
     setLastSearchType: () => {},
-    setCurrentSearchHashAndKey: () => {},
     setCurrentSearchQueryJSON: () => {},
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
@@ -74,13 +72,6 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
     const areTransactionsEmpty = useRef(true);
-
-    // Use a ref to access searchContextData in callbacks without causing callback reference changes
-    const searchContextDataRef = useRef(searchContextData);
-
-    useLayoutEffect(() => {
-        searchContextDataRef.current = searchContextData;
-    }, [searchContextData]);
 
     const currentSearchHash = searchContextData.currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = searchContextData.currentSearchQueryJSON?.similarSearchHash ?? -1;
@@ -196,32 +187,36 @@ function SearchContextProvider({children}: ChildrenProps) {
         }));
     };
 
-    const clearSelectedTransactions: SearchActionsContextValue['clearSelectedTransactions'] = (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
-        if (typeof searchHashOrClearIDsFlag === 'boolean') {
-            setSelectedTransactions([]);
-            return;
-        }
+    const clearSelectedTransactions: SearchActionsContextValue['clearSelectedTransactions'] = useCallback(
+        (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
+            const selectedReports = searchContextData.selectedReports;
+            const selectedTransactions = searchContextData.selectedTransactions;
 
-        const data = searchContextDataRef.current;
+            if (typeof searchHashOrClearIDsFlag === 'boolean') {
+                setSelectedTransactions([]);
+                return;
+            }
 
-        if (searchHashOrClearIDsFlag === data.currentSearchHash) {
-            return;
-        }
+            if (searchHashOrClearIDsFlag === currentSearchHash) {
+                return;
+            }
 
-        if (data.selectedReports.length === 0 && isEmptyObject(data.selectedTransactions) && !data.shouldTurnOffSelectionMode) {
-            return;
-        }
-        setSearchContextData((prevState) => ({
-            ...prevState,
-            shouldTurnOffSelectionMode,
-            selectedTransactions: {},
-            selectedReports: [],
-        }));
+            if (selectedReports.length === 0 && isEmptyObject(selectedTransactions) && !searchContextData.shouldTurnOffSelectionMode) {
+                return;
+            }
+            setSearchContextData((prevState) => ({
+                ...prevState,
+                shouldTurnOffSelectionMode,
+                selectedTransactions: {},
+                selectedReports: [],
+            }));
 
-        // Unselect all transactions and hide the "select all matching items" option
-        setShouldShowSelectAllMatchingItems(false);
-        selectAllMatchingItems(false);
-    };
+            // Unselect all transactions and hide the "select all matching items" option
+            setShouldShowSelectAllMatchingItems(false);
+            selectAllMatchingItems(false);
+        },
+        [currentSearchHash, searchContextData.selectedReports, searchContextData.selectedTransactions, searchContextData.shouldTurnOffSelectionMode, setSelectedTransactions],
+    );
 
     const {selectedTransactionIDs, selectedTransactions} = searchContextData;
 
