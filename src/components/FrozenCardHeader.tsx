@@ -46,7 +46,7 @@ function FrozenCardHeader({cardID, cardPreview, onUnfreezePress}: FrozenCardHead
     }, [formattedDate, frozenByName, isCurrentUser, translate]);
 
     return (
-        <View style={[styles.ph5, styles.pb5, styles.mt9]}>
+        <View style={[styles.ph5, styles.pb5]}>
             {cardPreview}
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt9]}>
                 <Icon
