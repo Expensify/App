@@ -146,7 +146,7 @@ function SearchFiltersBar({
 }: SearchFiltersBarProps) {
     const scrollRef = useRef<FlatList<FilterItem>>(null);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
-    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     // type, groupBy, status, and view values are not guaranteed to respect the ts type as they come from user input
@@ -808,7 +808,7 @@ function SearchFiltersBar({
                                         activeAdminPolicies,
                                         isUserValidated,
                                         isDelegateAccessRestricted,
-                                        userBillingGraceEndPeriodCollection,
+                                        userBillingGraceEndPeriods,
                                         showDelegateNoAccessModal,
                                         confirmPayment,
                                     })

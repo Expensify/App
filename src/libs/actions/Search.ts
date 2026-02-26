@@ -1292,7 +1292,7 @@ function handleBulkPayItemSelected(params: {
     activeAdminPolicies: Policy[];
     isUserValidated: boolean | undefined;
     isDelegateAccessRestricted: boolean;
-    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     showDelegateNoAccessModal: () => void;
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void;
 }) {
@@ -1306,7 +1306,7 @@ function handleBulkPayItemSelected(params: {
         activeAdminPolicies,
         isUserValidated,
         isDelegateAccessRestricted,
-        userBillingGraceEndPeriodCollection,
+        userBillingGraceEndPeriods,
         showDelegateNoAccessModal,
         confirmPayment,
     } = params;
@@ -1326,7 +1326,7 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    if (policy && shouldRestrictUserBillableActions(policy?.id, userBillingGraceEndPeriodCollection)) {
+    if (policy && shouldRestrictUserBillableActions(policy?.id, userBillingGraceEndPeriods)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }
