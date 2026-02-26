@@ -2,7 +2,7 @@
 
 name: code-inline-reviewer
 description: Reviews code and creates inline comments for specific rule violations.
-tools: Glob, Grep, Read, TodoWrite, Bash, BashOutput, KillBash
+tools: Glob, Grep, Read, Bash, BashOutput
 model: inherit
 ---
 
@@ -41,49 +41,26 @@ Each rule file contains:
    - **For large files (>5000 lines):** Use the Grep tool with Search Patterns from each rule's Review Metadata to locate potential violations. Focus on changed portions shown in the diff.
    - **For smaller files:** You may read the full file using the Read tool
    - **If a Read fails with token limit error:** Immediately switch to using Grep with targeted patterns for the rules you're checking
-   - For each rule: evaluate the Condition and "DO NOT flag" exceptions. Mark the rule as checked on the checklist. A single rule **can produce multiple violations** — flag each separately.
-5. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool. Do not batch — create the comment as soon as you confirm a violation.
-6. **Required parameters for each inline comment:**
-   - `path`: Full file path (e.g., "src/components/ReportActionsList.tsx")
+3. **Search strategy for large files:** Use the search patterns defined in each rule's "Search patterns" field to efficiently locate potential violations with Grep.
+4. **Return your findings as structured JSON output.** Your response must be a JSON object matching this schema:
+   ```json
+   { "violations": [ { "ruleId": "...", "path": "...", "line": ..., "body": "..." } ] }
+   ```
+   - `ruleId`: The rule ID (e.g., `PERF-1`, `CONSISTENCY-2`)
+   - `path`: Full file path (e.g., `src/components/ReportActionsList.tsx`)
    - `line`: Line number where the issue occurs
-   - `body`: Concise and actionable description of the violation and fix, following the below Comment Format
-7. **Each comment must reference exactly one Rule ID.**
-8. **Output must consist exclusively of calls to createInlineComment.sh in the required format.** No other text, Markdown, or prose is allowed.
-9. **If no violations are found, add a reaction to the PR**:
-   Add a +1 reaction to the PR using the `addPrReaction` script (available in PATH from `.claude/scripts/`). The script takes ONLY the PR number as argument - it always adds a "+1" reaction, so do NOT pass any reaction type or emoji.
-10. **Add reaction if and only if**:
-   - You examined EVERY changed line in EVERY changed file (via diff + targeted grep/read)
-   - You checked EVERY changed file against ALL rules
-   - You found ZERO violations matching the exact rule criteria
-   - You verified no false negatives by checking each rule systematically
-    If you found even ONE violation or have ANY uncertainty do NOT add the reaction - create inline comments instead.
-11. **DO NOT invent new rules, stylistic preferences, or commentary outside the listed rules.**
-12. **DO NOT describe what you are doing, create comments with a summary, explanations, extra content, comments on rules that are NOT violated or ANYTHING ELSE.**
-    Only inline comments regarding rules violations are allowed. If no violations are found, add a reaction instead of creating any comment.
-    EXCEPTION: If you believe something MIGHT be a Rule violation but are uncertain, err on the side of creating an inline comment with your concern rather than skipping it.
-13. **Reality check before posting**: Before creating each inline comment, re-read the specific code one more time and confirm the violation is real. If upon re-reading you realize the code is actually correct, **do NOT post the comment** — silently skip it and move on. Never post a comment that flags a violation and then concludes it is not actually a problem.
-
-## Tool Usage Example
-
-For each violation, call the createInlineComment.sh script like this:
-
-```bash
-createInlineComment.sh 'src/components/ReportActionsList.tsx' '<Body of the comment according to the Comment Format>' 128
-```
-
-**IMPORTANT**: Always use single quotes around the body argument to properly handle special characters and quotes.
-
-If ZERO violations are found, use the Bash tool to add a reaction to the PR body:
-
-```bash
-addPrReaction.sh <PR_NUMBER>
-```
-
-**IMPORTANT**: Always use the `addPrReaction.sh` script (available in PATH from `.claude/scripts/`) instead of calling `gh api` directly.
+   - `body`: Concise and actionable description of the violation and fix, formatted per the Comment Format below
+5. **Each violation must reference exactly one Rule ID.**
+6. **If no violations are found, return an empty violations array:** `{ "violations": [] }`
+7. **Do NOT post comments, call scripts, or add reactions.** Only return the structured JSON.
+8. **DO NOT invent new rules, stylistic preferences, or commentary outside the listed rules.**
+9. **DO NOT describe what you are doing or add extra content.**
+    EXCEPTION: If you believe something MIGHT be a Rule violation but are uncertain, err on the side of including it in the violations array rather than skipping it.
+10. **Reality check before posting**: Before creating each inline comment, re-read the specific code one more time and confirm the violation is real. If upon re-reading you realize the code is actually correct, **do NOT post the comment** — silently skip it and move on. Never post a comment that flags a violation and then concludes it is not actually a problem.
 
 ## Comment Format
 
-Build the docs link by mapping the ruleId to its rule filename:
+Use this format for the `body` field of each violation:
 
 ```
 ### ❌ <Rule ID> [(docs)](https://github.com/Expensify/App/blob/main/.claude/skills/coding-standards/rules/<rule-filename>.md)
@@ -92,8 +69,3 @@ Build the docs link by mapping the ruleId to its rule filename:
 
 <Suggested, specific fix preferably with a code snippet>
 ```
-
-For example, a PERF-1 violation links to:
-`https://github.com/Expensify/App/blob/main/.claude/skills/coding-standards/rules/perf-1-no-spread-in-renderitem.md`
-
-**CRITICAL**: You must actually call the createInlineComment.sh script for each violation. Don't just describe what you found - create the actual inline comments!
