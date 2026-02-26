@@ -261,7 +261,6 @@ import ReportActionItemMessageWithExplain from './ReportActionItemMessageWithExp
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import TripSummary from './TripSummary';
-import Parser from '@libs/Parser';
 
 type PureReportActionItemProps = {
     /** All the data of the policy collection */
@@ -1364,13 +1363,19 @@ function PureReportActionItem({
         } else if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
             const wasSubmittedViaHarvesting = getOriginalMessage(action)?.harvesting ?? false;
 
-            let errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
-            if (wasSubmittedViaHarvesting) {
-                errorMessage = translate('iou.failedToAutoSubmitViaDEW', errorMessage);
+            let failedSubmitReason = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
+
+            // Uncapitalize the first letter of the failure reason since it will be concatenated to the end of another one
+            if (failedSubmitReason.length) {
+                failedSubmitReason = failedSubmitReason[0].toLowerCase() + failedSubmitReason.slice(1);
             }
 
+            const reason = wasSubmittedViaHarvesting
+                ? translate('iou.failedToAutoSubmitViaDEW', failedSubmitReason)
+                : translate('iou.failedToSubmitViaDEW', failedSubmitReason);
+
             children = (<ReportActionItemBasicMessage>
-                <RenderHTML html={`<comment><muted-text>${errorMessage}</muted-text></comment>`} />
+                <RenderHTML html={`<comment><muted-text>${reason}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>);
         } else if (isDynamicExternalWorkflowApproveFailedAction(action)) {
             const errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
