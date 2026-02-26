@@ -1783,7 +1783,6 @@ const CONST = {
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
         SPAN_OD_ND_TRANSITION_STAGES: {
-            JS_BRIDGE: 'OdNdJsBridge',
             ONYX_HYDRATION: 'OdNdOnyxHydration',
             GET_HYBRID_APP_SETTINGS: 'OdNdGetHybridAppSettings',
             SETUP_NEW_DOT: 'OdNdSetupNewDot',

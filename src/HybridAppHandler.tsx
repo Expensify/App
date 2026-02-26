@@ -6,7 +6,7 @@ import {getHybridAppSettings} from './libs/actions/HybridApp';
 import type HybridAppSettings from './libs/actions/HybridApp/types';
 import {setupNewDotAfterTransitionFromOldDot} from './libs/actions/Session';
 import Log from './libs/Log';
-import {endSpan, endSpanAt, getSpan, startSpan} from './libs/telemetry/activeSpans';
+import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
@@ -117,16 +117,6 @@ function HybridAppHandler() {
                 rootSpan.setAttribute('js_entry_time', jsEntryTimestamp.current);
                 rootSpan.setAttribute('onyx_hydration_duration_ms', onyxHydrationDuration.current ?? -1);
                 rootSpan.setAttribute('get_settings_duration_ms', getSettingsDuration.current ?? -1);
-
-                // Create a retroactive JS_BRIDGE span covering the native→JS gap
-                // (from OldDot tap to first JS execution in HybridAppHandler).
-                startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.JS_BRIDGE, {
-                    name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.JS_BRIDGE,
-                    op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.JS_BRIDGE,
-                    startTime: transitionStartTimestamp,
-                    parentSpan: getSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION),
-                });
-                endSpanAt(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.JS_BRIDGE, jsEntryTimestamp.current);
             }
 
             finalizeTransitionFromOldDot(hybridAppSettings);
