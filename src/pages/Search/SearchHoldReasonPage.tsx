@@ -28,6 +28,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {selectedTransactionIDs, selectedTransactions, currentSearchHash} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const selectedTransactionsList = Object.values(selectedTransactions);
@@ -36,6 +37,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
         : selectedTransactionsList.length === 0 || selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
 
     const ancestors = useAncestors(report);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const onSubmit = useCallback(
@@ -49,13 +51,25 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 putTransactionsOnHold(selectedTransactionIDs, comment, reportID, ancestors);
                 clearSelectedTransactions(true);
             } else {
-                holdMoneyRequestOnSearch(currentSearchHash, Object.keys(selectedTransactions), comment);
+                holdMoneyRequestOnSearch(currentSearchHash, Object.keys(selectedTransactions), comment, allTransactions, allReportActions);
                 clearSelectedTransactions();
             }
 
             Navigation.goBack();
         },
-        [route.name, selectedTransactionIDs, selectedTransactions, currentSearchHash, clearSelectedTransactions, reportID, ancestors, isDelegateAccessRestricted, showDelegateNoAccessModal],
+        [
+            route.name,
+            selectedTransactionIDs,
+            selectedTransactions,
+            currentSearchHash,
+            clearSelectedTransactions,
+            reportID,
+            allTransactions,
+            allReportActions,
+            ancestors,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
+        ],
     );
 
     const validate = useCallback(
