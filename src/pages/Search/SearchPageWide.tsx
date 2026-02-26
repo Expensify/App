@@ -70,8 +70,7 @@ function SearchPageWide() {
     useEffect(() => {
         resetVideoPlayerData();
         return resetVideoPlayerData;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [resetVideoPlayerData]);
 
     const offlineIndicatorStyle = useMemo(() => {
         if (shouldShowFooter) {
