@@ -862,6 +862,7 @@ function IOURequestStepConfirmation({
                     quickAction,
                     recentWaypoints,
                     betas,
+                    isSelfTourViewed,
                 });
             }
         },
@@ -890,6 +891,7 @@ function IOURequestStepConfirmation({
             quickAction,
             recentWaypoints,
             betas,
+            isSelfTourViewed,
         ],
     );
 

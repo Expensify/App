@@ -759,6 +759,7 @@ type CreateTrackExpenseParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isSelfTourViewed: boolean;
 };
 
 type GetTrackExpenseInformationTransactionParams = {
@@ -803,6 +804,7 @@ type GetTrackExpenseInformationParams = {
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isSelfTourViewed: boolean;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -4078,6 +4080,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         activePolicyID,
         quickAction,
         betas,
+        isSelfTourViewed,
     } = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -4219,6 +4222,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             currentUserEmailParam,
             introSelected,
             activePolicyID,
+            isSelfTourViewed,
         });
         createdWorkspaceParams = workspaceData.params;
         onyxData.optimisticData?.push(...(workspaceData.optimisticData ?? []));
@@ -7383,6 +7387,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         quickAction,
         recentWaypoints = [],
         betas,
+        isSelfTourViewed,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -7455,6 +7460,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             customUnitRateID,
         },
         quickAction,
+        isSelfTourViewed,
     };
 
     const {
@@ -7517,6 +7523,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         activePolicyID,
         quickAction,
         betas,
+        isSelfTourViewed,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
@@ -13903,6 +13910,7 @@ export {
     buildOnyxDataForMoneyRequest,
     createSplitsAndOnyxData,
     getDeleteTrackExpenseInformation,
+    getTrackExpenseInformation,
     getMoneyRequestInformation,
     getOrCreateOptimisticSplitChatReport,
 };
@@ -13924,4 +13932,5 @@ export type {
     RejectMoneyRequestData,
     CreateDistanceRequestInformation,
     BuildOnyxDataForMoneyRequestKeys,
+    GetTrackExpenseInformationParams,
 };

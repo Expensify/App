@@ -150,6 +150,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     unit?: Unit;
     personalOutputCurrency?: string;
+    isSelfTourViewed: boolean;
 };
 
 function createTransaction({
@@ -210,6 +211,7 @@ function createTransaction({
                 quickAction,
                 recentWaypoints,
                 betas,
+                isSelfTourViewed,
             });
         } else {
             requestMoney({
@@ -542,6 +544,7 @@ function handleMoneyRequestStepDistanceNavigation({
     recentWaypoints,
     unit,
     personalOutputCurrency,
+    isSelfTourViewed,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -619,6 +622,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     quickAction,
                     recentWaypoints,
                     betas,
+                    isSelfTourViewed,
                 });
                 return;
             }

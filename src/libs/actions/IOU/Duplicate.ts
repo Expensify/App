@@ -605,6 +605,7 @@ function duplicateExpenseTransaction({
             quickAction,
             recentWaypoints,
             betas,
+            isSelfTourViewed,
         };
         return trackExpense(trackExpenseParams);
     }

@@ -167,6 +167,7 @@ function SubmitDetailsPage({
                 quickAction,
                 recentWaypoints,
                 betas,
+                isSelfTourViewed,
             });
         } else {
             requestMoney({
