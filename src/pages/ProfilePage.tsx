@@ -182,6 +182,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 accessibilityLabel={translate('common.profile')}
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 disabled={!hasAvatar}
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.AVATAR}
                             >
                                 <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
                                     <Avatar

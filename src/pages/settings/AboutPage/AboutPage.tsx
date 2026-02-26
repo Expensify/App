@@ -130,7 +130,7 @@ function AboutPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel,
         }));
-    }, [icons, styles, translate, waitForNavigate, conciergeReportID]);
+    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected]);
 
     const overlayContent = useCallback(
         () => (

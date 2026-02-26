@@ -8997,6 +8997,9 @@ const CONST = {
         SETTINGS_EXIT_SURVEY: {
             GO_TO_CLASSIC: 'SettingsExitSurvey-GoToExpensifyClassic',
         },
+        PROFILE_PAGE: {
+            AVATAR: 'ProfilePage-Avatar',
+        },
     },
 
     DOMAIN: {
