@@ -1,23 +1,18 @@
 ---
 title: How to Prevent Duplicate Expenses
 description: Learn why duplicate expenses happen in Expensify and how to prevent SmartScan merge failures. 
-keywords: [New Expensify, duplicate expenses, SmartScan merge failed, receipt didn’t merge, why didn’t my expenses merge, receipt matching, SmartScan duplicate, expense duplicate warning, card transaction not merging, foreign exchange merge failure, review duplicates]
-internalScope: Audience is members and approvers managing expenses. Covers why duplicate expenses occur and how to prevent SmartScan and card feed merge failures. Does not cover how to edit, merge, split, or delete expenses step-by-step.
+keywords: [New Expensify, duplicate expenses, SmartScan merge failed, receipt didn’t merge, why didn’t my expenses merge, receipt matching, SmartScan duplicate, expense duplicate warning, card transaction not merging, foreign exchange merge failure, review duplicates, how to prevent duplicate expenses]
+internalScope: Audience is members and approvers managing expenses. Covers why duplicate expenses occur and how to prevent SmartScan and card feed merge failures.
 ---
+# How to Prevent Duplicate Expenses
 
-Duplicate expenses typically occur when a SmartScanned receipt does not merge with its matching imported card transaction. This guide explains why duplicates happen and how to prevent them.
-
-# How to prevent duplicate expenses in Expensify
-
-## Why duplicate expenses happen
-
-Duplicate expenses most commonly occur when a SmartScanned receipt doesn’t merge with a matching card transaction as expected. This results in two separate expenses for the same purchase.
+Duplicate expenses most commonly occur when a SmartScanned receipt doesn’t merge with a matching card transaction as expected. This results in two separate expenses for the same purchase. You can reduce the chance of duplicate expenses by ensuring expenses meet the conditions to merge automatically, and manually merging or deleting duplicates as needed. 
 
 ---
 
 ## How SmartScan automatic expense merge works 
 
-Expensify automatically merges a SmartScanned receipt with its matching imported card transaction when specific conditions are met.
+Expensify automatically merges SmartScanned receipts with their matching imported card transaction when specific conditions are met.
 
 Expenses can merge automatically when:
 
@@ -25,13 +20,13 @@ Expenses can merge automatically when:
 - The transaction dates match
 - The currencies match or fall within the allowed foreign exchange tolerance
 - Only one matching pair exists
-- The card transaction posts within 7 days of the receipt being SmartScanned
+- The card transaction posts within seven days of the receipt being SmartScanned
 
 If any of these conditions are not met, SmartScan will not merge the expenses automatically.
 
 ---
 
-## Common reasons SmartScan merge fails
+## Conditions that prevent SmartScan from merging expenses
 
 SmartScan will not merge expenses automatically if:
 
@@ -45,22 +40,12 @@ SmartScan will not merge expenses automatically if:
 
 ---
 
-## How to prevent duplicate expenses
-
-To reduce the chance of duplicate expenses:
-
-- SmartScan the final receipt total (for example, include the receipt showing the tip if one was added)
-- Avoid uploading the same receipt multiple times
-- Do not edit key fields (amount, date, currency) while SmartScan is processing
-- Wait for the card transaction to post before manually resolving duplicates
-- Review duplicate warnings before submitting or approving a report
-
 ## How to fix duplicate expenses
 
 If expenses are duplicated because they failed to merge automatically, you can manually merge or delete the duplicate as needed. 
 
 For step-by-step instructions, see:
-- [Merge Expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Merging-expenses)
+- [Merge Expenses] (https://help.expensify.com/articles/new-expensify/reports-and-expenses/Merging-expenses)
 - [Delete Expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Delete-Expenses)
 
 **Note:** When in doubt, keep the imported card expense. It provides more accurate reconciliation with your accounting system.
@@ -70,7 +55,6 @@ For step-by-step instructions, see:
 # FAQ
 
 ## Why didn’t my receipt merge with my card transaction? 
-
 SmartScan requires a close match in amount, date, and currency. If those details differ, or if the card transaction has not posted within seven days, the expenses will not merge automatically.
 
 ## Can expenses merge if they are different currencies? 
@@ -88,5 +72,3 @@ Yes. Imported card expenses can still merge with eligible SmartScanned receipts 
 Yes. Expensify may display a duplicate warning when two expenses appear to represent the same purchase. Review these warnings before submitting or approving a report.
 
 ---
-
-
