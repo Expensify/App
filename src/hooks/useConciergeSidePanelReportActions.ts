@@ -2,7 +2,10 @@ import {useCallback, useMemo, useState} from 'react';
 import DateUtils from '@libs/DateUtils';
 import {isCreatedAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+const ONBOARDING_WINDOW_MS = 10 * 60 * 1000;
 
 type UseConciergeSidePanelReportActionsParams = {
     report: OnyxTypes.Report;
@@ -10,6 +13,7 @@ type UseConciergeSidePanelReportActionsParams = {
     visibleReportActions: OnyxTypes.ReportAction[];
     isConciergeSidePanel: boolean;
     hasUserSentMessage: boolean;
+    hasOlderActions: boolean;
     sessionStartActionIDs: Set<string> | null;
     currentUserAccountID: number;
     greetingText: string;
@@ -22,6 +26,7 @@ function useConciergeSidePanelReportActions({
     visibleReportActions,
     isConciergeSidePanel,
     hasUserSentMessage,
+    hasOlderActions,
     sessionStartActionIDs,
     currentUserAccountID,
     greetingText,
@@ -41,12 +46,40 @@ function useConciergeSidePanelReportActions({
     // it won't flip when the user sends their first-ever message mid-session.
     // On a brand-new account (no prior user messages) the original onboarding
     // messages remain visible instead of being replaced by the custom greeting.
+    //
+    // When no user message is found in the loaded set, we use the CREATED action's
+    // timestamp to check if loaded Concierge messages are onboarding messages
+    // (created within a short window). If the CREATED action hasn't loaded yet,
+    // hasOlderActions tells us there's unloaded history — the user has likely
+    // interacted before.
     const hadUserMessageAtSessionStart = useMemo(() => {
         if (!isConciergeSidePanel || !sessionStartActionIDs) {
             return false;
         }
-        return visibleReportActions.some((action) => !isCreatedAction(action) && sessionStartActionIDs.has(action.reportActionID) && action.actorAccountID === currentUserAccountID);
-    }, [isConciergeSidePanel, visibleReportActions, sessionStartActionIDs, currentUserAccountID]);
+        const hasUserMessageInLoadedSet = visibleReportActions.some(
+            (action) => !isCreatedAction(action) && sessionStartActionIDs.has(action.reportActionID) && action.actorAccountID === currentUserAccountID,
+        );
+        if (hasUserMessageInLoadedSet) {
+            return true;
+        }
+        const createdAction = visibleReportActions.find(isCreatedAction);
+        if (!createdAction) {
+            return hasOlderActions;
+        }
+        const createdActionTime = new Date(createdAction.created).getTime();
+        const nonCreatedActions = visibleReportActions.filter((action) => !isCreatedAction(action) && sessionStartActionIDs.has(action.reportActionID));
+        if (nonCreatedActions.length === 0) {
+            return false;
+        }
+        const areAllOnboardingMessages = nonCreatedActions.every((action) => {
+            if (action.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
+                return false;
+            }
+            const actionTime = new Date(action.created).getTime();
+            return Math.abs(actionTime - createdActionTime) <= ONBOARDING_WINDOW_MS;
+        });
+        return !areAllOnboardingMessages;
+    }, [isConciergeSidePanel, visibleReportActions, sessionStartActionIDs, currentUserAccountID, hasOlderActions]);
 
     const hasPreviousMessages = useMemo(() => {
         if (!isConciergeSidePanel || !sessionStartActionIDs || !hadUserMessageAtSessionStart) {
