@@ -493,6 +493,21 @@ class GithubUtils {
             .then(({data: pullRequestComment}) => pullRequestComment.body);
     }
 
+    static async getPullRequestMergeBaseSHA(pullRequestNumber: number): Promise<string> {
+        const {data: pullRequest} = await this.octokit.pulls.get({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            pull_number: pullRequestNumber,
+        });
+        const {data: comparison} = await this.octokit.repos.compareCommits({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            base: pullRequest.base.ref,
+            head: pullRequest.head.sha,
+        });
+        return comparison.merge_base_commit.sha;
+    }
+
     static getAllReviewComments(pullRequestNumber: number): Promise<string[]> {
         return this.paginate(
             this.octokit.pulls.listReviews,
@@ -701,7 +716,7 @@ class GithubUtils {
     /**
      * Get the contents of a file from the API at a given ref as a string.
      */
-    static async getFileContents(path: string, ref = CONST.DEFAULT_BASE_REF): Promise<string> {
+    static async getFileContents(path: string, ref: string = CONST.DEFAULT_BASE_REF): Promise<string> {
         const {data} = await this.octokit.repos.getContent({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,

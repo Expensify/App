@@ -28,7 +28,7 @@ import {
     orderOptions,
 } from '@libs/OptionsListUtils';
 import type {SelectionListSections} from '@libs/OptionsListUtils/types';
-import {searchInServer} from '@userActions/Report';
+import {searchUserInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,7 +73,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     useEffect(() => {
-        searchInServer(debouncedSearchTerm.trim());
+        searchUserInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
     const defaultOptions = useMemo(() => {
@@ -97,8 +97,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 action,
                 personalDetails,
+                countryCode,
             },
-            countryCode,
         );
 
         const orderedOptions = orderOptions(optionList);
