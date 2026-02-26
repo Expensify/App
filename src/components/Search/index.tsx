@@ -1,4 +1,4 @@
-import {findFocusedRoute, useIsFocused, useNavigation} from '@react-navigation/native';
+import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
