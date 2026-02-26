@@ -20,17 +20,14 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
+import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
+    metadata: SearchResultsInfo | undefined;
     searchRequestResponseStatusCode: number | null;
     isMobileSelectionModeEnabled: boolean;
-    footerData: {
-        count: number | undefined;
-        total: number | undefined;
-        currency: string | undefined;
-    };
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
     scrollHandler: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
@@ -44,9 +41,9 @@ type SearchPageWideProps = {
 function SearchPageWide({
     queryJSON,
     searchResults,
+    metadata,
     searchRequestResponseStatusCode,
     isMobileSelectionModeEnabled,
-    footerData,
     handleSearchAction,
     onSortPressedCallback,
     scrollHandler,
@@ -107,13 +104,7 @@ function SearchPageWide({
                                 onSortPressedCallback={onSortPressedCallback}
                                 searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                             />
-                            {shouldShowFooter && (
-                                <SearchPageFooter
-                                    count={footerData.count}
-                                    total={footerData.total}
-                                    currency={footerData.currency}
-                                />
-                            )}
+                            {shouldShowFooter && <SearchPageFooter metadata={metadata} />}
                             <DragAndDropConsumer onDrop={initScanRequest}>
                                 <DropZoneUI
                                     icon={expensifyIcons.SmartScan}

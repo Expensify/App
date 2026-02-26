@@ -45,15 +45,10 @@ type SearchPageNarrowProps = {
     metadata?: SearchResultsInfo;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
-    footerData: {
-        count: number | undefined;
-        total: number | undefined;
-        currency: string | undefined;
-    };
     shouldShowFooter: boolean;
 };
 
-function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnabled, metadata, footerData, shouldShowFooter}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnabled, metadata, shouldShowFooter}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -247,13 +242,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                         />
                     </View>
                 )}
-                {shouldShowFooter && !searchRouterListVisible && (
-                    <SearchPageFooter
-                        count={footerData.count}
-                        total={footerData.total}
-                        currency={footerData.currency}
-                    />
-                )}
+                {shouldShowFooter && !searchRouterListVisible && <SearchPageFooter metadata={metadata} />}
             </View>
         </ScreenWrapper>
     );

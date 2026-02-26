@@ -25,7 +25,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
@@ -38,7 +37,7 @@ function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {selectedTransactions, lastSearchType, currentSearchKey, currentSearchResults} = useSearchStateContext();
     const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
@@ -121,28 +120,6 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
-    const footerData = useMemo(() => {
-        if (!shouldAllowFooterTotals && selectedTransactionsKeys.length === 0) {
-            return {count: undefined, total: undefined, currency: undefined};
-        }
-
-        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
-        const selectedTransactionItems = Object.values(selectedTransactions);
-        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency;
-        const numberOfExpense = shouldUseClientTotal
-            ? selectedTransactionsKeys.reduce((count, key) => {
-                  const item = selectedTransactions[key];
-                  if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
-                      return count;
-                  }
-                  return count + 1;
-              }, 0)
-            : metadata?.count;
-        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
-
-        return {count: numberOfExpense, total, currency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
-
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
     }, []);
@@ -168,7 +145,6 @@ function SearchPage({route}: SearchPageProps) {
                         metadata={metadata}
                         searchResults={searchResults}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        footerData={footerData}
                         shouldShowFooter={shouldShowFooter}
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
@@ -187,9 +163,9 @@ function SearchPage({route}: SearchPageProps) {
                 <SearchPageWide
                     queryJSON={queryJSON}
                     searchResults={searchResults}
+                    metadata={metadata}
                     searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    footerData={footerData}
                     handleSearchAction={handleSearchAction}
                     onSortPressedCallback={onSortPressedCallback}
                     scrollHandler={scrollHandler}
