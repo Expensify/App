@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -14,12 +14,13 @@ type RedDotCardSectionProps = {
 function RedDotCardSection({title, description}: RedDotCardSectionProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
 
     return (
         <View style={[styles.p5, styles.flexRow, styles.alignItemsStart]}>
             <View style={styles.offlineFeedbackErrorDot}>
                 <Icon
-                    src={Expensicons.DotIndicator}
+                    src={icons.DotIndicator}
                     fill={theme.danger}
                 />
             </View>
