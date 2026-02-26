@@ -118,9 +118,7 @@ function PressableWithDelayToggle({
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- Use || so empty strings fall back to visible text */
-    const resolvedAccessibilityLabel = !isActive
-        ? (accessibilityLabelChecked || tooltipTextChecked || textChecked || text || '')
-        : (accessibilityLabelProp || tooltipText || text || '');
+    const resolvedAccessibilityLabel = !isActive ? accessibilityLabelChecked || tooltipTextChecked || textChecked || text || '' : accessibilityLabelProp || tooltipText || text || '';
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     const shouldShowIcon = !!icon || (!isActive && !!resolvedIconChecked);
     const labelText =
