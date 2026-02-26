@@ -5180,7 +5180,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     },
                     exportToPDF: 'Exportar para PDF',
                     exportToCSV: 'Exportar para CSV',
-                    selectDateRangeError: 'Selecione um período de datas antes de exportar',
+                    selectDateRangeError: 'Selecione um intervalo de datas para exportar',
                 },
                 personalDetailsDescription: 'Para reservar viagens, insira seu nome legal exatamente como consta no documento de identificação emitido pelo governo.',
             },

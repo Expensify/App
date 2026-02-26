@@ -1,5 +1,4 @@
 import React, {useImperativeHandle, useRef, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -34,6 +33,8 @@ type DateFilterBaseProps = {
     onDateValuesChange?: () => void;
     /** Callback when the date modifier screen is opened or closed (on/after/before) */
     onDateModifierChange?: (isOpen: boolean) => void;
+    /** If true, the Reset/Save buttons are only shown when a date modifier (On/After/Before) is selected. Defaults to false (always show buttons). */
+    shouldShowButtonsOnlyWithDateModifier?: boolean;
     /** The ref handle */
     ref?: React.Ref<DateFilterBaseHandle>;
 };
@@ -48,6 +49,7 @@ function DateFilterBase({
     onSubmit,
     onDateValuesChange,
     onDateModifierChange,
+    shouldShowButtonsOnlyWithDateModifier = false,
     ref,
 }: DateFilterBaseProps) {
     const styles = useThemeStyles();
@@ -139,21 +141,21 @@ function DateFilterBase({
                     onDateValueChange={onDateValuesChange}
                 />
             </ScrollView>
-            {!!selectedDateModifier && (
-                <View style={[styles.ph5, styles.pb5]}>
+            {(!shouldShowButtonsOnlyWithDateModifier || !!selectedDateModifier) && (
+                <>
                     <Button
                         text={translate('common.reset')}
                         onPress={reset}
+                        style={[styles.mh4, styles.mt4]}
                         large
-                        style={styles.mb3}
                     />
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.save')}
-                        containerStyles={[styles.mt0]}
+                        containerStyles={[styles.m4, styles.mt3, styles.mb5]}
                         onSubmit={save}
                         enabledWhenOffline
                     />
-                </View>
+                </>
             )}
         </>
     );

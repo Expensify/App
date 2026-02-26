@@ -1,13 +1,12 @@
 import {endOfMonth, format, startOfMonth} from 'date-fns';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
 import ScreenWrapper from '@components/ScreenWrapper';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/DateFilterBase';
 import type {SearchDatePreset} from '@components/Search/types';
-import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -184,24 +183,32 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
                     onSubmit={onSubmit}
                     onDateValuesChange={() => setDateError('')}
                     onDateModifierChange={setIsDateModifierOpen}
+                    shouldShowButtonsOnlyWithDateModifier
                 />
                 {!isDateModifierOpen && (
-                    <View style={[styles.ph5, styles.pb5]}>
-                        {!!dateError && <Text style={[styles.textDanger, styles.mb3, styles.textAlignCenter]}>{dateError}</Text>}
+                    <>
+                        {!!dateError && (
+                            <FormHelpMessage
+                                style={[styles.mh4, styles.mt2, styles.mb0]}
+                                message={dateError}
+                                isError
+                            />
+                        )}
                         <Button
                             text={translate('workspace.moreFeatures.travel.travelInvoicing.exportToPDF')}
+                            style={[styles.mh4, styles.mt3]}
                             onPress={processDownload}
                             isLoading={isDownloading}
                             large
-                            style={styles.mb3}
                         />
                         <Button
-                            success
                             text={translate('workspace.moreFeatures.travel.travelInvoicing.exportToCSV')}
+                            style={[styles.m4, styles.mt3, styles.mb5]}
                             onPress={handleDownloadCSV}
+                            success
                             large
                         />
-                    </View>
+                    </>
                 )}
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

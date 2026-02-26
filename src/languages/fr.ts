@@ -5226,7 +5226,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     },
                     exportToPDF: 'Exporter en PDF',
                     exportToCSV: 'Exporter en CSV',
-                    selectDateRangeError: 'Veuillez sélectionner une plage de dates avant d’exporter',
+                    selectDateRangeError: 'Veuillez sélectionner une plage de dates à exporter',
                 },
                 personalDetailsDescription: 'Pour pouvoir réserver un voyage, veuillez saisir votre nom légal tel qu’il apparaît sur votre pièce d’identité délivrée par le gouvernement.',
             },

@@ -5180,7 +5180,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     outstandingBalanceModal: {title: 'Kan Reiskostenfacturatie niet uitschakelen', body: 'Je hebt nog een openstaand reissaldo. Betaal eerst je saldo.', confirm: 'Begrepen'},
                     exportToPDF: 'Exporteren naar PDF',
                     exportToCSV: 'Exporteren naar CSV',
-                    selectDateRangeError: 'Selecteer eerst een datumbereik voordat je exporteert',
+                    selectDateRangeError: 'Selecteer een datumbereik om te exporteren',
                 },
                 personalDetailsDescription: 'Om een reis te boeken, voer je wettelijke naam in zoals deze op je door de overheid uitgegeven identiteitsbewijs staat.',
             },

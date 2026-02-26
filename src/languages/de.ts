@@ -5208,7 +5208,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     },
                     exportToPDF: 'Als PDF exportieren',
                     exportToCSV: 'Als CSV exportieren',
-                    selectDateRangeError: 'Bitte wählen Sie vor dem Export einen Datumsbereich aus',
+                    selectDateRangeError: 'Bitte wählen Sie einen Datumsbereich für den Export aus',
                 },
                 personalDetailsDescription: 'Um eine Reise zu buchen, gib bitte deinen amtlichen Namen genau so ein, wie er auf deinem amtlichen Ausweis steht.',
             },

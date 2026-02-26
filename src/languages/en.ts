@@ -5181,7 +5181,7 @@ const translations = {
                     },
                     exportToPDF: 'Export to PDF',
                     exportToCSV: 'Export to CSV',
-                    selectDateRangeError: 'Please select a date range before exporting',
+                    selectDateRangeError: 'Please select a date range to export',
                 },
                 personalDetailsDescription: 'In order to book travel, please enter your legal name as it appears on your government-issued ID.',
             },

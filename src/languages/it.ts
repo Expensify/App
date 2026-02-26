@@ -5198,7 +5198,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     },
                     exportToPDF: 'Esporta in PDF',
                     exportToCSV: 'Esporta in CSV',
-                    selectDateRangeError: 'Seleziona un intervallo di date prima di esportare',
+                    selectDateRangeError: 'Seleziona un intervallo di date da esportare',
                 },
                 personalDetailsDescription: 'Per prenotare il viaggio, inserisci il tuo nome legale così come appare sul tuo documento d’identità rilasciato dal governo.',
             },
