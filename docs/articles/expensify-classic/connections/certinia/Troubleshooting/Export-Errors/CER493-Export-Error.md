@@ -1,100 +1,70 @@
 ---
-title: CER493 Export Error: Necessary Field Unavailable in Mapping
-description: Learn why CER493 appears when exporting to Certinia and how to make the GLA Code (Billable) field accessible and editable for the connected role.
-keywords: CER493, Certinia error CER493, necessary field unavailable in mapping, GLA Code Billable, Expense Type GLA Mapping, field accessibility Certinia, Sync Now, Workspace Admin
-internalScope: Audience is Workspace Admins using the Certinia integration. Covers resolving the CER493 field accessibility error related to GLA Code (Billable) and re-syncing the Workspace. Does not cover unrelated Certinia mapping configuration or general GLA setup.
+title: CER493 Export Error in Certinia Integration
+description: Learn what the CER493 export error means in Certinia and how to update field accessibility settings for GLA Code (Billable) to restore successful exports.
+keywords: CER493, Certinia export error, necessary field unavailable in mapping, GLA Code Billable field error, Expense Type GLA Mapping accessibility, Expensify Certinia sync error, Workspace Admin
+internalScope: Audience is Workspace Admins using the Certinia integration. Covers resolving the CER493 export error caused by restricted access to the GLA Code (Billable) field. Does not cover other Certinia error codes.
 ---
 
-# CER493 Export Error: Necessary Field Unavailable in Mapping
+# CER493 Export Error in Certinia Integration
 
 If you see the error:
 
-**“CER493 Export Error: Necessary field unavailable in mapping. Please confirm 'GLA Code (Billable)' is accessible and editable to use role connected.”**
+CER493: Necessary field unavailable in mapping.
 
-this means the **GLA Code (Billable)** field is either not accessible or not editable for the Certinia role used to connect the integration.
-
-Until the field is accessible and editable, Certinia will block the export.
+This means the **GLA Code (Billable)** field is not accessible or editable for the Certinia role connected to the integration, preventing the export from completing.
 
 ---
 
-## Why CER493 Happens
+## Why the CER493 Export Error Happens in Certinia
 
-Certinia requires the **GLA Code (Billable)** field when billable settings are enabled.
+The CER493 error typically indicates:
 
-If the connected user role does not have proper field-level access to this field, Certinia cannot complete the export and returns error **CER493**.
+- The **GLA Code (Billable)** field exists but is not accessible to the connected user role.
+- The field is not marked as editable under field-level security.
+- Certinia validation failed due to restricted field access.
 
-This is a Certinia field accessibility configuration issue — not an Expensify Workspace configuration issue.
+Certinia requires the integration role to have editable access to this field when billable settings are enabled.
 
----
-
-## Who Can Fix CER493
-
-You must have access to manage object settings and field accessibility in Certinia (typically a Certinia Admin or Salesforce Admin).
+This is a Certinia field accessibility configuration issue, not a Workspace configuration issue.
 
 ---
 
-## How to Make GLA Code (Billable) Editable in Certinia
+## How to Fix the CER493 Export Error
+
+This issue must be resolved in Certinia.
 
 1. Log in to Certinia.
 2. Go to **Setup**.
-3. Navigate to **Build**.
-4. Select **Create**.
-5. Click **Objects**.
-6. Open **Expense Type GLA Mapping**.
-7. Select **Custom Fields and Relationships**.
-8. Click **GLA Code (Billable)**.
-9. Select **View Field Accessibility**.
-10. Locate the role used to connect Certinia in Expensify.
-11. Ensure the field is marked as **Editable**.
-12. Save your changes.
+3. Navigate to **Object Manager** (or Build > Create > Objects, depending on your configuration).
+4. Select **Expense Type GLA Mapping**.
+5. Click **Fields & Relationships**.
+6. Select **GLA Code (Billable)**.
+7. Click **View Field Accessibility**.
+8. Locate the role used for the integration.
+9. Ensure the field is marked as **Editable**.
+10. Save your changes.
 
-The connected integration role must have editable access to the **GLA Code (Billable)** field for exports to succeed.
+After updating field accessibility:
 
----
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
 
-## How to Sync Certinia After Updating Field Accessibility
-
-After updating the field accessibility, re-sync the connection in Expensify.
-
-1. Go to the navigation tabs on the left.
-2. Click **Settings**.
-3. Click **Workspaces**.
-4. Select your Workspace.
-5. Click **Accounting**.
-6. Click **Sync Now**.
-
----
-
-## How to Retry Exporting After CER493
-
-After syncing:
-
-1. Open the report you attempted to export.
-2. Retry the export.
-3. Confirm the export completes successfully.
-
-If the error continues, confirm that:
-
-- The correct role was updated.
-- The **GLA Code (Billable)** field shows as Editable.
-- The changes were saved before syncing.
+Then retry exporting the report.
 
 ---
 
 # FAQ
 
-## Does CER493 mean the field does not exist?
+## Can I Retry the Export?
+
+Yes. After updating field accessibility and selecting **Sync Now**, retry the export. If the error persists, confirm the correct role has editable access.
+
+## Does CER493 Mean the Field Does Not Exist?
 
 No. The field typically exists but is not accessible or editable for the connected role.
 
----
+## Is CER493 Caused by Workspace Settings?
 
-## Is CER493 caused by Expensify settings?
-
-No. CER493 is triggered by field-level security settings in Certinia, not by Workspace settings in Expensify.
-
----
-
-## Do I need to reconnect the Certinia integration?
-
-No. In most cases, updating field accessibility and selecting **Sync Now** resolves the issue.
+No. CER493 is triggered by field-level security settings in Certinia. Workspace accounting settings are not the cause.
