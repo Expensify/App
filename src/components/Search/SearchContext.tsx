@@ -128,6 +128,15 @@ function SearchContextProvider({children}: ChildrenProps) {
         setLastNonEmptySearchResults(currentSearchResults);
     }, [currentSearchResults]);
 
+    const currentSearchType = currentSearchResults?.search?.type;
+    useLayoutEffect(() => {
+        if (!currentSearchType) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLastSearchType(currentSearchType);
+    }, [currentSearchType]);
+
     const setCurrentSearchHashAndKey = (searchHash: number, recentHash: number, searchKey: SearchKey | undefined) => {
         setSearchContextData((prevState) => {
             if (searchHash === prevState.currentSearchHash && recentHash === prevState.currentRecentSearchHash && searchKey === prevState.currentSearchKey) {

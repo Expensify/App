@@ -5,7 +5,7 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useFilterFormValues from '@hooks/useFilterFormValues';
@@ -33,8 +33,7 @@ function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {lastSearchType, currentSearchResults, lastNonEmptySearchResults} = useSearchStateContext();
-    const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
@@ -49,20 +48,7 @@ function SearchPage({route}: SearchPageProps) {
 
     useConfirmReadyToOpenApp();
 
-    const currentSearchType = currentSearchResults?.search?.type;
-    useEffect(() => {
-        if (!currentSearchType) {
-            return;
-        }
-
-        setLastSearchType(currentSearchType);
-    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchType]);
-
     const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
-
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
-
-    const metadata = searchResults?.search;
 
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 
@@ -95,8 +81,6 @@ function SearchPage({route}: SearchPageProps) {
                     {PDFValidationComponent}
                     <SearchPageNarrow
                         queryJSON={queryJSON}
-                        metadata={metadata}
-                        searchResults={searchResults}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
@@ -114,8 +98,6 @@ function SearchPage({route}: SearchPageProps) {
             ) : (
                 <SearchPageWide
                     queryJSON={queryJSON}
-                    searchResults={searchResults}
-                    metadata={metadata}
                     searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     handleSearchAction={handleSearchAction}

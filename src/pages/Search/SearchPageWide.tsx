@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -22,13 +21,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
-import type {SearchResults} from '@src/types/onyx';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
-    searchResults: OnyxEntry<SearchResults>;
-    metadata: SearchResultsInfo | undefined;
     searchRequestResponseStatusCode: number | null;
     isMobileSelectionModeEnabled: boolean;
     handleSearchAction: (value: SearchParams | string) => void;
@@ -41,8 +36,6 @@ type SearchPageWideProps = {
 
 function SearchPageWide({
     queryJSON,
-    searchResults,
-    metadata,
     searchRequestResponseStatusCode,
     isMobileSelectionModeEnabled,
     handleSearchAction,
@@ -55,7 +48,9 @@ function SearchPageWide({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {selectedTransactions, currentSearchKey} = useSearchStateContext();
+    const {selectedTransactions, currentSearchKey, currentSearchResults, lastNonEmptySearchResults} = useSearchStateContext();
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+    const metadata = searchResults?.search;
     const {resetVideoPlayerData} = usePlaybackActionsContext();
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);

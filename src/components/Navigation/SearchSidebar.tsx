@@ -1,7 +1,7 @@
 import type {ParamListBase} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -27,21 +27,11 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
     const route = state.routes.at(-1);
     const params = route?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT] | undefined;
-    const {lastSearchType, currentSearchResults} = useSearchStateContext();
-    const {setLastSearchType} = useSearchActionsContext();
+    const {currentSearchResults} = useSearchStateContext();
 
     const queryJSON = params?.q ? buildSearchQueryJSON(params.q, params.rawQuery) : undefined;
 
-    const searchType = currentSearchResults?.search?.type;
     const isSearchLoading = currentSearchResults?.search?.isLoading;
-
-    useEffect(() => {
-        if (!searchType) {
-            return;
-        }
-
-        setLastSearchType(searchType);
-    }, [lastSearchType, queryJSON, setLastSearchType, searchType]);
 
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 

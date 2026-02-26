@@ -34,8 +34,6 @@ import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
 import ROUTES from '@src/ROUTES';
-import type {SearchResults} from '@src/types/onyx';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -43,18 +41,18 @@ const ANIMATION_DURATION_IN_MS = 300;
 
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
-    metadata?: SearchResultsInfo;
-    searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
 };
 
-function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnabled, metadata}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, isMobileSelectionModeEnabled}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {selectedTransactions, currentSearchKey} = useSearchStateContext();
+    const {selectedTransactions, currentSearchKey, currentSearchResults, lastNonEmptySearchResults} = useSearchStateContext();
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+    const metadata = searchResults?.search;
     const {clearSelectedTransactions} = useSearchActionsContext();
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
