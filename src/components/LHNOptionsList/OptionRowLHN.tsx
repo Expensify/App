@@ -110,11 +110,11 @@ function OptionRowLHN({
     // parent report action, the header (useReportActionAvatars) shows the
     // delegate's avatar as primary instead of the report owner's.
     const icons = useMemo(() => {
-        const baseIcons = optionItem?.icons ?? [];
-        if (delegateAccountID && personalDetails && baseIcons.length > 0) {
+        let result = optionItem?.icons ?? [];
+        if (delegateAccountID && personalDetails && result.length > 0) {
             const delegateDetails = personalDetails[delegateAccountID];
             if (delegateDetails) {
-                const updatedIcons = [...baseIcons];
+                const updatedIcons = [...result];
                 const firstIcon = updatedIcons.at(0);
                 if (firstIcon) {
                     updatedIcons[0] = {
@@ -124,10 +124,11 @@ function OptionRowLHN({
                         id: delegateAccountID,
                     };
                 }
-                return updatedIcons;
+                result = updatedIcons;
             }
         }
-        return baseIcons;
+
+        return result;
     }, [optionItem?.icons, delegateAccountID, personalDetails]);
 
     const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];

@@ -323,4 +323,117 @@ describe('LHNOptionsList', () => {
             });
         });
     });
+
+    describe('Workspace thread avatar rendering', () => {
+        it('should render a single avatar for a workspace thread (threadSuppression)', async () => {
+            // Given a workspace thread in a policyAdmins room — isWorkspaceThread returns true,
+            // so shouldReportShowSubscript is initially true, but threadSuppression in SidebarUtils
+            // overrides it to false. The icons should be trimmed to 1 for SINGLE rendering.
+            const policyID = 'threadTestPolicy';
+            const parentReportID = 'threadParentReport';
+            const reportID = 'threadTestReport';
+            const accountID1 = 1;
+            const accountID2 = 2;
+
+            const policy: Policy = {
+                id: policyID,
+                name: 'Thread Test Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            const parentReport: Report = {
+                reportID: parentReportID,
+                reportName: 'Admins Room',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                policyID,
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const threadReport: Report = {
+                reportID,
+                reportName: 'Thread in Admins',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                policyID,
+                parentReportID,
+                parentReportActionID: 'parentAction1',
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, threadReport);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [accountID1]: {accountID: accountID1, login: 'admin1@test.com', displayName: 'Admin One', avatar: 'admin1-avatar'},
+                    [accountID2]: {accountID: accountID2, login: 'admin2@test.com', displayName: 'Admin Two', avatar: 'admin2-avatar'},
+                });
+            });
+
+            // When the LHNOptionsList renders the workspace thread
+            render(getLHNOptionsListElement({data: [threadReport]}));
+
+            // Then it should render a single avatar, not a diagonal (multiple) avatar
+            await waitFor(() => {
+                expect(screen.queryByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+    });
+
+    describe('IOU report avatar rendering', () => {
+        it('should render a single avatar for a multi-transaction IOU report', async () => {
+            // Given an IOU report with two participants (owner + manager), which produces 2 icons from getIconsForIOUReport
+            const policyID = 'iouTestPolicy';
+            const reportID = 'iouTestReport';
+            const ownerAccountID = 1;
+            const managerAccountID = 2;
+
+            const policy: Policy = {
+                id: policyID,
+                name: 'IOU Test Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            const report: Report = {
+                reportID,
+                reportName: 'IOU Test Report',
+                type: CONST.REPORT.TYPE.IOU,
+                policyID,
+                ownerAccountID,
+                managerID: managerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [managerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ownerAccountID]: {accountID: ownerAccountID, login: 'owner@test.com', displayName: 'Owner', avatar: 'owner-avatar'},
+                    [managerAccountID]: {accountID: managerAccountID, login: 'manager@test.com', displayName: 'Manager', avatar: 'manager-avatar'},
+                });
+            });
+
+            // When the LHNOptionsList renders the IOU report
+            render(getLHNOptionsListElement({data: [report]}));
+
+            // Then it should render a single avatar, not a diagonal (multiple) avatar
+            await waitFor(() => {
+                expect(screen.queryByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+    });
 });

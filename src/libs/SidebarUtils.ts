@@ -1156,7 +1156,7 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = getIcons(
+    const reportIcons = getIcons(
         report,
         formatPhoneNumberPhoneUtils,
         personalDetails,
@@ -1167,6 +1167,9 @@ function getOptionData({
         invoiceReceiverPolicy,
         isReportArchived,
     );
+
+    // LHN only renders SINGLE or SUBSCRIPT — trim to 1 icon when no subscript.
+    result.icons = !result.shouldShowSubscript && reportIcons.length > 1 ? [reportIcons[0]] : reportIcons;
 
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
