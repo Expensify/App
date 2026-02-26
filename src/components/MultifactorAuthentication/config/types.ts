@@ -1,20 +1,19 @@
 /**
  * Configuration types for multifactor authentication UI and scenarios.
  */
-import type {ViewStyle} from 'react-native';
-import type {EmptyObject, KebabCase, Replace, ValueOf} from 'type-fest';
-import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
+import type {EmptyObject, ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {
     AllMultifactorAuthenticationBaseParameters,
     MultifactorAuthenticationActionParams,
     MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationReason,
+    MultifactorAuthenticationScenarioCallback,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
-import type {MULTIFACTOR_AUTHENTICATION_PROMPT_UI, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG, MultifactorAuthenticationScenarioPayload} from './index';
+import type {MULTIFACTOR_AUTHENTICATION_PROMPT_UI, MultifactorAuthenticationScenarioPayload} from './index';
 
 /**
  * Configuration for cancel confirmation modal in multifactor authentication.
@@ -36,28 +35,9 @@ type MultifactorAuthenticationPromptConfig = {
 };
 
 /**
- * Configuration for displaying multifactor authentication outcomes with illustrations and text.
- */
-type MultifactorAuthenticationOutcomeConfig = {
-    illustration: IllustrationName;
-    iconWidth: number;
-    iconHeight: number;
-    padding: ViewStyle;
-    headerTitle: TranslationPaths;
-    title: TranslationPaths;
-    description: TranslationPaths;
-    customDescription?: React.FunctionComponent;
-};
-
-/**
  * Collection of prompts keyed by prompt identifier.
  */
 type MultifactorAuthenticationPrompt = Record<string, MultifactorAuthenticationPromptConfig>;
-
-/**
- * Collection of outcomes keyed by an outcome type.
- */
-type MultifactorAuthenticationOutcome = Record<string, MultifactorAuthenticationOutcomeConfig>;
 
 /**
  * Configuration for modals in multifactor authentication flows.
@@ -66,80 +46,29 @@ type MultifactorAuthenticationModal = {
     cancelConfirmation: MultifactorAuthenticationCancelConfirm;
 };
 
+type FailureScreenOverrides = Partial<Record<MultifactorAuthenticationReason, React.ReactElement>>;
+
 /**
- * Override configuration for modals with partial properties.
- * This allows customization of specific modal aspects without redefining the entire structure.
- * e.g. "Authentication attempt" in the cancel confirmation modal can be changed to "Transaction approval".
+ * Outcome screens and related configuration displayed after MFA flow completes.
+ * Screen fields are required in resolved configs, all fields optional in custom configs (merged with defaults).
  */
-type MultifactorAuthenticationModalOptional = {
-    cancelConfirmation?: Partial<MultifactorAuthenticationCancelConfirm>;
+type MultifactorAuthenticationOutcomeScreens = {
+    successScreen: React.ReactElement;
+    defaultClientFailureScreen: React.ReactElement;
+    defaultServerFailureScreen: React.ReactElement;
+    failureScreens?: FailureScreenOverrides;
 };
-
-/**
- * Optional outcome configuration with partial properties for scenario overrides.
- */
-type MultifactorAuthenticationOutcomeOptional = Record<string, Partial<MultifactorAuthenticationOutcomeConfig>>;
-
-/**
- * Type representation of the scenario configuration constant.
- */
-type MultifactorAuthenticationConfigRecordConst = typeof MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG;
-
-/**
- * Maps each scenario to its outcomes configuration type.
- */
-type MultifactorAuthenticationScenarioOutcomeConst = {
-    [K in MultifactorAuthenticationScenario]: MultifactorAuthenticationConfigRecordConst[K]['OUTCOMES'];
-};
-
-/**
- * Available outcome options for each scenario.
- */
-type MultifactorAuthenticationOutcomeScenarioOptions = {
-    [K in MultifactorAuthenticationScenario]: keyof MultifactorAuthenticationScenarioOutcomeConst[K];
-};
-
-/**
- * Maps scenarios to their outcome configurations.
- */
-type MultifactorAuthenticationOutcomeRecord = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationOutcome>;
-
-/**
- * Constructs a kebab-case outcome type string from scenario and outcome name.
- */
-type MultifactorAuthenticationOutcomeType<T extends MultifactorAuthenticationScenario> = `${Lowercase<T>}-${KebabCase<MultifactorAuthenticationOutcomeScenarioOptions[T]>}`;
-
-type MultifactorAuthenticationUI = {
-    MODALS: MultifactorAuthenticationModal;
-    OUTCOMES: MultifactorAuthenticationOutcome;
-};
-
-/**
- * All possible outcome types key across all scenarios.
- */
-type AllMultifactorAuthenticationOutcomeType = MultifactorAuthenticationOutcomeType<MultifactorAuthenticationScenario>;
-
-/**
- * Maps all outcome type keys to their configurations.
- */
-type MultifactorAuthenticationOutcomeMap = Record<AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationOutcomeConfig>;
-
-/**
- * All available outcome options across scenarios.
- */
-type MultifactorAuthenticationOutcomeOptions = keyof MultifactorAuthenticationScenarioOutcomeConst[MultifactorAuthenticationScenario];
-
-/**
- * Outcome type suffixes for a specific scenario (removes the scenario prefix).
- */
-type MultifactorAuthenticationOutcomeSuffixes<T extends MultifactorAuthenticationScenario> = Replace<AllMultifactorAuthenticationOutcomeType, `${Lowercase<T>}-`, ''>;
 
 /**
  * Response from a multifactor authentication scenario action.
  */
 type MultifactorAuthenticationScenarioResponse = {
-    httpCode: number;
+    httpStatusCode: number | undefined;
     reason: MultifactorAuthenticationReason;
+    message: string | undefined;
+
+    /** Optional response body containing scenario-specific data (e.g., {pin: number} for PIN reveal) */
+    body?: Record<string, unknown>;
 };
 
 /**
@@ -155,9 +84,9 @@ type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknow
 ) => Promise<MultifactorAuthenticationScenarioResponse>;
 
 /**
- * Complete scenario configuration including action, UI, and metadata.
+ * Shared scenario fields (non-UI) common to both resolved and custom configs.
  */
-type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> = EmptyObject> = {
+type MultifactorAuthenticationScenarioBase<T extends Record<string, unknown> = EmptyObject> = {
     action: MultifactorAuthenticationScenarioPureMethod<T>;
     allowedAuthenticationMethods: Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>;
     screen: MultifactorAuthenticationScreen;
@@ -168,20 +97,39 @@ type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> =
      * so the absence of payload will be tolerated at the run-time.
      */
     pure?: true;
-} & MultifactorAuthenticationUI;
+
+    /**
+     * Callback function that is invoked after the API call completes (success or failure).
+     * The callback receives the success status and input containing HTTP code, message, and response body.
+     * Returns a MultifactorAuthenticationCallbackResponse value that determines the post-callback behavior
+     * (e.g., whether to show the outcome screen or let the callback handle navigation).
+     */
+    callback?: MultifactorAuthenticationScenarioCallback;
+};
+
+/**
+ * Complete scenario configuration including action, UI, and metadata.
+ */
+type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> = EmptyObject> = MultifactorAuthenticationScenarioBase<T> &
+    MultifactorAuthenticationOutcomeScreens & {
+        MODALS: MultifactorAuthenticationModal;
+    };
 
 /**
  * Scenario configuration for custom scenarios with optional overrides.
+ * Outcome screens and modals are optional — they are merged with defaults at runtime.
  */
-type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unknown> = EmptyObject> = Omit<MultifactorAuthenticationScenarioConfig<T>, 'MODALS' | 'OUTCOMES'> & {
-    MODALS?: MultifactorAuthenticationModalOptional;
-    OUTCOMES: MultifactorAuthenticationOutcomeOptional;
-};
+type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unknown> = EmptyObject> = MultifactorAuthenticationScenarioBase<T> &
+    Partial<MultifactorAuthenticationOutcomeScreens> & {
+        MODALS?: Partial<MultifactorAuthenticationModal>;
+    };
 
 /**
  * Default UI configuration shared across scenarios.
  */
-type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig<never>, 'MODALS' | 'OUTCOMES'>;
+type MultifactorAuthenticationDefaultUIConfig = Required<MultifactorAuthenticationOutcomeScreens> & {
+    MODALS: MultifactorAuthenticationModal;
+};
 
 /**
  * Record mapping all scenarios to their configurations.
@@ -239,24 +187,18 @@ type MultifactorAuthenticationScenario = ValueOf<typeof CONST.MULTIFACTOR_AUTHEN
 
 export type {
     MultifactorAuthenticationPrompt,
-    MultifactorAuthenticationOutcome,
     MultifactorAuthenticationModal,
-    MultifactorAuthenticationOutcomeRecord,
-    MultifactorAuthenticationOutcomeMap,
     MultifactorAuthenticationScenarioResponse,
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioParameters,
     MultifactorAuthenticationScenario,
-    MultifactorAuthenticationOutcomeOptions,
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationPromptType,
-    MultifactorAuthenticationOutcomeType,
-    AllMultifactorAuthenticationOutcomeType,
     MultifactorAuthenticationScenarioConfig,
-    MultifactorAuthenticationUI,
+    MultifactorAuthenticationOutcomeScreens,
     MultifactorAuthenticationScenarioConfigRecord,
     MultifactorAuthenticationProcessScenarioParameters,
     MultifactorAuthenticationDefaultUIConfig,
-    MultifactorAuthenticationOutcomeSuffixes,
     MultifactorAuthenticationScenarioCustomConfig,
+    FailureScreenOverrides,
 };

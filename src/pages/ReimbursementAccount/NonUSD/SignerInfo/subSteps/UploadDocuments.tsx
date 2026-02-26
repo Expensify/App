@@ -32,10 +32,10 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [environmentUrl, setEnvironmentUrl] = useState<string | null>(null);
 
     const currency = policy?.outputCurrency ?? '';

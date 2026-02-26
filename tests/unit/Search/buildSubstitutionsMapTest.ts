@@ -51,11 +51,13 @@ const cardListMock = {
     '11223344': {
         state: 1,
         bank: 'vcf',
+        fundID: 1,
         lastFourPAN: '1234',
     },
     '10203040': {
         state: 1,
         bank: CONST.EXPENSIFY_CARD.BANK,
+        fundID: 2,
         lastFourPAN: '1234',
     },
 } as unknown as OnyxTypes.CardList;
@@ -101,7 +103,7 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
             'from:Jane Doe': '78901',
             'from:John Doe': '12345',
             'in:Report 1': 'rep123',
-            'cardID:Visa - 1234': '11223344',
+            'cardID:Visa • 1234': '11223344',
             'taxRate:TAX_1': 'id_TAX_1',
             'feed:American Express': '1234_oauth.americanexpressfdx.com 1001',
         });

@@ -55,20 +55,21 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         [illustrations.Abacus, illustrations.Binoculars, illustrations.ReceiptUpload, illustrations.PiggyBank, illustrations.SplitBill],
     );
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {onboardingMessages} = useOnboardingMessages();
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
     const theme = useTheme();
-    const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, {canBeMissing: true});
-    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
-    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
-    const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {canBeMissing: true});
-    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
+    const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
-    const [customChoices = getEmptyArray<OnboardingPurpose>()] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, {canBeMissing: true});
+    const [customChoices = getEmptyArray<OnboardingPurpose>()] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
 
     const onboardingChoices = getOnboardingChoices(customChoices);
 
@@ -84,6 +85,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             iconStyles: [styles.mh3],
             wrapperStyle: [styles.purposeMenuItem],
             numberOfLinesTitle: 0,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM,
             onPress: () => {
                 setOnboardingPurposeSelected(choice);
                 setOnboardingErrorMessage(null);
@@ -105,6 +107,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
                         onboardingPolicyID,
                         companySize: onboardingCompanySize,
+                        introSelected,
                     });
 
                     return;
@@ -144,7 +147,12 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
                 <View style={styles.flex1}>
                     <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={styles.textHeadlineH1}>{translate('onboarding.purpose.title')} </Text>
+                        <Text
+                            style={styles.textHeadlineH1}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {translate('onboarding.purpose.title')}
+                        </Text>
                     </View>
                     <MenuItemList
                         menuItems={menuItems}

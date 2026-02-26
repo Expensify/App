@@ -3,11 +3,11 @@ import React, {useContext, useRef} from 'react';
 import {View} from 'react-native';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -34,19 +34,21 @@ type SearchSelectedNarrowProps = {
 
 function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, currentSelectedReportID, confirmPayment, latestBankItems}: SearchSelectedNarrowProps) {
     const styles = useThemeStyles();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [selectedIouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [selectedIouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`);
     const {translate, localeCompare} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     // Stores an option to execute after modal closes when using deferred execution
     const selectedOptionRef = useRef<DropdownOption<SearchHeaderOptionValue> | null>(null);
     const {accountID} = useCurrentUserPersonalDetails();
     const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const handleOnMenuItemPress = (option: DropdownOption<SearchHeaderOptionValue>) => {
         if (option?.shouldCloseModalOnSelect) {
@@ -62,7 +64,14 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
             chatReportID={currentSelectedReportID}
             iouReport={selectedIouReport}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-            addBankAccountRoute={isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(currentSelectedPolicyID, undefined, Navigation.getActiveRoute()) : undefined}
+            addBankAccountRoute={
+                isCurrentSelectedExpenseReport
+                    ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
+                          policyID: currentSelectedPolicyID,
+                          backTo: Navigation.getActiveRoute(),
+                      })
+                    : undefined
+            }
             onSuccessfulKYC={(paymentType) => confirmPayment?.(paymentType)}
         >
             {(triggerKYCFlow, buttonRef) => (
@@ -99,6 +108,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                         }}
                         shouldUseModalPaddingStyle
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.NARROW_BULK_ACTIONS_DROPDOWN}
                     />
                 </View>
             )}

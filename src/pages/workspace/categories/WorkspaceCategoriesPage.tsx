@@ -8,8 +8,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
@@ -79,7 +77,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyData = usePolicyData(policyId);
     const {policy, categories: policyCategories} = policyData;
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
@@ -91,7 +89,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan'] as const);
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen']);
 
     const {
@@ -110,7 +108,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         parentReportAction: setupCategoriesAndTagsParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
 
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyId}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyId}`);
 
     const policyHasTags = hasTags(policyTags);
 
@@ -448,7 +446,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         if (isSmallScreenWidth ? canSelectMultiple : selectedCategories.length > 0) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
-                    icon: Expensicons.Trashcan,
+                    icon: icons.Trashcan,
                     text: translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: () => {
@@ -474,7 +472,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         return acc;
                     }, {});
                 options.push({
-                    icon: Expensicons.Close,
+                    icon: icons.Close,
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
@@ -515,7 +513,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         return acc;
                     }, {});
                 options.push({
-                    icon: Expensicons.Checkmark,
+                    icon: icons.Checkmark,
                     text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
@@ -550,6 +548,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     isDisabled={!selectedCategories.length}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_DROPDOWN}
                     testID="WorkspaceCategoriesPage-header-dropdown-menu-button"
                 />
             );
@@ -561,7 +560,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <Button
                         success
                         onPress={navigateToCreateCategoryPage}
-                        icon={Expensicons.Plus}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ADD_BUTTON}
+                        icon={icons.Plus}
                         text={translate('workspace.categories.addCategory')}
                         style={[shouldUseNarrowLayout && styles.flex1]}
                     />
@@ -571,6 +571,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_DROPDOWN}
                     options={secondaryActions}
                     isSplitButton={false}
                     wrapperStyle={shouldShowAddCategory ? styles.flexGrow0 : styles.flexGrow1}
@@ -715,7 +716,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                                 !policyHasAccountingConnections
                                     ? [
                                           {
-                                              icon: Expensicons.Plus,
+                                              icon: icons.Plus,
                                               buttonText: translate('workspace.categories.addCategory'),
                                               buttonAction: navigateToCreateCategoryPage,
                                               success: true,

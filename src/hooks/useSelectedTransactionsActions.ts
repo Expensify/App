@@ -1,14 +1,14 @@
-import {useContext, useState} from 'react';
+import {useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
-import {initSplitExpense} from '@libs/actions/IOU/Split';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates, handlePreventSearchAPI} from '@libs/actions/Search';
+import initSplitExpense from '@libs/actions/SplitExpenses';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {isMergeActionForSelectedTransactions, isSplitAction} from '@libs/ReportSecondaryActionUtils';
@@ -59,6 +59,7 @@ function useSelectedTransactionsActions({
     policy,
     beginExportWithTemplate,
     isOnSearch,
+    onDeleteSelected,
 }: {
     report?: Report;
     reportActions: ReportAction[];
@@ -69,17 +70,19 @@ function useSelectedTransactionsActions({
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
     isOnSearch?: boolean;
+    onDeleteSelected?: (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => void | Promise<void>;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {selectedTransactionIDs, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchStateContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
     const allTransactions = useAllTransactions();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
-    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
-    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
+    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit', 'ThumbsDown']);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
@@ -251,7 +254,7 @@ function useSelectedTransactionsActions({
 
         const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? []));
         const canRejectTransactions =
-            selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report, policy) && hasNoRejectedTransaction;
+            selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report) && hasNoRejectedTransaction;
         if (canRejectTransactions) {
             options.push({
                 text: translate('search.bulkActions.reject'),
@@ -370,7 +373,7 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ArrowSplit,
                 value: SPLIT,
                 onSelected: () => {
-                    initSplitExpense(allTransactions, allReports, firstTransaction);
+                    initSplitExpense(firstTransaction, policy);
                 },
             });
         }
@@ -391,7 +394,13 @@ function useSelectedTransactionsActions({
                 text: translate('common.delete'),
                 icon: expensifyIcons.Trashcan,
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
-                onSelected: showDeleteModal,
+                onSelected: () => {
+                    if (onDeleteSelected) {
+                        onDeleteSelected(handleDeleteTransactions, handleDeleteTransactionsWithNavigation);
+                    } else {
+                        showDeleteModal();
+                    }
+                },
             });
         }
         computedOptions = options;

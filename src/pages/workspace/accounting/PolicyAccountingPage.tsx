@@ -8,8 +8,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -69,8 +67,8 @@ type RouteParams = {
 };
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime} = useLocalize();
@@ -82,7 +80,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {isLargeScreenWidth} = useResponsiveLayout();
     const route = useRoute();
     const params = route.params as RouteParams | undefined;
@@ -92,7 +90,19 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'Gear', 'NewWindow', 'ExpensifyCard', 'Key', 'Sync', 'Trashcan', 'QuestionMark', 'Pencil']);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'ArrowRight',
+        'CircularArrowBackwards',
+        'ExpensifyCard',
+        'Gear',
+        'Key',
+        'NewWindow',
+        'Pencil',
+        'QuestionMark',
+        'Send',
+        'Sync',
+        'Trashcan',
+    ] as const);
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting']);
 
@@ -324,6 +334,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     }
                                     popoverAnchorRefs.current[integration].current = ref;
                                 }}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                             />
                         ),
                     };
@@ -369,7 +380,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
             },
             {
-                icon: Expensicons.Send,
+                icon: icons.Send,
                 iconRight: icons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.export'),
@@ -426,6 +437,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                         }}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.THREE_DOT_MENU}
                     />
                 ),
             },
@@ -445,6 +457,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         icons.ArrowRight,
         icons.ExpensifyCard,
         icons.Gear,
+        icons.Send,
         styles.sectionMenuItemTopDescription,
         styles.pb0,
         styles.mt5,
@@ -502,6 +515,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                 }
                                 popoverAnchorRefs.current[integration].current = r;
                             }}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SETUP_BUTTON}
                         />
                     ),
                     interactive: false,

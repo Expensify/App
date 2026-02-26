@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 
 type AttachmentDeletedIndicatorProps = {
     /** Additional styles for container */
@@ -17,6 +17,7 @@ function AttachmentDeletedIndicator({containerStyles}: AttachmentDeletedIndicato
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
 
     if (!isOffline) {
         return null;
@@ -38,7 +39,7 @@ function AttachmentDeletedIndicator({containerStyles}: AttachmentDeletedIndicato
             <View style={[styles.pAbsolute, styles.deletedAttachmentIndicator, styles.alignItemsCenter, styles.justifyContentCenter, containerStyles]}>
                 <Icon
                     fill={theme.icon}
-                    src={Expensicons.Trashcan}
+                    src={icons.Trashcan}
                     width={variables.iconSizeSuperLarge}
                     height={variables.iconSizeSuperLarge}
                 />

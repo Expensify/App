@@ -20,7 +20,7 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const topmostReportId = Navigation.getTopmostReportId();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${topmostReportId}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${topmostReportId}`);
 
     useAbsentPageSpan();
 
