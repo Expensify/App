@@ -22,6 +22,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,8 +32,7 @@ import DateUtils from '@libs/DateUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -67,6 +67,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isBetaEnabled} = usePermissions();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -86,7 +87,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const formattedLimit = convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency);
     const displayName = getDisplayNameOrDefault(cardholder);
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
-    const isAdmin = PolicyUtils.isPolicyAdmin(policy, session?.email);
+    const isAdmin = isPolicyAdmin(policy, session?.email);
 
     const shouldGoBack = useRef(false);
 
