@@ -1,5 +1,4 @@
-'use strict';
-
+/* eslint-disable no-underscore-dangle */
 /**
  * Metro polyfill — runs before any module definition (__d call).
  * Wraps __d to time each module's factory execution so we can identify
@@ -13,7 +12,7 @@ global.__moduleInitTimes = {};
 global.__moduleNames = {};
 global.__moduleDefCount = 0;
 
-var originalDefine = global.__d;
+const originalDefine = global.__d;
 if (typeof originalDefine === 'function') {
     global.__d = function (factory, moduleId, deps, moduleName) {
         global.__moduleDefCount = (global.__moduleDefCount || 0) + 1;
@@ -23,8 +22,8 @@ if (typeof originalDefine === 'function') {
 
         function timedFactory(g, r, importDefault, importAll, module, exports, dependencyMap) {
             // nativePerformanceNow is Hermes' high-resolution clock — falls back to Date.now
-            var now = global.nativePerformanceNow || Date.now;
-            var start = now();
+            const now = global.nativePerformanceNow || Date.now;
+            const start = now();
             factory(g, r, importDefault, importAll, module, exports, dependencyMap);
             global.__moduleInitTimes[moduleId] = now() - start;
         }

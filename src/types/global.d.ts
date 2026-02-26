@@ -40,7 +40,9 @@ interface NodeRequire {
 }
 
 // Globals injected by src/setup/moduleInitPolyfill.js
+// eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
 declare var __moduleInitTimes: Record<number, number> | undefined;
+// eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
 declare var __moduleNames: Record<number, string> | undefined;
 
 // Define ArrayBuffer.transfer as its a relatively new API and not yet present in all environments
