@@ -1152,11 +1152,7 @@ const keywordTests = [
             },
         },
     },
-    // ==========================================
-    // Keyword ordering independence tests
-    // ==========================================
-
-    // --- Case 1: view:line alone (defaults to groupBy:month, sortOrder:asc) ---
+    // Token ordering: view:line alone (defaults to groupBy:month, sortOrder:asc)
     {
         query: 'type:expense view:line',
         expected: {
@@ -1182,7 +1178,7 @@ const keywordTests = [
         },
     },
 
-    // --- Case 2: groupBy without view:line (sortOrder stays desc) ---
+    // Token ordering: groupBy without chart view (sortOrder stays desc)
     {
         query: 'type:expense groupBy:week',
         expected: {
@@ -1232,7 +1228,7 @@ const keywordTests = [
         },
     },
 
-    // --- Case 3: groupBy + view:line (sortOrder:asc, all orderings) ---
+    // Token ordering: groupBy + view:line (sortOrder:asc regardless of token order)
     {
         query: 'type:expense view:line groupBy:week',
         expected: {
@@ -1305,7 +1301,7 @@ const keywordTests = [
             filters: null,
         },
     },
-    // groupBy:category + view:line — non-time groupBy keeps its own default sortOrder
+    // Non-time groupBy:category + view:line keeps its own default sortOrder
     {
         query: 'type:expense view:line groupBy:category',
         expected: {
@@ -1318,7 +1314,7 @@ const keywordTests = [
             filters: null,
         },
     },
-    // groupBy:withdrawal-id + view:line — non-time groupBy keeps its own default sortOrder (desc)
+    // Non-time groupBy:withdrawal-id + view:line keeps desc
     {
         query: 'type:expense view:line groupBy:withdrawal-id',
         expected: {
@@ -1331,7 +1327,7 @@ const keywordTests = [
             filters: null,
         },
     },
-    // groupBy + view:bar (NOT line) — sortOrder stays desc
+    // Time-based groupBy + view:bar defaults to sortOrder:asc
     {
         query: 'type:expense view:bar groupBy:week',
         expected: {
@@ -1357,8 +1353,7 @@ const keywordTests = [
         },
     },
 
-    // --- Case 4: groupBy + view:line + explicit sortOrder (all orderings) ---
-    // User explicitly sets sortOrder:desc — should be respected even with view:line
+    // Explicit sortOrder:desc is respected even with view:line
     {
         query: 'type:expense view:line sortOrder:desc',
         expected: {
@@ -1443,7 +1438,7 @@ const keywordTests = [
             filters: null,
         },
     },
-    // --- Non-time groupBy in chart views keeps its natural default ---
+    // Non-time groupBy in chart views keeps its natural default
     {
         query: 'type:expense view:bar groupBy:category',
         expected: {
@@ -1468,7 +1463,7 @@ const keywordTests = [
             filters: null,
         },
     },
-    // --- Table view with time-based groupBy stays desc (no chart override) ---
+    // Table view with time-based groupBy stays desc
     {
         query: 'type:expense groupBy:week',
         expected: {
@@ -1481,7 +1476,7 @@ const keywordTests = [
             filters: null,
         },
     },
-    // --- sortOrder is derived even when sortBy already matches groupBy default (UI loop fix) ---
+    // sortOrder is derived even when sortBy already matches groupBy default (UI loop)
     {
         query: 'sortBy:groupCategory type:expense groupBy:category view:line',
         expected: {

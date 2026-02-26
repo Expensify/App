@@ -1552,6 +1552,8 @@ describe('SearchQueryUtils', () => {
         });
 
         test('does not cache a failed parse result so subsequent calls retry the parser', () => {
+            // Force the parser to throw on the first call only, then succeed on the second.
+            // Verifies that a failed parse is not stored in the cache.
             const searchParserModule: {parse: jest.Mock} = jest.requireMock('@libs/SearchParser/searchParser');
             const originalImpl = jest.requireActual<{parse: (...args: unknown[]) => unknown}>('@libs/SearchParser/searchParser').parse;
 
@@ -1575,6 +1577,8 @@ describe('SearchQueryUtils', () => {
         });
 
         test('evicts the oldest entry when the cache exceeds max size', () => {
+            // Insert 51 entries (max is 50) to trigger eviction, then verify
+            // the evicted entry can still be re-parsed correctly.
             const uniquePrefix = `type:expense merchant:evict${Date.now()}x`;
             for (let i = 0; i < 51; i++) {
                 buildSearchQueryJSON(`${uniquePrefix}${i}`);
