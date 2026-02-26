@@ -150,28 +150,30 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         handleGoBack();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            setTransactionReport(
-                transaction.transactionID,
-                {
-                    reportID: item.value,
-                },
-                !isEditing,
-            );
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                setTransactionReport(
+                    transaction.transactionID,
+                    {
+                        reportID: item.value,
+                    },
+                    !isEditing,
+                );
 
-            if (isEditing) {
-                changeTransactionsReport({
-                    transactionIDs: [transaction.transactionID],
-                    isASAPSubmitBetaEnabled,
-                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    email: session?.email ?? '',
-                    newReport: report,
-                    policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-                    reportNextStep: undefined,
-                    policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-                    allTransactions,
-                });
-                removeTransaction(transaction.transactionID);
-            }
+                if (isEditing) {
+                    changeTransactionsReport({
+                        transactionIDs: [transaction.transactionID],
+                        isASAPSubmitBetaEnabled,
+                        accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        email: session?.email ?? '',
+                        newReport: report,
+                        policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                        reportNextStep: undefined,
+                        policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+                        allTransactions,
+                    });
+                    removeTransaction(transaction.transactionID);
+                }
+            });
         });
     };
 
