@@ -1,0 +1,84 @@
+---
+title: INT771 Export Error: Reporting Period Batches Are Closed in Sage Intacct
+description: Learn why the INT771 export error occurs and how to reopen the reporting period or update the export date before retrying.
+keywords: INT771, Sage Intacct reporting period closed, batches closed export error, change export date workspace, xml_gateway permissions open books closed books
+internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers the INT771 export error related to closed reporting periods and export date configuration. Does not cover category or tax configuration errors.
+---
+
+# INT771 Export Error: Reporting Period Batches Are Closed in Sage Intacct
+
+If you see the error message:
+
+**“INT771 Export Error: Export not completed. The batches for this reporting period are closed in Sage Intacct. Reopen the period or change the export date in workspace configurations.”**
+
+It means the reporting period associated with the export is closed in Sage Intacct.
+
+Sage Intacct does not allow transactions to post to closed reporting periods.
+
+---
+
+## Why the INT771 Export Error Happens
+
+The INT771 export error occurs when:
+
+- The export date falls within a closed reporting period in Sage Intacct, and  
+- Sage Intacct prevents new transactions from being created in that period  
+
+This commonly happens when the Workspace export date is based on the submitted date or the date of the last expense, and that period has already been closed.
+
+---
+
+# How to Fix the INT771 Export Error
+
+You can resolve this by reopening the period or updating the export configuration.
+
+---
+
+## Option 1: Confirm Permissions for the xml_gateway User
+
+1. Log in to Sage Intacct.  
+2. Confirm that the **xml_gateway** user has permissions for:
+   - Open books  
+   - Closed books  
+
+If permissions are missing, update them as needed and save your changes.
+
+---
+
+## Option 2: Change the Export Date Configuration
+
+1. Go to **Settings > Workspaces**.  
+2. Select your Workspace.  
+3. Click **Accounting**.  
+4. Click **Configure**.  
+5. Open the **Export** tab.  
+6. Change the **Export date** field:
+   - From **Submitted date** or **Date of last expense**  
+   - To **Exported date**  
+7. Click **Save**.  
+
+This ensures exports post to the current open period instead of a closed reporting period.
+
+---
+
+## Step 3: Retry the Export
+
+Return to the report and retry the export.
+
+If the export date now falls within an open reporting period, the export should complete successfully.
+
+---
+
+# FAQ
+
+## Do I need to reopen the reporting period?
+
+Not necessarily. Changing the export date to **Exported date** is often the simplest solution.
+
+## What does the xml_gateway user do?
+
+The xml_gateway user is the integration user that allows Expensify to communicate with Sage Intacct. It must have appropriate permissions to post transactions.
+
+## Does this error mean the integration is broken?
+
+No. The integration is working, but Sage Intacct is preventing transactions from being posted to a closed period.
