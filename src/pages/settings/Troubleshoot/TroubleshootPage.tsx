@@ -23,7 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
+import {resetExitSurveyForm, switchToOldDot} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
@@ -113,6 +113,7 @@ function TroubleshootPage() {
                 : {
                       action() {
                           if (surveyCompletedWithinLastMonth) {
+                              switchToOldDot('');
                               openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                               return;
                           }

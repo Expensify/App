@@ -2712,9 +2712,6 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.RULES]: {
         policyID: string;
     };
