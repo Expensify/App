@@ -281,7 +281,6 @@ function getReportsToDisplayInLHN(
     currentReportId: string | undefined,
     reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PartialPolicyForSidebar>,
     priorityMode: OnyxEntry<PriorityMode>,
     draftComments: OnyxCollection<string>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,

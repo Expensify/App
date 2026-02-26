@@ -40,11 +40,6 @@ const personalDetails = createCollection<PersonalDetails>(
     PERSONAL_DETAILS_LIST_COUNT,
 );
 
-const policies = createCollection<Policy>(
-    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
-    (index) => createRandomPolicy(index),
-);
-
 const mockedBetas = Object.values(CONST.BETAS);
 
 const currentReportId = '1';
@@ -99,11 +94,11 @@ describe('SidebarUtils', () => {
 
     test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for default priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, {}, transactionViolations, {}));
+        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, CONST.PRIORITY_MODE.DEFAULT, {}, transactionViolations, {}));
     });
 
     test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for GSD priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, {}, transactionViolations, {}));
+        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, CONST.PRIORITY_MODE.GSD, {}, transactionViolations, {}));
     });
 });
