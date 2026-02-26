@@ -109,7 +109,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
             op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
             attributes: {
-                trigger: 'keyboard',
+                [CONST.TELEMETRY.ATTRIBUTE_TRIGGER]: 'keyboard',
             },
         });
     };

@@ -191,7 +191,7 @@ function SearchAutocompleteList({
         }
         const parentSpan = getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
         if (parentSpan) {
-            parentSpan.setAttribute('cold_start', !contextAreOptionsInitialized);
+            parentSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_COLD_START, !contextAreOptionsInitialized);
             coldStartAttributeSet.current = true;
         }
     }, [contextAreOptionsInitialized]);

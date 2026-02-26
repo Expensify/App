@@ -33,7 +33,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
                 name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
                 op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
                 attributes: {
-                    trigger: 'button',
+                    [CONST.TELEMETRY.ATTRIBUTE_TRIGGER]: 'button',
                 },
             });
 

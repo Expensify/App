@@ -1867,6 +1867,8 @@ const CONST = {
         ATTRIBUTE_THROTTLE_WAIT_MS: 'throttle_wait_ms',
         ATTRIBUTE_JSON_CODE: 'json_code',
         ATTRIBUTE_ONYX_UPDATES_COUNT: 'onyx_updates_count',
+        ATTRIBUTE_COLD_START: 'cold_start',
+        ATTRIBUTE_TRIGGER: 'trigger',
         SUBMIT_EXPENSE_SCENARIO: {
             REQUEST_MONEY_MANUAL: 'request_money_manual',
             REQUEST_MONEY_SCAN: 'request_money_scan',
