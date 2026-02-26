@@ -24,7 +24,7 @@ jest.mock('@libs/PolicyUtils', () => ({
 
 const MOVED_TO_REPORT_ID = '1';
 const MOVED_FROM_REPORT_ID = '2';
-
+const CURRENT_USER_LOGIN = 'test@example.com';
 describe('ModifiedExpenseMessage', () => {
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.EN);
@@ -104,13 +104,13 @@ describe('ModifiedExpenseMessage', () => {
         describe('when moving to a report', () => {
             it('returns "moved expense to personal space" message when moving an expense to selfDM', () => {
                 const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, selfDMReport);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, selfDMReport, CURRENT_USER_LOGIN);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
                 expect(result).toEqual(expectedResult);
             });
             it('returns "moved expense from personal space to chat with reportName" message when moving an expense to policy expense chat with only reportName', () => {
                 const policyExpenseReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {reportName: policyExpenseReport.reportName});
                 expect(result).toEqual(expectedResult);
             });
@@ -119,7 +119,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     policyName: 'Policy',
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
                     reportName: policyExpenseReport.reportName,
                     workspaceName: policyExpenseReport.policyName,
@@ -131,7 +131,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     reportName: '',
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport);
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
                 expect(result).toEqual(expectedResult);
             });
@@ -143,7 +143,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns "moved expense from reportName" message', () => {
-                const result = getMovedFromOrToReportMessage(translateLocal, movedFromReport, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, movedFromReport, undefined, CURRENT_USER_LOGIN);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', movedFromReport.reportName ?? '');
                 expect(result).toEqual(expectedResult);
             });
@@ -153,7 +153,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1, undefined),
                     reportName: '',
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, reportWithoutName, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, reportWithoutName, undefined, CURRENT_USER_LOGIN);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', '');
 
                 expect(result).toEqual(expectedResult);
@@ -161,7 +161,7 @@ describe('ModifiedExpenseMessage', () => {
         });
 
         it('returns undefined when neither movedToReport nor movedFromReport is provided', () => {
-            const result = getMovedFromOrToReportMessage(translateLocal, undefined, undefined);
+            const result = getMovedFromOrToReportMessage(translateLocal, undefined, undefined, CURRENT_USER_LOGIN);
             expect(result).toBeUndefined();
         });
     });
