@@ -1,7 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
@@ -30,6 +31,7 @@ function ImportFromFileStep() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
     const companyCardLayoutName = addNewCard?.data?.companyCardLayoutName ?? '';
+    const [hasError, setHasError] = useState(false);
     const {policyID} = route.params;
 
     const handleBackButtonPress = () => {
@@ -41,8 +43,14 @@ function ImportFromFileStep() {
     };
 
     const navigateToImport = () => {
+        if (!companyCardLayoutName.trim()) {
+            setHasError(true);
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET.getRoute(policyID));
     };
+
+    const shouldShowLayoutNameError = hasError && !companyCardLayoutName.trim();
 
     return (
         <ScreenWrapper
@@ -81,8 +89,16 @@ function ImportFromFileStep() {
                     </View>
                 </View>
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
+                    {shouldShowLayoutNameError && (
+                        <View style={styles.mb3}>
+                            <FormHelpMessage
+                                isError
+                                message={translate('common.error.fieldRequired')}
+                            />
+                        </View>
+                    )}
                     <Button
-                        isDisabled={isOffline || !companyCardLayoutName.trim()}
+                        isDisabled={isOffline}
                         success
                         large
                         style={[styles.w100]}
