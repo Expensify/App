@@ -146,16 +146,9 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             return;
         }
 
-        // If no settlement account configured, or if the settlement account is still pending
-        // confirmation from the backend (e.g. Marqeta provisioning in progress or failed),
-        // navigate to the settlement account setup page
-        if (!hasSettlementAccount || isSettlementAccountPendingAction) {
-            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
-            return;
-        }
-
-        // Has settlement account - enable Travel Invoicing directly
-        toggleTravelInvoicing(policyID, workspaceAccountID, true);
+        // Navigate to settlement account setup to confirm or change the account before enabling.
+        // This ensures users can always pick a different bank account if the current one is invalid.
+        Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
     };
 
     const handleConfirmDisable = () => {
