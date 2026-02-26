@@ -1155,7 +1155,7 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
         if (isTransactionEntry(key)) {
             const item = data[key];
             const merchant = item.modifiedMerchant ? item.modifiedMerchant : (item.merchant ?? '');
-            return !isInvalidMerchantValue(merchant);
+            return !isInvalidMerchantValue(merchant) || isScanning(item);
         }
         return false;
     });

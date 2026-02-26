@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
@@ -41,9 +41,9 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
 
-    // The selector depends on the dynamic `accountID`, so it cannot be extracted
+    const personalDetailsSelector = useCallback((personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID], [accountID]);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
+        selector: personalDetailsSelector,
     });
 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails));

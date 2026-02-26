@@ -849,6 +849,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: {
                             path: ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.route,
                         },
+                        [SCREENS.WORKSPACE.TRAVEL_MISSING_PERSONAL_DETAILS]: {
+                            path: ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.route,
                         },
