@@ -780,6 +780,7 @@ describe('MoneyRequest', () => {
             selfDMReport,
             betas: [CONST.BETAS.ALL],
             recentWaypoints: [] as RecentWaypoint[],
+            isSelfTourViewed: false,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {

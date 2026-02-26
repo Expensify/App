@@ -202,6 +202,7 @@ describe('GoogleTagManagerTest', () => {
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
+            isSelfTourViewed: false,
         });
 
         await waitForBatchedUpdatesWithAct();
