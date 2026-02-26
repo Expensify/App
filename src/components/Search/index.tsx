@@ -230,15 +230,8 @@ function Search({
     const {currentSearchHash, selectedTransactions, shouldTurnOffSelectionMode, lastSearchType, areAllMatchingItemsSelected, shouldResetSearchQuery, shouldUseLiveData} =
         useSearchStateContext();
 
-    const {
-        setCurrentSearchQueryJSON,
-        setSelectedTransactions,
-        clearSelectedTransactions,
-        setShouldShowFiltersBarLoading,
-        setShouldShowSelectAllMatchingItems,
-        selectAllMatchingItems,
-        setShouldResetSearchQuery,
-    } = useSearchActionsContext();
+    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
+        useSearchActionsContext();
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -301,9 +294,7 @@ function Search({
 
     const clearTransactionsAndSetHashAndKey = useCallback(() => {
         clearSelectedTransactions(hash);
-        setCurrentSearchHashAndKey(hash, searchKey);
-        setCurrentSearchQueryJSON(queryJSON);
-    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON, queryJSON]);
+    }, [hash, searchKey, clearSelectedTransactions, queryJSON]);
 
     useFocusEffect(clearTransactionsAndSetHashAndKey);
 

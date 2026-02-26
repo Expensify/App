@@ -54,7 +54,6 @@ const defaultSearchStateContext: SearchStateContextValue = {
 
 const defaultSearchActionsContext: SearchActionsContextValue = {
     setLastSearchType: () => {},
-    setCurrentSearchQueryJSON: () => {},
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
@@ -120,19 +119,6 @@ function SearchContextProvider({children}: ChildrenProps) {
 
         return snapshotSearchResults ?? undefined;
     }, [currentSearchKey, shouldUseLiveData, snapshotSearchResults, todoSearchResultsData]);
-
-    const setCurrentSearchQueryJSON = (searchQueryJSON: SearchQueryJSON | undefined) => {
-        setSearchContextData((prevState) => {
-            if (searchQueryJSON === prevState.currentSearchQueryJSON) {
-                return prevState;
-            }
-
-            return {
-                ...prevState,
-                currentSearchQueryJSON: searchQueryJSON,
-            };
-        });
-    };
 
     const setSelectedTransactions: SearchActionsContextValue['setSelectedTransactions'] = (selectedTransactions, data = []) => {
         if (selectedTransactions instanceof Array) {
@@ -277,7 +263,6 @@ function SearchContextProvider({children}: ChildrenProps) {
 
     const searchActionsContextValue: SearchActionsContextValue = {
         removeTransaction,
-        setCurrentSearchQueryJSON,
         setSelectedTransactions,
         clearSelectedTransactions,
         setShouldShowFiltersBarLoading,
