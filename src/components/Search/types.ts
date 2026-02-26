@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {
     ReportActionListItemType,
@@ -131,7 +132,7 @@ type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
 // PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
-type ChartView = Exclude<SearchView, 'table' | 'pie'>;
+type ChartView = Exclude<SearchView, 'table'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
@@ -336,6 +337,35 @@ type GroupedItem =
     | TransactionYearGroupListItemType
     | TransactionQuarterGroupListItemType;
 
+type SearchChartProps = {
+    /** Grouped transaction data from search results */
+    data: GroupedItem[];
+
+    /** Chart title */
+    title: string;
+
+    /** Chart title icon */
+    titleIcon: IconAsset;
+
+    /** Function to extract label from grouped item */
+    getLabel: (item: GroupedItem) => string;
+
+    /** Function to build filter query from grouped item */
+    getFilterQuery: (item: GroupedItem) => string;
+
+    /** Callback when a chart item is pressed - receives the filter query to apply */
+    onItemPress?: (filterQuery: string) => void;
+
+    /** Whether data is loading */
+    isLoading?: boolean;
+
+    /** Currency unit with font fallback support */
+    unit?: UnitWithFallback;
+
+    /** Position of currency symbol relative to value */
+    unitPosition?: UnitPosition;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -383,4 +413,5 @@ export type {
     BankAccountMenuItem,
     SearchCustomColumnIds,
     GroupedItem,
+    SearchChartProps,
 };
