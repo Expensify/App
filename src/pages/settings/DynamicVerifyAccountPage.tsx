@@ -1,12 +1,16 @@
 import React from 'react';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import VerifyAccountPageBase from './VerifyAccountPageBase';
 
 function DynamicVerifyAccountPage() {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
-    // currently, the default behavior of this component after completing verification is to navigate back
-    const forwardPath = backPath;
+
+    let forwardPath = backPath;
+    if (backPath === ROUTES.SETTINGS_WALLET) {
+        forwardPath = ROUTES.SETTINGS_ENABLE_PAYMENTS;
+    }
+
     return (
         <VerifyAccountPageBase
             navigateBackTo={backPath}

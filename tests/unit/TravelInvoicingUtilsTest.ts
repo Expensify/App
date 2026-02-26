@@ -49,27 +49,36 @@ describe('TravelInvoicingUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('Should return false when isEnabled is explicitly false', () => {
+        it('Should return false when root-level isEnabled is false without TRAVEL_US', () => {
             const cardSettings = {isEnabled: false} as ExpensifyCardSettings;
             const result = getIsTravelInvoicingEnabled(cardSettings);
             expect(result).toBe(false);
         });
 
-        it('Should return true when isEnabled is explicitly true', () => {
+        it('Should return false when root-level isEnabled is true without TRAVEL_US (not travel settings)', () => {
             const cardSettings = {isEnabled: true} as ExpensifyCardSettings;
             const result = getIsTravelInvoicingEnabled(cardSettings);
-            expect(result).toBe(true);
+            expect(result).toBe(false);
         });
 
-        it('Should return false when isEnabled is undefined and no paymentBankAccountID (new account)', () => {
+        it('Should return false when isEnabled is undefined and no TRAVEL_US (new account)', () => {
             // Empty settings (like from loading state) should return false, not true
             const cardSettings = {} as ExpensifyCardSettings;
             const result = getIsTravelInvoicingEnabled(cardSettings);
             expect(result).toBe(false);
         });
 
-        it('Should return true when isEnabled is undefined with valid paymentBankAccountID', () => {
+        it('Should return false when root-level paymentBankAccountID exists but no TRAVEL_US (Expensify Card settlement account)', () => {
             const cardSettings = {paymentBankAccountID: 12345} as ExpensifyCardSettings;
+            const result = getIsTravelInvoicingEnabled(cardSettings);
+            expect(result).toBe(false);
+        });
+
+        it('Should return true when TRAVEL_US has valid paymentBankAccountID and isEnabled is undefined', () => {
+            const cardSettings = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {paymentBankAccountID: 12345},
+            } as ExpensifyCardSettings;
             const result = getIsTravelInvoicingEnabled(cardSettings);
             expect(result).toBe(true);
         });
@@ -123,8 +132,17 @@ describe('TravelInvoicingUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('Should return true when paymentBankAccountID is a valid non-zero value', () => {
+        it('Should return false when only root-level paymentBankAccountID exists (no TRAVEL_US)', () => {
             const cardSettings = {paymentBankAccountID: 67890} as ExpensifyCardSettings;
+            const result = hasTravelInvoicingSettlementAccount(cardSettings);
+            expect(result).toBe(false);
+        });
+
+        it('Should return true when TRAVEL_US has a valid non-zero paymentBankAccountID', () => {
+            const cardSettings = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {paymentBankAccountID: 67890},
+            } as ExpensifyCardSettings;
             const result = hasTravelInvoicingSettlementAccount(cardSettings);
             expect(result).toBe(true);
         });
@@ -136,14 +154,17 @@ describe('TravelInvoicingUtils', () => {
             expect(result).toBe(0);
         });
 
-        it('Should return 0 when remainingLimit is not set', () => {
-            const cardSettings = {} as ExpensifyCardSettings;
+        it('Should return 0 when no TRAVEL_US exists', () => {
+            const cardSettings = {remainingLimit: 50000} as ExpensifyCardSettings;
             const result = getTravelLimit(cardSettings);
             expect(result).toBe(0);
         });
 
-        it('Should return the remainingLimit value when set', () => {
-            const cardSettings = {remainingLimit: 50000} as ExpensifyCardSettings;
+        it('Should return the limit value from TRAVEL_US when set', () => {
+            const cardSettings = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {remainingLimit: 50000},
+            } as ExpensifyCardSettings;
             const result = getTravelLimit(cardSettings);
             expect(result).toBe(50000);
         });
@@ -155,14 +176,17 @@ describe('TravelInvoicingUtils', () => {
             expect(result).toBe(0);
         });
 
-        it('Should return 0 when currentBalance is not set', () => {
-            const cardSettings = {} as ExpensifyCardSettings;
+        it('Should return 0 when no TRAVEL_US exists', () => {
+            const cardSettings = {currentBalance: 25000} as ExpensifyCardSettings;
             const result = getTravelSpend(cardSettings);
             expect(result).toBe(0);
         });
 
-        it('Should return the currentBalance value when set', () => {
-            const cardSettings = {currentBalance: 25000} as ExpensifyCardSettings;
+        it('Should return the currentBalance value from TRAVEL_US when set', () => {
+            const cardSettings = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {currentBalance: 25000},
+            } as ExpensifyCardSettings;
             const result = getTravelSpend(cardSettings);
             expect(result).toBe(25000);
         });
@@ -174,14 +198,26 @@ describe('TravelInvoicingUtils', () => {
             expect(result).toBe(CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
         });
 
-        it('Should return daily when monthlySettlementDate is not set', () => {
+        it('Should return monthly (default) when no TRAVEL_US exists', () => {
             const cardSettings = {} as ExpensifyCardSettings;
+            const result = getTravelSettlementFrequency(cardSettings);
+            expect(result).toBe(CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
+        });
+
+        it('Should return daily when TRAVEL_US has no monthlySettlementDate', () => {
+            const cardSettings = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {isEnabled: true},
+            } as ExpensifyCardSettings;
             const result = getTravelSettlementFrequency(cardSettings);
             expect(result).toBe(CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY);
         });
 
-        it('Should return monthly when monthlySettlementDate is set', () => {
-            const cardSettings = {monthlySettlementDate: new Date('2024-01-15')} as ExpensifyCardSettings;
+        it('Should return monthly when TRAVEL_US has monthlySettlementDate', () => {
+            const cardSettings = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {monthlySettlementDate: new Date('2024-01-15')},
+            } as ExpensifyCardSettings;
             const result = getTravelSettlementFrequency(cardSettings);
             expect(result).toBe(CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
         });
@@ -212,11 +248,23 @@ describe('TravelInvoicingUtils', () => {
             expect(result).toBeUndefined();
         });
 
-        it('Should use paymentBankAccountAddressName when available', () => {
+        it('Should return undefined when only root-level paymentBankAccountID exists (no TRAVEL_US)', () => {
             const cardSettings = {
                 paymentBankAccountID: 12345,
                 paymentBankAccountAddressName: 'Custom Name',
-                paymentBankAccountNumber: '****5678',
+            } as ExpensifyCardSettings;
+            const result = getTravelSettlementAccount(cardSettings, mockBankAccountList);
+            expect(result).toBeUndefined();
+        });
+
+        it('Should use paymentBankAccountAddressName from TRAVEL_US when available', () => {
+            const cardSettings = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {
+                    paymentBankAccountID: 12345,
+                    paymentBankAccountAddressName: 'Custom Name',
+                    paymentBankAccountNumber: '****5678',
+                },
             } as ExpensifyCardSettings;
             const result = getTravelSettlementAccount(cardSettings, mockBankAccountList);
             expect(result).toBeDefined();
@@ -224,9 +272,12 @@ describe('TravelInvoicingUtils', () => {
             expect(result?.last4).toBe('5678');
         });
 
-        it('Should fallback to bank account data when paymentBankAccountAddressName is not set', () => {
+        it('Should fallback to bank account data when TRAVEL_US paymentBankAccountAddressName is not set', () => {
             const cardSettings = {
-                paymentBankAccountID: 'bankAccountID' as unknown as number,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {
+                    paymentBankAccountID: 'bankAccountID' as unknown as number,
+                },
             } as ExpensifyCardSettings;
             const result = getTravelSettlementAccount(cardSettings, mockBankAccountList);
             expect(result).toBeDefined();
@@ -234,9 +285,12 @@ describe('TravelInvoicingUtils', () => {
             expect(result?.last4).toBe('1234');
         });
 
-        it('Should return bankAccountID in the result', () => {
+        it('Should return bankAccountID from TRAVEL_US in the result', () => {
             const cardSettings = {
-                paymentBankAccountID: 12345,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {
+                    paymentBankAccountID: 12345,
+                },
             } as ExpensifyCardSettings;
             const result = getTravelSettlementAccount(cardSettings, mockBankAccountList);
             expect(result).toBeDefined();
@@ -245,7 +299,10 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should handle missing bank account in list gracefully', () => {
             const cardSettings = {
-                paymentBankAccountID: 99999,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {
+                    paymentBankAccountID: 99999,
+                },
             } as ExpensifyCardSettings;
             const result = getTravelSettlementAccount(cardSettings, mockBankAccountList);
             expect(result).toBeDefined();
