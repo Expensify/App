@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -82,6 +83,22 @@ function HeaderWithBackButton({
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
+
+    const downloadReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'HeaderWithBackButton.Download',
+            isDownloading,
+        }),
+        [isDownloading],
+    );
+
+    const rotateReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'HeaderWithBackButton.Rotate',
+            isRotating,
+        }),
+        [isRotating],
+    );
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -280,7 +297,10 @@ function HeaderWithBackButton({
                                     </PressableWithoutFeedback>
                                 </Tooltip>
                             ) : (
-                                <ActivityIndicator style={[styles.touchableButtonImage]} />
+                                <ActivityIndicator
+                                    style={[styles.touchableButtonImage]}
+                                    reasonAttributes={downloadReasonAttributes}
+                                />
                             ))}
                         {shouldShowRotateButton &&
                             (!isRotating ? (
@@ -299,7 +319,10 @@ function HeaderWithBackButton({
                                     </PressableWithoutFeedback>
                                 </Tooltip>
                             ) : (
-                                <ActivityIndicator style={[styles.touchableButtonImage]} />
+                                <ActivityIndicator
+                                    style={[styles.touchableButtonImage]}
+                                    reasonAttributes={rotateReasonAttributes}
+                                />
                             ))}
                         {shouldShowPinButton && !!report && <PinButton report={report} />}
                     </View>

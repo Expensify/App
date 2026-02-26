@@ -24,10 +24,5 @@ export default function createRandomMergeTransaction(index: number): MergeTransa
         created: format(randPastDate(), CONST.DATE.FNS_DB_FORMAT_STRING),
         reportID: index.toString(),
         reportName: randWord(),
-        taxAmount: randAmount(),
-        taxValue: randAmount().toString(),
-        taxCode: randWord(),
-        taxName: randWord(),
-        taxPolicyID: randWord(),
     };
 }

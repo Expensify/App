@@ -42,7 +42,6 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import Performance from '@libs/Performance';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -82,7 +81,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import SearchChartView from './SearchChartView';
-import {useSearchContext} from './SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import SearchList from './SearchList';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
@@ -213,7 +212,7 @@ function Search({
     searchRequestResponseStatusCode,
     onDEWModalOpen,
 }: SearchProps) {
-    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
+    const {type, status, sortBy, sortOrder, hash, recentSearchHash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -228,26 +227,22 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {markReportIDAsExpense} = useWideRHPActions();
+    const {currentSearchHash, selectedTransactions, shouldTurnOffSelectionMode, lastSearchType, areAllMatchingItemsSelected, shouldResetSearchQuery, shouldUseLiveData} =
+        useSearchStateContext();
     const {
-        currentSearchHash,
         setCurrentSearchHashAndKey,
         setCurrentSearchQueryJSON,
         setSelectedTransactions,
-        selectedTransactions,
         clearSelectedTransactions,
-        shouldTurnOffSelectionMode,
         setShouldShowFiltersBarLoading,
-        lastSearchType,
-        shouldShowSelectAllMatchingItems,
-        areAllMatchingItemsSelected,
+        setShouldShowSelectAllMatchingItems,
         selectAllMatchingItems,
-        shouldResetSearchQuery,
         setShouldResetSearchQuery,
-        shouldUseLiveData,
-    } = useSearchContext();
+    } = useSearchActionsContext();
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
@@ -276,7 +271,7 @@ function Search({
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
-    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
+    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key, [suggestedSearches, recentSearchHash]);
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, hash, offset === 0);
 
@@ -307,9 +302,9 @@ function Search({
 
     const clearTransactionsAndSetHashAndKey = useCallback(() => {
         clearSelectedTransactions(hash);
-        setCurrentSearchHashAndKey(hash, searchKey);
+        setCurrentSearchHashAndKey(hash, recentSearchHash, searchKey);
         setCurrentSearchQueryJSON(queryJSON);
-    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON, queryJSON]);
+    }, [hash, recentSearchHash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON, queryJSON]);
 
     useFocusEffect(clearTransactionsAndSetHashAndKey);
 
@@ -754,6 +749,7 @@ function Search({
     }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
 
     const isUnmounted = useRef(false);
+    const hasHadFirstLayout = useRef(false);
 
     useEffect(
         () => () => {
@@ -805,12 +801,12 @@ function Search({
 
             // If the user has selected all the expenses in their view but there are more expenses matched by the search
             // give them the option to select all matching expenses
-            shouldShowSelectAllMatchingItems(!!(areAllItemsSelected && searchResults?.search?.hasMoreResults));
+            setShouldShowSelectAllMatchingItems(!!(areAllItemsSelected && searchResults?.search?.hasMoreResults));
             if (!areAllItemsSelected) {
                 selectAllMatchingItems(false);
             }
         },
-        [filteredData, validGroupBy, type, searchResults?.search?.hasMoreResults, shouldShowSelectAllMatchingItems, selectAllMatchingItems],
+        [filteredData, validGroupBy, type, searchResults?.search?.hasMoreResults, setShouldShowSelectAllMatchingItems, selectAllMatchingItems],
     );
 
     const toggleTransaction = useCallback(
@@ -908,6 +904,10 @@ function Search({
 
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => {
+            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return;
+            }
+
             if (isMobileSelectionModeEnabled) {
                 toggleTransaction(item);
                 return;
@@ -919,7 +919,7 @@ function Search({
             if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                createAndOpenSearchTransactionThread(item, backTo, item?.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
+                createAndOpenSearchTransactionThread(item, introSelected, backTo, item?.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
                 if (shouldOpenTransactionThread) {
                     return;
                 }
@@ -951,7 +951,6 @@ function Search({
                 return;
             }
 
-            Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
             startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
                 name: 'Search',
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -961,7 +960,7 @@ function Search({
                 const firstTransaction = item.transactions.at(0);
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
-                        createAndOpenSearchTransactionThread(firstTransaction, backTo, firstTransaction?.reportAction?.childReportID, transactionPreviewData, false);
+                        createAndOpenSearchTransactionThread(firstTransaction, introSelected, backTo, firstTransaction?.reportAction?.childReportID, transactionPreviewData, false);
                     } else {
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
                     }
@@ -996,7 +995,16 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, markReportIDAsExpense, toggleTransaction, handleSearch, searchKey, markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense],
+        [
+            isMobileSelectionModeEnabled,
+            markReportIDAsExpense,
+            toggleTransaction,
+            handleSearch,
+            searchKey,
+            markReportIDAsMultiTransactionExpense,
+            unmarkReportIDAsMultiTransactionExpense,
+            introSelected,
+        ],
     );
 
     const currentColumns = useMemo(() => {
@@ -1143,36 +1151,34 @@ function Search({
     ]);
 
     const onLayout = useCallback(() => {
-        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
-        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER);
+        hasHadFirstLayout.current = true;
+        const span = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+        span?.setAttributes({[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
         markNavigateAfterExpenseCreateEnd();
         handleSelectionListScroll(sortedData, searchListRef.current);
     }, [handleSelectionListScroll, sortedData]);
 
-    useEffect(() => {
-        if (shouldShowLoadingState) {
-            return;
-        }
-
-        const renderSpanParent = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
-
-        if (renderSpanParent) {
-            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER, {
-                name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER,
-                op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER,
-                parentSpan: renderSpanParent,
-            }).setAttributes({
-                inputQuery: queryJSON?.inputQuery,
-            });
-        }
-
-        // Exclude `queryJSON?.inputQuery` since it’s only telemetry metadata and would cause the span to start multiple times.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldShowLoadingState]);
-
     const onLayoutSkeleton = useCallback(() => {
-        endSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS);
+        hasHadFirstLayout.current = true;
+        const span = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+        span?.setAttributes({[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
     }, []);
+
+    // On re-visits, react-freeze serves the cached layout — onLayout/onLayoutSkeleton never fire.
+    // useFocusEffect fires on unfreeze, which is when the screen becomes visible.
+    useFocusEffect(
+        useCallback(() => {
+            if (!hasHadFirstLayout.current) {
+                return;
+            }
+            const span = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+            span?.setAttributes({[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState});
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+            markNavigateAfterExpenseCreateEnd();
+        }, [shouldShowLoadingState]),
+    );
 
     if (shouldShowLoadingState) {
         return (
@@ -1192,14 +1198,14 @@ function Search({
 
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
         return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
     }
 
     if (hasErrors) {
         const isInvalidQuery = searchRequestResponseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
@@ -1216,7 +1222,7 @@ function Search({
 
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
     if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType)) {
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
@@ -1246,7 +1252,7 @@ function Search({
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
 
-    const shouldShowChartView = (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE) && !!validGroupBy;
+    const shouldShowChartView = (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE || view === CONST.SEARCH.VIEW.PIE) && !!validGroupBy;
 
     if (shouldShowChartView && isGroupedItemArray(sortedData)) {
         let chartTitle = translate(`search.chartTitles.${validGroupBy}`);

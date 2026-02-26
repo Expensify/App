@@ -952,7 +952,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'category':
         case 'merchant':
         case 'taxCode':
-        case 'taxName':
         case 'modifiedCurrency':
         case 'modifiedMerchant':
         case 'transactionID':
@@ -1120,7 +1119,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitExpensesTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    taxName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     pendingAutoCategorizationTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     groupCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,

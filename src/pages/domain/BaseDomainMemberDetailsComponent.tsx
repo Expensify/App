@@ -42,8 +42,6 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
 
     // The selector depends on the dynamic `accountID`, so it cannot be extracted
-    // to a static function outside the component.
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
     });

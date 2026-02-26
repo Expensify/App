@@ -38,7 +38,6 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
     const [adminPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         selector: adminPendingActionSelector,
     });
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
             if (!personalDetailsList) {
