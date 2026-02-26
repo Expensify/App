@@ -546,10 +546,6 @@ function ReportActionCompose({
     });
 
     const handleAttachmentDrop = (event: DragEvent) => {
-        if (isAttachmentPreviewActive) {
-            return;
-        }
-
         const files = Array.from(event.dataTransfer?.files ?? []).map((file) => {
             const fileWithUri = file;
 
