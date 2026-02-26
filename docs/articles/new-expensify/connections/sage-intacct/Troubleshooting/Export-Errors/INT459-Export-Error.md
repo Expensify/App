@@ -1,8 +1,8 @@
 ---
 title: INT459 Export Error: Unable to Find Category in the Workspace
 description: Learn why the INT459 export error occurs and how to ensure categories are active and synced from Sage Intacct before retrying the export.
-keywords: INT459, category not found Sage Intacct, expense type missing, GL code not found, workspace categories error, sync category configuration
-internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers the INT459 export error related to missing or inactive categories. Does not cover tag, tax, or employee configuration errors.
+keywords: INT459, category not found Sage Intacct, expense type missing, GL code not found, workspace categories error, sync category configuration, Sage Intacct export failure, Workspace Admin troubleshooting
+internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers resolving the INT459 export error caused by missing or inactive categories. Does not cover tag, tax, employee, or connection configuration errors.
 ---
 
 # INT459 Export Error: Unable to Find Category in the Workspace
@@ -13,89 +13,114 @@ If you see the error message:
 
 It means the category selected on one or more expenses is not available or not active in the Workspace.
 
-Sage Intacct requires all categories used in exports to be active and properly synced.
+Sage Intacct requires all categories used in exports to exist, be active, and be properly synced before transactions can post successfully.
 
 ---
 
-## Why the INT459 Export Error Happens
+## Why the INT459 Export Error Happens in Sage Intacct
 
-The INT459 export error occurs when:
+The INT459 export error typically occurs when:
 
-- The category selected on an expense is not available in the Workspace, or  
-- The category exists in Sage Intacct but has not been synced  
+- The category selected on an expense does not exist in the Workspace.
+- The category exists in Sage Intacct but has not been synced.
+- The category is inactive or deleted in Sage Intacct.
 
-Categories are determined based on export type:
+Categories are determined by export type:
 
-- **Expense reports** — Categories are **Expense Types** in Sage Intacct  
-- **Vendor bills** — Categories are found in the **Chart of Accounts (GL codes)**  
+- **Expense reports** use **Expense Types** in Sage Intacct.
+- **Vendor bills** use **Chart of Accounts (GL codes)** in Sage Intacct.
 
-If a category is inactive, deleted, or not synced, the export will fail.
+If the selected category is unavailable in either system, the export will fail.
+
+This is a category configuration or sync issue, not a connection issue.
 
 ---
 
 # How to Fix the INT459 Export Error
 
-Follow the steps below to confirm categories are active and properly synced.
+Follow the steps below to confirm the category is active and synced.
 
 ---
 
-## Step 1: Confirm the Category in Sage Intacct
+## Confirm the Category Is Active in Sage Intacct
 
-1. Log in to Sage Intacct.  
+1. Log in to Sage Intacct as an administrator.
 2. Identify the export type:
-   - For expense reports, check **Expense Types**  
-   - For vendor bills, check the **Chart of Accounts (GL codes)**  
-3. Confirm the category exists and is active.  
+   - For expense report exports, open **Expense Types**.
+   - For vendor bill exports, open the **Chart of Accounts (GL codes)**.
+3. Search for the category listed in the error message.
+4. Confirm the category exists and is marked as active.
+5. Save any changes if you updated the record.
 
-If the category is missing or inactive, update it in Sage Intacct and save your changes.
-
----
-
-## Step 2: Confirm the Category in the Workspace
-
-1. Go to **Settings > Workspace > [Workspace Name] > Categories**.  
-2. Confirm the category is listed and available.  
-
-If it is not listed, proceed to sync.
+If the category is missing or inactive, update it in Sage Intacct before proceeding.
 
 ---
 
-## Step 3: Run Sync
+## Confirm the Category Is Available in the Workspace
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**.  
-2. Click the three-dot icon next to the connection.  
-3. Select **Sync Now** from the dropdown.  
+On web:
+1. Go to **Settings** in the navigation tabs on the left.
+2. Select **Workspaces**.
+3. Choose your Workspace.
+4. Click **Categories**.
 
-This refreshes categories from Sage Intacct.
+On mobile:
+1. Tap the hamburger menu in the top-left corner.
+2. Tap **Workspaces**.
+3. Select your Workspace.
+4. Tap **Categories**.
+
+Confirm the category is listed and enabled. If it is missing, run a sync.
 
 ---
 
-## Step 4: Update Categories on the Report
+## Sync Sage Intacct With the Workspace
 
-1. Open the report that failed to export.  
-2. Identify any categories highlighted in red.  
-3. Edit the expense and select a valid, active category.  
+On web:
+1. Go to **Settings** in the navigation tabs on the left.
+2. Select **Workspaces**.
+3. Choose your Workspace.
+4. Click **Accounting**.
+5. Click **Sync Now**.
+
+On mobile:
+The Sage Intacct accounting connection and sync controls are available on web only.
+
+Running **Sync Now** refreshes categories and imports any updates from Sage Intacct.
 
 ---
 
-## Step 5: Retry the Export
+## Update the Category on the Report
 
-Retry exporting the report.
+1. Open the report that failed to export.
+2. Review any expenses highlighted in red.
+3. Edit the expense.
+4. Select a valid, active category.
+5. Save your changes.
 
-If the category exists, is active in Sage Intacct, and is properly synced, the export should complete successfully.
+---
+
+## Retry the Sage Intacct Export
+
+After confirming the category is active and synced:
+
+1. Open the report.
+2. Retry the export to Sage Intacct.
+
+If the category exists, is active, and is synced, the export should complete successfully.
 
 ---
 
 # FAQ
 
-## Does this error mean the integration is disconnected?
+## Does the INT459 error mean the Sage Intacct integration is disconnected?
 
-No. The error indicates a category mismatch or missing category, not a connection issue.
+No. The INT459 error indicates a missing or inactive category. It does not mean the integration is disconnected.
 
-## Do I always need to run Sync?
+## Do I always need to run Sync Now after updating categories in Sage Intacct?
 
-If categories were recently added or updated in Sage Intacct, running **Sync Now** ensures they are imported into the Workspace.
+Yes. If categories were added, edited, or reactivated in Sage Intacct, you should run **Sync Now** to import the changes into the Workspace.
 
-## Can I fix this by selecting a different category?
+## Can I fix the INT459 error by selecting a different category?
 
-Yes. If the selected category is no longer valid, choosing an active category will resolve the error.
+Yes. If the selected category is no longer valid, choosing an active and synced category will resolve the error.
