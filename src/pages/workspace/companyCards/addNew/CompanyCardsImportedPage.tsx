@@ -150,7 +150,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     ]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return;
+        return null;
     }
 
     const spreadsheetColumns = spreadsheet?.data;
