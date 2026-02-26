@@ -328,7 +328,7 @@ function SearchFiltersBar({
             limit: queryJSON.limit,
         });
 
-        if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
+        if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy || resetSortOrder) {
             queryString = getQueryWithUpdatedValues(queryString, true) ?? '';
         }
         if (!queryString) {

@@ -1356,6 +1356,94 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('sortOrder is correctly derived when sortBy matches groupBy default (UI loop)', () => {
+        test('bar→line with category: sortOrder omitted, sortBy re-fed as groupCategory', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                view: CONST.SEARCH.VIEW.LINE,
+            };
+
+            const queryString = buildQueryStringFromFilterFormValues(filterValues, {
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            });
+            const rebuilt = getQueryWithUpdatedValues(queryString, true);
+            const queryJSON = buildSearchQueryJSON(rebuilt ?? '');
+
+            expect(queryJSON?.sortOrder).toBe('asc');
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
+        });
+
+        test('bar→table with category: sortOrder omitted, sortBy re-fed as groupCategory', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                view: CONST.SEARCH.VIEW.TABLE,
+            };
+
+            const queryString = buildQueryStringFromFilterFormValues(filterValues, {
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            });
+            const rebuilt = getQueryWithUpdatedValues(queryString, true);
+            const queryJSON = buildSearchQueryJSON(rebuilt ?? '');
+
+            expect(queryJSON?.sortOrder).toBe('asc');
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
+        });
+
+        test('line→bar with month: sortOrder omitted, sortBy re-fed as groupmonth', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+                view: CONST.SEARCH.VIEW.BAR,
+            };
+
+            const queryString = buildQueryStringFromFilterFormValues(filterValues, {
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
+            });
+            const rebuilt = getQueryWithUpdatedValues(queryString, true);
+            const queryJSON = buildSearchQueryJSON(rebuilt ?? '');
+
+            expect(queryJSON?.sortOrder).toBe('asc');
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
+        });
+
+        test('rebuilt query string contains sortOrder (visible in URL)', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                view: CONST.SEARCH.VIEW.LINE,
+            };
+
+            const queryString = buildQueryStringFromFilterFormValues(filterValues, {
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            });
+
+            expect(queryString).not.toContain('sortOrder');
+
+            const rebuilt = getQueryWithUpdatedValues(queryString, true);
+
+            expect(rebuilt).toContain('sortOrder:asc');
+        });
+
+        test('non-time groupBy withdrawal-id gets desc even when sortBy is re-fed', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                view: CONST.SEARCH.VIEW.BAR,
+            };
+
+            const queryString = buildQueryStringFromFilterFormValues(filterValues, {
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
+            });
+            const rebuilt = getQueryWithUpdatedValues(queryString, true);
+            const queryJSON = buildSearchQueryJSON(rebuilt ?? '');
+
+            expect(queryJSON?.sortOrder).toBe('desc');
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN);
+        });
+    });
+
     describe('shouldResetSortOrder', () => {
         // Crossing line/non-line boundary
         test('returns true when switching from table to line view', () => {

@@ -1481,6 +1481,67 @@ const keywordTests = [
             filters: null,
         },
     },
+    // --- sortOrder is derived even when sortBy already matches groupBy default (UI loop fix) ---
+    {
+        query: 'sortBy:groupCategory type:expense groupBy:category view:line',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            sortOrder: 'asc',
+            groupBy: 'category',
+            view: 'line',
+            filters: null,
+        },
+    },
+    {
+        query: 'sortBy:groupCategory type:expense groupBy:category view:bar',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            sortOrder: 'asc',
+            groupBy: 'category',
+            view: 'bar',
+            filters: null,
+        },
+    },
+    {
+        query: 'sortBy:groupmonth type:expense groupBy:month view:bar',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
+            sortOrder: 'asc',
+            groupBy: 'month',
+            view: 'bar',
+            filters: null,
+        },
+    },
+    {
+        query: 'sortBy:groupCategory type:expense groupBy:category view:table',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+            sortOrder: 'asc',
+            groupBy: 'category',
+            view: 'table',
+            filters: null,
+        },
+    },
+    {
+        query: 'sortBy:groupweek type:expense groupBy:week view:table',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
+            sortOrder: 'desc',
+            groupBy: 'week',
+            view: 'table',
+            filters: null,
+        },
+    },
 ];
 
 const limitTests = [

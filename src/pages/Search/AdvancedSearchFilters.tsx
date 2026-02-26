@@ -32,6 +32,7 @@ import {
     buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
     getCurrentSearchQueryJSON,
+    getQueryWithUpdatedValues,
     isCannedSearchQuery,
     isSearchDatePreset,
     shouldResetSortOrder,
@@ -591,11 +592,15 @@ function AdvancedSearchFilters() {
             newGroupBy: searchAdvancedFilters.groupBy,
             oldGroupBy: currentQueryJSON?.groupBy,
         });
-        return buildQueryStringFromFilterFormValues(searchAdvancedFilters, {
+        let result = buildQueryStringFromFilterFormValues(searchAdvancedFilters, {
             sortBy: currentQueryJSON?.sortBy,
             sortOrder: resetSort ? undefined : currentQueryJSON?.sortOrder,
             limit: currentQueryJSON?.limit,
         });
+        if (resetSort) {
+            result = getQueryWithUpdatedValues(result, true) ?? result;
+        }
+        return result;
     }, [searchAdvancedFilters]);
     const queryJSON = useMemo(() => buildSearchQueryJSON(queryString || buildCannedSearchQuery()), [queryString]);
 

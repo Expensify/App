@@ -4563,12 +4563,12 @@ function peg$parse(input, options) {
       const defaultSortBy = getDefaultSortByForGroupBy(groupByValue);
       if (defaultSortBy && defaultValues.sortBy !== defaultSortBy) {
         defaultValues.sortBy = defaultSortBy;
-        if (!userProvidedSortOrder) {
-          const defaultSortOrder = getDefaultSortOrderForGroupBy(groupByValue);
-          if (defaultSortOrder) {
-            defaultValues.sortOrder = defaultSortOrder;
-          }
-        }
+      }
+    }
+    if (!userProvidedSortOrder) {
+      const defaultSortOrder = getDefaultSortOrderForGroupBy(groupByValue);
+      if (defaultSortOrder) {
+        defaultValues.sortOrder = defaultSortOrder;
       }
     }
   }
