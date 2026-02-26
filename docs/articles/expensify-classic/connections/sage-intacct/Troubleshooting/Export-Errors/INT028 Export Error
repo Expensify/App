@@ -1,0 +1,69 @@
+---
+title: INT028 Export Error: Employee Location Required in Sage Intacct
+description: Learn why the INT028 export error occurs in Expensify Classic and how to add a required Location to the employee profile in Sage Intacct.
+keywords: INT028, Sage Intacct employee location required, Intacct location missing employee, Expensify Classic Sage Intacct export error
+internalScope: Audience is Workspace Admins using the Sage Intacct integration in Expensify Classic. Covers the INT028 export error related to missing employee Location in Sage Intacct. Does not cover dimension or approval configuration errors.
+---
+
+# INT028 Export Error: Employee Location Required in Sage Intacct
+
+If you see the error message **“INT028 Export Error: Sage Intacct requires employees to have a location. Please add a location to the employee profile, sync Expensify, and attempt to export the report again.”**, it means the employee associated with the report does not have a Location assigned in Sage Intacct.
+
+If Location is required in Sage Intacct, it must be populated on the employee record before exporting.
+
+---
+
+## Why the INT028 Export Error Happens
+
+The INT028 export error occurs when:
+
+- The **Location** field is required in Sage Intacct, and  
+- The report creator or submitter’s employee profile does not have a Location assigned  
+
+If the Location field is missing, Sage Intacct blocks the export.
+
+---
+
+## How to Fix the INT028 Export Error in Expensify Classic
+
+### Step 1: Add a Location to the Employee in Sage Intacct
+
+In Sage Intacct:
+
+1. Locate the employee profile associated with the report creator or submitter.
+2. Confirm a valid **Location** is listed.
+3. If no Location is assigned, add the appropriate Location.
+4. Save the employee record.
+
+---
+
+### Step 2: Sync the Workspace in Expensify
+
+In Expensify:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync now**.
+
+---
+
+### Step 3: Retry the Export
+
+After syncing:
+
+1. Open the report.
+2. Retry exporting to Sage Intacct.
+
+---
+
+# FAQ
+
+## Does every employee need a Location?
+
+Only if Location is required in Sage Intacct’s configuration.
+
+## Do I need Sage Intacct admin access to fix this?
+
+You need sufficient permissions to update employee profiles in Sage Intacct.
+```}
