@@ -447,10 +447,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: undefined,
         },
 
-        lineHeightNormal: {
-            lineHeight: variables.lineHeightNormal,
-        },
-
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
@@ -936,11 +932,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: 8,
             paddingBottom: 8,
             alignItems: 'flex-start',
-            borderRadius: variables.componentBorderRadiusMedium,
+            borderRadius: 20,
         },
 
-        actionableItemButtonBackgroundHovered: {
-            borderColor: theme.buttonPressedBG,
+        actionableItemButtonText: {
+            textAlign: 'left',
+            ...wordBreak.breakWord,
         },
 
         hoveredComponentBG: {

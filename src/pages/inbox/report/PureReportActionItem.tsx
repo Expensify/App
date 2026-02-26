@@ -1207,7 +1207,7 @@ function PureReportActionItem({
 
                                     // If no childReportID exists, create transaction thread on-demand
                                     if (!action.childReportID) {
-                                        const createdTransactionThreadReport = createTransactionThreadReport(iouReport, action);
+                                        const createdTransactionThreadReport = createTransactionThreadReport(introSelected, iouReport, action);
                                         if (createdTransactionThreadReport?.reportID) {
                                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(createdTransactionThreadReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
                                             return;
@@ -1808,13 +1808,9 @@ function PureReportActionItem({
 
             const isConciergeOptions = isConciergeCategoryOptions(action) || isConciergeDescriptionOptions(action);
             const actionContainsFollowUps = containsActionableFollowUps(action);
-            let actionableButtonsNoLines = 1;
-            if (isConciergeOptions) {
-                actionableButtonsNoLines = 2;
-            }
-            if (actionContainsFollowUps) {
-                actionableButtonsNoLines = 0;
-            }
+            const isPhrasalConciergeOptions = isConciergeOptions || actionContainsFollowUps;
+            const actionableButtonsNoLines = isPhrasalConciergeOptions ? 3 : 1;
+
             children = (
                 <MentionReportContext.Provider value={mentionReportContextValue}>
                     <ShowContextMenuContext.Provider value={contextValue}>
@@ -1850,24 +1846,12 @@ function PureReportActionItem({
                                     {actionableItemButtons.length > 0 && (
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
-                                            layout={
-                                                isActionableTrackExpense(action) ||
-                                                isConciergeCategoryOptions(action) ||
-                                                isConciergeDescriptionOptions(action) ||
-                                                isActionableMentionWhisper(action) ||
-                                                actionContainsFollowUps
-                                                    ? 'vertical'
-                                                    : 'horizontal'
-                                            }
-                                            shouldUseLocalization={!isConciergeOptions && !actionContainsFollowUps}
+                                            layout={isActionableTrackExpense(action) || isActionableMentionWhisper(action) || isPhrasalConciergeOptions ? 'vertical' : 'horizontal'}
+                                            shouldUseLocalization={!isPhrasalConciergeOptions}
                                             primaryTextNumberOfLines={actionableButtonsNoLines}
                                             styles={{
-                                                text: [isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined],
-                                                button: actionContainsFollowUps ? [styles.actionableItemButton, hovered && styles.actionableItemButtonBackgroundHovered] : undefined,
-                                                container: [
-                                                    actionContainsFollowUps && shouldUseNarrowLayout ? styles.alignItemsStretch : undefined,
-                                                    actionContainsFollowUps ? styles.mt5 : undefined,
-                                                ],
+                                                text: isPhrasalConciergeOptions ? styles.actionableItemButtonText : undefined,
+                                                button: isPhrasalConciergeOptions ? styles.actionableItemButton : undefined,
                                             }}
                                         />
                                     )}

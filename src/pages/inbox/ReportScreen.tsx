@@ -544,8 +544,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-        createTransactionThreadReport(report, iouAction, currentReportTransaction.at(0));
-    }, [report, reportID]);
+        createTransactionThreadReport(introSelected, report, iouAction, currentReportTransaction.at(0));
+    }, [introSelected, report, reportID]);
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
@@ -965,8 +965,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
         // For legacy transactions, pass undefined as IOU action and the transaction object
         // It will be created optimistically and in the backend when call openReport
-        createTransactionThreadReport(report, undefined, transaction);
-    }, [report, visibleTransactions, transactionThreadReport, transactionThreadReportID, reportID, route.name]);
+        createTransactionThreadReport(introSelected, report, undefined, transaction);
+    }, [introSelected, report, visibleTransactions, transactionThreadReport, transactionThreadReportID, reportID, route.name]);
 
     const lastRoute = usePrevious(route);
 
