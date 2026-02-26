@@ -14,6 +14,9 @@ type NonUSDPageProps = {
     /** Array of step names for the progress indicator */
     stepNames?: readonly string[];
 
+    /** Name of the current sub page */
+    currentSubPage?: string;
+
     /** Whether the user is coming from the expensify card */
     isComingFromExpensifyCard?: boolean;
 };
