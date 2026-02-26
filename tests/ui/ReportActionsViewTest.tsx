@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention -- Test mock objects use snake_case Onyx keys and external library naming conventions */
 import type * as ReactNavigation from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
@@ -10,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import DateUtils from '@libs/DateUtils';
+// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
 import CONST from '@src/CONST';

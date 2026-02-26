@@ -369,7 +369,7 @@ function ReportActionsView({
     }
 
     const hasDerivedValueTimingIssue = reportActions.length > 0 && isMissingReportActions;
-    if (hasDerivedValueTimingIssue || (!isReportTransactionThread && isMissingReportActions && !showConciergeSidePanelWelcome)) {
+    if ((hasDerivedValueTimingIssue || (!isReportTransactionThread && isMissingReportActions)) && !showConciergeSidePanelWelcome) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
