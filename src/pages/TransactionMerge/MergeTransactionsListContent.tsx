@@ -199,7 +199,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             customListHeader={headerContent}
             confirmButtonOptions={confirmButtonOptions}
             customLoadingPlaceholder={<MergeExpensesSkeleton fixedNumItems={3} />}
-            showLoadingPlaceholder
+            showLoadingPlaceholder={!eligibleTransactions}
             textInputOptions={textInputOptions}
             shouldShowTextInput={shouldShowTextInput}
         />
