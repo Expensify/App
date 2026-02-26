@@ -262,7 +262,6 @@ function Search({
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
-
         selector: selectFilteredReportActions,
     });
 
