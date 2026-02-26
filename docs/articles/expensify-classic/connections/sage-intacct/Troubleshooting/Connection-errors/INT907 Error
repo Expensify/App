@@ -1,0 +1,51 @@
+---
+title: INT907 Error: Invalid Connection Configuration
+description: Learn why the INT907 error occurs in Expensify Classic and how to resolve Sage Intacct connection configuration issues.
+keywords: INT907, Sage Intacct invalid connection configuration, Expensify Sage Intacct connection error, Intacct integration configuration error
+internalScope: Audience is Workspace Admins using the Sage Intacct integration in Expensify Classic. Covers the INT907 error related to connection configuration issues. Does not cover Sage Intacct user permission or journal configuration errors.
+---
+
+# INT907 Error: Invalid Connection Configuration
+
+If you see the error message **“INT907 Error: Invalid connection configuration.”**, it means there is a configuration issue with the Sage Intacct integration in Expensify.
+
+This error indicates that the connection settings between Expensify and Sage Intacct are incomplete, incorrect, or no longer valid.
+
+---
+
+## Why the INT907 Error Happens
+
+The INT907 error occurs when:
+
+- The Sage Intacct connection was not fully configured  
+- Required fields during setup were entered incorrectly  
+- Sage Intacct credentials or configuration settings were changed  
+- The integration settings became invalid  
+
+Because this error relates to the overall connection configuration, exports and syncs cannot proceed.
+
+---
+
+## How to Fix the INT907 Error
+
+Please reach out to **Concierge** in Expensify for assistance.
+
+In Expensify Classic:
+
+1. Open the **Concierge** chat.
+2. Reference the **INT907 Error**.
+3. Provide the Workspace name and any relevant report IDs.
+
+Concierge will review the Sage Intacct connection configuration and guide you through correcting the setup.
+
+---
+
+# FAQ
+
+## Should I disconnect and reconnect Sage Intacct?
+
+Do not disconnect unless directed by Concierge, as this may clear configuration settings.
+
+## Does this error affect all exports?
+
+Yes. If the connection configuration is invalid, all Sage Intacct exports and syncs may fail until the issue is resolved.
