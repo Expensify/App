@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,13 +21,19 @@ import TermsStep from './TermsStep';
 function EnablePaymentsPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {
-        // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
-        // stored values here.
-        initWithStoredValues: false,
-    });
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [isLoading, setIsLoading] = useState(true);
+    const [prevWallet, setPrevWallet] = useState(userWallet);
 
-    const {isPendingOnfidoResult, hasFailedOnfido} = userWallet ?? {};
+    // Detect when Onyx delivers fresh data after the API call.
+    // This is React's recommended pattern for adjusting state when a value changes.
+    // See: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+    if (isLoading && userWallet !== prevWallet) {
+        setPrevWallet(userWallet);
+        setIsLoading(false);
+    }
+
+    const {isPendingOnfidoResult, hasFailedOnfido} = isLoading ? {} : (userWallet ?? {});
 
     useEffect(() => {
         if (isOffline) {
@@ -43,7 +49,7 @@ function EnablePaymentsPage() {
         openEnablePaymentsPage();
     }, [isOffline, isPendingOnfidoResult, hasFailedOnfido]);
 
-    if (isEmptyObject(userWallet)) {
+    if (isLoading || isEmptyObject(userWallet)) {
         return <FullScreenLoadingIndicator />;
     }
 
