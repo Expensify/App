@@ -1363,8 +1363,8 @@ function PureReportActionItem({
         } else if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
             const wasSubmittedViaHarvesting = getOriginalMessage(action)?.harvesting ?? false;
 
-            let failedSubmitReason = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
-            failedSubmitReason = wasSubmittedViaHarvesting ? translate('iou.failedToAutoSubmitViaDEW', failedSubmitReason) : translate('iou.failedToSubmitViaDEW', failedSubmitReason);
+            const message = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
+            const failedSubmitReason = wasSubmittedViaHarvesting ? translate('iou.failedToAutoSubmitViaDEW', message) : translate('iou.failedToSubmitViaDEW', message);
 
             children = (
                 <ReportActionItemBasicMessage>
@@ -1374,8 +1374,8 @@ function PureReportActionItem({
         } else if (isDynamicExternalWorkflowApproveFailedAction(action)) {
             const wasAutoApproveAction = getOriginalMessage(action)?.automaticAction ?? false;
 
-            let failedApproveReason = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
-            failedApproveReason = wasAutoApproveAction ? translate('iou.failedToAutoApproveViaDEW', failedApproveReason) : translate('iou.failedToApproveViaDEW', failedApproveReason);
+            const message = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
+            const failedApproveReason = wasAutoApproveAction ? translate('iou.failedToAutoApproveViaDEW', message) : translate('iou.failedToApproveViaDEW', message);
 
             children = (
                 <ReportActionItemBasicMessage>
