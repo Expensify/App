@@ -35,6 +35,15 @@ on:
       ROCK_ARTIFACT_URL:
         description: URL to download the ad-hoc build artifact (adhoc only)
         value: ${{ jobs.build.outputs.ROCK_ARTIFACT_URL }}
+      IPA_FILENAME:
+        description: Filename of the IPA artifact produced by the build
+        value: ${{ jobs.build.outputs.IPA_FILENAME }}
+      DSYM_FILENAME:
+        description: Filename of the app dSYM zip (Expensify.app.dSYM.zip)
+        value: ${{ jobs.build.outputs.DSYM_FILENAME }}
+      SOURCEMAP_FILENAME:
+        description: Filename of the JS sourcemap artifact
+        value: ${{ jobs.build.outputs.SOURCEMAP_FILENAME }}
 
 jobs:
   build:
@@ -46,6 +55,9 @@ jobs:
     outputs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
       ROCK_ARTIFACT_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
+      IPA_FILENAME: ${{ steps.set-ipa-filename.outputs.IPA_FILENAME }}
+      DSYM_FILENAME: ${{ steps.set-ipa-filename.outputs.DSYM_FILENAME }}
+      SOURCEMAP_FILENAME: main.jsbundle.map
     steps:
       - name: Checkout
         # v6
@@ -228,6 +240,24 @@ jobs:
         if: ${{ inputs.variant == 'Adhoc' }}
         run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
 
+      - name: Set artifact filenames
+        id: set-ipa-filename
+        run: |
+          IPA_FILE=$(find .rock/cache/ios/export/ -maxdepth 1 -name '*.ipa' -print -quit 2>/dev/null || true)
+          if [ -z "$IPA_FILE" ]; then
+            if [ "${{ inputs.variant }}" = "Adhoc" ]; then
+              echo "::warning::No .ipa found locally (expected for remote-cache hits on Adhoc builds)"
+            else
+              echo "::error::No .ipa found in .rock/cache/ios/export/"
+              exit 1
+            fi
+          else
+            {
+              echo "IPA_FILENAME=$(basename "$IPA_FILE")"
+              echo "DSYM_FILENAME=Expensify.app.dSYM.zip"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Find and upload IPA artifact
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
@@ -235,14 +265,32 @@ jobs:
           name: ${{ inputs.artifact-prefix }}iosBuild-artifact
           path: .rock/cache/ios/export/*.ipa
 
+      - name: Zip dSYMs from xcarchive
+        id: zip-dsyms
+        continue-on-error: true
+        run: |
+          DSYM_DIR=".rock/cache/ios/archive/Expensify.xcarchive/dSYMs"
+          if [ -d "$DSYM_DIR" ] && ls "$DSYM_DIR"/*.dSYM 1>/dev/null 2>&1; then
+            cd "$DSYM_DIR"
+            for dsym in ./*.dSYM; do
+              zip -r "${dsym}.zip" "$dsym"
+            done
+            echo "DSYM_PATH=$DSYM_DIR" >> "$GITHUB_OUTPUT"
+            echo "Found and zipped dSYMs:"
+            ls -la ./*.dSYM.zip
+          else
+            echo "::warning::No dSYMs found in xcarchive"
+          fi
+
       - name: Find and upload dSYM artifact
         id: upload-dsym
+        if: steps.zip-dsyms.outputs.DSYM_PATH != ''
         continue-on-error: true
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: ${{ inputs.artifact-prefix }}ios-dsym-artifact
-          path: .rock/cache/ios/export/*.dSYM.zip
+          path: ${{ steps.zip-dsyms.outputs.DSYM_PATH }}/*.dSYM.zip
           if-no-files-found: warn
 
       - name: Log dSYM upload failure

@@ -5,7 +5,6 @@ import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {TaskListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -69,6 +68,7 @@ function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellPr
 }
 
 function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -87,7 +87,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
                 <Badge
                     isCondensed
                     text={translate('task.completed')}
-                    icon={Expensicons.Checkmark}
+                    icon={icons.Checkmark}
                     iconStyles={styles.mr0}
                     badgeStyles={[
                         styles.ml0,
@@ -117,7 +117,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
 }
 
 function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRightLong']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRightLong'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();

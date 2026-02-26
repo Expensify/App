@@ -1,8 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import useAllTransactions from '@hooks/useAllTransactions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -34,7 +32,7 @@ import useDownloadAttachment from './hooks/useDownloadAttachment';
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
     const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID, imageType} = route.params;
 
-    const icons = useMemoizedLazyExpensifyIcons(['Download']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Trashcan'] as const);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera']);
@@ -352,7 +350,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             const isDraftOdometer = isOdometerImage && isDraftTransaction;
             if (isDeletableReceipt || isDraftOdometer) {
                 menuItems.push({
-                    icon: Expensicons.Trashcan,
+                    icon: icons.Trashcan,
                     text: isOdometerImage ? translate('distance.odometer.deleteOdometerPhoto') : translate('receipt.deleteReceipt'),
                     onSelected: () => setIsDeleteReceiptConfirmModalVisible?.(true),
                     shouldCallAfterModalHide: true,
@@ -360,7 +358,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 });
             }
             return menuItems;
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
         [
             shouldShowReplaceReceiptButton,
@@ -381,6 +378,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             imageType,
             report?.reportID,
             icons.Download,
+            icons.Trashcan,
             onDownloadAttachment,
         ],
     );
