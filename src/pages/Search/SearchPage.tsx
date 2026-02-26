@@ -11,8 +11,8 @@ type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamLi
 
 function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
     useConfirmReadyToOpenApp();
+
     if (shouldUseNarrowLayout) {
         return <SearchPageNarrow />;
     }
