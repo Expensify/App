@@ -202,31 +202,42 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
 
     const topPaddingStyle = selectedDateModifier ? styles.pt3 : undefined;
     const buttonRowSpacing = selectedDateModifier ? styles.mt4 : styles.mt2;
+    const mobileContainerStyle = useRangeLayout ? [topPaddingStyle, styles.flexGrow1, {maxHeight: maxPopupHeight}] : styles.gap2;
+    const mobileLabelStyle = useRangeLayout ? [styles.textLabel, styles.ph5, styles.pb3] : [styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1];
+    const mobileButtonRowStyle = useRangeLayout ? [styles.flexRow, styles.ph5, buttonRowSpacing, styles.alignItemsCenter, styles.gap2] : [styles.flexRow, styles.gap2, styles.ph5];
 
-    return useRangeLayout ? (
-        <View style={[topPaddingStyle, styles.flexGrow1, {maxHeight: maxPopupHeight}]}>
-            {!selectedDateModifier && <Text style={[styles.textLabel, styles.ph5, styles.pb3]}>{label}</Text>}
+    return (
+        <View style={mobileContainerStyle}>
+            {!selectedDateModifier && <Text style={mobileLabelStyle}>{label}</Text>}
             <ScrollView
                 ref={scrollViewRef}
-                style={[styles.flexGrow1]}
-                contentContainerStyle={[!selectedDateModifier && styles.pt4, selectedDateModifier && styles.pt0]}
+                style={useRangeLayout ? [styles.flexGrow1] : undefined}
+                contentContainerStyle={useRangeLayout ? [!selectedDateModifier && styles.pt4, selectedDateModifier && styles.pt0] : undefined}
             >
-                {!!selectedDateModifier && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pb2, styles.gap2]}>
-                        <PressableWithoutFeedback
-                            onPress={handleBackPress}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('common.back')}
-                            sentryLabel="DateSelectPopup-Back"
-                        >
-                            <Icon
-                                src={backArrowIcon.BackArrow}
-                                fill={theme.icon}
-                            />
-                        </PressableWithoutFeedback>
-                        <Text style={[styles.textLabelSupporting]}>{translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}</Text>
-                    </View>
-                )}
+                {!!selectedDateModifier &&
+                    (useRangeLayout ? (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pb2, styles.gap2]}>
+                            <PressableWithoutFeedback
+                                onPress={handleBackPress}
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('common.back')}
+                                sentryLabel="DateSelectPopup-Back"
+                            >
+                                <Icon
+                                    src={backArrowIcon.BackArrow}
+                                    fill={theme.icon}
+                                />
+                            </PressableWithoutFeedback>
+                            <Text style={[styles.textLabelSupporting]}>{translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}</Text>
+                        </View>
+                    ) : (
+                        <HeaderWithBackButton
+                            shouldDisplayHelpButton={false}
+                            style={[styles.h10, styles.pb3]}
+                            subtitle={translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}
+                            onBackButtonPress={handleBackPress}
+                        />
+                    ))}
                 {datePresetFilterBase}
             </ScrollView>
             {!!rangeText && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (
@@ -235,7 +246,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                     <Text style={[styles.textLabel]}>{rangeText}</Text>
                 </Text>
             )}
-            <View style={[styles.flexRow, styles.ph5, buttonRowSpacing, styles.alignItemsCenter, styles.gap2]}>
+            <View style={mobileButtonRowStyle}>
                 <Button
                     medium
                     style={[styles.flex1]}
@@ -250,36 +261,6 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                     text={translate('common.apply')}
                     onPress={applyChanges}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_DATE}
-                />
-            </View>
-        </View>
-    ) : (
-        <View style={styles.gap2}>
-            {!selectedDateModifier && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
-            <View>
-                {!!selectedDateModifier && (
-                    <HeaderWithBackButton
-                        shouldDisplayHelpButton={false}
-                        style={[styles.h10, styles.pb3]}
-                        subtitle={translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}
-                        onBackButtonPress={handleBackPress}
-                    />
-                )}
-                {datePresetFilterBase}
-            </View>
-            <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
-                <Button
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                />
-                <Button
-                    success
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.apply')}
-                    onPress={applyChanges}
                 />
             </View>
         </View>

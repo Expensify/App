@@ -226,6 +226,14 @@ function SearchPage({route}: SearchPageProps) {
         if (isSearchAdvancedFiltersFormLoading) {
             return;
         }
+
+        // Avoid overriding in-progress edits while advanced filters (or any nested filter route) is open.
+        const activeRouteWithoutParams = Navigation.getActiveRouteWithoutParams();
+        const advancedFiltersRoutePrefix = `/${ROUTES.SEARCH_ADVANCED_FILTERS.getRoute().replace(/\/$/, '')}`;
+        if (activeRouteWithoutParams.startsWith(advancedFiltersRoutePrefix)) {
+            return;
+        }
+
         updateAdvancedFilters(formValues, true);
     }, [formValues, isSearchAdvancedFiltersFormLoading]);
 

@@ -27,9 +27,13 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [workspaceCardFeeds, userCardList]);
     const {exportedToFilterOptions} = useExportedToFilterOptions();
 
-    const formValues = queryJSON
-        ? buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, allReports, taxRates, exportedToFilterOptions)
-        : getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
+    const formValues = useMemo(() => {
+        if (!queryJSON) {
+            return getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
+        }
+
+        return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, allReports, taxRates, exportedToFilterOptions);
+    }, [queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, allReports, taxRates]);
 
     return formValues;
 };
