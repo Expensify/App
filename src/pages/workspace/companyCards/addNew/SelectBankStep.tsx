@@ -90,20 +90,40 @@ function SelectBankStep() {
             }
             return true;
         })
-        .map((bank) => ({
-            value: bank,
-            text: bank === CONST.COMPANY_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT ? translate('workspace.companyCards.addNewCard.fileImport') : bank,
-            keyForList: bank,
-            isSelected: bankSelected === bank,
-            leftElement: (
-                <Icon
-                    src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
-                    height={bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT ? variables.iconSizeLarge : variables.iconSizeExtraLarge}
-                    width={bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT ? variables.iconSizeLarge : variables.iconSizeExtraLarge}
-                    additionalStyles={styles.mr3}
-                />
-            ),
-        }));
+        .map((bank) => {
+            let bankText: string = bank;
+            if (bank === CONST.COMPANY_CARDS.BANKS.OTHER) {
+                bankText = translate('workspace.companyCards.addNewCard.other');
+            } else if (bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT) {
+                bankText = translate('workspace.companyCards.addNewCard.fileImport');
+            }
+
+            return {
+                value: bank,
+                text: bankText,
+                keyForList: bank,
+                isSelected: bankSelected === bank,
+                leftElement: (
+                    <View
+                        style={[
+                            styles.justifyContentCenter,
+                            styles.alignItemsCenter,
+                            styles.mr3,
+                            {
+                                width: variables.iconSizeExtraLarge,
+                                height: variables.iconSizeExtraLarge,
+                            },
+                        ]}
+                    >
+                        <Icon
+                            src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
+                            height={bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT ? variables.iconSizeLarge : variables.iconSizeExtraLarge}
+                            width={bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT ? variables.iconSizeLarge : variables.iconSizeExtraLarge}
+                        />
+                    </View>
+                ),
+            };
+        });
 
     const confirmButtonOptions = useMemo(
         () => ({
