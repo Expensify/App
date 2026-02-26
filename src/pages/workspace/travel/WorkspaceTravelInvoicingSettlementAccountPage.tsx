@@ -43,14 +43,16 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList);
 
+    const isPendingConfiguration = !!cardSettings?.pendingAction || !!cardSettings?.pendingFields?.paymentBankAccountID;
+
     const getVerificationState = () => {
         if (cardOnWaitlist) {
             return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.ON_WAITLIST;
         }
-        if (isTravelInvoicingEnabled && !isLoading && !cardOnWaitlist) {
+        if (isTravelInvoicingEnabled && !cardOnWaitlist) {
             return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED;
         }
-        if (isLoading) {
+        if (isLoading || isPendingConfiguration) {
             return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.LOADING;
         }
         return '';
