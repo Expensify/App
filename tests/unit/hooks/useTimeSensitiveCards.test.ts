@@ -172,7 +172,11 @@ describe('useTimeSensitiveCards', () => {
     });
 
     it('should identify cards with fraud and set shouldShowReviewCardFraud to true', async () => {
-        const cardWithFraud = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN});
+        const cardWithFraud = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: 123456},
+        });
         const cardList: CardList = {'1': cardWithFraud};
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -182,10 +186,11 @@ describe('useTimeSensitiveCards', () => {
 
         expect(result.current.cardsWithFraud).toHaveLength(1);
         expect(result.current.cardsWithFraud.at(0)?.cardID).toBe(1);
+        expect(result.current.cardsWithFraud.at(0)?.nameValuePairs?.possibleFraud?.triggerAmount).toBe(5663);
         expect(result.current.shouldShowReviewCardFraud).toBe(true);
     });
 
-    it('should not show fraud review for cards with fraud type NONE', async () => {
+    it('should not show fraud review for cards with fraud type NONE and no possibleFraud data', async () => {
         const cardWithNoFraud = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE});
         const cardList: CardList = {'1': cardWithNoFraud};
 
@@ -196,5 +201,23 @@ describe('useTimeSensitiveCards', () => {
 
         expect(result.current.cardsWithFraud).toHaveLength(0);
         expect(result.current.shouldShowReviewCardFraud).toBe(false);
+    });
+
+    it('should show fraud review when fraud is NONE but possibleFraud data exists in nameValuePairs', async () => {
+        const cardWithPendingFraudAlert = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+            possibleFraud: {triggerAmount: 5663, triggerMerchant: 'WAL-MART #2366', currency: 'USD', fraudAlertReportID: 5230242215684213},
+        });
+        const cardList: CardList = {'1': cardWithPendingFraudAlert};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsWithFraud).toHaveLength(1);
+        expect(result.current.cardsWithFraud.at(0)?.cardID).toBe(1);
+        expect(result.current.shouldShowReviewCardFraud).toBe(true);
     });
 });

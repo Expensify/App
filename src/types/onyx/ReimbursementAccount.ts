@@ -196,6 +196,9 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     /** Date the corpay bank account was created */
     created?: string;
+
+    /** Currency of the bank account */
+    currency?: string;
 };
 
 /** The step in an reimbursement account's ach data */

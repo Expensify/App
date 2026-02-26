@@ -35,7 +35,6 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
-import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
@@ -46,6 +45,7 @@ import type {
     CardFeedErrorsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
+    PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
     TodoMetadata,
@@ -91,9 +91,10 @@ import type NewGroupChatDraft from './NewGroupChatDraft';
 import type Onboarding from './Onboarding';
 import type OnboardingRHPVariant from './OnboardingRHPVariant';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
-import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
+import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type Pages from './Pages';
+import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
@@ -160,6 +161,7 @@ import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type VacationDelegate from './VacationDelegate';
+import type ValidateDomainTwoFactorCode from './ValidateDomainTwoFactorCode';
 import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
@@ -229,7 +231,9 @@ export type {
     OnyxInputOrEntry,
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,
+    AnyOnyxUpdatesFromServer,
     Pages,
+    PendingConciergeResponse,
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,
@@ -305,9 +309,7 @@ export type {
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
-    Log,
     PolicyJoinMember,
-    CapturedLogs,
     SearchResults,
     ReviewDuplicates,
     PrivateSubscription,
@@ -330,6 +332,7 @@ export type {
     Onboarding,
     OnboardingPurpose,
     OnboardingRHPVariant,
+    ValidateDomainTwoFactorCode,
     ValidateMagicCodeAction,
     ShareTempFile,
     CorpayFields,
@@ -344,6 +347,7 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
+    PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     TodosDerivedValue,
     TodoMetadata,

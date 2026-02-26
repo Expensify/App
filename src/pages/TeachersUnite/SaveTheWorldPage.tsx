@@ -5,6 +5,7 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -12,6 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -25,15 +27,19 @@ function SaveTheWorldPage() {
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['TeachersUnite']);
     const saveTheWorldIllustration = useSaveTheWorldSectionIllustration();
+    useDocumentTitle(`${translate('common.settings')} - ${translate('sidebarScreen.saveTheWorld')}`);
+
     const menuItems = useMemo(() => {
         const baseMenuItems = [
             {
                 translationKey: 'teachersUnitePage.iKnowATeacher',
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.I_KNOW_A_TEACHER)),
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_KNOW_A_TEACHER,
             },
             {
                 translationKey: 'teachersUnitePage.iAmATeacher',
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.I_AM_A_TEACHER)),
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_AM_A_TEACHER,
             },
         ];
 
@@ -44,6 +50,7 @@ function SaveTheWorldPage() {
             shouldShowRightIcon: true,
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
+            sentryLabel: item.sentryLabel,
         }));
     }, [translate, waitForNavigate, styles]);
 

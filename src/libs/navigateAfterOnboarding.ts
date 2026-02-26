@@ -69,20 +69,10 @@ function navigateAfterOnboarding(
     );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    } else {
+        // Navigate to home to trigger guard evaluation
+        Navigation.navigate(ROUTES.HOME);
     }
-
-    // In this case, we have joined an accessible policy. We would have an onboarding policy, but not an admins chat report.
-    // We should skip the Test Drive modal in this case since we already have a policy to join.
-    if (onboardingPolicyID && !onboardingAdminsChatReportID) {
-        return;
-    }
-
-    // We're using Navigation.isNavigationReady here because without it, on iOS,
-    // Navigation.dismissModal runs after Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route)
-    // And dismisses the modal before it even shows
-    Navigation.isNavigationReady().then(() => {
-        Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
-    });
 }
 
 function navigateAfterOnboardingWithMicrotaskQueue(
