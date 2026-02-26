@@ -127,7 +127,7 @@ You can merge two expenses into one when they represent the same purchase.
 
 **On Mobile:**
 
-If duplicate expenses are detected, tap **Resolve now**, then tap **Merge expense**.
+3. Click the red **Trash icon**.
 
 **Note:** At least one expense must be manually created or SmartScanned - you cannot merge two card expenses together. Merging cannot be undone.
 
