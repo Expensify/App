@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -25,44 +25,31 @@ function WorkspaceRestrictedActionPage({
 }: WorkspaceRestrictedActionPageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const policy = usePolicy(policyID);
-    const [isCheckingBilling, setIsCheckingBilling] = useState(true);
-    const isFirstRender = useRef(true);
+    const [isLoadingSubscriptionData] = useOnyx(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
 
     // Fetch fresh billing NVPs from the server on mount.
     // The cached billing data may be stale, causing the restriction to persist
     // even after the workspace owner has resolved their billing issue.
     useEffect(() => {
         openSubscriptionPage();
-
-        // Fallback: if the API returns identical data (restriction genuinely applies)
-        // or fails, stop showing the loading indicator after a timeout.
-        const timer = setTimeout(() => setIsCheckingBilling(false), 3000);
-        return () => clearTimeout(timer);
     }, []);
 
     // Watch billing NVPs so the component re-renders when fresh data arrives from the server.
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
 
-    // When fresh billing data arrives from the server, stop showing
-    // the loading indicator and navigate back if the restriction has been resolved.
+    // Navigate back if the fresh server data shows the restriction no longer applies.
     useEffect(() => {
-        // Skip the first execution (mount) since it uses stale cached data.
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
+        if (isLoadingSubscriptionData !== false) {
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- Responding to fresh billing data arriving from the server via Onyx.
-        setIsCheckingBilling(false);
         if (!shouldRestrictUserBillableActions(policyID, userBillingGracePeriodCollection)) {
             Navigation.goBack();
         }
-    }, [policyID, amountOwed, ownerBillingGracePeriodEnd, userBillingGracePeriodCollection]);
+    }, [policyID, isLoadingSubscriptionData, userBillingGracePeriodCollection]);
 
     // Show a loading indicator while waiting for fresh billing data from the server,
     // instead of flashing the restriction UI which may no longer apply.
-    if (isCheckingBilling) {
+    if (isLoadingSubscriptionData !== false) {
         return <FullScreenLoadingIndicator />;
     }
 
