@@ -60,10 +60,10 @@ import {
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
+    isReportActionVisible,
     isSentMoneyReportAction,
     isTransactionThread,
     isWhisperAction,
-    shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {
     canEditReportAction,
@@ -89,6 +89,7 @@ import {
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
+import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
@@ -173,11 +174,12 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
 
+    const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
+    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportOnyx?.parentReportID}`, {allowStaleData: true});
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`);
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID);
     const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(accountManagerReportID)}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
-    const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true});
@@ -309,6 +311,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
     // wrapping in useMemo because this is array operation and can cause performance issues
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
@@ -462,10 +465,16 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
-    const isLinkedActionDeleted = useMemo(
-        () => !!linkedAction && !shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)),
-        [linkedAction, report, isReportArchived],
-    );
+    const isLinkedActionDeleted = useMemo(() => {
+        if (!linkedAction) {
+            return false;
+        }
+        const actionReportID = linkedAction.reportID ?? reportID;
+        if (!actionReportID) {
+            return true;
+        }
+        return !isReportActionVisible(linkedAction, actionReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData);
+    }, [linkedAction, report, isReportArchived, reportID, visibleReportActionsData]);
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
 
@@ -477,10 +486,21 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         () => !!linkedAction && isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
         [currentUserAccountID, linkedAction],
     );
+    const {isParentActionMissingAfterLoad, isParentActionDeleted} = getParentReportActionDeletionStatus({
+        parentReportID: report?.parentReportID,
+        parentReportActionID: report?.parentReportActionID,
+        parentReportAction,
+        parentReportMetadata,
+        isOffline,
+    });
+    const isDeletedTransactionThread = isReportTransactionThread(report) && (isParentActionDeleted || isParentActionMissingAfterLoad);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
 
     useEffect(() => {
         if (!isFocused || !deleteTransactionNavigateBackUrl) {
+            return;
+        }
+        if (doesDeleteNavigateBackUrlIncludeDuplicatesReview(deleteTransactionNavigateBackUrl)) {
             return;
         }
         // Clear the URL after all interactions are processed to ensure all updates are completed before hiding the skeleton
@@ -508,9 +528,17 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const shouldShowNotFoundPage = useMemo((): boolean => {
         const isInvalidReportPath = !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
         const isLoading = isLoadingApp !== false || isLoadingReportData || !!reportMetadata?.isLoadingInitialReportActions;
-        const reportExists = !!reportID || isOptimisticDelete || userLeavingStatus;
+        const reportExists = !!reportID || (!isDeletedTransactionThread && isOptimisticDelete) || userLeavingStatus;
 
         if (shouldShowNotFoundLinkedAction) {
+            return true;
+        }
+
+        if (deleteTransactionNavigateBackUrl) {
+            return false;
+        }
+
+        if (isDeletedTransactionThread) {
             return true;
         }
 
@@ -537,6 +565,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         userLeavingStatus,
         currentReportIDFormRoute,
         firstRender,
+        deleteTransactionNavigateBackUrl,
+        isDeletedTransactionThread,
     ]);
 
     const createOneTransactionThreadReport = useCallback(() => {
@@ -1038,7 +1068,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                 </OfflineWithFeedback>
                                 {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
                                     <Banner
-                                        containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
+                                        containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2, styles.breakWord]}
                                         text={chatWithAccountManagerText}
                                         onClose={dismissBanner}
                                         onButtonPress={chatWithAccountManager}
