@@ -42,7 +42,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
-import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, getRangeBoundariesFromFormValue, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, getDateRangeDisplayValueFromFormValue, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
     getDatePresets,
@@ -257,7 +257,6 @@ function SearchFiltersBar({
     const is = isFilterValues ? isOptions.filter((option) => isFilterValues.includes(option.value)) : [];
 
     const createDateDisplayValue = (filterValues: {on?: string; after?: string; before?: string; range?: string}): [SearchDateValues, string[]] => {
-        const rangeBoundaries = getRangeBoundariesFromFormValue(filterValues.range, filterValues.after, filterValues.before);
         const hasRange = !!filterValues.range;
         const value: SearchDateValues = {
             [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
@@ -277,13 +276,7 @@ function SearchFiltersBar({
             displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
         }
         if (hasRange) {
-            const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
-            let rangeDisplay = '';
-            if (rangeBoundaries.from && rangeBoundaries.to) {
-                rangeDisplay = DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, true);
-            } else if (singleBoundary) {
-                rangeDisplay = DateUtils.formatToReadableString(singleBoundary);
-            }
+            const rangeDisplay = getDateRangeDisplayValueFromFormValue(filterValues.range, filterValues.after, filterValues.before);
             if (rangeDisplay) {
                 displayText.push(`${translate('common.range')}: ${rangeDisplay}`);
             }

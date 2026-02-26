@@ -23,7 +23,6 @@ import {saveSearch} from '@libs/actions/Search';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
-import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
@@ -33,7 +32,7 @@ import {
     buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
     getCurrentSearchQueryJSON,
-    getRangeBoundariesFromFormValue,
+    getDateRangeDisplayValueFromFormValue,
     isCannedSearchQuery,
     isSearchDatePreset,
     sortOptionsWithEmptyValue,
@@ -355,14 +354,7 @@ function getFilterDisplayTitle(
         }
 
         if (dateRange) {
-            const rangeBoundaries = getRangeBoundariesFromFormValue(dateRange, dateAfter, dateBefore);
-            const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
-            let rangeDisplay = '';
-            if (rangeBoundaries.from && rangeBoundaries.to) {
-                rangeDisplay = DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, true);
-            } else if (singleBoundary) {
-                rangeDisplay = DateUtils.formatToReadableString(singleBoundary);
-            }
+            const rangeDisplay = getDateRangeDisplayValueFromFormValue(dateRange, dateAfter, dateBefore);
             if (rangeDisplay) {
                 dateValue.push(`${translate('common.range')}: ${rangeDisplay}`);
             }
@@ -465,14 +457,7 @@ function getFilterDisplayTitle(
             }
 
             if (fieldDateValues.range) {
-                const rangeBoundaries = getRangeBoundariesFromFormValue(fieldDateValues.range, fieldDateValues.after, fieldDateValues.before);
-                const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
-                let rangeDisplay = '';
-                if (rangeBoundaries.from && rangeBoundaries.to) {
-                    rangeDisplay = DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, true);
-                } else if (singleBoundary) {
-                    rangeDisplay = DateUtils.formatToReadableString(singleBoundary);
-                }
+                const rangeDisplay = getDateRangeDisplayValueFromFormValue(fieldDateValues.range, fieldDateValues.after, fieldDateValues.before);
                 if (rangeDisplay) {
                     values.push(translate('search.filters.reportField', fieldName, `${translate('common.range')}: ${rangeDisplay}`.toLowerCase()));
                 }

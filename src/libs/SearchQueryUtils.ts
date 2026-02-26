@@ -36,6 +36,7 @@ import arraysEqual from '@src/utils/arraysEqual';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -159,6 +160,16 @@ function getRangeBoundariesFromFormValue(rangeValue?: string, fallbackFrom?: str
         from: isValidDate(fallbackFrom ?? '') ? fallbackFrom : undefined,
         to: isValidDate(fallbackTo ?? '') ? fallbackTo : undefined,
     };
+}
+
+function getDateRangeDisplayValueFromFormValue(rangeValue?: string, fallbackFrom?: string, fallbackTo?: string) {
+    const rangeBoundaries = getRangeBoundariesFromFormValue(rangeValue, fallbackFrom, fallbackTo);
+    if (rangeBoundaries.from && rangeBoundaries.to) {
+        return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, true);
+    }
+
+    const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
+    return singleBoundary ? DateUtils.formatToReadableString(singleBoundary) : '';
 }
 
 function parseRangeQueryValue(rangeValue?: string) {
@@ -1872,6 +1883,7 @@ function shouldSkipSuggestedSearchNavigation(queryJSON?: SearchQueryJSON) {
 }
 
 export {
+    getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
     parseRangeQueryValue,

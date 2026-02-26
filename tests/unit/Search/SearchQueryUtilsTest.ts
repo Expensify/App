@@ -5,12 +5,14 @@ import {generatePolicyID} from '@libs/actions/Policy/Policy';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
+import DateUtils from '@src/libs/DateUtils';
 import {
     buildFilterFormValuesFromQuery,
     buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
+    getDateRangeDisplayValueFromFormValue,
     getFilterDisplayValue,
     getQueryWithUpdatedValues,
     shouldHighlight,
@@ -54,6 +56,32 @@ jest.mock('@libs/PersonalDetailsUtils', () => {
 const defaultQuery = `type:expense sortBy:date sortOrder:desc`;
 
 describe('SearchQueryUtils', () => {
+    describe('getDateRangeDisplayValueFromFormValue', () => {
+        test('returns full range display when both boundaries exist', () => {
+            const result = getDateRangeDisplayValueFromFormValue('2025-03-01,2025-03-10');
+
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true));
+        });
+
+        test('returns single boundary display when only one boundary exists', () => {
+            const result = getDateRangeDisplayValueFromFormValue('2025-03-01');
+
+            expect(result).toBe(DateUtils.formatToReadableString('2025-03-01'));
+        });
+
+        test('falls back to after and before values when range value is invalid', () => {
+            const result = getDateRangeDisplayValueFromFormValue('invalid', '2025-03-01', '2025-03-10');
+
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true));
+        });
+
+        test('returns empty string when no valid range boundaries exist', () => {
+            const result = getDateRangeDisplayValueFromFormValue('invalid');
+
+            expect(result).toBe('');
+        });
+    });
+
     describe('getQueryWithUpdatedValues', () => {
         test('returns default query for empty value', () => {
             const userQuery = '';

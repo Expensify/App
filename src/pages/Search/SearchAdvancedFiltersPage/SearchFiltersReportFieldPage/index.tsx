@@ -12,9 +12,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
-import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getRangeBoundariesFromFormValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {getDateRangeDisplayValueFromFormValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -59,14 +58,7 @@ function SearchFiltersReportFieldPage() {
                 }
 
                 if (rangeValue) {
-                    const rangeBoundaries = getRangeBoundariesFromFormValue(rangeValue, afterValue, beforeValue);
-                    const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
-                    let rangeDisplay = '';
-                    if (rangeBoundaries.from && rangeBoundaries.to) {
-                        rangeDisplay = DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, true);
-                    } else if (singleBoundary) {
-                        rangeDisplay = DateUtils.formatToReadableString(singleBoundary);
-                    }
+                    const rangeDisplay = getDateRangeDisplayValueFromFormValue(rangeValue, afterValue, beforeValue);
                     if (rangeDisplay) {
                         dateValues.push(`${translate('common.range')}: ${rangeDisplay}`);
                     }
