@@ -54,9 +54,8 @@ export default function (): void {
                 });
             }
             if (entry.name === 'runJsBundleEnd') {
-                const durationMs = jsParseStartMs !== undefined ? Math.round(entry.startTime - jsParseStartMs) : 'n/a';
-                if (jsParseStartMs !== undefined && durationMs !== 'n/a') {
-                    endSpan(CONST.TELEMETRY.SPAN_JS_PARSE_TIME, durationMs);
+                if (jsParseStartMs !== undefined) {
+                    endSpan(CONST.TELEMETRY.SPAN_JS_PARSE_TIME, entry.startTime / 1000);
                 }
                 observer.disconnect();
             }
