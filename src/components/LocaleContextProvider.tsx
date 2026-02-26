@@ -1,5 +1,5 @@
 import {format as formatDate} from 'date-fns';
-import React, {createContext, useEffect} from 'react';
+import React, {createContext, useEffect, useState} from 'react';
 import {importEmojiLocale} from '@assets/emojis';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -85,11 +85,10 @@ const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'var
 
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    // Subscribe to areTranslationsLoading so the component re-renders when translations finish
-    // loading, causing IntlStore.getCurrentLocale() below to return the newly loaded locale.
-    useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false});
+    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false});
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
 
     let localeToApply: Locale | undefined;
     if (!isLoadingOnyxValue(nvpPreferredLocaleMetadata)) {
@@ -124,7 +123,21 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         });
     }, [localeToApply, nvpPreferredLocale]);
 
-    const currentLocale = IntlStore.getCurrentLocale();
+    // Sync currentLocale from IntlStore after translations finish loading.
+    // IntlStore.currentLocale is external mutable state that React can't track,
+    // so we use this effect to explicitly update React state when it changes.
+    useEffect(() => {
+        if (areTranslationsLoading) {
+            return;
+        }
+
+        const locale = IntlStore.getCurrentLocale();
+        if (!locale) {
+            return;
+        }
+
+        setCurrentLocale(locale);
+    }, [areTranslationsLoading]);
 
     const selectedTimezone = currentUserPersonalDetails?.timezone?.selected;
     const effectiveTimezone = selectedTimezone ?? CONST.DEFAULT_TIME_ZONE.selected;
