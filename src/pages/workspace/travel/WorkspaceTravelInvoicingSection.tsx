@@ -146,9 +146,12 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             return;
         }
 
-        // Navigate to settlement account setup to confirm or change the account before enabling.
-        // This ensures users can always pick a different bank account if the current one is invalid.
-        Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
+        if (!hasSettlementAccount) {
+            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
+            return;
+        }
+
+        toggleTravelInvoicing(policyID, workspaceAccountID, true);
     };
 
     const handleConfirmDisable = () => {
