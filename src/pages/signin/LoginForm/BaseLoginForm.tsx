@@ -27,7 +27,7 @@ import {parsePhoneNumber} from '@libs/PhoneNumber';
 import StringUtils from '@libs/StringUtils';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
-import {useLogin} from '@pages/signin/SignInLoginContext';
+import {useLoginActions, useLoginState} from '@pages/signin/SignInLoginContext';
 import {setDefaultData} from '@userActions/CloseAccount';
 import {beginSignIn, clearAccountMessages, clearSignInData} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
@@ -41,7 +41,8 @@ import type LoginFormProps from './types';
 type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
 function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFormProps) {
-    const {login, setLogin} = useLogin();
+    const {login} = useLoginState();
+    const {setLogin} = useLoginActions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);

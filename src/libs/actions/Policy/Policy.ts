@@ -67,6 +67,7 @@ import type {
     UpdateInvoiceCompanyWebsiteParams,
     UpdatePolicyAddressParams,
     UpdateWorkspaceAvatarParams,
+    UpdateWorkspaceClientIDParams,
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
     UpgradeToCorporateParams,
@@ -193,6 +194,13 @@ type BuildPolicyDataOptions = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;
+    // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
+    isSelfTourViewed?: boolean;
+};
+
+// TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
+type CreateWorkspaceDataOptions = Omit<BuildPolicyDataOptions, 'isSelfTourViewed'> & {
+    isSelfTourViewed: boolean | undefined;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -1961,6 +1969,62 @@ function updateWorkspaceDescription(policyID: string, description: string, curre
     });
 }
 
+function updateWorkspaceClientID(policyID: string, clientID: string, currentClientID: string | undefined) {
+    if (clientID === currentClientID) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                clientID,
+                pendingFields: {
+                    clientID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    clientID: null,
+                },
+            },
+        },
+    ];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    clientID: null,
+                },
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                clientID: currentClientID,
+                errorFields: {
+                    clientID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                },
+            },
+        },
+    ];
+
+    const params: UpdateWorkspaceClientIDParams = {
+        policyID,
+        clientID,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CLIENT_ID, params, {
+        optimisticData,
+        finallyData,
+        failureData,
+    });
+}
+
 function setWorkspaceErrors(policyID: string, errors: Errors) {
     if (!deprecatedAllPolicies?.[policyID]) {
         return;
@@ -2291,6 +2355,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         shouldAddGuideWelcomeMessage = true,
         onboardingPurposeSelected,
         shouldCreateControlPolicy = false,
+        isSelfTourViewed,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2721,6 +2786,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             onboardingPolicyID: policyID,
             onboardingPurposeSelected,
             companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
+            isSelfTourViewed,
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -2765,7 +2831,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     return {successData, optimisticData, failureData, params};
 }
 
-function createWorkspace(options: BuildPolicyDataOptions): CreateWorkspaceParams {
+function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspaceParams {
     // Set default engagement choice if not provided
     const optionsWithDefaults = {
         engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
@@ -6990,6 +7056,7 @@ export {
     setWorkspaceAutoReportingFrequency,
     setWorkspaceAutoReportingMonthlyOffset,
     updateWorkspaceDescription,
+    updateWorkspaceClientID,
     setWorkspacePayer,
     setWorkspaceReimbursement,
     openPolicyWorkflowsPage,

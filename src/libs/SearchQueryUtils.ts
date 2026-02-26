@@ -354,7 +354,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
 
     // Certain filters' values are significant in deciding which search we are on, so we want to include
     // their value when computing the similarSearchHash
-    const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]);
+    const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE]);
 
     const flatFilters = query.flatFilters
         .map((filter) => {
@@ -1226,14 +1226,9 @@ function getDisplayQueryFiltersForKey(
         return queryFilter.reduce((acc, filter) => {
             const cardValue = filter.value.toString();
             const cardID = parseInt(cardValue, 10);
-
-            if (cardList?.[cardID]) {
-                if (Number.isNaN(cardID)) {
-                    acc.push({operator: filter.operator, value: cardID});
-                } else {
-                    acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID], translate) || cardID});
-                }
-            }
+            const descriptionCandidate = Number.isNaN(cardID) ? undefined : getCardDescription(cardList?.[cardID], translate);
+            const cardDescription = descriptionCandidate === '' ? undefined : descriptionCandidate;
+            acc.push({operator: filter.operator, value: cardDescription ?? cardValue});
             return acc;
         }, [] as QueryFilter[]);
     }
