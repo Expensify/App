@@ -15,6 +15,7 @@ import type {Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useFilesValidation from './useFilesValidation';
+import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnyx from './useOnyx';
 import useSelfDMReport from './useSelfDMReport';
 
@@ -23,6 +24,7 @@ import useSelfDMReport from './useSelfDMReport';
  * Returns the drop handler, PDF validation component, and error modal needed for drag-and-drop receipt scanning.
  */
 function useReceiptScanDrop() {
+    const isAnonymousUser = useIsAnonymousUser();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -115,7 +117,7 @@ function useReceiptScanDrop() {
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
-    return {initScanRequest, PDFValidationComponent, ErrorModal};
+    return {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled: isAnonymousUser};
 }
 
 export default useReceiptScanDrop;
