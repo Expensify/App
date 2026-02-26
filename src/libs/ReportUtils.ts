@@ -3637,7 +3637,7 @@ function getIconsForChatThread(
         fallbackIcon: actorDetails?.fallbackIcon,
     };
 
-    if (isWorkspaceThread(report) || isTripRoom(report)) {
+    if (isTripRoom(report)) {
         const workspaceIcon = getWorkspaceIcon(report, policy);
         return [actorIcon, workspaceIcon];
     }

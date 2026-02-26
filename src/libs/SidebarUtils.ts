@@ -173,7 +173,6 @@ import {
     isTripRoom,
     isUnread,
     isUnreadWithMention,
-    isWorkspaceTaskReport,
     shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
@@ -763,12 +762,11 @@ function getOptionData({
     result.isPolicyExpenseChat = isPolicyExpenseChat(report);
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
-    // Chat threads and workspace tasks should not show subscript in LHN even if shouldReportShowSubscript
+    // Chat threads should not show subscript in LHN even if shouldReportShowSubscript
     // returns true — the workspace icon is suppressed to show only the actor avatar.
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const threadSuppression = isChatThread(report) && !isTripRoom(report) && !isExpenseRequest(report) && !isExpenseReport(report) && !isIOUReport(report) && !isInvoiceReport(report);
-    const taskSuppression = isWorkspaceTaskReport(report);
-    result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
+    result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression;
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
@@ -1156,16 +1154,6 @@ function getOptionData({
         invoiceReceiverPolicy,
         isReportArchived,
     );
-
-    // When subscript is not shown, only a single icon should be displayed in the LHN.
-    // Exception: keep both icons for B2B invoices (2 workspace icons shown diagonally).
-    // Exception: keep all icons for IOU reports — getIconsForIOUReport already returns the
-    // correct count (1 for single-transaction, 2 for multi-transaction).
-    const isBothWorkspaceIcons = result.icons.length === 2 && result.icons.every((icon) => icon.type === CONST.ICON_TYPE_WORKSPACE);
-    if (!result.shouldShowSubscript && result.icons.length > 1 && !isBothWorkspaceIcons && !isIOUReport(report)) {
-        const otherIcon = result.icons.find((icon) => icon.type === CONST.ICON_TYPE_AVATAR && icon.id !== currentUserAccountID);
-        result.icons = otherIcon ? [otherIcon] : result.icons.slice(0, 1);
-    }
 
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
