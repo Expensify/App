@@ -89,6 +89,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
                     text={translate('task.completed')}
                     icon={icons.Checkmark}
                     iconStyles={styles.mr0}
+                    success
                     badgeStyles={[
                         styles.ml0,
                         styles.gap1,
