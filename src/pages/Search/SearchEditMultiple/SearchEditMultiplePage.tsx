@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,6 +30,7 @@ import {getCommonDependentTag, getTransactionEditContext} from './SearchEditMult
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {currentSearchHash} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -128,7 +129,7 @@ function SearchEditMultiplePage() {
             return;
         }
 
-        updateMultipleMoneyRequests(selectedTransactionIDs, changes, policy, allReports, allTransactions, allReportActions);
+        updateMultipleMoneyRequests(selectedTransactionIDs, changes, policy, allReports, allTransactions, allReportActions, currentSearchHash);
         clearSelectedTransactions(true);
 
         Navigation.dismissToPreviousRHP();

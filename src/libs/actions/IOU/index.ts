@@ -13837,6 +13837,7 @@ function updateMultipleMoneyRequests(
     reports: OnyxCollection<OnyxTypes.Report>,
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     reportActions: OnyxCollection<OnyxTypes.ReportActions>,
+    hash?: number,
 ) {
     // Track running totals per report so multiple edits in the same report compound correctly.
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -13967,6 +13968,30 @@ function updateMultipleMoneyRequests(
                 errorFields: null,
             },
         });
+
+        // Optimistically update the search snapshot so the search list reflects the
+        // new values immediately (the snapshot is the exclusive data source for search
+        // result rendering and is not automatically updated by the TRANSACTION write above).
+        if (hash) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: updatedTransaction,
+                    },
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+                    },
+                },
+            });
+        }
 
         // To build proper offline update message, we need to include the currency
         const optimisticTransactionChanges =
