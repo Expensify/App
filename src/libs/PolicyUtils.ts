@@ -304,7 +304,13 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
     return false;
 }
 
-function getCustomUnitsForDuplication(policy: Policy, isDistanceRatesOptionSelected: boolean, isPerDiemOptionSelected: boolean, distanceCustomUnitID: string, perDiemCustomUnitID: string): Record<string, CustomUnit> | undefined {
+function getCustomUnitsForDuplication(
+    policy: Policy,
+    isDistanceRatesOptionSelected: boolean,
+    isPerDiemOptionSelected: boolean,
+    distanceCustomUnitID: string,
+    perDiemCustomUnitID: string,
+): Record<string, CustomUnit> | undefined {
     const customUnits = policy?.customUnits;
     if ((!isDistanceRatesOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
         return undefined;
