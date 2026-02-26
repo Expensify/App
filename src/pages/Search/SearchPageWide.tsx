@@ -1,4 +1,5 @@
 import type {RouteProp} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
@@ -29,11 +30,8 @@ import {search} from '@userActions/Search';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type SearchPageWideProps = {
-    route: RouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
-};
-
-function SearchPageWide({route}: SearchPageWideProps) {
+function SearchPageWide() {
+    const route = useRoute<RouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>>();
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
     const styles = useThemeStyles();
     const theme = useTheme();
