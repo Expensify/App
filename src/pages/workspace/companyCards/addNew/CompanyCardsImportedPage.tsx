@@ -107,11 +107,13 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         const columnNamesByIndex = Object.values(spreadsheet?.columns ?? {});
         const columnMappings = columnNames.map((_, index) => columnNamesByIndex.at(index) ?? CONST.CSV_IMPORT_COLUMNS.IGNORE);
 
-        // Transform columns-based data to rows-based data, including the header
+        // Transform columns-based data to rows-based data.
         const columns = spreadsheet?.data ?? [];
+        const shouldOmitHeaderRow = !(spreadsheet?.containsHeader ?? true);
         const rows: string[][] = [];
         if (columns.length > 0) {
-            for (let rowIndex = 0; rowIndex < (columns.at(0)?.length ?? 0); rowIndex++) {
+            const startRowIndex = shouldOmitHeaderRow ? 1 : 0;
+            for (let rowIndex = startRowIndex; rowIndex < (columns.at(0)?.length ?? 0); rowIndex++) {
                 const row: string[] = [];
                 for (const column of columns) {
                     row.push(column.at(rowIndex) ?? '');
