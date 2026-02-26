@@ -26,19 +26,11 @@ function TransactionStartDateStep() {
     const isEditing = assignCard?.isEditing;
     const cardToAssign = assignCard?.cardToAssign;
 
-    const [dateOptionSelected, setDateOptionSelected] = useState(cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+    const [localDateOption, setLocalDateOption] = useState<string>();
     const [errorText, setErrorText] = useState('');
-    const [startDate, setStartDate] = useState(() => cardToAssign?.startDate ?? assignCard?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
-    const [prevCardToAssign, setPrevCardToAssign] = useState({dateOption: cardToAssign?.dateOption, startDate: cardToAssign?.startDate});
-    if (prevCardToAssign.dateOption !== cardToAssign?.dateOption || prevCardToAssign.startDate !== cardToAssign?.startDate) {
-        setPrevCardToAssign({dateOption: cardToAssign?.dateOption, startDate: cardToAssign?.startDate});
-        if (cardToAssign?.dateOption) {
-            setDateOptionSelected(cardToAssign.dateOption);
-        }
-        if (cardToAssign?.startDate) {
-            setStartDate(cardToAssign.startDate);
-        }
-    }
+    const [localStartDate, setLocalStartDate] = useState<string>();
+    const dateOptionSelected = localDateOption ?? cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+    const startDate = localStartDate ?? cardToAssign?.startDate ?? assignCard?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -51,11 +43,11 @@ function TransactionStartDateStep() {
 
     const handleSelectDateOption = (dateOption: string) => {
         setErrorText('');
-        setDateOptionSelected(dateOption);
+        setLocalDateOption(dateOption);
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
             return;
         }
-        setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+        setLocalStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     };
 
     const submit = () => {
@@ -141,7 +133,7 @@ function TransactionStartDateStep() {
                                                 } else {
                                                     setErrorText('');
                                                 }
-                                                setStartDate(value);
+                                                setLocalStartDate(value);
                                             }}
                                             minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                                             maxDate={new Date()}
