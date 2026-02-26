@@ -52,7 +52,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const prevReportAttributesLocale = usePrevious(reportAttributes?.locale);
     const [reports, {sourceValue: changedReports}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const prevReports = usePrevious(reports);
     const [, {sourceValue: changedReportActions}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
@@ -96,14 +95,11 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         const result: OnyxCollection<OnyxEntry<Report> | null> = {};
 
         for (const key of Object.keys(changedReports ?? {})) {
-            let report: Report | null = reports?.[key] ?? null;
+            const report: Report | null = reports?.[key] ?? null;
             result[key] = report;
-            if (reports?.[key] === undefined && prevReports?.[key]) {
-                report = null;
-            }
         }
         return result;
-    }, [changedReports, reports, prevReports]);
+    }, [changedReports, reports]);
 
     /**
      * This effect is responsible for updating the options only for changed reports
