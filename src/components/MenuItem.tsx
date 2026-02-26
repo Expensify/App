@@ -1124,7 +1124,11 @@ function MenuItem({
                     </Hoverable>
                     {!!helperText &&
                         (shouldParseHelperText ? (
-                            <View style={[styles.flexRow, styles.renderHTML, styles.ph5, styles.pb5]}>
+                            <View
+                                style={[styles.flexRow, styles.renderHTML, styles.ph5, styles.pb5]}
+                                accessible
+                                accessibilityLabel={helperText}
+                            >
                                 <RenderHTML html={processedHelperText} />
                             </View>
                         ) : (
