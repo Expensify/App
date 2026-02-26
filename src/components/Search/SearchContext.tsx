@@ -1,3 +1,4 @@
+import {deepEqual} from 'fast-equals';
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
@@ -121,12 +122,15 @@ function SearchContextProvider({children}: ChildrenProps) {
         return snapshotSearchResults ?? undefined;
     }, [currentSearchKey, shouldUseLiveData, snapshotSearchResults, todoSearchResultsData]);
 
-    const setSearchQueryJSON = (searchQueryJSON: SearchQueryJSON | undefined) => {
-        setSearchContextData((prevState) => ({
-            ...prevState,
-            currentSearchQueryJSON: searchQueryJSON,
-        }));
-    };
+    const setSearchQueryJSON = useCallback((searchQueryJSON: SearchQueryJSON | undefined) => {
+        setSearchContextData((prevState) => {
+            if (deepEqual(prevState.currentSearchQueryJSON, searchQueryJSON)) {
+                return prevState;
+            }
+
+            return {...prevState, currentSearchQueryJSON: searchQueryJSON};
+        });
+    }, []);
 
     const setSelectedTransactions: SearchActionsContextValue['setSelectedTransactions'] = (transactionIDs, data = []) => {
         if (transactionIDs instanceof Array) {
