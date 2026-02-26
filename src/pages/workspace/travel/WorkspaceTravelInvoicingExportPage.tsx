@@ -59,14 +59,43 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     /**
      * Checks whether the user has selected any date value via the date filter.
      */
-    const hasDateSelected = useCallback((): boolean => {
+    const hasDateSelected = (): boolean => {
         const values = dateFilterBaseRef.current?.getDateValues();
         if (!values) {
             return false;
         }
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- We intentionally use logical OR (||) instead of ?? because these values are strings and we want to treat empty strings as "not set" (i.e., falsy).
         return !!(values[CONST.SEARCH.DATE_MODIFIERS.ON] || values[CONST.SEARCH.DATE_MODIFIERS.AFTER] || values[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
-    }, []);
+    };
+
+    /**
+     * Checks whether the selected date range is invalid (start date is after end date).
+     */
+    const isDateRangeInvalid = (): boolean => {
+        const values = dateFilterBaseRef.current?.getDateValues();
+        const dateAfter = values?.[CONST.SEARCH.DATE_MODIFIERS.AFTER];
+        const dateBefore = values?.[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
+
+        if (dateAfter && dateBefore && dateAfter > dateBefore) {
+            return true;
+        }
+        return false;
+    };
+
+    /**
+     * Re-validates date selection on every change instead of simply clearing the error.
+     * This keeps the error visible while the user is still in an invalid state (e.g. after > before),
+     * so they get continuous feedback rather than the error disappearing and reappearing only on export press.
+     */
+    const handleDateValuesChange = () => {
+        if (!hasDateSelected()) {
+            setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.selectDateRangeError'));
+        } else if (isDateRangeInvalid()) {
+            setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.invalidDateRangeError'));
+        } else {
+            setDateError('');
+        }
+    };
 
     /**
      * Computes startDate and endDate in YYYY-MM-DD format from the current date selection.
@@ -116,6 +145,11 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
             return;
         }
 
+        if (isDateRangeInvalid()) {
+            setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.invalidDateRangeError'));
+            return;
+        }
+
         const {startDate, endDate} = getDateRange();
         const cacheKey = `${policyID}_${startDate}_${endDate}`;
 
@@ -130,7 +164,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
 
         // Request PDF generation — the useEffect will auto-download when it completes
         getTravelInvoiceStatementPDF(policyID, startDate, endDate);
-    }, [baseURL, isGenerating, getDateRange, translate, travelInvoiceStatement, policyID, currentUserPersonalDetails?.login, hasDateSelected]);
+    }, [baseURL, isGenerating, travelInvoiceStatement, policyID, currentUserPersonalDetails?.login, getDateRange, translate]);
 
     useEffect(() => {
         if (!prevIsGenerating || isGenerating) {
@@ -145,11 +179,15 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         } else {
             setIsDownloading(false);
         }
-    }, [prevIsGenerating, isGenerating, processDownload, travelInvoiceStatement, policyID, getDateRange]);
+    }, [prevIsGenerating, isGenerating, travelInvoiceStatement, policyID, processDownload, getDateRange]);
 
     const handleDownloadCSV = () => {
         if (!hasDateSelected()) {
             setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.selectDateRangeError'));
+            return;
+        }
+        if (isDateRangeInvalid()) {
+            setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.invalidDateRangeError'));
             return;
         }
         const {startDate, endDate} = getDateRange();
@@ -181,7 +219,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
                     presets={presets}
                     onBackButtonPress={goBack}
                     onSubmit={onSubmit}
-                    onDateValuesChange={() => setDateError('')}
+                    onDateValuesChange={handleDateValuesChange}
                     onDateModifierChange={setIsDateModifierOpen}
                     shouldShowButtonsOnlyWithDateModifier
                 />

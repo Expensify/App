@@ -5142,6 +5142,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     exportToPDF: 'PDF にエクスポート',
                     exportToCSV: 'CSV にエクスポート',
                     selectDateRangeError: 'エクスポートする日付範囲を選択してください',
+                    invalidDateRangeError: '開始日は終了日より前でなければなりません',
                 },
                 personalDetailsDescription: '旅行を予約するために、政府発行の身分証明書に記載されているとおりの正式な氏名を入力してください。',
             },
