@@ -4201,31 +4201,36 @@ function getColumnsToShow(
     const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column));
 
     if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
-        // For expense report view, prepend TYPE (always required), and RECEIPT only if selected
         const result: SearchColumnType[] = [];
         const addedColumns = new Set<SearchColumnType>();
 
         if (isExpenseReportView) {
-            // RECEIPT is optional - only add if user selected it, but ensure it comes first
-            if (filteredVisibleColumns.includes(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)) {
-                result.push(CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
-                addedColumns.add(CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
+            // If RECEIPT is first, TYPE goes second; otherwise TYPE goes first
+            for (const col of filteredVisibleColumns) {
+                result.push(col);
+                addedColumns.add(col);
             }
-            // TYPE is always prepended
-            result.push(CONST.SEARCH.TABLE_COLUMNS.TYPE);
-            addedColumns.add(CONST.SEARCH.TABLE_COLUMNS.TYPE);
+
+            if (!addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.TYPE)) {
+                const isReceiptFirst = result.at(0) === CONST.SEARCH.TABLE_COLUMNS.RECEIPT;
+                if (isReceiptFirst) {
+                    result.splice(1, 0, CONST.SEARCH.TABLE_COLUMNS.TYPE);
+                } else {
+                    result.unshift(CONST.SEARCH.TABLE_COLUMNS.TYPE);
+                }
+            }
         } else {
             // Search page: prepend AVATAR, TYPE
             result.push(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
             addedColumns.add(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
             result.push(CONST.SEARCH.TABLE_COLUMNS.TYPE);
             addedColumns.add(CONST.SEARCH.TABLE_COLUMNS.TYPE);
-        }
 
-        // Add remaining visible columns that weren't already added
-        for (const col of filteredVisibleColumns) {
-            if (!addedColumns.has(col)) {
-                result.push(col);
+            // Add remaining visible columns that weren't already added
+            for (const col of filteredVisibleColumns) {
+                if (!addedColumns.has(col)) {
+                    result.push(col);
+                }
             }
         }
 
