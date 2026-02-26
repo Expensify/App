@@ -2,7 +2,6 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -38,7 +37,6 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
-import useSearchAutocompleteTransition from './useSearchAutocompleteTransition';
 
 type AutocompleteListItem = NewListItem & Partial<Omit<OptionData, keyof NewListItem>> & Partial<Omit<SearchQueryItem, keyof NewListItem>>;
 
@@ -415,20 +413,7 @@ function SearchAutocompleteList({
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
-
-    const shouldRender = useSearchAutocompleteTransition();
-
-    const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized || !shouldRender;
-
-    if (isLoading) {
-        return (
-            <OptionsListSkeletonView
-                fixedNumItems={4}
-                shouldStyleAsTable
-                speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-            />
-        );
-    }
+    const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
 
     return (
         <SelectionListWithSections<AutocompleteListItem>
@@ -446,6 +431,7 @@ function SearchAutocompleteList({
             shouldSingleExecuteRowSelect
             ref={setListRef}
             initialScrollIndex={0}
+            isLoadingNewOptions={isLoading}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
             shouldScrollToFocusedIndex={!isInitialRender}
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
@@ -463,4 +449,4 @@ SearchAutocompleteList.displayName = 'SearchAutocompleteList';
 
 export default React.memo(SearchAutocompleteList);
 export {SearchRouterItem};
-export type {GetAdditionalSectionsCallback};
+export type {GetAdditionalSectionsCallback, SearchAutocompleteListProps};
