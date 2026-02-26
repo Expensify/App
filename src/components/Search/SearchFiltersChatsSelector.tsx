@@ -75,7 +75,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         );
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID ?? ''}`];
         const isReportArchived = !!privateIsArchived;
-        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {}, reportAttributesDerived, reportPolicyTags);
+        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {}, undefined, undefined, reportAttributesDerived, reportPolicyTags);
         return {...report, alternateText};
     });
 

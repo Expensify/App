@@ -178,6 +178,7 @@ function SearchAutocompleteList({
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -204,6 +205,7 @@ function SearchAutocompleteList({
             shouldShowGBR: false,
             shouldUnreadBeBold: true,
             loginList,
+            visibleReportActionsData,
             currentUserAccountID,
             currentUserEmail,
             policyCollection: policies,
@@ -462,6 +464,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    visibleReportActionsData,
                     policyCollection: policies,
                     currentUserAccountID,
                     currentUserEmail,
@@ -497,6 +500,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    visibleReportActionsData,
                     policyCollection: policies,
                     currentUserAccountID,
                     currentUserEmail,

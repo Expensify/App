@@ -356,7 +356,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-                chatReport: undefined,
+
                 reportAttributesDerived: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
@@ -376,7 +376,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-                chatReport: undefined,
+
                 reportAttributesDerived: undefined,
             });
 
@@ -1345,7 +1345,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-                chatReport: undefined,
+
                 reportAttributesDerived: undefined,
             });
 
@@ -1411,7 +1411,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-                chatReport: undefined,
+
                 reportAttributesDerived: undefined,
             });
 
@@ -1452,7 +1452,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-                chatReport: undefined,
+
                 reportAttributesDerived: undefined,
             });
 
@@ -1492,7 +1492,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-                chatReport: undefined,
+
                 reportAttributesDerived: undefined,
             });
 
@@ -1532,7 +1532,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-                chatReport: undefined,
+
                 reportAttributesDerived: undefined,
             });
 
@@ -1600,7 +1600,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-                chatReport: undefined,
+
                 reportAttributesDerived: undefined,
             });
 
@@ -1654,7 +1654,6 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
-                    chatReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1698,7 +1697,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: true,
                     lastActionReport: undefined,
                     currentUserAccountID: 0,
-                    chatReport: undefined,
+
                     reportAttributesDerived: undefined,
                 });
 
@@ -1740,7 +1739,6 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
-                    chatReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1880,7 +1878,7 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
-                    chatReport: undefined,
+
                     reportAttributesDerived: mockReportAttributesDerived,
                 });
 
@@ -1927,7 +1925,6 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
-                    chatReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -2002,7 +1999,6 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: session.accountID,
-                    chatReport: undefined,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -2066,7 +2062,6 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: session.accountID,
-                    chatReport: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
@@ -2121,7 +2116,6 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     lastMessageTextFromReport: report.lastMessageText,
                     currentUserAccountID: session.accountID,
-                    chatReport: undefined,
                 });
 
                 expect(result?.alternateText).toBe('You: someMessage');
@@ -2157,6 +2151,7 @@ describe('SidebarUtils', () => {
 
                 const lastAction: ReportAction = {
                     ...createRandomReportAction(1),
+                    reportID: iouReportR14932.reportID,
                     message: [
                         {
                             type: 'COMMENT',
@@ -2180,8 +2175,16 @@ describe('SidebarUtils', () => {
                     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportR14932.reportID}`, iouReportR14932);
                     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportR14932.reportID}`, chatReportR14932);
                     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[lastAction.reportActionID]: lastAction});
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportR14932.reportID}`, {[linkedCreateAction.reportActionID]: linkedCreateAction});
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportR14932.reportID}`, {
+                        [linkedCreateAction.reportActionID]: linkedCreateAction,
+                        [lastAction.reportActionID]: lastAction,
+                    });
+                    await Onyx.set(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+                        [iouReportR14932.reportID]: {
+                            [linkedCreateAction.reportActionID]: true,
+                            [lastAction.reportActionID]: true,
+                        },
+                    });
                 });
 
                 const result = SidebarUtils.getOptionData({
@@ -2201,7 +2204,12 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: session.accountID,
-                    chatReport: undefined,
+                    visibleReportActionsData: {
+                        [iouReportR14932.reportID]: {
+                            [linkedCreateAction.reportActionID]: true,
+                            [lastAction.reportActionID]: true,
+                        },
+                    },
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -2222,6 +2230,7 @@ describe('SidebarUtils', () => {
                 };
                 const lastAction: ReportAction = {
                     ...createRandomReportAction(1),
+                    reportID: '1',
                     message: [
                         {
                             type: 'COMMENT',
@@ -2241,6 +2250,7 @@ describe('SidebarUtils', () => {
                 };
                 const deletedAction: ReportAction = {
                     ...createRandomReportAction(2),
+                    reportID: '1',
                     actionName: 'IOU',
                     actorAccountID: 20337430,
                     automatic: false,
@@ -2322,8 +2332,8 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    lastMessageTextFromReport: 'test action',
                     currentUserAccountID: 0,
-                    chatReport: undefined,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
@@ -2412,7 +2422,6 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
-                    chatReport: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`One: submitted`);
@@ -2513,7 +2522,6 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: managerID,
-                    chatReport: undefined,
                 });
 
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
@@ -2615,7 +2623,6 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: managerID,
-                    chatReport: undefined,
                 });
 
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
@@ -2649,7 +2656,6 @@ describe('SidebarUtils', () => {
                     invoiceReceiverPolicy: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
-                    chatReport: undefined,
                 });
 
                 // Then isConciergeChat should be true
@@ -2681,7 +2687,6 @@ describe('SidebarUtils', () => {
                     invoiceReceiverPolicy: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
-                    chatReport: undefined,
                 });
 
                 // Then isConciergeChat should be false
@@ -2712,7 +2717,6 @@ describe('SidebarUtils', () => {
                     invoiceReceiverPolicy: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
-                    chatReport: undefined,
                 });
 
                 // Then isConciergeChat should be false

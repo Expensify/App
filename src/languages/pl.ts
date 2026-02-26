@@ -954,17 +954,17 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: 'Napraw',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Napraw połączenie karty firmowej ${feedName}` : 'Napraw połączenie karty firmowej'),
-                defaultSubtitle: 'Workspace > Karty firmowe',
+                defaultSubtitle: 'Obszar roboczy',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Karty firmowe`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Napraw połączenie ${integrationName}`,
-                defaultSubtitle: 'Przestrzeń robocza > Księgowość',
+                defaultSubtitle: 'Obszar roboczy',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Księgowość`,
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Napraw połączenie z prywatną kartą ${cardName}` : 'Napraw połączenie karty prywatnej'),
-                subtitle: 'Portfel > Przypisane karty',
+                subtitle: 'Portfel',
             },
         },
         assignedCards: 'Przypisane karty',
@@ -1762,6 +1762,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Nowy sposób kontaktu',
         goBackContactMethods: 'Wróć do metod kontaktu',
+        yourDefaultContactMethodRestrictedSwitch: 'To jest Twoja domyślna metoda kontaktu. Twoja firma zablokowała możliwość usuwania lub zmiany tej metody.',
     },
     pronouns: {
         coCos: 'Co / Coś',
@@ -7072,6 +7073,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         groupColumns: 'Grupuj kolumny',
         expenseColumns: 'Kolumny wydatków',
         statements: 'Wyciągi',
+        cardStatements: 'Wyciągi kartowe',
+        monthlyAccrual: 'Miesięczne rozliczenie',
         unapprovedCash: 'Niezaakceptowana gotówka',
         unapprovedCard: 'Niezaakceptowana karta',
         reconciliation: 'Uzgodnienie',

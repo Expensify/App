@@ -3,7 +3,18 @@ import type {Section as SelectionListSection} from '@components/SelectionList/Se
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, PolicyTagLists, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {
+    Beta,
+    Login,
+    PersonalDetails,
+    PersonalDetailsList,
+    PolicyTagLists,
+    Report,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    TransactionViolation,
+    VisibleReportActionsDerivedValue,
+} from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 /**
@@ -205,6 +216,9 @@ type GetOptionsConfig = {
     maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
     shouldAcceptName?: boolean;
+    countryCode?: number;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
