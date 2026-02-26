@@ -37,7 +37,7 @@ import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import UnreportedTransactionAction from '@components/ReportActionItem/UnreportedTransactionAction';
-import {SearchContext} from '@components/Search/SearchContext';
+import {SearchStateContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -623,7 +623,7 @@ function PureReportActionItem({
     const isOnSearch = useIsOnSearch();
     let currentSearchHash: number | undefined;
     if (isOnSearch) {
-        const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchContext);
+        const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchStateContext);
         currentSearchHash = searchContextCurrentSearchHash;
     }
 
@@ -1879,6 +1879,7 @@ function PureReportActionItem({
                             accountIDs={oldestFourAccountIDs}
                             onSecondaryInteraction={showPopover}
                             isActive={isReportActionActive && !isContextMenuActive}
+                            currentUserAccountID={currentUserAccountID}
                         />
                     </View>
                 )}
