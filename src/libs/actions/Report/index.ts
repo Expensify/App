@@ -43,6 +43,7 @@ import type {
     ResolveActionableReportMentionWhisperParams,
     SearchForReportsParams,
     SearchForRoomsToMentionParams,
+    SearchForUsersParams,
     TogglePinnedChatParams,
     TransactionThreadInfo,
     UpdateChatNameParams,
@@ -1053,6 +1054,92 @@ function clearAvatarErrors(reportID: string) {
     });
 }
 
+type GuidedSetupOptimisticOnyxUpdate = OnyxUpdate<
+    typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_INTRO_SELECTED | typeof ONYXKEYS.NVP_ONBOARDING | typeof ONYXKEYS.COLLECTION.POLICY
+>;
+
+type GuidedSetupSuccessOnyxUpdate = OnyxUpdate<
+    typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.NVP_ONBOARDING
+>;
+
+type GuidedSetupFailureOnyxUpdate = OnyxUpdate<
+    | typeof ONYXKEYS.COLLECTION.REPORT
+    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+    | typeof ONYXKEYS.NVP_INTRO_SELECTED
+    | typeof ONYXKEYS.NVP_ONBOARDING
+    | typeof ONYXKEYS.COLLECTION.POLICY
+    | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+>;
+
+type GuidedSetupDataForOpenReport = {
+    optimisticData: GuidedSetupOptimisticOnyxUpdate[];
+    successData: GuidedSetupSuccessOnyxUpdate[];
+    failureData: GuidedSetupFailureOnyxUpdate[];
+    guidedSetupData: string;
+};
+
+/**
+ * Prepares guided setup data for an OpenReport request when onboarding is not yet completed.
+ * Returns the onyx data arrays and guidedSetupData string to include in the API parameters,
+ * or undefined if no guided setup is needed.
+ */
+function getGuidedSetupDataForOpenReport(introSelected: OnyxEntry<IntroSelected>): GuidedSetupDataForOpenReport | undefined {
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
+    const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
+
+    // Some cases we can have two open report requests with guide setup data because isInviteOnboardingComplete is not updated completely.
+    // Then we need to check the list request and prevent the guided setup data from being duplicated.
+    const allPersistedRequests = getAll();
+    const hasOpenReportWithGuidedSetupData = allPersistedRequests.some((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.guidedSetupData);
+
+    // Prepare guided setup data only when nvp_introSelected is set and onboarding is not completed
+    // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages
+    if (!introSelected || isOnboardingCompleted || isInviteOnboardingComplete || hasOpenReportWithGuidedSetupData) {
+        return undefined;
+    }
+
+    const {choice, inviteType} = introSelected;
+    const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
+    const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+
+    if (!isInviteChoiceCorrect || isInviteIOUorInvoice) {
+        return undefined;
+    }
+
+    const onboardingMessage = getOnboardingMessages().onboardingMessages[choice];
+    if (choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT) {
+        const updatedTasks = onboardingMessage.tasks.map((task) => (task.type === 'startChat' ? {...task, autoCompleted: true} : task));
+        onboardingMessage.tasks = updatedTasks;
+    }
+
+    const onboardingData = prepareOnboardingOnyxData({
+        introSelected,
+        engagementChoice: choice,
+        onboardingMessage,
+        companySize: introSelected?.companySize as OnboardingCompanySize,
+    });
+
+    if (!onboardingData) {
+        return undefined;
+    }
+
+    return {
+        optimisticData: [
+            ...onboardingData.optimisticData,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_INTRO_SELECTED,
+                value: {
+                    isInviteOnboardingComplete: true,
+                },
+            },
+        ] as GuidedSetupOptimisticOnyxUpdate[],
+        successData: onboardingData.successData as GuidedSetupSuccessOnyxUpdate[],
+        failureData: onboardingData.failureData as GuidedSetupFailureOnyxUpdate[],
+        guidedSetupData: JSON.stringify(onboardingData.guidedSetupData),
+    };
+}
+
 /**
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
@@ -1064,7 +1151,6 @@ function clearAvatarErrors(reportID: string) {
  * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param isFromDeepLink Whether or not this report is being opened from a deep link
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
- * @param avatar The avatar file to upload for a new group chat
  * @param isNewThread Whether this is a new thread being created
  * @param transaction The transaction object for legacy transactions that don't have a transaction thread or money request preview yet
  * @param transactionViolations The violations for the transaction, if any
@@ -1081,7 +1167,6 @@ function openReport(
     parentReportActionID?: string,
     isFromDeepLink = false,
     participantAccountIDList: number[] = [],
-    avatar?: File | CustomRNImageManipulatorResult,
     isNewThread = false,
     transaction?: Transaction,
     transactionViolations?: TransactionViolations,
@@ -1310,71 +1395,12 @@ function openReport(
         });
     }
 
-    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
-    const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
-
-    // Some cases we can have two open report requests with guide setup data because isInviteOnboardingComplete is not updated completely.
-    // Then we need to check the list request and prevent the guided setup data from being duplicated.
-    const allPersistedRequests = getAll();
-    const hasOpenReportWithGuidedSetupData = allPersistedRequests.some((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.guidedSetupData);
-
-    // Prepare guided setup data only when nvp_introSelected is set and onboarding is not completed
-    // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages
-    if (deprecatedIntroSelected && !isOnboardingCompleted && !isInviteOnboardingComplete && !hasOpenReportWithGuidedSetupData) {
-        const {choice, inviteType} = deprecatedIntroSelected;
-        const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
-        const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
-
-        if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
-            const onboardingMessage = getOnboardingMessages().onboardingMessages[choice];
-            if (choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT) {
-                const updatedTasks = onboardingMessage.tasks.map((task) => (task.type === 'startChat' ? {...task, autoCompleted: true} : task));
-                onboardingMessage.tasks = updatedTasks;
-            }
-
-            const onboardingData = prepareOnboardingOnyxData({
-                introSelected: deprecatedIntroSelected,
-                engagementChoice: choice,
-                onboardingMessage,
-                companySize: deprecatedIntroSelected?.companySize as OnboardingCompanySize,
-            });
-
-            if (onboardingData) {
-                optimisticData.push(...onboardingData.optimisticData, {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.NVP_INTRO_SELECTED,
-                    value: {
-                        isInviteOnboardingComplete: true,
-                    },
-                });
-
-                successData.push(...onboardingData.successData);
-
-                failureData.push(...onboardingData.failureData);
-
-                parameters.guidedSetupData = JSON.stringify(onboardingData.guidedSetupData);
-            }
-        }
-    }
-
-    const isGroupChat = isGroupChatReportUtils(newReportObject);
-    if (isGroupChat) {
-        parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        parameters.groupChatAdminLogins = deprecatedCurrentUserLogin;
-
-        parameters.optimisticAccountIDList = Object.keys(newReportObject?.participants ?? {}).join(',');
-        parameters.reportName = newReportObject?.reportName ?? '';
-
-        // If we have an avatar then include it with the parameters
-        if (avatar) {
-            parameters.file = avatar;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            clearGroupChat();
-        });
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected);
+    if (guidedSetup) {
+        optimisticData.push(...guidedSetup.optimisticData);
+        successData.push(...guidedSetup.successData);
+        failureData.push(...guidedSetup.failureData);
+        parameters.guidedSetupData = guidedSetup.guidedSetupData;
     }
 
     if (isFromDeepLink) {
@@ -1396,7 +1422,6 @@ function openReport(
                 pendingFields: shouldAddPendingFields
                     ? {
                           createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                          ...(isGroupChat && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
                       }
                     : undefined,
             };
@@ -1532,6 +1557,206 @@ function openReport(
     }
 }
 
+/**
+ * Create a group chat report. Simplified version specifically for group chats without unnecessary logic.
+ *
+ * @param reportID The ID of the group chat report to open
+ * @param participantLoginList The list of user logins included in the group chat
+ * @param newReportObject The optimistic report object for the new group chat
+ * @param currentUserLogin The login of the current user
+ * @param introSelected The intro selected data for guided setup
+ * @param avatar The avatar file to upload for the group chat (optional)
+ */
+function createGroupChat(
+    reportID: string,
+    participantLoginList: string[],
+    newReportObject: OptimisticChatReport,
+    currentUserLogin: string,
+    introSelected: OnyxEntry<IntroSelected>,
+    avatar?: File | CustomRNImageManipulatorResult,
+) {
+    const optimisticReport = {
+        reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+    };
+
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.NVP_ONBOARDING
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.NVP_INTRO_SELECTED
+        >
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                ...optimisticReport,
+                ...newReportObject,
+                pendingFields: {
+                    createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
+    ];
+
+    const successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.NVP_ONBOARDING
+        >
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    createChat: null,
+                    reportName: null,
+                },
+                errorFields: {
+                    createChat: null,
+                    notFound: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
+                hasOnceLoadedReportActions: true,
+                isLoadingInitialReportActions: false,
+                isOptimisticReport: false,
+            },
+        },
+    ];
+
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.NVP_INTRO_SELECTED
+            | typeof ONYXKEYS.NVP_ONBOARDING
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+        >
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {
+                isLoadingInitialReportActions: false,
+            },
+        },
+    ];
+
+    // Create optimistic created action
+    const optimisticCreatedAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {[optimisticCreatedAction.reportActionID]: {...optimisticCreatedAction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+    });
+
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+    });
+
+    // Add optimistic personal details for new participants
+    const optimisticPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+    const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
+
+    for (const [index, login] of participantLoginList.entries()) {
+        const accountID = participantAccountIDs.at(index) ?? -1;
+        const isOptimisticAccount = !allPersonalDetails?.[accountID];
+
+        if (!isOptimisticAccount) {
+            continue;
+        }
+
+        optimisticPersonalDetails[accountID] = {
+            login,
+            accountID,
+            displayName: login,
+            isOptimisticPersonalDetail: true,
+        };
+        settledPersonalDetails[accountID] = null;
+    }
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        value: optimisticPersonalDetails,
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        value: settledPersonalDetails,
+    });
+
+    // Build API parameters
+    const parameters: OpenReportParams = {
+        reportID,
+        emailList: participantLoginList.join(','),
+        accountIDList: '',
+        chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+        groupChatAdminLogins: currentUserLogin,
+        optimisticAccountIDList: Object.keys(newReportObject.participants ?? {}).join(','),
+        reportName: newReportObject.reportName ?? '',
+        createdReportActionID: optimisticCreatedAction.reportActionID,
+        clientLastReadTime: '',
+        includePartiallySetupBankAccounts: true,
+    };
+
+    // Include avatar if provided
+    if (avatar) {
+        parameters.file = avatar;
+    }
+
+    // Preserve guided setup data when creating group chats
+    const guidedSetup = getGuidedSetupDataForOpenReport(introSelected);
+    if (guidedSetup) {
+        optimisticData.push(...guidedSetup.optimisticData);
+        successData.push(...guidedSetup.successData);
+        failureData.push(...guidedSetup.failureData);
+        parameters.guidedSetupData = guidedSetup.guidedSetupData;
+    }
+
+    const paginationConfig = {
+        resourceID: reportID,
+    };
+
+    // Clear group chat data after navigation dismissed so we don't see stale data
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    InteractionManager.runAfterInteractions(() => {
+        clearGroupChat();
+    });
+
+    API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig, {
+        checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters),
+    });
+}
+
 function prepareOnyxDataForCleanUpOptimisticParticipants(
     reportID: string,
 ): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined {
@@ -1563,6 +1788,7 @@ function getOptimisticChatReport(accountID: number, currentUserAccountID: number
 }
 
 function createTransactionThreadReport(
+    introSelected: OnyxEntry<IntroSelected>,
     iouReport?: OnyxEntry<Report>,
     iouReportAction?: OnyxEntry<ReportAction>,
     transaction?: Transaction,
@@ -1603,7 +1829,7 @@ function createTransactionThreadReport(
     const shouldAddPendingFields = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || iouReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     openReport(
         optimisticTransactionThreadReportID,
-        deprecatedIntroSelected,
+        introSelected,
         undefined,
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         deprecatedCurrentUserLogin ? [deprecatedCurrentUserLogin] : [],
@@ -1612,7 +1838,6 @@ function createTransactionThreadReport(
         iouReportAction?.reportActionID,
         false,
         [],
-        undefined,
         false,
         transaction,
         transactionViolations,
@@ -1624,61 +1849,72 @@ function createTransactionThreadReport(
 }
 
 /**
- * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
+ * Navigates to a report, handling modal dismissal and delayed navigation for composer focus.
  *
- * @param userLogins list of user logins to start a chat report with.
- * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
+ * @param reportID The ID of the report to navigate to
+ * @param shouldDismissModal Whether to dismiss the modal before navigating
  */
-function navigateToAndOpenReport(
-    userLogins: string[],
-    shouldDismissModal = true,
-    reportName?: string,
-    avatarUri?: string,
-    avatarFile?: File | CustomRNImageManipulatorResult | undefined,
-    optimisticReportID?: string,
-    isGroupChat = false,
-) {
-    let newChat: OptimisticChatReport | undefined;
-    let chat: OnyxEntry<Report>;
-    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
-
-    // If we are not creating a new Group Chat then we are creating a 1:1 DM and will look for an existing chat
-    if (!isGroupChat) {
-        chat = getChatByParticipants([...participantAccountIDs, deprecatedCurrentUserAccountID]);
-    }
-
-    if (isEmptyObject(chat)) {
-        if (isGroupChat) {
-            // If we are creating a group chat then participantAccountIDs is expected to contain deprecatedCurrentUserAccountID
-            newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
-        } else {
-            newChat = buildOptimisticChatReport({
-                participantList: [...participantAccountIDs, deprecatedCurrentUserAccountID],
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-            });
-        }
-        // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, deprecatedIntroSelected, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
-    }
-    const report = isEmptyObject(chat) ? newChat : chat;
-
+function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
     if (shouldDismissModal) {
         Navigation.dismissModal({
             callback: () => {
-                if (!report?.reportID) {
+                if (!reportID) {
                     return;
                 }
 
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
             },
         });
-    } else if (report?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+    } else if (reportID) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
-        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID)));
+        Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
     }, 0);
+}
+
+/**
+ * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
+ *
+ * @param userLogins list of user logins to start a chat report with.
+ * @param currentUserAccountID the account ID of the current user.
+ * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
+ */
+function navigateToAndOpenReport(userLogins: string[], currentUserAccountID: number, shouldDismissModal = true) {
+    let newChat: OptimisticChatReport | undefined;
+    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+    const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
+
+    if (isEmptyObject(chat)) {
+        newChat = buildOptimisticChatReport({
+            participantList: [...participantAccountIDs, currentUserAccountID],
+            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        });
+        // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
+        openReport(newChat?.reportID, deprecatedIntroSelected, '', userLogins, newChat);
+    }
+    const report = isEmptyObject(chat) ? newChat : chat;
+
+    navigateToReport(report?.reportID, shouldDismissModal);
+}
+
+function navigateToAndCreateGroupChat(
+    userLogins: string[],
+    reportName: string,
+    currentUserLogin: string,
+    optimisticReportID: string,
+    introSelected: OnyxEntry<IntroSelected>,
+    avatarUri?: string,
+    avatarFile?: File | CustomRNImageManipulatorResult | undefined,
+) {
+    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+
+    // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
+    const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+    createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, avatarFile);
+
+    navigateToReport(newChat.reportID);
 }
 
 /**
@@ -1708,9 +1944,10 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
  * @param childReport The report we are trying to open
  * @param parentReportAction the parent comment of a thread
  * @param parentReport The parent report
+ * @param currentUserAccountID the account ID of the current user, used for creating optimistic report if needed
  */
-function navigateToAndOpenChildReport(childReport: OnyxEntry<Report>, parentReportAction: ReportAction, parentReport: OnyxEntry<Report>) {
-    const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport);
+function navigateToAndOpenChildReport(childReport: OnyxEntry<Report>, parentReportAction: ReportAction, parentReport: OnyxEntry<Report>, currentUserAccountID: number) {
+    const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID);
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
 }
@@ -1720,8 +1957,8 @@ function navigateToAndOpenChildReport(childReport: OnyxEntry<Report>, parentRepo
  * If childReportID is not provided, creates an optimistic report and calls openReport()
  * so the optimistic data is available when navigating to the thread.
  */
-function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: ReportAction, parentReport: OnyxEntry<Report>): Report {
-    const participantAccountIDs = [...new Set([deprecatedCurrentUserAccountID, Number(parentReportAction.actorAccountID)])];
+function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: ReportAction, parentReport: OnyxEntry<Report>, currentUserAccountID: number): Report {
+    const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
     // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
     const childReportChatType = parentReport && isSelfDM(parentReport) ? undefined : parentReport?.chatType;
     const newChat = buildOptimisticChatReport({
@@ -1740,7 +1977,7 @@ function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: R
     const childReportID = childReport?.reportID ?? parentReportAction.childReportID;
     if (!childReportID) {
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-        openReport(newChat.reportID, deprecatedIntroSelected, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
+        openReport(newChat.reportID, deprecatedIntroSelected, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, true);
     } else {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
     }
@@ -1765,7 +2002,7 @@ function explain(
     }
 
     // Check if explanation thread report already exists
-    const report = childReport ?? createChildReport(childReport, reportAction, originalReport);
+    const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID);
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
     // Schedule adding the explanation comment on the next animation frame
@@ -2973,7 +3210,7 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], deprecatedCurrentUserAccountID, shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});
@@ -3614,7 +3851,7 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
     return true;
 }
 
-function showReportActionNotification(reportID: string, reportAction: ReportAction, currentUserAccountID: number) {
+function showReportActionNotification(reportID: string, reportAction: ReportAction, currentUserAccountID: number, currentUserLogin: string) {
     if (!shouldShowReportActionNotification(reportID, currentUserAccountID, reportAction)) {
         return;
     }
@@ -3633,7 +3870,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport});
+        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, currentUserLogin});
     } else {
         LocalNotification.showCommentNotification(report, reportAction, onClick);
     }
@@ -4616,7 +4853,7 @@ function savePrivateNotesDraft(reportID: string, note: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${reportID}`, note);
 }
 
-function searchForReports(isOffline: boolean, searchInput: string, policyID?: string) {
+function searchForReports(isOffline: boolean, searchInput: string, policyID?: string, isUserSearch = false) {
     // We do not try to make this request while offline because it sets a loading indicator optimistically
     if (isOffline) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
@@ -4640,20 +4877,21 @@ function searchForReports(isOffline: boolean, searchInput: string, policyID?: st
     ];
 
     const searchForRoomToMentionParams: SearchForRoomsToMentionParams = {query: searchInput.toLowerCase(), policyID};
-    const searchForReportsParams: SearchForReportsParams = {searchInput: searchInput.toLowerCase(), canCancel: true};
+    const searchForReportsOrUsersParams: SearchForReportsParams | SearchForUsersParams = {searchInput: searchInput.toLowerCase(), canCancel: true};
+    const searchInServerCommand = isUserSearch ? READ_COMMANDS.SEARCH_FOR_USERS : READ_COMMANDS.SEARCH_FOR_REPORTS;
 
     // We want to cancel all pending SearchForReports API calls before making another one
     if (!policyID) {
-        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+        HttpUtils.cancelPendingRequests(searchInServerCommand);
     }
 
-    API.read(policyID ? READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION : READ_COMMANDS.SEARCH_FOR_REPORTS, policyID ? searchForRoomToMentionParams : searchForReportsParams, {
+    API.read(policyID ? READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION : searchInServerCommand, policyID ? searchForRoomToMentionParams : searchForReportsOrUsersParams, {
         successData,
         failureData,
     });
 }
 
-function searchInServer(searchInput: string, policyID?: string) {
+function performServerSearch(searchInput: string, policyID?: string, isUserSearch = false) {
     // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
     const isOffline = NetworkStore.isOffline();
     if (isOffline || !searchInput.trim().length) {
@@ -4665,7 +4903,15 @@ function searchInServer(searchInput: string, policyID?: string) {
     // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
     // tell the user there are no options, then we start searching, and tell them there are no options again.
     Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
-    searchForReports(isOffline, searchInput, policyID);
+    searchForReports(isOffline, searchInput, policyID, isUserSearch);
+}
+
+function searchInServer(searchInput: string, policyID?: string) {
+    performServerSearch(searchInput, policyID);
+}
+
+function searchUserInServer(searchInput: string) {
+    performServerSearch(searchInput, undefined, true);
 }
 
 function updateLastVisitTime(reportID: string) {
@@ -5057,14 +5303,14 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
     API.write(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, params, {optimisticData, failureData});
 }
 
-function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate, currentUserLogin: string) {
+function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate, currentUserLogin: string, encryptedAuthToken: string) {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `${reportName}.pdf`;
     setDownload(fileName, true);
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
         currentUserLogin,
     )}`;
-    fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
+    fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
 }
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
@@ -6699,6 +6945,7 @@ export {
     createChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
+    navigateToAndCreateGroupChat,
     navigateToConciergeChat,
     navigateToConciergeChatAndDeleteReport,
     clearCreateChatError,
@@ -6717,6 +6964,7 @@ export {
     saveReportActionDraft,
     saveReportDraftComment,
     searchInServer,
+    searchUserInServer,
     setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,
@@ -6760,4 +7008,5 @@ export {
     optimisticReportLastData,
     setOptimisticTransactionThread,
     prepareOnyxDataForCleanUpOptimisticParticipants,
+    getGuidedSetupDataForOpenReport,
 };

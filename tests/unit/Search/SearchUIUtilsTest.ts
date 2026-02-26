@@ -4836,7 +4836,7 @@ describe('SearchUIUtils', () => {
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
-        it('should show accounting section with statements, unapproved cash, unapproved card, and reconciliation items', () => {
+        it('should show monthly accrual and reconciliation sections with expected items', () => {
             const mockPolicies = {
                 policy1: {
                     id: 'policy1',
@@ -4888,15 +4888,22 @@ describe('SearchUIUtils', () => {
                 false,
             );
 
-            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
-            expect(accountingSection).toBeDefined();
-            expect(accountingSection?.menuItems.length).toBeGreaterThan(0);
+            const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
+            expect(monthlyAccrualSection).toBeDefined();
+            expect(monthlyAccrualSection?.menuItems.length).toBeGreaterThan(0);
 
-            const menuItemKeys = accountingSection?.menuItems.map((item) => item.key) ?? [];
-            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
-            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH);
-            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD);
-            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+            const monthlyAccrualKeys = monthlyAccrualSection?.menuItems.map((item) => item.key) ?? [];
+            expect(monthlyAccrualKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH);
+            expect(monthlyAccrualKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD);
+
+            const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
+            expect(reconciliationSection).toBeDefined();
+            expect(reconciliationSection?.menuItems.length).toBeGreaterThan(0);
+
+            const reconciliationKeys = reconciliationSection?.menuItems.map((item) => item.key) ?? [];
+            expect(reconciliationKeys).toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
+            expect(reconciliationKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD);
+            expect(reconciliationKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
 
         it('should show saved section when there are saved searches', () => {
@@ -5009,7 +5016,7 @@ describe('SearchUIUtils', () => {
             expect(todoSection).toBeUndefined();
         });
 
-        it('should not show accounting section when user has no admin permissions or card feeds', () => {
+        it('should not show monthly accrual or reconciliation sections when user has no admin permissions or card feeds', () => {
             const mockPolicies = {
                 policy1: {
                     id: 'policy1',
@@ -5037,8 +5044,10 @@ describe('SearchUIUtils', () => {
                 false,
             );
 
-            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
-            expect(accountingSection).toBeUndefined();
+            const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
+            const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
+            expect(monthlyAccrualSection).toBeUndefined();
+            expect(reconciliationSection).toBeUndefined();
         });
 
         it('should show reconciliation for ACH-only scenario (payments enabled, active VBBA, reimburser set, areExpensifyCardsEnabled = false)', () => {
@@ -5068,14 +5077,15 @@ describe('SearchUIUtils', () => {
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false);
 
-            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
-            expect(accountingSection).toBeDefined();
+            const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
+            expect(reconciliationSection).toBeDefined();
 
-            const menuItemKeys = accountingSection?.menuItems.map((item) => item.key) ?? [];
+            const menuItemKeys = reconciliationSection?.menuItems.map((item) => item.key) ?? [];
+            expect(menuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD);
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
 
-        it('should not show reconciliation for card-only scenario without card feeds (areExpensifyCardsEnabled = true but no card feeds)', () => {
+        it('should show only expensify card in reconciliation for card-only scenario without card feeds', () => {
             const mockPolicies = {
                 policy1: {
                     id: 'policy1',
@@ -5093,11 +5103,13 @@ describe('SearchUIUtils', () => {
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false);
-            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
+            const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
+            expect(reconciliationSection).toBeDefined();
 
-            expect(accountingSection).toBeDefined();
-            const menuItemKeys = accountingSection?.menuItems.map((item) => item.key) ?? [];
-            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+            const menuItemKeys = reconciliationSection?.menuItems.map((item) => item.key) ?? [];
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD);
+            expect(menuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+            expect(menuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
         });
 
         it('should generate correct routes', () => {
@@ -6082,6 +6094,7 @@ describe('SearchUIUtils', () => {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
         const backTo = '/search/all';
+        const introSelectedData: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
 
         beforeEach(() => {
             jest.clearAllMocks();
@@ -6090,23 +6103,40 @@ describe('SearchUIUtils', () => {
         test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, threadReportID, undefined, false);
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
             // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, reportAction1, undefined, undefined);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, report1, reportAction1, undefined, undefined);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, threadReportID, undefined, false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, true);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, threadReportID, undefined, true);
             // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
             // instead of the transaction thread report
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
+        });
+
+        test('Should pass introSelected to createTransactionThreadReport when creating thread', () => {
+            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
+            const customIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND};
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, customIntroSelected, backTo, threadReportID, undefined, false);
+
+            expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toEqual(customIntroSelected);
+        });
+
+        test('Should pass undefined introSelected without bypassing with empty values', () => {
+            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, backTo, threadReportID, undefined, false);
+
+            expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toBeUndefined();
         });
     });
 
@@ -6803,12 +6833,13 @@ describe('SearchUIUtils', () => {
     });
 
     describe('view autocomplete values', () => {
-        test('should include all view values (table, bar, line)', () => {
+        test('should include all view values (table, bar, line, pie)', () => {
             const viewValues = Object.values(CONST.SEARCH.VIEW);
             expect(viewValues).toContain('table');
             expect(viewValues).toContain('bar');
             expect(viewValues).toContain('line');
-            expect(viewValues).toHaveLength(3);
+            expect(viewValues).toContain('pie');
+            expect(viewValues).toHaveLength(4);
         });
 
         test('should correctly map view values to user-friendly values', () => {
@@ -6816,7 +6847,7 @@ describe('SearchUIUtils', () => {
             const userFriendlyValues = viewValues.map((value) => getUserFriendlyValue(value));
 
             // All view values should be mapped (they may be the same or different)
-            expect(userFriendlyValues).toHaveLength(3);
+            expect(userFriendlyValues).toHaveLength(4);
             expect(userFriendlyValues.every((value) => typeof value === 'string')).toBe(true);
         });
     });

@@ -2,8 +2,6 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
@@ -51,7 +49,7 @@ function BaseListItem<TItem extends ListItem>({
     accessibilityRole = getButtonRole(true),
     accessible,
 }: BaseListItemProps<TItem>) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -161,7 +159,7 @@ function BaseListItem<TItem extends ListItem>({
                         >
                             <View>
                                 <Icon
-                                    src={Expensicons.Checkmark}
+                                    src={icons.Checkmark}
                                     fill={theme.success}
                                 />
                             </View>
@@ -171,7 +169,7 @@ function BaseListItem<TItem extends ListItem>({
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
                                 testID={CONST.DOT_INDICATOR_TEST_ID}
-                                src={Expensicons.DotIndicator}
+                                src={icons.DotIndicator}
                                 fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger}
                             />
                         </View>

@@ -18,7 +18,7 @@ import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 function GPSTripStateChecker() {
     const {translate} = useLocalize();
     const [showContinueTripModal, setShowContinueTripModal] = useState(false);
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {isOffline} = useNetwork();
 
     const {splashScreenState} = useSplashScreenState();
