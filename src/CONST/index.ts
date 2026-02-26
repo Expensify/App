@@ -8685,10 +8685,6 @@ const CONST = {
         NEW_CHAT: {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
-        USER_LIST_ITEM: {
-            LEFT_CHECKBOX: 'UserListItem-LeftCheckbox',
-            RIGHT_CHECKBOX: 'UserListItem-RightCheckbox',
-        },
         WORKSPACE_EXPENSIFY_CARD: {
             CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
         },
@@ -8893,6 +8889,8 @@ const CONST = {
         USER_LIST_ITEM: {
             CHECKBOX: 'UserListItem-Checkbox',
             CHECKBOX_RIGHT: 'UserListItem-CheckboxRight',
+            LEFT_CHECKBOX: 'UserListItem-LeftCheckbox',
+            RIGHT_CHECKBOX: 'UserListItem-RightCheckbox',
         },
         USER_LIST_ITEM_WITH_SECTIONS: {
             CHECKBOX: 'UserListItemWithSections-Checkbox',
