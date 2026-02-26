@@ -34,7 +34,7 @@ type SearchPageWideProps = {
 };
 
 function SearchPageWide({route}: SearchPageWideProps) {
-    const queryJSON = buildSearchQueryJSON(route.params.q, route.params.rawQuery);
+    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
