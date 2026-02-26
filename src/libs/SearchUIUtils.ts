@@ -444,6 +444,7 @@ type SearchTypeMenuItem = {
     searchQueryJSON: SearchQueryJSON | undefined;
     hash: number;
     similarSearchHash: number;
+    recentSearchHash: number;
     badgeText?: string;
     emptyState?: {
         title: TranslationPaths;
@@ -528,6 +529,9 @@ function createTopSearchMenuItem(
         get similarSearchHash() {
             return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
         },
+        get recentSearchHash() {
+            return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+        },
     };
 }
 
@@ -566,6 +570,9 @@ function getSuggestedSearches(
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
         },
         [CONST.SEARCH.SEARCH_KEYS.REPORTS]: {
             key: CONST.SEARCH.SEARCH_KEYS.REPORTS,
@@ -582,6 +589,9 @@ function getSuggestedSearches(
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
         },
         [CONST.SEARCH.SEARCH_KEYS.CHATS]: {
             key: CONST.SEARCH.SEARCH_KEYS.CHATS,
@@ -597,6 +607,9 @@ function getSuggestedSearches(
             },
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: {
@@ -618,6 +631,9 @@ function getSuggestedSearches(
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
         },
         [CONST.SEARCH.SEARCH_KEYS.APPROVE]: {
             key: CONST.SEARCH.SEARCH_KEYS.APPROVE,
@@ -637,6 +653,9 @@ function getSuggestedSearches(
             },
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.PAY]: {
@@ -659,6 +678,9 @@ function getSuggestedSearches(
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
         },
         [CONST.SEARCH.SEARCH_KEYS.EXPORT]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPORT,
@@ -679,6 +701,9 @@ function getSuggestedSearches(
             },
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: {
@@ -701,6 +726,9 @@ function getSuggestedSearches(
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
         },
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: {
             key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
@@ -722,6 +750,9 @@ function getSuggestedSearches(
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
         },
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: {
             key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
@@ -742,6 +773,9 @@ function getSuggestedSearches(
             },
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD]: {
@@ -771,6 +805,9 @@ function getSuggestedSearches(
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
         },
         [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: {
             key: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
@@ -798,6 +835,9 @@ function getSuggestedSearches(
             },
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: {
@@ -831,6 +871,9 @@ function getSuggestedSearches(
             },
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
         [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: createTopSearchMenuItem(
@@ -873,6 +916,9 @@ function getSuggestedSearches(
             },
             get similarSearchHash() {
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
     };
@@ -3477,9 +3523,9 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function isTodoSearch(similarSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
+function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
     const TODO_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT];
-    const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key;
+    const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key;
     return !!matchedSearchKey && TODO_KEYS.includes(matchedSearchKey);
 }
 

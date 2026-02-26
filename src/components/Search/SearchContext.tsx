@@ -84,6 +84,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     const selectedTransactions = searchContextData.selectedTransactions;
     const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
     const currentSearchHash = searchContextData.currentSearchQueryJSON?.hash ?? -1;
+    const currentRecentSearchHash = searchContextData.currentSearchQueryJSON?.recentSearchHash ?? -1;
     const currentSimilarSearchHash = searchContextData.currentSearchQueryJSON?.similarSearchHash ?? -1;
 
     const todoSearchResultsData = useTodos();
@@ -97,7 +98,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         return Object.values(suggestedSearches).find((search) => search.similarSearchHash === currentSimilarSearchHash)?.key;
     }, [currentSimilarSearchHash, suggestedSearches]);
 
-    const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentSimilarSearchHash, suggestedSearches);
+    const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentRecentSearchHash, suggestedSearches);
 
     // If viewing a to-do search, use live data from useTodos, otherwise return the snapshot data
     // We do this so that we can show the counters for the to-do search results without visiting the specific to-do page, e.g. show `Approve [3]` while viewing the `Submit` to-do search.
