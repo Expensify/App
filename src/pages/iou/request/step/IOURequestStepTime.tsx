@@ -51,7 +51,7 @@ function IOURequestStepTime({
     report,
 }: IOURequestStepTimeProps) {
     const styles = useThemeStyles();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const iouPolicyID = getIOURequestPolicyID(transaction, report);
     const {policy} = usePolicyForTransaction({
         transaction,

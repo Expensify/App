@@ -29,9 +29,9 @@ type PersonalCardEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorP
 
 function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const {cardID} = route.params;
-    const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
-    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true, selector: cardByIdSelector(cardID)});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const defaultValue = customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName);
 

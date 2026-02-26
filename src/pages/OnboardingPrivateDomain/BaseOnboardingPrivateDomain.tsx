@@ -24,11 +24,11 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const [hasMagicCodeBeenSent, setHasMagicCodeBeenSent] = useState(false);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {canBeMissing: true});
-    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES, {canBeMissing: true});
+    const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
+    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
@@ -38,7 +38,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
 
     const isValidated = isCurrentUserValidated(loginList, session?.email);
 
-    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 

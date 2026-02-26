@@ -31,7 +31,7 @@ const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authT
 function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = true, cancelSearch, shouldShowLoadingBar = false, children}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector, canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const isAnonymousUser = isAnonymousUserUtil(session);
 

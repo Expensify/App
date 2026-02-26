@@ -17,7 +17,6 @@ import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -75,10 +74,10 @@ function IOURequestStepParticipants({
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`);
     const [allPolicies] = useMappedPolicies(policyMapper);
 
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,10 +109,10 @@ function IOURequestStepParticipants({
     }, [iouType, translate, isSplitRequest, action]);
 
     const selfDMReportID = findSelfDMReportID();
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -127,7 +126,6 @@ function IOURequestStepParticipants({
 
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
-        Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
     }, []);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -359,7 +357,6 @@ function IOURequestStepParticipants({
                 ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, initialTransactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
                 : iouConfirmationPageRoute;
 
-            Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
             waitForKeyboardDismiss(() => {
                 // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
                 // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
