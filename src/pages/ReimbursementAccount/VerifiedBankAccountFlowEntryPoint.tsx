@@ -61,6 +61,9 @@ type VerifiedBankAccountFlowEntryPointProps = {
 
     /** Method to set the state of shouldShowContinueSetupButton */
     setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
+
+    /** Whether the user is coming from the expensify card */
+    isComingFromExpensifyCard?: boolean;
 };
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
@@ -75,6 +78,7 @@ function VerifiedBankAccountFlowEntryPoint({
     isNonUSDWorkspace,
     setUSDBankAccountStep,
     setShouldShowContinueSetupButton,
+    isComingFromExpensifyCard,
 }: VerifiedBankAccountFlowEntryPointProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -151,7 +155,7 @@ function VerifiedBankAccountFlowEntryPoint({
         }
 
         if (isNonUSDWorkspace) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.CURRENCY_AND_COUNTRY}));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.CURRENCY_AND_COUNTRY, isComingFromExpensifyCard: true}));
             return;
         }
 

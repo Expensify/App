@@ -273,13 +273,26 @@ const ROUTES = {
     },
     BANK_ACCOUNT_NON_USD_SETUP: {
         route: 'bank-account/new/global/:page?/:subPage?/:action?',
-        getRoute: ({policyID, page, subPage, action}: {policyID?: string; page?: string; subPage?: string; action?: 'edit'}) => {
+        getRoute: ({
+            policyID,
+            page,
+            subPage,
+            action,
+            isComingFromExpensifyCard,
+        }: {
+            policyID?: string;
+            page?: string;
+            subPage?: string;
+            action?: 'edit';
+            isComingFromExpensifyCard?: boolean;
+        }) => {
             const base = 'bank-account/new/global';
             const pagePart = page ? `/${page}` : '';
             const subPagePart = subPage ? `/${subPage}` : '';
             const actionPart = action ? `/${action}` : '';
-            const policyIDPart = policyID ? `?policyID=${policyID}` : '';
-            return `${base}${pagePart}${subPagePart}${actionPart}${policyIDPart}` as const;
+            const queryParams = [policyID ? `policyID=${policyID}` : '', isComingFromExpensifyCard ? `isComingFromExpensifyCard=${isComingFromExpensifyCard}` : ''].filter(Boolean).join('&');
+            const queryString = queryParams ? `?${queryParams}` : '';
+            return `${base}${pagePart}${subPagePart}${actionPart}${queryString}` as const;
         },
     },
     SETTINGS: 'settings',

@@ -44,6 +44,8 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
     const currentPage = route.params?.page;
+    const currentSubPage = route.params?.subPage;
+    const isComingFromExpensifyCard = route.params?.isComingFromExpensifyCard
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -67,8 +69,8 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
             Navigation.goBack();
             return;
         }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? '', page: pages.at(nextIndex)?.pageName}));
-    }, [currentPageIndex, pages, policyID]);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? '', page: pages.at(nextIndex)?.pageName, isComingFromExpensifyCard}));
+    }, [currentPageIndex, isComingFromExpensifyCard, pages, policyID]);
 
     const onBackButtonPress = useCallback(() => {
         Navigation.goBack();
@@ -82,6 +84,8 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
                 policyID={policyID}
                 policyCurrency={policyCurrency}
                 stepNames={stepNames}
+                currentSubPage={currentSubPage}
+                isComingFromExpensifyCard={isComingFromExpensifyCard}
             />
         </View>
     );

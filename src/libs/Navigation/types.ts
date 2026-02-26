@@ -2224,6 +2224,7 @@ type ReimbursementAccountNavigatorParamList = {
         subPage?: string;
         action?: 'edit';
         policyID?: string;
+        isComingFromExpensifyCard?: boolean;
     };
     [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: {
         // TODO this backTo comes from drilling it through bank account form screens

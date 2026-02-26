@@ -351,7 +351,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const continueNonUSDVBBASetup = () => {
         setShouldShowContinueSetupButton(false);
         const startPage = getStartPageForContinueSetup(achData, nonUSDCountryDraftValue, policyCurrency, reimbursementAccountDraft);
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyIDParam ?? '', page: startPage}));
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyIDParam ?? '', page: startPage, isComingFromExpensifyCard}));
     };
 
     const goBack = useCallback(() => {
@@ -530,6 +530,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             isNonUSDWorkspace={isNonUSDSetup}
             setUSDBankAccountStep={setUSDBankAccountStep}
             policyID={policyIDParam}
+            isComingFromExpensifyCard={isComingFromExpensifyCard}
         />
     );
 }
