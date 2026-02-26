@@ -89,7 +89,6 @@ function PressableWithDelayToggle({
     iconWidth = variables.iconSizeSmall,
     iconHeight = variables.iconSizeSmall,
     shouldUseButtonBackground = false,
-    sentryLabel,
 }: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -147,7 +146,6 @@ function PressableWithDelayToggle({
                     <PressableWithoutFeedback
                         tabIndex={-1}
                         accessible={false}
-                        sentryLabel={sentryLabel}
                         onPress={updatePressState}
                         sentryLabel={sentryLabel ?? CONST.SENTRY_LABEL.PRESSABLE_WITH_DELAY_TOGGLE.BUTTON}
                         style={({hovered, pressed}) => [
