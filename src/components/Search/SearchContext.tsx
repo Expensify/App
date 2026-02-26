@@ -75,14 +75,11 @@ function SearchContextProvider({children}: ChildrenProps) {
     const queryJSON = useMemo(() => buildSearchQueryJSON(queryParam, rawQueryParam), [queryParam, rawQueryParam]);
 
     const areTransactionsEmpty = useRef(true);
+    const [lastSearchType, setLastSearchType] = useState<string>();
     const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
     const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
     const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
-    const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
-    const [searchContextData, setSearchContextData] = useState({
-        ...defaultSearchContextData,
-        currentSearchQueryJSON: queryJSON,
-    });
+    const [searchContextData, setSearchContextData] = useState({...defaultSearchContextData, currentSearchQueryJSON: queryJSON});
 
     const selectedReports = searchContextData.selectedReports;
     const selectedTransactions = searchContextData.selectedTransactions;
