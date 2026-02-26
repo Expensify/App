@@ -17,7 +17,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
-import type {SearchKey} from '@libs/SearchUIUtils';
+import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -161,6 +161,7 @@ type SearchContextData = {
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
+    suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
     shouldResetSearchQuery: boolean;

@@ -336,7 +336,7 @@ const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'var
  * Computes and returns a numerical hash for a given queryJSON.
  * Sorts the query keys and values to ensure that hashes stay consistent.
  */
-function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSearchHash: number; similarSearchHash: number} {
+function getQueryHashes(query: SearchQueryJSON) {
     let orderedQuery = '';
     orderedQuery += `${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${query.type}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;

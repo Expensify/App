@@ -2,9 +2,11 @@ import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
+import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useTodos from '@hooks/useTodos';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
+import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -33,6 +35,7 @@ const defaultSearchContextData: SearchContextData = {
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
     selectedTransactions: {},
+    suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
     selectedTransactionIDs: [],
     selectedReports: [],
     isOnSearch: false,
@@ -69,6 +72,7 @@ const SearchActionsContext = React.createContext<SearchActionsContextValue>(defa
 
 function SearchContextProvider({children}: ChildrenProps) {
     const areTransactionsEmpty = useRef(true);
+
     const [lastSearchType, setLastSearchType] = useState<string>();
     const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
     const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
@@ -84,8 +88,9 @@ function SearchContextProvider({children}: ChildrenProps) {
     const todoSearchResultsData = useTodos();
     const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`);
 
+    const {defaultCardFeed} = useCardFeedsForDisplay();
     const {accountID} = useCurrentUserPersonalDetails();
-    const suggestedSearches = getSuggestedSearches(accountID);
+    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeed?.id);
 
     const currentSearchKey = useMemo(() => {
         return Object.values(suggestedSearches).find((search) => search.similarSearchHash === currentSimilarSearchHash)?.key;
@@ -251,6 +256,7 @@ function SearchContextProvider({children}: ChildrenProps) {
 
     const searchStateContextValue: SearchStateContextValue = {
         ...searchContextData,
+        suggestedSearches,
         currentSearchKey,
         currentSearchHash,
         currentSimilarSearchHash,

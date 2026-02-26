@@ -21,7 +21,6 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
-import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -51,7 +50,6 @@ import {
     getListItem,
     getSections,
     getSortedSections,
-    getSuggestedSearches,
     getWideAmountIndicators,
     isGroupedItemArray,
     isReportActionListItemType,
@@ -238,6 +236,7 @@ function Search({
         areAllMatchingItemsSelected,
         shouldResetSearchQuery,
         shouldUseLiveData,
+        suggestedSearches,
     } = useSearchStateContext();
 
     const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
@@ -271,8 +270,6 @@ function Search({
     const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
-    const {defaultCardFeed} = useCardFeedsForDisplay();
-    const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, hash, offset === 0);
 

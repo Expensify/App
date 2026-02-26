@@ -12505,7 +12505,6 @@ function shouldOptimisticallyUpdateSearch(
     const suggestedSearches = getSuggestedSearches(userAccountID);
     const submitQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQueryJSON;
     const approveQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQueryJSON;
-
     const unapprovedCashSimilarSearchHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH].similarSearchHash;
 
     const validSearchTypes =
