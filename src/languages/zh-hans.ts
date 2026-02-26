@@ -939,13 +939,13 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: '修复',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `修复 ${feedName} 公司卡连接` : '修复公司卡连接'),
-                defaultSubtitle: '工作区 > 公司卡片',
+                defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 公司卡片`,
             },
-            fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `修复 ${cardName} 个人卡连接` : '修复个人银行卡连接'), subtitle: '钱包 > 已分配的卡片'},
+            fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `修复 ${cardName} 个人卡连接` : '修复个人银行卡连接'), subtitle: '钱包'},
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `修复 ${integrationName} 连接`,
-                defaultSubtitle: '工作区 > 会计',
+                defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
         },
@@ -1733,6 +1733,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: '新联系方式',
         goBackContactMethods: '返回联系方式',
+        yourDefaultContactMethodRestrictedSwitch: '这是你当前的默认联系方式。你的公司已限制移除或更改它。',
     },
     pronouns: {
         coCos: '公司/成本',
@@ -6918,6 +6919,8 @@ ${reportName}
         groupColumns: '分组列',
         expenseColumns: '报销列',
         statements: '对账单',
+        cardStatements: '卡对账单',
+        monthlyAccrual: '月度计提',
         unapprovedCash: '未批准现金',
         unapprovedCard: '未批准的卡片',
         reconciliation: '对账',
