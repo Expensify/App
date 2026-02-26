@@ -1,30 +1,33 @@
 ---
-title: INT149 Export Error: Employee Record Couldn’t Be Found in Sage Intacct
-description: Learn why the INT149 export error occurs and how to resolve missing or duplicate employee records before retrying the export.
-keywords: INT149, employee record not found Sage Intacct, duplicate employee email error, employee email mismatch, Sage Intacct employee sync error
-internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers the INT149 export error related to missing or duplicate employee records based on email address. Does not cover vendor record or approval configuration errors.
+title: INT149 Export Error in Sage Intacct Integration
+description: Learn what the INT149 export error means and how to resolve missing or duplicate employee records in Sage Intacct before retrying the export.
+keywords: INT149, Sage Intacct employee record not found, duplicate employee email Sage Intacct, employee email mismatch Intacct, Sage Intacct employee export error, Workspace Admin
+internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers resolving the INT149 export error caused by missing, mismatched, or duplicate employee records based on email address. Does not cover vendor record or approval configuration errors.
 ---
 
-# INT149 Export Error: Employee Record Couldn’t Be Found in Sage Intacct
+# INT149 Export Error in Sage Intacct Integration
 
-If you see the error message:
+If you see the error:
 
-**“INT149 Export Error: The employee record couldn’t be found in Sage Intacct. Ensure the employee record exists, the email matches Expensify exactly, and there are no duplicate employee records using the same email.”**
+INT149 Export Error: The employee record couldn’t be found in Sage Intacct. Ensure the employee record exists, the email matches Expensify exactly, and there are no duplicate employee records using the same email.
 
-It means Sage Intacct cannot match the report creator or submitter to a single employee record.
+This means Sage Intacct cannot match the report creator or submitter to a single employee record.
 
 The employee must exist in Sage Intacct, and the email must match exactly.
 
 ---
 
-## Why the INT149 Export Error Happens
+## Why the INT149 Export Error Happens in Sage Intacct
 
-The INT149 export error occurs when:
+The INT149 error typically occurs when:
 
-- The report creator’s email in Expensify does not exist on any employee record in Sage Intacct, or  
-- The same email address is assigned to multiple employee records in Sage Intacct  
+- The report creator’s email does not exist on any employee record in Sage Intacct.
+- The same email address is assigned to multiple employee records.
+- The email address does not exactly match the one used in the Workspace.
 
-Sage Intacct must be able to uniquely match the email address to one employee profile. If it cannot, the export fails.
+Sage Intacct matches employees by email. If it cannot uniquely match the email to one employee profile, the export fails.
+
+This is an employee record matching issue, not a vendor or approval configuration issue.
 
 ---
 
@@ -34,43 +37,49 @@ Follow the steps below to correct the employee record and retry the export.
 
 ---
 
-## Step 1: Confirm the Employee Record in Sage Intacct
+## Confirm the Employee Record in Sage Intacct
 
-1. Log in to Sage Intacct.  
-2. Locate the employee record for the report creator or submitter.  
-3. Confirm that the email address:
-   - Matches the email used in Expensify exactly  
-   - Is assigned to only one employee record  
+1. Log in to Sage Intacct.
+2. Go to **Time & Expenses > Employees**.
+3. Locate the employee record for the report creator or submitter.
+4. Confirm that the email address:
+   - Matches the email used in the Workspace exactly.
+   - Is assigned to only one employee record.
 
 ---
 
-## Step 2: Update the Employee Email if Needed
+## Update the Employee Email if Needed
 
 If an employee record exists but does not list the correct email:
 
-1. Add the correct email address to the employee profile.  
-2. Save your changes.  
+1. Add or update the email address to match the one used in the Workspace.
+2. Click **Save**.
 
-If multiple employee records are tied to the same email address:
+If multiple employee records share the same email address:
 
-1. Remove the email address from all but one employee record.  
-2. Save your changes.  
+1. Remove the duplicate email from all but one employee record, or
+2. Deactivate duplicate employee profiles if appropriate.
+3. Click **Save**.
 
 Each email address must be associated with only one employee profile.
 
 ---
 
-## Step 3: Run Sync
+## Sync the Workspace
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**.  
-2. Click the three-dot icon next to the connection.  
-3. Select **Sync Now** from the dropdown.  
+After updating the employee record:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
 
 ---
 
-## Step 4: Retry the Export
+## Retry the Export
 
-Return to the report and retry the export.
+1. Open the report.
+2. Retry exporting to Sage Intacct.
 
 If the employee record exists and the email matches exactly with no duplicates, the export should complete successfully.
 
@@ -78,14 +87,14 @@ If the employee record exists and the email matches exactly with no duplicates, 
 
 # FAQ
 
-## Does the email need to match capitalization exactly?
+## Does the Email Need to Match Capitalization Exactly?
 
 Yes. The email must match exactly, including spelling and capitalization.
 
-## Can multiple employees share the same email?
+## Can Multiple Employees Share the Same Email?
 
 No. Each employee record must have a unique email address.
 
-## Do I need to reconnect the integration?
+## Do I Need to Reconnect the Integration?
 
-No. Updating the employee record and running **Sync Now** is typically sufficient.
+No. Updating the employee record and selecting **Sync Now** is typically sufficient.
