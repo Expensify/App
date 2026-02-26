@@ -1,30 +1,31 @@
 ---
-title: INT028 Export Error: Employee Location Is Required in Sage Intacct
-description: Learn why the INT028 export error occurs and how to add a required Location to the employee profile before retrying the export.
-keywords: INT028, Sage Intacct employee location required, employee profile missing location, export failure location field, Sage Intacct employee configuration
-internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers the INT028 export error related to missing employee Location fields. Does not cover approval or journal configuration errors.
+title: INT028 Export Error in Sage Intacct Integration
+description: Learn what the INT028 export error means and how to add a required Location to the employee profile before retrying the export.
+keywords: INT028, Sage Intacct employee location required, employee profile missing Location Intacct, export failure Location field, Sage Intacct employee configuration, Workspace Admin
+internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers resolving the INT028 export error caused by missing employee Location settings. Does not cover approval or journal configuration errors.
 ---
 
-# INT028 Export Error: Employee Location Is Required in Sage Intacct
+# INT028 Export Error in Sage Intacct Integration
 
-If you see the error message:
+If you see the error:
 
-**“INT028 Export Error: Sage Intacct requires employees to have a location. Please add a location to the employee profile, sync, and attempt to export the report again.”**
+INT028 Export Error: Sage Intacct requires employees to have a location. Please add a location to the employee profile, sync, and attempt to export the report again.
 
-It means the employee associated with the report does not have a **Location** assigned in Sage Intacct.
+This means the employee associated with the report does not have a **Location** assigned in Sage Intacct.
 
-If the Location field is required and missing, Sage Intacct blocks the export.
+If the **Location** field is required and not populated, Sage Intacct blocks the export.
 
 ---
 
-## Why the INT028 Export Error Happens
+## Why the INT028 Export Error Happens in Sage Intacct
 
-The INT028 export error occurs when:
+The INT028 error typically occurs when:
 
-- The **Location** field is required for employees in Sage Intacct, and  
-- The report creator or submitter does not have a Location assigned in their employee profile  
+- The **Location** field is configured as required in Sage Intacct.
+- The report creator or submitter’s employee profile does not have a Location assigned.
+- Sage Intacct validation fails due to missing required employee data.
 
-Sage Intacct requires all mandatory employee fields to be populated before transactions can be created.
+This is an employee profile configuration issue, not a coding, dimension, or approval configuration error.
 
 ---
 
@@ -34,27 +35,31 @@ Follow the steps below to update the employee profile and retry the export.
 
 ---
 
-## Step 1: Add a Location to the Employee Profile in Sage Intacct
+## Add a Location to the Employee Profile in Sage Intacct
 
-1. Log in to Sage Intacct.  
-2. Locate the employee profile for the report creator or submitter.  
-3. Confirm that a valid **Location** is listed.  
-4. If the Location field is empty, add the appropriate Location.  
-5. Save your changes.  
-
----
-
-## Step 2: Run Sync
-
-1. Go to **Workspaces > [Workspace Name] > Accounting**.  
-2. Click the three-dot icon next to the Sage Intacct connection.  
-3. Select **Sync Now** from the dropdown.  
+1. Log in to Sage Intacct.
+2. Locate the employee profile for the report creator or submitter.
+3. Confirm a valid **Location** is listed.
+4. If the Location field is empty, add the appropriate Location.
+5. Click **Save**.
 
 ---
 
-## Step 3: Retry the Export
+## Sync the Workspace
 
-Return to the report and retry the export.
+After updating the employee profile:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
+
+---
+
+## Retry the Export
+
+1. Open the report.
+2. Retry exporting to Sage Intacct.
 
 If the employee profile includes a valid Location, the export should complete successfully.
 
@@ -62,14 +67,14 @@ If the employee profile includes a valid Location, the export should complete su
 
 # FAQ
 
-## Does the Location need to match a specific value?
+## Does the Location Need to Match a Specific Value?
 
 Yes. The Location must be valid and active in Sage Intacct.
 
-## Does this error apply to vendor bill exports?
+## Does This Error Apply to Vendor Bill Exports?
 
 No. This error applies to employee-based exports that require employee profile validation.
 
-## Do I need Sage Intacct admin permissions to update the employee profile?
+## Do I Need Sage Intacct Admin Permissions to Update the Employee Profile?
 
 Yes. Editing employee records typically requires appropriate administrative permissions in Sage Intacct.
