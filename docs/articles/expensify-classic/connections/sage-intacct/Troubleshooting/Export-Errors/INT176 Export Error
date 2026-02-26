@@ -1,0 +1,54 @@
+---
+title: INT176 Export Error: Session Initialization Error
+description: Learn why the INT176 export error occurs and what to do when there is a connection issue between Expensify and Sage Intacct.
+keywords: INT176, Sage Intacct session initialization error, Sage Intacct connection error, Sage Intacct export failure, Expensify Sage Intacct integration issue
+internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers the INT176 export error related to session or connection issues. Does not cover tag validation or employee record errors.
+---
+
+# INT176 Export Error: Session Initialization Error
+
+If you see the error message:
+
+**“INT176 Export Error: Session initialization error. Please reach out to Concierge for additional support.”**
+
+It means there is a connection issue between Expensify and Sage Intacct that is preventing the export from starting.
+
+---
+
+## Why the INT176 Export Error Happens
+
+The INT176 export error indicates a session or authentication issue between Expensify and Sage Intacct.
+
+This can occur if:
+
+- The Sage Intacct session cannot be initialized  
+- The integration connection is temporarily interrupted  
+- There is a configuration or authentication issue  
+
+Because this error relates to the integration session itself, it cannot be resolved by updating report data.
+
+---
+
+# How to Fix the INT176 Export Error
+
+This error requires additional investigation.
+
+Please reach out to **Concierge** for support. Include:
+
+- The full error message  
+- The report name or ID  
+- The time the export was attempted  
+
+Concierge will review the integration logs and help restore the connection so you can successfully export your report.
+
+---
+
+# FAQ
+
+## Can I fix this by running Sync now?
+
+No. This error is related to session initialization and typically requires backend review.
+
+## Does this mean my Sage Intacct integration is disconnected?
+
+Not necessarily. It indicates a session issue, but Concierge will confirm whether the connection needs to be refreshed or reconfigured.
