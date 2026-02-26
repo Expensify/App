@@ -1,94 +1,64 @@
 ---
-title: CER089 Export Error: Assignment Required for Project
-description: Learn why CER089 appears when exporting to Certinia and how to update Project settings to allow expenses without an assignment.
-keywords: CER089, Certinia error CER089, assignment required for project, allow expense without assignment, Certinia project attributes, Certinia export error, Sync Now, Workspace Admin
-internalScope: Audience is Workspace Admins using the Certinia integration. Covers resolving the CER089 project assignment requirement error and re-syncing the Workspace. Does not cover unrelated Certinia project configuration or assignment policy design.
+title: CER089 Export Error in Certinia Integration
+description: Learn what the CER089 export error means in Certinia and how to update Project settings to restore successful exports.
+keywords: CER089, Certinia export error, assignment required for project, allow expense without assignment, Certinia project configuration, Expensify Certinia sync error, Workspace Admin
+internalScope: Audience is Workspace Admins using the Certinia integration. Covers resolving the CER089 export error caused by Project assignment requirements. Does not cover other Certinia error codes.
 ---
 
-# CER089 Export Error: Assignment Required for Project
+# CER089 Export Error in Certinia Integration
 
 If you see the error:
 
-**“CER089 Export Error: Assignment required for 'Project'. Please add assignment in Certinia.”**
+CER089: Assignment required for Project.
 
-this means the selected Project in Certinia requires an assignment before expenses can be exported.
-
-Until this requirement is addressed, Certinia will block the export.
+This means the selected Project in Certinia requires an assignment before expenses can be exported, preventing the export from completing.
 
 ---
 
-## Why CER089 Happens
+## Why the CER089 Export Error Happens in Certinia
 
-In Certinia, some Project configurations require expenses to be linked to an assignment.
+The CER089 error typically indicates:
 
-If the Project setting does not allow expenses without an assignment, and no assignment is associated with the expense, Certinia fails validation and returns error **CER089**.
+- The Project configuration requires expenses to be linked to an assignment.
+- The expense being exported does not have an associated assignment.
+- Certinia validation failed due to Project assignment rules.
 
-This is a Certinia Project configuration issue — not an Expensify Workspace configuration issue.
-
----
-
-## Who Can Fix CER089
-
-You must have access to edit Project settings in Certinia (typically a Certinia Admin or Project Admin) to resolve this error.
+This is a Certinia Project configuration issue, not a Workspace configuration issue.
 
 ---
 
-## How to Allow Expenses Without an Assignment in Certinia
+## How to Fix the CER089 Export Error
+
+This issue must be resolved in Certinia.
 
 1. Log in to Certinia.
 2. Go to **Projects**.
-3. Select the affected **Project Name**.
+3. Select the affected Project.
 4. Navigate to **Project Attributes**.
 5. Enable **Allow Expense Without Assignment**.
 6. Save your changes.
 
-Enabling this setting allows expenses to export without requiring a linked assignment.
+After updating the Project:
 
----
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
 
-## How to Sync Certinia After Updating Project Settings
-
-After updating the Project settings, re-sync the connection in Expensify.
-
-1. Go to the navigation tabs on the left.
-2. Click **Settings**.
-3. Click **Workspaces**.
-4. Select your Workspace.
-5. Click **Accounting**.
-6. Click **Sync Now**.
-
----
-
-## How to Retry Exporting After CER089
-
-After syncing:
-
-1. Open the report you attempted to export.
-2. Retry the export.
-3. Confirm the export completes successfully.
-
-If the error continues, confirm that:
-
-- The correct Project was updated.
-- **Allow Expense Without Assignment** is enabled.
-- The change was saved before syncing.
+Then retry exporting the report.
 
 ---
 
 # FAQ
 
-## Does CER089 mean the Project is invalid?
+## Can I Retry the Export?
+
+Yes. After enabling **Allow Expense Without Assignment** and selecting **Sync Now**, retry the export. If the error persists, confirm the correct Project was updated.
+
+## Does CER089 Mean the Project Is Invalid?
 
 No. The Project is valid, but its configuration requires an assignment before expenses can be exported.
 
----
+## Is CER089 Caused by Workspace Settings?
 
-## Is CER089 caused by Expensify settings?
-
-No. CER089 is triggered by Project configuration settings in Certinia, not by Workspace settings in Expensify.
-
----
-
-## Do I need to reconnect the Certinia integration?
-
-No. In most cases, updating the Project setting and selecting **Sync Now** resolves the issue.
+No. CER089 is triggered by Project configuration settings in Certinia. Workspace accounting settings are not the cause.
