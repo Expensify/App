@@ -77,7 +77,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         isLoading,
         loadMore,
         hasMore,
-        isLoadingMore,
     } = useFilteredOptions({
         maxRecentReports: 500,
         enabled: didScreenTransitionEnd,
@@ -202,7 +201,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     }, [draftSelectedOptions, setSelectedOptions]);
 
     const handleEndReached = () => {
-        if (!hasMore || isLoadingMore || !areOptionsInitialized) {
+        if (!hasMore || !areOptionsInitialized) {
             return;
         }
         loadMore();
@@ -218,7 +217,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         setSelectedOptions,
         headerMessage,
         handleEndReached,
-        isLoadingMore,
     };
 }
 
@@ -256,7 +254,6 @@ function NewChatPage({ref}: NewChatPageProps) {
         searchTerm,
         debouncedSearchTerm,
         handleEndReached,
-        isLoadingMore,
         setSearchTerm,
         selectedOptions,
         setSelectedOptions,
@@ -499,7 +496,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 footerContent={footerContent}
                 showLoadingPlaceholder={!areOptionsInitialized}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                isLoadingNewOptions={!!isSearchingForReports || isLoadingMore}
+                isLoadingNewOptions={!!isSearchingForReports}
                 onEndReached={handleEndReached}
                 onEndReachedThreshold={0.75}
                 initiallyFocusedOptionKey={firstKeyForList}
