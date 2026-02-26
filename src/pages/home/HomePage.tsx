@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import variables from '@styles/variables';
 import AnnouncementSection from './AnnouncementSection';
+import AssignedCardsSection from './AssignedCardsSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
@@ -71,6 +72,7 @@ function HomePage() {
                             <DiscoverSection />
                         </View>
                         <View style={styles.homePageRightColumn(shouldUseNarrowLayout)}>
+                            <AssignedCardsSection />
                             <AnnouncementSection />
                         </View>
                     </View>

@@ -80,6 +80,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -522,6 +523,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -551,6 +553,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -584,6 +587,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -613,6 +617,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -639,6 +644,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -666,6 +672,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -691,6 +698,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -716,6 +724,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -741,6 +750,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.EMPLOYER},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -766,6 +776,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -803,6 +814,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -816,6 +828,352 @@ describe('actions/Policy', () => {
             );
 
             apiWriteSpy.mockRestore();
+        });
+
+        it('should pass isSelfTourViewed as true when creating workspace with selfTourViewed flag', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            // When creating a workspace with isSelfTourViewed set to true
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then API.write should be called with CREATE_WORKSPACE command
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.CREATE_WORKSPACE,
+                expect.objectContaining({
+                    policyID,
+                }),
+                expect.anything(),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should pass isSelfTourViewed as false when creating workspace without selfTourViewed flag', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            // When creating a workspace with isSelfTourViewed set to false
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then API.write should be called with CREATE_WORKSPACE command
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.CREATE_WORKSPACE,
+                expect.objectContaining({
+                    policyID,
+                }),
+                expect.anything(),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should mark VIEW_TOUR task as completed in guidedSetupData when isSelfTourViewed is true', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            // When creating a workspace with isSelfTourViewed set to true
+            // Use LOOKING_AROUND as introSelected.choice to ensure VIEW_TOUR task is included
+            // (VIEW_TOUR is filtered out when both introSelected.choice and engagementChoice are MANAGE_TEAM)
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Extract the guidedSetupData from the API call
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
+            expect(apiCallArgs).toBeDefined();
+            const params = apiCallArgs?.[1] as {guidedSetupData?: string};
+            expect(params.guidedSetupData).toBeDefined();
+
+            // Parse the guidedSetupData and find the VIEW_TOUR task
+            type GuidedSetupItem = {task?: string; completedTaskReportActionID?: string};
+            const guidedSetupData = JSON.parse(params.guidedSetupData ?? '[]') as GuidedSetupItem[];
+            const viewTourTask = guidedSetupData.find((item) => item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+
+            // VIEW_TOUR task should have completedTaskReportActionID set when isSelfTourViewed is true
+            expect(viewTourTask).toBeDefined();
+            expect(viewTourTask?.completedTaskReportActionID).toBeDefined();
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should not mark VIEW_TOUR task as completed in guidedSetupData when isSelfTourViewed is false', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            // When creating a workspace with isSelfTourViewed set to false
+            // Use LOOKING_AROUND as introSelected.choice to ensure VIEW_TOUR task is included
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Extract the guidedSetupData from the API call
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
+            expect(apiCallArgs).toBeDefined();
+            const params = apiCallArgs?.[1] as {guidedSetupData?: string};
+            expect(params.guidedSetupData).toBeDefined();
+
+            // Parse the guidedSetupData and find the VIEW_TOUR task
+            type GuidedSetupItem = {task?: string; completedTaskReportActionID?: string};
+            const guidedSetupData = JSON.parse(params.guidedSetupData ?? '[]') as GuidedSetupItem[];
+            const viewTourTask = guidedSetupData.find((item) => item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
+
+            // VIEW_TOUR task should NOT have completedTaskReportActionID set when isSelfTourViewed is false
+            expect(viewTourTask).toBeDefined();
+            expect(viewTourTask?.completedTaskReportActionID).toBeUndefined();
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should include memberData when adminParticipant is provided', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+            const adminEmail = 'admin@example.com';
+            const adminAccountID = 999;
+
+            // When creating a workspace with an adminParticipant
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                adminParticipant: {login: adminEmail, accountID: adminAccountID},
+            });
+            await waitForBatchedUpdates();
+
+            // Then API.write should be called with CREATE_WORKSPACE command
+            const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.CREATE_WORKSPACE);
+            expect(apiCallArgs).toBeDefined();
+            const params = apiCallArgs?.[1] as {memberData?: string; policyID?: string};
+            expect(params.policyID).toBe(policyID);
+            expect(params.memberData).toBeDefined();
+            const memberData = JSON.parse(params.memberData ?? '{}') as {accountID: number; email: string; role: string};
+            expect(memberData.accountID).toBe(adminAccountID);
+            expect(memberData.email).toBe(adminEmail);
+            expect(memberData.role).toBe(CONST.POLICY.ROLE.ADMIN);
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should handle TEST_DRIVE_RECEIVER intro choice with createWorkspace task', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+            const createWorkspaceTaskReportID = 'testTaskReportID123';
+
+            // When creating a workspace with TEST_DRIVE_RECEIVER choice and createWorkspace task
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER, createWorkspace: createWorkspaceTaskReportID},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then API.write should be called with CREATE_WORKSPACE command
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.CREATE_WORKSPACE,
+                expect.objectContaining({
+                    policyID,
+                }),
+                expect.anything(),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+    });
+
+    describe('leaveWorkspace', () => {
+        it("should remove all non-owned workspace chats and keep the user's own workspace chat when leaving a workspace", async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const policyID = Policy.generatePolicyID();
+            const policy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                name: WORKSPACE_NAME,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const ownWorkspaceChat: Report = {
+                ...createRandomReport(100, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '100',
+                policyID,
+                ownerAccountID: ESH_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const nonOwnedWorkspaceChat1: Report = {
+                ...createRandomReport(101, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '101',
+                policyID,
+                ownerAccountID: ESH_ACCOUNT_ID + 1,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const nonOwnedWorkspaceChat2: Report = {
+                ...createRandomReport(102, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '102',
+                policyID,
+                ownerAccountID: ESH_ACCOUNT_ID + 2,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const nonOwnedWorkspaceChats = [nonOwnedWorkspaceChat1, nonOwnedWorkspaceChat2];
+
+            const getAllWorkspaceReportsSpy = jest.spyOn(ReportUtils, 'getAllWorkspaceReports').mockReturnValue([ownWorkspaceChat, ...nonOwnedWorkspaceChats]);
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            Policy.leaveWorkspace(ESH_ACCOUNT_ID, policy);
+            await waitForBatchedUpdates();
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.LEAVE_POLICY,
+                expect.objectContaining({
+                    policyID,
+                    email: ESH_EMAIL,
+                }),
+                expect.anything(),
+            );
+
+            const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
+                optimisticData?: Array<{key?: string; value?: Record<string, unknown> | null}>;
+                successData?: Array<{key?: string; value?: Record<string, unknown> | null}>;
+                failureData?: Array<{key?: string; value?: Record<string, unknown> | null}>;
+            };
+
+            expect(writeOptions?.optimisticData).toEqual(
+                expect.arrayContaining(
+                    nonOwnedWorkspaceChats.map((workspaceChat) =>
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`,
+                            value: expect.objectContaining({
+                                reportID: null,
+                                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                                participants: {
+                                    [ESH_ACCOUNT_ID]: {
+                                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                                    },
+                                },
+                            }),
+                        }),
+                    ),
+                ),
+            );
+
+            const removedWorkspaceChatUpdates = (writeOptions?.optimisticData ?? []).filter((update) => (update.value as {reportID?: string | null} | undefined)?.reportID === null);
+            expect(removedWorkspaceChatUpdates).toHaveLength(nonOwnedWorkspaceChats.length);
+
+            expect(writeOptions?.optimisticData).not.toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${ownWorkspaceChat.reportID}`,
+                        value: expect.objectContaining({
+                            reportID: null,
+                        }),
+                    }),
+                ]),
+            );
+
+            expect(writeOptions?.optimisticData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ownWorkspaceChat.reportID}`,
+                        value: expect.objectContaining({
+                            private_isArchived: expect.any(String) as unknown as string,
+                        }),
+                    }),
+                ]),
+            );
+
+            expect(writeOptions?.successData).toEqual(
+                expect.arrayContaining(
+                    nonOwnedWorkspaceChats.map((workspaceChat) =>
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`,
+                            value: null,
+                        }),
+                    ),
+                ),
+            );
+            expect(writeOptions?.failureData).toEqual(
+                expect.arrayContaining(
+                    nonOwnedWorkspaceChats.map((workspaceChat) =>
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`,
+                            value: workspaceChat,
+                        }),
+                    ),
+                ),
+            );
+
+            apiWriteSpy.mockRestore();
+            getAllWorkspaceReportsSpy.mockRestore();
         });
     });
 
@@ -982,38 +1340,6 @@ describe('actions/Policy', () => {
             });
 
             expect(policy?.eReceipts).toBe(fakePolicy.eReceipts);
-        });
-    });
-
-    describe('disableWorkflows', () => {
-        it('disableWorkflow should reset autoReportingFrequency to INSTANT', async () => {
-            const autoReporting = true;
-            const autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
-            // Given that a policy has autoReporting initially set to true and autoReportingFrequency set to monthly.
-            const fakePolicy: PolicyType = {
-                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
-                autoReporting,
-                autoReportingFrequency,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-
-            // When workflows are disabled for the policy
-            Policy.enablePolicyWorkflows(fakePolicy.id, false);
-            await waitForBatchedUpdates();
-
-            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connection);
-                        resolve(workspace);
-                    },
-                });
-            });
-
-            // Then the policy autoReportingFrequency should revert to "INSTANT"
-            expect(policy?.autoReporting).toBe(false);
-            expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
         });
     });
 
@@ -1835,6 +2161,43 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('leaveWorkspace', () => {
+        it('should leave workspace and archive reports', async () => {
+            // Given a policy and a report in Onyx
+            const policy = createRandomPolicy(1);
+            const report = {
+                ...createRandomReport(1, undefined),
+                policyID: policy.id,
+            };
+
+            // Set initial state in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // When leaveWorkspace is called
+            Policy.leaveWorkspace(1, policy);
+
+            await waitForBatchedUpdates();
+
+            // Then the policy should be removed
+            const policyAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(policyAfter).toBeFalsy();
+
+            // And the report should be closed and archived
+            const reportAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`);
+            expect(reportAfter).toMatchObject({
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            });
+
+            const reportNameValuePairsAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+            expect(reportNameValuePairsAfter?.private_isArchived).toBeTruthy();
+
+            const reportMetadataAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
+            expect(reportMetadataAfter?.pendingChatMembers).toBeFalsy();
+        });
+    });
+
     describe('generateDefaultWorkspaceName', () => {
         beforeAll(() => {
             Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
@@ -1931,37 +2294,6 @@ describe('actions/Policy', () => {
 
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
-        });
-    });
-
-    describe('enablePolicyWorkflows', () => {
-        it('should update delayed submission to instant when disabling the workflows feature', async () => {
-            (fetch as MockFetch)?.pause?.();
-            Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            const fakePolicy: PolicyType = {
-                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
-                areWorkflowsEnabled: true,
-                autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-            };
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            await waitForBatchedUpdates();
-
-            // Disable the workflow feature
-            Policy.enablePolicyWorkflows(fakePolicy.id, false);
-            await waitForBatchedUpdates();
-
-            await TestHelper.getOnyxData({
-                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                waitForCollectionCallback: false,
-                callback: (policy) => {
-                    // Check if the autoReportingFrequency is updated to instant
-                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
-                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
-                },
-            });
-
-            mockFetch?.resume?.();
         });
     });
 

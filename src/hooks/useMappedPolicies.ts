@@ -11,7 +11,7 @@ import useOnyx from './useOnyx';
  * shallowEqual on raw policy references, then maps the collection inline.
  */
 function useMappedPolicies<T>(mapper: (policy: OnyxEntry<Policy>) => T) {
-    const [policies, metadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [policies, metadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const transformedPolicies = mapOnyxCollectionItems(policies, mapper);
 
     return [transformedPolicies, metadata] as const;

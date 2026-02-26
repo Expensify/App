@@ -67,6 +67,7 @@ import type {
     UpdateInvoiceCompanyWebsiteParams,
     UpdatePolicyAddressParams,
     UpdateWorkspaceAvatarParams,
+    UpdateWorkspaceClientIDParams,
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
     UpgradeToCorporateParams,
@@ -193,6 +194,13 @@ type BuildPolicyDataOptions = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;
+    // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
+    isSelfTourViewed?: boolean;
+};
+
+// TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
+type CreateWorkspaceDataOptions = Omit<BuildPolicyDataOptions, 'isSelfTourViewed'> & {
+    isSelfTourViewed: boolean | undefined;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -1173,19 +1181,18 @@ function setWorkspaceReimbursement({
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
 }
 
-function leaveWorkspace(policyID?: string) {
-    if (!policyID) {
+function leaveWorkspace(currentUserAccountID: number, policy: OnyxEntry<Policy>) {
+    if (!policy) {
         return;
     }
-    const policy = deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const workspaceChats = ReportUtils.getAllWorkspaceReports(policyID);
+    const workspaceChats = ReportUtils.getAllWorkspaceReports(policy.id);
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 employeeList: {
@@ -1197,17 +1204,19 @@ function leaveWorkspace(policyID?: string) {
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: null,
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 pendingAction: policy?.pendingAction ?? null,
                 employeeList: {
@@ -1223,66 +1232,99 @@ function leaveWorkspace(policyID?: string) {
     const pendingChatMembers = ReportUtils.getPendingChatMembers([deprecatedSessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     for (const report of workspaceChats) {
+        if (!report?.reportID) {
+            continue;
+        }
+
         const parentReport = ReportUtils.getRootParentReport({report});
         const reportToCheckOwner = isEmptyObject(parentReport) ? report : parentReport;
 
         if (ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isReportOwner(reportToCheckOwner)) {
-            continue;
-        }
-
-        optimisticData.push(
-            {
+            // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
+            // The remaining parts of the report object will be removed after the API call is successful.
+            optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
                 value: {
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    reportID: null,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    oldPolicyName: policy?.name ?? '',
-                    isPinned: false,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    participants: {
+                        [currentUserAccountID]: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                        },
+                    },
                 },
-            },
-            {
+            });
+
+            // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
+            // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function.
+            successData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
-                value: {
-                    pendingChatMembers,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                value: null,
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                value: report,
+            });
+        } else {
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                    value: {
+                        statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                        oldPolicyName: policy?.name ?? '',
+                        isPinned: false,
+                    },
                 },
-            },
-            {
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
+                    value: {
+                        pendingChatMembers,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
+                    value: {
+                        private_isArchived: currentTime,
+                    },
+                },
+            );
+
+            // Restore archived flag on failure
+            failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
                 value: {
-                    private_isArchived: currentTime,
+                    private_isArchived: null,
                 },
-            },
-        );
-
-        // Restore archived flag on failure
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
-            value: {
-                private_isArchived: null,
-            },
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
-            value: {
-                pendingChatMembers: null,
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
-            value: {
-                pendingChatMembers: null,
-            },
-        });
+            });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
+                value: {
+                    pendingChatMembers: null,
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
+                value: {
+                    pendingChatMembers: null,
+                },
+            });
+        }
     }
 
     const params: LeavePolicyParams = {
-        policyID,
+        policyID: policy.id,
         email: deprecatedSessionEmail,
     };
     API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
@@ -1927,6 +1969,62 @@ function updateWorkspaceDescription(policyID: string, description: string, curre
     });
 }
 
+function updateWorkspaceClientID(policyID: string, clientID: string, currentClientID: string | undefined) {
+    if (clientID === currentClientID) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                clientID,
+                pendingFields: {
+                    clientID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    clientID: null,
+                },
+            },
+        },
+    ];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    clientID: null,
+                },
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                clientID: currentClientID,
+                errorFields: {
+                    clientID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                },
+            },
+        },
+    ];
+
+    const params: UpdateWorkspaceClientIDParams = {
+        policyID,
+        clientID,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CLIENT_ID, params, {
+        optimisticData,
+        finallyData,
+        failureData,
+    });
+}
+
 function setWorkspaceErrors(policyID: string, errors: Errors) {
     if (!deprecatedAllPolicies?.[policyID]) {
         return;
@@ -2257,6 +2355,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         shouldAddGuideWelcomeMessage = true,
         onboardingPurposeSelected,
         shouldCreateControlPolicy = false,
+        isSelfTourViewed,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2687,6 +2786,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             onboardingPolicyID: policyID,
             onboardingPurposeSelected,
             companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
+            isSelfTourViewed,
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -2731,7 +2831,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     return {successData, optimisticData, failureData, params};
 }
 
-function createWorkspace(options: BuildPolicyDataOptions): CreateWorkspaceParams {
+function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspaceParams {
     // Set default engagement choice if not provided
     const optionsWithDefaults = {
         engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
@@ -2910,6 +3010,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const isPerDiemOptionSelected = parts?.perDiem;
     const isOverviewOptionSelected = parts?.overview;
     const isTravelOptionSelected = parts?.travel;
+    const isCodingRulesOptionSelected = parts?.codingRules;
 
     const outputCurrency = isOverviewOptionSelected ? policy?.outputCurrency : localCurrency;
 
@@ -2963,6 +3064,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                 connections: isConnectionsOptionSelected ? policy?.connections : undefined,
                 customUnits: getCustomUnitsForDuplication(policy, isDistanceRatesOptionSelected, isPerDiemOptionSelected),
                 taxRates: isTaxesOptionSelected ? policy?.taxRates : undefined,
+                rules: isCodingRulesOptionSelected ? {codingRules: policy?.rules?.codingRules} : undefined,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: {
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -4590,7 +4692,6 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                         ? {
                               approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                               autoReporting: false,
-                              autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                               harvesting: {
                                   enabled: false,
                               },
@@ -4603,7 +4704,6 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                             ? {
                                   approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                  autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   harvesting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                               }
@@ -4623,7 +4723,6 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                             ? {
                                   approvalMode: null,
                                   autoReporting: null,
-                                  autoReportingFrequency: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
                               }
@@ -4642,7 +4741,6 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                         ? {
                               approvalMode: policy?.approvalMode,
                               autoReporting: policy?.autoReporting,
-                              autoReportingFrequency: policy?.autoReportingFrequency,
                               harvesting: policy?.harvesting,
                               reimbursementChoice: policy?.reimbursementChoice,
                           }
@@ -4653,7 +4751,6 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                             ? {
                                   approvalMode: null,
                                   autoReporting: null,
-                                  autoReportingFrequency: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
                               }
@@ -4665,11 +4762,6 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     };
 
     const parameters: EnablePolicyWorkflowsParams = {policyID, enabled};
-
-    // When disabling workflows, set autoreporting back to "immediately"
-    if (!enabled) {
-        setWorkspaceAutoReportingFrequency(policyID, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
-    }
 
     // We can't use writeWithNoDuplicatesEnableFeatureConflicts because the workflows data is also changed when disabling/enabling this feature
     API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
@@ -6964,6 +7056,7 @@ export {
     setWorkspaceAutoReportingFrequency,
     setWorkspaceAutoReportingMonthlyOffset,
     updateWorkspaceDescription,
+    updateWorkspaceClientID,
     setWorkspacePayer,
     setWorkspaceReimbursement,
     openPolicyWorkflowsPage,

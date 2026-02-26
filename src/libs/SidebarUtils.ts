@@ -5,7 +5,17 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Card,
+    PersonalDetails,
+    PersonalDetailsList,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    ReportNameValuePairs,
+    Transaction,
+    TransactionViolation,
+    VisibleReportActionsDerivedValue,
+} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -23,7 +33,6 @@ import {
     shouldShowLastActorDisplayName,
 } from './OptionsListUtils';
 import Parser from './Parser';
-import Performance from './Performance';
 import {getCleanedTagName} from './PolicyUtils';
 import {
     getActionableCardFraudAlertResolutionMessage,
@@ -36,9 +45,12 @@ import {
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
     getDeletedBudgetMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
@@ -544,8 +556,6 @@ function sortReportsToDisplayInLHN(
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
     conciergeReportID: string | undefined,
 ): string[] {
-    Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
-
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -574,7 +584,6 @@ function sortReportsToDisplayInLHN(
         sortedCategories.archivedReports,
     );
 
-    Performance.markEnd(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     return result;
 }
 
@@ -678,6 +687,7 @@ function getOptionData({
     movedFromReport,
     movedToReport,
     currentUserAccountID,
+    visibleReportActionsData,
     reportAttributesDerived,
 }: {
     report: OnyxEntry<Report>;
@@ -699,6 +709,7 @@ function getOptionData({
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
@@ -838,7 +849,9 @@ function getOptionData({
             movedToReport,
             policy,
             isReportArchived,
+            reportMetadata,
             reportAttributesDerived,
+            lastAction,
         });
     }
 
@@ -937,6 +950,12 @@ function getOptionData({
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX)
         ) {
             result.alternateText = getWorkspaceTaxUpdateMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME)) {
+            result.alternateText = getCustomTaxNameUpdateMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX)) {
+            result.alternateText = getCurrencyDefaultTaxUpdateMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX)) {
+            result.alternateText = getForeignCurrencyDefaultTaxUpdateMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME)) {
             result.alternateText = getCleanedTagName(getTagListNameUpdatedMessage(translate, lastAction) ?? '');
         } else if (isTagModificationAction(lastAction?.actionName ?? '')) {
@@ -1007,7 +1026,8 @@ function getOptionData({
             result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             const displayName =
-                (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails)) ||
+                (lastMessageTextFromReport.length > 0 &&
+                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
                 lastActorDisplayName;
             result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else if (lastAction && isOldDotReportAction(lastAction)) {
@@ -1082,7 +1102,7 @@ function getOptionData({
             result.alternateText =
                 lastMessageTextFromReport.length > 0
                     ? formatReportLastMessageText(Parser.htmlToText(lastMessageText))
-                    : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
+                    : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction, visibleReportActionsData)?.lastMessageText;
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(
@@ -1102,7 +1122,8 @@ function getOptionData({
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
             const displayName =
-                (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails)) ||
+                (lastMessageTextFromReport.length > 0 &&
+                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
                 lastActorDisplayName;
             result.alternateText = `${displayName}: ${formatReportLastMessageText(lastMessageText)}`;
         } else {

@@ -8,8 +8,8 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ComparePlansModal from './ComparePlansModal';
 import SaveWithExpensifyButton from './SaveWithExpensifyButton';
 import SubscriptionPlanCard from './SubscriptionPlanCard';
@@ -34,6 +34,7 @@ function SubscriptionPlan() {
                     small
                     text={translate('subscription.yourPlan.exploreAllPlans')}
                     onPress={() => setIsModalVisible(true)}
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EXPLORE_PLANS}
                 />
             </View>
         );

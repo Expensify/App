@@ -932,11 +932,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: 8,
             paddingBottom: 8,
             alignItems: 'flex-start',
-            borderRadius: variables.componentBorderRadiusMedium,
+            borderRadius: 20,
         },
 
-        actionableItemButtonBackgroundHovered: {
-            borderColor: theme.buttonPressedBG,
+        actionableItemButtonText: {
+            textAlign: 'left',
+            ...wordBreak.breakWord,
         },
 
         hoveredComponentBG: {
@@ -3617,6 +3618,19 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: colors.green400,
         },
 
+        odometerPhotoInformationContainer: {
+            ...positioning.pAbsolute,
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            ...spacing.gap4,
+            bottom: variables.bottomPositionOdometerPhotoInformationContainer,
+            left: variables.leftPositionOdometerPhotoInformationContainer,
+            right: variables.rightPositionOdometerPhotoInformationContainer,
+            padding: variables.paddingOdometerPhotoInformationContainer,
+            backgroundColor: theme.componentBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+        },
+
         webButtonShadow: {
             boxShadow: `0px 0px 24px 16px ${theme.appBG}`,
         },
@@ -4341,7 +4355,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestImage: {
-            height: 200,
             borderRadius: 16,
             marginHorizontal: 20,
             overflow: 'hidden',
@@ -4537,7 +4550,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: 'auto',
         },
         expenseViewImageSmall: {
-            maxWidth: 440,
+            maxWidth: variables.receiptPreviewMaxWidth,
             aspectRatio: 16 / 9,
             height: 'auto',
         },
@@ -5824,6 +5837,28 @@ const staticStyles = (theme: ThemeColors) =>
         lineChartChartContainer: {
             minHeight: 250,
         },
+        pieChartContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            padding: variables.qrShareHorizontalPadding,
+        },
+        pieChartChartContainer: {
+            height: 250,
+            position: 'relative',
+        },
+        pieChartLegendContainer: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginHorizontal: variables.qrShareHorizontalPadding,
+            marginTop: variables.qrShareHorizontalPadding,
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+        },
+        pieChartLegendDot: {
+            borderRadius: '50%',
+            width: 12,
+            height: 12,
+        },
         discoverSectionImage: {
             width: '100%',
             height: undefined,
@@ -6204,6 +6239,10 @@ const dynamicStyles = (theme: ThemeColors) =>
                 overflow: 'hidden',
             };
         },
+
+        getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
+
+        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
     }) satisfies DynamicStyles;
 
 // Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects
@@ -6374,7 +6413,9 @@ const plainStyles = (theme: ThemeColors) =>
                 : ({flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
 
         homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
-            shouldUseNarrowLayout ? ({width: '100%'} satisfies ViewStyle) : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth} satisfies ViewStyle),
+            shouldUseNarrowLayout
+                ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
+                : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, gap: 20} satisfies ViewStyle),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>
