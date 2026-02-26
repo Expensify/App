@@ -1,83 +1,102 @@
 ---
-title: INT122 Sync Error: Authentication Error During Sync With Sage Intacct
-description: Learn why the INT122 sync error occurs and how to update Sage Intacct web services credentials to restore the connection.
-keywords: INT122, Sage Intacct authentication error, xmlgateway_expensify credentials, Sage Intacct web services authorization, Sender ID expensify, sync authentication failure
-internalScope: Audience is Workspace Admins managing the Sage Intacct integration. Covers the INT122 sync error related to authentication and web services credentials. Does not cover export data validation errors.
+title: INT122 Sync Error in Sage Intacct Integration
+description: Learn what the INT122 sync error means and how to update Sage Intacct web services credentials and Sender ID settings to restore the connection.
+keywords: INT122, Sage Intacct authentication error, xmlgateway_expensify credentials, Sage Intacct Web Services Authorizations, Sender ID expensify lowercase, Sage Intacct sync authentication failure, Workspace Admin
+internalScope: Audience is Workspace Admins managing the Sage Intacct integration. Covers resolving the INT122 sync error caused by authentication and web services credential issues. Does not cover export data validation errors.
 ---
 
-# INT122 Sync Error: Authentication Error During Sync With Sage Intacct
+# INT122 Sync Error in Sage Intacct Integration
 
-If you see the error message:
+If you see the error:
 
-**“INT122 Sync Error: Authentication error during sync. Please reenter Sage Intacct admin credentials and attempt sync again.”**
+INT122 Sync Error: Authentication error during sync. Please reenter Sage Intacct admin credentials and attempt sync again.
 
-It means the connection between Expensify and Sage Intacct cannot be authenticated.
+This means the connection between the Workspace and Sage Intacct cannot be authenticated.
 
-This typically occurs when credentials or web services settings in Sage Intacct are incorrect or incomplete.
+When authentication fails, syncing and exports will not work.
 
 ---
 
-## Why the INT122 Sync Error Happens
+## Why the INT122 Sync Error Happens in Sage Intacct
 
-The INT122 sync error occurs when:
+The INT122 error typically occurs when:
 
-- The credentials for the **xmlgateway_expensify** web services user are incorrect, or  
-- The required web services authorization (Sender ID) is missing in Sage Intacct  
+- The credentials for the **xmlgateway_expensify** web services user are incorrect.
+- The password for the web services user was changed but not updated in the Workspace.
+- The required **Web Services Authorization (Sender ID)** is missing.
+- The Sender ID is not entered exactly as required.
 
 If Sage Intacct cannot authenticate the integration user, the sync will fail.
 
+This is an authentication issue, not a report data or export configuration issue.
+
 ---
 
-# How to Fix the INT122 Sync Error
+## How to Fix the INT122 Sync Error
 
 Follow the steps below to verify credentials and restore the connection.
 
 ---
 
-## Step 1: Confirm xmlgateway_expensify Credentials
+## Confirm xmlgateway_expensify Credentials in Sage Intacct
 
-1. Log in to Sage Intacct.  
-2. Verify the credentials for the **xmlgateway_expensify** web services user.  
-3. Confirm the username, password, and permissions are correct and active.  
+1. Log in to Sage Intacct as an administrator.
+2. Locate the **xmlgateway_expensify** web services user.
+3. Confirm:
+   - The username is correct.
+   - The password is correct.
+   - The user is active.
+   - The user has the required module permissions.
+4. If the password was changed, update it in the Workspace connection settings.
 
-Update credentials if needed and save your changes.
-
----
-
-## Step 2: Confirm Web Services Authorization Settings
-
-1. In Sage Intacct, go to **Company > Setup > Company > Security > Edit**.  
-2. Scroll to **Web Services Authorizations**.  
-3. Add **expensify** (all lowercase) as a **Sender ID**.  
-4. Click **Save**.  
-
-If **expensify** is already listed and the error persists:
-
-- Remove it from the list  
-- Add it again as **expensify** (all lowercase)  
-- Click **Save**  
+Save any changes.
 
 ---
 
-## Step 3: Retry the Connection
+## Confirm Web Services Authorizations (Sender ID)
 
-1. Go to **Workspace > [Workspace Name] > Accounting**.  
-2. Retry the connection or run sync again.  
+1. In Sage Intacct, go to **Company > Setup > Company**.
+2. Click **Security**.
+3. Click **Edit**.
+4. Scroll to **Web Services Authorizations**.
+5. Add **expensify** as a **Sender ID**.
 
-If credentials and web services settings are configured correctly, the sync should complete successfully.
+Important:
+
+- The Sender ID must be entered as **expensify** (all lowercase).
+- Do not use uppercase letters.
+- Do not add spaces.
+
+If **expensify** is already listed and the error continues:
+
+1. Remove it from the list.
+2. Add **expensify** again (all lowercase).
+3. Click **Save**.
+
+---
+
+## Retry the Sync
+
+After confirming credentials and Sender ID settings:
+
+1. Go to **Workspaces > [Workspace Name] > Accounting**.
+2. Select **Sync Now**.
+3. Confirm the sync completes successfully.
+
+If authentication is configured correctly, the sync should complete without errors.
 
 ---
 
 # FAQ
 
-## Does the Sender ID have to be lowercase?
+## Does the Sender ID Have to Be Lowercase?
 
-Yes. The Sender ID must be entered as **expensify** in all lowercase.
+Yes. The Sender ID must be entered exactly as **expensify** in all lowercase.
 
-## Do I need Sage Intacct admin permissions to fix this?
+## Do I Need Sage Intacct Admin Access to Fix This?
 
-Yes. Updating web services authorizations and credentials typically requires administrative access in Sage Intacct.
+Yes. Updating web services users and Web Services Authorizations requires administrator permissions in Sage Intacct.
 
-## Does this error affect exports?
+## Does This Error Affect Exports?
 
-Yes. If sync fails due to authentication, exports and other integration features may not function until the connection is restored.
+Yes. If the sync fails due to authentication, exports and other integration features will not function until the connection is restored.
