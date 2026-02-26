@@ -619,6 +619,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         currentUserAccountIDParam,
         currentUserEmailParam,
         shouldCreateControlPolicy,
+        isSelfTourViewed,
     } = params;
 
     createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyID, makeMeAdmin, currency, file);
@@ -636,6 +637,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         currentUserEmailParam,
         allReportsParam: allReports,
         shouldCreateControlPolicy,
+        isSelfTourViewed,
     });
 }
 

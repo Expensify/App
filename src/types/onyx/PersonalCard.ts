@@ -14,7 +14,7 @@ type PersonalCardFeedWithDomainID = `${PersonalCardFeed}${typeof CONST.PERSONAL_
 type PersonalCardFeedWithNumber = PersonalCardFeed | `${PersonalCardFeed}${number}` | PersonalCardFeedWithDomainID;
 
 /** Card feed provider */
-type PersonalCardFeedProvider = typeof CONST.PERSONAL_CARDS.FEED_BANK_NAME.STRIPE;
+type PersonalCardFeedProvider = typeof CONST.PERSONAL_CARDS.FEED_BANK_NAME.AMEX;
 
 /** Card feed details */
 type PersonalCardFeedDetails = {

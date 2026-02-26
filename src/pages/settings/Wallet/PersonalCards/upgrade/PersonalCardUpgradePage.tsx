@@ -13,6 +13,7 @@ import type {LastPaymentMethodType} from '@src/types/onyx';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import UpgradeIntro from './UpgradeIntro';
 import UpgradeConfirmation from './UpgradeConfirmation';
 
@@ -25,6 +26,8 @@ function PersonalCardUpgradePage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const onUpgrade = () => {
@@ -39,6 +42,7 @@ function PersonalCardUpgradePage() {
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             shouldCreateControlPolicy: false,
+            isSelfTourViewed,
         });
         setIsUpgraded(true);
     };
