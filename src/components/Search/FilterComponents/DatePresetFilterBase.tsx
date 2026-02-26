@@ -27,11 +27,11 @@ type DatePresetFilterBaseHandle = {
     /** Clears date values */
     clearDateValues: () => void;
 
-    /** Sets the date value of the selected date modifier to the ephemeral date value (the selected date in calendar) and returns the updated values */
-    setDateValueOfSelectedDateModifier: () => SearchDateValues;
+    /** Sets the date value of the selected date modifier to the ephemeral date value (the selected date in calendar) */
+    setDateValueOfSelectedDateModifier: () => void;
 
-    /** Clears the date value of the selected date modifier and returns the updated values */
-    clearDateValueOfSelectedDateModifier: () => SearchDateValues;
+    /** Clears the date value of the selected date modifier */
+    clearDateValueOfSelectedDateModifier: () => void;
 
     /** Resets date values to the provided defaults */
     resetDateValuesToDefault: () => void;
@@ -129,7 +129,14 @@ function DatePresetFilterBase({
         if (isSearchAdvancedFiltersFormLoading) {
             return;
         }
-        if (dateValuesRef.current === defaultDateValues) {
+        const currentDateValues = dateValuesRef.current;
+        const hasDefaultValuesChanged =
+            currentDateValues[CONST.SEARCH.DATE_MODIFIERS.ON] !== defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ||
+            currentDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] !== defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ||
+            currentDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] !== defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ||
+            currentDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE] !== defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
+
+        if (!hasDefaultValuesChanged) {
             return;
         }
         dateValuesRef.current = defaultDateValues;
@@ -245,7 +252,7 @@ function DatePresetFilterBase({
 
             setDateValueOfSelectedDateModifier() {
                 if (!selectedDateModifier) {
-                    return dateValuesRef.current;
+                    return;
                 }
 
                 const currentDateValues = dateValuesRef.current;
@@ -255,18 +262,17 @@ function DatePresetFilterBase({
                     const updatedValues = {...currentDateValues, [CONST.SEARCH.DATE_MODIFIERS.RANGE]: rangeValue};
                     dateValuesRef.current = updatedValues;
                     setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, rangeValue);
-                    return updatedValues;
+                    return;
                 }
 
                 const updatedValues = {...currentDateValues, [selectedDateModifier]: ephemeralDateValue};
                 dateValuesRef.current = updatedValues;
                 setDateValue(selectedDateModifier, ephemeralDateValue);
-                return updatedValues;
             },
 
             clearDateValueOfSelectedDateModifier() {
                 if (!selectedDateModifier) {
-                    return dateValuesRef.current;
+                    return;
                 }
 
                 const currentDateValues = dateValuesRef.current;
@@ -277,14 +283,13 @@ function DatePresetFilterBase({
                     setRangeEphemeralValues({});
                     setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, undefined);
                     onRangeValidationErrorChange?.(false);
-                    return updatedValues;
+                    return;
                 }
 
                 const updatedValues = {...currentDateValues, [selectedDateModifier]: undefined};
                 dateValuesRef.current = updatedValues;
                 setDateValue(selectedDateModifier, undefined);
                 onRangeValidationErrorChange?.(false);
-                return updatedValues;
             },
         }),
         [

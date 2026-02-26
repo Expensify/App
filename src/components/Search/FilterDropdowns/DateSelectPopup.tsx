@@ -55,16 +55,13 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
     const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
+    const [rangeText, setRangeText] = useState(() =>
+        getDateRangeDisplayValueFromFormValue(value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
+    );
 
-    const updateTrackedDateValues = useCallback((dateValues: SearchDateValues) => {
-        setTrackedDateValues(dateValues);
+    const updateRangeText = useCallback(() => {
+        setRangeText(searchDatePresetFilterBaseRef.current?.getRangeDisplayText() ?? '');
     }, []);
-
-    // Sync trackedDateValues when actual date values change from parent
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setTrackedDateValues(value);
-    }, [value]);
 
     // Widen the popover when Range is selected, reset when not
     useEffect(() => {
@@ -83,10 +80,10 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
     const handleBackPress = useCallback(() => {
         if (searchDatePresetFilterBaseRef.current && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
             searchDatePresetFilterBaseRef.current.resetDateValuesToDefault();
-            updateTrackedDateValues(value);
+            updateRangeText();
         }
         clearSelection();
-    }, [clearSelection, selectedDateModifier, updateTrackedDateValues, value]);
+    }, [clearSelection, selectedDateModifier, updateRangeText]);
 
     const applyChanges = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
@@ -101,15 +98,16 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                 return;
             }
 
-            const dateValues = searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
-            updateTrackedDateValues(dateValues);
+            searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
+            updateRangeText();
             clearSelection();
             return;
         }
 
-        onChange(trackedDateValues);
+        const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
+        onChange(dateValues);
         closeOverlay();
-    }, [clearSelection, closeOverlay, onChange, selectedDateModifier, trackedDateValues, updateTrackedDateValues]);
+    }, [clearSelection, closeOverlay, onChange, selectedDateModifier, updateRangeText]);
 
     const resetChanges = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
@@ -117,8 +115,8 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         }
 
         if (selectedDateModifier) {
-            const clearedDateValues = searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
-            updateTrackedDateValues(clearedDateValues);
+            searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
+            updateRangeText();
             clearSelection();
             return;
         }
@@ -130,17 +128,11 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
             [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
         };
         searchDatePresetFilterBaseRef.current.clearDateValues();
-        updateTrackedDateValues(emptyDateValues);
+        setRangeText('');
         setShouldShowRangeError(false);
         onChange(emptyDateValues);
         closeOverlay();
-    }, [clearSelection, closeOverlay, onChange, selectedDateModifier, updateTrackedDateValues]);
-
-    const rangeText = getDateRangeDisplayValueFromFormValue(
-        trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
-        trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
-        trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
-    );
+    }, [clearSelection, closeOverlay, onChange, selectedDateModifier, updateRangeText]);
 
     const isInRangeMode = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
 
@@ -151,12 +143,12 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
     const datePresetFilterBase = (
         <DatePresetFilterBase
             ref={searchDatePresetFilterBaseRef}
-            defaultDateValues={trackedDateValues}
+            defaultDateValues={value}
             selectedDateModifier={selectedDateModifier}
             onSelectDateModifier={setSelectedDateModifier}
             presets={presets}
             shouldShowRangeError={shouldShowRangeError}
-            onDateValuesChange={updateTrackedDateValues}
+            onDateValuesChange={() => setRangeText(searchDatePresetFilterBaseRef.current?.getRangeDisplayText() ?? '')}
             onRangeValidationErrorChange={setShouldShowRangeError}
         />
     );
