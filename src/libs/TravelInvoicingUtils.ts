@@ -172,9 +172,8 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 function downloadTravelInvoiceStatementPDF(translate: LocalizedTranslate, baseURL: string, fileName: string, startDate: string, endDate: string, currentUserEmail: string): Promise<void> {
     const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
-    // eslint-disable-next-line @typescript-eslint/no-inferrable-types -- Explicitly typed due to this typecheck error that doesn't want to go away: https://github.com/Expensify/App/actions/runs/22380925082/job/64781289783?pr=82306
-    const hasOtherParams: boolean = true;
-    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, hasOtherParams), downloadFileName, '');
+    // @ts-expect-error -- For some reason Github typecheck run keeps failing with: Argument of type 'boolean' is not assignable to parameter of type 'string' even though locally I get no errors and the exact same code logic has no type issues in other files.
+    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '');
 }
 
 /**
