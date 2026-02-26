@@ -55,7 +55,6 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
     const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
-    const [trackedDateValues, setTrackedDateValues] = useState<SearchDateValues>(value);
 
     const updateTrackedDateValues = useCallback((dateValues: SearchDateValues) => {
         setTrackedDateValues(dateValues);
