@@ -836,7 +836,7 @@ function MoneyRequestConfirmationList({
                     sectionIndex: 1,
                 },
             );
-        // When adding an expense from within a report, hide the "To:" section since the destination is already the current report
+            // When adding an expense from within a report, hide the "To:" section since the destination is already the current report
         } else if (!shouldHideToSection) {
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
