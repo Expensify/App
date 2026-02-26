@@ -79,7 +79,7 @@ function AddPaymentMethodMenu({
             return;
         }
 
-        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, undefined, undefined, betas);
+        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, betas);
         onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
     }, [betas, introSelected, introSelectedStatus, introSelectedStatus.status, isPersonalOnlyOption, isVisible, onItemSelected]);
 
@@ -108,7 +108,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: icons.Bank,
                               onSelected: () => {
-                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, undefined, undefined, betas);
+                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, betas);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },
