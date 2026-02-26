@@ -123,8 +123,8 @@ function VerifyPage({route}: VerifyPageProps) {
                         <PressableWithDelayToggle
                             text={translate('twoFactorAuth.copy')}
                             textChecked={translate('common.copied')}
-                            tooltipText={translate('twoFactorAuth.copy')}
-                            tooltipTextChecked={translate('common.copied')}
+                            tooltipText=""
+                            tooltipTextChecked=""
                             accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.secretKey')}`}
                             accessibilityLabelChecked={`${translate('common.copied')}, ${translate('twoFactorAuth.secretKey')}`}
                             icon={icons.Copy}
