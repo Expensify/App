@@ -31,7 +31,6 @@ import type {TransactionPreviewProps} from './types';
 function TransactionPreview(props: TransactionPreviewProps) {
     const {translate} = useLocalize();
     const {
-        allReports,
         action,
         chatReportID,
         reportID,
@@ -41,11 +40,13 @@ function TransactionPreview(props: TransactionPreviewProps) {
         iouReportID,
         transactionID: transactionIDFromProps,
         onPreviewPressed,
+        shouldHighlight,
         reportPreviewAction,
         contextAction,
     } = props;
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined);
@@ -58,7 +59,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const violations = useTransactionViolations(transaction?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const session = useSession();
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const personalDetails = usePersonalDetails();
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
@@ -132,6 +132,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     walletTermsErrors={walletTerms?.errors}
                     routeName={route.name}
                     isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
+                    shouldHighlight={shouldHighlight}
                 />
             </PressableWithoutFeedback>
         );
@@ -156,6 +157,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             walletTermsErrors={walletTerms?.errors}
             routeName={route.name}
             reportPreviewAction={reportPreviewAction}
+            shouldHighlight={shouldHighlight}
             isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
         />
     );

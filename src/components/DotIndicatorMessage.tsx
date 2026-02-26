@@ -1,9 +1,10 @@
 /* eslint-disable react/no-array-index-key */
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
-import React, {useState} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,7 +16,6 @@ import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
 import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
-import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -49,8 +49,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
-
-    const [shouldShowErrorModal, setShouldShowErrorModal] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     if (Object.keys(messages).length === 0) {
         return null;
@@ -72,7 +71,13 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         }
 
         if (href.endsWith('retry')) {
-            handleRetryPress(receiptError, dismissError, setShouldShowErrorModal);
+            handleRetryPress(receiptError, dismissError, () => {
+                showConfirmModal({
+                    prompt: translate('common.genericErrorMessage'),
+                    confirmText: translate('common.ok'),
+                    shouldShowCancelButton: false,
+                });
+            });
         } else if (href.endsWith('download')) {
             fileDownload(translate, receiptError.source, receiptError.filename).finally(() => dismissError());
         }
@@ -81,24 +86,12 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const renderMessage = (message: string | ReceiptError | ReactElement, index: number) => {
         if (isReceiptError(message)) {
             return (
-                <>
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML
-                            html={translate('iou.error.receiptFailureMessage')}
-                            onLinkPress={(_evt, href) => handleLinkPress(href)}
-                        />
-                    </View>
-
-                    <ConfirmModal
-                        isVisible={shouldShowErrorModal}
-                        onConfirm={() => {
-                            setShouldShowErrorModal(false);
-                        }}
-                        prompt={translate('common.genericErrorMessage')}
-                        confirmText={translate('common.ok')}
-                        shouldShowCancelButton={false}
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML
+                        html={translate('iou.error.receiptFailureMessage')}
+                        onLinkPress={(_evt, href) => handleLinkPress(href)}
                     />
-                </>
+                </View>
             );
         }
 

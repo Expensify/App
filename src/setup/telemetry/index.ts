@@ -29,7 +29,7 @@ export default function (): void {
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
         integrations,
-        environment: CONFIG.ENVIRONMENT,
+        environment: CONFIG.IS_IN_PRODUCTION ? CONFIG.ENVIRONMENT : CONST.ENVIRONMENT.DEV,
         release: `${pkg.name}@${pkg.version}`,
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,

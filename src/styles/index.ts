@@ -447,10 +447,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: undefined,
         },
 
-        lineHeightNormal: {
-            lineHeight: variables.lineHeightNormal,
-        },
-
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
@@ -936,11 +932,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: 8,
             paddingBottom: 8,
             alignItems: 'flex-start',
-            borderRadius: variables.componentBorderRadiusMedium,
+            borderRadius: 20,
         },
 
-        actionableItemButtonBackgroundHovered: {
-            borderColor: theme.buttonPressedBG,
+        actionableItemButtonText: {
+            textAlign: 'left',
+            ...wordBreak.breakWord,
         },
 
         hoveredComponentBG: {
@@ -3621,6 +3618,19 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: colors.green400,
         },
 
+        odometerPhotoInformationContainer: {
+            ...positioning.pAbsolute,
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            ...spacing.gap4,
+            bottom: variables.bottomPositionOdometerPhotoInformationContainer,
+            left: variables.leftPositionOdometerPhotoInformationContainer,
+            right: variables.rightPositionOdometerPhotoInformationContainer,
+            padding: variables.paddingOdometerPhotoInformationContainer,
+            backgroundColor: theme.componentBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+        },
+
         webButtonShadow: {
             boxShadow: `0px 0px 24px 16px ${theme.appBG}`,
         },
@@ -3700,24 +3710,30 @@ const staticStyles = (theme: ThemeColors) =>
         forYouEmptyStateContainer: {
             alignItems: 'center',
             justifyContent: 'center',
+            gap: 20,
             marginTop: 20,
             marginBottom: 52,
         },
 
+        forYouEmptyStateTextContainer: {
+            alignItems: 'center',
+            gap: 8,
+            width: '100%',
+            paddingHorizontal: 20,
+        },
+
         forYouEmptyStateTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
-            marginTop: 20,
+            ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
             textAlign: 'center',
             color: theme.text,
         },
 
-        forYouEmptyStateSubtitle: {
+        forYouEmptyStateDescription: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: 16,
-            marginTop: 2,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
             textAlign: 'center',
             color: theme.textSupporting,
         },
@@ -4362,6 +4378,10 @@ const staticStyles = (theme: ThemeColors) =>
         reportPreviewBoxHoverBorder: {
             borderColor: theme.cardBG,
             backgroundColor: theme.cardBG,
+        },
+
+        reportPreviewBoxHoverBorderColor: {
+            borderColor: theme.cardBG,
         },
 
         reportContainerBorderRadius: {
@@ -5780,6 +5800,9 @@ const staticStyles = (theme: ThemeColors) =>
         paymentMethodErrorRow: {
             paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
+        transactionReceiptButton: {
+            width: variables.transactionReceiptButtonWidth,
+        },
         chartHeader: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -5826,6 +5849,28 @@ const staticStyles = (theme: ThemeColors) =>
         },
         lineChartChartContainer: {
             minHeight: 250,
+        },
+        pieChartContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            padding: variables.qrShareHorizontalPadding,
+        },
+        pieChartChartContainer: {
+            height: 250,
+            position: 'relative',
+        },
+        pieChartLegendContainer: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginHorizontal: variables.qrShareHorizontalPadding,
+            marginTop: variables.qrShareHorizontalPadding,
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+        },
+        pieChartLegendDot: {
+            borderRadius: '50%',
+            width: 12,
+            height: 12,
         },
         discoverSectionImage: {
             width: '100%',
@@ -6207,6 +6252,10 @@ const dynamicStyles = (theme: ThemeColors) =>
                 overflow: 'hidden',
             };
         },
+
+        getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
+
+        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
     }) satisfies DynamicStyles;
 
 // Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects
