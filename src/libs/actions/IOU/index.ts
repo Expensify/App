@@ -1805,8 +1805,7 @@ function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: st
         // Also convert odometer readings if they exist
         const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
         if (existingDistanceUnit) {
-            const conversionFactor =
-                existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
+            const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
             const odometerStart = transaction?.comment?.odometerStart;
             const odometerEnd = transaction?.comment?.odometerEnd;
             if (odometerStart !== null && odometerStart !== undefined) {
