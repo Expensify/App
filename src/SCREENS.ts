@@ -60,6 +60,7 @@ const SCREENS = {
         ADVANCED_FILTERS_APPROVED_RHP: 'Search_Advanced_Filters_Approved_RHP',
         ADVANCED_FILTERS_PAID_RHP: 'Search_Advanced_Filters_Paid_RHP',
         ADVANCED_FILTERS_EXPORTED_RHP: 'Search_Advanced_Filters_Exported_RHP',
+        ADVANCED_FILTERS_EXPORTED_TO_RHP: 'Search_Advanced_Filters_Exported_To_RHP',
         ADVANCED_FILTERS_POSTED_RHP: 'Search_Advanced_Filters_Posted_RHP',
         ADVANCED_FILTERS_WITHDRAWN_RHP: 'Search_Advanced_Filters_Withdrawn_RHP',
         ADVANCED_FILTERS_CURRENCY_RHP: 'Search_Advanced_Filters_Currency_RHP',
