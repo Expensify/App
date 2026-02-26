@@ -1,7 +1,7 @@
 ---
 title: Reimbursement Failure Reasons in Expensify
 description: Learn why a reimbursement failed in Expensify, what each reimbursement failure reason means, and how Workspace Admins and members can fix and retry the payment.
-keywords: reimbursement failed, reimbursement unsuccessful, ACH bounce, return code, payment bounced, report returned to Approved, bank account name mismatch, retry reimbursement, Workspace Admin, update bank account Expensify
+keywords: reimbursement failed, reimbursement unsuccessful, ACH bounce, return code, payment bounced, report returned to Approved, bank account name mismatch, retry reimbursement, Workspace Admin, update bank account Expensify, Canadian bank account format, Singapore bank account, institution code, SWIFT code, EFT
 internalScope: Audience is Workspace Admins and members who submit reports. Covers reimbursement failure (return reason) messages, what each reimbursement failure means, and how to resolve and retry payment. Does not cover bank account setup steps in detail, accounting integrations, non-ACH payments, or failures from other payment providers.
 ---
 
