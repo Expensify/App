@@ -19,7 +19,6 @@ import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/Playbac
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
-import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -36,7 +35,7 @@ function SearchPageWide() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {selectedTransactions, currentSearchKey, currentSearchResults, lastNonEmptySearchResults, isMobileSelectionModeEnabled} = useSearchStateContext();
+    const {currentSearchResults, lastNonEmptySearchResults, isMobileSelectionModeEnabled, shouldShowFooter} = useSearchStateContext();
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const metadata = searchResults?.search;
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
@@ -63,10 +62,6 @@ function SearchPageWide() {
             });
         }
     }, []);
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
-    const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
-
     useEffect(() => {
         resetVideoPlayerData();
         return resetVideoPlayerData;
@@ -118,7 +113,7 @@ function SearchPageWide() {
                                 onSearchListScroll={scrollHandler}
                                 searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                             />
-                            {shouldShowFooter && <SearchPageFooter metadata={metadata} />}
+                            {!!shouldShowFooter && <SearchPageFooter metadata={metadata} />}
                             <DragAndDropConsumer onDrop={initScanRequest}>
                                 <DropZoneUI
                                     icon={expensifyIcons.SmartScan}

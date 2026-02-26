@@ -28,7 +28,6 @@ import useNetwork from '@hooks/useNetwork';
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
-import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -56,16 +55,13 @@ function SearchPageNarrow() {
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {selectedTransactions, currentSearchKey, currentSearchResults, lastNonEmptySearchResults, isMobileSelectionModeEnabled} = useSearchStateContext();
+    const {currentSearchResults, lastNonEmptySearchResults, isMobileSelectionModeEnabled, shouldShowFooter} = useSearchStateContext();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
     const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const metadata = searchResults?.search;
     const {clearSelectedTransactions} = useSearchActionsContext();
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
-    const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
     // Controls the visibility of the educational tooltip based on user scrolling.
@@ -254,7 +250,7 @@ function SearchPageNarrow() {
                             />
                         </View>
                     )}
-                    {shouldShowFooter && !searchRouterListVisible && <SearchPageFooter metadata={metadata} />}
+                    {!!shouldShowFooter && !searchRouterListVisible && <SearchPageFooter metadata={metadata} />}
                 </View>
             </ScreenWrapper>
             <DragAndDropConsumer onDrop={initScanRequest}>

@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTodos from '@hooks/useTodos';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
@@ -57,6 +58,7 @@ const defaultSearchStateContext: SearchStateContextValue = {
     lastNonEmptySearchResults: undefined,
     shouldUseLiveData: false,
     isMobileSelectionModeEnabled: false,
+    shouldShowFooter: false,
 };
 
 const defaultSearchActionsContext: SearchActionsContextValue = {
@@ -304,6 +306,12 @@ function SearchContextProvider({children}: ChildrenProps) {
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
+    const footerSearchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+    const footerMetadata = footerSearchResults?.search;
+    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!footerMetadata?.count);
+
     const searchStateContextValue: SearchStateContextValue = {
         ...searchContextData,
         currentSearchResults,
@@ -314,6 +322,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
         isMobileSelectionModeEnabled,
+        shouldShowFooter,
     };
 
     const searchActionsContextValue: SearchActionsContextValue = {

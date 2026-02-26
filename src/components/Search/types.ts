@@ -177,6 +177,8 @@ type SearchStateContextValue = SearchContextData & {
     shouldShowSelectAllMatchingItems: boolean;
     areAllMatchingItemsSelected: boolean;
     isMobileSelectionModeEnabled: boolean;
+    /** Whether the search page footer should be shown (selection active or totals eligible) */
+    shouldShowFooter: boolean;
 };
 
 type SearchActionsContextValue = {
