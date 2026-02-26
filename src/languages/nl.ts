@@ -1983,6 +1983,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanCode: 'Scan de QR-code met je',
         authenticatorApp: 'authenticator-app',
         addKey: 'Of voeg deze geheime sleutel toe aan je authenticator-app:',
+        secretKey: 'geheime sleutel',
         enterCode: 'Voer vervolgens de zescijferige code in die is gegenereerd door je authenticator-app.',
         stepSuccess: 'Voltooid',
         enabled: 'Authenticatie in twee stappen ingeschakeld',

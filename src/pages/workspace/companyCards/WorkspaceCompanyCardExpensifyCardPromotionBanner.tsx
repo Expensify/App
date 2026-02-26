@@ -50,7 +50,7 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCom
                     onPress={handleLearnMore}
                     style={shouldUseNarrowLayout && styles.flex1}
                     text={translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}
-                    accessibilityLabel={translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}
+                    accessibilityLabel={`${translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}, ${translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}`}
                 />
             </View>
         );

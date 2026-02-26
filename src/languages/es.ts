@@ -1842,6 +1842,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanCode: 'Escanea el código QR usando tu',
         authenticatorApp: 'aplicación de autenticación',
         addKey: 'O añade esta clave secreta a tu aplicación de autenticación:',
+        secretKey: 'clave secreta',
         enterCode: 'Luego introduce el código de seis dígitos generado por tu aplicación de autenticación.',
         stepSuccess: 'Finalizado',
         enabled: 'La autenticación de dos factores habilitada',

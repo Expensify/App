@@ -1949,6 +1949,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanCode: '使用你的 扫描二维码',
         authenticatorApp: '身份验证器应用',
         addKey: '或者将此密钥添加到你的验证器应用：',
+        secretKey: '密钥',
         enterCode: '然后输入您的身份验证器应用生成的六位数字代码。',
         stepSuccess: '已完成',
         enabled: '已启用双重身份验证',
