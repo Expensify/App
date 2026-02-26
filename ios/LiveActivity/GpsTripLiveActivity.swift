@@ -2,7 +2,6 @@ import WidgetKit
 import SwiftUI
 
 private extension Color {
-    // swiftlint:disable:next identifier_name
     static let expensifyGreen = Color(red: 3 / 255, green: 212 / 255, blue: 124 / 255)
 }
 

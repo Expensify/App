@@ -835,7 +835,8 @@
         "canvaskit",
         "Invoicify",
         "UKEU",
-        "USCA"
+        "USCA",
+        "widgetkit"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
