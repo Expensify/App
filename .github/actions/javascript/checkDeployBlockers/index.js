@@ -12063,6 +12063,20 @@ class GithubUtils {
         })
             .then(({ data: pullRequestComment }) => pullRequestComment.body);
     }
+    static async getPullRequestMergeBaseSHA(pullRequestNumber) {
+        const { data: pullRequest } = await this.octokit.pulls.get({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+        });
+        const { data: comparison } = await this.octokit.repos.compareCommits({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            base: pullRequest.base.ref,
+            head: pullRequest.head.sha,
+        });
+        return comparison.merge_base_commit.sha;
+    }
     static getAllReviewComments(pullRequestNumber) {
         return this.paginate(this.octokit.pulls.listReviews, {
             owner: CONST_1.default.GITHUB_OWNER,
