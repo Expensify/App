@@ -72,6 +72,7 @@ function AddressSearch({
         lat: 'addressLat',
         lng: 'addressLng',
     },
+    autoComplete = 'off',
     resultTypes = 'address',
     shouldSaveDraft = false,
     value,
@@ -419,7 +420,7 @@ function AddressSearch({
                                 }
                                 onBlur?.();
                             },
-                            autoComplete: CONST.AUTO_COMPLETE_VARIANTS.OFF,
+                            autoComplete,
                             onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);

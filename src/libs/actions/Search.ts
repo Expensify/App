@@ -804,11 +804,21 @@ function bulkDeleteReports(
     const transactionIDList: string[] = [];
     const reportIDList: string[] = [];
 
+    // Collect all report IDs that are being deleted
     for (const key of Object.keys(selectedTransactions)) {
         const selectedItem = selectedTransactions[key];
         if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
             reportIDList.push(selectedItem.reportID);
-        } else {
+        }
+    }
+
+    // Collect transaction IDs, but exclude any transactions whose reportID is in the list of reports being deleted
+    for (const key of Object.keys(selectedTransactions)) {
+        const selectedItem = selectedTransactions[key];
+        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+            continue;
+        }
+        if (!selectedItem.reportID || !reportIDList.includes(selectedItem.reportID)) {
             transactionIDList.push(key);
         }
     }
@@ -828,9 +838,11 @@ function bulkDeleteReports(
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], transactions?: OnyxCollection<Transaction>) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
 
-    const optimisticData: OnyxUpdate[] = [...(loadingOptimisticData ?? [])];
-    const failureData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [...(loadingOptimisticData ?? [])];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
 
     let pendingDeleteTransactionsCount = transactionIDList.length;
 

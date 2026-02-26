@@ -4,8 +4,7 @@ import {getTitleFieldFromRNVP, removeTitleFieldFromReport, shouldUpdateTitleFiel
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyReportField, Report, ReportNameValuePairs} from '@src/types/onyx';
-import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({
@@ -20,18 +19,21 @@ const mockedReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
 
 describe('ReportTitleUtils', () => {
     beforeAll(async () => {
-        const mergedCollection: CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS> = {};
-        mergedCollection[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}12345`] = {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}12345`, {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             expensify_text_title: {
                 defaultValue: 'Report {report:total}',
             },
-        } as unknown as ReportNameValuePairs;
-        await Onyx.merge(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, mergedCollection);
-    });
-
-    beforeEach(() => {
-        jest.clearAllMocks();
+        });
     });
 
     describe('getTitleFieldFromRNVP', () => {

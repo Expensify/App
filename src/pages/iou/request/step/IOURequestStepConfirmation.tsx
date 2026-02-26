@@ -22,17 +22,19 @@ import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -49,10 +51,8 @@ import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction'
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
-    doesReportReceiverMatchParticipant,
     findSelfDMReportID,
     generateReportID,
     getReportOrDraftReport,
@@ -61,7 +61,9 @@ import {
     isReportOutstanding,
     isSelectedManagerMcTest,
 } from '@libs/ReportUtils';
-import {endSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
+import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
+import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {
     getAttendees,
     getDefaultTaxCode,
@@ -138,11 +140,11 @@ function IOURequestStepConfirmation({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentTransactionID, setCurrentTransactionID] = useState<string>(initialTransactionID);
     const currentTransactionIndex = useMemo(() => transactions.findIndex((transaction) => transaction.transactionID === currentTransactionID), [transactions, currentTransactionID]);
-    const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransactionID)}`, {canBeMissing: true});
-    const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(currentTransactionID)}`, {canBeMissing: true});
+    const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransactionID)}`);
+    const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(currentTransactionID)}`);
     const isLoadingCurrentTransaction = isLoadingOnyxValue(existingTransactionResult, optimisticTransactionResult);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const transaction = useMemo(
         () => (!isLoadingCurrentTransaction ? (optimisticTransaction ?? existingTransaction) : undefined),
         [existingTransaction, optimisticTransaction, isLoadingCurrentTransaction],
@@ -154,11 +156,11 @@ function IOURequestStepConfirmation({
 
     const realPolicyID = getIOURequestPolicyID(initialTransaction, reportReal);
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`, {canBeMissing: true});
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`, {canBeMissing: true});
-    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -200,21 +202,21 @@ function IOURequestStepConfirmation({
     const policyID = policy?.id;
     const isDraftPolicy = policy === policyDraft;
 
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`, {canBeMissing: true});
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`);
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
 
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`, {canBeMissing: true});
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
 
-    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const reportAttributesDerived = useReportAttributes();
-    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
 
     const policyCategories = useMemo(() => {
@@ -231,7 +233,6 @@ function IOURequestStepConfirmation({
 
     const receiverParticipant: Participant | InvoiceReceiver | undefined = transaction?.participants?.find((participant) => participant?.accountID) ?? report?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
-    const receiverParticipantAccountID = receiverParticipant && 'accountID' in receiverParticipant ? receiverParticipant.accountID : undefined;
     const receiverType = getReceiverType(receiverParticipant);
     const senderWorkspaceID = transaction?.participants?.find((participant) => participant?.isSender)?.policyID;
 
@@ -239,7 +240,7 @@ function IOURequestStepConfirmation({
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
@@ -253,7 +254,7 @@ function IOURequestStepConfirmation({
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
-    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
+    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const {
         taskReport: viewTourTaskReport,
         taskParentReport: viewTourTaskParentReport,
@@ -322,7 +323,7 @@ function IOURequestStepConfirmation({
 
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
-        Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
+        endSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
     }, []);
 
     useEffect(() => {
@@ -577,6 +578,27 @@ function IOURequestStepConfirmation({
                     );
                 }
 
+                let merchantToUse = isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant;
+                if (!isTestReceipt && isManualDistanceRequestTransactionUtils(item)) {
+                    const distance = item.comment?.customUnit?.quantity;
+                    const unit = item.comment?.customUnit?.distanceUnit;
+                    const rate = item.comment?.customUnit?.defaultP2PRate;
+                    if (distance && unit && rate) {
+                        // Convert distance to meters
+                        const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
+                        merchantToUse = DistanceRequestUtils.getDistanceMerchant(
+                            true,
+                            distanceInMeters,
+                            unit,
+                            rate,
+                            item.currency ?? CONST.CURRENCY.USD,
+                            translate,
+                            toLocaleDigit,
+                            getCurrencySymbol,
+                        );
+                    }
+                }
+
                 const {iouReport} = requestMoneyIOUActions({
                     report,
                     existingIOUReport,
@@ -603,7 +625,7 @@ function IOURequestStepConfirmation({
                         attendees: item.comment?.attendees,
                         currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
                         created: item.created,
-                        merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant,
+                        merchant: merchantToUse,
                         comment: item?.comment?.comment?.trim() ?? '',
                         receipt,
                         category: item.category,
@@ -660,19 +682,21 @@ function IOURequestStepConfirmation({
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
+            isTimeRequest,
             shouldGenerateTransactionThreadReport,
             backToReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
             policyRecentlyUsedCurrencies,
             quickAction,
+            isSelfTourViewed,
             viewTourTaskReport,
             viewTourTaskParentReport,
             isViewTourTaskParentReportArchived,
             hasOutstandingChildTask,
             parentReportAction,
-            isTimeRequest,
-            isSelfTourViewed,
+            translate,
+            toLocaleDigit,
             betas,
             personalDetails,
             isGPSDistanceRequest,
@@ -769,7 +793,7 @@ function IOURequestStepConfirmation({
         ],
     );
 
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
     const trackExpense = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
@@ -917,6 +941,7 @@ function IOURequestStepConfirmation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                personalDetails,
                 recentWaypoints,
                 betas,
             });
@@ -946,6 +971,7 @@ function IOURequestStepConfirmation({
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
+            personalDetails,
             recentWaypoints,
             betas,
         ],
@@ -978,8 +1004,39 @@ function IOURequestStepConfirmation({
 
             formHasBeenSubmitted.current = true;
 
+            const hasReceiptFiles = Object.values(receiptFiles).some((receipt) => !!receipt);
+            const isFromGlobalCreate = transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton ?? false;
+
+            const scenario = getSubmitExpenseScenario({
+                iouType,
+                isDistanceRequest,
+                isMovingTransactionFromTrackExpense,
+                isUnreported,
+                isCategorizingTrackExpense,
+                isSharingTrackExpense,
+                isPerDiemRequest,
+                isFromGlobalCreate,
+                hasReceiptFiles,
+            });
+
+            startSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE, {
+                name: 'submit-expense',
+                op: CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE,
+                attributes: {
+                    [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
+                    [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: hasReceiptFiles,
+                    [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreate,
+                    [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
+                    [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
+                },
+            });
+
+            // IMPORTANT: Every branch below must call markSubmitExpenseEnd() after dispatching the expense action.
+            // This ensures the telemetry span started above is always closed, including inside async getCurrentPosition callbacks.
+            // If missed, the impact is benign (an orphaned Sentry span), but it pollutes telemetry data.
             if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
                 createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants, trimmedComment);
+                markSubmitExpenseEnd();
                 return;
             }
 
@@ -1018,6 +1075,7 @@ function IOURequestStepConfirmation({
                         });
                     }
                 }
+                markSubmitExpenseEnd();
                 return;
             }
 
@@ -1052,6 +1110,7 @@ function IOURequestStepConfirmation({
                         betas,
                     });
                 }
+                markSubmitExpenseEnd();
                 return;
             }
 
@@ -1084,12 +1143,12 @@ function IOURequestStepConfirmation({
                         betas,
                     });
                 }
+                markSubmitExpenseEnd();
                 return;
             }
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const invoiceChatReport =
-                    !isEmptyObject(report) && report?.reportID && doesReportReceiverMatchParticipant(report, receiverParticipantAccountID) ? report : existingInvoiceReport;
+                const invoiceChatReport = !isEmptyObject(report) && report?.reportID ? report : existingInvoiceReport;
                 const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
 
                 sendInvoice({
@@ -1106,6 +1165,7 @@ function IOURequestStepConfirmation({
                     isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
                     policyRecentlyUsedTags,
                 });
+                markSubmitExpenseEnd();
                 return;
             }
 
@@ -1118,6 +1178,7 @@ function IOURequestStepConfirmation({
                                 lat: userLocation.latitude,
                                 long: userLocation.longitude,
                             });
+                            markSubmitExpenseEnd();
                             return;
                         }
 
@@ -1127,11 +1188,13 @@ function IOURequestStepConfirmation({
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
                                 });
+                                markSubmitExpenseEnd();
                             },
                             (errorData) => {
                                 Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
                                 // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                                 trackExpense(selectedParticipants);
+                                markSubmitExpenseEnd();
                             },
                         );
                         return;
@@ -1139,14 +1202,17 @@ function IOURequestStepConfirmation({
 
                     // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
                     trackExpense(selectedParticipants);
+                    markSubmitExpenseEnd();
                     return;
                 }
                 trackExpense(selectedParticipants);
+                markSubmitExpenseEnd();
                 return;
             }
 
             if (isPerDiemRequest) {
                 submitPerDiemExpense(selectedParticipants, trimmedComment, policyRecentlyUsedCategories);
+                markSubmitExpenseEnd();
                 return;
             }
 
@@ -1164,6 +1230,7 @@ function IOURequestStepConfirmation({
                             lat: userLocation.latitude,
                             long: userLocation.longitude,
                         });
+                        markSubmitExpenseEnd();
                         return;
                     }
 
@@ -1173,11 +1240,13 @@ function IOURequestStepConfirmation({
                                 lat: successData.coords.latitude,
                                 long: successData.coords.longitude,
                             });
+                            markSubmitExpenseEnd();
                         },
                         (errorData) => {
                             Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                             requestMoney(selectedParticipants);
+                            markSubmitExpenseEnd();
                         },
                     );
                     return;
@@ -1185,10 +1254,12 @@ function IOURequestStepConfirmation({
 
                 // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
                 requestMoney(selectedParticipants);
+                markSubmitExpenseEnd();
                 return;
             }
 
             requestMoney(selectedParticipants);
+            markSubmitExpenseEnd();
         },
         [
             iouType,
@@ -1213,7 +1284,6 @@ function IOURequestStepConfirmation({
             quickAction,
             isASAPSubmitBetaEnabled,
             transactionViolations,
-            receiverParticipantAccountID,
             existingInvoiceReport,
             policy,
             policyTags,
@@ -1223,6 +1293,7 @@ function IOURequestStepConfirmation({
             submitPerDiemExpense,
             policyRecentlyUsedCurrencies,
             reportID,
+            requestType,
             betas,
         ],
     );

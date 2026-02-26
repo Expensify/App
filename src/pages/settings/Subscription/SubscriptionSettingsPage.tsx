@@ -31,7 +31,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     useEffect(() => {
         openSubscriptionPage();
     }, []);
-    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     useEffect(() => {
         if (subscriptionPlan ?? isAppLoading) {
