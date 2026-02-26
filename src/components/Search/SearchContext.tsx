@@ -251,6 +251,7 @@ function SearchContextProvider({children}: ChildrenProps) {
 
     const searchStateContextValue: SearchStateContextValue = {
         ...searchContextData,
+        currentSearchKey,
         currentSearchHash,
         currentSimilarSearchHash,
         currentSearchResults,
