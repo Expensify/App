@@ -114,14 +114,6 @@ Expensify learns your category preferences over time and suggests them automatic
 - Existing expenses are not updated retroactively.
 - These suggestions are based on patterns and may vary by user.
 
-## Workspace Merchant Rules
-
-Workspace Admins can configure [**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) to apply consistent categories based on merchant name across all workspace members.
-
-- Rules apply across all expenses on the workspace.
-- Rules take precedence over learned suggestions.
-- If a category is already set manually, Expensify won’t override it.
-
 ---
 
 # FAQ
