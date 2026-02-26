@@ -226,6 +226,7 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {resolveFraudAlert} from '@userActions/Card';
+import type {IgnoreDirection} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
 import {
@@ -235,7 +236,6 @@ import {
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
 } from '@userActions/Report';
-import type {IgnoreDirection} from '@userActions/ClearReportActionErrors';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
 import type {IOUAction} from '@src/CONST';
