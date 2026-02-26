@@ -185,7 +185,7 @@ function SearchFiltersBar({
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns', 'Plus', 'Receipt', 'Location', 'Document', 'Coins', 'Cash', 'Transfer', 'MoneyCircle']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns', 'Plus', 'Location', 'Document', 'Receipt', 'Coins', 'Cash', 'Transfer', 'MoneyCircle']);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
@@ -220,7 +220,6 @@ function SearchFiltersBar({
     const hideCreateMenu = useCallback(() => setIsCreateMenuActive(false), []);
     const showCreateMenu = useCallback(() => {
         if (!createButtonRef.current) {
-            setIsCreateMenuActive(true);
             return;
         }
         calculatePopoverPosition(createButtonRef, {
@@ -239,7 +238,7 @@ function SearchFiltersBar({
                 text: translate('iou.createExpense'),
                 onSelected: () =>
                     interceptAnonymousUser(() => {
-                        startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, undefined, true);
+                        startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID);
                     }),
             },
             {
@@ -247,7 +246,7 @@ function SearchFiltersBar({
                 text: translate('iou.trackDistance'),
                 onSelected: () =>
                     interceptAnonymousUser(() => {
-                        startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, true);
+                        startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID);
                     }),
             },
             {
