@@ -13,7 +13,7 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useTodos from './useTodos';
 
-const TODO_SEARCH_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT];
+const TODO_SEARCH_KEYS: Set<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT]);
 
 type UseSearchSectionsResult = {
     allReports: Array<string | undefined>;
@@ -48,7 +48,7 @@ function useSearchSections(): UseSearchSectionsResult {
 
     // For To Do searches, use live data from useTodos instead of the API snapshot.
     // This ensures navigation arrows are available immediately since To Do data is always in Onyx.
-    const isTodoSearchKey = !!searchKey && TODO_SEARCH_KEYS.includes(searchKey);
+    const isTodoSearchKey = !!searchKey && TODO_SEARCH_KEYS.has(searchKey);
     let currentSearchResults: SearchResults | undefined;
     if (isTodoSearchKey) {
         const liveData = todoSearchResultsData[searchKey as keyof typeof todoSearchResultsData];
