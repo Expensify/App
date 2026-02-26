@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SearchActionsContextValue, SearchContextData, SearchQueryJSON, SearchStateContextValue, SelectedTransactions} from './types';
+import type {SearchActionsContextValue, SearchContextData, SearchStateContextValue, SelectedTransactions} from './types';
 
 // Default search info when building from live data
 // Used for to-do searches where we build SearchResults from live Onyx data instead of API snapshots
@@ -40,6 +40,8 @@ const defaultSearchContextData: SearchContextData = {
     isOnSearch: false,
     shouldTurnOffSelectionMode: false,
     shouldResetSearchQuery: false,
+    currentSearchHash: -1,
+    currentSimilarSearchHash: -1,
 };
 
 const defaultSearchStateContext: SearchStateContextValue = {
@@ -82,6 +84,9 @@ function SearchContextProvider({children}: ChildrenProps) {
         currentSearchQueryJSON: queryJSON,
     });
 
+    const selectedReports = searchContextData.selectedReports;
+    const selectedTransactions = searchContextData.selectedTransactions;
+    const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
     const currentSearchHash = searchContextData.currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = searchContextData.currentSearchQueryJSON?.similarSearchHash ?? -1;
 
@@ -120,32 +125,32 @@ function SearchContextProvider({children}: ChildrenProps) {
         return snapshotSearchResults ?? undefined;
     }, [currentSearchKey, shouldUseLiveData, snapshotSearchResults, todoSearchResultsData]);
 
-    const setSelectedTransactions: SearchActionsContextValue['setSelectedTransactions'] = (selectedTransactions, data = []) => {
-        if (selectedTransactions instanceof Array) {
-            if (!selectedTransactions.length && areTransactionsEmpty.current) {
+    const setSelectedTransactions: SearchActionsContextValue['setSelectedTransactions'] = (transactionIDs, data = []) => {
+        if (transactionIDs instanceof Array) {
+            if (!transactionIDs.length && areTransactionsEmpty.current) {
                 areTransactionsEmpty.current = true;
                 return;
             }
             areTransactionsEmpty.current = false;
             return setSearchContextData((prevState) => ({
                 ...prevState,
-                selectedTransactionIDs: selectedTransactions,
+                selectedTransactionIDs: transactionIDs,
             }));
         }
 
         // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
-        let selectedReports: SearchStateContextValue['selectedReports'] = [];
+        let matchingReports: SearchStateContextValue['selectedReports'] = [];
 
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
-            selectedReports = data
+            matchingReports = data
                 .filter((item) => {
                     if (!isMoneyRequestReport(item)) {
                         return false;
                     }
                     if (item.transactions.length === 0) {
-                        return !!item.keyForList && selectedTransactions[item.keyForList]?.isSelected;
+                        return !!item.keyForList && transactionIDs[item.keyForList]?.isSelected;
                     }
-                    return item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected);
+                    return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
                 })
                 .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency, chatReportID}) => ({
                     reportID,
@@ -157,8 +162,8 @@ function SearchContextProvider({children}: ChildrenProps) {
                     chatReportID,
                 }));
         } else if (data.length && data.every(isTransactionListItemType)) {
-            selectedReports = data
-                .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
+            matchingReports = data
+                .filter(({keyForList}) => !!keyForList && transactionIDs[keyForList]?.isSelected)
                 .map((item) => {
                     const total = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : (item.amount ?? CONST.DEFAULT_NUMBER_ID);
                     const action = item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW;
@@ -177,17 +182,14 @@ function SearchContextProvider({children}: ChildrenProps) {
 
         setSearchContextData((prevState) => ({
             ...prevState,
-            selectedTransactions,
+            selectedReports: matchingReports,
+            selectedTransactions: transactionIDs,
             shouldTurnOffSelectionMode: false,
-            selectedReports,
         }));
     };
 
     const clearSelectedTransactions: SearchActionsContextValue['clearSelectedTransactions'] = useCallback(
         (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
-            const selectedReports = searchContextData.selectedReports;
-            const selectedTransactions = searchContextData.selectedTransactions;
-
             if (typeof searchHashOrClearIDsFlag === 'boolean') {
                 setSelectedTransactions([]);
                 return;
@@ -211,10 +213,8 @@ function SearchContextProvider({children}: ChildrenProps) {
             setShouldShowSelectAllMatchingItems(false);
             selectAllMatchingItems(false);
         },
-        [currentSearchHash, searchContextData.selectedReports, searchContextData.selectedTransactions, searchContextData.shouldTurnOffSelectionMode, setSelectedTransactions],
+        [currentSearchHash, searchContextData.shouldTurnOffSelectionMode, selectedReports.length, selectedTransactions],
     );
-
-    const {selectedTransactionIDs, selectedTransactions} = searchContextData;
 
     const removeTransaction: SearchActionsContextValue['removeTransaction'] = (transactionID) => {
         if (!transactionID) {
@@ -253,6 +253,8 @@ function SearchContextProvider({children}: ChildrenProps) {
 
     const searchStateContextValue: SearchStateContextValue = {
         ...searchContextData,
+        currentSearchHash,
+        currentSimilarSearchHash,
         currentSearchResults,
         shouldUseLiveData,
         shouldShowFiltersBarLoading,
