@@ -32,9 +32,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const selectedTransactionsList = Object.values(selectedTransactions);
-    const isSubmitter = report
-        ? report.ownerAccountID === currentUserAccountID
-        : selectedTransactionsList.length === 0 || selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
+    const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
 
     const ancestors = useAncestors(report);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
