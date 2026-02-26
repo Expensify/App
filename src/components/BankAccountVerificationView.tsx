@@ -23,9 +23,15 @@ type BankAccountVerificationViewProps = {
 
     /** Custom text for the VERIFIED state CTA button */
     verifiedButtonText?: string;
+
+    /** Custom title for the VERIFIED state */
+    verifiedTitle?: string;
+
+    /** Custom subtitle for the VERIFIED state */
+    verifiedSubtitle?: string;
 };
 
-function BankAccountVerificationView({verificationState, children, onVerifiedButtonPress, verifiedButtonText}: BankAccountVerificationViewProps) {
+function BankAccountVerificationView({verificationState, children, onVerifiedButtonPress, verifiedButtonText, verifiedTitle, verifiedSubtitle}: BankAccountVerificationViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Puzzle']);
@@ -74,8 +80,8 @@ function BankAccountVerificationView({verificationState, children, onVerifiedBut
             return (
                 <>
                     <BlockingView
-                        title={translate('workspace.expensifyCard.bankAccountVerified')}
-                        subtitle={translate('workspace.expensifyCard.bankAccountVerifiedDescription')}
+                        title={verifiedTitle ?? translate('workspace.expensifyCard.bankAccountVerified')}
+                        subtitle={verifiedSubtitle ?? translate('workspace.expensifyCard.bankAccountVerifiedDescription')}
                         animation={LottieAnimations.Fireworks}
                         animationStyles={styles.loadingVBAAnimation}
                         animationWebStyle={styles.loadingVBAAnimationWeb}

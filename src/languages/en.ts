@@ -5141,6 +5141,8 @@ const translations = {
                         body: 'You still have an outstanding travel balance. Please pay your balance first.',
                         confirm: 'Got it',
                     },
+                    enabled: 'Central Invoicing enabled!',
+                    enabledDescription: 'All travel spend on this workspace will now be centralized in a monthly invoice.',
                 },
             },
             expensifyCard: {
