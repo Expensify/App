@@ -4,7 +4,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import DateUtils from '@libs/DateUtils';
-import {canCreateOptimisticPersonalDetailOption, createOption, createOptionList, filterOption, getValidOptions} from '@libs/PersonalDetailOptionsListUtils';
+import {canCreateOptimisticPersonalDetailOption, createOption, createOptionList, filterOption, getValidOptions, matchesSearchTerms} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils/types';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -778,6 +778,48 @@ describe('PersonalDetailOptionsListUtils', () => {
         });
     });
 
+    describe('matchesSearchTerms', () => {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const getSpiderManOption = () => OPTIONS.options.find((o) => o.text === 'Spider-Man')!;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const getCurrentUserOption = () => OPTIONS.currentUserOption!;
+
+        it('should match when search terms are found in option text', () => {
+            expect(matchesSearchTerms(getSpiderManOption(), ['spider'])).toBe(true);
+        });
+
+        it('should match when search terms are found in option login', () => {
+            // cspell:disable-next-line
+            expect(matchesSearchTerms(getSpiderManOption(), ['peterparker'])).toBe(true);
+        });
+
+        it('should not match when search terms are not found', () => {
+            expect(matchesSearchTerms(getSpiderManOption(), ['nonexistent'])).toBe(false);
+        });
+
+        it('should require all search terms to match', () => {
+            expect(matchesSearchTerms(getSpiderManOption(), ['spider', 'man'])).toBe(true);
+            expect(matchesSearchTerms(getSpiderManOption(), ['spider', 'nonexistent'])).toBe(false);
+        });
+
+        it('should match against extraSearchTerms when provided', () => {
+            expect(matchesSearchTerms(getCurrentUserOption(), ['you'], ['You', 'me'])).toBe(true);
+            expect(matchesSearchTerms(getCurrentUserOption(), ['me'], ['You', 'me'])).toBe(true);
+        });
+
+        it('should not match unrelated search terms even with extraSearchTerms', () => {
+            expect(matchesSearchTerms(getCurrentUserOption(), ['nonexistent'], ['You', 'me'])).toBe(false);
+        });
+
+        it('should match against option text without needing extraSearchTerms', () => {
+            expect(matchesSearchTerms(getCurrentUserOption(), ['iron'])).toBe(true);
+        });
+
+        it('should match with empty search terms', () => {
+            expect(matchesSearchTerms(getCurrentUserOption(), [])).toBe(true);
+        });
+    });
+
     describe('filterOption', () => {
         it('should return the option when there are no search string', () => {
             const result = filterOption(OPTIONS.currentUserOption, '');
@@ -807,6 +849,23 @@ describe('PersonalDetailOptionsListUtils', () => {
         it('should filter option by exact login', () => {
             const result = filterOption(OPTIONS.currentUserOption, currentUserLogin);
             expect(result).toBeDefined();
+        });
+
+        it('should match current user option when searching "You" with extraSearchTerms', () => {
+            const result = filterOption(OPTIONS.currentUserOption, 'you', ['You', 'me']);
+            expect(result).toBeDefined();
+            expect(result?.accountID).toBe(currentUserAccountID);
+        });
+
+        it('should match current user option when searching "me" with extraSearchTerms', () => {
+            const result = filterOption(OPTIONS.currentUserOption, 'me', ['You', 'me']);
+            expect(result).toBeDefined();
+            expect(result?.accountID).toBe(currentUserAccountID);
+        });
+
+        it('should not match current user option when searching unrelated term even with extraSearchTerms', () => {
+            const result = filterOption(OPTIONS.currentUserOption, 'non-matching-string', ['You', 'me']);
+            expect(result).toBeNull();
         });
     });
 });

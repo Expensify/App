@@ -1884,6 +1884,10 @@ const ROUTES = {
             return `workspaces/${policyID}/overview/description` as const;
         },
     },
+    WORKSPACE_OVERVIEW_CLIENT_ID: {
+        route: 'workspaces/:policyID/overview/client-id',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/client-id` as const,
+    },
     WORKSPACE_OVERVIEW_SHARE: {
         route: 'workspaces/:policyID/overview/share',
         getRoute: (policyID: string) => `workspaces/${policyID}/overview/share` as const,
@@ -3060,7 +3064,7 @@ const ROUTES = {
         route: 'onboarding/migrated-user-welcome',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (shouldOpenSearch?: boolean) => getUrlWithBackToParam(`onboarding/migrated-user-welcome?${shouldOpenSearch ? 'shouldOpenSearch=true' : ''}`, undefined, false),
+        getRoute: (backTo?: string) => getUrlWithBackToParam('onboarding/migrated-user-welcome', backTo, false),
     },
 
     TRANSACTION_RECEIPT: {
@@ -3916,6 +3920,14 @@ const ROUTES = {
     DOMAIN_MEMBERS_SETTINGS_TWO_FACTOR_AUTH: {
         route: 'domain/:domainAccountID/members/settings/two-factor-auth',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/settings/two-factor-auth` as const,
+    },
+    DOMAIN_MEMBER_FORCE_TWO_FACTOR_AUTH: {
+        route: 'domain/:domainAccountID/members/:accountID/force-two-factor-auth',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/force-two-factor-auth` as const,
+    },
+    DOMAIN_MEMBER_RESET_TWO_FACTOR_AUTH: {
+        route: 'domain/:domainAccountID/members/:accountID/reset-two-factor-auth',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/reset-two-factor-auth` as const,
     },
 
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `multifactor-authentication/magic-code`,

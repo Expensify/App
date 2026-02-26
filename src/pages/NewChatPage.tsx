@@ -110,9 +110,9 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             includeSelfDM: true,
             shouldAlwaysIncludeDM: true,
             personalDetails: allPersonalDetails,
+            countryCode,
+            reportAttributesDerived,
         },
-        countryCode,
-        reportAttributesDerived,
     );
 
     const unselectedOptions = filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
@@ -398,7 +398,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
         KeyboardUtils.dismiss().then(() => {
-            singleExecution(() => navigateToAndOpenReport([login]))();
+            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID))();
         });
     };
 

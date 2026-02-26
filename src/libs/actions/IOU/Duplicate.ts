@@ -640,6 +640,7 @@ function duplicateExpenseTransaction({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 customUnitPolicyID,
+                personalDetails,
                 recentWaypoints,
             };
             return createDistanceRequest(distanceParams);
