@@ -35,7 +35,7 @@ function hasDomainMembersErrors(domainErrors?: DomainErrors): boolean {
 }
 
 function hasDomainMemberDetailsErrors(memberDetailsErrors: DomainMemberErrors): boolean {
-    return !isEmptyObject(memberDetailsErrors?.vacationDelegateErrors);
+    return !isEmptyObject(memberDetailsErrors?.vacationDelegateErrors) || !isEmptyObject(memberDetailsErrors?.twoFactorAuthExemptEmailsError);
 }
 
 export {hasDomainErrors, hasDomainAdminsSettingsErrors, hasDomainAdminsErrors, hasDomainMembersErrors, hasDomainMemberDetailsErrors};

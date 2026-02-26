@@ -18,7 +18,7 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUserToInviteReports from '@hooks/useUserToInviteReports';
-import {searchInServer} from '@libs/actions/Report';
+import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {
     formatSectionsFromSearchTerm,
@@ -124,7 +124,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     });
 
     useEffect(() => {
-        searchInServer(debouncedSearchTerm.trim());
+        searchUserInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
     let orderedAvailableOptions;

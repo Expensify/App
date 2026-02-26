@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PaymentMethodType} from '@components/KYCWall/types';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {BankAccountMenuItem, SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -44,7 +44,7 @@ function SearchPageHeader({
     latestBankItems,
 }: SearchPageHeaderProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions} = useSearchContext();
+    const {selectedTransactions} = useSearchStateContext();
     const {translate} = useLocalize();
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
