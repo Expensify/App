@@ -19,7 +19,7 @@ If a reimbursement fails:
 
 - A message appears in the report chat with the failure reason.
 - The report moves from **Paid** back to **Approved**.
-- The report submitter must add their bank account to Expensify (either another, or the same with corrected information) to Expensify. (Follow the instructions [here](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account).)
+- The report submitter must add their bank account to Expensify (either a different account, or the same one with corrected information). (Follow the instructions in [Connect a Personal Bank Account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account).)
 - A Workspace Admin must retry the payment after the issue is resolved.
 
 ---
