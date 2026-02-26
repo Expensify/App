@@ -1,23 +1,15 @@
 import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
-import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
-import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZone/DropZoneUI';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useFilterFormValues from '@hooks/useFilterFormValues';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import variables from '@styles/variables';
 import type SCREENS from '@src/SCREENS';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
@@ -25,14 +17,10 @@ import SearchPageWide from './SearchPageWide';
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
 function SearchPage({route}: SearchPageProps) {
-    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
-
     const formValues = useFilterFormValues(queryJSON);
 
     useEffect(() => {
@@ -40,8 +28,6 @@ function SearchPage({route}: SearchPageProps) {
     }, [formValues]);
 
     useConfirmReadyToOpenApp();
-
-    const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
 
     const scrollHandler = useCallback(
         (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -57,29 +43,11 @@ function SearchPage({route}: SearchPageProps) {
     return (
         <Animated.View style={[styles.flex1]}>
             {shouldUseNarrowLayout ? (
-                <DragAndDropProvider isDisabled={isDragDisabled}>
-                    {PDFValidationComponent}
-                    <SearchPageNarrow queryJSON={queryJSON} />
-                    <DragAndDropConsumer onDrop={initScanRequest}>
-                        <DropZoneUI
-                            icon={expensifyIcons.SmartScan}
-                            dropTitle={translate('dropzone.scanReceipts')}
-                            dropStyles={styles.receiptDropOverlay(true)}
-                            dropTextStyles={styles.receiptDropText}
-                            dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
-                            dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
-                        />
-                    </DragAndDropConsumer>
-                    {ErrorModal}
-                </DragAndDropProvider>
+                <SearchPageNarrow queryJSON={queryJSON} />
             ) : (
                 <SearchPageWide
                     queryJSON={queryJSON}
                     scrollHandler={scrollHandler}
-                    initScanRequest={initScanRequest}
-                    isDragDisabled={isDragDisabled}
-                    PDFValidationComponent={PDFValidationComponent}
-                    ErrorModal={ErrorModal}
                 />
             )}
         </Animated.View>

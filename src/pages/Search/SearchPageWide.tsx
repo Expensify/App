@@ -15,6 +15,7 @@ import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,13 +28,9 @@ import ROUTES from '@src/ROUTES';
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
     scrollHandler: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    initScanRequest: (e: DragEvent) => void;
-    isDragDisabled: boolean;
-    PDFValidationComponent: React.ReactNode;
-    ErrorModal: React.ReactNode;
 };
 
-function SearchPageWide({queryJSON, scrollHandler, initScanRequest, isDragDisabled, PDFValidationComponent, ErrorModal}: SearchPageWideProps) {
+function SearchPageWide({queryJSON, scrollHandler}: SearchPageWideProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -41,6 +38,7 @@ function SearchPageWide({queryJSON, scrollHandler, initScanRequest, isDragDisabl
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const metadata = searchResults?.search;
     const {resetVideoPlayerData} = usePlaybackActionsContext();
+    const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const handleSearchAction = useCallback((value: SearchParams | string) => {
         if (typeof value === 'string') {
