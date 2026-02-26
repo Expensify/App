@@ -9,7 +9,6 @@ import type {Card, CardFeeds, CardList, WorkspaceCardsList} from '@src/types/ony
 const DERIVED_VALUE_CONTEXT: DerivedValueContext<typeof cardFeedErrorsConfig.key, typeof cardFeedErrorsConfig.dependencies> = {
     currentValue: undefined,
     sourceValues: undefined,
-    areAllConnectionsSet: false,
 };
 
 const WORKSPACE_ACCOUNT_ID = 99999999;
