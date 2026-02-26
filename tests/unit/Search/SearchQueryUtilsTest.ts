@@ -117,6 +117,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
+            // LINE view defaults to sortBy:groupmonth, sortOrder:asc (chronological), and groupBy:month
             expect(result).toEqual('type:expense sortBy:groupmonth sortOrder:asc view:line groupBy:month category:travel');
         });
 
