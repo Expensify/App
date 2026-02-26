@@ -39,7 +39,17 @@ type DateFilterBaseProps = {
 };
 
 // Component uses ref as a prop, which is supported in modern React
-function DateFilterBase({title, defaultDateValues, presets, isSearchAdvancedFiltersFormLoading, onBackButtonPress, onSubmit, onDateValuesChange, onDateModifierChange, ref}: DateFilterBaseProps) {
+function DateFilterBase({
+    title,
+    defaultDateValues,
+    presets,
+    isSearchAdvancedFiltersFormLoading,
+    onBackButtonPress,
+    onSubmit,
+    onDateValuesChange,
+    onDateModifierChange,
+    ref,
+}: DateFilterBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

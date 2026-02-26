@@ -65,6 +65,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         if (!values) {
             return false;
         }
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- We intentionally use logical OR (||) instead of ?? because these values are strings and we want to treat empty strings as "not set" (i.e., falsy).
         return !!(values[CONST.SEARCH.DATE_MODIFIERS.ON] || values[CONST.SEARCH.DATE_MODIFIERS.AFTER] || values[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
     }, []);
 

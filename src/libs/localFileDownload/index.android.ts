@@ -21,9 +21,10 @@ const localFileDownload: LocalFileDownload = (fileName, textContent, translate, 
             path,
         )
             .then(() => {
-                if (shouldShowSuccessAlert) {
-                    showSuccessAlert(translate, successMessage);
+                if (!shouldShowSuccessAlert) {
+                    return;
                 }
+                showSuccessAlert(translate, successMessage);
             })
             .catch(() => {
                 showGeneralErrorAlert(translate);

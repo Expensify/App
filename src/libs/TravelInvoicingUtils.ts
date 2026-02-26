@@ -1,14 +1,14 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
-import fileDownload from './fileDownload';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, WorkspaceCardsList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
+import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getLastFourDigits} from './BankAccountUtils';
 import {isDevelopment, isInternalTestBuild, isStaging} from './Environment/Environment';
+import fileDownload from './fileDownload';
 
 /**
  * Gets the Travel Invoicing settings from the nested TRAVEL_US object.
@@ -172,8 +172,7 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 function downloadTravelInvoiceStatementPDF(translate: LocalizedTranslate, baseURL: string, fileName: string, startDate: string, endDate: string, currentUserEmail: string): Promise<void> {
     const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
-    // Explicitly typed due to this typecheck error that doesn't want to go away:
-    // https://github.com/Expensify/App/actions/runs/22380925082/job/64781289783?pr=82306
+    // eslint-disable-next-line @typescript-eslint/no-inferrable-types -- Explicitly typed due to this typecheck error that doesn't want to go away: https://github.com/Expensify/App/actions/runs/22380925082/job/64781289783?pr=82306
     const hasOtherParams: boolean = true;
     return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, hasOtherParams), downloadFileName, '');
 }
