@@ -304,29 +304,36 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
     return false;
 }
 
-function getCustomUnitsForDuplication(policy: Policy, isDistanceRatesOptionSelected: boolean, isPerDiemOptionSelected: boolean): Record<string, CustomUnit> | undefined {
+function getCustomUnitsForDuplication(policy: Policy, isDistanceRatesOptionSelected: boolean, isPerDiemOptionSelected: boolean, distanceCustomUnitID: string, perDiemCustomUnitID: string): Record<string, CustomUnit> | undefined {
     const customUnits = policy?.customUnits;
     if ((!isDistanceRatesOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
         return undefined;
     }
 
     if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
-        return customUnits;
+        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+
+        if (!perDiemUnit || !distanceCustomUnit || !perDiemCustomUnitID) {
+            return undefined;
+        }
+
+        return {[distanceCustomUnitID]: distanceCustomUnit, [perDiemCustomUnitID]: perDiemUnit};
     }
 
-    if (isDistanceRatesOptionSelected) {
+    if (isDistanceRatesOptionSelected && distanceCustomUnitID) {
         const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return undefined;
         }
-        return {[distanceCustomUnit.customUnitID]: distanceCustomUnit};
+        return {[distanceCustomUnitID]: distanceCustomUnit};
     }
 
     const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
-    if (!perDiemUnit) {
+    if (!perDiemUnit || !perDiemCustomUnitID) {
         return undefined;
     }
-    return {[perDiemUnit.customUnitID]: perDiemUnit};
+    return {[perDiemCustomUnitID]: perDiemUnit};
 }
 
 /**
