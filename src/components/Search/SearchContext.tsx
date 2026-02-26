@@ -1,4 +1,4 @@
-import React, {useContext, useLayoutEffect, useRef, useState} from 'react';
+import React, {useContext, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
@@ -94,7 +94,7 @@ function SearchContextProvider({children}: ChildrenProps) {
 
     // If viewing a to-do search, use live data from useTodos, otherwise return the snapshot data
     // We do this so that we can show the counters for the to-do search results without visiting the specific to-do page, e.g. show `Approve [3]` while viewing the `Submit` to-do search.
-    function getCurrentSearchResults(): SearchResults | undefined {
+    const currentSearchResults = useMemo(() => {
         if (shouldUseLiveData) {
             const liveData = todoSearchResultsData[currentSearchKey as keyof typeof todoSearchResultsData];
             const searchInfo: SearchResultsInfo = {
@@ -113,9 +113,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         }
 
         return snapshotSearchResults ?? undefined;
-    }
-
-    const currentSearchResults = getCurrentSearchResults();
+    }, [currentSearchKey, shouldUseLiveData, snapshotSearchResults, todoSearchResultsData]);
 
     const setCurrentSearchHashAndKey = (searchHash: number, searchKey: SearchKey | undefined) => {
         setSearchContextData((prevState) => {
