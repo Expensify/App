@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -9,7 +10,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openWorkspaceVirtualEmployeesPage} from '@libs/actions/VirtualEmployee';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -21,22 +24,10 @@ import type {VirtualEmployee} from '@src/types/onyx/VirtualEmployee';
 
 type WorkspaceVirtualEmployeesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.VIRTUAL_EMPLOYEES>;
 
-function getStatusColor(status: VirtualEmployee['status']): string {
-    switch (status) {
-        case 'active':
-            return '#2ecc71';
-        case 'paused':
-            return '#f39c12';
-        case 'deleted':
-            return '#e74c3c';
-        default:
-            return '#95a5a6';
-    }
-}
-
 function WorkspaceVirtualEmployeesPage({route}: WorkspaceVirtualEmployeesPageProps) {
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -45,13 +36,18 @@ function WorkspaceVirtualEmployeesPage({route}: WorkspaceVirtualEmployeesPagePro
 
     const isPolicyAdmin = isPolicyAdminUtils(policy);
 
+    // Reload data each time the screen comes into focus (e.g. after creating/editing a VA)
+    useFocusEffect(
+        useCallback(() => {
+            openWorkspaceVirtualEmployeesPage(policyID);
+        }, [policyID]),
+    );
+
     const virtualEmployees = useMemo(() => {
         if (!virtualEmployeesCollection) {
             return [];
         }
-        return Object.values(virtualEmployeesCollection).filter(
-            (ve): ve is VirtualEmployee => !!ve && ve.status !== 'deleted',
-        );
+        return Object.values(virtualEmployeesCollection).filter((ve): ve is VirtualEmployee => !!ve && ve.status !== 'deleted');
     }, [virtualEmployeesCollection]);
 
     const navigateToCreate = useCallback(() => {
@@ -65,13 +61,32 @@ function WorkspaceVirtualEmployeesPage({route}: WorkspaceVirtualEmployeesPagePro
         [policyID],
     );
 
-    const getCapabilitySummary = useCallback((ve: VirtualEmployee) => {
-        const count = ve.capabilities?.length ?? 0;
-        if (count === 0) {
-            return translate('workspace.virtualEmployees.noCapabilities');
-        }
-        return translate('workspace.virtualEmployees.capabilityCount', {count});
-    }, [translate]);
+    const getCapabilitySummary = useCallback(
+        (ve: VirtualEmployee) => {
+            const count = ve.capabilities?.length ?? 0;
+            if (count === 0) {
+                return translate('workspace.virtualEmployees.noCapabilities');
+            }
+            return translate('workspace.virtualEmployees.capabilityCount', {count});
+        },
+        [translate],
+    );
+
+    const getStatusColor = useCallback(
+        (status: VirtualEmployee['status']): string => {
+            switch (status) {
+                case 'active':
+                    return theme.success;
+                case 'paused':
+                    return theme.warning;
+                case 'deleted':
+                    return theme.danger;
+                default:
+                    return theme.icon;
+            }
+        },
+        [theme],
+    );
 
     if (!isPolicyAdmin) {
         return (
@@ -93,22 +108,20 @@ function WorkspaceVirtualEmployeesPage({route}: WorkspaceVirtualEmployeesPagePro
                 title={translate('workspace.virtualEmployees.title')}
                 onBackButtonPress={Navigation.goBack}
             >
-                {isPolicyAdmin && (
-                    <Button
-                        success
-                        text={translate('workspace.virtualEmployees.addNew')}
-                        onPress={navigateToCreate}
-                        isDisabled={isOffline}
-                        style={styles.mr3}
-                        small
-                    />
-                )}
+                <Button
+                    success
+                    text={translate('workspace.virtualEmployees.addNew')}
+                    onPress={navigateToCreate}
+                    isDisabled={isOffline}
+                    style={styles.mr3}
+                    small
+                />
             </HeaderWithBackButton>
 
             {virtualEmployees.length === 0 ? (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.p5]}>
-                    <Text style={[styles.textLabel, styles.mb4]}>{translate('workspace.virtualEmployees.emptyStateTitle')}</Text>
-                    <Text style={[styles.textSupporting, styles.mb4]}>{translate('workspace.virtualEmployees.emptyStateDescription')}</Text>
+                    <Text style={[styles.textHeadlineH2, styles.mb2, styles.textAlignCenter]}>{translate('workspace.virtualEmployees.emptyStateTitle')}</Text>
+                    <Text style={[styles.textSupporting, styles.mb6, styles.textAlignCenter]}>{translate('workspace.virtualEmployees.emptyStateDescription')}</Text>
                     <Button
                         success
                         text={translate('workspace.virtualEmployees.addNew')}

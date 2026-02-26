@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {createVirtualEmployee, updateVirtualEmployee} from '@libs/actions/VirtualEmployee';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -21,25 +22,97 @@ import type {VirtualEmployee, VirtualEmployeeCapability, VirtualEmployeeEventSub
 
 type WorkspaceVirtualEmployeePageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.VIRTUAL_EMPLOYEES_EDIT>;
 
-const ALL_CAPABILITIES: Array<{key: VirtualEmployeeCapability; labelKey: TranslationPaths}> = [
-    {key: 'can_read_transactions', labelKey: 'workspace.virtualEmployees.capabilities.readTransactions'},
-    {key: 'can_edit_transactions', labelKey: 'workspace.virtualEmployees.capabilities.editTransactions'},
-    {key: 'can_send_messages', labelKey: 'workspace.virtualEmployees.capabilities.sendMessages'},
-    {key: 'can_approve_reports', labelKey: 'workspace.virtualEmployees.capabilities.approveReports'},
-    {key: 'can_reject_reports', labelKey: 'workspace.virtualEmployees.capabilities.rejectReports'},
-    {key: 'can_dismiss_violations', labelKey: 'workspace.virtualEmployees.capabilities.dismissViolations'},
-    {key: 'can_read_policy', labelKey: 'workspace.virtualEmployees.capabilities.readPolicy'},
-    {key: 'can_read_reports', labelKey: 'workspace.virtualEmployees.capabilities.readReports'},
+type CapabilityConfig = {
+    key: VirtualEmployeeCapability;
+    labelKey: TranslationPaths;
+    descriptionKey: TranslationPaths;
+};
+
+type EventConfig = {
+    key: VirtualEmployeeEventSubscription;
+    labelKey: TranslationPaths;
+    descriptionKey: TranslationPaths;
+};
+
+const ALL_CAPABILITIES: CapabilityConfig[] = [
+    {
+        key: 'can_read_transactions',
+        labelKey: 'workspace.virtualEmployees.capabilities.readTransactions',
+        descriptionKey: 'workspace.virtualEmployees.capabilities.readTransactionsDescription',
+    },
+    {
+        key: 'can_read_reports',
+        labelKey: 'workspace.virtualEmployees.capabilities.readReports',
+        descriptionKey: 'workspace.virtualEmployees.capabilities.readReportsDescription',
+    },
+    {
+        key: 'can_edit_transactions',
+        labelKey: 'workspace.virtualEmployees.capabilities.editTransactions',
+        descriptionKey: 'workspace.virtualEmployees.capabilities.editTransactionsDescription',
+    },
+    {
+        key: 'can_send_messages',
+        labelKey: 'workspace.virtualEmployees.capabilities.sendMessages',
+        descriptionKey: 'workspace.virtualEmployees.capabilities.sendMessagesDescription',
+    },
+    {
+        key: 'can_approve_reports',
+        labelKey: 'workspace.virtualEmployees.capabilities.approveReports',
+        descriptionKey: 'workspace.virtualEmployees.capabilities.approveReportsDescription',
+    },
+    {
+        key: 'can_reject_reports',
+        labelKey: 'workspace.virtualEmployees.capabilities.rejectReports',
+        descriptionKey: 'workspace.virtualEmployees.capabilities.rejectReportsDescription',
+    },
+    {
+        key: 'can_dismiss_violations',
+        labelKey: 'workspace.virtualEmployees.capabilities.dismissViolations',
+        descriptionKey: 'workspace.virtualEmployees.capabilities.dismissViolationsDescription',
+    },
+    {
+        key: 'can_read_policy',
+        labelKey: 'workspace.virtualEmployees.capabilities.readPolicy',
+        descriptionKey: 'workspace.virtualEmployees.capabilities.readPolicyDescription',
+    },
 ];
 
-const ALL_EVENTS: Array<{key: VirtualEmployeeEventSubscription; labelKey: TranslationPaths}> = [
-    {key: 'transaction.created', labelKey: 'workspace.virtualEmployees.events.transactionCreated'},
-    {key: 'transaction.modified', labelKey: 'workspace.virtualEmployees.events.transactionModified'},
-    {key: 'transaction.receipt_scanned', labelKey: 'workspace.virtualEmployees.events.receiptScanned'},
-    {key: 'report.submitted', labelKey: 'workspace.virtualEmployees.events.reportSubmitted'},
-    {key: 'report.approved', labelKey: 'workspace.virtualEmployees.events.reportApproved'},
-    {key: 'chat.mention', labelKey: 'workspace.virtualEmployees.events.chatMention'},
-    {key: 'chat.message', labelKey: 'workspace.virtualEmployees.events.chatMessage'},
+const ALL_EVENTS: EventConfig[] = [
+    {
+        key: 'transaction.created',
+        labelKey: 'workspace.virtualEmployees.events.transactionCreated',
+        descriptionKey: 'workspace.virtualEmployees.events.transactionCreatedDescription',
+    },
+    {
+        key: 'transaction.modified',
+        labelKey: 'workspace.virtualEmployees.events.transactionModified',
+        descriptionKey: 'workspace.virtualEmployees.events.transactionModifiedDescription',
+    },
+    {
+        key: 'transaction.receipt_scanned',
+        labelKey: 'workspace.virtualEmployees.events.receiptScanned',
+        descriptionKey: 'workspace.virtualEmployees.events.receiptScannedDescription',
+    },
+    {
+        key: 'report.submitted',
+        labelKey: 'workspace.virtualEmployees.events.reportSubmitted',
+        descriptionKey: 'workspace.virtualEmployees.events.reportSubmittedDescription',
+    },
+    {
+        key: 'report.approved',
+        labelKey: 'workspace.virtualEmployees.events.reportApproved',
+        descriptionKey: 'workspace.virtualEmployees.events.reportApprovedDescription',
+    },
+    {
+        key: 'chat.mention',
+        labelKey: 'workspace.virtualEmployees.events.chatMention',
+        descriptionKey: 'workspace.virtualEmployees.events.chatMentionDescription',
+    },
+    {
+        key: 'chat.message',
+        labelKey: 'workspace.virtualEmployees.events.chatMessage',
+        descriptionKey: 'workspace.virtualEmployees.events.chatMessageDescription',
+    },
 ];
 
 const MIN_SYSTEM_PROMPT_LENGTH = 20;
@@ -101,17 +174,19 @@ function WorkspaceVirtualEmployeePage({route}: WorkspaceVirtualEmployeePageProps
             return;
         }
 
-        // TODO: Wire up to createVirtualEmployee / updateVirtualEmployee actions when available
-        // const params = {
-        //     policyID,
-        //     displayName: displayName.trim(),
-        //     systemPrompt: systemPrompt.trim(),
-        //     capabilities,
-        //     eventSubs,
-        // };
+        if (isNew) {
+            createVirtualEmployee(policyID, displayName.trim(), systemPrompt.trim(), capabilities, eventSubs);
+        } else {
+            updateVirtualEmployee(policyID, virtualEmployeeID, {
+                displayName: displayName.trim(),
+                systemPrompt: systemPrompt.trim(),
+                capabilities,
+                eventSubs,
+            });
+        }
 
         Navigation.goBack();
-    }, [validate]);
+    }, [validate, isNew, policyID, displayName, systemPrompt, capabilities, eventSubs, virtualEmployeeID]);
 
     return (
         <ScreenWrapper testID="WorkspaceVirtualEmployeePage">
@@ -120,6 +195,8 @@ function WorkspaceVirtualEmployeePage({route}: WorkspaceVirtualEmployeePageProps
                 onBackButtonPress={Navigation.goBack}
             />
             <ScrollView contentContainerStyle={[styles.p5, styles.pb10]}>
+
+                {/* Name */}
                 <View style={styles.mb5}>
                     <TextInput
                         label={translate('workspace.virtualEmployees.displayNameLabel')}
@@ -130,6 +207,7 @@ function WorkspaceVirtualEmployeePage({route}: WorkspaceVirtualEmployeePageProps
                     />
                 </View>
 
+                {/* System prompt */}
                 <View style={styles.mb5}>
                     <TextInput
                         label={translate('workspace.virtualEmployees.systemPromptLabel')}
@@ -137,7 +215,7 @@ function WorkspaceVirtualEmployeePage({route}: WorkspaceVirtualEmployeePageProps
                         onChangeText={setSystemPrompt}
                         errorText={systemPromptError}
                         multiline
-                        numberOfLines={6}
+                        numberOfLines={10}
                         autoGrowHeight
                     />
                     <Text style={[styles.textMicro, styles.textSupporting, styles.mt1]}>
@@ -145,34 +223,55 @@ function WorkspaceVirtualEmployeePage({route}: WorkspaceVirtualEmployeePageProps
                     </Text>
                 </View>
 
-                <Text style={[styles.textLabelSupporting, styles.mb3]}>{translate('workspace.virtualEmployees.capabilitiesSection')}</Text>
-                {ALL_CAPABILITIES.map(({key, labelKey}) => (
+                {/* Divider */}
+                <View style={[styles.sectionDividerLine, styles.mh0, styles.mv4]} />
+
+                {/* Capabilities */}
+                <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('workspace.virtualEmployees.capabilitiesSection')}</Text>
+                <Text style={[styles.textMicro, styles.textSupporting, styles.mb4]}>{translate('workspace.virtualEmployees.capabilitiesSectionHint')}</Text>
+
+                {ALL_CAPABILITIES.map(({key, labelKey, descriptionKey}) => (
                     <View
                         key={key}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb3]}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4]}
                     >
-                        <Text style={styles.flex1}>{translate(labelKey)}</Text>
+                        <View style={[styles.flex1, styles.mr4]}>
+                            <Text style={styles.textNormal}>{translate(labelKey)}</Text>
+                            <Text style={[styles.textMicro, styles.textSupporting, styles.mt1]}>{translate(descriptionKey)}</Text>
+                        </View>
                         <Switch
                             isOn={capabilities.includes(key)}
                             onToggle={() => toggleCapability(key)}
+                            accessibilityLabel={translate(labelKey)}
                         />
                     </View>
                 ))}
 
-                <Text style={[styles.textLabelSupporting, styles.mb3, styles.mt5]}>{translate('workspace.virtualEmployees.eventsSection')}</Text>
-                {ALL_EVENTS.map(({key, labelKey}) => (
+                {/* Divider */}
+                <View style={[styles.sectionDividerLine, styles.mh0, styles.mv4]} />
+
+                {/* Event subscriptions */}
+                <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('workspace.virtualEmployees.eventsSection')}</Text>
+                <Text style={[styles.textMicro, styles.textSupporting, styles.mb4]}>{translate('workspace.virtualEmployees.eventsSectionHint')}</Text>
+
+                {ALL_EVENTS.map(({key, labelKey, descriptionKey}) => (
                     <View
                         key={key}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb3]}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4]}
                     >
-                        <Text style={styles.flex1}>{translate(labelKey)}</Text>
+                        <View style={[styles.flex1, styles.mr4]}>
+                            <Text style={styles.textNormal}>{translate(labelKey)}</Text>
+                            <Text style={[styles.textMicro, styles.textSupporting, styles.mt1]}>{translate(descriptionKey)}</Text>
+                        </View>
                         <Switch
                             isOn={eventSubs.includes(key)}
                             onToggle={() => toggleEvent(key)}
+                            accessibilityLabel={translate(labelKey)}
                         />
                     </View>
                 ))}
 
+                {/* Save */}
                 <View style={styles.mt5}>
                     <Button
                         success
@@ -182,6 +281,7 @@ function WorkspaceVirtualEmployeePage({route}: WorkspaceVirtualEmployeePageProps
                         large
                     />
                 </View>
+
             </ScrollView>
         </ScreenWrapper>
     );
