@@ -770,6 +770,16 @@ function getUpdatedTransaction({
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
             const distance = roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
+
+            // Also convert odometer start/end readings if they exist
+            const odometerStart = transaction?.comment?.odometerStart;
+            const odometerEnd = transaction?.comment?.odometerEnd;
+            if (odometerStart !== null && odometerStart !== undefined) {
+                lodashSet(updatedTransaction, 'comment.odometerStart', roundToTwoDecimalPlaces(odometerStart * conversionFactor));
+            }
+            if (odometerEnd !== null && odometerEnd !== undefined) {
+                lodashSet(updatedTransaction, 'comment.odometerEnd', roundToTwoDecimalPlaces(odometerEnd * conversionFactor));
+            }
         }
 
         if (!isFetchingWaypointsFromServer(transaction)) {
