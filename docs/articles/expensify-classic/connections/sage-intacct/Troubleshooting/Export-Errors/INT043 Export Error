@@ -1,0 +1,92 @@
+---
+title: INT043 Export Error: xml_gateway User Missing Required Permissions
+description: Learn why the INT043 export error occurs in Expensify Classic and how to update Sage Intacct user or role permissions for the xml_gateway user.
+keywords: INT043, Sage Intacct xml_gateway permissions, Intacct user subscriptions permissions, Intacct role subscriptions permissions, Expensify Classic Sage Intacct export error
+internalScope: Audience is Workspace Admins using the Sage Intacct integration in Expensify Classic. Covers the INT043 export error related to missing xml_gateway user permissions. Does not cover authentication Sender ID errors.
+---
+
+# INT043 Export Error: xml_gateway User Missing Required Permissions
+
+If you see the error message **“INT043 Export Error: The 'xml_gateway' user is missing required permissions in Sage Intacct. Please update the user or role permissions.”**, it means the Sage Intacct Web Services user does not have sufficient access to required modules.
+
+Without the correct permissions, Sage Intacct will block exports.
+
+---
+
+## Why the INT043 Export Error Happens
+
+The INT043 export error occurs when:
+
+- The `xml_gateway` user lacks required module permissions, or  
+- The role assigned to the `xml_gateway` user does not include the necessary subscriptions  
+
+Sage Intacct requires specific module access for the integration to create and update transactions.
+
+---
+
+## How to Fix the INT043 Export Error in Expensify Classic
+
+The resolution depends on whether permissions are assigned at the **user level** or **role level**.
+
+---
+
+## If Permissions Are User-Based
+
+In Sage Intacct:
+
+1. Go to **Company > Users**.
+2. Select the `xml_gateway` user.
+3. Click **Subscriptions**.
+4. Enable the required permissions.
+
+---
+
+## If Permissions Are Role-Based
+
+In Sage Intacct:
+
+1. Go to **Company > Roles**.
+2. Select the role assigned to the `xml_gateway` user.
+3. Click **Subscriptions**.
+4. Enable the required permissions.
+
+---
+
+## Required Permissions
+
+Confirm the following module permissions are set:
+
+- **Administration:** All  
+- **Company:** Read-only  
+- **Cash Management:** All  
+- **Time and Expense:** All  
+- **General Ledger:** All  
+- **Projects:** Read-only  
+- **Accounts Payable:** All  
+
+Save your changes after updating permissions.
+
+---
+
+## Step 3: Sync the Workspace in Expensify
+
+After updating permissions:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync now**.
+
+Retry exporting the report after syncing.
+
+---
+
+# FAQ
+
+## Do I need to update both user and role permissions?
+
+Only update the level at which permissions are managed in your Sage Intacct environment (user-based or role-based).
+
+## Do I need Sage Intacct admin access to fix this?
+
+Yes. Updating user or role subscriptions requires appropriate administrative permissions in Sage Intacct.
