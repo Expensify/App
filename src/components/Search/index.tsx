@@ -1,4 +1,4 @@
-import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import {findFocusedRoute, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -291,19 +291,6 @@ function Search({
             });
         }
     }, [onDEWModalOpen, showConfirmModal, translate]);
-
-    const clearTransactionsAndSetHashAndKey = useCallback(() => {
-        clearSelectedTransactions(hash);
-    }, [hash, searchKey, clearSelectedTransactions, queryJSON]);
-
-    useFocusEffect(clearTransactionsAndSetHashAndKey);
-
-    useEffect(() => {
-        clearTransactionsAndSetHashAndKey();
-
-        // Trigger once on mount (e.g., on page reload), when RHP is open and screen is not focused
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
     const prevValidGroupBy = usePrevious(validGroupBy);
