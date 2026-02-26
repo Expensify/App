@@ -155,7 +155,7 @@ Onyx.connect({
  * a minus sign. This function converts them to the standard format (e.g., "$25.00").
  */
 function stripAccountingBrackets(reportName: string): string {
-    return reportName.replace(/\(([^)]*\d[^)]*)\)/g, '$1');
+    return reportName.replaceAll(/\(([^)]*\d[^)]*)\)/g, '$1');
 }
 
 function generateArchivedReportName(reportName: string): string {
