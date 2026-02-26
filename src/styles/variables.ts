@@ -415,4 +415,10 @@ export default {
     humptyDumptyHeight: 165,
     magnifyingGlassSpyMouthClosedWidth: 161,
     magnifyingGlassSpyMouthClosedHeight: 169,
+
+    // Odometer photo information container
+    leftPositionOdometerPhotoInformationContainer: 20,
+    rightPositionOdometerPhotoInformationContainer: 20,
+    bottomPositionOdometerPhotoInformationContainer: 20,
+    paddingOdometerPhotoInformationContainer: 13.5,
 } as const;

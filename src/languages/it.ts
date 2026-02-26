@@ -543,6 +543,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Delega ferie',
         expensifyLogo: 'Logo Expensify',
+        duplicateReport: 'Report duplicato',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -953,17 +954,17 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: 'Correggi',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Correggi la connessione della carta aziendale ${feedName}` : 'Correggi connessione carta aziendale'),
-                defaultSubtitle: 'Spazio di lavoro > Carte aziendali',
+                defaultSubtitle: 'Area di lavoro',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Carte aziendali`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Correggi connessione ${integrationName}`,
-                defaultSubtitle: 'Spazio di lavoro > Contabilità',
+                defaultSubtitle: 'Area di lavoro',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Contabilità`,
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Correggi la connessione della carta personale ${cardName}` : 'Correggi connessione carta personale'),
-                subtitle: 'Portafoglio > Carte assegnate',
+                subtitle: 'Portafoglio',
             },
         },
         assignedCards: 'Carte assegnate',
@@ -1387,7 +1388,12 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Alcuni di questi duplicati sono già stati approvati o pagati.',
         reviewDuplicates: 'Controlla i duplicati',
         keepAll: 'Mantieni tutto',
-        confirmApprovalWithHeldAmount: "Il rapporto contiene spese in sospeso. Approvare solo le spese conformi o approvare l'intero rapporto?",
+        confirmApprove: 'Conferma l’importo approvato',
+        confirmApprovalAmount: 'Approva solo le spese conformi oppure approva l’intero rapporto.',
+        confirmApprovalAllHoldAmount: () => ({
+            one: 'Questa spesa è in sospeso. Vuoi approvarla comunque?',
+            other: 'Queste note spese sono in sospeso. Vuoi approvarle comunque?',
+        }),
         confirmPay: 'Conferma l’importo del pagamento',
         confirmPayAmount: 'Paga le voci non in sospeso oppure paga l’intero resoconto.',
         confirmPayAllHoldAmount: () => ({
@@ -1759,6 +1765,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Nuovo metodo di contatto',
         goBackContactMethods: 'Torna ai metodi di contatto',
+        yourDefaultContactMethodRestrictedSwitch: 'Questo è il tuo metodo di contatto predefinito attuale. La tua azienda ne ha limitato la rimozione o la modifica.',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -3881,6 +3888,8 @@ ${
             workspaceOwner: 'Proprietario',
             workspaceType: 'Tipo di workspace',
             workspaceAvatar: 'Avatar spazio di lavoro',
+            clientID: 'ID cliente',
+            clientIDInputHint: "Inserisci l'identificativo univoco del cliente",
             mustBeOnlineToViewMembers: 'Devi essere online per visualizzare i membri di questo spazio di lavoro.',
             moreFeatures: 'Altre funzionalità',
             requested: 'Richiesto',
@@ -6343,6 +6352,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 adultEntertainment: 'Intrattenimento per adulti',
                 requireCompanyCard: 'Richiedi le carte aziendali per tutti gli acquisti',
                 requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, inclusi chilometraggio e indennità giornaliere.',
+                requireCompanyCardDisabledTooltip: 'Abilita Carte aziendali (in Altre funzionalità) per sbloccare.',
             },
             expenseReportRules: {
                 title: 'Avanzate',
@@ -7096,6 +7106,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         groupColumns: 'Raggruppa colonne',
         expenseColumns: 'Colonne spese',
         statements: 'Estratti conto',
+        cardStatements: 'Estratti carta',
+        monthlyAccrual: 'Rateo mensile',
         unapprovedCash: 'Contanti non approvati',
         unapprovedCard: 'Carta non approvata',
         reconciliation: 'Riconciliazione',
@@ -7197,6 +7209,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             table: 'Tabella',
             bar: 'Bar',
             line: 'Linea',
+            pie: 'Torta',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
@@ -7231,7 +7244,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         exportedTo: 'Esportato in',
         exportAll: {
             selectAllMatchingItems: 'Seleziona tutti gli elementi corrispondenti',
-            allMatchingItemsSelected: 'Tutti gli elementi corrispondenti sono stati selezionati',
+            allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
         },
         spendOverTime: 'Spesa nel tempo',
     },
@@ -7549,6 +7562,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             endTitle: 'Foto contachilometri finale',
             deleteOdometerPhoto: 'Elimina foto del contachilometri',
             deleteOdometerPhotoConfirmation: 'Sei sicuro di voler eliminare questa foto del contachilometri?',
+            cameraAccessRequired: 'Per scattare foto è necessario l’accesso alla fotocamera.',
+            snapPhotoStart: "<muted-text-label>Scatta una foto del contachilometri all'<strong>inizio</strong> del viaggio.</muted-text-label>",
+            snapPhotoEnd: '<muted-text-label>Scatta una foto del contachilometri alla <strong>fine</strong> del viaggio.</muted-text-label>',
         },
     },
     gps: {
@@ -8471,14 +8487,17 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
                 addMember: 'Impossibile aggiungere questo membro. Riprova.',
                 vacationDelegate: 'Impossibile impostare questo utente come delegato per le ferie. Riprova.',
             },
+            cannotSetVacationDelegateForMember: (email: string) => `Non puoi impostare un delegato per le vacanze per ${email} perché al momento è il delegato per i seguenti membri:`,
+        },
+        common: {
+            settings: 'Impostazioni',
             forceTwoFactorAuth: 'Imponi l’autenticazione a due fattori',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>Disabilita <a href="${samlPageUrl}">SAML</a> per imporre l’autenticazione a due fattori.</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>Richiedi l’autenticazione a due fattori per tutti i membri di questo dominio. Ai membri del dominio verrà chiesto di configurare l’autenticazione a due fattori sul proprio account quando effettuano l’accesso.</muted-text>`,
             forceTwoFactorAuthError: 'Impossibile modificare l’impostazione “Forza l’autenticazione a due fattori”. Riprova più tardi.',
-            cannotSetVacationDelegateForMember: (email: string) => `Non puoi impostare un delegato per le vacanze per ${email} perché al momento è il delegato per i seguenti membri:`,
+            resetTwoFactorAuth: 'Reimposta l’autenticazione a due fattori',
         },
-        common: {settings: 'Impostazioni'},
         groups: {title: 'Gruppi', memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membri`})},
     },
     proactiveAppReview: {

@@ -5,12 +5,10 @@ import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
-import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import type {SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
@@ -46,7 +44,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
@@ -62,14 +59,10 @@ type SearchRouterProps = {
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {setShouldResetSearchQuery} = useSearchContext();
+    const {setShouldResetSearchQuery} = useSearchActionsContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
-    const {areOptionsInitialized} = useOptionsList();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
-    const shouldShowList = isRecentSearchesDataLoaded && areOptionsInitialized;
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -115,7 +108,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 }
 
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`];
-                const option = createOptionFromReport(report, personalDetails, currentUserAccountID, privateIsArchived, undefined, {showPersonalDetails: true});
+                const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+                const option = createOptionFromReport(report, personalDetails, currentUserAccountID, chatReport, privateIsArchived, undefined, {showPersonalDetails: true});
                 reportForContextualSearch = option;
             }
 
@@ -385,7 +379,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         if (item?.reportID) {
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                         } else if ('login' in item) {
-                            navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                            navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, false);
                         }
                     });
                     onRouterClose();
@@ -412,7 +406,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 throw error;
             }
         },
-        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, policies, reports, submitSearch, textInputValue],
+        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, policies, reports, submitSearch, textInputValue, currentUserAccountID],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
@@ -461,29 +455,20 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldDelayFocus
                 />
             </View>
-            {shouldShowList && (
-                <SearchAutocompleteList
-                    autocompleteQueryValue={autocompleteQueryValue || textInputValue}
-                    handleSearch={searchInServer}
-                    searchQueryItem={searchQueryItem}
-                    getAdditionalSections={getAdditionalSections}
-                    onListItemPress={onListItemPress}
-                    onHighlightFirstItem={updateAndScrollToFocusedIndex}
-                    ref={listRef}
-                    personalDetails={personalDetails}
-                    reports={reports}
-                    allFeeds={allFeeds}
-                    allCards={personalAndWorkspaceCards}
-                    textInputRef={textInputRef}
-                />
-            )}
-            {!shouldShowList && (
-                <OptionsListSkeletonView
-                    fixedNumItems={4}
-                    shouldStyleAsTable
-                    speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                />
-            )}
+            <SearchAutocompleteList
+                autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                handleSearch={searchInServer}
+                searchQueryItem={searchQueryItem}
+                getAdditionalSections={getAdditionalSections}
+                onListItemPress={onListItemPress}
+                onHighlightFirstItem={updateAndScrollToFocusedIndex}
+                ref={listRef}
+                personalDetails={personalDetails}
+                reports={reports}
+                allFeeds={allFeeds}
+                allCards={personalAndWorkspaceCards}
+                textInputRef={textInputRef}
+            />
         </View>
     );
 }
