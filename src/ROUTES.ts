@@ -2632,6 +2632,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/travel/settings/frequency',
         getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/frequency` as const,
     },
+    WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS: {
+        route: 'workspaces/:policyID/travel/missing-personal-details',
+        getRoute: (policyID: string) => `workspaces/${policyID}/travel/missing-personal-details` as const,
+    },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'workspaces/:policyID/distance-rates/new',
         getRoute: (policyID: string, transactionID?: string, reportID?: string) =>

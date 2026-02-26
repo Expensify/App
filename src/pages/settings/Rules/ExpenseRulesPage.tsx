@@ -16,7 +16,6 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
-import useDocumentTitle from '@hooks/useDocumentTitle';
 import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -55,7 +54,6 @@ function ExpenseRulesPage() {
     const [selectedRules, setSelectedRules] = useState<string[]>([]);
     const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
     const styles = useThemeStyles();
-    useDocumentTitle(`${translate('common.settings')} - ${translate('expenseRulesPage.title')}`);
 
     useEffect(() => {
         // Clear selection when rule is changed as hash is outdated

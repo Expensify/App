@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/prefer-early-return */
-import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
+import type {ListRenderItemInfo} from '@react-native/virtualized-lists';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
