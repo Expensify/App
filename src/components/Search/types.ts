@@ -177,7 +177,7 @@ type SearchStateContextValue = SearchContextData & {
 };
 
 type SearchActionsContextValue = {
-    setCurrentSearchHashAndKey: (hash: number, recentHash: number, key: SearchKey | undefined) => void;
+    setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
     setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {

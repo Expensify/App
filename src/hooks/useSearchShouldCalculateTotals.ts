@@ -7,6 +7,8 @@ import useOnyx from './useOnyx';
 function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, searchHash: number | undefined, enabled: boolean) {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
 
+    console.log(searchKey, searchHash, enabled);
+
     const shouldCalculateTotals = useMemo(() => {
         if (!enabled) {
             return false;
