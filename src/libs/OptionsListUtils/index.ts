@@ -1394,7 +1394,18 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, currentUserAccountID, chatReport, undefined, reportAttributesDerived, privateIsArchived,policyTags, visibleReportActionsData),
+            ...createOption(
+                accountIDs,
+                personalDetails,
+                report,
+                currentUserAccountID,
+                chatReport,
+                undefined,
+                reportAttributesDerived,
+                privateIsArchived,
+                policyTags,
+                visibleReportActionsData,
+            ),
         },
     };
 }
@@ -1556,7 +1567,16 @@ function createFilteredOptionList(
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID ?? ''}`];
-        const {reportMapEntry, reportOption} = processReport(report, personalDetails, privateIsArchived, currentUserAccountID, chatReport, reportAttributesDerived,reportPolicyTags, visibleReportActionsData);
+        const {reportMapEntry, reportOption} = processReport(
+            report,
+            personalDetails,
+            privateIsArchived,
+            currentUserAccountID,
+            chatReport,
+            reportAttributesDerived,
+            reportPolicyTags,
+            visibleReportActionsData,
+        );
 
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
@@ -2282,7 +2302,7 @@ function prepareReportOptionsForDisplay(
             visibleReportActionsData,
             undefined,
             reportAttributesDerived,
-            reportPolicyTags
+            reportPolicyTags,
         );
         const isSelected = isReportSelected(option, selectedOptions);
 
@@ -2878,7 +2898,7 @@ function getMemberInviteOptions(
         maxElements: undefined,
         personalDetails: personalDetailsCollection,
         countryCode,
-    );
+    });
 }
 
 /**
