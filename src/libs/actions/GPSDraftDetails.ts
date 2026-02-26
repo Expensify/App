@@ -3,9 +3,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
-import geodesicDistance from '@src/utils/geodesicDistance';
-import {updateGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import type {Unit} from '@src/types/onyx/Policy';
+import {updateGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
+import geodesicDistance from '@src/utils/geodesicDistance';
 
 function resetGPSDraftDetails() {
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, null);
