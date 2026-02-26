@@ -244,11 +244,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !isInSidePanel;
     const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
     const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
-    const shouldShowBackButton = shouldUseNarrowLayout || !!isInSidePanel;
-
-    const shouldShowCloseButton = isInSidePanel && !shouldUseNarrowLayout && isConciergeChatReport(report);
-    const backButtonIcon = shouldShowCloseButton ? icons.Close : icons.BackArrow;
-    const backButtonLabel = shouldShowCloseButton ? translate('common.close') : translate('common.back');
+    const shouldShowCloseButton = !!isInSidePanel && !shouldUseNarrowLayout && isConciergeChatReport(report);
+    const shouldShowBackButton = (shouldUseNarrowLayout || !!isInSidePanel) && !shouldShowCloseButton;
 
     const onboardingHelpDropdownButton = (
         <OnboardingHelpDropdownButton
@@ -284,17 +281,17 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     onPress={onNavigationMenuButtonClicked}
                                     style={[styles.LHNToggle, shouldUseNarrowLayout && styles.pl5]}
                                     accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
-                                    accessibilityLabel={backButtonLabel}
+                                    accessibilityLabel={translate('common.back')}
                                     role={CONST.ROLE.BUTTON}
                                     sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.BACK_BUTTON}
                                 >
                                     <Tooltip
-                                        text={backButtonLabel}
+                                        text={translate('common.back')}
                                         shiftVertical={4}
                                     >
                                         <View>
                                             <Icon
-                                                src={backButtonIcon}
+                                                src={icons.BackArrow}
                                                 fill={theme.icon}
                                             />
                                         </View>
@@ -389,6 +386,22 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
+                                {shouldShowCloseButton && (
+                                    <Tooltip text={translate('common.close')}>
+                                        <PressableWithoutFeedback
+                                            onPress={onNavigationMenuButtonClicked}
+                                            style={[styles.touchableButtonImage]}
+                                            role={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={translate('common.close')}
+                                            sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.BACK_BUTTON}
+                                        >
+                                            <Icon
+                                                src={icons.Close}
+                                                fill={theme.icon}
+                                            />
+                                        </PressableWithoutFeedback>
+                                    </Tooltip>
+                                )}
                                 {!isInSidePanel && <SidePanelButton style={styles.ml2} />}
                                 {shouldDisplaySearchRouter && <SearchButton />}
                             </View>

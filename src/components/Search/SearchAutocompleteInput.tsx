@@ -10,6 +10,7 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
 import useFocusAfterNav from '@hooks/useFocusAfterNav';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -115,6 +116,9 @@ function SearchAutocompleteInput({
     const emailList = Object.keys(loginList ?? {});
     const emailListSharedValue = useSharedValue(emailList);
 
+    const {exportedToFilterOptions} = useExportedToFilterOptions();
+    const exportedToSharedValue = useSharedValue(exportedToFilterOptions);
+
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const defaultBorderColor = theme.border;
@@ -164,11 +168,19 @@ function SearchAutocompleteInput({
         });
     }, [tagSharedValue, tagAutocompleteList]);
 
+    useEffect(() => {
+        scheduleOnLiveMarkdownRuntime(() => {
+            'worklet';
+
+            exportedToSharedValue.set(exportedToFilterOptions);
+        });
+    }, [exportedToSharedValue, exportedToFilterOptions]);
+
     const currentUserDisplayName = currentUserPersonalDetails.displayName ?? '';
     const parser = (input: string) => {
         'worklet';
 
-        return parseForLiveMarkdown(input, currentUserDisplayName, substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue);
+        return parseForLiveMarkdown(input, currentUserDisplayName, substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue, exportedToSharedValue);
     };
 
     const clearInput = () => {

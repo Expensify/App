@@ -959,22 +959,27 @@ const translations = {
             },
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Fix ${feedName} company card connection` : 'Fix company card connection'),
-                defaultSubtitle: 'Workspace > Company cards',
-                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Company cards`,
+                defaultSubtitle: 'Workspace',
+                subtitle: ({policyName}: {policyName: string}) => policyName,
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Fix ${cardName} personal card connection` : 'Fix personal card connection'),
-                subtitle: 'Wallet > Assigned cards',
+                subtitle: 'Wallet',
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
-                defaultSubtitle: 'Workspace > Accounting',
-                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Accounting`,
+                defaultSubtitle: 'Workspace',
+                subtitle: ({policyName}: {policyName: string}) => policyName,
             },
             addShippingAddress: {
                 title: 'We need your shipping address',
                 subtitle: 'Provide an address to receive your Expensify Card.',
                 cta: 'Add address',
+            },
+            addPaymentCard: {
+                title: 'Add a payment card to keep using Expensify',
+                subtitle: 'Account > Subscription',
+                cta: 'Add',
             },
             activateCard: {
                 title: 'Activate your Expensify Card',
@@ -1105,6 +1110,7 @@ const translations = {
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
+        crop: 'Crop',
         addAReceipt: {
             phrase1: 'Add a receipt',
             phrase2: 'or drag and drop one here',
@@ -1792,6 +1798,7 @@ const translations = {
         enterMagicCode: (contactMethod: string) => `Please enter the magic code sent to ${contactMethod}. It should arrive within a minute or two.`,
         setAsDefault: 'Set as default',
         yourDefaultContactMethod: "This is your current default contact method. Before you can delete it, you'll need to choose another contact method and click “Set as default”.",
+        yourDefaultContactMethodRestrictedSwitch: 'This is your current default contact method. Your company has restricted removing or changing it.',
         removeContactMethod: 'Remove contact method',
         removeAreYouSure: "Are you sure you want to remove this contact method? This action can't be undone.",
         failedNewContact: 'Failed to add this contact method.',
@@ -4299,6 +4306,9 @@ const translations = {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
                 },
             },
+            travelInvoicing: 'Travel Invoicing',
+            travelInvoicingVendor: 'Travel vendor',
+            travelInvoicingPayableAccount: 'Travel payable account',
         },
         workspaceList: {
             joinNow: 'Join now',
@@ -7079,6 +7089,8 @@ const translations = {
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
         statements: 'Statements',
+        cardStatements: 'Card statements',
+        monthlyAccrual: 'Monthly accrual',
         unapprovedCash: 'Unapproved cash',
         unapprovedCard: 'Unapproved card',
         reconciliation: 'Reconciliation',
