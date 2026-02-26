@@ -122,7 +122,7 @@ The account holder opted out of name verification at their bank.
 **What to do:** Verify the bank details directly with the member, then retry the reimbursement once confirmed.
 
 ---
-
+## Canadian bank account formats for Expensify reimbursements
 ## Canadian bank account formats
 
 Reimbursements to Canadian banks can fail if the account number or institution details don't match the bank's required format. Formats differ by bank and by transfer type (e.g. CAD wires, USD wires, EFT). Use the table below as a reference for institution codes, SWIFT codes, and account number formats.
