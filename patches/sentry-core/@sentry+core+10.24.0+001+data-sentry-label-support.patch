@@ -13,14 +13,22 @@ index 3169c25..19acc49 100644
   * @returns generated DOM path
   */
  function htmlTreeAsString(
-@@ -53,7 +53,30 @@ function htmlTreeAsString(
+@@ -53,7 +53,38 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
- 
+
 -    return out.reverse().join(separator);
 +    const cssSelector = out.reverse().join(separator);
 +
-+    // If cssSelector already contains data-sentry-label, return as is
++    // If the clicked element itself has data-sentry-label, return just the label.
++    // No CSS ancestor context needed — we know exactly what was clicked.
++    // @ts-expect-error WINDOW has HTMLElement
++    if (WINDOW.HTMLElement && elem instanceof HTMLElement && elem.dataset && elem.dataset['sentryLabel']) {
++      return `[data-sentry-label="${elem.dataset['sentryLabel']}"]`;
++    }
++
++    // If a parent/container in the tree has the label,
++    // preserve the CSS selector to identify which child was clicked.
 +    if (cssSelector.includes('[data-sentry-label="')) {
 +      return cssSelector;
 +    }
@@ -45,7 +53,7 @@ index 3169c25..19acc49 100644
    } catch {
      return '<unknown>';
    }
-@@ -77,8 +100,12 @@ function _htmlElementAsString(el, keyAttrs) {
+@@ -77,8 +108,12 @@ function _htmlElementAsString(el, keyAttrs) {
  
    // @ts-expect-error WINDOW has HTMLElement
    if (WINDOW.HTMLElement) {
@@ -74,14 +82,22 @@ index 2ad52b0..fd184fb 100644
   * @returns generated DOM path
   */
  function htmlTreeAsString(
-@@ -51,7 +51,30 @@ function htmlTreeAsString(
+@@ -51,7 +51,38 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
- 
+
 -    return out.reverse().join(separator);
 +    const cssSelector = out.reverse().join(separator);
 +
-+    // If cssSelector already contains data-sentry-label, return as is
++    // If the clicked element itself has data-sentry-label, return just the label.
++    // No CSS ancestor context needed — we know exactly what was clicked.
++    // @ts-expect-error WINDOW has HTMLElement
++    if (WINDOW.HTMLElement && elem instanceof HTMLElement && elem.dataset && elem.dataset['sentryLabel']) {
++      return `[data-sentry-label="${elem.dataset['sentryLabel']}"]`;
++    }
++
++    // If a parent/container in the tree has the label,
++    // preserve the CSS selector to identify which child was clicked.
 +    if (cssSelector.includes('[data-sentry-label="')) {
 +      return cssSelector;
 +    }
@@ -106,7 +122,7 @@ index 2ad52b0..fd184fb 100644
    } catch {
      return '<unknown>';
    }
-@@ -75,8 +98,12 @@ function _htmlElementAsString(el, keyAttrs) {
+@@ -75,8 +106,12 @@ function _htmlElementAsString(el, keyAttrs) {
  
    // @ts-expect-error WINDOW has HTMLElement
    if (WINDOW.HTMLElement) {
