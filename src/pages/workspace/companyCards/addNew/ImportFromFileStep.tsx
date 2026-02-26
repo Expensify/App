@@ -93,7 +93,7 @@ function ImportFromFileStep() {
                         <View style={styles.mb3}>
                             <FormHelpMessage
                                 isError
-                                message={translate('common.error.fieldRequired')}
+                                message={translate('workspace.companyCards.addNewCard.cardLayoutNameRequired')}
                             />
                         </View>
                     )}

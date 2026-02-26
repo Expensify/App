@@ -4831,6 +4831,7 @@ const translations = {
                 fileImport: 'Import transactions from file',
                 createFileFeedHelpText: `<muted-text>Please follow this <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">help guide</a> to get your company card expenses imported!</muted-text>`,
                 companyCardLayoutName: 'Company card layout name',
+                cardLayoutNameRequired: 'The Company card layout name is required',
                 useAdvancedFields: 'Use advanced fields (not recommended)',
                 cardProviders: {
                     gl1025: 'American Express Corporate Cards',
