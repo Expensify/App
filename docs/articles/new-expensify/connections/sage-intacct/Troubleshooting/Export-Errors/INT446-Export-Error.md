@@ -1,30 +1,33 @@
 ---
-title: INT446 Export Error: Vendor Is Marked as On Hold in Sage Intacct
-description: Learn why the INT446 export error occurs and how to remove the On Hold status from a vendor in Sage Intacct before retrying the export.
-keywords: INT446, vendor on hold Sage Intacct, VEN error Sage Intacct, vendor additional info tab, export failure vendor on hold
-internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers the INT446 export error related to vendors marked as On Hold. Does not cover employee, tax, or category configuration errors.
+title: INT446 Export Error in Sage Intacct Integration
+description: Learn what the INT446 export error means and how to remove the On Hold status from a vendor in Sage Intacct before retrying the export.
+keywords: INT446, Sage Intacct vendor on hold error, VEN vendor on hold Intacct, Sage Intacct Additional Info tab vendor, export failure vendor on hold, Workspace Admin
+internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers resolving the INT446 export error caused by vendors marked as On Hold. Does not cover employee, tax, or category configuration errors.
 ---
 
-# INT446 Export Error: Vendor Is Marked as On Hold in Sage Intacct
+# INT446 Export Error in Sage Intacct Integration
 
-If you see the error message:
+If you see the error:
 
-**“INT446 Export Error: Vendor VEN-[XXXXXX] is marked as 'On Hold' in Sage Intacct. Please remove the hold and try exporting again.”**
+INT446 Export Error: Vendor VEN-[XXXXXX] is marked as 'On Hold' in Sage Intacct. Please remove the hold and try exporting again.
 
-It means the vendor associated with the report is currently marked as **On Hold** in Sage Intacct.
+This means the vendor associated with the report is currently marked as **On Hold** in Sage Intacct.
 
 Sage Intacct prevents transactions from being posted to vendors that are on hold.
 
 ---
 
-## Why the INT446 Export Error Happens
+## Why the INT446 Export Error Happens in Sage Intacct
 
-The INT446 export error occurs when:
+The INT446 error typically occurs when:
 
-- The vendor tied to the report exists in Sage Intacct, and  
-- The vendor record is marked as **On Hold**  
+- The vendor tied to the report exists in Sage Intacct.
+- The vendor record is marked as **On Hold**.
+- The export attempts to create a transaction for that vendor.
 
-When a vendor is on hold, Sage Intacct blocks new transactions, including exports.
+When a vendor is on hold, Sage Intacct blocks new transactions, including exports from the Workspace.
+
+This is a vendor status issue, not a configuration or mapping issue.
 
 ---
 
@@ -34,27 +37,31 @@ Follow the steps below to remove the hold and retry the export.
 
 ---
 
-## Step 1: Remove the On Hold Status in Sage Intacct
+## Remove the On Hold Status in Sage Intacct
 
-1. Log in to Sage Intacct.  
-2. Open the vendor record referenced in the error message (VEN-[XXXXXX]).  
-3. Click the **Additional Info** tab.  
-4. Uncheck the **On Hold** option.  
-5. Save your changes.  
-
----
-
-## Step 2: Run Sync
-
-1. Go to **Workspaces > [Workspace Name] > Accounting**.  
-2. Click the three-dot icon next to the connection.  
-3. Select **Sync Now** from the dropdown.  
+1. Log in to Sage Intacct as an administrator.
+2. Open the vendor record referenced in the error message (VEN-[XXXXXX]).
+3. Click the **Additional Info** tab.
+4. Uncheck the **On Hold** option.
+5. Click **Save**.
 
 ---
 
-## Step 3: Retry the Export
+## Sync the Workspace
 
-Return to the report and retry the export.
+After updating the vendor record:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
+
+---
+
+## Retry the Export
+
+1. Open the report.
+2. Retry exporting to Sage Intacct.
 
 If the vendor is no longer marked as On Hold, the export should complete successfully.
 
@@ -62,14 +69,14 @@ If the vendor is no longer marked as On Hold, the export should complete success
 
 # FAQ
 
-## Can I export while the vendor is On Hold?
+## Can I Export While the Vendor Is On Hold?
 
 No. Sage Intacct blocks transactions for vendors marked as On Hold.
 
-## Do I need to permanently remove the hold?
+## Do I Need to Permanently Remove the Hold?
 
-Only if you need to export transactions for that vendor. You can reapply the hold later if required by your accounting process.
+No. You can remove the hold to complete the export and reapply it later if required by your accounting process.
 
-## Do I need special permissions to remove a vendor hold?
+## Do I Need Special Permissions to Remove a Vendor Hold?
 
-Yes. Updating vendor records typically requires appropriate permissions in Sage Intacct.
+Yes. Updating vendor records typically requires appropriate administrative permissions in Sage Intacct.
