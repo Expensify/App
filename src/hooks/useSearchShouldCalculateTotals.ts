@@ -25,6 +25,10 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, search
             CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
             CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
             CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
+            CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
+            CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
+            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
+            CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
         ];
 
         const isSuggestedSearchWithTotals = eligibleSearchKeys.includes(searchKey);
