@@ -9,14 +9,9 @@ import {useState} from 'react';
  * @returns A tuple containing the array of selected keys and a function to update the selected keys.
  */
 function useFilteredSelection<TKey extends string | number, TValue>(options: Record<TKey, TValue> | undefined, filter: (option: TValue | undefined) => boolean) {
-    const [selectedOptions, setSelectedOptions] = useState<TKey[]>([]);
-    const [prevDeps, setPrevDeps] = useState({options, filter});
-    if (prevDeps.options !== options || prevDeps.filter !== filter) {
-        setPrevDeps({options, filter});
-        setSelectedOptions((prev) => prev.filter((key) => filter(options?.[key])));
-    }
-
-    return [selectedOptions, setSelectedOptions] as const;
+    const [selectedKeys, setSelectedKeys] = useState<TKey[]>([]);
+    const selectedOptions = selectedKeys.filter((key) => filter(options?.[key]));
+    return [selectedOptions, setSelectedKeys] as const;
 }
 
 export default useFilteredSelection;
