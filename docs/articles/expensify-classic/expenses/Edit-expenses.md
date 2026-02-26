@@ -1,8 +1,8 @@
 ---
 title: Edit expenses
 description: Learn how to edit, split, merge, or delete expenses in Expensify, including permissions and limitations.
-keywords: edit expenses, split expenses, merge expenses, delete expenses, expense permissions, company card expense, Workspace Admin
-internalScope: Audience is members, approvers, and Workspace Admins. Covers how to edit, split, merge, or delete expenses and related permission rules. Does not cover why duplicate expenses happen or SmartScan merge troubleshooting.
+keywords: [Expensify Classic, edit expenses, split expense, merge expenses, delete expense, expense violation, company card expense, change expense amount, unapprove report, Workspace Admin, expense permissions]
+internalScope: Audience all members. Covers how to edit, split, merge, or delete expenses and related permission rules. Does not cover why duplicate expenses happen or SmartScan merge troubleshooting.
 ---
 
 You can edit expenses in Expensify to update details like category, description, tags, attendees, or report assignment. You can also split, merge, or delete expenses when the report is editable.
@@ -15,16 +15,16 @@ You can edit expenses in Expensify to update details like category, description,
 
 Editing permissions depend on the report status and your role.
 
-- The expense submitter can edit expenses on Draft reports.
-- Approvers and Workspace Admins can edit expenses on Outstanding reports. 
+- The expense submitter can edit expenses on **Draft** reports.
+- Approvers and Workspace Admins can edit expenses on **Outstanding** reports. 
 - Approved expenses must be Unapproved before they can be edited.
-- Expenses on Done reports cannot be edited.
+- Expenses on **Done** reports cannot be edited.
 
 ---
 
 ## What fields can be edited on an expense
 
-For manually entered expenses that are in the Draft or Open state, you can edit:
+For expenses in a **Draft** or **Outstanding** report, you can edit:
 
 - Category
 - Tag
@@ -35,7 +35,7 @@ For manually entered expenses that are in the Draft or Open state, you can edit:
 
 ---
 
-## How to identify expense type
+## How to identify expense types
 
 Each expense includes an icon that shows how it was created. This helps you understand what can and cannot be edited.
 
@@ -61,8 +61,8 @@ Company card expenses (🔒) have stricter editing rules. For example, the amoun
 
 **On Mobile:**
 
-1. Tap the **Expenses** tab.
-2. Select the expense you want to edit.
+1. Tap **Expenses**. 
+2. Tap the expense you want to edit.
 3. Tap **More Options**.
 4. Update the relevant fields and tap **Save**.
 
@@ -72,24 +72,24 @@ Company card expenses (🔒) have stricter editing rules. For example, the amoun
 
 A violation is a flag applied to expenses that break Workspace rules, such as missing required Categories or Tags, or exceeding the allowed amount. Violations should be resolved before reports are submitted and can be approved. 
 
-Violations appear with a note explaining which rule has been broken. You can resolve a violation by: 
+Violations appear directly on the expense with an explanation. 
 
-A violation is a flag applied to expenses that break Workspace rules, such as missing required Categories or Tags, or exceeding the allowed amount. Violations should be resolved before reports are submitted for approval.
-- Adding a **Description** to the expense that explains why the violation can't be resolved.
-   
-**Note:** Expenses with violation can be submitted manually, they cannot be submitted automatically. The violation will still appear but will not block submission if a comment or explanation is provided.
+To resolve a violation:
+
+1. Open the expense.
+2. Fix the required field (for example, add a Category or Tag).
+
+If the violation cannot be corrected, you can add a Description explaining the exception.
+
+**Note:** Expenses with violations can be submitted manually but cannot be submitted automatically. The violation remains visible for review.
  
 ---
-**Note:** Expenses with a violation can be submitted manually; they cannot be submitted automatically. The violation will still appear but will not block submission if a comment or explanation is provided.
+
 ## How to split an expense
 
-Splitting an expense creates multiple new expenses from one original charge. Each split keeps the same receipt image.
+Splitting creates multiple expenses from one original charge. Each split keeps the same receipt image.
 
-Before splitting:
-
-- Splitting cannot be undone.
-- Each split must be greater than $0.00.
-- All splits must equal the original total.
+To split an expense: 
 
 **On Web:**
 
@@ -105,13 +105,17 @@ Before splitting:
 2. Select the expense you want to split. 
 3. Tap **More Options**.
 4. Choose how to divide the expense.
-5. Tap **Save**. 
+5. Tap **Save**.
+
+**Note:** Splitting an expense cannot be undone. 
 
 ---
 
 ## How to merge expenses
 
 You can merge two expenses into one when they represent the same purchase.
+
+To merge two expenses: 
 
 **On Web:**
 
@@ -127,7 +131,7 @@ You can merge two expenses into one when they represent the same purchase.
 
 # How to delete expenses
 
-Only Unreported or Draft expenses can be deleted, and only the expense submitter can delete them. 
+Only **Unreported** or **Draft** expenses can be deleted, and only the expense submitter can delete them. 
 
 To delete expenses: 
 
