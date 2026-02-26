@@ -1,4 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import reportsSelector from '@selectors/Attributes';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
@@ -37,7 +38,6 @@ import {
     getUserToInviteOption,
     getValidOptions,
 } from '@libs/OptionsListUtils';
-import reportsSelector from '@selectors/Attributes';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
