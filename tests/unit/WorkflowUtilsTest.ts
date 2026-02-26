@@ -6,6 +6,7 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     getApprovalLimitDescription,
     getOpenConnectedToPolicyBusinessBankAccounts,
+    mergeWorkflowMembersWithAvailableMembers,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
 import type {Policy} from '@src/types/onyx';
@@ -540,6 +541,44 @@ describe('WorkflowUtils', () => {
             expect(approvalWorkflows.at(0)?.members).toHaveLength(1);
             const memberEmails = availableMembers.map((m) => m.email).sort();
             expect(memberEmails).toEqual(['alice@example.com', 'bob@example.com']);
+        });
+    });
+
+    describe('mergeWorkflowMembersWithAvailableMembers', () => {
+        it('Should deduplicate members when workflow members overlap with available members', () => {
+            const workflowMembers = [buildMember(1)];
+            const allAvailableMembers = [buildMember(1), buildMember(2), buildMember(3)];
+            const result = mergeWorkflowMembersWithAvailableMembers(workflowMembers, allAvailableMembers);
+
+            expect(result).toHaveLength(3);
+            expect(result.map((m) => m.email)).toEqual(['1@example.com', '2@example.com', '3@example.com']);
+        });
+
+        it('Should not duplicate when editing self-approval workflow (user A submits to user A)', () => {
+            const userA = buildMember(1);
+            const workflowMembers = [userA];
+            const allAvailableMembers = [userA];
+            const result = mergeWorkflowMembersWithAvailableMembers(workflowMembers, allAvailableMembers);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.email).toBe('1@example.com');
+        });
+
+        it('Should preserve workflow member order and append additional members', () => {
+            const workflowMembers = [buildMember(2), buildMember(3)];
+            const allAvailableMembers = [buildMember(1), buildMember(2), buildMember(3), buildMember(4)];
+            const result = mergeWorkflowMembersWithAvailableMembers(workflowMembers, allAvailableMembers);
+
+            expect(result.map((m) => m.email)).toEqual(['2@example.com', '3@example.com', '1@example.com', '4@example.com']);
+        });
+
+        it('Should return workflow members only when all available are already in workflow', () => {
+            const workflowMembers = [buildMember(1), buildMember(2)];
+            const allAvailableMembers = [buildMember(1), buildMember(2)];
+            const result = mergeWorkflowMembersWithAvailableMembers(workflowMembers, allAvailableMembers);
+
+            expect(result).toHaveLength(2);
+            expect(result.map((m) => m.email)).toEqual(['1@example.com', '2@example.com']);
         });
     });
 
