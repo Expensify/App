@@ -11876,6 +11876,7 @@ describe('ReportUtils', () => {
         it('should return error for DEW_SUBMIT_FAILED action on OPEN report', () => {
             const report = {
                 reportID: '1',
+                ownerAccountID: currentUserAccountID,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             };
@@ -11905,6 +11906,34 @@ describe('ReportUtils', () => {
 
             expect(errors?.dewSubmitFailed).toBeDefined();
             expect(reportAction).toEqual(dewSubmitFailedAction);
+        });
+
+        it('should NOT return error for DEW_SUBMIT_FAILED when current user is not the report owner', () => {
+            const report = {
+                reportID: '1',
+                ownerAccountID: 999,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const dewSubmitFailedAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
         });
 
         it('should NOT return error for DEW_SUBMIT_FAILED if there is a more recent SUBMITTED action', () => {
@@ -11945,6 +11974,7 @@ describe('ReportUtils', () => {
         it('should return error for DEW_SUBMIT_FAILED if it is more recent than SUBMITTED action', () => {
             const report = {
                 reportID: '1',
+                ownerAccountID: currentUserAccountID,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             };

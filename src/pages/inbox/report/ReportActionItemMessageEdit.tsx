@@ -152,6 +152,7 @@ function ReportActionItemMessageEdit({
     const isCommentPendingSaved = useRef(false);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const originalParentReportID = getOriginalReportID(originalReportID, action, reportActions);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
@@ -326,6 +327,7 @@ function ReportActionItemMessageEdit({
             isOriginalParentReportArchived,
             email ?? '',
             Object.fromEntries(draftMessageVideoAttributeCache),
+            visibleReportActionsData ?? undefined,
         );
         deleteDraft();
     }, [
@@ -340,6 +342,7 @@ function ReportActionItemMessageEdit({
         isOriginalParentReportArchived,
         debouncedValidateCommentMaxLength,
         email,
+        visibleReportActionsData,
     ]);
 
     /**
