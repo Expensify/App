@@ -184,7 +184,6 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                         title={translate('lockAccountPage.reportSuspiciousActivity')}
                         icon={icons.Flag}
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID))}
-                        shouldShowRightIcon
                         brickRoadIndicator={lockDomainErrorMessage ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={lockDomainErrorMessage}
                     />
