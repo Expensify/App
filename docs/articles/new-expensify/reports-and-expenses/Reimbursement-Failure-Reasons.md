@@ -217,4 +217,4 @@ If the message appears as a detailed return reason from the payment processor an
 
 ## Does this article apply to all reimbursement failures?
 
-This article applies to all employee reimbursement failures. Invoice payment failures will not show in the report history right now.
+This article applies to all employee reimbursement failures. Invoice payment failures are not currently displayed in the report history.
