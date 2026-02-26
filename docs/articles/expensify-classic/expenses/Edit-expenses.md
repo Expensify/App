@@ -24,21 +24,18 @@ Editing permissions depend on the report status and your role.
 
 ## What fields can be edited on an expense
 
-For most manually entered expenses, you can edit:
+For manually entered expenses that are in the Draft or Open state, you can edit:
 
 - Category
+- Tag
 - Description
 - Attendees
-- Tags
-- Report assignment
- - Receipt images
-- Category, tags, reimbursable and billable status can be edited (if the report is Draft or Outstanding)
+- Receipt image
 - Amount (if not a company card expense)
-- Receipt images
 
 ---
 
-## How to identify the type of expense
+## How to identify expense type
 
 Each expense includes an icon that shows how it was created. This helps you understand what can and cannot be edited.
 
@@ -104,11 +101,11 @@ Before splitting:
 
 **On Mobile:**
 
-1. Tap the **Expenses** tab.
+1. Tap **Expenses**.
 2. Select the expense you want to split. 
 3. Tap **More Options**.
 4. Choose how to divide the expense.
-5. Click **Save**. 
+5. Tap **Save**. 
 
 ---
 
@@ -119,15 +116,10 @@ You can merge two expenses into one when they represent the same purchase.
 **On Web:**
 
 1. Click the **Expenses** tab.
-2. Check the box next to the expenses you want to merge. 
+2. Check the box next to the two expenses you want to merge. 
 3. Click **Merge**.
 4. Choose which expense details to keep.
 5. Click **Save**. 
-
-
-**On Mobile:**
-
-3. Click the red **Trash icon**.
 
 **Note:** At least one expense must be manually created or SmartScanned - you cannot merge two card expenses together. Merging cannot be undone.
 
@@ -162,6 +154,7 @@ To delete expenses:
 When an expense is split, each portion becomes its own expense, with the same receipt image duplicated to each. You can assign different categories, tags, or details to each one.
 
 ## Can I add multiple receipts to a single expense?
+
 No, it's only possible to add one receipt per expense. However, you can add additional receipts or supporting documents as a Report Attachment. See [Add Comments & Attachments](https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports#add-comments--attachments-to-a-report) to learn more. 
 
 ## Why can't I edit my expense amount?
@@ -169,14 +162,17 @@ No, it's only possible to add one receipt per expense. However, you can add addi
 Company card expenses have a fixed amount based on imported transaction data and cannot be changed. Manually created or SmartScanned expenses can only be edited by the expense submitter, approvers and Workspace Admins when the report is in the Draft or Outstanding states.  
 
 ## Can I edit an expense after it has been approved?
+
 No, approved expenses cannot be edited unless the report is Unapproved. 
 
 If you need to edit an expense on a submitted report, ask approver or Workspace Admin to Unapprove the report.
 
 ## Can I undo a split expense?
+
 No, it can't be undone once an expense is split and saved. If you want to start over, delete the split expenses and re-upload the receipt.
 
 ## Will each split have the same receipt image?
+
 Yes. The same image will appear on all the split expenses for easy reference and audit compliance.
 
 ## Can I apply different categories or tags to each split?
