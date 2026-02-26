@@ -12,9 +12,10 @@ function useDocumentTitle(title: string) {
                 // When switching between Settings sub-pages, the new screen's useFocusEffect
                 // fires before this cleanup runs (due to React's child-before-parent effect
                 // ordering), so currentPageTitle will already be the new screen's title.
-                if (getPageTitle() === title) {
-                    setPageTitle('');
+                if (getPageTitle() !== title) {
+                    return;
                 }
+                setPageTitle('');
             };
         }, [title]),
     );
