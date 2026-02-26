@@ -682,7 +682,7 @@ describe('ReportUtils', () => {
         it('should set isInviteOnboardingComplete in optimisticData when wasInvited is true', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
                 onboardingMessage: {
                     message: 'This is a test',
                     tasks: [],
@@ -705,7 +705,7 @@ describe('ReportUtils', () => {
         it('should revert isInviteOnboardingComplete in failureData when wasInvited is true', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: {isInviteOnboardingComplete: false},
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
                 onboardingMessage: {
                     message: 'This is a test',
                     tasks: [],
@@ -724,7 +724,7 @@ describe('ReportUtils', () => {
         it('should set hasCompletedGuidedSetupFlow in optimisticData when wasInvited is not set', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
                 onboardingMessage: {
                     message: 'This is a test',
                     tasks: [],
