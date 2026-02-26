@@ -12,6 +12,7 @@ import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDet
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';
+import getClipboardText from '@libs/Clipboard/getClipboardText';
 import EmailUtils from '@libs/EmailUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
@@ -213,13 +214,11 @@ function setClipboardMessage(content: string | undefined) {
     if (!content) {
         return;
     }
+    const clipboardText = getClipboardText(content);
     if (!Clipboard.canSetHtml()) {
-        Clipboard.setString(Parser.htmlToMarkdown(content));
+        Clipboard.setString(clipboardText);
     } else {
-        // Use markdown format text for the plain text(clipboard type "text/plain") to ensure consistency across all platforms.
-        // More info: https://github.com/Expensify/App/issues/53718
-        const markdownText = Parser.htmlToMarkdown(content);
-        Clipboard.setHtml(content, markdownText);
+        Clipboard.setHtml(content, clipboardText);
     }
 }
 
@@ -492,7 +491,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: 'Checkmark',
         shouldShow: ({type, isUnreadChat}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
         onPress: (closePopover, {reportID}) => {
-            readNewestAction(reportID, true);
+            readNewestAction(reportID, true, true);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
