@@ -23,7 +23,7 @@ function getTitleSkeletonWidth(index: number) {
 }
 
 function ForYouSkeleton() {
-    const {containerRef, containerWidth: pageWidth} = useContainerWidth();
+    const {onLayout, containerWidth: pageWidth} = useContainerWidth();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -71,7 +71,7 @@ function ForYouSkeleton() {
     return (
         <View
             style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}
-            ref={containerRef}
+            onLayout={onLayout}
         >
             <ItemListSkeletonView
                 itemViewHeight={ITEM_HEIGHT}

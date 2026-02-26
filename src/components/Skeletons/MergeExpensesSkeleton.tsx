@@ -19,7 +19,7 @@ type MergeExpensesSkeletonProps = {
 };
 
 function MergeExpensesSkeleton({fixedNumItems, speed, reasonAttributes}: MergeExpensesSkeletonProps) {
-    const {containerRef, containerWidth: pageWidth} = useContainerWidth(24);
+    const {onLayout, containerWidth: pageWidth} = useContainerWidth(24);
     const styles = useThemeStyles();
     useSkeletonSpan('MergeExpensesSkeleton', reasonAttributes);
 
@@ -63,7 +63,7 @@ function MergeExpensesSkeleton({fixedNumItems, speed, reasonAttributes}: MergeEx
     return (
         <View
             style={styles.flex1}
-            ref={containerRef}
+            onLayout={onLayout}
         >
             <ItemListSkeletonView
                 itemViewHeight={64}

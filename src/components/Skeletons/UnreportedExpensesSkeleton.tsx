@@ -39,7 +39,7 @@ type UnreportedExpensesSkeletonProps = {
 };
 
 function UnreportedExpensesSkeleton({fixedNumberOfItems, reasonAttributes}: UnreportedExpensesSkeletonProps) {
-    const {containerRef, containerWidth: pageWidth} = useContainerWidth(40);
+    const {onLayout, containerWidth: pageWidth} = useContainerWidth(40);
     const styles = useThemeStyles();
     useSkeletonSpan('UnreportedExpensesSkeleton', reasonAttributes);
 
@@ -76,7 +76,7 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems, reasonAttributes}: Unre
     return (
         <View
             style={styles.flex1}
-            ref={containerRef}
+            onLayout={onLayout}
         >
             <ItemListSkeletonView
                 itemViewHeight={64}
