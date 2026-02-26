@@ -41,7 +41,7 @@ Example:
 **How to fix it:** The member should:
 
 1. Confirm the exact account holder name with their bank.
-2. Update their bank account name in Expensify to match exactly.
+2. [Reconnect their bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account) using the exact name on file with the bank.
 
 Even small differences like nicknames, missing middle initials, or extra spaces can cause ACH rejection.
 
@@ -54,7 +54,7 @@ The account holder name provided in Expensify does not match the name on file wi
 **How to fix it:** The member should:
 
 1. Contact their bank to confirm the exact account holder name.
-2. Update their bank account details in Expensify so the name matches exactly.
+2. [Reconnect their bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account) using the exact name on file with the bank.
 3. Notify the Workspace Admin once updated so the payment can be retried.
 
 ---
@@ -68,7 +68,7 @@ The payment was sent as a personal reimbursement, but the bank account is regist
 - Personal bank account
 - Business bank account
 
-Then update the connected bank account in Expensify to match.
+Then [reconnect the correct bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account) in Expensify.
 
 ---
 
@@ -76,7 +76,7 @@ Then update the connected bank account in Expensify to match.
 
 The payment was sent as a business reimbursement, but the connected account is a personal account.
 
-**How to fix it:** Confirm the intended account type and reconnect the correct bank account in Expensify.
+**How to fix it:** Confirm the intended account type and [reconnect the correct bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account) in Expensify.
 
 ---
 
@@ -89,8 +89,7 @@ For Canadian banks, ensure the account number matches the format required for yo
 **How to fix it:** The member should:
 
 1. Double-check their account and routing numbers.
-2. Remove the incorrect bank connection.
-3. Reconnect their bank account with the correct details.
+2. [Reconnect their bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account) with the correct details.
 
 ---
 
@@ -101,7 +100,7 @@ The bank account has been migrated, closed, or transferred to a new account numb
 **How to fix it:** The member should:
 
 1. Confirm their current bank account details.
-2. Reconnect their bank account in Expensify using the updated information.
+2. [Reconnect their bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account) in Expensify using the updated information.
 
 ---
 
@@ -111,7 +110,7 @@ The bank does not support account name verification for this account type.
 
 Expensify cannot automatically verify the account holder name through the bank.
 
-**What to do:** Manually confirm the account details with the member, then retry the payment once confirmed.
+**What to do:** Manually confirm the account details with the member. The member must [reconnect their bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account), then the Workspace Admin can retry the payment.
 
 ---
 
@@ -119,7 +118,7 @@ Expensify cannot automatically verify the account holder name through the bank.
 
 The account holder opted out of name verification at their bank.
 
-**What to do:** Verify the bank details directly with the member, then retry the reimbursement once confirmed.
+**What to do:** Verify the bank details directly with the member. The member must [reconnect their bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Personal-Bank-Account), then the Workspace Admin can retry the reimbursement.
 
 ---
 ## Canadian bank account formats for Expensify reimbursements
