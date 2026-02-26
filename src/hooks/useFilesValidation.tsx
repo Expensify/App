@@ -6,13 +6,13 @@ import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import {getFileValidationErrorText, resizeImageIfNeeded} from '@libs/fileDownload/FileUtils';
-import convertHeicImage from '@libs/fileDownload/heicConverter';
-import CONST from '@src/CONST';
-import type {FileObject} from '@src/types/utils/Attachment';
 import {validateAttachmentFile, validateMultipleAttachmentFiles} from '@libs/AttachmentValidation';
 import type {MultipleAttachmentsValidationError, SingleAttachmentInvalidResult, SingleAttachmentValidationError} from '@libs/AttachmentValidation';
+import {getFileValidationErrorText, resizeImageIfNeeded} from '@libs/fileDownload/FileUtils';
+import convertHeicImage from '@libs/fileDownload/heicConverter';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 
