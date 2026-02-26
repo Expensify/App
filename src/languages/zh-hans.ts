@@ -4722,6 +4722,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 fileImport: '从文件导入交易',
                 createFileFeedHelpText: `<muted-text>请按照此<a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">帮助指南</a>操作，将您的公司卡费用导入！</muted-text>`,
                 companyCardLayoutName: '公司卡片布局名称',
+                cardLayoutNameRequired: '公司卡片布局名称是必填的',
                 useAdvancedFields: '使用高级字段（不推荐）',
                 cardProviders: {
                     gl1025: 'American Express 公司卡',

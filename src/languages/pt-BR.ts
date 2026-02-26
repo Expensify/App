@@ -4814,6 +4814,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 fileImport: 'Importar transações do arquivo',
                 createFileFeedHelpText: `<muted-text>Siga este <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guia de ajuda</a> para importar as despesas do cartão corporativo!</muted-text>`,
                 companyCardLayoutName: 'Nome do layout do cartão corporativo',
+                cardLayoutNameRequired: 'O nome do layout do cartão corporativo é obrigatório',
                 useAdvancedFields: 'Usar campos avançados (não recomendado)',
                 cardProviders: {
                     gl1025: 'Cartões Corporativos American Express',

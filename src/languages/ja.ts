@@ -4794,6 +4794,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 fileImport: 'ファイルから取引をインポート',
                 createFileFeedHelpText: `<muted-text>会社カードの経費をインポートするには、この<a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">ヘルプガイド</a>に従ってください。</muted-text>`,
                 companyCardLayoutName: '法人カードレイアウト名',
+                cardLayoutNameRequired: '法人カードレイアウト名は必須です',
                 useAdvancedFields: '詳細フィールドを使用（非推奨）',
                 cardProviders: {
                     gl1025: 'American Express コーポレートカード',

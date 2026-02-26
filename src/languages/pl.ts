@@ -4813,6 +4813,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 fileImport: 'Importuj transakcje z pliku',
                 createFileFeedHelpText: `<muted-text>Postępuj zgodnie z <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">tym przewodnikiem pomocy</a>, aby zaimportować wydatki z kart firmowych!</muted-text>`,
                 companyCardLayoutName: 'Nazwa układu karty firmowej',
+                cardLayoutNameRequired: 'Nazwa układu karty firmowej jest wymagana',
                 useAdvancedFields: 'Użyj pól zaawansowanych (niezalecane)',
                 cardProviders: {
                     gl1025: 'Karty korporacyjne American Express',

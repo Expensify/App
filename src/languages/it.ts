@@ -4829,6 +4829,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 fileImport: 'Importa transazioni da file',
                 createFileFeedHelpText: `<muted-text>Segui questa <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guida di supporto</a> per importare le spese della carta aziendale!</muted-text>`,
                 companyCardLayoutName: 'Nome layout carta aziendale',
+                cardLayoutNameRequired: 'Il nome del layout della carta aziendale è obbligatorio',
                 useAdvancedFields: 'Usa i campi avanzati (non consigliato)',
                 cardProviders: {
                     gl1025: 'Carte Corporate American Express',
