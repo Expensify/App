@@ -1,0 +1,82 @@
+---
+title: INT205 Export Error: Selected Project Isn’t Associated With the Selected Customer
+description: Learn why the INT205 export error occurs and how to ensure projects are properly linked to customers in Sage Intacct before exporting.
+keywords: INT205, Sage Intacct project not associated with customer, Sage Intacct project customer mismatch, project tag export error, Sage Intacct project configuration, Sync now Sage Intacct
+internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers the INT205 export error related to project and customer associations. Does not cover employee record or billable configuration errors.
+---
+
+# INT205 Export Error: Selected Project Isn’t Associated With the Selected Customer
+
+If you see the error message:
+
+**“INT205 Export Error: The selected project isn’t associated with the selected customer. Please verify the project tag on all expenses and retry the export.”**
+
+It means the project selected on one or more expenses is not linked to the selected customer in Sage Intacct.
+
+Sage Intacct requires projects to be associated with a customer when exporting billable or customer-related expenses.
+
+---
+
+## Why the INT205 Export Error Happens
+
+The INT205 export error occurs when:
+
+- A project is selected on an expense, and  
+- That project is not associated with the corresponding customer in Sage Intacct  
+
+If the project–customer relationship is not configured correctly in Sage Intacct, the export will fail.
+
+---
+
+# How to Fix the INT205 Export Error
+
+Follow the steps below to correct the project configuration and retry the export.
+
+---
+
+## Step 1: Confirm Project and Customer Association in Sage Intacct
+
+1. Log in to Sage Intacct.  
+2. Locate the project used on the report.  
+3. Confirm that:
+   - The project is active  
+   - The project is linked to the correct customer  
+
+If the project is not associated with a customer, update the project record to link it to the appropriate customer and save your changes.
+
+---
+
+## Step 2: Sync Sage Intacct
+
+After confirming projects are active and properly linked:
+
+1. Go to **Settings > Workspaces**.  
+2. Select your Workspace.  
+3. Click **Accounting**.  
+4. Click **Sync now**.  
+
+This refreshes project and customer data between Expensify and Sage Intacct.
+
+---
+
+## Step 3: Retry the Export
+
+Return to the report and retry the export.
+
+If the project is correctly associated with the customer, the export should complete successfully.
+
+---
+
+# FAQ
+
+## Does the project have to be active?
+
+Yes. The project must be active in Sage Intacct for the export to succeed.
+
+## Can I fix this by changing the project on the expense?
+
+Yes. If the selected project is incorrect, update the expense to use a project that is properly associated with the correct customer.
+
+## Does this error affect non-project expenses?
+
+No. This error only occurs when a project tag is selected and that project is not correctly linked to a customer in Sage Intacct.
