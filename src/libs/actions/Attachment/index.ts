@@ -16,10 +16,15 @@ async function cacheAttachment({attachmentID, uri}: CacheAttachmentProps): Promi
         }
 
         const contentType = response.headers.get('content-type') ?? '';
-        const fileType = getImageCacheFileExtension(contentType);
+        if (contentType === 'image/heic') {
+            Log.warn('[AttachmentCache] HEIC is not supported, skipping cache', {attachmentID, contentType});
+            return;
+        }
+
+        const fileExtension = getImageCacheFileExtension(contentType);
 
         // If the image file type doesn't exist in our list, then we need to exit
-        if (!fileType) {
+        if (!fileExtension) {
             Log.warn('[AttachmentCache] Unsupported file type, skipping cache', {attachmentID, contentType});
             return;
         }

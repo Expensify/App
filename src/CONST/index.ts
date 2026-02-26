@@ -2241,6 +2241,7 @@ const CONST = {
         'image/svg+xml': 'svg',
         'image/x-icon': 'ico',
         'image/vnd.microsoft.icon': 'ico',
+        'image/heic': 'heic',
     },
 
     SHARE_FILE_MIMETYPE: {

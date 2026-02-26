@@ -11,11 +11,11 @@ const ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
 
 async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentProps) {
     const isLocalFile = uri.startsWith('file://');
-    const fileType = getImageCacheFileExtension(mimeType ?? '');
+    const fileExtension = getImageCacheFileExtension(mimeType ?? '');
 
     // For local file uploads and the file type is supported for caching, then copy instead of re-downloading the file
-    if (isLocalFile && fileType) {
-        const fileName = `${attachmentID}.${fileType}`;
+    if (isLocalFile && fileExtension) {
+        const fileName = `${attachmentID}.${fileExtension}`;
         const destPath = `${ATTACHMENT_DIR}/${fileName}`;
 
         try {
@@ -43,15 +43,15 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
             return;
         }
 
-        const attachmentFileType = getImageCacheFileExtension(contentType ?? '');
+        const attachmentfileExtension = getImageCacheFileExtension(contentType ?? '');
 
-        // If attachmentFileType is not set properly / or doesn't exist in our lists, then we need to exit
-        if (!attachmentFileType) {
+        // If attachmentfileExtension is not set properly / or doesn't exist in our lists, then we need to exit
+        if (!attachmentfileExtension) {
             Log.warn('[AttachmentCache] Unsupported file type, skipping cache', {attachmentID, contentType});
             return;
         }
 
-        const fileName = `${attachmentID}.${attachmentFileType}`;
+        const fileName = `${attachmentID}.${attachmentfileExtension}`;
         const filePath = `${ATTACHMENT_DIR}/${fileName}`;
         await RNFetchBlob.config({path: filePath}).fetch('GET', uri);
 
