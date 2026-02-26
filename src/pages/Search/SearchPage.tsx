@@ -1,7 +1,5 @@
-import React, {useCallback, useContext} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import React from 'react';
 import Animated from 'react-native-reanimated';
-import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,22 +14,10 @@ type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamLi
 function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {saveScrollOffset} = useContext(ScrollOffsetContext);
 
     useConfirmReadyToOpenApp();
 
-    const scrollHandler = useCallback(
-        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-            if (!e.nativeEvent.contentOffset.y) {
-                return;
-            }
-
-            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-        },
-        [saveScrollOffset, route],
-    );
-
-    return <Animated.View style={[styles.flex1]}>{shouldUseNarrowLayout ? <SearchPageNarrow /> : <SearchPageWide scrollHandler={scrollHandler} />}</Animated.View>;
+    return <Animated.View style={[styles.flex1]}>{shouldUseNarrowLayout ? <SearchPageNarrow /> : <SearchPageWide route={route} />}</Animated.View>;
 }
 
 SearchPage.whyDidYouRender = true;
