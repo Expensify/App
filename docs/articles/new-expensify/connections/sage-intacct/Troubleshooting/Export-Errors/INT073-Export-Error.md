@@ -1,30 +1,33 @@
 ---
-title: INT073 Export Error: Required Tag Missing for Account in Sage Intacct
-description: Learn why the INT073 export error occurs and how to configure required account fields or tags before retrying the export.
-keywords: INT073, required tag Sage Intacct account, account requires dimension error, Chart of Accounts required field, configure tag line item level, sync coding settings
-internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers the INT073 export error related to required account fields and tag configuration. Does not cover employee or tax configuration errors.
+title: INT073 Export Error in Sage Intacct Integration
+description: Learn what the INT073 export error means and how to configure required account fields or tags before retrying the export.
+keywords: INT073, Sage Intacct required tag for account, account requires dimension Sage Intacct, Chart of Accounts required field Intacct, configure tag line-item level, Workspace Accounting Coding sync
+internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers resolving the INT073 export error caused by required account-level fields or dimension configuration. Does not cover employee or tax configuration errors.
 ---
 
-# INT073 Export Error: Required Tag Missing for Account in Sage Intacct
+# INT073 Export Error in Sage Intacct Integration
 
-If you see the error message:
+If you see the error:
 
-**“INT073 Export Error: Sage Intacct requires a tag for account [XXXX], preventing the expense from being created. Either remove the required field from the account in Sage Intacct or configure the field as a tag in Expensify configurations.”**
+INT073 Export Error: Sage Intacct requires a tag for account [XXXX], preventing the expense from being created. Either remove the required field from the account in Sage Intacct or configure the field as a tag in Expensify configurations.
 
-It means the referenced account in Sage Intacct requires a specific dimension or field, but that value was not provided on the expense.
+This means the referenced account in Sage Intacct requires a specific **dimension or field**, but that value was not provided on the expense.
 
 Sage Intacct blocks the transaction if a required account-level field is missing.
 
 ---
 
-## Why the INT073 Export Error Happens
+## Why the INT073 Export Error Happens in Sage Intacct
 
-The INT073 export error occurs when:
+The INT073 error typically occurs when:
 
-- A specific field or dimension is required on the account in Sage Intacct, and  
-- That required value is not included on the expense during export  
+- A specific account in the **Chart of Accounts** has a required dimension (such as Department, Location, Project, or a User-Defined Dimension).
+- That required value is not included on the expense during export.
+- The Workspace is not configured to send that dimension as a tag.
 
-This is controlled within the **Chart of Accounts** settings in Sage Intacct.
+If a required account-level field is not supplied, Sage Intacct prevents the expense from being created.
+
+This is an account configuration issue, not an employee or tax configuration issue.
 
 ---
 
@@ -34,54 +37,63 @@ You can resolve this in one of two ways.
 
 ---
 
-## Option 1: Disable the Required Field in Sage Intacct
+## Option 1: Disable the Required Field on the Account in Sage Intacct
 
-1. Log in to Sage Intacct.  
-2. Go to the **Chart of Accounts**.  
-3. Locate the account referenced in the error message ([XXXX]).  
-4. Open the account record.  
-5. Review the section where specific fields or dimensions are marked as required.  
-6. Disable the required field if it is not needed.  
-7. Save your changes.  
+If the dimension is no longer needed:
 
----
-
-## Option 2: Configure the Field as a Tag in the Workspace
-
-If the field should remain required:
-
-1. Go to **Workspace > [Workspace Name] > Accounting > Coding**.  
-2. Locate the corresponding dimension or field.  
-3. Enable the field for import if it is not already enabled.  
-4. Configure it to import as a **Tag (line-item level)** if required.  
-5. Save your changes.  
+1. Log in to Sage Intacct.
+2. Go to **General Ledger > Chart of Accounts**.
+3. Locate the account referenced in the error message ([XXXX]).
+4. Open the account record.
+5. Review the section where dimensions or fields are marked as required.
+6. Disable the required field if it is not needed.
+7. Click **Save**.
 
 Then:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**.  
-2. Click the three-dot icon next to the connection.  
-3. Select **Sync Now** from the dropdown.  
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
+
+Retry exporting the report.
 
 ---
 
-## Step 3: Retry the Export
+## Option 2: Configure the Required Field as a Tag in the Workspace
 
-Return to the report and retry the export.
+If the dimension must remain required in Sage Intacct:
 
-If the required field is either disabled in Sage Intacct or properly configured as a tag, the export should complete successfully.
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Configure**.
+5. Open the **Coding** tab.
+6. Locate the corresponding dimension or field.
+7. Enable it for import if it is not already enabled.
+8. Set it to import as **Tag (line-item level)** if required.
+9. Click **Save**.
+
+Then:
+
+1. Click **Sync Now** under **Accounting**.
+2. Open the report.
+3. Apply the required tag to each affected expense.
+
+Retry exporting the report.
 
 ---
 
 # FAQ
 
-## What is a required account field?
+## What Is a Required Account Field in Sage Intacct?
 
 A required account field is a dimension or value that must be included whenever that account is used in a transaction.
 
-## Should I disable the required field or configure it as a tag?
+## Should I Disable the Required Field or Configure It as a Tag?
 
-If your accounting process requires that dimension, configure it as a tag. If it is no longer needed, you can disable the requirement in Sage Intacct.
+If your accounting process requires that dimension, configure it as a tag in the Workspace. If it is no longer needed, disable the requirement in Sage Intacct.
 
-## Do I need to run Sync after updating settings?
+## Do I Need to Run Sync After Updating Settings?
 
-Yes. Running **Sync Now** ensures the latest configuration is applied before retrying the export.
+Yes. Selecting **Sync Now** ensures the latest account and dimension configuration is applied before retrying the export.
