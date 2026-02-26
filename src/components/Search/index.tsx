@@ -229,8 +229,8 @@ function Search({
     const {markReportIDAsExpense} = useWideRHPActions();
     const {currentSearchHash, selectedTransactions, shouldTurnOffSelectionMode, lastSearchType, areAllMatchingItemsSelected, shouldResetSearchQuery, shouldUseLiveData} =
         useSearchStateContext();
+
     const {
-        setCurrentSearchHashAndKey,
         setCurrentSearchQueryJSON,
         setSelectedTransactions,
         clearSelectedTransactions,

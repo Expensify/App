@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
@@ -5,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useTodos from '@hooks/useTodos';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -66,12 +68,20 @@ const SearchStateContext = React.createContext<SearchStateContextValue>(defaultS
 const SearchActionsContext = React.createContext<SearchActionsContextValue>(defaultSearchActionsContext);
 
 function SearchContextProvider({children}: ChildrenProps) {
-    const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
+    const route = useRoute();
+    const queryParam = route.params && 'q' in route.params && typeof route.params.q === 'string' ? route.params.q : '';
+    const rawQueryParam = route.params && 'rawQuery' in route.params && typeof route.params.rawQuery === 'string' ? route.params.rawQuery : '';
+    const queryJSON = useMemo(() => buildSearchQueryJSON(queryParam, rawQueryParam), [queryParam, rawQueryParam]);
+
+    const areTransactionsEmpty = useRef(true);
     const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
     const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
+    const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
     const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
-    const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
-    const areTransactionsEmpty = useRef(true);
+    const [searchContextData, setSearchContextData] = useState({
+        ...defaultSearchContextData,
+        currentSearchQueryJSON: queryJSON,
+    });
 
     const currentSearchHash = searchContextData.currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = searchContextData.currentSearchQueryJSON?.similarSearchHash ?? -1;
