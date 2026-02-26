@@ -119,7 +119,7 @@ const renderReportActionsView = (
         hasOlderActions: boolean;
         isConciergeSidePanel?: boolean;
         hasUserSentMessage?: boolean;
-        sessionStartActionIDs?: Set<string> | null;
+        sessionStartTime?: string | null;
     }> = {},
 ) => {
     const defaultProps = {
