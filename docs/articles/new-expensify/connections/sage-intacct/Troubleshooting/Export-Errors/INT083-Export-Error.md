@@ -1,35 +1,37 @@
 ---
-title: INT083 Export Error: Expense Item Isn’t Mapped to a Valid Billable Expense Type
-description: Learn why the INT083 export error occurs and how to select or map categories that support billable expenses in Sage Intacct.
-keywords: INT083, billable expense type error, Sage Intacct billable category mapping, expense type not billable, vendor bill billable mapping, sync billable categories
-internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers the INT083 export error related to billable expense type mapping. Does not cover general category or tax configuration errors.
+title: INT083 Export Error in Sage Intacct Integration
+description: Learn what the INT083 export error means and how to select or map categories that support billable expenses in Sage Intacct.
+keywords: INT083, Sage Intacct billable expense type error, expense type not billable Intacct, billable category mapping Sage Intacct, vendor bill billable mapping, Workspace Admin
+internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers resolving the INT083 export error caused by billable expense type or account mapping configuration. Does not cover general category or tax configuration errors.
 ---
 
-# INT083 Export Error: Expense Item Isn’t Mapped to a Valid Billable Expense Type
+# INT083 Export Error in Sage Intacct Integration
 
-If you see the error message:
+If you see the error:
 
-**“INT083 Export Error: Expense item [X] isn’t mapped to a valid billable expense type in Sage Intacct. Please select a category that supports billable expenses.”**
+INT083 Export Error: Expense item [X] isn’t mapped to a valid billable expense type in Sage Intacct. Please select a category that supports billable expenses.
 
-It means the selected category does not allow billable expenses in Sage Intacct.
+This means the selected category does not allow billable expenses in Sage Intacct.
 
-Sage Intacct requires the selected category (or expense type) to support billable transactions if the expense is marked as billable.
+If an expense is marked as **Billable**, the corresponding category or expense type must support billable transactions.
 
 ---
 
-## Why the INT083 Export Error Happens
+## Why the INT083 Export Error Happens in Sage Intacct
 
-The INT083 export error occurs when:
+The INT083 error typically occurs when:
 
-- An expense is marked as **billable**, and  
-- The selected category does not support billable expenses in Sage Intacct  
+- An expense is marked as **Billable** in the Workspace.
+- The selected category does not support billable expenses in Sage Intacct.
 
 Category behavior depends on the export type:
 
-- **Expense reports** — Categories are based on **Expense Types**  
-- **Vendor bills** — Categories are based on the **Chart of Accounts (GL codes)**  
+- **Expense Reports** → Categories are based on **Expense Types** in Sage Intacct.
+- **Vendor Bills** → Categories are based on the **Chart of Accounts (GL codes)**.
 
-If the selected category does not allow billable expenses, the export fails.
+If the selected Expense Type or GL account is not configured to allow billable transactions, Sage Intacct rejects the export.
+
+This is a billable configuration issue, not a tax or general category configuration error.
 
 ---
 
@@ -39,43 +41,51 @@ Follow the steps below to update the category configuration.
 
 ---
 
-## Step 1: Review Categories on the Report
+## Review the Category on the Billable Expense
 
-1. Open the report that failed to export.  
-2. Review the categories selected on the billable expenses.  
-3. Identify the category referenced in the error message.  
-
----
-
-## Step 2: Confirm the Category Supports Billable Expenses in Sage Intacct
-
-Log in to Sage Intacct and review the category configuration based on your export type:
-
-- For **expense reports**, review the corresponding **Expense Type**.  
-- For **vendor bills**, review the related **GL account** in the Chart of Accounts.  
-
-Confirm the category is configured to allow billable expenses.
-
-If it does not allow billable expenses:
-
-- Update the category settings to support billable transactions, or  
-- Select a different category that supports billable expenses  
-
-Save your changes.
+1. Open the report that failed to export.
+2. Identify the expense marked as **Billable**.
+3. Note the category selected for that expense.
 
 ---
 
-## Step 3: Run Sync
+## Confirm the Category Supports Billable Expenses in Sage Intacct
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**.  
-2. Click the three-dot icon next to the connection.  
-3. Select **Sync Now** from the dropdown.  
+Log in to Sage Intacct and review the configuration based on your export type.
+
+### If Exporting as Expense Reports
+
+1. Go to **Time & Expenses > Expense Types**.
+2. Open the Expense Type used on the report.
+3. Confirm the Expense Type supports **Billable** transactions.
+4. Update the configuration if needed.
+5. Click **Save**.
+
+### If Exporting as Vendor Bills
+
+1. Go to **General Ledger > Chart of Accounts**.
+2. Locate the GL account mapped to the category.
+3. Confirm the account supports billable transactions.
+4. Update the configuration if required.
+5. Click **Save**.
 
 ---
 
-## Step 4: Retry the Export
+## Sync the Workspace
 
-Return to the report and retry the export.
+After updating the category settings:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
+
+---
+
+## Retry the Export
+
+1. Return to the report.
+2. Retry exporting to Sage Intacct.
 
 If the selected category supports billable expenses, the export should complete successfully.
 
@@ -83,14 +93,14 @@ If the selected category supports billable expenses, the export should complete 
 
 # FAQ
 
-## Can I fix this by removing the billable designation?
+## Can I Fix This by Removing the Billable Designation?
 
-Yes. If the expense should not be billable, removing the billable flag will resolve the error.
+Yes. If the expense should not be billable, remove the **Billable** flag and retry the export.
 
-## Do I need to change the export type?
+## Do I Need to Change the Export Type?
 
-Not typically. The issue is usually related to how the selected category is configured.
+Not typically. The issue is usually related to how the selected category or Expense Type is configured.
 
-## Do I need to run Sync after updating Sage Intacct?
+## Do I Need to Run Sync After Updating Sage Intacct?
 
-Yes. Running **Sync Now** ensures updated category settings are reflected before retrying the export.
+Yes. Selecting **Sync Now** ensures updated category settings are reflected before retrying the export.
