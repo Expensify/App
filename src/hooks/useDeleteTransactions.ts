@@ -209,6 +209,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             reportActions,
             transactionViolations,
             betas,
+            personalDetails,
         ],
     );
 
