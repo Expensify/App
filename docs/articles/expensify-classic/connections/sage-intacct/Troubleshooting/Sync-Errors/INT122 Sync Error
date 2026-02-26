@@ -1,0 +1,87 @@
+---
+title: INT122 Sync Error: Authentication Error During Sage Intacct Sync
+description: Learn why the INT122 sync error occurs in Expensify Classic and how to reauthenticate your Sage Intacct connection.
+keywords: INT122, Sage Intacct authentication error, xmlgateway_expensify credentials, Sage Intacct Sender ID expensify, Expensify Classic Sage Intacct sync error
+internalScope: Audience is Workspace Admins using the Sage Intacct integration in Expensify Classic. Covers the INT122 sync error related to authentication and Sender ID configuration. Does not cover Sage Intacct journal or dimension configuration errors.
+---
+
+# INT122 Sync Error: Authentication Error During Sage Intacct Sync
+
+If you see the error message **“INT122 Sync Error: Authentication error during sync. Please reenter Sage Intacct admin credentials and attempt sync again.”**, it means Expensify cannot authenticate the Sage Intacct connection.
+
+This is typically caused by incorrect credentials or an issue with Web Services authorization settings in Sage Intacct.
+
+---
+
+## Why the INT122 Sync Error Happens
+
+The INT122 sync error occurs when:
+
+- The credentials for the `xmlgateway_expensify` web services user are incorrect  
+- The Sender ID is not properly configured in Sage Intacct  
+- The Sage Intacct password was changed and not updated in Expensify  
+
+If authentication fails, Expensify cannot sync with Sage Intacct.
+
+---
+
+## How to Fix the INT122 Sync Error in Expensify Classic
+
+### Step 1: Confirm Web Services User Credentials in Sage Intacct
+
+In Sage Intacct:
+
+1. Confirm the credentials for the **`xmlgateway_expensify`** web services user are correct.
+2. Verify the password has not changed.
+
+If the password was updated, you will need to reenter it in Expensify.
+
+---
+
+### Step 2: Confirm Sender ID Configuration in Sage Intacct
+
+In Sage Intacct:
+
+1. Go to **Company > Setup > Company**.
+2. Select **Security**.
+3. Click **Edit**.
+4. Scroll to **Web Services Authorizations**.
+5. Add `expensify` (all lowercase) as a **Sender ID**.
+6. Click **Save**.
+
+Important: The Sender ID must be exactly `expensify` in lowercase.
+
+---
+
+### Step 3: Retry the Connection in Expensify
+
+In Expensify:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Retry the connection or sync.
+
+---
+
+## If the Error Persists
+
+If authentication continues to fail:
+
+1. In Sage Intacct, remove `expensify` from **Web Services Authorizations**.
+2. Save the changes.
+3. Re-add `expensify` (all lowercase).
+4. Save again.
+5. Retry syncing from Expensify.
+
+---
+
+# FAQ
+
+## Does this error always mean the password is wrong?
+
+Not always. It often means the Sender ID is missing or the Web Services authorization needs to be updated.
+
+## Do I need Sage Intacct admin access to fix this?
+
+Yes. Updating Web Services users and Sender IDs requires appropriate administrative access in Sage Intacct.
