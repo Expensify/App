@@ -144,7 +144,7 @@ Reimbursements to Canadian banks can fail if the account number or institution d
 ## Singaporean bank account formats
 
 Review the FAQ in [Connect a Personal Bank Account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-Bank-Account#i-cant-find-all-the-details-for-my-bank-in-singapore-that-you-require-where-can-i-find-them) to confirm your SGD account has been correctly entered.
-
+## Singaporean bank account formats for Expensify reimbursements
 ---
 
 # How Workspace Admins Retry a Failed Reimbursement in Expensify
