@@ -33,8 +33,8 @@ const updateLegalName = (
 };
 
 function LegalNamePage() {
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const styles = useThemeStyles();
@@ -113,6 +113,7 @@ function LegalNamePage() {
                                 defaultValue={legalFirstName}
                                 spellCheck={false}
                                 autoCapitalize="words"
+                                autoComplete="given-name"
                             />
                         </View>
                         <View>
@@ -126,6 +127,7 @@ function LegalNamePage() {
                                 defaultValue={legalLastName}
                                 spellCheck={false}
                                 autoCapitalize="words"
+                                autoComplete="family-name"
                             />
                         </View>
                     </FormProvider>

@@ -1,4 +1,3 @@
-import {transactionDraftReceiptsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {FlatList as FlatListType} from 'react-native';
@@ -9,14 +8,13 @@ import Image from '@components/Image';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionDraftReceipts from '@hooks/useTransactionDraftReceipts';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import SubmitButtonShadow from './SubmitButtonShadow';
@@ -44,23 +42,20 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false}:
     const previewsHeight = styles.receiptPlaceholder.height + styles.pv2.paddingVertical * 2;
     const previewItemWidth = styles.receiptPlaceholder.width + styles.receiptPlaceholder.marginRight;
     const initialReceiptsAmount = (windowWidth - styles.ph4.paddingHorizontal * 2 - styles.singleAvatarMedium.width) / previewItemWidth;
-    const [optimisticTransactionsReceipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftReceiptsSelector,
-        canBeMissing: true,
-    });
+    const optimisticTransactionsReceipts = useTransactionDraftReceipts();
     const receipts = (() => {
-        if (optimisticTransactionsReceipts && optimisticTransactionsReceipts.length >= initialReceiptsAmount) {
+        if (optimisticTransactionsReceipts.length >= initialReceiptsAmount) {
             return optimisticTransactionsReceipts;
         }
-        const receiptsWithPlaceholders: Array<ReceiptWithTransactionID | undefined> = [...(optimisticTransactionsReceipts ?? [])];
+        const receiptsWithPlaceholders: Array<ReceiptWithTransactionID | undefined> = [...optimisticTransactionsReceipts];
         while (receiptsWithPlaceholders.length < initialReceiptsAmount) {
             receiptsWithPlaceholders.push(undefined);
         }
         return receiptsWithPlaceholders;
     })();
-    const isScrollEnabled = optimisticTransactionsReceipts ? optimisticTransactionsReceipts.length >= receipts.length : false;
+    const isScrollEnabled = optimisticTransactionsReceipts.length >= receipts.length;
     const flatListRef = useRef<FlatListType<ReceiptWithTransactionID | undefined>>(null);
-    const receiptsPhotosLength = optimisticTransactionsReceipts?.length ?? 0;
+    const receiptsPhotosLength = optimisticTransactionsReceipts.length;
     const previousReceiptsPhotosLength = usePrevious(receiptsPhotosLength);
 
     useEffect(() => {
@@ -136,7 +131,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled, isCapturingPhoto = false}:
                 <SubmitButtonShadow>
                     <Button
                         large
-                        isDisabled={!optimisticTransactionsReceipts?.length || isCapturingPhoto}
+                        isDisabled={!optimisticTransactionsReceipts.length || isCapturingPhoto}
                         innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
                         icon={icons.ArrowRight}
                         iconFill={theme.white}

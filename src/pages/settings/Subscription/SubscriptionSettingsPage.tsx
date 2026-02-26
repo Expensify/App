@@ -4,6 +4,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -28,10 +29,12 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
     const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew']);
+    useDocumentTitle(`${translate('common.settings')} - ${translate('workspace.common.subscription')}`);
+
     useEffect(() => {
         openSubscriptionPage();
     }, []);
-    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     useEffect(() => {
         if (subscriptionPlan ?? isAppLoading) {

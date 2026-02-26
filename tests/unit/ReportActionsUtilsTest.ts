@@ -11,11 +11,15 @@ import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} fr
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
+    findLastReportActions,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getOneTransactionThreadReportID,
@@ -25,8 +29,12 @@ import {
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
+    getSortedReportActions,
+    getSortedReportActionsForDisplay,
     getUpdateACHAccountMessage,
     isIOUActionMatchingTransactionList,
+    isNewerReportAction,
+    isReportActionVisibleAsLastAction,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -580,6 +588,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -596,6 +605,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     originalMessage: {
                         html: 'Hello world',
@@ -612,6 +622,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '2962390724708756',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
                         amount: 0,
@@ -629,6 +640,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-10 22:27:01.825',
                     reportActionID: '1609646094152486',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
                     originalMessage: {
                         html: 'Hello world',
@@ -647,6 +659,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '8049485084562457',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
                     originalMessage: {},
                     message: [{html: 'updated the Approval Mode from "Submit and Approve" to "Submit and Close"', type: 'Action type', text: 'Action text'}],
@@ -654,6 +667,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-08 22:27:06.825',
                     reportActionID: '1661970171066216',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
                     originalMessage: {
                         paymentType: 'ACH',
@@ -663,6 +677,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-06 22:27:08.825',
                     reportActionID: '1661970171066220',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
                     originalMessage: {
                         html: 'Hello world',
@@ -684,6 +699,7 @@ describe('ReportActionsUtils', () => {
             const movedTransactionAction: ReportAction = {
                 created: '2022-11-13 22:27:01.825',
                 reportActionID: '8401445780099177',
+                reportID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 originalMessage: {
                     fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
@@ -694,6 +710,7 @@ describe('ReportActionsUtils', () => {
             const addCommentAction: ReportAction = {
                 created: '2022-11-12 22:27:01.825',
                 reportActionID: '6401435781022176',
+                reportID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 originalMessage: {
                     html: 'Hello world',
@@ -719,6 +736,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -735,6 +753,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     originalMessage: {
                         html: 'Hello world',
@@ -751,6 +770,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '2962390724708756',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
                         amount: 0,
@@ -768,6 +788,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-10 22:27:01.825',
                     reportActionID: '1609646094152486',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
                     originalMessage: {
                         html: 'Hello world',
@@ -786,6 +807,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '1661970171066218',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
                     originalMessage: {
                         policyName: 'default', // change to const
@@ -814,6 +836,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -830,6 +853,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '8401445780099175',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -841,6 +865,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '8401445780099174',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -863,6 +888,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2024-11-19 08:04:13.728',
                     reportActionID: '1607371725956675966',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: '<mention-user accountID="18414674"/>',
@@ -882,6 +908,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2024-11-19 08:00:14.352',
                     reportActionID: '4655978522337302598',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: '#join',
@@ -900,6 +927,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '8049485084562457',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
                     originalMessage: {
                         lastModified: '2024-11-19 08:00:14.353',
@@ -917,6 +945,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
                     originalMessage: {
                         inviteeAccountIDs: [18414674],
@@ -1053,6 +1082,7 @@ describe('ReportActionsUtils', () => {
                 ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
                 created: '2023-08-01 16:00:00',
                 reportActionID: 'action1',
+                reportID: '1',
                 actionName: 'ADDCOMMENT',
                 originalMessage: {
                     html: 'Hello world',
@@ -1063,6 +1093,7 @@ describe('ReportActionsUtils', () => {
                 ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
                 created: '2023-08-01 18:00:00',
                 reportActionID: 'action2',
+                reportID: '1',
                 actionName: 'ADDCOMMENT',
                 originalMessage: {
                     html: 'Hello world',
@@ -3345,6 +3376,72 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getCustomTaxNameUpdateMessage', () => {
+        it('should return the correct message when updating custom tax name', () => {
+            // Given an UPDATE_CUSTOM_TAX_NAME action with old and new names
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldName: 'Sales Tax',
+                    newName: 'VAT',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getCustomTaxNameUpdateMessage(translateLocal, action);
+
+            // Then it should return the correct message with old and new names
+            expect(result).toBe('changed the custom tax name to "VAT" (previously "Sales Tax")');
+        });
+    });
+
+    describe('getCurrencyDefaultTaxUpdateMessage', () => {
+        it('should return the correct message when updating workspace currency default tax', () => {
+            // Given an UPDATE_CURRENCY_DEFAULT_TAX action with old and new names
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldName: 'Standard Rate',
+                    newName: 'Reduced Rate',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getCurrencyDefaultTaxUpdateMessage(translateLocal, action);
+
+            // Then it should return the correct message with old and new names
+            expect(result).toBe('changed the workspace currency default tax rate to "Reduced Rate" (previously "Standard Rate")');
+        });
+    });
+
+    describe('getForeignCurrencyDefaultTaxUpdateMessage', () => {
+        it('should return the correct message when updating foreign currency default tax', () => {
+            // Given an UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX action with old and new names
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldName: 'Foreign Tax (15%)',
+                    newName: 'Foreign Tax (10%)',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getForeignCurrencyDefaultTaxUpdateMessage(translateLocal, action);
+
+            // Then it should return the correct message with old and new names
+            expect(result).toBe('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")');
+        });
+    });
+
     describe('getAutoPayApprovedReportsEnabledMessage', () => {
         it('should return enabled message when auto-pay is enabled', () => {
             const action = {
@@ -3427,6 +3524,189 @@ describe('ReportActionsUtils', () => {
 
             const result = getAutoReimbursementMessage(translateLocal, action);
             expect(result).toBe('changed the auto-pay approved reports threshold to "$1,000.00" (previously "$500.00")');
+        });
+    });
+
+    describe('isNewerReportAction', () => {
+        const makeAction = (overrides: Partial<ReportAction>): ReportAction =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                ...overrides,
+            }) as ReportAction;
+
+        it('should return true when a has a later timestamp than b', () => {
+            const a = makeAction({created: '2024-01-02 00:00:00.000', reportActionID: '1'});
+            const b = makeAction({created: '2024-01-01 00:00:00.000', reportActionID: '2'});
+            expect(isNewerReportAction(a, b)).toBeTruthy();
+        });
+
+        it('should return false when a has an earlier timestamp than b', () => {
+            const a = makeAction({created: '2024-01-01 00:00:00.000', reportActionID: '1'});
+            const b = makeAction({created: '2024-01-02 00:00:00.000', reportActionID: '2'});
+            expect(isNewerReportAction(a, b)).toBeFalsy();
+        });
+
+        it('should treat CREATED action as always oldest', () => {
+            const created = makeAction({actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: '2024-12-31 00:00:00.000', reportActionID: '1'});
+            const comment = makeAction({created: '2024-01-01 00:00:00.000', reportActionID: '2'});
+
+            expect(isNewerReportAction(created, comment)).toBeFalsy();
+            expect(isNewerReportAction(comment, created)).toBeTruthy();
+        });
+
+        it('should treat undefined created as oldest', () => {
+            const withUndefined = makeAction({created: undefined, reportActionID: '1'});
+            const withDate = makeAction({created: '2024-01-01 00:00:00.000', reportActionID: '2'});
+
+            expect(isNewerReportAction(withUndefined, withDate)).toBeFalsy();
+            expect(isNewerReportAction(withDate, withUndefined)).toBeTruthy();
+        });
+
+        it('should prefer REPORT_PREVIEW over other actions when timestamps match', () => {
+            const preview = makeAction({actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, created: '2024-01-01 00:00:00.000', reportActionID: '1'});
+            const comment = makeAction({actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2024-01-01 00:00:00.000', reportActionID: '2'});
+
+            expect(isNewerReportAction(preview, comment)).toBeTruthy();
+            expect(isNewerReportAction(comment, preview)).toBeFalsy();
+        });
+
+        it('should fall back to reportActionID comparison when timestamps and action types match', () => {
+            const higher = makeAction({created: '2024-01-01 00:00:00.000', reportActionID: '200'});
+            const lower = makeAction({created: '2024-01-01 00:00:00.000', reportActionID: '100'});
+
+            expect(isNewerReportAction(higher, lower)).toBeTruthy();
+            expect(isNewerReportAction(lower, higher)).toBeFalsy();
+        });
+    });
+
+    describe('findLastReportActions', () => {
+        const makeAction = (overrides: Partial<ReportAction>): ReportAction =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                reportID: 'testReportID',
+                created: '2024-01-01 00:00:00.000',
+                person: [{type: 'TEXT', style: 'strong', text: 'Actor'}],
+                message: [{html: 'hello', text: 'hello', type: 'COMMENT'}],
+                ...overrides,
+            }) as ReportAction;
+
+        it('returns undefined for both when reportActions is undefined', () => {
+            const result = findLastReportActions(undefined);
+            expect(result.lastVisibleAction).toBeUndefined();
+            expect(result.lastActionForDisplay).toBeUndefined();
+        });
+
+        it('returns undefined for both when reportActions is empty', () => {
+            const result = findLastReportActions({});
+            expect(result.lastVisibleAction).toBeUndefined();
+            expect(result.lastActionForDisplay).toBeUndefined();
+        });
+
+        it('returns the single visible action for both when there is only one ADD_COMMENT action', () => {
+            const action = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
+            const result = findLastReportActions({[action.reportActionID]: action});
+            expect(result.lastVisibleAction).toBe(action);
+            expect(result.lastActionForDisplay).toBe(action);
+        });
+
+        it('returns undefined for lastActionForDisplay but not lastVisibleAction when only action is CREATED', () => {
+            const created = makeAction({actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, reportActionID: '1', created: '2024-01-01 00:00:00.000'});
+            const result = findLastReportActions({[created.reportActionID]: created});
+            expect(result.lastVisibleAction).toBe(created);
+            expect(result.lastActionForDisplay).toBeUndefined();
+        });
+
+        it('returns the newest of multiple visible actions', () => {
+            const older = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
+            const newer = makeAction({reportActionID: '2', created: '2024-01-02 00:00:00.000'});
+            const result = findLastReportActions({
+                [older.reportActionID]: older,
+                [newer.reportActionID]: newer,
+            });
+            expect(result.lastVisibleAction).toBe(newer);
+            expect(result.lastActionForDisplay).toBe(newer);
+        });
+
+        it('skips deleted actions (no pendingAction, empty html) for both results', () => {
+            const visible = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
+            const deleted = makeAction({
+                reportActionID: '2',
+                created: '2024-01-02 00:00:00.000',
+                message: [{html: '', text: '', type: 'COMMENT'}],
+                pendingAction: undefined,
+            });
+            const result = findLastReportActions({
+                [visible.reportActionID]: visible,
+                [deleted.reportActionID]: deleted,
+            });
+            expect(result.lastVisibleAction).toBe(visible);
+            expect(result.lastActionForDisplay).toBe(visible);
+        });
+
+        it('excludes actions with errors from lastActionForDisplay but not from lastVisibleAction', () => {
+            const clean = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
+            const withErrors = makeAction({
+                reportActionID: '2',
+                created: '2024-01-02 00:00:00.000',
+                errors: {someError: 'error message'},
+            });
+            const result = findLastReportActions({
+                [clean.reportActionID]: clean,
+                [withErrors.reportActionID]: withErrors,
+            });
+            expect(result.lastVisibleAction).toBe(withErrors);
+            expect(result.lastActionForDisplay).toBe(clean);
+        });
+
+        it('agrees with getSortedReportActionsForDisplay for lastVisibleAction across multiple actions', () => {
+            const actionA = makeAction({reportActionID: 'actionA', created: '2024-01-01 00:00:00.000'});
+            const actionB = makeAction({reportActionID: 'actionB', created: '2024-01-03 00:00:00.000'});
+            const actionC = makeAction({reportActionID: 'actionC', created: '2024-01-02 00:00:00.000'});
+            const actions: ReportActions = {
+                actionA,
+                actionB,
+                actionC,
+            };
+            const {lastVisibleAction} = findLastReportActions(actions);
+            const fromSort = getSortedReportActionsForDisplay(actions).at(0);
+            expect(lastVisibleAction?.reportActionID).toBe(fromSort?.reportActionID);
+        });
+
+        it('agrees with the old getSortedReportActions+filter approach for lastActionForDisplay', () => {
+            const actionA = makeAction({reportActionID: 'actionA', created: '2024-01-01 00:00:00.000'});
+            const actionB = makeAction({reportActionID: 'actionB', created: '2024-01-03 00:00:00.000'});
+            const actionC = makeAction({
+                reportActionID: 'actionC',
+                created: '2024-01-02 00:00:00.000',
+                errors: {someError: 'error'},
+            });
+            const actions: ReportActions = {actionA, actionB, actionC};
+            const {lastActionForDisplay} = findLastReportActions(actions);
+            const fromOldApproach = getSortedReportActions(Object.values(actions)).findLast(
+                (a) => isReportActionVisibleAsLastAction(a) && a.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+            );
+            expect(lastActionForDisplay?.reportActionID).toBe(fromOldApproach?.reportActionID);
+        });
+
+        it('respects canUserPerformWriteAction when determining visibility', () => {
+            const normalAction = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
+            // An actionable mention whisper is hidden when canUserPerformWriteAction is false
+            const joinRequestAction = makeAction({
+                reportActionID: '2',
+                created: '2024-01-02 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+            });
+
+            const withWrite = findLastReportActions({[normalAction.reportActionID]: normalAction, [joinRequestAction.reportActionID]: joinRequestAction}, true);
+            const withoutWrite = findLastReportActions({[normalAction.reportActionID]: normalAction, [joinRequestAction.reportActionID]: joinRequestAction}, false);
+
+            // With write permission: join request is visible, so it should be selected as newer
+            expect(withWrite.lastVisibleAction?.reportActionID).toBe(joinRequestAction.reportActionID);
+            // Without write permission: join request hidden, so only the normal action remains
+            expect(withoutWrite.lastVisibleAction?.reportActionID).toBe(normalAction.reportActionID);
         });
     });
 });
