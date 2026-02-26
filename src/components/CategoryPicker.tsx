@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -11,6 +12,7 @@ import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SelectCircle from './SelectCircle';
 import RadioListItem from './SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {ListItem} from './SelectionList/types';
@@ -76,6 +78,12 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         hint: offlineMessage,
     };
 
+    const defaultRightHandSideComponent = (
+        <View style={[styles.ml3, styles.alignItemsCenter, styles.justifyContentCenter]}>
+            <SelectCircle isChecked />
+        </View>
+    );
+
     return (
         <SelectionListWithSections
             sections={sections}
@@ -86,6 +94,9 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             initiallyFocusedItemKey={selectedOptionKey}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             style={{listItemTitleStyles: styles.w100}}
+            isRowMultilineSupported
+            rightHandSideComponent={defaultRightHandSideComponent}
+            titleNumberOfLines={3}
         />
     );
 }

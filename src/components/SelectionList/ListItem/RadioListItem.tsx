@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import SelectCircle from '@components/SelectCircle';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -19,6 +20,7 @@ function RadioListItem<TItem extends ListItem>({
     isMultilineSupported = false,
     isAlternateTextMultilineSupported = false,
     alternateTextNumberOfLines = 2,
+    titleNumberOfLines = 2,
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
@@ -45,6 +47,7 @@ function RadioListItem<TItem extends ListItem>({
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
+            shouldUseDefaultRightHandSideCheckmark={false}
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
@@ -70,7 +73,7 @@ function RadioListItem<TItem extends ListItem>({
                             isMultilineSupported ? {paddingLeft} : null,
                             titleStyles,
                         ]}
-                        numberOfLines={isMultilineSupported ? 2 : 1}
+                        numberOfLines={isMultilineSupported ? titleNumberOfLines : 1}
                     />
 
                     {!!item.alternateText && (
