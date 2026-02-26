@@ -83,7 +83,7 @@ Violations appear with a note explaining which rule has been broken. You can res
 **Note:** Expenses with violation can be submitted manually, they cannot be submitted automatically. The violation will still appear but will not block submission if a comment or explanation is provided.
  
 ---
-
+**Note:** Expenses with a violation can be submitted manually; they cannot be submitted automatically. The violation will still appear but will not block submission if a comment or explanation is provided.
 ## How to split an expense
 
 Splitting an expense creates multiple new expenses from one original charge. Each split keeps the same receipt image.
