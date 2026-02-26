@@ -23,7 +23,7 @@ function SearchEditMultipleBooleanPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const route = useRoute();
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
 
     const isBillableScreen = route.name === SCREENS.SEARCH.EDIT_MULTIPLE_BILLABLE_RHP;
     const selectedValue = isBillableScreen ? draftTransaction?.billable : draftTransaction?.reimbursable;
