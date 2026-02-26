@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -98,7 +98,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         headerMessage: noResultsFound ? translate('common.noResultsFound') : undefined,
     };
     return (
-        <SelectionList
+        <SelectionListWithSections
             sections={sections}
             ListItem={MultiSelectListItem}
             shouldShowTextInput={shouldShowTextInput}
@@ -108,7 +108,6 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             shouldStopPropagation
             shouldShowTooltips
             canSelectMultiple
-            disableMaintainingScrollPosition
             footerContent={
                 <SearchFilterPageFooterButtons
                     applyChanges={applyChanges}

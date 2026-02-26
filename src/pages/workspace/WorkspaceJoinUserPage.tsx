@@ -21,7 +21,7 @@ type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute;
 function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
     const styles = useThemeStyles();
     const policyID = route?.params?.policyID;
-    const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isPolicyLoading = isLoadingOnyxValue(policyResult);
     const inviterEmail = route?.params?.email;
     const isUnmounted = useRef(false);

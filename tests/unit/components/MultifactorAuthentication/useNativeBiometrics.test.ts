@@ -312,7 +312,7 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST, challenge: mockChallenge}, onResult);
+                await result.current.authorize({challenge: mockChallenge}, onResult);
             });
 
             // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -329,7 +329,7 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST, challenge: mockChallenge}, onResult);
+                await result.current.authorize({challenge: mockChallenge}, onResult);
             });
 
             expect(onResult).toHaveBeenCalledWith({
@@ -351,7 +351,7 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST, challenge: challengeWithOtherKey}, onResult);
+                await result.current.authorize({challenge: challengeWithOtherKey}, onResult);
             });
 
             expect(publicKeyStoreDelete).toHaveBeenCalledWith(12345);
@@ -367,7 +367,7 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST, challenge: mockChallenge}, onResult);
+                await result.current.authorize({challenge: mockChallenge}, onResult);
             });
 
             expect(signTokenED25519).toHaveBeenCalledWith(expect.any(Object), expect.any(String), 'public-key-123');
@@ -378,7 +378,7 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST, challenge: mockChallenge}, onResult);
+                await result.current.authorize({challenge: mockChallenge}, onResult);
             });
 
             expect(onResult).toHaveBeenCalledWith(

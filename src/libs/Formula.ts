@@ -589,7 +589,7 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
         }
 
         if (currency && isValidCurrencyCode(currency)) {
-            return convertToDisplayString(absoluteAmount, currency);
+            return convertToDisplayString(absoluteAmount, currency, true);
         }
 
         return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
