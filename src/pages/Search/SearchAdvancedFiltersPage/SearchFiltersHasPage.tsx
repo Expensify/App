@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHasOptions} from '@libs/SearchUIUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -86,9 +87,10 @@ function SearchFiltersHasPage() {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
-                wrapperStyle={[styles.productTrainingTooltipWrapper, {maxWidth: 260}]}
-                shiftHorizontal={-16}
-                shiftVertical={40}
+                maxWidth={variables.hasFilterNegationTooltipMaxWidth}
+                wrapperStyle={styles.productTrainingTooltipWrapper}
+                shiftHorizontal={variables.hasFilterNegationTooltipShiftHorizontal}
+                shiftVertical={variables.hasFilterNegationTooltipShiftVertical}
             >
                 <View>
                     <HeaderWithBackButton
