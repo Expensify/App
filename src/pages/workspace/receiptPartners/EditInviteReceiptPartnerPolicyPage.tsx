@@ -151,7 +151,6 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                         textChecked={textChecked}
                         tooltipText=""
                         tooltipTextChecked=""
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RECEIPT_PARTNERS.INVITE_OR_RESEND}
                         onPress={() => inviteOrResend(email)}
                         styles={[...buttonStyles, isInvite ? styles.buttonSuccess : undefined]}
                         textStyles={[...buttonTextStyles, isInvite ? styles.buttonSuccessText : undefined]}
