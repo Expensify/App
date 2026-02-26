@@ -200,13 +200,8 @@ function Composer({
                     return Promise.resolve(undefined);
                 });
 
-                Promise.all(filePromises)
-                    .then((f) => {
-                        files.push(...f);
-                    })
-                    .catch((error) => {
-                        Log.warn('Pasted files could not be validated', {error});
-                    });
+                const f = await Promise.all(filePromises)
+                files.push(...f);
             }
 
             const validFiles = files.filter((file) => file !== undefined);
