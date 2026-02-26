@@ -1,11 +1,6 @@
 import React from 'react';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
-import {
-    DefaultClientFailureScreen,
-    DefaultServerFailureScreen,
-    NoEligibleMethodsFailureScreen,
-    UnsupportedDeviceFailureScreen,
-} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
+import {DefaultClientFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import type {
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioAdditionalParams,
@@ -76,13 +71,7 @@ export default {
         return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
     },
 
-    // Failure screens for different error scenarios
     defaultClientFailureScreen: <SetPINClientFailureScreen />,
-    defaultServerFailureScreen: <DefaultServerFailureScreen />,
-    failureScreens: {
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS]: <NoEligibleMethodsFailureScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE]: <UnsupportedDeviceFailureScreen />,
-    },
 } as const satisfies MultifactorAuthenticationScenarioCustomConfig<Payload>;
 
 export type {Payload};

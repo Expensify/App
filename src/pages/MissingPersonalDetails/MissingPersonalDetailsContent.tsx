@@ -104,7 +104,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
 
             const personalDetailsParams: Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
 
-            // The reason for using it, despite it being deprecated: https://github.com/Expensify/App/pull/79473/files#r2745847379
+            // The reason for using it, despite it being deprecated: https://github.com/Expensify/App/pull/79473#discussion_r2745847379
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() =>
                 executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD, {

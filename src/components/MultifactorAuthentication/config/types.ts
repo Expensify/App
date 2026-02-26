@@ -185,6 +185,15 @@ type MultifactorAuthenticationScenarioParameters = {
  */
 type MultifactorAuthenticationScenario = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO>;
 
+/**
+ * Converts a scenario's parameters for API use by replacing signedChallenge with its stringified form.
+ * The signedChallenge is validated as a structured object in the action layer, but needs to
+ * JSON.stringify when sent to the API.
+ */
+type MultifactorAuthenticationAPIParams<T extends MultifactorAuthenticationScenario> = Omit<MultifactorAuthenticationScenarioParameters[T], 'signedChallenge'> & {
+    signedChallenge: string;
+};
+
 export type {
     MultifactorAuthenticationPrompt,
     MultifactorAuthenticationModal,
@@ -200,5 +209,6 @@ export type {
     MultifactorAuthenticationProcessScenarioParameters,
     MultifactorAuthenticationDefaultUIConfig,
     MultifactorAuthenticationScenarioCustomConfig,
+    MultifactorAuthenticationAPIParams,
     FailureScreenOverrides,
 };

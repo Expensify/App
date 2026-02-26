@@ -98,6 +98,7 @@ function Pin({onNext}: CustomSubPageProps) {
 
                 <View style={[styles.mb4]}>
                     <MagicCodeInput
+                        key={`pin-${isConfirmStep}`}
                         autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
                         name="pin"
                         value={currentPin}
