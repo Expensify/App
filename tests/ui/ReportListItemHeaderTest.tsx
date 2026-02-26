@@ -22,22 +22,30 @@ jest.mock('@components/AvatarWithDisplayName.tsx');
 // Mock search context with all required SearchContextStateValue and SearchContextActionsValue fields
 const mockSearchStateContext = {
     currentSearchHash: 12345,
-    currentRecentSearchHash: 12345,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
     isOnSearch: false,
     shouldTurnOffSelectionMode: false,
+    currentSearchKey: undefined,
+    currentSearchQueryJSON: undefined,
+    currentSearchResults: undefined,
+    shouldShowSelectAllMatchingItems: false,
+    shouldShowFiltersBarLoading: false,
+    shouldUseLiveData: false,
+    currentSimilarSearchHash: -1,
+    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
 } satisfies Partial<SearchStateContextValue>;
 
 const mockSearchActionsContext = {
     clearSelectedTransactions: jest.fn(),
     setLastSearchType: jest.fn(),
-    setCurrentSearchHashAndKey: jest.fn(),
     setSelectedTransactions: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
     setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
+    setShouldResetSearchQuery: jest.fn(),
+    setSearchQueryJSON: jest.fn(),
 } satisfies Partial<SearchActionsContextValue>;
 
 const mockPersonalDetails: Record<string, PersonalDetails> = {

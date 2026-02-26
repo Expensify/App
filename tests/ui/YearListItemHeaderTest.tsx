@@ -23,7 +23,6 @@ const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typ
 // Mock search context with all required SearchContextStateValue and SearchContextActionsValue fields
 const mockSearchStateContext = {
     currentSearchHash: 12345,
-    currentRecentSearchHash: 12345,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
@@ -38,12 +37,12 @@ const mockSearchStateContext = {
     shouldShowSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
+    currentSimilarSearchHash: -1,
+    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
 } satisfies SearchStateContextValue;
 
 const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
-    setCurrentSearchHashAndKey: jest.fn(),
-    setCurrentSearchQueryJSON: jest.fn(),
     setSelectedTransactions: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
@@ -51,6 +50,7 @@ const mockSearchActionsContext = {
     setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
+    setSearchQueryJSON: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createYearListItem = (year: number, options: Partial<TransactionYearGroupListItemType> = {}): TransactionYearGroupListItemType => ({

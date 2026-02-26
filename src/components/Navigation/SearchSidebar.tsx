@@ -30,7 +30,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const searchType = currentSearchResults?.search?.type;
     const isSearchLoading = currentSearchResults?.search?.isLoading;
 
-    // JACK_TODO: Why is this needed to sync state, lets remove this and derive it
     useEffect(() => {
         if (!searchType) {
             return;

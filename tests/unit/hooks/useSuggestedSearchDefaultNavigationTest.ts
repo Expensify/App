@@ -25,7 +25,6 @@ function createApproveMenuItem(): SearchTypeMenuItem {
         searchQueryJSON: undefined,
         hash: 1,
         similarSearchHash: 101,
-        recentSearchHash: 1001,
     };
 }
 
@@ -42,7 +41,6 @@ function createSubmitMenuItem(): SearchTypeMenuItem {
         searchQueryJSON: undefined,
         hash: 2,
         similarSearchHash: 202,
-        recentSearchHash: 2002,
     };
 }
 
@@ -58,7 +56,6 @@ function createExpenseMenuItem(): SearchTypeMenuItem {
         searchQueryJSON: undefined,
         hash: 3,
         similarSearchHash: 303,
-        recentSearchHash: 3003,
     };
 }
 
@@ -74,7 +71,6 @@ function createExpenseReportMenuItem(): SearchTypeMenuItem {
         searchQueryJSON: undefined,
         hash: 4,
         similarSearchHash: 404,
-        recentSearchHash: 4004,
     };
 }
 
@@ -90,7 +86,6 @@ function createChatMenuItem(): SearchTypeMenuItem {
         searchQueryJSON: undefined,
         hash: 5,
         similarSearchHash: 505,
-        recentSearchHash: 5005,
     };
 }
 

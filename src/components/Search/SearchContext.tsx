@@ -35,7 +35,6 @@ const defaultSearchContextData: SearchContextData = {
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
     selectedTransactions: {},
-    suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
     selectedTransactionIDs: [],
     selectedReports: [],
     isOnSearch: false,
@@ -43,6 +42,7 @@ const defaultSearchContextData: SearchContextData = {
     shouldResetSearchQuery: false,
     currentSearchHash: -1,
     currentSimilarSearchHash: -1,
+    suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
 };
 
 const defaultSearchStateContext: SearchStateContextValue = {
