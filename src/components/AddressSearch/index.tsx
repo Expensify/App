@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, LogBox, Platform, StyleSheet, View} from 'react-native';
+import {AccessibilityInfo, Keyboard, LogBox, Platform, StyleSheet, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
@@ -110,7 +110,7 @@ function AddressSearch({
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
 
     useEffect(() => {
-        if (Platform.OS !== 'web' || !isFocused || !displayListViewBorder) {
+        if (!isFocused || !displayListViewBorder) {
             lastAnnouncementKeyRef.current = '';
             return;
         }
@@ -121,11 +121,17 @@ function AddressSearch({
         }
 
         lastAnnouncementKeyRef.current = announcementKey;
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSuggestionsAnnouncement((prev) => ({
-            id: prev.id + 1,
-            text: translate('search.suggestionsAvailable'),
-        }));
+        const announcementText = translate('search.suggestionsAvailable');
+        if (Platform.OS === 'web') {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSuggestionsAnnouncement((prev) => ({
+                id: prev.id + 1,
+                text: announcementText,
+            }));
+            return;
+        }
+
+        AccessibilityInfo.announceForAccessibility(announcementText);
     }, [displayListViewBorder, isFocused, searchValue, translate]);
 
     const saveLocationDetails = (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {

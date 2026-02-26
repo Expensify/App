@@ -4,7 +4,7 @@ import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/fl
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
-import {Platform, View} from 'react-native';
+import {AccessibilityInfo, Platform, View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -405,7 +405,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (Platform.OS !== 'web' || !shouldShowTextInput || !isTextInputFocused || isLoadingNewOptions || data.length === 0) {
+        if (!shouldShowTextInput || !isTextInputFocused || isLoadingNewOptions || data.length === 0) {
             lastAnnouncementKeyRef.current = '';
             return;
         }
@@ -416,10 +416,17 @@ function BaseSelectionList<TItem extends ListItem>({
         }
 
         lastAnnouncementKeyRef.current = announcementKey;
-        setSuggestionsAnnouncement((prev) => ({
-            id: prev.id + 1,
-            text: translate('search.suggestionsAvailable', {count: data.length}),
-        }));
+        const announcementText = translate('search.suggestionsAvailable', {count: data.length});
+        if (Platform.OS === 'web') {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSuggestionsAnnouncement((prev) => ({
+                id: prev.id + 1,
+                text: announcementText,
+            }));
+            return;
+        }
+
+        AccessibilityInfo.announceForAccessibility(announcementText);
     }, [data.length, isLoadingNewOptions, isTextInputFocused, shouldShowTextInput, textInputOptions?.value, translate]);
 
     // The function scrolls to the focused input to prevent keyboard occlusion.

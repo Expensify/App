@@ -3,7 +3,7 @@ import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo, TextInputKeyPressEvent} from 'react-native';
-import {Platform, View} from 'react-native';
+import {AccessibilityInfo, Platform, View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
@@ -839,7 +839,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     );
 
     useEffect(() => {
-        if (Platform.OS !== 'web' || !isTextInputFocused || isLoadingNewOptions || flattenedSections.allOptions.length === 0) {
+        if (!isTextInputFocused || isLoadingNewOptions || flattenedSections.allOptions.length === 0) {
             lastAnnouncementKeyRef.current = '';
             return;
         }
@@ -850,10 +850,17 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
 
         lastAnnouncementKeyRef.current = announcementKey;
-        setSuggestionsAnnouncement((prev) => ({
-            id: prev.id + 1,
-            text: translate('search.suggestionsAvailable', {count: flattenedSections.allOptions.length}),
-        }));
+        const announcementText = translate('search.suggestionsAvailable', {count: flattenedSections.allOptions.length});
+        if (Platform.OS === 'web') {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSuggestionsAnnouncement((prev) => ({
+                id: prev.id + 1,
+                text: announcementText,
+            }));
+            return;
+        }
+
+        AccessibilityInfo.announceForAccessibility(announcementText);
     }, [flattenedSections.allOptions.length, isLoadingNewOptions, isTextInputFocused, textInputValue, translate]);
 
     const updateAndScrollToFocusedIndex = useCallback(

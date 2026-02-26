@@ -3,7 +3,7 @@ import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
-import {Platform, View} from 'react-native';
+import {AccessibilityInfo, Platform, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import Footer from '@components/SelectionList/components/Footer';
@@ -257,7 +257,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     });
 
     useEffect(() => {
-        if (Platform.OS !== 'web' || !isTextInputFocused || isLoadingNewOptions || itemsCount === 0) {
+        if (!isTextInputFocused || isLoadingNewOptions || itemsCount === 0) {
             lastAnnouncementKeyRef.current = '';
             return;
         }
@@ -268,11 +268,17 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
 
         lastAnnouncementKeyRef.current = announcementKey;
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSuggestionsAnnouncement((prev) => ({
-            id: prev.id + 1,
-            text: translate('search.suggestionsAvailable', {count: itemsCount}),
-        }));
+        const announcementText = translate('search.suggestionsAvailable', {count: itemsCount});
+        if (Platform.OS === 'web') {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSuggestionsAnnouncement((prev) => ({
+                id: prev.id + 1,
+                text: announcementText,
+            }));
+            return;
+        }
+
+        AccessibilityInfo.announceForAccessibility(announcementText);
     }, [isLoadingNewOptions, isTextInputFocused, itemsCount, textInputOptions?.value, translate]);
 
     const textInputComponent = () => {
