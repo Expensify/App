@@ -1012,7 +1012,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (canAllTransactionsBeMoved && !hasMultipleOwners && !typeExpenseReport) {
             options.push({
-                text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
+                text: translate('iou.moveExpenses'),
                 icon: expensifyIcons.DocumentMerge,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,
@@ -1126,7 +1126,7 @@ function SearchPage({route}: SearchPageProps) {
         styles.textWrap,
     ]);
 
-    const {initScanRequest, PDFValidationComponent, ErrorModal} = useReceiptScanDrop();
+    const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
 
     const {resetVideoPlayerData} = usePlaybackActionsContext();
 
@@ -1244,7 +1244,7 @@ function SearchPage({route}: SearchPageProps) {
         <>
             <Animated.View style={[styles.flex1]}>
                 {shouldUseNarrowLayout ? (
-                    <DragAndDropProvider>
+                    <DragAndDropProvider isDisabled={isDragDisabled}>
                         {PDFValidationComponent}
                         <SearchPageNarrow
                             queryJSON={queryJSON}
@@ -1288,6 +1288,7 @@ function SearchPage({route}: SearchPageProps) {
                         onSortPressedCallback={onSortPressedCallback}
                         scrollHandler={scrollHandler}
                         initScanRequest={initScanRequest}
+                        isDragDisabled={isDragDisabled}
                         PDFValidationComponent={PDFValidationComponent}
                         ErrorModal={ErrorModal}
                         shouldShowFooter={shouldShowFooter}
