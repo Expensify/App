@@ -63,7 +63,7 @@ function usePopoverEditState({popoverHeight = CONST.POPOVER_DATE_MAX_HEIGHT, pad
         });
     }, [openPopover]);
 
-    const closePopover = useCallback(() => {
+    const cancelEditing = useCallback(() => {
         setIsPopoverVisible(false);
         setIsEditing(false);
     }, []);
@@ -75,7 +75,7 @@ function usePopoverEditState({popoverHeight = CONST.POPOVER_DATE_MAX_HEIGHT, pad
         popoverPosition,
         isInverted,
         startEditing,
-        closePopover,
+        cancelEditing,
     };
 }
 

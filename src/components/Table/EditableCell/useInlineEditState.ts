@@ -29,12 +29,12 @@ function useInlineEditState<T>(value: T, onSave?: (value: T) => void) {
         setIsEditing(false);
     }, [localValue, value, onSave]);
 
-    const cancel = useCallback(() => {
+    const cancelEditing = useCallback(() => {
         setLocalValue(value);
         setIsEditing(false);
     }, [value]);
 
-    return {isEditing, localValue, setLocalValue, startEditing, save, cancel};
+    return {isEditing, localValue, setLocalValue, startEditing, save, cancelEditing};
 }
 
 export default useInlineEditState;

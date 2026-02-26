@@ -10,6 +10,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
+import {useEditingCellContext} from '@components/Table/EditableCell/EditingCellContext';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -62,6 +63,7 @@ function TransactionListItem<TItem extends ListItem>({
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {isEditingCell} = useEditingCellContext();
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
@@ -186,6 +188,14 @@ function TransactionListItem<TItem extends ListItem>({
         editTransactionAmountOnSearch(currentSearchHash, transactionID, transactionThreadReportID, newAmount);
     };
 
+    const handleOnPress = () => {
+        // If a cell is being edited, close it — a second tap will open the row
+        if (isEditingCell) {
+            return;
+        }
+        onSelectRow(item, transactionPreviewData);
+    };
+
     const handleActionButtonPress = () => {
         handleActionButtonPressUtil({
             hash: currentSearchHash,
@@ -213,12 +223,18 @@ function TransactionListItem<TItem extends ListItem>({
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={() => onLongPressRow?.(item)}
-                onPress={() => onSelectRow(item, transactionPreviewData)}
+                onPress={handleOnPress}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => {
+                    // Allow native mousedown when editing so the browser naturally blurs the input and triggers save/cancel on the cell
+                    if (isEditingCell) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}

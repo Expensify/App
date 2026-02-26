@@ -18,7 +18,7 @@ type CategoryCellProps = TransactionDataCellProps &
 function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem, isEditable, canEdit, onSave, policyID}: CategoryCellProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
-    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, closePopover} = usePopoverEditState({
+    const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState({
         anchorEdge: 'left',
     });
 
@@ -29,9 +29,9 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
             if (item.keyForList) {
                 onSave?.(String(item.keyForList));
             }
-            closePopover();
+            cancelEditing();
         },
-        [onSave, closePopover],
+        [onSave, cancelEditing],
     );
 
     const displayContent = shouldUseNarrowLayout ? (
@@ -61,7 +61,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
                     policyID={policyID}
                     selectedCategory={transactionItem?.category ?? ''}
                     isVisible={isPopoverVisible}
-                    onClose={closePopover}
+                    onClose={cancelEditing}
                     anchorPosition={popoverPosition}
                     shouldPositionFromTop={!isInverted}
                     onSelected={handleCategorySelected}

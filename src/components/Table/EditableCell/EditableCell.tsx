@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import {useEditingCellContext} from './EditingCellContext';
 
 type EditableCellProps = {
     /** Content to display when not editing */
@@ -53,6 +54,15 @@ type EditableCellProps = {
  */
 function EditableCell({children, editContent, popoverContent, isEditing, isEditable, canEdit, onStartEditing, anchorRef}: EditableCellProps) {
     const styles = useThemeStyles();
+    const {setEditingCellCount} = useEditingCellContext();
+
+    useEffect(() => {
+        if (!isEditable || !isEditing) {
+            return;
+        }
+        setEditingCellCount((count) => count + 1);
+        return () => setEditingCellCount((count) => count - 1);
+    }, [isEditing, isEditable, setEditingCellCount]);
 
     // Architectural exclusion (e.g. narrow layout) — no container, no padding.
     if (!isEditable) {

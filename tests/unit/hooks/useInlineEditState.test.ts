@@ -83,7 +83,7 @@ describe('useInlineEditState', () => {
         expect(result.current.localValue).toBe('modified');
 
         act(() => {
-            result.current.cancel();
+            result.current.cancelEditing();
         });
 
         expect(result.current.localValue).toBe('hello');
@@ -98,7 +98,7 @@ describe('useInlineEditState', () => {
             result.current.startEditing();
         });
         act(() => {
-            result.current.cancel();
+            result.current.cancelEditing();
         });
 
         expect(result.current.isEditing).toBe(false);
