@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -50,36 +50,44 @@ function AnimatedSettlementButton({
     }));
 
     const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
-    const stretchOutY = useCallback(() => {
+
+    const resetAnimationState = () => {
+        setMinWidth(0);
+        setCanShow(true);
+        height.set(variables.componentSizeNormal);
+        buttonMarginTop.set(shouldAddTopMargin ? gap : 0);
+    };
+
+    const onButtonExitComplete: () => void = () => {
         'worklet';
 
         if (shouldAddTopMargin) {
             buttonMarginTop.set(withTiming(willShowPaymentButton ? gap : 0, {duration: buttonDuration}));
         }
+        const finishAndReset = () => {
+            resetAnimationState();
+            onAnimationFinish();
+        };
         if (willShowPaymentButton) {
-            scheduleOnRN(onAnimationFinish);
+            scheduleOnRN(finishAndReset);
             return;
         }
-        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(onAnimationFinish)));
-    }, [buttonDuration, buttonMarginTop, gap, height, onAnimationFinish, shouldAddTopMargin, willShowPaymentButton]);
+        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(finishAndReset)));
+    };
 
-    const buttonAnimation = useMemo(
-        () =>
-            new Keyframe({
-                from: {
-                    opacity: 1,
-                    transform: [{scale: 1}],
-                },
-                to: {
-                    opacity: 0,
-                    transform: [{scale: 0}],
-                },
-            })
-                .delay(buttonDelay)
-                .duration(buttonDuration)
-                .withCallback(stretchOutY),
-        [buttonDelay, buttonDuration, stretchOutY],
-    );
+    const buttonAnimation = new Keyframe({
+        from: {
+            opacity: 1,
+            transform: [{scale: 1}],
+        },
+        to: {
+            opacity: 0,
+            transform: [{scale: 0}],
+        },
+    })
+        .delay(buttonDelay)
+        .duration(buttonDuration)
+        .withCallback(onButtonExitComplete);
 
     let icon;
     if (isApprovedAnimationRunning) {
@@ -88,26 +96,12 @@ function AnimatedSettlementButton({
         icon = expensifyIcons.Checkmark;
     }
 
-    const [prevIsAnimationRunning, setPrevIsAnimationRunning] = useState(isAnimationRunning);
-    if (prevIsAnimationRunning !== isAnimationRunning) {
-        setPrevIsAnimationRunning(isAnimationRunning);
-        if (!isAnimationRunning) {
-            setMinWidth(0);
-            setCanShow(true);
-            height.set(variables.componentSizeNormal);
-            buttonMarginTop.set(shouldAddTopMargin ? gap : 0);
+    const animatedViewRef = (el: View | null) => {
+        viewRef.current = el as unknown as HTMLElement | null;
+        if (el && isAnimationRunning) {
+            setMinWidth((el as unknown as HTMLElement).getBoundingClientRect?.().width ?? 0);
         }
-    }
-
-    const animatedViewRef = useCallback(
-        (el: View | null) => {
-            viewRef.current = el as unknown as HTMLElement | null;
-            if (el && isAnimationRunning) {
-                setMinWidth((el as unknown as HTMLElement).getBoundingClientRect?.().width ?? 0);
-            }
-        },
-        [isAnimationRunning],
-    );
+    };
 
     useEffect(() => {
         if (!isAnimationRunning) {
