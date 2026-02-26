@@ -84,7 +84,7 @@ function SearchFiltersHasPage() {
                 renderTooltipContent={renderProductTrainingTooltip}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 wrapperStyle={[styles.productTrainingTooltipWrapper, {maxWidth: 260}]}
                 shiftHorizontal={-16}
