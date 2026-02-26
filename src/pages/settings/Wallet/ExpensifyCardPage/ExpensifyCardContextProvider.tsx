@@ -1,5 +1,5 @@
 import type {PropsWithChildren} from 'react';
-import React, {createContext, useContext, useMemo, useState} from 'react';
+import React, {createContext, useContext, useState} from 'react';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import type {CardList, ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -40,30 +40,23 @@ function ExpensifyCardContextProvider({children}: PropsWithChildren) {
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
 
-    const cardListErrors = useMemo(() => {
-        if (!cardList) {
-            return {};
-        }
-        const errors: Record<string, Errors | undefined> = {};
+    const cardListErrors: Record<string, Errors | undefined> = {};
+    if (cardList) {
         for (const cardID of Object.keys(cardList)) {
-            errors[cardID] = cardList[cardID]?.errors;
+            cardListErrors[cardID] = cardList[cardID]?.errors;
         }
-        return errors;
-    }, [cardList]);
+    }
 
-    // Derive effective errors: only show detail errors for cards that still have card list errors.
+    // Only show detail errors for cards that still have card list errors.
     // When card list errors clear, we stop showing the corresponding detail error without mutating state.
-    const effectiveCardsDetailsErrors = useMemo(() => {
-        const result: Record<number, string> = {};
-        for (const cardID of Object.keys(cardsDetailsErrors)) {
-            const numID = Number(cardID);
-            const listErrors = cardListErrors[cardID];
-            if (listErrors && Object.keys(listErrors).length > 0) {
-                result[numID] = cardsDetailsErrors[numID];
-            }
+    const effectiveCardsDetailsErrors: Record<number, string> = {};
+    for (const cardID of Object.keys(cardsDetailsErrors)) {
+        const numID = Number(cardID);
+        const listErrors = cardListErrors[cardID];
+        if (listErrors && Object.keys(listErrors).length > 0) {
+            effectiveCardsDetailsErrors[numID] = cardsDetailsErrors[numID];
         }
-        return result;
-    }, [cardsDetailsErrors, cardListErrors]);
+    }
 
     // Because of the React Compiler we don't need to memoize it manually
     const actionsContextValue: ExpensifyCardActionsContextType = {
