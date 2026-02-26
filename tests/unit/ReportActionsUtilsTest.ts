@@ -976,9 +976,10 @@ describe('ReportActionsUtils', () => {
             expect(result).toStrictEqual(expectedOutput);
         });
 
-        it('should filter out ACTIONABLE_MENTION_WHISPER when its parent comment was deleted', () => {
-            // Given an ADD_COMMENT and an ACTIONABLE_MENTION_WHISPER whose originalMessage.deleted is set
-            // (indicating the parent comment was deleted and the backend cascade-deleted the whisper)
+        it('should filter out ACTIONABLE_MENTION_WHISPER when originalMessage.deleted is set', () => {
+            // Given an ADD_COMMENT and an ACTIONABLE_MENTION_WHISPER whose originalMessage.deleted is set.
+            // The backend sets this field when the parent comment is deleted (cascade deletion).
+            // This test verifies that the frontend correctly hides the whisper when it receives that field.
             const input: ReportAction[] = [
                 {
                     created: '2024-11-19 08:04:13.728',
