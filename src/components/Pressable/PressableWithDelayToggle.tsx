@@ -132,7 +132,7 @@ function PressableWithDelayToggle({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
             ref={ref as any}
             onPress={updatePressState}
-            accessibilityLabel={tooltipTexts || (!isActive && textChecked ? textChecked : text)}
+            accessibilityLabel={tooltipTexts || (!isActive && textChecked ? textChecked : text) || ''}
             suppressHighlighting={inline ? true : undefined}
             accessibilityRole={accessibilityRole}
         >
