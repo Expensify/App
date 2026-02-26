@@ -106,7 +106,7 @@ function SearchPage({route}: SearchPageProps) {
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {selectedTransactions, selectedReports, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults} = useSearchStateContext();
-    const {clearSelectedTransactions, setLastSearchType, selectAllMatchingItems} = useSearchActionsContext();
+    const {clearSelectedTransactions, setLastSearchType, setSearchQueryJSON, selectAllMatchingItems} = useSearchActionsContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const allTransactions = useAllTransactions();
@@ -226,6 +226,11 @@ function SearchPage({route}: SearchPageProps) {
     useEffect(() => {
         updateAdvancedFilters(formValues, true);
     }, [formValues]);
+
+    // Sync the search query JSON up to the context so that it can be used globally
+    useEffect(() => {
+        setSearchQueryJSON(queryJSON);
+    }, [queryJSON, setSearchQueryJSON]);
 
     useConfirmReadyToOpenApp();
 

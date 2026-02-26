@@ -7,8 +7,6 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import SearchTypeMenu from '@pages/Search/SearchTypeMenu';
 import SCREENS from '@src/SCREENS';
 import NavigationTabBar from './NavigationTabBar';
@@ -26,22 +24,20 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const route = state.routes.at(-1);
-    const params = route?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT] | undefined;
-    const {lastSearchType, currentSearchResults} = useSearchStateContext();
+    const {lastSearchType, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
     const {setLastSearchType} = useSearchActionsContext();
-
-    const queryJSON = params?.q ? buildSearchQueryJSON(params.q, params.rawQuery) : undefined;
 
     const searchType = currentSearchResults?.search?.type;
     const isSearchLoading = currentSearchResults?.search?.isLoading;
 
+    // JACK_TODO: Why is this needed to sync state, lets remove this and derive it
     useEffect(() => {
         if (!searchType) {
             return;
         }
 
         setLastSearchType(searchType);
-    }, [lastSearchType, queryJSON, setLastSearchType, searchType]);
+    }, [lastSearchType, setLastSearchType, searchType]);
 
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
@@ -58,7 +54,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
                     shouldDisplaySearch={false}
                     shouldDisplayHelpButton={false}
                 />
-                <SearchTypeMenu queryJSON={queryJSON} />
+                <SearchTypeMenu queryJSON={currentSearchQueryJSON} />
             </View>
             <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
         </View>
