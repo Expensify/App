@@ -480,7 +480,7 @@ function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
 
 function getCameraViewfinderStyle(aspectRatio: number | undefined): ViewStyle {
     if (aspectRatio) {
-        return {aspectRatio, width: '100%', maxHeight: '100%'};
+        return {aspectRatio, minWidth: '100%', minHeight: '100%'};
     }
     return {flex: 1};
 }
