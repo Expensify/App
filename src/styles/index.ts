@@ -5790,6 +5790,9 @@ const staticStyles = (theme: ThemeColors) =>
         paymentMethodErrorRow: {
             paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
+        transactionReceiptButton: {
+            width: variables.transactionReceiptButtonWidth,
+        },
         chartHeader: {
             flexDirection: 'row',
             alignItems: 'center',

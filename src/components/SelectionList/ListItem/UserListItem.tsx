@@ -3,7 +3,6 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
@@ -41,7 +40,7 @@ function UserListItem<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     forwardedFSClass,
 }: UserListItemProps<TItem>) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -102,6 +101,7 @@ function UserListItem<TItem extends ListItem>({
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM.CHECKBOX}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
                             onPress={handleCheckboxPress}
@@ -110,7 +110,7 @@ function UserListItem<TItem extends ListItem>({
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
                                 {!!item.isSelected && (
                                     <Icon
-                                        src={Expensicons.Checkmark}
+                                        src={icons.Checkmark}
                                         fill={theme.textLight}
                                         height={14}
                                         width={14}
@@ -170,6 +170,7 @@ function UserListItem<TItem extends ListItem>({
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM.CHECKBOX_RIGHT}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
                             onPress={handleCheckboxPress}
@@ -178,7 +179,7 @@ function UserListItem<TItem extends ListItem>({
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
                                 {!!item.isSelected && (
                                     <Icon
-                                        src={Expensicons.Checkmark}
+                                        src={icons.Checkmark}
                                         fill={theme.textLight}
                                         height={14}
                                         width={14}
