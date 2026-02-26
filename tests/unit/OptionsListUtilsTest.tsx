@@ -6202,6 +6202,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
 
             // The function should return a string (may be empty string)
@@ -6220,6 +6221,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
 
             expect(typeof result).toBe('string');
