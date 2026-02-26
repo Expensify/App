@@ -328,6 +328,14 @@ function MoneyRequestReportActionsList({
         return filteredActions.toReversed();
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction]);
 
+    const shouldShowOpenReportLoadingSkeleton = !isOffline && !!showReportActionsLoadingState && visibleReportActions.length === 0;
+    useEffect(() => {
+        if (!shouldShowOpenReportLoadingSkeleton) {
+            return;
+        }
+        markOpenReportEnd(report, {warm: false});
+    }, [report, shouldShowOpenReportLoadingSkeleton]);
+
     const reportActionSize = useRef(visibleReportActions.length);
     const lastAction = visibleReportActions.at(-1);
     const lastActionIndex = lastAction?.reportActionID;
@@ -736,8 +744,8 @@ function MoneyRequestReportActionsList({
 
         didLayout.current = true;
 
-        markOpenReportEnd(report);
-    }, [report]);
+        markOpenReportEnd(report, {warm: !shouldShowOpenReportLoadingSkeleton});
+    }, [report, shouldShowOpenReportLoadingSkeleton]);
 
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
     // Wrapped into useCallback to stabilize children re-renders

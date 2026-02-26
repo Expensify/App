@@ -26,9 +26,9 @@ import useActionListContextValue from '@hooks/useActionListContextValue';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
-import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -1063,7 +1063,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                 </OfflineWithFeedback>
                                 {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
                                     <Banner
-                                        containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
+                                        containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2, styles.breakWord]}
                                         text={chatWithAccountManagerText}
                                         onClose={dismissBanner}
                                         onButtonPress={chatWithAccountManager}
