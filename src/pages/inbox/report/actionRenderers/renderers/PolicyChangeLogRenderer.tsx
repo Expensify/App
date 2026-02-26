@@ -43,6 +43,7 @@ import {
     getUpdatedTimeRateMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoriesUpdatedMessage,
+    getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
     getWorkspaceCustomUnitRateImportedMessage,
@@ -51,6 +52,7 @@ import {
     getWorkspaceCustomUnitSubRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceFeatureEnabledMessage,
+    getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
@@ -60,7 +62,7 @@ import {
     getWorkspaceUpdateFieldMessage,
     isTagModificationAction,
 } from '@libs/ReportActionsUtils';
-import {getWorkspaceCurrencyUpdateMessage, getWorkspaceFrequencyUpdateMessage, getWorkspaceNameUpdatedMessage} from '@libs/ReportUtils';
+import {getWorkspaceNameUpdatedMessage} from '@libs/ReportUtils';
 import type ActionRendererProps from '@pages/inbox/report/actionRenderers/types';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';

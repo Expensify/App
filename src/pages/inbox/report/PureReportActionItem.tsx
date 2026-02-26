@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/no-deep-equal-in-memo */
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
-import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, use, useCallback, useContext, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -58,99 +58,35 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
-import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
+import {hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
-    extractLinksFromMessageHtml,
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
-    getAddedApprovalRuleMessage,
     getAddedBudgetMessage,
-    getAddedConnectionMessage,
-    getAutoPayApprovedReportsEnabledMessage,
-    getAutoReimbursementMessage,
     getChangedApproverActionMessage,
-    getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
-    getDefaultApproverUpdateMessage,
-    getDeletedApprovalRuleMessage,
     getDeletedBudgetMessage,
-    getDemotedFromWorkspaceMessage,
-    getDismissedViolationMessageText,
-    getForwardsToUpdateMessage,
     getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
-    getInvoiceCompanyNameUpdateMessage,
-    getInvoiceCompanyWebsiteUpdateMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
-    getMarkedReimbursedMessage,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
-    getPolicyChangeLogAddEmployeeMessage,
-    getPolicyChangeLogDefaultBillableMessage,
-    getPolicyChangeLogDefaultReimbursableMessage,
-    getPolicyChangeLogDefaultTitleEnforcedMessage,
-    getPolicyChangeLogDeleteMemberMessage,
-    getPolicyChangeLogMaxExpenseAgeMessage,
-    getPolicyChangeLogMaxExpenseAmountMessage,
-    getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
-    getPolicyChangeLogUpdateEmployee,
-    getReimburserUpdateMessage,
-    getRemovedConnectionMessage,
-    getRemovedFromApprovalChainMessage,
     getRenamedAction,
     getReportActionMessage,
-    getReportActionText,
-    getSetAutoJoinMessage,
     getSettlementAccountLockedMessage,
-    getSubmitsToUpdateMessage,
-    getTagListNameUpdatedMessage,
-    getTagListUpdatedMessage,
-    getTagListUpdatedRequiredMessage,
     getTravelUpdateMessage,
-    getUpdateACHAccountMessage,
-    getUpdatedApprovalRuleMessage,
-    getUpdatedAuditRateMessage,
-    getUpdatedAutoHarvestingMessage,
     getUpdatedBudgetMessage,
-    getUpdatedDefaultTitleMessage,
-    getUpdatedIndividualBudgetNotificationMessage,
-    getUpdatedManualApprovalThresholdMessage,
     getUpdatedOwnershipMessage,
-    getUpdatedProhibitedExpensesMessage,
-    getUpdatedReimbursementChoiceMessage,
-    getUpdatedSharedBudgetNotificationMessage,
-    getUpdatedTimeEnabledMessage,
-    getUpdatedTimeRateMessage,
     getWhisperedTo,
-    getWorkspaceAttendeeTrackingUpdateMessage,
-    getWorkspaceCategoriesUpdatedMessage,
     getWorkspaceCategoryUpdateMessage,
-    getWorkspaceCurrencyUpdateMessage,
-    getWorkspaceCustomUnitRateAddedMessage,
-    getWorkspaceCustomUnitRateDeletedMessage,
-    getWorkspaceCustomUnitRateImportedMessage,
-    getWorkspaceCustomUnitRateUpdatedMessage,
-    getWorkspaceCustomUnitSubRateDeletedMessage,
-    getWorkspaceCustomUnitSubRateUpdatedMessage,
-    getWorkspaceCustomUnitUpdatedMessage,
-    getWorkspaceFeatureEnabledMessage,
-    getWorkspaceFrequencyUpdateMessage,
-    getWorkspaceReimbursementUpdateMessage,
-    getWorkspaceReportFieldAddMessage,
-    getWorkspaceReportFieldDeleteMessage,
-    getWorkspaceReportFieldUpdateMessage,
-    getWorkspaceTagUpdateMessage,
-    getWorkspaceTaxUpdateMessage,
-    getWorkspaceUpdateFieldMessage,
     hasPendingDEWApprove,
     hasPendingDEWSubmit,
     isActionableAddPaymentCard,
@@ -166,7 +102,6 @@ import {
     isConciergeCategoryOptions,
     isConciergeDescriptionOptions,
     isCreatedTaskReportAction,
-    isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
@@ -182,11 +117,9 @@ import {
     isResolvedConciergeDescriptionOptions,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isSystemUserMentioned,
-    isTagModificationAction,
     isTaskAction,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
     isTripPreview,
-    isUnapprovedAction,
     isWhisperActionTargetedToOthers,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
@@ -196,14 +129,11 @@ import {
     canWriteInReport,
     chatIncludesConcierge,
     getChatListItemReportName,
-    getDeletedTransactionMessage,
     getDisplayNamesWithTooltips,
     getMovedActionMessage,
     getMovedTransactionMessage,
-    getPolicyChangeMessage,
     getUnreportedTransactionMessage,
     getWhisperDisplayNames,
-    getWorkspaceNameUpdatedMessage,
     isArchivedNonExpenseReport,
     isChatThread,
     isCompletedTaskReport,
@@ -219,15 +149,8 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {resolveFraudAlert} from '@userActions/Card';
-import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {
-    createTransactionThreadReport,
-    expandURLPreview,
-    resolveActionableMentionConfirmWhisper,
-    resolveConciergeCategoryOptions,
-    resolveConciergeDescriptionOptions,
-} from '@userActions/Report';
+import {createTransactionThreadReport, resolveActionableMentionConfirmWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -249,7 +172,7 @@ import getActionRenderer from './actionRenderers/registry';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
-import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
+import {hideContextMenu, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 import LinkPreviewer from './LinkPreviewer';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
