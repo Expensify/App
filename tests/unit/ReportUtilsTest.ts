@@ -678,6 +678,71 @@ describe('ReportUtils', () => {
                 }),
             );
         });
+
+        it('should set isInviteOnboardingComplete in optimisticData when wasInvited is true', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                wasInvited: true,
+            });
+
+            const introSelectedOptimistic = result?.optimisticData.find((entry) => entry.key === ONYXKEYS.NVP_INTRO_SELECTED);
+            expect(introSelectedOptimistic).toBeDefined();
+            expect(introSelectedOptimistic?.value).toEqual({isInviteOnboardingComplete: true});
+
+            // Should NOT set hasCompletedGuidedSetupFlow on NVP_ONBOARDING when wasInvited is true
+            const onboardingOptimistic = result?.optimisticData.find((entry) => entry.key === ONYXKEYS.NVP_ONBOARDING);
+            expect(onboardingOptimistic).toBeUndefined();
+        });
+
+        it('should revert isInviteOnboardingComplete in failureData when wasInvited is true', async () => {
+            // Set initial introSelected with isInviteOnboardingComplete = false
+            await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: false});
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: {isInviteOnboardingComplete: false},
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                wasInvited: true,
+            });
+
+            const introSelectedFailure = result?.failureData.find((entry) => entry.key === ONYXKEYS.NVP_INTRO_SELECTED);
+            expect(introSelectedFailure).toBeDefined();
+            expect(introSelectedFailure?.value).toEqual({isInviteOnboardingComplete: false});
+        });
+
+        it('should set hasCompletedGuidedSetupFlow in optimisticData when wasInvited is not set', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+
+            const onboardingOptimistic = result?.optimisticData.find((entry) => entry.key === ONYXKEYS.NVP_ONBOARDING);
+            expect(onboardingOptimistic).toBeDefined();
+            expect(onboardingOptimistic?.value).toEqual({hasCompletedGuidedSetupFlow: true});
+
+            // Should NOT set isInviteOnboardingComplete on NVP_INTRO_SELECTED when wasInvited is not set
+            const introSelectedOptimistic = result?.optimisticData.find((entry) => entry.key === ONYXKEYS.NVP_INTRO_SELECTED);
+            expect(introSelectedOptimistic).toBeUndefined();
+        });
     });
 
     describe('getIconsForParticipants', () => {

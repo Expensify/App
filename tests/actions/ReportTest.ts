@@ -12,7 +12,7 @@ import useAncestors from '@hooks/useAncestors';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildNextStepNew} from '@libs/NextStepUtils';
@@ -4697,6 +4697,40 @@ describe('actions/Report', () => {
             expect(result?.optimisticData).toBeDefined();
             expect(result?.successData).toBeDefined();
             expect(result?.failureData).toBeDefined();
+        });
+
+        it('should return undefined when a pending COMPLETE_GUIDED_SETUP write command exists', async () => {
+            await setupUserWithConciergeChat();
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            // Simulate a pending COMPLETE_GUIDED_SETUP write command in the persisted requests queue
+            await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [{command: WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, data: {}} as OnyxTypes.AnyRequest]);
+            await waitForBatchedUpdates();
+
+            const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+
+            expect(result).toBeUndefined();
+
+            // Clean up persisted requests
+            await PersistedRequests.clear();
+        });
+
+        it('should return undefined when a pending COMPLETE_GUIDED_SETUP side effect command exists', async () => {
+            await setupUserWithConciergeChat();
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            // Simulate a pending COMPLETE_GUIDED_SETUP side effect command in the persisted requests queue
+            await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [
+                {command: SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, data: {}} as OnyxTypes.AnyRequest,
+            ]);
+            await waitForBatchedUpdates();
+
+            const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected);
+
+            expect(result).toBeUndefined();
+
+            // Clean up persisted requests
+            await PersistedRequests.clear();
         });
     });
 
