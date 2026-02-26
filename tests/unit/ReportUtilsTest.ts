@@ -692,7 +692,8 @@ describe('ReportUtils', () => {
                 wasInvited: true,
             });
 
-            const introSelectedOptimistic = result?.optimisticData.find((entry) => entry.key === ONYXKEYS.NVP_INTRO_SELECTED);
+            // The function pushes multiple NVP_INTRO_SELECTED entries: a baseline one with choice/task IDs, and the invite-specific one last
+            const introSelectedOptimistic = result?.optimisticData.findLast((entry) => entry.key === ONYXKEYS.NVP_INTRO_SELECTED);
             expect(introSelectedOptimistic).toBeDefined();
             expect(introSelectedOptimistic?.value).toEqual({isInviteOnboardingComplete: true});
 
@@ -718,7 +719,8 @@ describe('ReportUtils', () => {
                 wasInvited: true,
             });
 
-            const introSelectedFailure = result?.failureData.find((entry) => entry.key === ONYXKEYS.NVP_INTRO_SELECTED);
+            // The function pushes multiple NVP_INTRO_SELECTED entries: a baseline one with null fields, and the invite-specific one last
+            const introSelectedFailure = result?.failureData.findLast((entry) => entry.key === ONYXKEYS.NVP_INTRO_SELECTED);
             expect(introSelectedFailure).toBeDefined();
             expect(introSelectedFailure?.value).toEqual({isInviteOnboardingComplete: false});
         });
@@ -740,8 +742,10 @@ describe('ReportUtils', () => {
             expect(onboardingOptimistic?.value).toEqual({hasCompletedGuidedSetupFlow: true});
 
             // Should NOT set isInviteOnboardingComplete on NVP_INTRO_SELECTED when wasInvited is not set
-            const introSelectedOptimistic = result?.optimisticData.find((entry) => entry.key === ONYXKEYS.NVP_INTRO_SELECTED);
-            expect(introSelectedOptimistic).toBeUndefined();
+            const introSelectedWithInvite = result?.optimisticData.find(
+                (entry) => entry.key === ONYXKEYS.NVP_INTRO_SELECTED && entry.value != null && 'isInviteOnboardingComplete' in entry.value,
+            );
+            expect(introSelectedWithInvite).toBeUndefined();
         });
     });
 
