@@ -168,6 +168,8 @@ type SearchContextData = {
 
 type SearchStateContextValue = SearchContextData & {
     currentSearchResults: SearchResults | undefined;
+    /** The most recent search results that contained data. Used to avoid blank states during loading transitions (e.g. sorting). */
+    lastNonEmptySearchResults: SearchResults | undefined;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
     shouldShowFiltersBarLoading: boolean;

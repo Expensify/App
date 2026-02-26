@@ -29,7 +29,6 @@ type SearchPageWideProps = {
     searchRequestResponseStatusCode: number | null;
     isMobileSelectionModeEnabled: boolean;
     handleSearchAction: (value: SearchParams | string) => void;
-    onSortPressedCallback: () => void;
     scrollHandler: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     initScanRequest: (e: DragEvent) => void;
     isDragDisabled: boolean;
@@ -45,7 +44,6 @@ function SearchPageWide({
     searchRequestResponseStatusCode,
     isMobileSelectionModeEnabled,
     handleSearchAction,
-    onSortPressedCallback,
     scrollHandler,
     initScanRequest,
     isDragDisabled,
@@ -101,7 +99,6 @@ function SearchPageWide({
                                 handleSearch={handleSearchAction}
                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 onSearchListScroll={scrollHandler}
-                                onSortPressedCallback={onSortPressedCallback}
                                 searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                             />
                             {shouldShowFooter && <SearchPageFooter metadata={metadata} />}

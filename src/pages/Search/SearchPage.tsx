@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
@@ -13,7 +13,6 @@ import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import usePrevious from '@hooks/usePrevious';
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
@@ -26,7 +25,6 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import type SCREENS from '@src/SCREENS';
-import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
 
@@ -37,15 +35,13 @@ function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {selectedTransactions, lastSearchType, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {selectedTransactions, lastSearchType, currentSearchKey, currentSearchResults, lastNonEmptySearchResults} = useSearchStateContext();
     const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
-
-    const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
 
     const formValues = useFilterFormValues(queryJSON);
 
@@ -55,29 +51,21 @@ function SearchPage({route}: SearchPageProps) {
 
     useConfirmReadyToOpenApp();
 
+    const currentSearchType = currentSearchResults?.search?.type;
     useEffect(() => {
-        if (!currentSearchResults?.search?.type) {
+        if (!currentSearchType) {
             return;
         }
 
-        setLastSearchType(currentSearchResults.search.type);
-        if (currentSearchResults.data) {
-            lastNonEmptySearchResults.current = currentSearchResults;
-        }
-    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
+        setLastSearchType(currentSearchType);
+    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchType]);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
     const {resetVideoPlayerData} = usePlaybackActionsContext();
 
-    const [isSorting, setIsSorting] = useState(false);
-    let searchResults: SearchResults | undefined;
-    if (currentSearchResults?.data) {
-        searchResults = currentSearchResults;
-    } else if (isSorting) {
-        searchResults = lastNonEmptySearchResults.current;
-    }
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
 
     const metadata = searchResults?.search;
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
@@ -97,16 +85,6 @@ function SearchPage({route}: SearchPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
-
-    useEffect(() => {
-        if (!isSorting || !prevIsLoading || currentSearchResults?.isLoading) {
-            return;
-        }
-
-        setIsSorting(false);
-    }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
-
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 
     const handleSearchAction = useCallback((value: SearchParams | string) => {
@@ -120,9 +98,6 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
-    const onSortPressedCallback = useCallback(() => {
-        setIsSorting(true);
-    }, []);
 
     const scrollHandler = useCallback(
         (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -167,7 +142,6 @@ function SearchPage({route}: SearchPageProps) {
                     searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     handleSearchAction={handleSearchAction}
-                    onSortPressedCallback={onSortPressedCallback}
                     scrollHandler={scrollHandler}
                     initScanRequest={initScanRequest}
                     isDragDisabled={isDragDisabled}

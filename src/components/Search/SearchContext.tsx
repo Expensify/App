@@ -51,6 +51,7 @@ const defaultSearchStateContext: SearchStateContextValue = {
     shouldShowSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
     currentSearchResults: undefined,
+    lastNonEmptySearchResults: undefined,
     shouldUseLiveData: false,
 };
 
@@ -117,6 +118,15 @@ function SearchContextProvider({children}: ChildrenProps) {
     }
 
     const currentSearchResults = getCurrentSearchResults();
+
+    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
+    useLayoutEffect(() => {
+        if (!currentSearchResults?.data) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLastNonEmptySearchResults(currentSearchResults);
+    }, [currentSearchResults]);
 
     const setCurrentSearchHashAndKey = (searchHash: number, recentHash: number, searchKey: SearchKey | undefined) => {
         setSearchContextData((prevState) => {
@@ -276,6 +286,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     const searchStateContextValue: SearchStateContextValue = {
         ...searchContextData,
         currentSearchResults,
+        lastNonEmptySearchResults,
         shouldUseLiveData,
         shouldShowFiltersBarLoading,
         lastSearchType,

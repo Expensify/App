@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -51,7 +51,7 @@ import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
 import useBulkPayOptions from './useBulkPayOptions';
 import useConfirmModal from './useConfirmModal';
@@ -76,7 +76,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected, currentSearchResults} = useSearchStateContext();
+    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected, currentSearchResults, lastNonEmptySearchResults} = useSearchStateContext();
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchActionsContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID} = currentUserPersonalDetails;
@@ -92,16 +92,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
-    // Cache the last search results that had data, so the merge option remains available
-    // while results are temporarily unset (e.g. during sorting/loading).
-    const lastNonEmptySearchResultsRef = useRef<SearchResults | undefined>(undefined);
-    useEffect(() => {
-        if (!currentSearchResults?.data) {
-            return;
-        }
-        lastNonEmptySearchResultsRef.current = currentSearchResults;
-    }, [currentSearchResults]);
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResultsRef.current;
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);

@@ -92,7 +92,6 @@ type SearchProps = {
     contentContainerStyle?: StyleProp<ViewStyle>;
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
-    onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
     searchRequestResponseStatusCode?: number | null;
     onDEWModalOpen?: () => void;
@@ -208,7 +207,6 @@ function Search({
     contentContainerStyle,
     handleSearch,
     isMobileSelectionModeEnabled,
-    onSortPressedCallback,
     searchRequestResponseStatusCode,
     onDEWModalOpen,
 }: SearchProps) {
@@ -1258,7 +1256,6 @@ function Search({
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
-        onSortPressedCallback?.();
         // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
         navigation.setParams({q: newQuery, rawQuery: undefined});
     };
