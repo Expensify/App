@@ -1,0 +1,92 @@
+---
+title: INT576 Sync Error: No Expense Types Found
+description: Learn why the INT576 sync error occurs in Expensify Classic and how to create Expense Types in Sage Intacct or switch the export type.
+keywords: INT576, Sage Intacct no expense types found, Intacct Time and Expenses module, export as expense report Intacct, vendor bill export Intacct, Expensify Classic Sage Intacct integration
+internalScope: Audience is Workspace Admins using the Sage Intacct integration in Expensify Classic. Covers the INT576 sync error related to missing Expense Types in the Time and Expenses module or incorrect export type configuration. Does not cover authentication or dimension errors.
+---
+
+# INT576 Sync Error: No Expense Types Found
+
+If you see the error message **“INT576 Sync Error: No Expense Types found. The connection in Expensify is set to export as Expense Reports, but no 'expense types' exist in Sage Intacct.”**, it means Expensify is configured to export as Expense Reports, but Sage Intacct does not have any Expense Types created.
+
+Sage Intacct requires Expense Types in the **Time and Expenses** module when exporting as Expense Reports.
+
+---
+
+## Why the INT576 Sync Error Happens
+
+The INT576 sync error occurs when:
+
+- The export type in Expensify is set to **Expense Report**, and  
+- No Expense Types exist in the **Time and Expenses** module in Sage Intacct  
+
+Without Expense Types, Sage Intacct cannot process expense report exports.
+
+---
+
+## How to Fix the INT576 Sync Error
+
+You have two options depending on how you want to export expenses.
+
+---
+
+## Option 1: Create Expense Types in Sage Intacct
+
+If you plan to export as **Expense Reports**:
+
+### Step 1: Create Expense Types in Sage Intacct
+
+In Sage Intacct:
+
+1. Go to **Applications > Time and Expenses**.
+2. Create the necessary **Expense Types**.
+3. Save your changes.
+
+---
+
+### Step 2: Sync the Workspace in Expensify
+
+In Expensify:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync now**.
+
+After syncing, retry the export.
+
+---
+
+## Option 2: Change Export Type to Vendor Bill
+
+If you are not using the Time and Expenses module in Sage Intacct:
+
+### Step 1: Update Export Type in Expensify
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Configure**.
+5. Open the **Export** tab.
+6. Change the export type from **Expense Report** to **Vendor Bill**.
+7. Click **Save**.
+
+---
+
+### Step 2: Sync and Retry
+
+1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
+2. Click **Sync now**.
+3. Retry exporting the report.
+
+---
+
+# FAQ
+
+## Do I need to use the Time and Expenses module?
+
+Only if you plan to export as Expense Reports. If not, configure the export type as Vendor Bill.
+
+## Do I need Sage Intacct admin access to fix this?
+
+Yes. Creating Expense Types in the Time and Expenses module requires appropriate permissions in Sage Intacct.
