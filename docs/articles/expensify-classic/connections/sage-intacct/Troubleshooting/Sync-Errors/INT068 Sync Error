@@ -1,0 +1,86 @@
+---
+title: INT068 Sync Error: Liability Credit Card Account Could Not Be Created
+description: Learn why the INT068 sync error occurs in Expensify Classic and how to configure entity-level exports and permissions for Expensify Card with Sage Intacct.
+keywords: INT068, Sage Intacct liability credit card error, Expensify Card entity level export, Intacct auto reconciliation, Intacct liability account permissions
+internalScope: Audience is Workspace Admins and Domain Admins using the Sage Intacct integration with Expensify Card in Expensify Classic. Covers the INT068 sync error related to entity-level configuration and liability account permissions. Does not cover Sage Intacct authentication errors.
+---
+
+# INT068 Sync Error: Liability Credit Card Account Could Not Be Created
+
+If you see the error message **“INT068 Sync Error: Sage Intacct couldn’t create a liability credit card account. When the Expensify Card is used, exports must be configured at the entity level for reconciliation.”**, it means Sage Intacct was unable to create the required liability credit card account.
+
+This typically occurs when Auto Reconciliation for Expensify Card is enabled but the integration is not configured correctly at the entity level.
+
+---
+
+## Why the INT068 Sync Error Happens
+
+The INT068 sync error occurs when:
+
+- Expensify Card transactions are being exported, and  
+- The Workspace is syncing at the **top level** instead of the **entity level**, or  
+- The required liability account cannot be created due to missing permissions in Sage Intacct  
+
+When using **Auto Reconciliation** for Expensify Card, exports must be configured at the **entity level** in Sage Intacct.
+
+Important:  
+Even if the report does not contain Expensify Card transactions, this error can still appear if Auto Reconciliation is enabled. The liability account is created during the first sync after enabling the feature.
+
+---
+
+## How to Fix the INT068 Sync Error in Expensify Classic
+
+### Step 1: Confirm Entity-Level Sync Configuration
+
+In Expensify:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Configure**.
+5. Open the **Export** tab.
+6. Confirm whether the Workspace is syncing at the **top level** or **entity level**.
+
+If using Auto Reconciliation for Expensify Card:
+
+- The Workspace must sync at the **entity level**.
+
+---
+
+### Step 2: Confirm Liability Account Permissions in Sage Intacct
+
+If the liability account already exists in the **Chart of Accounts** in Sage Intacct:
+
+1. Confirm the Web Services user has the following **Accounts** permissions:
+   - **List**
+   - **View**
+   - **Add**
+   - **Edit**
+   - **Delete**
+
+If these permissions are not enabled, Sage Intacct may not allow the account to be created or updated.
+
+---
+
+### Step 3: Sync the Workspace
+
+After confirming configuration and permissions:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync now**.
+
+Retry the export after the sync completes.
+
+---
+
+# FAQ
+
+## Does this error only affect Expensify Card transactions?
+
+It primarily relates to Expensify Card and Auto Reconciliation. However, it may appear even if the specific report does not contain card transactions.
+
+## Do I need Sage Intacct admin access to fix this?
+
+Yes. Updating account permissions and confirming entity-level configuration requires appropriate access in Sage Intacct.
