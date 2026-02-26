@@ -12,7 +12,7 @@ internalScope: Audience is all Expensify members. Covers what Home is and what a
 
 It gives you a quick way to see whether anything needs attention, get oriented, and check what’s new, without having to dig through menus or reports.
 
-![Home on New Expensify]({{site.url}}/assets/images/home-1.png){:width="100%"}
+![Home on New Expensify]({{site.url}}/assets/images/home.png){:width="100%"}
 
 ---
 
@@ -34,6 +34,7 @@ Home includes:
 - **For you**
 - **Discover**
 - **Announcements**
+- **Assigned cards** (when applicable)
 
 Each section provides context so you know where to go next.
 
@@ -80,6 +81,14 @@ This section includes a short demo that introduces key areas of the app and show
 The **Announcements** section shows recent Expensify product updates.
 
 This section helps you stay informed about what’s new or recently changed in New Expensify. 
+
+---
+
+## How the Assigned cards section works on Home
+
+The **Assigned cards** section shows all Expensify Cards assigned to you, along with the available spending limit for each card.
+
+Use this section to quickly check how much you can spend before making a purchase. The available limit updates automatically as transactions are made.
 
 ---
 
