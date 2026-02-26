@@ -107,8 +107,10 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
 
         setIsImporting(true);
         // If existingCardID is provided, add transactions to that card instead of creating a new one
-        importTransactionsFromCSV(spreadsheet, existingCardID ? Number(existingCardID) : undefined);
-    }, [validate, spreadsheet, existingCardID]);
+        const cardIDNumber = existingCardID ? Number(existingCardID) : undefined;
+        const previouslySavedLayout = cardIDNumber && savedColumnLayouts ? savedColumnLayouts[String(cardIDNumber)] : undefined;
+        importTransactionsFromCSV(spreadsheet, cardIDNumber, previouslySavedLayout);
+    }, [validate, spreadsheet, existingCardID, savedColumnLayouts]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return null;

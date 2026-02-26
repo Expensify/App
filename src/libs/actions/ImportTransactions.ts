@@ -302,8 +302,9 @@ function buildOptimisticTransactions(transactionList: TransactionFromCSV[], card
  * Import transactions from a CSV spreadsheet
  * @param spreadsheet - The imported spreadsheet data
  * @param existingCardID - Optional cardID to add transactions to an existing card instead of creating a new one
+ * @param previouslySavedLayout - Optional previous saved layout to restore on failure
  */
-function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCardID?: number) {
+function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCardID?: number, previouslySavedLayout?: SavedCSVColumnLayoutData) {
     const settings = spreadsheet.importTransactionSettings ?? {};
     const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = settings;
 
@@ -429,6 +430,15 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCar
                 promptKey: 'spreadsheet.importFailedDescription' as const,
                 promptKeyParams: undefined,
             },
+        },
+    });
+
+    // Restore the previous saved layout on failure, or null if none existed
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST,
+        value: {
+            [cardID]: previouslySavedLayout ?? null,
         },
     });
 
