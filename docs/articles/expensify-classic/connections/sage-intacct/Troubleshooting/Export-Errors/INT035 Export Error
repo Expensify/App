@@ -1,0 +1,106 @@
+---
+title: INT035 Export Error: Export Date Falls in a Closed Accounting Period
+description: Learn why the INT035 export error occurs in Expensify Classic and how to update export date settings or reopen accounting periods in Sage Intacct.
+keywords: INT035, Sage Intacct closed period error, export date must be on or after, Intacct reopen accounting period, Expensify Classic Sage Intacct export error
+internalScope: Audience is Workspace Admins using the Sage Intacct integration in Expensify Classic. Covers the INT035 export error related to closed accounting periods and export date configuration. Does not cover authentication or user permission errors.
+---
+
+# INT035 Export Error: Export Date Falls in a Closed Accounting Period
+
+If you see the error message **“INT035 Export Error: Export not completed. Date associated with export must be on or after [MM/dd/yyyy]. Reopen the period or change the export date in workspace configurations.”**, it means the export date falls within a closed accounting period in Sage Intacct.
+
+Sage Intacct does not allow transactions to post to closed periods.
+
+---
+
+## Why the INT035 Export Error Happens
+
+The INT035 export error occurs when:
+
+- The report date or selected export date falls within a **closed accounting period** in Sage Intacct  
+- The General Ledger or sub-ledgers are closed for that period  
+
+If the period is closed, Sage Intacct blocks the export.
+
+---
+
+# How to Fix the INT035 Export Error
+
+You can resolve this by adjusting the export date or reopening the period.
+
+---
+
+## Option 1: Change the Export Date in Expensify
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Configure**.
+5. Open the **Export** tab.
+6. In the **Date** field, select **Exported Date**.
+7. Click **Save**.
+
+This ensures the export uses the date it is sent to Intacct rather than the report date.
+
+Retry exporting the report.
+
+---
+
+## Option 2: Allow Posting to the Next Open Period
+
+In Sage Intacct:
+
+1. Grant Expensify **Open and Close permissions** in the Sage Intacct setup.
+2. This allows the integration to:
+   - See closed period dates
+   - Automatically post transactions to the next open period
+
+After updating permissions:
+
+1. Go to **Settings > Workspaces > [Workspace Name] > Accounting** in Expensify.
+2. Click **Sync now**.
+3. Retry exporting the report.
+
+---
+
+# Additional Troubleshooting Steps
+
+If the issue persists, sub-ledgers may be closed in Sage Intacct.
+
+### Step 1: Confirm Workspace Sync Level
+
+In Expensify:
+
+1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
+2. Click **Configure**.
+3. Open the **Export** tab.
+4. Confirm whether the Workspace is syncing at the **top level** or **entity level**.
+
+---
+
+### Step 2: Confirm Periods Are Open in Sage Intacct
+
+In Sage Intacct, confirm the following modules are open for the period:
+
+- **General Ledger**
+- **Cash Management**
+- **Accounts Payable**
+  - Configured under:  
+    **Accounts Payable > Subledger > Open**
+- **Time & Expense**
+  - Configured under:  
+    **Time & Expenses > Subledger**
+
+If any of these are closed, reopen the appropriate sub-ledger period.
+
+---
+
+# FAQ
+
+## Should I reopen the accounting period or change the export date?
+
+Changing the export date to **Exported Date** is often the simplest solution. Reopening a period should only be done if appropriate for your accounting policies.
+
+## Do I need Sage Intacct admin access to fix this?
+
+Yes. Reopening accounting periods or updating sub-ledger settings requires appropriate permissions in Sage Intacct.
