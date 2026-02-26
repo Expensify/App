@@ -891,22 +891,37 @@ function SearchFiltersBar({
                 </KYCWall>
             ) : (
                 <>
-                    <FlatList
-                        horizontal
-                        keyboardShouldPersistTaps="always"
-                        style={[styles.flexRow, styles.overflowScroll, !shouldUseNarrowLayout ? styles.flexShrink1 : styles.flexGrow0]}
-                        contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
-                        ref={scrollRef}
-                        showsHorizontalScrollIndicator={false}
-                        data={filters}
-                        keyExtractor={(item) => item.label}
-                        renderItem={renderFilterItem}
-                        ListFooterComponent={renderListFooter}
-                        onEndReached={adjustScroll}
-                        onEndReachedThreshold={0.75}
-                    />
+                    {shouldUseNarrowLayout ? (
+                        <FlatList
+                            horizontal
+                            keyboardShouldPersistTaps="always"
+                            style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
+                            contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
+                            ref={scrollRef}
+                            showsHorizontalScrollIndicator={false}
+                            data={filters}
+                            keyExtractor={(item) => item.label}
+                            renderItem={renderFilterItem}
+                            ListFooterComponent={renderListFooter}
+                            onEndReached={adjustScroll}
+                            onEndReachedThreshold={0.75}
+                        />
+                    ) : (
+                        <View style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.gap2, styles.ph5]}>
+                            {filters.map((item) => (
+                                <DropdownButton
+                                    key={item.label}
+                                    label={item.label}
+                                    value={item.value}
+                                    PopoverComponent={item.PopoverComponent}
+                                    sentryLabel={item.sentryLabel}
+                                />
+                            ))}
+                            {renderListFooter()}
+                        </View>
+                    )}
                     {!shouldUseNarrowLayout && (
-                        <View style={styles.pr5}>
+                        <View style={[styles.pr5, styles.searchFiltersBarCreateButton]}>
                             <PopoverMenu
                                 onClose={hideCreateMenu}
                                 isVisible={isCreateMenuActive}
