@@ -1,11 +1,12 @@
 import {cardByIdSelector} from '@selectors/Card';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
+import cardScarf from '@assets/images/card-scarf.svg';
 import Badge from '@components/Badge';
-import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
+import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -13,7 +14,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -28,7 +28,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getAllCardsForWorkspace, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import DateUtils from '@libs/DateUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -36,7 +35,6 @@ import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import FrozenCardIndicator from '@pages/settings/Wallet/ExpensifyCardPage/FrozenCardIndicator';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {deactivateCard as deactivateCardAction, freezeCard as freezeCardAction, openCardDetailsPage, unfreezeCard as unfreezeCardAction} from '@userActions/Card';
@@ -133,6 +131,32 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     };
 
     const canManageCardFreeze = isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isAdmin && !!card;
+    const scarfOverlayStyle = useMemo(
+        () => ({
+            top: 0,
+            left: (variables.cardPreviewWidth - variables.cardScarfOverlayWidth) / 2,
+            zIndex: variables.cardScarfOverlayZIndex,
+            width: variables.cardScarfOverlayWidth,
+            height: variables.cardScarfOverlayHeight,
+        }),
+        [],
+    );
+    const workspaceCardImage = (
+        <>
+            <ImageSVG
+                contentFit="contain"
+                src={illustrations.ExpensifyCardImage}
+                pointerEvents="none"
+                height={variables.cardPreviewHeight}
+                width={variables.cardPreviewWidth}
+            />
+            <Badge
+                badgeStyles={styles.cardBadge}
+                textStyles={styles.cardBadgeText}
+                text={translate(isVirtual ? 'workspace.expensifyCard.virtual' : 'workspace.expensifyCard.physical')}
+            />
+        </>
+    );
 
     if (!card && !isLoadingOnyxValue(allFeedsCardsResult)) {
         return <NotFoundPage />;
@@ -154,25 +178,28 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                 />
                 <ScrollView addBottomSafeAreaPadding>
                     {canManageCardFreeze && isCardFrozen(card) ? (
-                        <FrozenCardIndicator
+                        <FrozenCardHeader
                             cardID={cardID}
                             onUnfreezePress={handleUnfreezePress}
+                            cardPreview={
+                                <View style={[styles.pRelative, styles.alignSelfCenter, StyleUtils.getWidthStyle(variables.cardPreviewWidth)]}>
+                                    <View style={styles.walletCard}>{workspaceCardImage}</View>
+                                    <View
+                                        pointerEvents="none"
+                                        style={[styles.pAbsolute, scarfOverlayStyle]}
+                                    >
+                                        <ImageSVG
+                                            src={cardScarf}
+                                            contentFit="contain"
+                                            width="100%"
+                                            height="100%"
+                                        />
+                                    </View>
+                                </View>
+                            }
                         />
                     ) : (
-                        <View style={[styles.walletCard, styles.mb3]}>
-                            <ImageSVG
-                                contentFit="contain"
-                                src={illustrations.ExpensifyCardImage}
-                                pointerEvents="none"
-                                height={variables.cardPreviewHeight}
-                                width={variables.cardPreviewWidth}
-                            />
-                            <Badge
-                                badgeStyles={styles.cardBadge}
-                                textStyles={styles.cardBadgeText}
-                                text={translate(isVirtual ? 'workspace.expensifyCard.virtual' : 'workspace.expensifyCard.physical')}
-                            />
-                        </View>
+                        <View style={[styles.walletCard, styles.mb3]}>{workspaceCardImage}</View>
                     )}
 
                     {!cardholder?.validated && (
