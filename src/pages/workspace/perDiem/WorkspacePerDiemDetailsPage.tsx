@@ -1,12 +1,12 @@
 import React, {useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -41,6 +41,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const selectedRate = customUnit?.rates?.[rateID];
     const fetchedSubRate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
     const previousFetchedSubRate = usePrevious(fetchedSubRate);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
 
     const selectedSubRate = fetchedSubRate ?? previousFetchedSubRate;
 
@@ -115,7 +116,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                         shouldShowRightIcon
                     />
                     <MenuItem
-                        icon={Expensicons.Trashcan}
+                        icon={icons.Trashcan}
                         title={translate('common.delete')}
                         onPress={() => setDeletePerDiemConfirmModalVisible(true)}
                     />

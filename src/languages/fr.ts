@@ -543,6 +543,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Délégué de vacances',
         expensifyLogo: 'Logo Expensify',
+        duplicateReport: 'Note de frais en double',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -957,17 +958,17 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: 'Corriger',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Corriger la connexion de la carte d'entreprise ${feedName}` : 'Corriger la connexion de la carte entreprise'),
-                defaultSubtitle: 'Espace de travail > Cartes d’entreprise',
+                defaultSubtitle: 'Espace de travail',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Cartes d'entreprise`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Corriger la connexion ${integrationName}`,
-                defaultSubtitle: 'Espace de travail > Comptabilité',
+                defaultSubtitle: 'Espace de travail',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Comptabilité`,
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Réparer la connexion de la carte personnelle ${cardName}` : 'Corriger la connexion de la carte personnelle'),
-                subtitle: 'Portefeuille > Cartes assignées',
+                subtitle: 'Portefeuille',
             },
         },
         assignedCards: 'Cartes assignées',
@@ -1773,6 +1774,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Nouveau moyen de contact',
         goBackContactMethods: 'Revenir aux méthodes de contact',
+        yourDefaultContactMethodRestrictedSwitch: 'Ceci est votre méthode de contact par défaut actuelle. Votre entreprise a restreint sa suppression ou sa modification.',
     },
     pronouns: {
         coCos: 'Copropriétaire / Cosigner',
@@ -3909,6 +3911,8 @@ ${
             workspaceOwner: 'Responsable',
             workspaceType: 'Type d’espace de travail',
             workspaceAvatar: "Avatar de l'espace de travail",
+            clientID: 'ID client',
+            clientIDInputHint: "Entrez l'identifiant unique du client",
             mustBeOnlineToViewMembers: 'Vous devez être en ligne pour voir les membres de cet espace de travail.',
             moreFeatures: 'Plus de fonctionnalités',
             requested: 'Demandé',
@@ -7137,6 +7141,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',
         statements: 'Relevés',
+        cardStatements: 'Relevés de carte',
+        monthlyAccrual: 'Régularisation mensuelle',
         unapprovedCash: 'Espèces non approuvées',
         unapprovedCard: 'Carte non approuvée',
         reconciliation: 'Rapprochement',
@@ -8517,15 +8523,18 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
                 addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.',
                 vacationDelegate: 'Impossible de définir cet utilisateur comme délégué de vacances. Veuillez réessayer.',
             },
+            cannotSetVacationDelegateForMember: (email: string) =>
+                `Vous ne pouvez pas définir un délégué de vacances pour ${email}, car cette personne est actuellement le délégué des membres suivants :`,
+        },
+        common: {
+            settings: 'Paramètres',
             forceTwoFactorAuth: 'Imposer l’authentification à deux facteurs',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>Veuillez désactiver <a href="${samlPageUrl}">SAML</a> pour imposer l’authentification à deux facteurs.</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>Exiger l’authentification à deux facteurs pour tous les membres de ce domaine. Les membres du domaine seront invités à configurer l’authentification à deux facteurs sur leur compte lorsqu’ils se connectent.</muted-text>`,
             forceTwoFactorAuthError: 'L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.',
-            cannotSetVacationDelegateForMember: (email: string) =>
-                `Vous ne pouvez pas définir un délégué de vacances pour ${email}, car cette personne est actuellement le délégué des membres suivants :`,
+            resetTwoFactorAuth: 'Réinitialiser l’authentification à deux facteurs',
         },
-        common: {settings: 'Paramètres'},
         groups: {title: 'Groupes', memberCount: () => ({one: '1 membre', other: (count: number) => `${count} membres`})},
     },
     proactiveAppReview: {

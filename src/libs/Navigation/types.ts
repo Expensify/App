@@ -292,6 +292,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
+    [SCREENS.WORKSPACE.CLIENT_ID]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
     [SCREENS.WORKSPACE.INVITE]: {
         policyID: string;
@@ -1538,6 +1539,14 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
     };
     [SCREENS.DOMAIN.VACATION_DELEGATE]: {
+        domainAccountID: number;
+        accountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBER_FORCE_TWO_FACTOR_AUTH]: {
+        domainAccountID: number;
+        accountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBER_RESET_TWO_FACTOR_AUTH]: {
         domainAccountID: number;
         accountID: number;
     };
