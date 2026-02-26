@@ -12,7 +12,6 @@ import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCa
 import type {OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 import useNetwork from '@hooks/useNetwork';
-import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
@@ -149,16 +148,6 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     const isFallbackVisible = !hasSiblingCarouselItems ? !isLightboxVisible : !(isActive && isLightboxVisible && isLightboxImageLoaded);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
-    const previousUri = usePrevious(uri);
-
-    const [prevUri, setPrevUri] = useState(uri);
-    if (prevUri !== uri && previousUri && uri) {
-        setPrevUri(uri);
-        setInternalContentSize(undefined);
-        setLightboxImageLoaded(false);
-        setFallbackImageLoaded(false);
-        setIsLoading(true);
-    }
 
     let fallbackSize: Dimensions | undefined;
     if (!hasSiblingCarouselItems || !contentSize || isCanvasLoading) {
@@ -213,7 +202,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'Lightbox',
         isImageLoaded,
-        isLoadingPreviousUri: previousUri !== uri,
+        isLoadingPreviousUri: false,
         isOffline,
         isLoading,
         isALocalFile,
@@ -287,7 +276,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                     )}
 
                     {/* Show activity indicator while the lightbox is still loading the image. */}
-                    {(!isImageLoaded || previousUri !== uri) && !shouldShowOfflineIndicator && (
+                    {!isImageLoaded && !shouldShowOfflineIndicator && (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
