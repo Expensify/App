@@ -1364,34 +1364,23 @@ function PureReportActionItem({
             const wasSubmittedViaHarvesting = getOriginalMessage(action)?.harvesting ?? false;
 
             let failedSubmitReason = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
-
-            // Uncapitalize the first letter of the failure reason since it will be concatenated to the end of another one
-            if (failedSubmitReason.length) {
-                failedSubmitReason = failedSubmitReason[0].toLowerCase() + failedSubmitReason.slice(1);
-            }
-
-            const reason = wasSubmittedViaHarvesting
+            failedSubmitReason = wasSubmittedViaHarvesting
                 ? translate('iou.failedToAutoSubmitViaDEW', failedSubmitReason)
                 : translate('iou.failedToSubmitViaDEW', failedSubmitReason);
 
             children = (<ReportActionItemBasicMessage>
-                <RenderHTML html={`<comment><muted-text>${reason}</muted-text></comment>`} />
+                <RenderHTML html={`<comment><muted-text>${failedSubmitReason}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>);
         } else if (isDynamicExternalWorkflowApproveFailedAction(action)) {
             const wasAutoApproveAction = getOriginalMessage(action)?.automaticAction ?? false;
 
             let failedApproveReason = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
-            // Uncapitalize the first letter of the failure reason since it will be concatenated to the end of another one
-            if (failedApproveReason.length) {
-                failedApproveReason = failedApproveReason[0].toLowerCase() + failedApproveReason.slice(1);
-            }
-
-            const reason = wasAutoApproveAction
+            failedApproveReason = wasAutoApproveAction
                 ? translate('iou.failedToAutoApproveViaDEW', failedApproveReason)
                 : translate('iou.failedToApproveViaDEW', failedApproveReason);
 
             children = (<ReportActionItemBasicMessage>
-                <RenderHTML html={`<comment><muted-text>${reason}</muted-text></comment>`} />
+                <RenderHTML html={`<comment><muted-text>${failedApproveReason}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>);
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
