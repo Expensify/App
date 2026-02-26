@@ -2,6 +2,7 @@ import React, {useCallback, useContext, useEffect} from 'react';
 import {Image as RNImage} from 'react-native';
 import type {ImageLoadEvent, ImageSourcePropType} from 'react-native';
 import type {AttachmentSource} from '@components/Attachments/types';
+import getImageRecyclingKey from '@libs/getImageRecyclingKey';
 import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 import type {BaseImageProps} from './types';
 
@@ -34,6 +35,8 @@ function BaseImage({onLoad, source, ...props}: BaseImageProps) {
             // Only subscribe to onLoad when a handler is provided to avoid unnecessary event registrations, optimizing performance.
             onLoad={onLoad ? imageLoadedSuccessfully : undefined}
             source={source as ImageSourcePropType}
+            // TODO: Replace with recyclingKey when the component is migrated to expo-image
+            key={getImageRecyclingKey(source)}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />

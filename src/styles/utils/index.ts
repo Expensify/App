@@ -1762,6 +1762,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.STATUS:
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
+                columnWidth = {...getWidthStyle(variables.w130), ...styles.alignItemsCenter};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
                 columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w92 : variables.w72)};
                 break;

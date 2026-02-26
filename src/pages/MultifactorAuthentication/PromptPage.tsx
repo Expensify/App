@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
-import {useMultifactorAuthentication, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
 import MultifactorAuthenticationTriggerCancelConfirmModal from '@components/MultifactorAuthentication/TriggerCancelConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,7 +24,8 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {cancel} = useMultifactorAuthentication();
-    const {state, dispatch} = useMultifactorAuthenticationState();
+    const state = useMultifactorAuthenticationState();
+    const {dispatch} = useMultifactorAuthenticationActions();
     const {isOffline} = useNetwork();
 
     const {animation, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);

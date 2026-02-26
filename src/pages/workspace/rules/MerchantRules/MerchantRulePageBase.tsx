@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -13,15 +13,20 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/Rules';
+import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
+import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -92,12 +97,10 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const [isDeleting, setIsDeleting] = useState(false);
     const isEditing = !!ruleID;
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
-        canBeMissing: true,
-        selector: getTagLists,
-    });
+    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const policyTags = useMemo(() => getTagLists(policyTagsFromOnyx) ?? getEmptyArray<ValueOf<PolicyTagLists>>(), [policyTagsFromOnyx]);
     const [shouldShowError, setShouldShowError] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
@@ -131,11 +134,27 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     // Clear the form on unmount
     useEffect(() => () => clearDraftMerchantRule(), []);
 
+    // Fetch categories and tags if they're not loaded (e.g. after cache clear)
+    const fetchPolicyData = useCallback(() => {
+        if (policy?.areCategoriesEnabled && !policyCategories) {
+            openPolicyCategoriesPage(policyID);
+        }
+        if (policy?.areTagsEnabled && !policyTagsFromOnyx) {
+            openPolicyTagsPage(policyID);
+        }
+    }, [policyID, policy?.areCategoriesEnabled, policy?.areTagsEnabled, policyCategories, policyTagsFromOnyx]);
+
+    useNetwork({onReconnect: fetchPolicyData});
+
+    useEffect(() => {
+        fetchPolicyData();
+    }, [fetchPolicyData]);
+
     const hasCategories = () => {
         if (!policy?.areCategoriesEnabled) {
             return false;
         }
-        return Object.keys(policyCategories ?? {}).length > 0;
+        return !!form?.category || hasEnabledOptions(policyCategories ?? {});
     };
 
     const hasTags = () => {
@@ -290,7 +309,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     : undefined,
                 ...(hasTags()
                     ? policyTags
-                          .filter(({orderWeight, tags}) => !!formTags.at(orderWeight) || Object.values(tags).some(({enabled}) => enabled))
+                          .filter(({orderWeight, tags}) => !!formTags.at(orderWeight) || getEnabledTags(tags, form?.tag ?? '', orderWeight).length > 0)
                           .map(({name, orderWeight}) => {
                               const formTag = formTags.at(orderWeight);
                               return {
@@ -376,6 +395,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                         title={item.title}
                                         titleStyle={styles.flex1}
                                         shouldRenderAsHTML={item.shouldRenderAsHTML}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     />
                                 ))}
                         </View>
@@ -388,11 +408,18 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     message={errorMessage}
                     onSubmit={handleSubmit}
                     enabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SAVE}
                     shouldRenderFooterAboveSubmit
                     footerContent={
                         <>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4]}>
-                                <Text style={[styles.textNormal]}>{translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}</Text>
+                                <Text
+                                    style={[styles.textNormal]}
+                                    accessible={false}
+                                    aria-hidden
+                                >
+                                    {translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
+                                </Text>
                                 <Switch
                                     accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
                                     isOn={shouldUpdateMatchingTransactions}
@@ -404,6 +431,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                 onPress={previewMatches}
                                 style={[styles.mb4]}
                                 large
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
                             />
                             {isEditing && (
                                 <Button
@@ -411,6 +439,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                     onPress={handleDelete}
                                     style={[styles.mb4]}
                                     large
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
                                 />
                             )}
                         </>

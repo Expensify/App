@@ -40,14 +40,14 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const currentUserLogin = session?.email;
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const {isOffline} = useNetwork();
 
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionReport?.policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionReport?.policyID}`);
 
     useEffect(() => {
         // If the eligible transactions are already loaded, don't fetch them again

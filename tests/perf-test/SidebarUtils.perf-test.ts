@@ -84,6 +84,7 @@ describe('SidebarUtils', () => {
                 policy,
                 invoiceReceiverPolicy: undefined,
                 parentReportAction,
+                conciergeReportID: '',
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 lastAction: undefined,

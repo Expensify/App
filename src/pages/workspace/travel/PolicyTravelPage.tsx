@@ -35,7 +35,7 @@ function WorkspaceTravelPage({
     },
 }: WorkspaceTravelPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -44,7 +44,7 @@ function WorkspaceTravelPage({
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const fetchTravelData = useCallback(() => {
         openPolicyTravelPage(policyID, workspaceAccountID);

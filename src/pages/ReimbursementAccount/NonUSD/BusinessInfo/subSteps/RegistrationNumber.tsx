@@ -12,8 +12,8 @@ const {BUSINESS_REGISTRATION_INCORPORATION_NUMBER, COMPANY_COUNTRY_CODE} = INPUT
 const STEP_FIELDS = [BUSINESS_REGISTRATION_INCORPORATION_NUMBER];
 
 function RegistrationNumber({onNext, onMove, isEditing}: RegistrationNumberProps) {
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const defaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_REGISTRATION_INCORPORATION_NUMBER] ?? '';
     const businessStepCountryDraftValue = reimbursementAccount?.achData?.corpay?.[COMPANY_COUNTRY_CODE] ?? reimbursementAccountDraft?.[COMPANY_COUNTRY_CODE] ?? '';
 

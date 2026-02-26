@@ -147,6 +147,8 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                         shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
+                                        disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                                     />
                                 </OfflineWithFeedback>
                             </View>
@@ -162,6 +164,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 iconWidth={20}
                 style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
                 onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_MERCHANT_RULE}
             />
         </Section>
     );
