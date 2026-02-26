@@ -543,6 +543,34 @@ describe('MergeTransactionUtils', () => {
             });
         });
 
+        it('should not include taxValue in conflict fields for distance requests with different tax rates', () => {
+            const targetTransaction = {
+                ...createRandomDistanceRequestTransaction(0),
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Distance Rate 1',
+                modifiedMerchant: 'Distance Rate 1',
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '5%',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const sourceTransaction = {
+                ...createRandomDistanceRequestTransaction(1),
+                amount: 2000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Distance Rate 2',
+                modifiedMerchant: 'Distance Rate 2',
+                taxCode: 'id_TAX_RATE_2',
+                taxValue: '10%',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+
+            expect(result.conflictFields).not.toContain('taxValue');
+            expect(result.conflictFields).toContain('merchant');
+        });
+
         it('auto-merges reportID and populates reportName when reportIDs match', () => {
             const sharedReportID = 'R123';
             const targetTransaction = {
@@ -1000,6 +1028,10 @@ describe('MergeTransactionUtils', () => {
                         waypoint1: {name: 'End Location', address: '456 End Ave'},
                     },
                 },
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '5%',
+                taxName: '5%',
+                taxAmount: 125,
             };
             const fieldValue = 'New Distance Merchant';
 
@@ -1023,6 +1055,10 @@ describe('MergeTransactionUtils', () => {
                 },
                 routes: null,
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '5%',
+                taxName: '5%',
+                taxAmount: 125,
             });
         });
     });
