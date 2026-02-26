@@ -202,7 +202,7 @@ No. The report returns to **Approved** status. A Workspace Admin must manually c
 
 ## How long does a retried reimbursement take to process?
 
-Retried payments follow the same processing timeline as the original payment, usually dependent on the local payment timelines, or wire payment timelines for cross-border payments.
+Retried payments follow the same processing timeline as the original payment. Domestic payments follow local processing timelines, and cross-border payments follow wire transfer timelines.
 
 ---
 
