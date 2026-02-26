@@ -1,4 +1,4 @@
-import type {StartSpanOptions} from '@sentry/core';
+import type {StartSpanOptions, SpanAttributeValue} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
@@ -77,4 +77,10 @@ function getSpan(spanId: string) {
     return activeSpans.get(spanId);
 }
 
-export {startSpan, endSpan, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};
+function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAttributeValue>) {
+    const span = getSpan(spanId);
+    span?.setAttributes(attributes);
+    endSpan(spanId);
+}
+
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};
