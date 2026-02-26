@@ -6,13 +6,13 @@ import type {DomainMemberBulkActionType, DropdownOption} from '@components/Butto
 import DecisionModal from '@components/DecisionModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
-import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDomainMemberError, closeUserAccount} from '@libs/actions/Domain';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
