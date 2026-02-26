@@ -4,8 +4,8 @@ import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getOriginalReportID} from '@libs/ReportUtils';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 
@@ -62,7 +62,7 @@ function showContextMenuForReport(
         contextMenuAnchor: anchor,
         report: {
             reportID,
-            originalReportID: reportID ? getOriginalReportID(reportID, action) : undefined,
+            originalReportID: reportID ? getOriginalReportID(reportID, action, undefined) : undefined,
             isArchivedRoom,
         },
         reportAction: {

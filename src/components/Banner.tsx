@@ -121,7 +121,7 @@ function Banner({
                         {shouldShowButton && (
                             <Button
                                 success
-                                style={[styles.pr3]}
+                                style={[styles.ph3]}
                                 text={translate('common.chatNow')}
                                 onPress={onButtonPress}
                             />
@@ -131,7 +131,8 @@ function Banner({
                                 <PressableWithFeedback
                                     onPress={onClose}
                                     role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={translate('common.close')}
+                                    accessibilityLabel={text ? `${translate('common.close')}, ${text}` : translate('common.close')}
+                                    sentryLabel="Banner-Close"
                                 >
                                     <Icon
                                         src={expensifyIcons.Close}

@@ -8,6 +8,7 @@ import {updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/Qui
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, settingsPendingAction} from '@libs/PolicyUtils';
+import {canImportLocationsAsTags} from '@pages/workspace/accounting/qbo/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
@@ -27,10 +28,7 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
     const data: CardListItem[] = useMemo(() => {
         const items: CardListItem[] = [];
 
-        if (
-            qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY &&
-            qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_ACCOUNT_TYPE.CREDIT_CARD
-        ) {
+        if (canImportLocationsAsTags(qboConfig)) {
             items.push({
                 value: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                 text: translate('workspace.common.tags'),

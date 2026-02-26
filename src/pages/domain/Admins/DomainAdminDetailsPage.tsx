@@ -7,7 +7,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -15,6 +14,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 import {revokeDomainAdminAccess} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
@@ -23,23 +23,18 @@ type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorPar
 function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
 
-    const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info', 'ClosedSign'] as const);
 
     const [primaryContact] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         selector: domainSettingsPrimaryContactSelector,
-        canBeMissing: true,
     });
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
 
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [adminPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
     });
 
@@ -52,7 +47,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const handleRevokeAdminAccess = async () => {
         const confirmResult = await showConfirmModal({
             title: translate('domain.admins.revokeAdminAccess'),
-            prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
+            prompt: translate('workspace.people.removeMemberPrompt', displayName),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
 
@@ -72,11 +67,17 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             domainAccountID={domainAccountID}
             accountID={accountID}
         >
+            {domainHasOnlyOneAdmin && (
+                <MenuItem
+                    title={translate('domain.admins.resetDomain')}
+                    icon={icons.ClosedSign}
+                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}
+                />
+            )}
             {!domainHasOnlyOneAdmin && (
                 <MenuItem
                     disabled={isCurrentUserPrimaryContact}
                     hintText={isCurrentUserPrimaryContact ? translate('domain.admins.cantRevokeAdminAccess') : undefined}
-                    style={styles.mb5}
                     title={translate('domain.admins.revokeAdminAccess')}
                     icon={icons.ClosedSign}
                     onPress={handleRevokeAdminAccess}
@@ -85,7 +86,5 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         </BaseDomainMemberDetailsComponent>
     );
 }
-
-DomainAdminDetailsPage.displayName = 'DomainAdminDetailsPage';
 
 export default DomainAdminDetailsPage;

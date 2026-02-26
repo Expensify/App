@@ -66,12 +66,12 @@ function TestWorkspaceSplitNavigator() {
 function TestReportsSplitNavigator() {
     return (
         <ReportsSplit.Navigator
-            sidebarScreen={SCREENS.HOME}
+            sidebarScreen={SCREENS.INBOX}
             defaultCentralScreen={SCREENS.REPORT}
             parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
         >
             <ReportsSplit.Screen
-                name={SCREENS.HOME}
+                name={SCREENS.INBOX}
                 getComponent={getEmptyComponent}
             />
             <ReportsSplit.Screen
@@ -118,10 +118,6 @@ function TestSearchFullscreenNavigator() {
         <SearchStack.Navigator defaultCentralScreen={SCREENS.SEARCH.ROOT}>
             <SearchStack.Screen
                 name={SCREENS.SEARCH.ROOT}
-                getComponent={getEmptyComponent()}
-            />
-            <SearchStack.Screen
-                name={SCREENS.SEARCH.MONEY_REQUEST_REPORT}
                 getComponent={getEmptyComponent()}
             />
         </SearchStack.Navigator>

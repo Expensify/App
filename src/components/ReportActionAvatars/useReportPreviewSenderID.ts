@@ -1,5 +1,6 @@
 import {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -7,7 +8,6 @@ import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {isDM, isIOUReport} from '@libs/ReportUtils';
-import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
@@ -45,7 +45,6 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     const shouldFetchData = !isOptimisticReportPreview;
 
     const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.reportID : undefined)}`, {
-        canBeMissing: true,
         selector: getIOUActionsSelector,
     });
 
@@ -58,16 +57,14 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     }, [reportTransactions, iouActions, shouldFetchData]);
 
     const [splits] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? chatReport?.reportID : undefined)}`, {
-        canBeMissing: true,
         selector: getSplitsSelector,
     });
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.policyID : undefined)}`, {
-        canBeMissing: true,
-    });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.policyID : undefined)}`);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     if (isOptimisticReportPreview) {
-        return getCurrentUserAccountID();
+        return currentUserAccountID;
     }
 
     // 1. If all amounts have the same sign - either all amounts are positive or all amounts are negative.

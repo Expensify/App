@@ -12,8 +12,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
+import {getReportAction, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -90,13 +90,29 @@ function ParentNavigationSubtitle({
 
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
-    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: false});
+    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     const isReportInRHP = currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
-    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
     const hasAccessToParentReport = currentReport?.hasParentAccess !== false;
+    const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
+        const fullScreenRoute = state?.routes?.findLast((route) => isFullScreenName(route.name));
+
+        // We need to track which navigator is focused to handle parent report navigation correctly:
+        // if we are in RHP, and parent report is opened in RHP, we want to go back to the parent report
+        const focusedNavigator = state?.routes
+            ? state.routes.findLast((route) => {
+                  return route.state?.routes && route.state.routes.length > 0;
+              })
+            : undefined;
+
+        return {
+            currentFullScreenRoute: fullScreenRoute,
+            currentFocusedNavigator: focusedNavigator,
+        };
+    });
 
     // Extract color from textStyles to apply only to non-link text, preserving link color
     const textStylesWithoutColor = useMemo(() => {
@@ -114,22 +130,33 @@ function ParentNavigationSubtitle({
 
     const onPress = () => {
         const parentAction = getReportAction(parentReportID, parentReportActionID);
-        const isVisibleAction = shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID, canUserPerformWriteAction);
+        const isVisibleAction = isReportActionVisible(parentAction, parentReportID, canUserPerformWriteAction, visibleReportActionsData);
+
+        const focusedNavigatorState = currentFocusedNavigator?.state;
+        const currentReportIndex = focusedNavigatorState?.index;
 
         if (openParentReportInCurrentTab && isReportInRHP) {
             // If the report is displayed in RHP in Reports tab, we want to stay in the current tab after opening the parent report
             if (currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && isMoneyRequestReport(report)) {
-                const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
-                if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
-                    const moneyRequestReportID = (lastRoute?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT])?.reportID;
-                    // If the parent report is already displayed underneath RHP, simply dismiss the modal
-                    if (moneyRequestReportID === parentReportID) {
-                        Navigation.dismissModal();
-                        return;
+                // Dismiss wide RHP and go back to already opened super wide RHP if the parent report is already opened there
+                if (currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && currentReportIndex && currentReportIndex > 0) {
+                    const previousRoute = focusedNavigatorState.routes[currentReportIndex - 1];
+
+                    if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
+                        const moneyRequestReportID = (previousRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT])?.reportID;
+                        if (moneyRequestReportID === parentReportID) {
+                            Navigation.goBack();
+                            return;
+                        }
                     }
                 }
 
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: parentReportID}));
+                return;
+            }
+
+            if (Navigation.getTopmostSuperWideRHPReportID() === parentReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                Navigation.dismissToSuperWideRHP();
                 return;
             }
 
@@ -142,11 +169,26 @@ function ParentNavigationSubtitle({
 
         // When viewing a money request in the search navigator, open the parent report in a right-hand pane (RHP)
         // to preserve the search context instead of navigating away.
-        if (openParentReportInCurrentTab && currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-            const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
-            if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
+        if (openParentReportInCurrentTab && currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            const lastRoute = currentFocusedNavigator?.state?.routes.at(-1);
+            if (lastRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID}));
                 return;
+            }
+
+            // Specific case: when opening expense report from search report (chat RHP),
+            // avoid stacking RHPs by going back to the search report if it's already there
+            const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
+
+            if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && lastRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
+                if (previousRoute.params && 'reportID' in previousRoute.params) {
+                    const reportIDFromParams = previousRoute.params.reportID;
+
+                    if (reportIDFromParams === parentReportID) {
+                        Navigation.goBack();
+                        return;
+                    }
+                }
             }
         }
 

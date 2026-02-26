@@ -99,6 +99,8 @@ type ThemeColors = {
     tooltipSupportingText: Color;
     tooltipPrimaryText: Color;
     trialBannerBackgroundColor: Color;
+    widgetIconBG: Color;
+    widgetIconFill: Color;
     skeletonLHNIn: Color;
     skeletonLHNOut: Color;
     QRLogo: Color;

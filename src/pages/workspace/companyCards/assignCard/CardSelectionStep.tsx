@@ -31,6 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {UnassignedCard} from '@src/types/onyx/Card';
 
 type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION>;
 
@@ -44,9 +45,9 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const [searchText, setSearchText] = useState('');
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [list] = useCardsList(feed);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [cardFeeds] = useCardFeeds(policyID);
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
@@ -57,12 +58,12 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
-    const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
-        keyForList: encryptedCardNumber,
-        value: encryptedCardNumber,
-        text: maskCardNumber(cardNumber, feed),
-        alternateText: lastFourNumbersFromCardName(cardNumber),
-        isSelected: cardSelected === encryptedCardNumber,
+    const cardListOptions = filteredCardList.map((card: UnassignedCard) => ({
+        keyForList: card.cardID,
+        value: card.cardID,
+        text: maskCardNumber(card.cardName, feed),
+        alternateText: lastFourNumbersFromCardName(card.cardName),
+        isSelected: cardSelected === card.cardID,
         leftElement: plaidUrl ? (
             <PlaidCardFeedIcon
                 plaidUrl={plaidUrl}
@@ -100,13 +101,14 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
             return;
         }
 
-        const cardNumber =
-            Object.entries(filteredCardList)
-                .find(([, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
-                ?.at(0) ?? '';
+        // Find the card by its ID to get the display name
+        const selectedCard = filteredCardList.find((card) => card.cardID === cardSelected);
+        const cardName = selectedCard?.cardName ?? '';
+
+        const customCardName = assignCard?.cardToAssign?.customCardName ?? '';
 
         setAssignCardStepAndData({
-            cardToAssign: {encryptedCardNumber: cardSelected, cardNumber},
+            cardToAssign: {encryptedCardNumber: cardSelected, cardName, customCardName},
             isEditing: false,
         });
 

@@ -12,6 +12,7 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
+import MerchantRulesSection from './MerchantRulesSection';
 
 type PolicyRulesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
 
@@ -49,6 +50,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <IndividualExpenseRulesSection policyID={policyID} />
+                    <MerchantRulesSection policyID={policyID} />
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

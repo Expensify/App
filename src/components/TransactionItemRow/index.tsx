@@ -24,7 +24,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {computeReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
@@ -40,11 +40,12 @@ import {
     isAmountMissing,
     isMerchantMissing,
     isScanning,
+    isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {PersonalDetails, Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
@@ -81,6 +82,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** formatted "merchant" value used for displaying and sorting on Reports page */
     formattedMerchant?: string;
 
+    /** Whether the card feed has been deleted */
+    isCardFeedDeleted?: boolean;
+
     /** information about whether to show merchant, that is provided on Reports page */
     shouldShowMerchant?: boolean;
 
@@ -101,9 +105,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 };
 
 type TransactionItemRowProps = {
-    hash?: number;
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
+    policy?: Policy;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
@@ -133,7 +137,11 @@ type TransactionItemRowProps = {
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
     customCardNames?: Record<number, string>;
+    reportActions?: ReportAction[];
+    checkboxSentryLabel?: string;
 };
+
+const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
     const shouldShowMerchant = transactionItem.shouldShowMerchant ?? true;
@@ -145,13 +153,13 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
     }
 
     const merchantName = StringUtils.getFirstLine(merchant);
-    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
+    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchantName !== CONST.TRANSACTION.DEFAULT_MERCHANT ? merchantName : '';
 }
 
 function TransactionItemRow({
-    hash,
     transactionItem,
     report,
+    policy,
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
@@ -181,6 +189,8 @@ function TransactionItemRow({
     isHover = false,
     shouldShowArrowRightOnNarrowLayout,
     customCardNames,
+    reportActions,
+    checkboxSentryLabel,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -199,9 +209,16 @@ function TransactionItemRow({
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
+    const filteredViolations = useMemo(() => {
+        if (!violations) {
+            return undefined;
+        }
+        return violations;
+    }, [violations]);
+
     const bgActiveStyles = useMemo(() => {
         if (!isSelected || !shouldHighlightItemWhenSelected) {
-            return [];
+            return EMPTY_ACTIVE_STYLE;
         }
         return styles.activeComponentBG;
     }, [isSelected, styles.activeComponentBG, shouldHighlightItemWhenSelected]);
@@ -217,7 +234,8 @@ function TransactionItemRow({
             return '';
         }
 
-        const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
+        const policyParam = policy ?? transactionItem.policy;
+        const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem, policyParam);
         const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
@@ -235,11 +253,14 @@ function TransactionItemRow({
             }
             return error;
         }
-    }, [transactionItem, translate, report]);
+    }, [transactionItem, translate, report, policy]);
 
     const exchangeRateMessage = getExchangeRate(transactionItem);
 
     const cardName = useMemo(() => {
+        if (transactionItem.isCardFeedDeleted) {
+            return translate('workspace.companyCards.deletedFeed');
+        }
         if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
             return '';
         }
@@ -248,352 +269,373 @@ function TransactionItemRow({
             return customCardNames[cardID];
         }
         return transactionItem.cardName;
-    }, [transactionItem.cardID, transactionItem.cardName, customCardNames]);
+    }, [transactionItem.cardID, transactionItem.cardName, transactionItem.isCardFeedDeleted, customCardNames, translate]);
 
-    const columnComponent = useMemo(
-        () => ({
-            [CONST.SEARCH.TABLE_COLUMNS.TYPE]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.TYPE}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}
-                >
-                    <TypeCell
-                        transactionItem={transactionItem}
-                        shouldShowTooltip={shouldShowTooltip}
-                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.RECEIPT}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}
-                >
-                    <ReceiptCell
-                        transactionItem={transactionItem}
-                        isSelected={isSelected}
-                    />
-                </View>
-            ),
-
-            [CONST.SEARCH.TABLE_COLUMNS.TAG]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.TAG}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}
-                >
-                    <TagCell
-                        transactionItem={transactionItem}
-                        shouldShowTooltip={shouldShowTooltip}
-                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.DATE}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false)]}
-                >
-                    <DateCell
-                        date={createdAt}
-                        showTooltip={shouldShowTooltip}
-                        isLargeScreenWidth={!shouldUseNarrowLayout}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.SUBMITTED}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, isDateColumnWide, false, false, isSubmittedColumnWide)]}
-                >
-                    <DateCell
-                        date={report?.submitted ?? ''}
-                        showTooltip={shouldShowTooltip}
-                        isLargeScreenWidth={!shouldUseNarrowLayout}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.APPROVED}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, isApprovedColumnWide)]}
-                >
-                    <DateCell
-                        date={report?.approved ?? ''}
-                        showTooltip={shouldShowTooltip}
-                        isLargeScreenWidth={!shouldUseNarrowLayout}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.POSTED]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.POSTED}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, false, false, false, false, false, isPostedColumnWide)]}
-                >
-                    <DateCell
-                        date={transactionItem.posted ?? ''}
-                        showTooltip={shouldShowTooltip}
-                        isLargeScreenWidth={!shouldUseNarrowLayout}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.EXPORTED}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, isExportedColumnWide)]}
-                >
-                    <DateCell
-                        date={transactionItem.exported ?? ''}
-                        showTooltip={shouldShowTooltip}
-                        isLargeScreenWidth={!shouldUseNarrowLayout}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.CATEGORY}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}
-                >
-                    <CategoryCell
-                        transactionItem={transactionItem}
-                        shouldShowTooltip={shouldShowTooltip}
-                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
-                >
-                    <Text>{getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}</Text>
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.BILLABLE}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
-                >
-                    <Text>{transactionItem.billable ? translate('common.yes') : translate('common.no')}</Text>
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.ACTION}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
-                >
-                    {!!transactionItem.action && (
-                        <ActionCell
-                            action={transactionItem.action}
+    const renderColumn = (column: SearchColumnType): React.ReactNode => {
+        switch (column) {
+            case CONST.SEARCH.TABLE_COLUMNS.TYPE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}
+                    >
+                        <TypeCell
+                            transactionItem={transactionItem}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
+                        />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}
+                    >
+                        <ReceiptCell
+                            transactionItem={transactionItem}
                             isSelected={isSelected}
-                            isChildListItem={isReportItemChild}
-                            parentAction={transactionItem.parentTransactionID}
-                            goToItem={onButtonPress}
-                            isLoading={isActionLoading}
-                            reportID={transactionItem.reportID}
-                            policyID={report?.policyID}
-                            hash={transactionItem?.hash}
-                            amount={report?.total}
                         />
-                    )}
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.MERCHANT}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
-                >
-                    {!!merchant && (
-                        <MerchantOrDescriptionCell
-                            merchantOrDescription={merchant}
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.TAG:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}
+                    >
+                        <TagCell
+                            transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
-                            shouldUseNarrowLayout={false}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
-                    )}
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}
-                >
-                    {!!description && (
-                        <MerchantOrDescriptionCell
-                            merchantOrDescription={description}
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.DATE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false)]}
+                    >
+                        <DateCell
+                            date={createdAt}
+                            showTooltip={shouldShowTooltip}
+                            isLargeScreenWidth={!shouldUseNarrowLayout}
+                        />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, isDateColumnWide, false, false, isSubmittedColumnWide)]}
+                    >
+                        <DateCell
+                            date={report?.submitted ?? ''}
+                            showTooltip={shouldShowTooltip}
+                            isLargeScreenWidth={!shouldUseNarrowLayout}
+                        />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, isApprovedColumnWide)]}
+                    >
+                        <DateCell
+                            date={report?.approved ?? ''}
+                            showTooltip={shouldShowTooltip}
+                            isLargeScreenWidth={!shouldUseNarrowLayout}
+                        />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.POSTED:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, false, false, false, false, false, isPostedColumnWide)]}
+                    >
+                        <DateCell
+                            date={transactionItem.posted ?? ''}
+                            showTooltip={shouldShowTooltip}
+                            isLargeScreenWidth={!shouldUseNarrowLayout}
+                        />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, isExportedColumnWide)]}
+                    >
+                        <DateCell
+                            date={transactionItem.exported ?? ''}
+                            showTooltip={shouldShowTooltip}
+                            isLargeScreenWidth={!shouldUseNarrowLayout}
+                        />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}
+                    >
+                        <CategoryCell
+                            transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
-                            shouldUseNarrowLayout={false}
-                            isDescription
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
-                    )}
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.TO]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.TO}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}
-                >
-                    {!!transactionItem.to && (
-                        <UserInfoCell
-                            accountID={transactionItem.to.accountID}
-                            avatar={transactionItem.to.avatar}
-                            displayName={transactionItem.formattedTo ?? transactionItem.to.displayName ?? ''}
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
+                    >
+                        <Text>{getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}</Text>
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
+                    >
+                        <Text>{transactionItem.billable ? translate('common.yes') : translate('common.no')}</Text>
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.ACTION:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
+                    >
+                        {!!transactionItem.action && (
+                            <ActionCell
+                                action={transactionItem.action}
+                                isSelected={isSelected}
+                                isChildListItem={isReportItemChild}
+                                parentAction={transactionItem.parentTransactionID}
+                                goToItem={onButtonPress}
+                                isLoading={isActionLoading}
+                                reportID={transactionItem.reportID}
+                                policyID={report?.policyID}
+                                hash={transactionItem?.hash}
+                                amount={report?.total}
+                                shouldDisablePointerEvents={isDisabled}
+                            />
+                        )}
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
+                    >
+                        {!!merchant && (
+                            <MerchantOrDescriptionCell
+                                merchantOrDescription={merchant}
+                                shouldShowTooltip={shouldShowTooltip}
+                                shouldUseNarrowLayout={false}
+                            />
+                        )}
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}
+                    >
+                        {!!description && (
+                            <MerchantOrDescriptionCell
+                                merchantOrDescription={description}
+                                shouldShowTooltip={shouldShowTooltip}
+                                shouldUseNarrowLayout={false}
+                                isDescription
+                            />
+                        )}
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.TO:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}
+                    >
+                        {!!transactionItem.to && (
+                            <UserInfoCell
+                                accountID={transactionItem.to.accountID}
+                                avatar={transactionItem.to.avatar}
+                                displayName={transactionItem.formattedTo ?? transactionItem.to.displayName ?? ''}
+                            />
+                        )}
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.FROM:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}
+                    >
+                        {!!transactionItem.from && (
+                            <UserInfoCell
+                                accountID={transactionItem.from.accountID}
+                                avatar={transactionItem.from.avatar}
+                                displayName={transactionItem.formattedFrom ?? transactionItem.from.displayName ?? ''}
+                            />
+                        )}
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.CARD:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}
+                    >
+                        <TextCell text={cardName} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)]}
+                    >
+                        <ChatBubbleCell
+                            transaction={transactionItem}
+                            isInSingleTransactionReport={isInSingleTransactionReport}
                         />
-                    )}
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.FROM]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.FROM}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}
-                >
-                    {!!transactionItem.from && (
-                        <UserInfoCell
-                            accountID={transactionItem.from.accountID}
-                            avatar={transactionItem.from.avatar}
-                            displayName={transactionItem.formattedFrom ?? transactionItem.from.displayName ?? ''}
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE)]}
+                    >
+                        <TextCell text={exchangeRateMessage} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, undefined, isAmountColumnWide)]}
+                    >
+                        <TotalCell
+                            transactionItem={transactionItem}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
-                    )}
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.CARD]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.CARD}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}
-                >
-                    <TextCell text={cardName} />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.COMMENTS}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)]}
-                >
-                    <ChatBubbleCell
-                        transaction={transactionItem}
-                        isInSingleTransactionReport={isInSingleTransactionReport}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE)]}>
-                    <TextCell text={exchangeRateMessage} />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, undefined, isAmountColumnWide)]}
-                >
-                    <TotalCell
-                        transactionItem={transactionItem}
-                        shouldShowTooltip={shouldShowTooltip}
-                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
-                >
-                    <AmountCell
-                        total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
-                        currency={getOriginalCurrencyForDisplay(transactionItem)}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
-                    <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : transactionItem.reportID} />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}>
-                    <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transactionItem.reportID))} />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.TAX_RATE}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
-                >
-                    <TextCell text={getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? ''} />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (
-                <View
-                    key={CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, isTaxAmountColumnWide)]}
-                >
-                    <TaxCell
-                        transactionItem={transactionItem}
-                        shouldShowTooltip={shouldShowTooltip}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}>
-                    <WorkspaceCell
-                        policyID={transactionItem.report?.policyID}
-                        report={transactionItem.report}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
-                    <TextCell
-                        text={computeReportName(transactionItem.report) ?? transactionItem.report?.reportName ?? ''}
-                        isLargeScreenWidth={isLargeScreenWidth}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
-                    <StatusCell
-                        stateNum={transactionItem.report?.stateNum}
-                        statusNum={transactionItem.report?.statusNum}
-                    />
-                </View>
-            ),
-            [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
-                    <ExportedIconCell
-                        hash={hash}
-                        reportID={transactionItem.reportID}
-                    />
-                </View>
-            ),
-        }),
-        [
-            StyleUtils,
-            transactionItem,
-            shouldShowTooltip,
-            shouldUseNarrowLayout,
-            isSelected,
-            isDateColumnWide,
-            createdAt,
-            isSubmittedColumnWide,
-            report?.submitted,
-            report?.approved,
-            report?.policyID,
-            report?.total,
-            isApprovedColumnWide,
-            isPostedColumnWide,
-            isExportedColumnWide,
-            translate,
-            isReportItemChild,
-            onButtonPress,
-            isActionLoading,
-            merchant,
-            description,
-            cardName,
-            isInSingleTransactionReport,
-            exchangeRateMessage,
-            isAmountColumnWide,
-            isTaxAmountColumnWide,
-            isLargeScreenWidth,
-            hash,
-        ],
-    );
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
+                    >
+                        <AmountCell
+                            total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
+                            currency={getOriginalCurrencyForDisplay(transactionItem)}
+                        />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}
+                    >
+                        <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : transactionItem.reportID} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}
+                    >
+                        <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transactionItem.reportID))} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
+                    >
+                        <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, isTaxAmountColumnWide)]}
+                    >
+                        {isTimeRequest(transactionItem) ? null : (
+                            <TaxCell
+                                transactionItem={transactionItem}
+                                shouldShowTooltip={shouldShowTooltip}
+                            />
+                        )}
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}
+                    >
+                        <WorkspaceCell
+                            policyID={transactionItem.report?.policyID}
+                            report={transactionItem.report}
+                        />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.TITLE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}
+                    >
+                        <TextCell
+                            text={getReportName(transactionItem.report) || (transactionItem.report?.reportName ?? '')}
+                            isLargeScreenWidth={isLargeScreenWidth}
+                        />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}
+                    >
+                        <StatusCell
+                            stateNum={transactionItem.report?.stateNum}
+                            statusNum={transactionItem.report?.statusNum}
+                        />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}
+                    >
+                        <ExportedIconCell reportActions={reportActions} />
+                    </View>
+                );
+            default:
+                return null;
+        }
+    };
     const shouldRenderChatBubbleCell = useMemo(() => {
         return columns?.includes(CONST.SEARCH.TABLE_COLUMNS.COMMENTS) ?? false;
     }, [columns]);
@@ -616,6 +658,7 @@ function TransactionItemRow({
                                 isChecked={isSelected}
                                 style={styles.mr3}
                                 wrapperStyle={styles.justifyContentCenter}
+                                sentryLabel={checkboxSentryLabel}
                             />
                         )}
                         <ReceiptCell
@@ -703,7 +746,7 @@ function TransactionItemRow({
                             {shouldShowErrors && (
                                 <TransactionItemRowRBR
                                     transaction={transactionItem}
-                                    violations={violations}
+                                    violations={filteredViolations}
                                     report={report}
                                     containerStyles={[styles.mt2, styles.minHeight4]}
                                     missingFieldError={missingFieldError}
@@ -744,9 +787,10 @@ function TransactionItemRow({
                             isChecked={isSelected}
                             style={styles.mr1}
                             wrapperStyle={styles.justifyContentCenter}
+                            sentryLabel={checkboxSentryLabel}
                         />
                     )}
-                    {columns?.map((column) => columnComponent[column as keyof typeof columnComponent]).filter(Boolean)}
+                    {columns?.map(renderColumn)}
                     {shouldShowRadioButton && (
                         <View style={[styles.ml1, styles.justifyContentCenter]}>
                             <RadioButton
@@ -760,10 +804,12 @@ function TransactionItemRow({
                     )}
                     {!!isLargeScreenWidth && !!onArrowRightPress && (
                         <PressableWithFeedback
+                            disabled={!!isDisabled}
                             onPress={() => onArrowRightPress?.()}
                             style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
                         >
                             <Icon
                                 src={expensicons.ArrowRight}
@@ -777,7 +823,7 @@ function TransactionItemRow({
                 {shouldShowErrors && (
                     <TransactionItemRowRBR
                         transaction={transactionItem}
-                        violations={violations}
+                        violations={filteredViolations}
                         report={report}
                         missingFieldError={missingFieldError}
                     />

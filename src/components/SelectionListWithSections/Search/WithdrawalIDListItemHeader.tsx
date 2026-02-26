@@ -21,7 +21,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
-import ExpensesCell from './ExpensesCell';
+import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
 type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
@@ -83,6 +83,11 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     );
     const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
     const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
+    const statusBadge = !!badgeProps && (
+        <View style={[styles.reportStatusContainer, badgeProps.badgeStyles]}>
+            <Text style={[styles.reportStatusText, badgeProps.textStyles]}>{badgeProps.text}</Text>
+        </View>
+    );
     const withdrawalInfoText = translate('settlement.withdrawalInfo', {date: formattedWithdrawalDate, withdrawalID: withdrawalIDItem.entryID});
 
     const failedErrorHTML =
@@ -116,6 +121,14 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS)}
+            >
+                {statusBadge}
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID}
@@ -132,7 +145,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 key={CONST.SEARCH.TABLE_COLUMNS.EXPENSES}
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
             >
-                <ExpensesCell count={withdrawalIDItem.count} />
+                <TextCell text={String(withdrawalIDItem.count)} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
@@ -175,11 +188,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
                                 />
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                                    {!!badgeProps && (
-                                        <View style={[styles.reportStatusContainer, badgeProps.badgeStyles]}>
-                                            <Text style={[styles.reportStatusText, badgeProps.textStyles]}>{badgeProps.text}</Text>
-                                        </View>
-                                    )}
+                                    {statusBadge}
                                     <TextWithTooltip
                                         text={withdrawalInfoText}
                                         style={[styles.textLabelSupporting, styles.lh16, styles.pre]}

@@ -109,6 +109,7 @@ tests/e2e/results/
 
 # Typescript
 tsconfig.tsbuildinfo
+tsconfig.tsgo.tsbuildinfo
 
 # Mock-github
 /repo/
@@ -156,7 +157,9 @@ modules/*/lib/
 
 # Claude local settings
 .claude/settings.local.json
-.playwright/
+
+# Playwright
+.playwright-output/
 
 # cspell cache
 .cspellcache

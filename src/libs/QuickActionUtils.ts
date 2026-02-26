@@ -1,16 +1,17 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Beta, Policy, Report} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import getIconForAction from './getIconForAction';
-import {getPerDiemCustomUnit} from './PolicyUtils';
+import {getPerDiemCustomUnit, isTimeTrackingEnabled} from './PolicyUtils';
 import {canCreateRequest} from './ReportUtils';
 
 const getQuickActionIcon = (
-    icons: Record<'CalendarSolid' | 'Car' | 'Task' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'ReceiptScan' | 'MoneyCircle', IconAsset>,
+    icons: Record<'CalendarSolid' | 'Car' | 'Task' | 'Coins' | 'Receipt' | 'Cash' | 'Transfer' | 'ReceiptScan' | 'MoneyCircle' | 'Clock', IconAsset>,
     action: QuickActionName,
 ): IconAsset => {
     switch (action) {
@@ -21,6 +22,7 @@ const getQuickActionIcon = (
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
             return icons.Car;
         case CONST.QUICK_ACTIONS.PER_DIEM:
+        case CONST.QUICK_ACTIONS.TRACK_PER_DIEM:
             return icons.CalendarSolid;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
@@ -36,6 +38,8 @@ const getQuickActionIcon = (
             return getIconForAction(CONST.IOU.TYPE.TRACK, icons);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return icons.ReceiptScan;
+        case CONST.QUICK_ACTIONS.REQUEST_TIME:
+            return icons.Clock;
         default:
             return icons.MoneyCircle;
     }
@@ -46,6 +50,7 @@ const getIOUType = (action: QuickActionName | undefined) => {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+        case CONST.QUICK_ACTIONS.REQUEST_TIME:
         case CONST.QUICK_ACTIONS.PER_DIEM:
             return CONST.IOU.TYPE.SUBMIT;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
@@ -75,6 +80,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return 'quickAction.recordDistance';
         case CONST.QUICK_ACTIONS.PER_DIEM:
+        case CONST.QUICK_ACTIONS.TRACK_PER_DIEM:
             return 'quickAction.perDiem';
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
             return 'quickAction.splitBill';
@@ -86,6 +92,8 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
+        case CONST.QUICK_ACTIONS.REQUEST_TIME:
+            return 'quickAction.createTimeExpense';
         default:
             return '' as TranslationPaths;
     }
@@ -99,9 +107,10 @@ const isQuickActionAllowed = (
     quickActionReport: Report | undefined,
     quickActionPolicy: Policy | undefined,
     isReportArchived: boolean | undefined,
+    betas: OnyxEntry<Beta[]>,
     isRestrictedToPreferredPolicy = false,
 ) => {
-    if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
+    if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM || quickAction?.action === CONST.QUICK_ACTIONS.TRACK_PER_DIEM) {
         if (!quickActionPolicy?.arePerDiemRatesEnabled) {
             return false;
         }
@@ -110,6 +119,12 @@ const isQuickActionAllowed = (
             return false;
         }
     }
+    if (quickAction?.action === CONST.QUICK_ACTIONS.REQUEST_TIME) {
+        if (!isTimeTrackingEnabled(quickActionPolicy)) {
+            return false;
+        }
+    }
+
     const iouType = getIOUType(quickAction?.action);
     if (iouType) {
         // We're disabling QAB for Manager McTest reports to prevent confusion when submitting real data for Manager McTest
@@ -117,7 +132,7 @@ const isQuickActionAllowed = (
         if (isReportHasManagerMCTest) {
             return false;
         }
-        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived, isRestrictedToPreferredPolicy);
+        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived, betas, isRestrictedToPreferredPolicy);
     }
     return true;
 };

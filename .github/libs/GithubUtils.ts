@@ -29,6 +29,7 @@ type CommitType = {
     commit: string;
     subject: string;
     authorName: string;
+    date: string;
 };
 
 type StagingDeployCashPR = {
@@ -48,6 +49,21 @@ type StagingDeployCashBody = {
     issueAssignees: Array<string | undefined>;
 };
 
+type StagingDeployCashParams = {
+    tag: string;
+    PRList: string[];
+    PRListMobileExpensify?: string[];
+    verifiedPRList?: string[];
+    verifiedPRListMobileExpensify?: string[];
+    deployBlockers?: string[];
+    resolvedDeployBlockers?: string[];
+    resolvedInternalQAPRs?: string[];
+    isSentryChecked?: boolean;
+    isGHStatusChecked?: boolean;
+    previousTag?: string;
+    chronologicalSection?: string;
+};
+
 type OctokitArtifact = OctokitComponents['schemas']['artifact'];
 
 type OctokitPR = OctokitComponents['schemas']['pull-request-simple'];
@@ -65,7 +81,7 @@ type StagingDeployCashData = {
     PRListMobileExpensify: StagingDeployCashPR[];
     deployBlockers: StagingDeployCashBlocker[];
     internalQAPRList: StagingDeployCashBlocker[];
-    isFirebaseChecked: boolean;
+    isSentryChecked: boolean;
     isGHStatusChecked: boolean;
     version: string;
     tag: string;
@@ -212,7 +228,7 @@ class GithubUtils {
                 PRListMobileExpensify: this.getStagingDeployCashPRListMobileExpensify(issue),
                 deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
                 internalQAPRList: this.getStagingDeployCashInternalQA(issue),
-                isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
+                isSentryChecked: issue.body ? /-\s\[x]\sI checked \[Sentry]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
                 version,
                 tag: `${version}-staging`,
@@ -305,18 +321,20 @@ class GithubUtils {
     /**
      * Generate the issue body and assignees for a StagingDeployCash.
      */
-    static generateStagingDeployCashBodyAndAssignees(
-        tag: string,
-        PRList: string[],
-        PRListMobileExpensify: string[],
-        verifiedPRList: string[] = [],
-        verifiedPRListMobileExpensify: string[] = [],
-        deployBlockers: string[] = [],
-        resolvedDeployBlockers: string[] = [],
-        resolvedInternalQAPRs: string[] = [],
-        isFirebaseChecked = false,
+    static generateStagingDeployCashBodyAndAssignees({
+        tag,
+        PRList,
+        PRListMobileExpensify = [],
+        verifiedPRList = [],
+        verifiedPRListMobileExpensify = [],
+        deployBlockers = [],
+        resolvedDeployBlockers = [],
+        resolvedInternalQAPRs = [],
+        isSentryChecked = false,
         isGHStatusChecked = false,
-    ): Promise<void | StagingDeployCashBody> {
+        previousTag = '',
+        chronologicalSection = '',
+    }: StagingDeployCashParams): Promise<void | StagingDeployCashBody> {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
                 const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !isEmptyObject(pr.labels.find((item) => item.name === CONST.LABELS.INTERNAL_QA))) : [];
@@ -403,15 +421,20 @@ class GithubUtils {
                         issueBody += '\r\n\r\n';
                     }
 
+                    if (chronologicalSection) {
+                        issueBody += chronologicalSection;
+                        issueBody += '\r\n\r\n';
+                    }
+
                     issueBody += '**Deployer verifications:**';
                     // eslint-disable-next-line max-len
                     issueBody += `\r\n- [${
-                        isFirebaseChecked ? 'x' : ' '
-                    }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                        isSentryChecked ? 'x' : ' '
+                    }] I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${tag}/?project=app&environment=staging) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
                     // eslint-disable-next-line max-len
                     issueBody += `\r\n- [${
-                        isFirebaseChecked ? 'x' : ' '
-                    }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/android:org.me.mobiexpensifyg/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                        isSentryChecked ? 'x' : ' '
+                    }] I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${previousTag}/?project=app&environment=production) for **the previous release version** and verified that the release did not introduce any new crashes. Because mobile deploys use a phased rollout, completing this checklist will deploy the previous release version to 100% of users. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
                     // eslint-disable-next-line max-len
                     issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
 
@@ -468,6 +491,21 @@ class GithubUtils {
                 pull_number: pullRequestNumber,
             })
             .then(({data: pullRequestComment}) => pullRequestComment.body);
+    }
+
+    static async getPullRequestMergeBaseSHA(pullRequestNumber: number): Promise<string> {
+        const {data: pullRequest} = await this.octokit.pulls.get({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            pull_number: pullRequestNumber,
+        });
+        const {data: comparison} = await this.octokit.repos.compareCommits({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            base: pullRequest.base.ref,
+            head: pullRequest.head.sha,
+        });
+        return comparison.merge_base_commit.sha;
     }
 
     static getAllReviewComments(pullRequestNumber: number): Promise<string[]> {
@@ -568,6 +606,26 @@ class GithubUtils {
     }
 
     /**
+     * Get the workflow run URL for a specific commit SHA and workflow file.
+     * Returns the HTML URL of the matching run, or undefined if not found.
+     */
+    static async getWorkflowRunURLForCommit(commitSha: string, workflowFile: string): Promise<string | undefined> {
+        try {
+            const response = await this.octokit.actions.listWorkflowRuns({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                workflow_id: workflowFile,
+                head_sha: commitSha,
+                per_page: 1,
+            });
+            return response.data.workflow_runs.at(0)?.html_url;
+        } catch (error) {
+            console.warn(`Failed to find workflow run for commit ${commitSha}:`, error);
+            return undefined;
+        }
+    }
+
+    /**
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value: number, repositoryURL: string): string {
@@ -658,7 +716,7 @@ class GithubUtils {
     /**
      * Get the contents of a file from the API at a given ref as a string.
      */
-    static async getFileContents(path: string, ref = CONST.DEFAULT_BASE_REF): Promise<string> {
+    static async getFileContents(path: string, ref: string = CONST.DEFAULT_BASE_REF): Promise<string> {
         const {data} = await this.octokit.repos.getContent({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
@@ -744,6 +802,7 @@ class GithubUtils {
                     commit: commit.sha,
                     subject: commit.commit.message,
                     authorName: commit.commit.author?.name ?? 'Unknown',
+                    date: commit.commit.committer?.date ?? '',
                 }),
             );
         } catch (error) {

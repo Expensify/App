@@ -1,0 +1,65 @@
+diff --git a/node_modules/victory-native/dist/types.d.ts b/node_modules/victory-native/dist/types.d.ts
+index efb5207..df7bbba 100644
+--- a/node_modules/victory-native/dist/types.d.ts
++++ b/node_modules/victory-native/dist/types.d.ts
+@@ -177,8 +177,9 @@ export type XAxisInputProps<RawData extends Record<string, unknown>, XK extends
+     yAxisSide?: YAxisSide;
+     linePathEffect?: DashPathEffectComponent;
+     enableRescaling?: boolean;
++    labelOverflow?: "hidden" | "visible";
+ };
+-export type XAxisPropsWithDefaults<RawData extends Record<string, unknown>, XK extends keyof InputFields<RawData>> = Required<Omit<XAxisInputProps<RawData, XK>, "font" | "tickValues" | "linePathEffect" | "enableRescaling" | "labelRotate">> & Partial<Pick<XAxisInputProps<RawData, XK>, "font" | "tickValues" | "linePathEffect" | "enableRescaling" | "labelRotate">>;
++export type XAxisPropsWithDefaults<RawData extends Record<string, unknown>, XK extends keyof InputFields<RawData>> = Required<Omit<XAxisInputProps<RawData, XK>, "font" | "tickValues" | "linePathEffect" | "enableRescaling" | "labelRotate" | "labelOverflow">> & Partial<Pick<XAxisInputProps<RawData, XK>, "font" | "tickValues" | "linePathEffect" | "enableRescaling" | "labelRotate" | "labelOverflow">>;
+ export type XAxisProps<RawData extends Record<string, unknown>, XK extends keyof InputFields<RawData>> = XAxisPropsWithDefaults<RawData, XK> & {
+     xScale: Scale;
+     yScale: Scale;
+diff --git a/node_modules/victory-native/src/cartesian/components/XAxis.tsx b/node_modules/victory-native/src/cartesian/components/XAxis.tsx
+index a6e2ed0..628abab 100644
+--- a/node_modules/victory-native/src/cartesian/components/XAxis.tsx
++++ b/node_modules/victory-native/src/cartesian/components/XAxis.tsx
+@@ -41,6 +41,7 @@ export const XAxis = <
+   linePathEffect,
+   chartBounds,
+   enableRescaling,
++  labelOverflow,
+   zoom,
+ }: XAxisProps<RawData, XK>) => {
+   const xScale = zoom ? zoom.rescaleX(xScaleProp) : xScaleProp;
+@@ -146,7 +147,7 @@ export const XAxis = <
+             </Line>
+           </Group>
+         ) : null}
+-        {font && labelWidth && canFitLabelContent ? (
++        {font && labelWidth && (labelOverflow === "visible" || canFitLabelContent) ? (
+           <Group transform={[{ translateY: rotateOffset }]}>
+             <Text
+               transform={[
+diff --git a/node_modules/victory-native/src/types.ts b/node_modules/victory-native/src/types.ts
+index a3a4c81..73f5f48 100644
+--- a/node_modules/victory-native/src/types.ts
++++ b/node_modules/victory-native/src/types.ts
+@@ -201,6 +201,7 @@ export type XAxisInputProps<
+   yAxisSide?: YAxisSide;
+   linePathEffect?: DashPathEffectComponent;
+   enableRescaling?: boolean;
++  labelOverflow?: "hidden" | "visible";
+ };
+ 
+ export type XAxisPropsWithDefaults<
+@@ -209,7 +210,7 @@ export type XAxisPropsWithDefaults<
+ > = Required<
+   Omit<
+     XAxisInputProps<RawData, XK>,
+-    "font" | "tickValues" | "linePathEffect" | "enableRescaling" | "labelRotate"
++    "font" | "tickValues" | "linePathEffect" | "enableRescaling" | "labelRotate" | "labelOverflow"
+   >
+ > &
+   Partial<
+@@ -220,6 +221,7 @@ export type XAxisPropsWithDefaults<
+       | "linePathEffect"
+       | "enableRescaling"
+       | "labelRotate"
++      | "labelOverflow"
+     >
+   >;
+ 

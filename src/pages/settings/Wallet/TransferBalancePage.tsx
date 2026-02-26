@@ -43,10 +43,10 @@ function TransferBalancePage() {
     const {paddingBottom} = useSafeAreaPaddings();
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const paymentCardList = fundList ?? {};
 
     const paymentTypes = [
@@ -54,10 +54,10 @@ function TransferBalancePage() {
         // {
         //     key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
         //     title: translate('transferAmountPage.instant'),
-        //     description: translate('transferAmountPage.instantSummary', {
-        //         rate: numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
-        //         minAmount: convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE),
-        //     }),
+        //     description: translate('transferAmountPage.instantSummary',
+        //         numberFormat(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.RATE),
+        //         convertToDisplayString(CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT.MINIMUM_FEE)
+        //     ),
         //     icon: Expensicons.Bolt,
         //     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
         // },
@@ -211,9 +211,7 @@ function TransferBalancePage() {
                 </ScrollView>
                 <View>
                     <FormAlertWithSubmitButton
-                        buttonText={translate('transferAmountPage.transfer', {
-                            amount: isTransferable ? convertToDisplayString(transferAmount) : '',
-                        })}
+                        buttonText={translate('transferAmountPage.transfer', isTransferable ? convertToDisplayString(transferAmount) : '')}
                         isLoading={walletTransfer?.loading}
                         onSubmit={() => selectedAccount && transferWalletBalance(selectedAccount)}
                         isDisabled={isButtonDisabled || isOffline}

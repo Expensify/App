@@ -1,5 +1,5 @@
-import type {VideoReadyForDisplayEvent} from 'expo-av';
 import type {ImageContentFit} from 'expo-image';
+import type {SourceLoadEventPayload} from 'expo-video';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Image, InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -40,13 +40,6 @@ import VideoPlayer from './VideoPlayer';
 const VIDEO_ASPECT_RATIO = 1280 / 960;
 
 const MODAL_PADDING = variables.spacing2;
-
-type VideoLoadedEventType = {
-    srcElement: {
-        videoWidth: number;
-        videoHeight: number;
-    };
-};
 
 type VideoStatus = 'video' | 'animation';
 
@@ -134,6 +127,12 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether to call onHelp when modal is hidden completely */
     shouldCallOnHelpWhenModalHidden?: boolean;
+
+    /** Sentry label for the help/skip button */
+    helpSentryLabel?: string;
+
+    /** Sentry label for the confirm/submit button */
+    confirmSentryLabel?: string;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -200,6 +199,8 @@ function FeatureTrainingModal({
     canConfirmWhileOffline = true,
     shouldGoBack = true,
     shouldCallOnHelpWhenModalHidden = false,
+    helpSentryLabel,
+    confirmSentryLabel,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -243,16 +244,14 @@ function FeatureTrainingModal({
         }
     }, [isOffline, isVideoStatusLocked]);
 
-    const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
-        if (!event) {
+    const setAspectRatio = (event: SourceLoadEventPayload) => {
+        const track = event.availableVideoTracks.at(0);
+
+        if (!track) {
             return;
         }
 
-        if ('naturalSize' in event) {
-            setIllustrationAspectRatio(event.naturalSize.width / event.naturalSize.height);
-        } else {
-            setIllustrationAspectRatio(event.srcElement.videoWidth / event.srcElement.videoHeight);
-        }
+        setIllustrationAspectRatio(track.size.width / track.size.height);
     };
 
     const renderIllustration = useCallback(() => {
@@ -292,7 +291,7 @@ function FeatureTrainingModal({
                         <VideoPlayer
                             url={videoURL}
                             videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
-                            onVideoLoaded={setAspectRatio}
+                            onSourceLoaded={setAspectRatio}
                             controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE}
                             shouldUseControlsBottomMargin={false}
                             shouldPlay
@@ -482,6 +481,7 @@ function FeatureTrainingModal({
                                 onHelp();
                             }}
                             text={helpText}
+                            sentryLabel={helpSentryLabel}
                         />
                     )}
                     <FormAlertWithSubmitButton
@@ -489,6 +489,7 @@ function FeatureTrainingModal({
                         isLoading={shouldShowConfirmationLoader}
                         buttonText={confirmText}
                         enabledWhenOffline={canConfirmWhileOffline}
+                        sentryLabel={confirmSentryLabel}
                     />
                     {!canConfirmWhileOffline && <OfflineIndicator />}
                 </View>
