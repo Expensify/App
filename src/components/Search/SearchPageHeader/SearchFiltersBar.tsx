@@ -42,7 +42,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
-import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset, shouldResetSortOrder} from '@libs/SearchQueryUtils';
+import {buildFilterQueryWithSortDefaults, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
     getDatePresets,
@@ -317,22 +317,12 @@ function SearchFiltersBar({
             updatedFilterFormValues.columns = [];
         }
 
-        const resetSortOrder = shouldResetSortOrder({
-            newView: updatedFilterFormValues.view,
-            oldView: searchAdvancedFiltersForm.view,
-            newGroupBy: updatedFilterFormValues.groupBy,
-            oldGroupBy: searchAdvancedFiltersForm.groupBy,
-        });
-
-        let queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
-            sortBy: queryJSON.sortBy,
-            sortOrder: resetSortOrder ? undefined : queryJSON.sortOrder,
-            limit: queryJSON.limit,
-        });
-
-        if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy || resetSortOrder) {
-            queryString = getQueryWithUpdatedValues(queryString, true) ?? '';
-        }
+        const queryString =
+            buildFilterQueryWithSortDefaults(
+                updatedFilterFormValues,
+                {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
+                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder, limit: queryJSON.limit},
+            ) ?? '';
         if (!queryString) {
             return;
         }

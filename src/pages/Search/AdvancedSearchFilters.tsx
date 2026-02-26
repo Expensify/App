@@ -29,13 +29,11 @@ import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     buildCannedSearchQuery,
-    buildQueryStringFromFilterFormValues,
+    buildFilterQueryWithSortDefaults,
     buildSearchQueryJSON,
     getCurrentSearchQueryJSON,
-    getQueryWithUpdatedValues,
     isCannedSearchQuery,
     isSearchDatePreset,
-    shouldResetSortOrder,
     sortOptionsWithEmptyValue,
 } from '@libs/SearchQueryUtils';
 import {getStatusOptions} from '@libs/SearchUIUtils';
@@ -599,21 +597,13 @@ function AdvancedSearchFilters() {
 
     const queryString = useMemo(() => {
         const currentQueryJSON = getCurrentSearchQueryJSON();
-        const resetSort = shouldResetSortOrder({
-            newView: searchAdvancedFilters.view,
-            oldView: currentQueryJSON?.view,
-            newGroupBy: searchAdvancedFilters.groupBy,
-            oldGroupBy: currentQueryJSON?.groupBy,
-        });
-        let result = buildQueryStringFromFilterFormValues(searchAdvancedFilters, {
-            sortBy: currentQueryJSON?.sortBy,
-            sortOrder: resetSort ? undefined : currentQueryJSON?.sortOrder,
-            limit: currentQueryJSON?.limit,
-        });
-        if (resetSort) {
-            result = getQueryWithUpdatedValues(result, true) ?? result;
-        }
-        return result;
+        return (
+            buildFilterQueryWithSortDefaults(
+                searchAdvancedFilters,
+                {view: currentQueryJSON?.view, groupBy: currentQueryJSON?.groupBy},
+                {sortBy: currentQueryJSON?.sortBy, sortOrder: currentQueryJSON?.sortOrder, limit: currentQueryJSON?.limit},
+            ) ?? ''
+        );
     }, [searchAdvancedFilters]);
     const queryJSON = useMemo(() => buildSearchQueryJSON(queryString || buildCannedSearchQuery()), [queryString]);
 

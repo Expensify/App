@@ -1638,6 +1638,39 @@ function shouldResetSortOrder({
     return newView !== oldView || newGroupBy !== oldGroupBy;
 }
 
+/**
+ * Builds a query string from filter form values, resetting sortOrder when the view or groupBy
+ * has changed so the parser can re-derive the correct default. When a reset is needed, the query
+ * is round-tripped through the parser so that parser-derived defaults (like sortOrder) appear
+ * in the final query string.
+ *
+ * Returns undefined if the parser round-trip fails.
+ */
+function buildFilterQueryWithSortDefaults(
+    filterValues: Partial<SearchAdvancedFiltersForm>,
+    previousState: {view?: string; groupBy?: string},
+    currentQueryOptions: {sortBy?: string; sortOrder?: string; limit?: number},
+): string | undefined {
+    const resetSort = shouldResetSortOrder({
+        newView: filterValues.view,
+        oldView: previousState.view,
+        newGroupBy: filterValues.groupBy,
+        oldGroupBy: previousState.groupBy,
+    });
+
+    const queryString = buildQueryStringFromFilterFormValues(filterValues, {
+        sortBy: currentQueryOptions.sortBy,
+        sortOrder: resetSort ? undefined : currentQueryOptions.sortOrder,
+        limit: currentQueryOptions.limit,
+    });
+
+    if (!resetSort) {
+        return queryString;
+    }
+
+    return getQueryWithUpdatedValues(queryString, true);
+}
+
 export {
     isSearchDatePreset,
     isFilterSupported,
@@ -1663,4 +1696,5 @@ export {
     getUserFriendlyKey,
     shouldSkipSuggestedSearchNavigation,
     shouldResetSortOrder,
+    buildFilterQueryWithSortDefaults,
 };
