@@ -532,6 +532,7 @@ type PerDiemExpenseInformation = {
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     customUnitPolicyID?: string;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -548,6 +549,7 @@ type PerDiemExpenseInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type RequestMoneyInformation = {
@@ -606,7 +608,7 @@ type MoneyRequestInformationParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -3805,6 +3807,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        personalDetails,
     } = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -4034,6 +4037,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         currentUserEmailParam,
         hasViolations,
         quickAction,
+        personalDetails,
     });
 
     return {
@@ -6865,6 +6869,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         policyRecentlyUsedCurrencies,
         betas,
         customUnitPolicyID,
+        personalDetails,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
@@ -6912,6 +6917,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        personalDetails,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;

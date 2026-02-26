@@ -58,6 +58,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
+import {getManagerMcTestParticipant} from '@libs/OptionsListUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -5645,6 +5646,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 iouReportNextStep: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             });
 
             await waitForBatchedUpdates();
@@ -5816,6 +5818,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 iouReportNextStep: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             });
 
             await waitForBatchedUpdates();
@@ -5926,6 +5929,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 iouReportNextStep: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             });
 
             await waitForBatchedUpdates();
@@ -6049,6 +6053,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 iouReportNextStep: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             });
 
             await waitForBatchedUpdates();
@@ -11681,6 +11686,7 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
+                    personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 });
                 await waitForBatchedUpdates();
 
@@ -11844,6 +11850,7 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
+                    personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 });
                 await waitForBatchedUpdates();
 
@@ -12021,6 +12028,7 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
+                    personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 });
                 await waitForBatchedUpdates();
 
@@ -12221,6 +12229,7 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
+                    personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                 });
 
                 await waitForBatchedUpdates();
@@ -12412,6 +12421,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: {[123]: {accountID: 123, login: 'payee@example.com'}},
             });
 
             expect(result.onyxData).toBeDefined();
@@ -12501,6 +12511,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: {[123]: {accountID: 123, login: 'existing@example.com'}},
             });
 
             // Then: Verify the result structure and key values
@@ -12634,6 +12645,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: {[123]: {accountID: 123, login: 'existing@example.com'}},
             });
 
             // Then: Verify the result uses existing chat report
@@ -12721,6 +12733,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: {[123]: {accountID: 123, login: 'existing@example.com'}},
             });
 
             // Then: Verify policy expense chat handling
@@ -12789,6 +12802,7 @@ describe('actions/IOU', () => {
                 },
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             });
 
             waitForBatchedUpdates();
@@ -12805,6 +12819,197 @@ describe('actions/IOU', () => {
             });
             expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
             expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
+        });
+    });
+
+    describe('getManagerMcTestParticipant', () => {
+        it('should return manager mctest participant when personalDetails contains manager_mctest', () => {
+            // Given personalDetails that include manager_mctest
+            const managerMcTestAccountID = CONST.ACCOUNT_ID.MANAGER_MCTEST;
+            const personalDetailsList: PersonalDetailsList = {
+                [managerMcTestAccountID]: {
+                    accountID: managerMcTestAccountID,
+                    login: CONST.EMAIL.MANAGER_MCTEST,
+                    displayName: 'Manager McTest',
+                },
+            };
+
+            // When calling getManagerMcTestParticipant with personalDetails
+            const result = getManagerMcTestParticipant(RORY_ACCOUNT_ID, personalDetailsList);
+
+            // Then it should return a participant with the manager mctest account ID
+            expect(result).toBeDefined();
+            expect(result?.accountID).toBe(managerMcTestAccountID);
+        });
+
+        it('should return undefined when personalDetails does not contain manager_mctest', () => {
+            // Given personalDetails without manager_mctest
+            const personalDetailsList: PersonalDetailsList = {
+                [RORY_ACCOUNT_ID]: {
+                    accountID: RORY_ACCOUNT_ID,
+                    login: RORY_EMAIL,
+                    displayName: 'Rory',
+                },
+            };
+
+            // When calling getManagerMcTestParticipant with personalDetails
+            const result = getManagerMcTestParticipant(RORY_ACCOUNT_ID, personalDetailsList);
+
+            // Then it should return undefined since manager_mctest is not in the provided personalDetails
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when personalDetails is empty', () => {
+            // Given empty personalDetails
+            const personalDetailsList: PersonalDetailsList = {};
+
+            // When calling getManagerMcTestParticipant with empty personalDetails
+            const result = getManagerMcTestParticipant(RORY_ACCOUNT_ID, personalDetailsList);
+
+            // Then it should return undefined
+            expect(result).toBeUndefined();
+        });
+    });
+
+    describe('getPerDiemExpenseInformation with personalDetails', () => {
+        it('should pass personalDetails through to buildOnyxDataForMoneyRequest', () => {
+            // Given personalDetails with the current user
+            const mockTransactionParams: PerDiemExpenseTransactionParams = {
+                comment: '',
+                currency: CONST.CURRENCY.USD,
+                created: '2024-02-02',
+                category: 'Meals',
+                tag: '',
+                customUnit: {
+                    customUnitID: 'per_diem_unit',
+                    customUnitRateID: 'rate_1',
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    attributes: {
+                        dates: {
+                            start: '2024-02-02',
+                            end: '2024-02-02',
+                        },
+                    },
+                    subRates: [],
+                    quantity: 1,
+                },
+                billable: false,
+                attendees: [],
+                reimbursable: true,
+            };
+
+            const personalDetailsList: PersonalDetailsList = {
+                [RORY_ACCOUNT_ID]: {
+                    accountID: RORY_ACCOUNT_ID,
+                    login: RORY_EMAIL,
+                    displayName: 'Rory',
+                },
+            };
+
+            // When calling getPerDiemExpenseInformation with personalDetails
+            const result = getPerDiemExpenseInformation({
+                parentChatReport: {} as OnyxEntry<Report>,
+                transactionParams: mockTransactionParams,
+                participantParams: {
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    payeeEmail: RORY_EMAIL,
+                    participant: {
+                        accountID: RORY_ACCOUNT_ID,
+                        login: RORY_EMAIL,
+                    },
+                } as unknown as RequestMoneyParticipantParams,
+                recentlyUsedParams: {},
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                hasViolations: false,
+                policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: personalDetailsList,
+            });
+
+            // Then the result should be valid (personalDetails is correctly passed through the chain)
+            expect(result).toBeDefined();
+            expect(result.onyxData).toBeDefined();
+            expect(result.transaction).toBeDefined();
+            expect(result.iouReport).toBeDefined();
+        });
+    });
+
+    describe('submitPerDiemExpense with personalDetails', () => {
+        it('should correctly submit per diem expense with personalDetails', async () => {
+            // Given a valid per diem expense setup with personalDetails
+            const iouReportID = '2';
+            const policyID = 'B';
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+                reportID: iouReportID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserPersonalDetails.accountID,
+            });
+
+            const personalDetailsList: PersonalDetailsList = {
+                [RORY_ACCOUNT_ID]: {
+                    accountID: RORY_ACCOUNT_ID,
+                    login: RORY_EMAIL,
+                    displayName: 'Rory',
+                },
+            };
+
+            // When submitting a per diem expense with personalDetails
+            submitPerDiemExpense({
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                participantParams: {
+                    payeeEmail: currentUserPersonalDetails.login,
+                    payeeAccountID: currentUserPersonalDetails.accountID,
+                    participant: {},
+                },
+                report: {
+                    reportID: '1',
+                    iouReportID,
+                },
+                transactionParams: {
+                    created: DateUtils.getDBTime(),
+                    currency: CONST.CURRENCY.USD,
+                    customUnit: {
+                        customUnitID: 'A',
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        customUnitRateID: 'B',
+                        subRates: [{id: '1', name: 'rate_a', quantity: 1, rate: 2}],
+                        attributes: {dates: {end: '', start: ''}},
+                    },
+                },
+                policyRecentlyUsedCurrencies: [],
+                policyParams: {
+                    policy: {...createRandomPolicy(1)},
+                },
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: personalDetailsList,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the expense should be submitted successfully (no errors thrown)
+            // Verify that at least one transaction was created
+            const transactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            const perDiemTransactions = Object.values(transactions ?? {}).filter((tx) => tx?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM);
+            expect(perDiemTransactions.length).toBeGreaterThan(0);
         });
     });
 
