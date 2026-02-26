@@ -1,0 +1,251 @@
+name: Build and deploy ad-hoc apps
+
+on:
+  workflow_call:
+    inputs:
+      APP_REF:
+        description: Git ref to checkout for building
+        type: string
+        required: true
+      APP_PR_NUMBER:
+        description: Expensify/App pull request number (empty to skip comments and web deploy)
+        type: string
+        default: ''
+      MOBILE_EXPENSIFY_REF:
+        description: Mobile-Expensify ref to checkout (empty to use submodule at HEAD)
+        type: string
+        default: ''
+      MOBILE_EXPENSIFY_PR:
+        description: Mobile-Expensify pull request number (empty to skip ME PR comments)
+        type: string
+        default: ''
+      BUILD_WEB:
+        description: Whether to build the web app
+        type: string
+        default: 'true'
+      BUILD_IOS:
+        description: Whether to build the iOS app
+        type: string
+        default: 'true'
+      BUILD_ANDROID:
+        description: Whether to build the Android app
+        type: string
+        default: 'true'
+      FORCE_NATIVE_BUILD:
+        description: Force a full native build, bypassing Rock remote cache
+        type: string
+        default: 'false'
+
+jobs:
+  postGitHubCommentBuildStarted:
+    name: Post build started comment
+    if: ${{ inputs.APP_PR_NUMBER != '' || inputs.MOBILE_EXPENSIFY_PR != '' }}
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Add build start comment to Expensify/App PR
+        if: ${{ inputs.APP_PR_NUMBER != '' }}
+        # v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          github-token: ${{ github.token }}
+          script: |
+              const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+              github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ inputs.APP_PR_NUMBER || 0 }},
+              body: `🚧 @${{ github.actor }} has triggered a test Expensify/App build. You can view the [workflow run here](${workflowURL}).`
+              });
+
+      - name: Add build start comment to Expensify/Mobile-Expensify PR
+        if: ${{ inputs.MOBILE_EXPENSIFY_PR != '' }}
+        # v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          github-token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          script: |
+              const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+              github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: 'Mobile-Expensify',
+              issue_number: ${{ inputs.MOBILE_EXPENSIFY_PR || 0 }},
+              body: `🚧 @${{ github.actor }} has triggered a test Expensify/Mobile-Expensify build. You can view the [workflow run here](${workflowURL}).`
+              });
+
+  buildAndroid:
+    name: Build Android
+    if: ${{ fromJSON(inputs.BUILD_ANDROID) }}
+    uses: ./.github/workflows/buildAndroid.yml
+    with:
+      ref: ${{ inputs.APP_REF }}
+      variant: Adhoc
+      mobile-expensify-ref: ${{ inputs.MOBILE_EXPENSIFY_REF }}
+      pull-request-number: ${{ inputs.APP_PR_NUMBER }}
+      force-native-build: ${{ inputs.FORCE_NATIVE_BUILD }}
+    secrets: inherit
+
+  buildIOS:
+    name: Build iOS
+    if: ${{ fromJSON(inputs.BUILD_IOS) }}
+    uses: ./.github/workflows/buildIOS.yml
+    with:
+      ref: ${{ inputs.APP_REF }}
+      variant: Adhoc
+      mobile-expensify-ref: ${{ inputs.MOBILE_EXPENSIFY_REF }}
+      pull-request-number: ${{ inputs.APP_PR_NUMBER }}
+      force-native-build: ${{ inputs.FORCE_NATIVE_BUILD }}
+    secrets: inherit
+
+  buildWeb:
+    name: Build Web
+    if: ${{ fromJSON(inputs.BUILD_WEB) && inputs.APP_PR_NUMBER != '' }}
+    uses: ./.github/workflows/buildWeb.yml
+    with:
+      ref: ${{ inputs.APP_REF }}
+      environment: adhoc
+      pull-request-number: ${{ inputs.APP_PR_NUMBER }}
+    secrets: inherit
+
+  deployWebAdHoc:
+    name: Deploy Web to S3 (adhoc)
+    needs: [buildWeb]
+    if: ${{ fromJSON(inputs.BUILD_WEB) && inputs.APP_PR_NUMBER != '' }}
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Download web build artifact
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: web-build-tar-gz-artifact
+          path: ./
+
+      - name: Extract web build
+        run: tar -xzvf "${{ needs.buildWeb.outputs.TAR_FILENAME }}"
+
+      - name: Configure AWS Credentials
+        # v6
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy to S3
+        run: aws s3 cp --recursive --acl public-read dist s3://ad-hoc-expensify-cash/web/${{ inputs.APP_PR_NUMBER }}
+
+  postGithubComment:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    if: ${{ always() && (inputs.APP_PR_NUMBER != '' || inputs.MOBILE_EXPENSIFY_PR != '') }}
+    name: Post a GitHub comment with app download links for testing
+    needs: [buildWeb, deployWebAdHoc, buildAndroid, buildIOS]
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.APP_REF }}
+
+      - name: Download Artifact
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+
+      - name: Publish links to apps for download on Expensify/App PR
+        if: ${{ inputs.APP_PR_NUMBER != '' }}
+        uses: ./.github/actions/javascript/postTestBuildComment
+        with:
+          REPO: App
+          APP_PR_NUMBER: ${{ inputs.APP_PR_NUMBER }}
+          MOBILE_EXPENSIFY_PR_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PR }}
+          GITHUB_TOKEN: ${{ github.token }}
+          ANDROID: ${{ needs.buildAndroid.result }}
+          IOS: ${{ needs.buildIOS.result }}
+          WEB: ${{ needs.buildWeb.result == 'failure' && 'failure' || needs.deployWebAdHoc.result }}
+          ANDROID_LINK: ${{ needs.buildAndroid.outputs.ROCK_ARTIFACT_URL }}
+          IOS_LINK: ${{ needs.buildIOS.outputs.ROCK_ARTIFACT_URL }}
+          WEB_LINK: https://${{ inputs.APP_PR_NUMBER }}.pr-testing.expensify.com
+
+      - name: Publish links to apps for download on Expensify/Mobile-Expensify PR
+        if: ${{ inputs.MOBILE_EXPENSIFY_PR != '' }}
+        uses: ./.github/actions/javascript/postTestBuildComment
+        with:
+          REPO: Mobile-Expensify
+          MOBILE_EXPENSIFY_PR_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PR }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          ANDROID: ${{ needs.buildAndroid.result }}
+          IOS: ${{ needs.buildIOS.result }}
+          ANDROID_LINK: ${{ needs.buildAndroid.outputs.ROCK_ARTIFACT_URL }}
+          IOS_LINK: ${{ needs.buildIOS.outputs.ROCK_ARTIFACT_URL }}
+
+  buildSummary:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    if: ${{ always() && (inputs.APP_PR_NUMBER != '' || needs.buildAndroid.outputs.ROCK_ARTIFACT_URL != '' || needs.buildIOS.outputs.ROCK_ARTIFACT_URL != '') }}
+    name: Build Summary
+    needs: [buildWeb, deployWebAdHoc, buildAndroid, buildIOS]
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.APP_REF }}
+
+      - name: Get Mobile-Expensify ref
+        id: getMobileExpensifySHA
+        run: |
+          if [ -n "${{ inputs.MOBILE_EXPENSIFY_REF }}" ]; then
+            echo "SHA=${{ inputs.MOBILE_EXPENSIFY_REF }}" >> "$GITHUB_OUTPUT"
+          elif [ -d "Mobile-Expensify" ]; then
+            SUBMODULE_SHA=$(git ls-tree HEAD Mobile-Expensify | awk '{print $3}')
+            echo "SHA=$SUBMODULE_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create build summary
+        # v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const prNumber = '${{ inputs.APP_PR_NUMBER }}';
+            const webLink = prNumber && '${{ needs.deployWebAdHoc.result }}' === 'success' ? `https://${prNumber}.pr-testing.expensify.com` : '';
+            const androidLink = '${{ needs.buildAndroid.outputs.ROCK_ARTIFACT_URL }}' || '';
+            const iosLink = '${{ needs.buildIOS.outputs.ROCK_ARTIFACT_URL }}' || '';
+            const mobileExpensifySHA = '${{ steps.getMobileExpensifySHA.outputs.SHA }}' || '';
+
+            const webFailed = '${{ needs.buildWeb.result }}' === 'failure' || '${{ needs.deployWebAdHoc.result }}' === 'failure';
+            const webStatus = webLink ? '✅ Success' : webFailed ? '❌ Failed' : '⏭️ Skipped';
+            const androidStatus = androidLink ? '✅ Success' : '${{ needs.buildAndroid.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
+            const iosStatus = iosLink ? '✅ Success' : '${{ needs.buildIOS.result }}' === 'failure' ? '❌ Failed' : '⏭️ Skipped';
+
+            const summary = core.summary
+              .addTable([
+                [{data: 'Platform', header: true}, {data: 'Status', header: true}, {data: 'Download', header: true}],
+                [
+                  'Web',
+                  webStatus,
+                  webLink ? `<a href="${webLink}">${webLink}</a>` : '-'
+                ],
+                [
+                  'Android',
+                  androidStatus,
+                  androidLink ? `<a href="${androidLink}">${androidLink}</a>` : '-'
+                ],
+                [
+                  'iOS',
+                  iosStatus,
+                  iosLink ? `<a href="${iosLink}">${iosLink}</a>` : '-'
+                ],
+              ]);
+
+            if (mobileExpensifySHA) {
+              const mobileExpensifyUrl = `https://github.com/Expensify/Mobile-Expensify/commit/${mobileExpensifySHA}`;
+              const label = '${{ inputs.MOBILE_EXPENSIFY_REF }}' ? 'Mobile-Expensify SHA (Custom)' : 'Mobile-Expensify Submodule SHA';
+              summary.addRaw(`\n**${label}:** [${mobileExpensifySHA}](${mobileExpensifyUrl})`);
+            }
+
+            if (prNumber) {
+              const prUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${prNumber}`;
+              summary.addRaw(`\n**PR Link:** ${prUrl}`);
+            } else {
+              summary.addRaw(`\n**PR Link:** No PR associated with this commit.`);
+            }
+
+            summary.write();

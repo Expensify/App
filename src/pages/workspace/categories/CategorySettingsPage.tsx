@@ -70,7 +70,6 @@ function CategorySettingsPage({
 
     const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
-    const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
     const {
         taskReport: setupCategoryTaskReport,
@@ -88,7 +87,7 @@ function CategorySettingsPage({
         parentReportAction: setupCategoriesAndTagsParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
 
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
     const policyHasTags = hasTags(policyTags);
 
@@ -286,7 +285,13 @@ function CategorySettingsPage({
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.categories.enableCategory')}</Text>
+                                <Text
+                                    style={[styles.flexShrink1, styles.mr2]}
+                                    accessible={false}
+                                    aria-hidden
+                                >
+                                    {translate('workspace.categories.enableCategory')}
+                                </Text>
                                 <Switch
                                     isOn={policyCategory.enabled}
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
@@ -354,20 +359,6 @@ function CategorySettingsPage({
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
-
-                    {areCommentsRequired && (
-                        <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
-                            <MenuItemWithTopDescription
-                                title={policyCategory?.commentHint}
-                                description={translate('workspace.rules.categoryRules.descriptionHint')}
-                                onPress={() => {
-                                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
-                                }}
-                                shouldShowRightIcon
-                            />
-                        </OfflineWithFeedback>
-                    )}
-
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
                             icon={expensifyIcons.Trashcan}
@@ -449,6 +440,16 @@ function CategorySettingsPage({
                                     description={translate('workspace.rules.categoryRules.requireFields')}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.getRoute(policyID, policyCategory.name));
+                                    }}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
+                                <MenuItemWithTopDescription
+                                    title={policyCategory?.commentHint}
+                                    description={translate('workspace.rules.categoryRules.descriptionHint')}
+                                    onPress={() => {
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
                                     }}
                                     shouldShowRightIcon
                                 />
