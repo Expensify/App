@@ -13234,9 +13234,10 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            // getOutstandingChildRequest returns empty (no update) when harvesting is ON,
-            // meaning it does NOT set hasOutstandingChildRequest to false
-            expect(getOutstandingChildRequest(expenseReport).hasOutstandingChildRequest).toBeFalsy();
+            // getOutstandingChildRequest returns {} (empty object) when harvesting is ON.
+            // The field must be omitted (not set to false), so an Onyx merge won't
+            // overwrite the existing true value on the workspace chat.
+            expect(getOutstandingChildRequest(expenseReport)).toEqual({});
 
             // The workspace chat still has hasOutstandingChildRequest: true, so GBR persists
             expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
