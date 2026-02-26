@@ -75,9 +75,9 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const reportAttributesDerived = useReportAttributes();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 

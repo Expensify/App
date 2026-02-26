@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -7,7 +7,7 @@ import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {setDraftInviteAccountID} from '@libs/actions/Card';
-import {getCardAssignmentStartDate, getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
+import {getCardAssignmentDateOption, getCardAssignmentStartDate, getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
@@ -49,7 +49,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
         Navigation.goBack();
     };
 
-    const goToNextStep = useCallback(() => {
+    const goToNextStep = () => {
         const defaultCardName = getDefaultCardName(assignCard?.cardToAssign?.invitingMemberEmail);
         const cardToAssign: Partial<AssignCardData> = {
             email: assignCard?.cardToAssign?.invitingMemberEmail,
@@ -64,7 +64,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             cardToAssign.cardName = assignCard.cardToAssign.cardName;
             cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
             cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
-            cardToAssign.dateOption = assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+            cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 cardToAssign,
@@ -76,7 +76,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             cardToAssign.cardName = onlyCard?.cardName;
             cardToAssign.encryptedCardNumber = onlyCard?.cardID;
             cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
-            cardToAssign.dateOption = assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+            cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 cardToAssign,
@@ -91,18 +91,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             });
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams), {forceReplace: true});
         }
-    }, [
-        assignCard?.cardToAssign?.invitingMemberEmail,
-        assignCard?.cardToAssign?.startDate,
-        assignCard?.cardToAssign?.dateOption,
-        assignCard?.cardToAssign?.encryptedCardNumber,
-        assignCard?.cardToAssign?.cardName,
-        assignCard?.cardToAssign?.customCardName,
-        filteredCardList,
-        policyID,
-        feed,
-        cardID,
-    ]);
+    };
 
     // If the currently inviting member is already a member of the policy then we should just call goToNextStep
     // See https://github.com/Expensify/App/issues/74256 for more details
