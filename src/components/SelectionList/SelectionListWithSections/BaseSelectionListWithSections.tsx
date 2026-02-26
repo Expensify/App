@@ -70,6 +70,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
     isRowMultilineSupported = false,
     titleNumberOfLines,
+    shouldUseDefaultRightHandSideComponent,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
@@ -328,6 +329,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         titleStyles={style?.listItemTitleStyles}
                         isMultilineSupported={isRowMultilineSupported}
                         titleNumberOfLines={titleNumberOfLines}
+                        shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                     />
                 );
             }

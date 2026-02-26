@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import SelectCircle from '@components/SelectCircle';
+import Checkbox from '@components/Checkbox';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -29,12 +29,27 @@ function RadioListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation,
     accessibilityRole,
+    shouldUseDefaultRightHandSideComponent,
 }: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
     const alternateTextMaxWidth = variables.sideBarWidth - styles.ph5.paddingHorizontal * 2 - styles.ml3.marginLeft - variables.iconSizeNormal;
+
+    const handleCheckboxPress = useCallback(() => {
+        onSelectRow(item);
+    }, [item, onSelectRow]);
+
+    const defaultRightHandSideComponent = (
+        <Checkbox
+            shouldSelectOnPressEnter
+            containerBorderRadius={999}
+            accessibilityLabel={item.text ?? ''}
+            isChecked={!!item.isSelected}
+            onPress={handleCheckboxPress}
+        />
+    );
 
     return (
         <BaseListItem
@@ -46,7 +61,7 @@ function RadioListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
+            rightHandSideComponent={shouldUseDefaultRightHandSideComponent ? defaultRightHandSideComponent : rightHandSideComponent}
             shouldUseDefaultRightHandSideCheckmark={false}
             keyForList={item.keyForList}
             onFocus={onFocus}

@@ -78,12 +78,6 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         hint: offlineMessage,
     };
 
-    const defaultRightHandSideComponent = (
-        <View style={[styles.ml3, styles.alignItemsCenter, styles.justifyContentCenter]}>
-            <SelectCircle isChecked />
-        </View>
-    );
-
     return (
         <SelectionListWithSections
             sections={sections}
@@ -95,8 +89,8 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             style={{listItemTitleStyles: styles.w100}}
             isRowMultilineSupported
-            rightHandSideComponent={defaultRightHandSideComponent}
             titleNumberOfLines={3}
+            shouldUseDefaultRightHandSideComponent
         />
     );
 }
