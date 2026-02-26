@@ -9,8 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DateUtils from '@libs/DateUtils';
-import {getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {getDateRangeDisplayValueFromFormValue, getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import RangeDatePicker from './RangeDatePicker';
@@ -21,6 +20,9 @@ type SearchDateValues = Record<SearchDateModifier, string | undefined>;
 type DatePresetFilterBaseHandle = {
     /** Gets date values */
     getDateValues: () => SearchDateValues;
+
+    /** Gets the formatted range display text for current date values */
+    getRangeDisplayText: () => string;
 
     /** Clears date values */
     clearDateValues: () => void;
@@ -102,6 +104,14 @@ function DatePresetFilterBase({
     const {translate} = useLocalize();
 
     const shouldShowHorizontalRule = !!presets?.length;
+
+    const getRangeDisplayTextFromDateValues = useCallback((dateValues: SearchDateValues) => {
+        const rangeValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
+        if (!rangeValue) {
+            return '';
+        }
+        return getDateRangeDisplayValueFromFormValue(rangeValue, dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER], dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
+    }, []);
 
     const [dateValues, setDateValues] = useState<SearchDateValues>(defaultDateValues);
     const dateValuesRef = useRef<SearchDateValues>(defaultDateValues);
@@ -207,6 +217,10 @@ function DatePresetFilterBase({
                 return dateValuesRef.current;
             },
 
+            getRangeDisplayText() {
+                return getRangeDisplayTextFromDateValues(dateValuesRef.current);
+            },
+
             resetDateValuesToDefault() {
                 dateValuesRef.current = defaultDateValues;
                 updateDateValues(defaultDateValues);
@@ -279,6 +293,7 @@ function DatePresetFilterBase({
             ephemeralDateValue,
             rangeEphemeralValues.from,
             rangeEphemeralValues.to,
+            getRangeDisplayTextFromDateValues,
             setDateValue,
             updateDateValues,
             validate,
@@ -286,22 +301,7 @@ function DatePresetFilterBase({
         ],
     );
 
-    const rangeBoundaries = getRangeBoundariesFromFormValue(
-        dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
-        dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
-        dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
-    );
-    const rangeFromValue = rangeBoundaries.from;
-    const rangeToValue = rangeBoundaries.to;
-    let rangeDescription: string | undefined;
-    if (dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.RANGE]) {
-        if (rangeFromValue && rangeToValue) {
-            rangeDescription = DateUtils.getFormattedDateRangeForSearch(rangeFromValue, rangeToValue, true);
-        } else {
-            const singleBoundary = rangeFromValue ?? rangeToValue;
-            rangeDescription = singleBoundary ? DateUtils.formatToReadableString(singleBoundary) : undefined;
-        }
-    }
+    const rangeDescription = getRangeDisplayTextFromDateValues(dateValues) || undefined;
 
     if (!selectedDateModifier) {
         return (

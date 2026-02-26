@@ -1,4 +1,3 @@
-import {format, parseISO} from 'date-fns';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -16,8 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import DateUtils from '@libs/DateUtils';
-import {getRangeBoundariesFromFormValue} from '@libs/SearchQueryUtils';
+import {getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 
@@ -139,31 +137,13 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         closeOverlay();
     }, [clearSelection, closeOverlay, onChange, selectedDateModifier, updateTrackedDateValues]);
 
-    const isInRangeMode = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
-    const hasRangeFlag = !!trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
-    const rangeBoundaries = getRangeBoundariesFromFormValue(
+    const rangeText = getDateRangeDisplayValueFromFormValue(
         trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
         trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
         trackedDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
     );
-    const rangeFrom = hasRangeFlag ? rangeBoundaries.from : undefined;
-    const rangeTo = hasRangeFlag ? rangeBoundaries.to : undefined;
-    const isRangeMode = isInRangeMode || (!selectedDateModifier && hasRangeFlag);
 
-    let rangeText: string | null = null;
-    // Show range text from applied Range filter.
-    const displayFrom = rangeFrom;
-    const displayTo = rangeTo;
-    if (isRangeMode && (displayFrom || displayTo)) {
-        if (displayFrom && displayTo) {
-            rangeText = DateUtils.getFormattedDateRangeForSearch(displayFrom, displayTo, true);
-        } else {
-            const singleRangeValue = displayFrom ?? displayTo;
-            if (singleRangeValue) {
-                rangeText = format(parseISO(singleRangeValue), 'MMM d, yyyy');
-            }
-        }
-    }
+    const isInRangeMode = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
 
     const maxPopupHeight = Math.round(windowHeight * 0.875);
 
