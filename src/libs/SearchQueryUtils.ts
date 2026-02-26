@@ -354,7 +354,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
 
     // Certain filters' values are significant in deciding which search we are on, so we want to include
     // their value when computing the similarSearchHash
-    const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]);
+    const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE]);
 
     const flatFilters = query.flatFilters
         .map((filter) => {
@@ -780,6 +780,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.HAS ||
                     filterKey === FILTER_KEYS.IS ||
                     filterKey === FILTER_KEYS.EXPORTER ||
+                    filterKey === FILTER_KEYS.EXPORTED_TO ||
                     filterKey === FILTER_KEYS.ATTENDEE ||
                     filterKey === FILTER_KEYS.COLUMNS) &&
                 Array.isArray(filterValue) &&
@@ -844,6 +845,7 @@ function buildFilterFormValuesFromQuery(
     cardList: OnyxTypes.CardList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
+    exportedToFilterOptions?: string[],
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -910,6 +912,10 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE) {
             // Don't filter attendee values by personalDetails - they can be accountIDs OR display names for name-only attendees
             filtersForm[key as typeof filterKey] = filterValues;
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
+            const allowedValues = new Set<string>(exportedToFilterOptions ?? []);
+            filtersForm[key as typeof filterKey] = filterValues.filter((value) => allowedValues.has(value));
         }
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
@@ -1165,6 +1171,15 @@ function getFilterDisplayValue(
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         return getPolicyNameWithFallback(filterValue, policies, reports);
     }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
+        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT) {
+            return CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT;
+        }
+        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT) {
+            return CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT;
+        }
+        return filterValue;
+    }
     return filterValue;
 }
 
@@ -1226,14 +1241,9 @@ function getDisplayQueryFiltersForKey(
         return queryFilter.reduce((acc, filter) => {
             const cardValue = filter.value.toString();
             const cardID = parseInt(cardValue, 10);
-
-            if (cardList?.[cardID]) {
-                if (Number.isNaN(cardID)) {
-                    acc.push({operator: filter.operator, value: cardID});
-                } else {
-                    acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID], translate) || cardID});
-                }
-            }
+            const descriptionCandidate = Number.isNaN(cardID) ? undefined : getCardDescription(cardList?.[cardID], translate);
+            const cardDescription = descriptionCandidate === '' ? undefined : descriptionCandidate;
+            acc.push({operator: filter.operator, value: cardDescription ?? cardValue});
             return acc;
         }, [] as QueryFilter[]);
     }

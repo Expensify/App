@@ -4,6 +4,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -15,6 +16,7 @@ import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListW
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
+import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -50,6 +52,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from './types';
 
@@ -172,10 +175,11 @@ function SearchAutocompleteList({
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
-    const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
+    const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -202,6 +206,7 @@ function SearchAutocompleteList({
             shouldShowGBR: false,
             shouldUnreadBeBold: true,
             loginList,
+            visibleReportActionsData,
             currentUserAccountID,
             currentUserEmail,
             policyCollection: policies,
@@ -349,6 +354,7 @@ function SearchAutocompleteList({
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
     const tagAutocompleteList = getAutocompleteTags(allPoliciesTags);
     const recentTagsAutocompleteList = getAutocompleteRecentTags(allRecentTags);
+    const {exportedToFilterOptions} = useExportedToFilterOptions();
 
     const [autocompleteParsedQuery, autocompleteQueryWithoutFilters] = (() => {
         const queryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
@@ -460,6 +466,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    visibleReportActionsData,
                     policyCollection: policies,
                     currentUserAccountID,
                     currentUserEmail,
@@ -495,6 +502,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    visibleReportActionsData,
                     policyCollection: policies,
                     currentUserAccountID,
                     currentUserEmail,
@@ -640,6 +648,20 @@ function SearchAutocompleteList({
                 });
 
                 return filteredIsValues.map((isValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IS, text: isValue}));
+            }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO: {
+                const filteredExportedTo = exportedToFilterOptions
+                    .filter((value) => {
+                        const lowerValue = value.toLowerCase();
+                        return lowerValue.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(lowerValue);
+                    })
+                    .sort()
+                    .slice(0, 10);
+                return filteredExportedTo.map((value) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO,
+                    text: value,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
@@ -891,6 +913,19 @@ function SearchAutocompleteList({
             onHighlightFirstItem?.();
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
+
+    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
+    const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
+
+    if (isLoading) {
+        return (
+            <OptionsListSkeletonView
+                fixedNumItems={4}
+                shouldStyleAsTable
+                speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+            />
+        );
+    }
 
     return (
         <SelectionListWithSections<AutocompleteListItem>
