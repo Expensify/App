@@ -124,8 +124,8 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
                                             accessible={false}
-                                            tooltipText={translate('twoFactorAuth.copy')}
-                                            tooltipTextChecked={translate('common.copied')}
+                                            tooltipText={`${translate('twoFactorAuth.copy')} ${translate('twoFactorAuth.stepCodes').toLowerCase()}`}
+                                            tooltipTextChecked={`${translate('common.copied')} ${translate('twoFactorAuth.stepCodes').toLowerCase()}`}
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
                                         />
                                         <PressableWithDelayToggle
@@ -140,8 +140,8 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
                                             accessible={false}
-                                            tooltipText={translate('common.download')}
-                                            tooltipTextChecked={translate('common.download')}
+                                            tooltipText={`${translate('common.download')} ${translate('twoFactorAuth.stepCodes').toLowerCase()}`}
+                                            tooltipTextChecked={`${translate('common.download')} ${translate('twoFactorAuth.stepCodes').toLowerCase()}`}
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD_CODES}
                                         />
                                     </View>
