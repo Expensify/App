@@ -993,7 +993,7 @@ const translations = {
                 cta: 'Review',
             },
         },
-        assignedCards: 'Assigned cards',
+        assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
         announcements: 'Announcements',
         discoverSection: {

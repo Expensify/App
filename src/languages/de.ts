@@ -969,7 +969,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Wallet',
             },
         },
-        assignedCards: 'Zugewiesene Karten',
+        assignedCards: 'Ihre Expensify Karten',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} verbleibend`,
         announcements: 'Ankündigungen',
         discoverSection: {

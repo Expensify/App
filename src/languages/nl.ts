@@ -967,7 +967,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portemonnee',
             },
         },
-        assignedCards: 'Toegewezen kaarten',
+        assignedCards: 'Je Expensify Kaarten',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} resterend`,
         announcements: 'Aankondigingen',
         discoverSection: {
