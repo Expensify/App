@@ -293,7 +293,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             );
                         }}
                     />
-                    {isAdmin && !isCardFrozen(card) && (
+                    {canManageCardFreeze && !isCardFrozen(card) && (
                         <MenuItem
                             icon={expensifyIcons.FreezeCard}
                             title={translate('cardPage.freezeCard')}
