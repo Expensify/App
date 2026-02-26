@@ -519,6 +519,7 @@
         "pdfs",
         "Perfetto",
         "persistable",
+        "peterparker",
         "Pettinella",
         "phonenumber",
         "Picklist",
@@ -745,6 +746,8 @@
         "USAA",
         "USDVBBA",
         "useAutolayout",
+        "useCallback",
+        "useMemo",
         "usernotifications",
         "utilise",
         "Valuska",
@@ -828,7 +831,9 @@
         "pgrep",
         "skia",
         "canvaskit",
-        "Invoicify"
+        "Invoicify",
+        "UKEU",
+        "USCA"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

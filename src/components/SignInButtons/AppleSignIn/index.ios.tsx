@@ -36,7 +36,7 @@ function appleSignInRequest(): Promise<string | null | undefined> {
  * Apple Sign In button for iOS.
  */
 function AppleSignIn({onPress = () => {}}: AppleSignInProps) {
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const handleSignIn = () => {
         appleSignInRequest()
             .then((token) => beginAppleSignIn(token, preferredLocale))

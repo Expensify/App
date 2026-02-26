@@ -48,17 +48,21 @@ This document lists all implemented telemetry metrics in the Expensify App.
 
 ### Navigate to Reports Tab
 
-**Constant**: `CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB`
-**Sentry Name**: `ManualNavigateToReportsTab`
+**Constant**: `CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS`
+**Sentry Name**: `ManualNavigateToReports`
 **Threshold**: 400ms (P90)
-**What's Measured**: Time from clicking search tab to results rendered
-**Start**: User clicks search/reports tab ([`src/components/Navigation/NavigationTabBar/index.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/components/Navigation/NavigationTabBar/index.tsx#L175))
+**What's Measured**: Time from clicking search tab to results rendered (either list or skeleton)
+**Start**: User clicks search/reports tab ([`src/components/Navigation/NavigationTabBar/SearchTabButton.tsx`](https://github.com/Expensify/App/blob/42c42d7fb1984adde1d96ef2285d3c8e1177a4aa/src/components/Navigation/NavigationTabBar/SearchTabButton.tsx#L47))
 **End**:
-- User sees: Search results list displayed
+- User sees: Search results list displayed (warm)
 - Technical: Search results layout complete (onLayout event)
   - Search results data loaded from Onyx
   - Results sorted and sectioned
   - List layout rendered ([`src/components/Search/index.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/components/Search/index.tsx#L961))
+
+- User sees: Search skeleton displayed (cold)
+- Technical: Search skeleton layout complete (onLayoutSkeleton event)
+  - Skeleton layout rendered ([`src/components/Search/index.tsx`](https://github.com/Expensify/App/blob/e8d4f62021987e5821d69ce483349562918a948a/src/components/Search/index.tsx#L1162))
 
 ### Navigate to Inbox Tab
 

@@ -60,6 +60,7 @@ const SCREENS = {
         ADVANCED_FILTERS_APPROVED_RHP: 'Search_Advanced_Filters_Approved_RHP',
         ADVANCED_FILTERS_PAID_RHP: 'Search_Advanced_Filters_Paid_RHP',
         ADVANCED_FILTERS_EXPORTED_RHP: 'Search_Advanced_Filters_Exported_RHP',
+        ADVANCED_FILTERS_EXPORTED_TO_RHP: 'Search_Advanced_Filters_Exported_To_RHP',
         ADVANCED_FILTERS_POSTED_RHP: 'Search_Advanced_Filters_Posted_RHP',
         ADVANCED_FILTERS_WITHDRAWN_RHP: 'Search_Advanced_Filters_Withdrawn_RHP',
         ADVANCED_FILTERS_CURRENCY_RHP: 'Search_Advanced_Filters_Currency_RHP',
@@ -178,7 +179,6 @@ const SCREENS = {
 
         WALLET: {
             ROOT: 'Settings_Wallet',
-            VERIFY_ACCOUNT: 'Settings_Wallet_VerifyAccount',
             DOMAIN_CARD: 'Settings_Wallet_DomainCard',
             DOMAIN_CARD_CONFIRM_MAGIC_CODE: 'Settings_Wallet_DomainCard_ConfirmMagicCode',
             CARD_MISSING_DETAILS: 'Settings_Wallet_Card_MissingDetails',
@@ -723,6 +723,7 @@ const SCREENS = {
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
+        CLIENT_ID: 'Workspace_Overview_Client_ID',
         CATEGORY_CREATE: 'Category_Create',
         CATEGORY_EDIT: 'Category_Edit',
         CATEGORY_PAYROLL_CODE: 'Category_Payroll_Code',
@@ -947,6 +948,8 @@ const SCREENS = {
         MEMBERS_SETTINGS: 'Members_Settings',
         MEMBERS_SETTINGS_TWO_FACTOR_AUTH: 'Members_Settings_Two_Factor_Auth',
         GROUPS: 'Domain_Groups',
+        MEMBER_RESET_TWO_FACTOR_AUTH: 'Member_Reset_Two_Factor_Auth',
+        MEMBER_FORCE_TWO_FACTOR_AUTH: 'Member_Force_Two_Factor_Auth',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',

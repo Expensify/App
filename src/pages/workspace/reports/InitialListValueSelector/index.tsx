@@ -24,7 +24,7 @@ type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLab
 };
 
 function InitialListValueSelector({value = '', label = '', rightLabel, subtitle = '', errorText = '', onInputChange, ref}: InitialListValueSelectorProps) {
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
