@@ -1,0 +1,89 @@
+---
+title: INT073 Export Error: Required Tag Missing for Account
+description: Learn why the INT073 export error occurs in Expensify Classic and how to configure required account fields in Sage Intacct or map them as tags in Expensify.
+keywords: INT073, Sage Intacct required field on account, Intacct account requires dimension, Expensify tag configuration Intacct, Expensify Classic Sage Intacct export error
+internalScope: Audience is Workspace Admins using the Sage Intacct integration in Expensify Classic. Covers the INT073 export error related to required account fields (dimensions/tags). Does not cover authentication or employee configuration errors.
+---
+
+# INT073 Export Error: Required Tag Missing for Account
+
+If you see the error message **“INT073 Export Error: Sage Intacct requires a tag for account [XXXX], preventing the expense from being created. Either remove the required field from the account in Sage Intacct or configure the field as a tag in Expensify configurations.”**, it means a required field (dimension) is enforced on the specified account in Sage Intacct but is not being provided during export.
+
+Sage Intacct blocks the transaction when required account-level fields are missing.
+
+---
+
+## Why the INT073 Export Error Happens
+
+The INT073 export error occurs when:
+
+- A specific account in Sage Intacct requires a dimension (such as Department, Location, Project, or a User-Defined Dimension), and  
+- That field is not populated by Expensify during export  
+
+If the required dimension is not supplied, Sage Intacct prevents the expense from being created.
+
+---
+
+## How to Fix the INT073 Export Error in Expensify Classic
+
+There are two ways to resolve this issue.
+
+---
+
+## Option 1: Remove the Required Field in Sage Intacct
+
+If the field should not be mandatory:
+
+1. In Sage Intacct, go to the **Chart of Accounts**.
+2. Locate and open the account referenced in the error.
+3. Review the section where required fields (dimensions) are configured.
+4. Disable the requirement for the field.
+5. Save the account.
+
+---
+
+## Option 2: Configure the Field as a Tag in Expensify
+
+If the field should remain required:
+
+### Step 1: Enable or Configure the Field in Expensify
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Configure**.
+5. Open the **Coding** tab.
+6. Enable the relevant field for import, or  
+7. Edit the field and set it to import as **Tag (line-item level)**.
+8. Click **Save**.
+
+---
+
+### Step 2: Sync the Workspace
+
+1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
+2. Click **Sync now**.
+
+---
+
+### Step 3: Update the Report and Retry
+
+1. Open the report.
+2. Apply the required tag to the expense(s).
+3. Retry exporting the report.
+
+---
+
+# FAQ
+
+## What kind of “tag” is this referring to?
+
+This usually refers to Sage Intacct dimensions such as Department, Location, Project, or User-Defined Dimensions.
+
+## Should I remove the required field or configure it in Expensify?
+
+If the dimension is part of your accounting controls, configure it in Expensify. Only remove the requirement in Sage Intacct if it is no longer needed.
+
+## Do I need Sage Intacct admin access to fix this?
+
+Yes. Modifying required account fields in Sage Intacct requires appropriate permissions.
