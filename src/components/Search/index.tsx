@@ -904,6 +904,10 @@ function Search({
 
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => {
+            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return;
+            }
+
             if (isMobileSelectionModeEnabled) {
                 toggleTransaction(item);
                 return;

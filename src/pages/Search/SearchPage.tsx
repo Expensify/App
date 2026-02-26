@@ -509,6 +509,7 @@ function SearchPage({route}: SearchPageProps) {
                             validTransactions,
                             allTransactionViolations,
                             bankAccountList,
+                            hash,
                         );
                     }
                 } else {

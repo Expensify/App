@@ -61,10 +61,10 @@ import {
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
+    isReportActionVisible,
     isSentMoneyReportAction,
     isTransactionThread,
     isWhisperAction,
-    shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {
     canEditReportAction,
@@ -313,6 +313,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
     // wrapping in useMemo because this is array operation and can cause performance issues
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
@@ -466,10 +467,16 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
-    const isLinkedActionDeleted = useMemo(
-        () => !!linkedAction && !shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)),
-        [linkedAction, report, isReportArchived],
-    );
+    const isLinkedActionDeleted = useMemo(() => {
+        if (!linkedAction) {
+            return false;
+        }
+        const actionReportID = linkedAction.reportID ?? reportID;
+        if (!actionReportID) {
+            return true;
+        }
+        return !isReportActionVisible(linkedAction, actionReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData);
+    }, [linkedAction, report, isReportArchived, reportID, visibleReportActionsData]);
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
 
