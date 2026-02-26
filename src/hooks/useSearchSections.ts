@@ -13,7 +13,7 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useTodos from './useTodos';
 
-const TODO_SEARCH_KEYS: Set<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT]);
+const TODO_SEARCH_KEYS = new Set<SearchKey>([CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT]);
 
 type UseSearchSectionsResult = {
     allReports: Array<string | undefined>;
