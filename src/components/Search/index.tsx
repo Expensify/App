@@ -1261,20 +1261,16 @@ function Search({
 
         return (
             <SearchScopeProvider>
-                <Animated.View
-                    style={styles.flex1}
+                <SearchChartView
+                    queryJSON={queryJSON}
+                    view={view}
+                    groupBy={validGroupBy}
+                    data={sortedData}
+                    isLoading={shouldShowLoadingState}
+                    onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
-                >
-                    <SearchChartView
-                        queryJSON={queryJSON}
-                        view={view}
-                        groupBy={validGroupBy}
-                        data={sortedData}
-                        isLoading={shouldShowLoadingState}
-                        onScroll={onSearchListScroll}
-                        title={chartTitle}
-                    />
-                </Animated.View>
+                    title={chartTitle}
+                />
             </SearchScopeProvider>
         );
     }
