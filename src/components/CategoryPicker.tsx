@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -12,7 +11,6 @@ import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SelectCircle from './SelectCircle';
 import RadioListItem from './SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {ListItem} from './SelectionList/types';
