@@ -6,16 +6,13 @@ type EditingCellContextType = {
     setEditingCellCount: Dispatch<SetStateAction<number>>;
 };
 
-const EditingCellContext = createContext<EditingCellContextType | undefined>(undefined);
+const EditingCellContext = createContext<EditingCellContextType>({
+    isEditingCell: false,
+    setEditingCellCount: () => {},
+});
 
 function useEditingCellContext(): EditingCellContextType {
-    const context = useContext(EditingCellContext);
-
-    if (!context) {
-        throw new Error('useEditingCellContext must be used within an EditingCellProvider');
-    }
-
-    return context;
+    return useContext(EditingCellContext);
 }
 
 /**
