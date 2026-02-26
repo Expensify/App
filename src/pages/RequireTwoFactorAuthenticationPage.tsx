@@ -37,9 +37,9 @@ function RequireTwoFactorAuthenticationPage() {
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
-    const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
-    const [is2FARequiredBecauseOfXero = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: is2FARequiredBecauseOfXeroSelector(email), canBeMissing: true});
+    const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [is2FARequiredBecauseOfXero = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: is2FARequiredBecauseOfXeroSelector(email)});
 
     const handleOnPress = useCallback(() => {
         if (isUserValidated) {

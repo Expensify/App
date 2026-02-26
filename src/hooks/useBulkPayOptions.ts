@@ -6,6 +6,7 @@ import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Po
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
+import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     getBankAccountRoute,
@@ -17,7 +18,8 @@ import {
 import {useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AccountData, Policy} from '@src/types/onyx';
+import type {AccountData} from '@src/types/onyx';
+import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -32,7 +34,6 @@ type UseBulkPayOptionProps = {
     selectedPolicyID: string | undefined;
     selectedReportID: string | undefined;
     lastPaymentMethod?: string | undefined;
-    activeAdminPolicies: Policy[];
     isCurrencySupportedWallet?: boolean;
     currency: string | undefined;
     formattedAmount: string;
@@ -50,26 +51,26 @@ type UseBulkPayOptionReturnType = {
 function useBulkPayOptions({
     selectedPolicyID,
     selectedReportID,
-    activeAdminPolicies,
     isCurrencySupportedWallet,
     currency,
     formattedAmount,
     onlyShowPayElsewhere,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet']);
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const policy = usePolicy(selectedPolicyID);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`, {canBeMissing: true});
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
     const {isBetaEnabled} = usePermissions();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
+    const activeAdminPolicies = useActiveAdminPolicies();
     const isIOUReport = isIOUReportUtil(selectedReportID);
     const isExpenseReport = isExpenseReportUtil(selectedReportID);
     const isInvoiceReport = isInvoiceReportUtil(selectedReportID);
@@ -159,7 +160,8 @@ function useBulkPayOptions({
         }
 
         if ((hasMultiplePolicies || hasSinglePolicy) && canUseWallet && !isPersonalOnlyOption) {
-            for (const activePolicy of activeAdminPolicies) {
+            const sortedActiveAdminPolicies = sortPoliciesByName(activeAdminPolicies, localeCompare);
+            for (const activePolicy of sortedActiveAdminPolicies) {
                 const policyName = activePolicy.name;
                 bulkPayButtonOptions.push({
                     text: translate('iou.payWithPolicy', truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),

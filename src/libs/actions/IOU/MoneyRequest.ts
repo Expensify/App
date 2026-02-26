@@ -4,6 +4,7 @@ import getCurrentPosition from '@libs/getCurrentPosition';
 import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -16,17 +17,18 @@ import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, RecentWaypoint, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {GpsPoint} from './index';
 import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
-    getRecentWaypoints,
     requestMoney,
     setCustomUnitRateID,
+    setMoneyRequestDistance,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
@@ -59,6 +61,7 @@ type CreateTransactionParams = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
+    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
 };
 
 type InitialTransactionParams = {
@@ -103,6 +106,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     selfDMReport: OnyxEntry<Report>;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
+    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -143,6 +147,9 @@ type MoneyRequestStepDistanceNavigationParams = {
     odometerEnd?: number;
     odometerDistance?: number;
     betas: OnyxEntry<Beta[]>;
+    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
+    unit?: Unit;
+    personalOutputCurrency?: string;
 };
 
 function createTransaction({
@@ -168,9 +175,8 @@ function createTransaction({
     isSelfTourViewed,
     betas,
     personalDetails,
+    recentWaypoints,
 }: CreateTransactionParams) {
-    const recentWaypoints = getRecentWaypoints();
-
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
@@ -291,6 +297,7 @@ function handleMoneyRequestStepScanParticipants({
     selfDMReport,
     isSelfTourViewed,
     betas,
+    recentWaypoints,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -394,6 +401,7 @@ function handleMoneyRequestStepScanParticipants({
                             isSelfTourViewed,
                             betas,
                             personalDetails,
+                            recentWaypoints,
                         });
                     },
                     (errorData) => {
@@ -419,6 +427,7 @@ function handleMoneyRequestStepScanParticipants({
                             isSelfTourViewed,
                             betas,
                             personalDetails,
+                            recentWaypoints,
                         });
                     },
                 );
@@ -444,6 +453,7 @@ function handleMoneyRequestStepScanParticipants({
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                recentWaypoints,
             });
             return;
         }
@@ -529,11 +539,13 @@ function handleMoneyRequestStepDistanceNavigation({
     odometerEnd,
     odometerDistance,
     betas,
+    recentWaypoints,
+    unit,
+    personalOutputCurrency,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
-    const recentWaypoints = getRecentWaypoints();
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction);
@@ -542,6 +554,8 @@ function handleMoneyRequestStepDistanceNavigation({
         Navigation.goBack(backTo);
         return;
     }
+
+    const distance = manualDistance ?? gpsDistance ?? odometerDistance;
 
     // If a reportID exists in the report object, it's because either:
     // - The user started this flow from using the + button in the composer inside a report.
@@ -583,7 +597,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     },
                     transactionParams: {
                         amount: 0,
-                        distance: manualDistance ?? gpsDistance ?? odometerDistance,
+                        distance,
                         currency: transaction?.currency ?? 'USD',
                         created: transaction?.created ?? '',
                         merchant: translate('iou.fieldPending'),
@@ -618,7 +632,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 existingTransaction: transaction,
                 transactionParams: {
                     amount: 0,
-                    distance: manualDistance ?? gpsDistance ?? odometerDistance,
+                    distance,
                     comment: '',
                     created: transaction?.created ?? '',
                     currency: transaction?.currency ?? 'USD',
@@ -638,6 +652,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                personalDetails,
                 recentWaypoints,
                 betas,
             });
@@ -654,7 +669,8 @@ function handleMoneyRequestStepDistanceNavigation({
     if (defaultExpensePolicy && shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id) : selfDMReport;
-        const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
+        const isSelfDMReport = isSelfDM(targetReport);
+        const transactionReportID = isSelfDMReport ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
         const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
 
         const rateID = DistanceRequestUtils.getCustomUnitRateID({
@@ -668,6 +684,18 @@ function handleMoneyRequestStepDistanceNavigation({
         // as it is set for Manual requests before this function is called and transaction may have
         // obsolete customUnit values
         setCustomUnitRateID(transactionID, rateID, undefined, undefined);
+
+        // Update distance and distance unit in transaction object as it is usually set before this function is called using
+        // defaultExpensePolicy data which is not accurate in this case as defaultExpensePolicy has autoReporting set to false
+        // and because of this this report is converted to selfDM here
+        if (isSelfDMReport && distance !== undefined && unit) {
+            const personalCurrency = personalOutputCurrency ?? CONST.CURRENCY.USD;
+            const personalDistanceUnit = DistanceRequestUtils.getRateForP2P(personalCurrency, transaction).unit;
+            const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
+            const distanceUsingPersonalDistanceUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, personalDistanceUnit));
+            setMoneyRequestDistance(transactionID, distanceUsingPersonalDistanceUnit, true, personalDistanceUnit);
+        }
+
         setMoneyRequestParticipantsFromReport(transactionID, targetReport, currentUserAccountID).then(() => {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
         });

@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {CurrencyListContextProps} from '@components/CurrencyListContextProvider';
+import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
@@ -142,7 +142,7 @@ function getRateForDisplay(
     currency: string | undefined,
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
-    getCurrencySymbol: CurrencyListContextProps['getCurrencySymbol'],
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     isOffline?: boolean,
     useShortFormUnit?: boolean,
 ): string {
@@ -222,7 +222,7 @@ function getDistanceMerchant(
     currency: string,
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
-    getCurrencySymbol: CurrencyListContextProps['getCurrencySymbol'],
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     isManualDistanceRequest?: boolean,
 ): string {
     if (!hasRoute || !rate) {

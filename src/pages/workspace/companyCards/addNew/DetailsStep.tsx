@@ -29,7 +29,7 @@ function DetailsStep() {
     const {inputCallbackRef} = useAutoFocusInput();
     const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const feedProvider = addNewCard?.data?.feedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;

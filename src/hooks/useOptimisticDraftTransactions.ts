@@ -1,8 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {transactionDraftValuesSelector} from '@src/selectors/TransactionDraft';
 import type {Transaction} from '@src/types/onyx';
-import useOnyx from './useOnyx';
+import useTransactionDraftValues from './useTransactionDraftValues';
 
 /**
  * A hook that retrieves all optimistic draft transactions,
@@ -13,10 +11,7 @@ import useOnyx from './useOnyx';
  * Otherwise, it will use the draft transactions from Onyx data.
  */
 const useOptimisticDraftTransactions = (transaction: OnyxEntry<Transaction>) => {
-    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftValuesSelector,
-        canBeMissing: true,
-    });
+    const optimisticTransactions = useTransactionDraftValues();
 
     const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [transaction];
     const transactions = allTransactions.filter((value): value is Transaction => !!value);
