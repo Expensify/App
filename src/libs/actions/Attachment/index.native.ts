@@ -43,15 +43,15 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
             return;
         }
 
-        const attachmentfileExtension = getImageCacheFileExtension(contentType ?? '');
+        const attachmentFileExtension = getImageCacheFileExtension(contentType ?? '');
 
-        // If attachmentfileExtension is not set properly / or doesn't exist in our lists, then we need to exit
-        if (!attachmentfileExtension) {
+        // If attachmentFileExtension is not set properly / or doesn't exist in our lists, then we need to exit
+        if (!attachmentFileExtension) {
             Log.warn('[AttachmentCache] Unsupported file type, skipping cache', {attachmentID, contentType});
             return;
         }
 
-        const fileName = `${attachmentID}.${attachmentfileExtension}`;
+        const fileName = `${attachmentID}.${attachmentFileExtension}`;
         const filePath = `${ATTACHMENT_DIR}/${fileName}`;
         await RNFetchBlob.config({path: filePath}).fetch('GET', uri);
 
