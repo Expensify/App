@@ -83,7 +83,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
         <View style={styles.flex1}>
             <EmptyStateComponent
                 cardStyles={[styles.appBG]}
-                cardContentStyles={[styles.pt5, styles.pb0]}
+                cardContentStyles={[styles.pb0]}
                 headerMedia={illustrations.FolderWithPapersAndWatch}
                 title={translate('search.moneyRequestReport.emptyStateTitle')}
                 headerStyles={[styles.emptyStateMoneyRequestReport]}
