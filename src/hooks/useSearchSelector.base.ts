@@ -176,6 +176,7 @@ function useSearchSelectorBase({
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const personalDetails = usePersonalDetails();
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const onListEndReached = useDebounce(
         useCallback(() => {
@@ -235,6 +236,7 @@ function useSearchSelectorBase({
                         searchInputValue: trimmedSearchInput,
                         includeUserToInvite,
                         personalDetails,
+                        policyTags,
                     },
                     countryCode,
                     reportAttributesDerived?.reports,
@@ -259,6 +261,7 @@ function useSearchSelectorBase({
                         excludeLogins,
                         excludeFromSuggestionsOnly,
                         personalDetails,
+                        policyTags,
                     },
                     countryCode,
                     reportAttributesDerived?.reports,
@@ -290,6 +293,7 @@ function useSearchSelectorBase({
                         maxElements: maxResults,
                         includeUserToInvite,
                         personalDetails,
+                        policyTags,
                     },
                     countryCode,
                     reportAttributesDerived?.reports,
@@ -320,6 +324,7 @@ function useSearchSelectorBase({
                         includeCurrentUser,
                         shouldAcceptName: true,
                         personalDetails,
+                        policyTags,
                     },
                     countryCode,
                     reportAttributesDerived?.reports,
@@ -352,6 +357,7 @@ function useSearchSelectorBase({
         personalDetails,
         reportAttributesDerived?.reports,
         trimmedSearchInput,
+        policyTags,
     ]);
 
     const isOptionSelected = useMemo(() => {

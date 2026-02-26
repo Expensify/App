@@ -3,7 +3,7 @@ import type {Section as SelectionListSection} from '@components/SelectionList/Se
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Login, PersonalDetails, PersonalDetailsList, PolicyTagLists, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 /**
@@ -163,6 +163,7 @@ type GetValidReportsConfig = {
     shouldUnreadBeBold?: boolean;
     shouldAlwaysIncludeDM?: boolean;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
+    policyTags?: OnyxCollection<PolicyTagLists>;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
