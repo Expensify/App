@@ -44,6 +44,7 @@ type SearchPageWideProps = {
     onSortPressedCallback: () => void;
     scrollHandler: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     initScanRequest: (e: DragEvent) => void;
+    isDragDisabled: boolean;
     PDFValidationComponent: React.ReactNode;
     ErrorModal: React.ReactNode;
     shouldShowFooter: boolean;
@@ -65,6 +66,7 @@ function SearchPageWide({
     onSortPressedCallback,
     scrollHandler,
     initScanRequest,
+    isDragDisabled,
     PDFValidationComponent,
     ErrorModal,
     shouldShowFooter,
@@ -99,7 +101,7 @@ function SearchPageWide({
                     shouldShowLink={false}
                 >
                     {!!queryJSON && (
-                        <DragAndDropProvider>
+                        <DragAndDropProvider isDisabled={isDragDisabled}>
                             {PDFValidationComponent}
                             <SearchPageHeader
                                 queryJSON={queryJSON}

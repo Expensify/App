@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
@@ -27,7 +27,8 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
-    const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactions} = useSearchStateContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const transactions = useMemo(
         () =>
