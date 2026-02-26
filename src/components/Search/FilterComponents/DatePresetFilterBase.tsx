@@ -113,17 +113,19 @@ function DatePresetFilterBase({
         return getDateRangeDisplayValueFromFormValue(rangeValue, dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER], dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
     }, []);
 
+    const onDateValuesChangeRef = useRef(onDateValuesChange);
+    useEffect(() => {
+        onDateValuesChangeRef.current = onDateValuesChange;
+    }, [onDateValuesChange]);
+
     const [dateValues, setDateValues] = useState<SearchDateValues>(defaultDateValues);
     const dateValuesRef = useRef<SearchDateValues>(defaultDateValues);
-    const updateDateValues = useCallback(
-        (updater: SearchDateValues | ((prevDateValues: SearchDateValues) => SearchDateValues)) => {
-            const nextDateValues = typeof updater === 'function' ? updater(dateValuesRef.current) : updater;
-            dateValuesRef.current = nextDateValues;
-            setDateValues(nextDateValues);
-            onDateValuesChange?.(nextDateValues);
-        },
-        [onDateValuesChange],
-    );
+    const updateDateValues = useCallback((updater: SearchDateValues | ((prevDateValues: SearchDateValues) => SearchDateValues)) => {
+        const nextDateValues = typeof updater === 'function' ? updater(dateValuesRef.current) : updater;
+        dateValuesRef.current = nextDateValues;
+        setDateValues(nextDateValues);
+        onDateValuesChangeRef.current?.(nextDateValues);
+    }, []);
 
     useEffect(() => {
         if (isSearchAdvancedFiltersFormLoading) {
@@ -142,8 +144,8 @@ function DatePresetFilterBase({
         dateValuesRef.current = defaultDateValues;
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setDateValues(defaultDateValues);
-        onDateValuesChange?.(defaultDateValues);
-    }, [isSearchAdvancedFiltersFormLoading, defaultDateValues, onDateValuesChange]);
+        onDateValuesChangeRef.current?.(defaultDateValues);
+    }, [isSearchAdvancedFiltersFormLoading, defaultDateValues]);
 
     const setDateValue = useCallback(
         (dateModifier: SearchDateModifier, value: string | undefined) => {

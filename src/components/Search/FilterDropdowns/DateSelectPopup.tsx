@@ -148,7 +148,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
             onSelectDateModifier={setSelectedDateModifier}
             presets={presets}
             shouldShowRangeError={shouldShowRangeError}
-            onDateValuesChange={() => setRangeText(searchDatePresetFilterBaseRef.current?.getRangeDisplayText() ?? '')}
+            onDateValuesChange={updateRangeText}
             onRangeValidationErrorChange={setShouldShowRangeError}
         />
     );
