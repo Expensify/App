@@ -797,7 +797,7 @@ function SearchPage({route}: SearchPageProps) {
                     let areAnyReportsExported = false;
 
                     for (const reportID of selectedReportIDs) {
-                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                        const report = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
                         if (!report?.isExportedToIntegration) {
                             continue;
