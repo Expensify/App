@@ -1503,6 +1503,10 @@ const translations: TranslationDeepObject<typeof en> = {
             format: (fragments: string, route: string) => `${fragments}（<a href="${route}">ワークスペースルール</a>経由）`,
         },
         duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
+        failedToAutoSubmitViaDEW: (reason: string) => `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出を遅らせる</a>を使ったレポートの送信に失敗しました。${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `レポートの送信に失敗しました。${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>で承認に失敗しました。${reason}`,
+        failedToApproveViaDEW: (reason: string) => `承認に失敗しました。${reason}`,
     },
     transactionMerge: {
         listPage: {

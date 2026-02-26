@@ -1517,6 +1517,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         duplicateNonDefaultWorkspacePerDiemError:
             'Sie können Per-Diem-Ausgaben nicht über mehrere Workspaces hinweg duplizieren, da sich die Sätze zwischen den Workspaces unterscheiden können.',
+        failedToAutoSubmitViaDEW: (reason: string) => `Senden des Berichts über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">Übermittlungen verzögern</a> fehlgeschlagen. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `Der Bericht konnte nicht übermittelt werden. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `Genehmigung über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> fehlgeschlagen. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `Genehmigung fehlgeschlagen. ${reason}`,
     },
     transactionMerge: {
         listPage: {

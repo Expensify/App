@@ -1511,6 +1511,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         duplicateNonDefaultWorkspacePerDiemError:
             'Nie możesz duplikować wydatków z tytułu diet między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
+        failedToAutoSubmitViaDEW: (reason: string) => `nie udało się przesłać raportu przez <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnianie wysyłki</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `nie udało się wysłać raportu. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) =>
+            `nie udało się zatwierdzić przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady w przestrzeni roboczej</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `nie udało się zaakceptować. ${reason}`,
     },
     transactionMerge: {
         listPage: {

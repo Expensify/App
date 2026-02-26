@@ -1482,6 +1482,10 @@ const translations: TranslationDeepObject<typeof en> = {
             format: (fragments: string, route: string) => `${fragments} 通过 <a href="${route}">工作区规则</a>`,
         },
         duplicateNonDefaultWorkspacePerDiemError: '您无法在不同工作区之间复制每日津贴报销，因为各工作区的补贴标准可能不同。',
+        failedToAutoSubmitViaDEW: (reason: string) => `通过<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">延迟提交</a>提交报表失败。${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `报表提交失败。${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `未能通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准。${reason}`,
+        failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
     },
     transactionMerge: {
         listPage: {
