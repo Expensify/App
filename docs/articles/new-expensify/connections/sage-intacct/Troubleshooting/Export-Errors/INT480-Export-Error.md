@@ -1,0 +1,85 @@
+---
+title: INT480 Export Error: Report Submitter Is Not a Resource of the Project
+description: Learn why the INT480 export error occurs and how to associate the report submitter with the correct project in Sage Intacct before retrying the export.
+keywords: INT480, project resource error Sage Intacct, submitter not resource, project association error, Sage Intacct project configuration
+internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers the INT480 export error related to project resource assignment. Does not cover category, tax, or vendor configuration errors.
+---
+
+# INT480 Export Error: Report Submitter Is Not a Resource of the Project
+
+If you see the error message:
+
+**“INT480 Export Error: The report submitter is not a resource of project [X] in Sage Intacct. Please ensure the submitter is part of the project in Sage Intacct.”**
+
+It means the person who created or submitted the report is not assigned as a resource to the selected project in Sage Intacct.
+
+Sage Intacct requires employees to be associated with a project before expenses tied to that project can be exported.
+
+---
+
+## Why the INT480 Export Error Happens
+
+The INT480 export error occurs when:
+
+- A project is selected on one or more expenses, and  
+- The report creator or submitter is not listed as a resource on that project in Sage Intacct  
+
+If the employee is not associated with the project, Sage Intacct blocks the export.
+
+---
+
+# How to Fix the INT480 Export Error
+
+Follow the steps below to associate the submitter with the correct project and retry the export.
+
+---
+
+## Step 1: Locate the Project in Sage Intacct
+
+1. Log in to Sage Intacct.  
+2. Search for the project using the project ID listed in the error message.  
+3. Open the project record.  
+
+---
+
+## Step 2: Confirm the Submitter Is a Project Resource
+
+1. Review the project’s assigned resources.  
+2. Confirm that the report creator or submitter is listed as a resource.  
+
+If the employee is not listed:
+
+1. Add the employee as a resource to the project.  
+2. Save your changes.  
+
+---
+
+## Step 3: Run Sync
+
+1. Go to **Workspace > [Workspace Name] > Accounting**.  
+2. Click the three-dot icon next to the connection.  
+3. Select **Sync Now** from the dropdown.  
+
+---
+
+## Step 4: Retry the Export
+
+Return to the report and retry the export.
+
+If the submitter is properly assigned as a resource to the project, the export should complete successfully.
+
+---
+
+# FAQ
+
+## Does every employee need to be added as a project resource?
+
+Yes. Any employee submitting expenses tied to a project must be assigned as a resource to that project in Sage Intacct.
+
+## Can I fix this by changing the project on the expense?
+
+Yes. If the selected project is incorrect, update the expense to use a project where the submitter is already assigned as a resource.
+
+## Does this error affect non-project expenses?
+
+No. This error only occurs when a project is selected and the submitter is not associated with that project in Sage Intacct.
