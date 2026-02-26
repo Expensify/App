@@ -425,6 +425,48 @@ describe('TransactionUtils', () => {
                 merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             });
         });
+
+        it('should clear convertedAmount when currency is changed to prevent incorrect export conversion', () => {
+            // Given: a transaction with a converted amount (simulating a foreign currency transaction)
+            const transaction = generateTransaction({
+                amount: -4500, // $45.00 USD
+                currency: CONST.CURRENCY.USD,
+                convertedAmount: -6285, // C$62.85 CAD (server-calculated conversion)
+            });
+
+            // When: user manually changes the currency to CAD
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {currency: 'CAD'},
+            });
+
+            // Then: convertedAmount should be cleared to prevent stale conversion data
+            // being incorrectly applied during export
+            expect(updatedTransaction.modifiedCurrency).toBe('CAD');
+            expect(updatedTransaction.convertedAmount).toBeUndefined();
+        });
+
+        it('should clear convertedAmount when amount is manually changed to prevent incorrect export conversion', () => {
+            // Given: a transaction with a converted amount
+            const transaction = generateTransaction({
+                amount: -4500, // $45.00 USD
+                currency: CONST.CURRENCY.USD,
+                convertedAmount: -6285, // C$62.85 CAD
+            });
+
+            // When: user manually changes the amount
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {amount: 6285}, // C$62.85
+            });
+
+            // Then: convertedAmount should be cleared since the manual amount
+            // is the final value and shouldn't be re-converted during export
+            expect(updatedTransaction.modifiedAmount).toBe(-6285);
+            expect(updatedTransaction.convertedAmount).toBeUndefined();
+        });
     });
 
     describe('getTransactionType', () => {

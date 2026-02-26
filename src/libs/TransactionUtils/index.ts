@@ -699,10 +699,17 @@ function getUpdatedTransaction({
     if (Object.hasOwn(transactionChanges, 'amount') && typeof transactionChanges.amount === 'number') {
         updatedTransaction.modifiedAmount = isFromExpenseReport || isUnReportedExpense ? -transactionChanges.amount : transactionChanges.amount;
         shouldStopSmartscan = true;
+        // Clear convertedAmount when amount is manually modified to prevent stale conversion data
+        // from being used during export (the server will recalculate if needed)
+        updatedTransaction.convertedAmount = undefined;
     }
     if (Object.hasOwn(transactionChanges, 'currency')) {
         updatedTransaction.modifiedCurrency = transactionChanges.currency;
         shouldStopSmartscan = true;
+        // Clear convertedAmount when currency is manually modified to prevent incorrect
+        // currency conversion being applied during export (fixes issue where manually entered
+        // amounts in a different currency were being re-converted)
+        updatedTransaction.convertedAmount = undefined;
     }
 
     if (Object.hasOwn(transactionChanges, 'merchant')) {
