@@ -1,10 +1,12 @@
-import React, {useContext, useLayoutEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFilterFormValues from '@hooks/useFilterFormValues';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useTodos from '@hooks/useTodos';
+import {updateAdvancedFilters} from '@libs/actions/Search';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
@@ -138,6 +140,12 @@ function SearchContextProvider({children}: ChildrenProps) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setLastSearchType(currentSearchType);
     }, [currentSearchType]);
+
+    const {currentSearchQueryJSON} = searchContextData;
+    const filterFormValues = useFilterFormValues(currentSearchQueryJSON);
+    useEffect(() => {
+        updateAdvancedFilters(filterFormValues, true);
+    }, [filterFormValues]);
 
     const setCurrentSearchHashAndKey = (searchHash: number, recentHash: number, searchKey: SearchKey | undefined) => {
         setSearchContextData((prevState) => {

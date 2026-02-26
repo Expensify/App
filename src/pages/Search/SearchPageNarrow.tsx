@@ -1,3 +1,4 @@
+import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -19,7 +20,7 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+import type {SearchParams} from '@components/Search/types';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -34,22 +35,22 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
 const ANIMATION_DURATION_IN_MS = 300;
 
-type SearchPageNarrowProps = {
-    queryJSON?: SearchQueryJSON;
-};
-
-function SearchPageNarrow({queryJSON}: SearchPageNarrowProps) {
+function SearchPageNarrow() {
+    const route = useRoute<RouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>>();
+    const queryJSON = buildSearchQueryJSON(route.params.q, route.params.rawQuery);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -70,7 +71,6 @@ function SearchPageNarrow({queryJSON}: SearchPageNarrowProps) {
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
-    const route = useRoute();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
 
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
@@ -125,7 +125,7 @@ function SearchPageNarrow({queryJSON}: SearchPageNarrowProps) {
     const shouldDisplayCancelSearch = shouldUseNarrowLayout && searchRouterListVisible;
     const cancelSearchCallback = useCallback(() => {
         setSearchRouterListVisible(false);
-    }, []);
+    }, [setSearchRouterListVisible]);
 
     const handleSearchAction = useCallback((value: SearchParams | string) => {
         if (typeof value === 'string') {

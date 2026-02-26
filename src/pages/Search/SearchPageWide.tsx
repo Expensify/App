@@ -1,3 +1,5 @@
+import type {RouteProp} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
@@ -11,7 +13,7 @@ import {useSearchStateContext} from '@components/Search/SearchContext';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -19,18 +21,21 @@ import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type SearchPageWideProps = {
-    queryJSON?: SearchQueryJSON;
     scrollHandler: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
 
-function SearchPageWide({queryJSON, scrollHandler}: SearchPageWideProps) {
+function SearchPageWide({scrollHandler}: SearchPageWideProps) {
+    const route = useRoute<RouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>>();
+    const queryJSON = buildSearchQueryJSON(route.params.q, route.params.rawQuery);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
