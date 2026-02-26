@@ -162,6 +162,10 @@ function TransactionListItem<TItem extends ListItem>({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
+    // Captures editing state at mousedown so onPress can guard correctly.
+    // isEditingCell may already be false by the time onPress fires (blur resets it first).
+    const wasEditingOnMouseDownRef = useRef(false);
+
     // Inline edit
     const transactionThreadReportID = transactionItem.reportAction?.childReportID;
     const transactionID = transactionItem.transactionID;
@@ -189,8 +193,10 @@ function TransactionListItem<TItem extends ListItem>({
     };
 
     const handleOnPress = () => {
-        // If a cell is being edited, close it — a second tap will open the row
-        if (isEditingCell) {
+        // Consume the tap that dismissed an editing cell — a second tap will open the row.
+        // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
+        if (wasEditingOnMouseDownRef.current) {
+            wasEditingOnMouseDownRef.current = false;
             return;
         }
         onSelectRow(item, transactionPreviewData);
@@ -229,11 +235,11 @@ function TransactionListItem<TItem extends ListItem>({
                 role={getButtonRole(true)}
                 isNested
                 onMouseDown={(e) => {
-                    // Allow native mousedown when editing so the browser naturally blurs the input and triggers save/cancel on the cell
-                    if (isEditingCell) {
-                        return;
+                    wasEditingOnMouseDownRef.current = isEditingCell;
+                    // Skip preventDefault when editing so the browser naturally blurs the input (triggering save/cancel).
+                    if (!isEditingCell) {
+                        e.preventDefault();
                     }
-                    e.preventDefault();
                 }}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}

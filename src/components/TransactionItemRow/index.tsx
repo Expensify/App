@@ -554,6 +554,7 @@ function TransactionItemRow({
                         <TotalCell
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                             isEditable={canInlineEdit}
                             canEdit={canEditCell}
                             onSave={onEditAmount}
