@@ -42,6 +42,7 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
+import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
@@ -300,32 +301,25 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     // Mutated during render (not in useEffect) so the value is available synchronously
     // for the hasUserSentMessage memo below — avoids an extra render cycle.
     const {shouldHideSidePanel} = useSidePanelState();
-    const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
-    const sessionStartActionIDs = useRef<Set<string> | null>(null);
-    const isSessionStartLocked = useRef(false);
+    const wasPanelHidden = useRef(true);
+    const sessionStartTime = useRef<string | null>(null);
 
-    const shouldResetSession = !isConciergeSidePanel || (prevShouldHideSidePanel && !shouldHideSidePanel);
-    if (shouldResetSession && sessionStartActionIDs.current !== null) {
-        sessionStartActionIDs.current = null;
-        isSessionStartLocked.current = false;
-    }
-
-    // Keep updating sessionStartActionIDs while the initial load is in progress so we
-    // capture the full set of pre-existing actions. Once loading finishes, lock it so
-    // new user messages aren't accidentally included in the snapshot.
-    if (isConciergeSidePanel && reportActions.length > 0 && !isSessionStartLocked.current) {
-        sessionStartActionIDs.current = new Set(reportActions.map((action) => action.reportActionID));
-        if (!reportMetadata.isLoadingInitialReportActions) {
-            isSessionStartLocked.current = true;
+    const isPanelActive = isConciergeSidePanel && !shouldHideSidePanel;
+    if (isPanelActive) {
+        if (wasPanelHidden.current) {
+            sessionStartTime.current = DateUtils.getDBTime();
+            wasPanelHidden.current = false;
         }
+    } else {
+        wasPanelHidden.current = true;
     }
 
     const hasUserSentMessage = useMemo(() => {
-        const startIDs = sessionStartActionIDs.current;
-        if (!isConciergeSidePanel || !startIDs) {
+        const startTime = sessionStartTime.current;
+        if (!isConciergeSidePanel || !startTime) {
             return false;
         }
-        return reportActions.some((action) => !isCreatedAction(action) && !startIDs.has(action.reportActionID) && action.actorAccountID === currentUserAccountID);
+        return reportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= startTime);
     }, [isConciergeSidePanel, reportActions, currentUserAccountID]);
     const viewportOffsetTop = useViewportOffsetTop();
 
@@ -1078,7 +1072,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 isReportTransactionThread={isTransactionThreadView}
                                                 isConciergeSidePanel={isConciergeSidePanel}
                                                 hasUserSentMessage={hasUserSentMessage}
-                                                sessionStartActionIDs={sessionStartActionIDs.current}
+                                                sessionStartTime={sessionStartTime.current}
                                             />
                                         ) : null}
                                         {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (

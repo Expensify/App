@@ -76,8 +76,8 @@ type ReportActionsViewProps = {
     /** Whether the current user has sent a message in this side panel session */
     hasUserSentMessage?: boolean;
 
-    /** Set of reportActionIDs that existed when the side panel session started (from ReportScreen) */
-    sessionStartActionIDs?: Set<string> | null;
+    /** DB-time string marking when the current side panel session started */
+    sessionStartTime?: string | null;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -93,7 +93,7 @@ function ReportActionsView({
     isReportTransactionThread,
     isConciergeSidePanel = false,
     hasUserSentMessage = false,
-    sessionStartActionIDs = null,
+    sessionStartTime = null,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const {translate} = useLocalize();
@@ -305,7 +305,7 @@ function ReportActionsView({
         isConciergeSidePanel,
         hasUserSentMessage,
         hasOlderActions,
-        sessionStartActionIDs,
+        sessionStartTime,
         currentUserAccountID,
         greetingText: translate('common.concierge.sidePanelGreeting'),
         loadOlderChats,

@@ -2,10 +2,7 @@ import {useCallback, useMemo, useState} from 'react';
 import DateUtils from '@libs/DateUtils';
 import {isCreatedAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-
-const ONBOARDING_WINDOW_MS = 10 * 60 * 1000;
 
 type UseConciergeSidePanelReportActionsParams = {
     report: OnyxTypes.Report;
@@ -14,7 +11,7 @@ type UseConciergeSidePanelReportActionsParams = {
     isConciergeSidePanel: boolean;
     hasUserSentMessage: boolean;
     hasOlderActions: boolean;
-    sessionStartActionIDs: Set<string> | null;
+    sessionStartTime: string | null;
     currentUserAccountID: number;
     greetingText: string;
     loadOlderChats: (force?: boolean) => void;
@@ -27,7 +24,7 @@ function useConciergeSidePanelReportActions({
     isConciergeSidePanel,
     hasUserSentMessage,
     hasOlderActions,
-    sessionStartActionIDs,
+    sessionStartTime,
     currentUserAccountID,
     greetingText,
     loadOlderChats,
@@ -42,51 +39,31 @@ function useConciergeSidePanelReportActions({
     }
 
     // Check if the user had sent any message BEFORE this session started.
-    // Uses sessionStartActionIDs so the value is stable within a session —
-    // it won't flip when the user sends their first-ever message mid-session.
-    // On a brand-new account (no prior user messages) the original onboarding
-    // messages remain visible instead of being replaced by the custom greeting.
+    // Uses sessionStartTime as the boundary — any user message created before the
+    // panel opened is a pre-session message, regardless of when it was loaded.
+    // This avoids the race condition where action IDs are locked before
+    // all actions (including user messages) have loaded.
     //
-    // When no user message is found in the loaded set, we use the CREATED action's
-    // timestamp to check if loaded Concierge messages are onboarding messages
-    // (created within a short window). If the CREATED action hasn't loaded yet,
-    // hasOlderActions tells us there's unloaded history — the user has likely
-    // interacted before.
+    // When no user message is found in the loaded set, hasOlderActions indicates
+    // whether there is unloaded history. On a new account all onboarding messages
+    // fit in a single page (hasOlderActions=false). On an existing account with
+    // prior interactions the history spans multiple pages (hasOlderActions=true).
     const hadUserMessageAtSessionStart = useMemo(() => {
-        if (!isConciergeSidePanel || !sessionStartActionIDs) {
+        if (!isConciergeSidePanel || !sessionStartTime) {
             return false;
         }
         const hasUserMessageInLoadedSet = visibleReportActions.some(
-            (action) => !isCreatedAction(action) && sessionStartActionIDs.has(action.reportActionID) && action.actorAccountID === currentUserAccountID,
+            (action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created < sessionStartTime,
         );
-        if (hasUserMessageInLoadedSet) {
-            return true;
-        }
-        const createdAction = visibleReportActions.find(isCreatedAction);
-        if (!createdAction) {
-            return hasOlderActions;
-        }
-        const createdActionTime = new Date(createdAction.created).getTime();
-        const nonCreatedActions = visibleReportActions.filter((action) => !isCreatedAction(action) && sessionStartActionIDs.has(action.reportActionID));
-        if (nonCreatedActions.length === 0) {
-            return false;
-        }
-        const areAllOnboardingMessages = nonCreatedActions.every((action) => {
-            if (action.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
-                return false;
-            }
-            const actionTime = new Date(action.created).getTime();
-            return Math.abs(actionTime - createdActionTime) <= ONBOARDING_WINDOW_MS;
-        });
-        return !areAllOnboardingMessages;
-    }, [isConciergeSidePanel, visibleReportActions, sessionStartActionIDs, currentUserAccountID, hasOlderActions]);
+        return hasUserMessageInLoadedSet || hasOlderActions;
+    }, [isConciergeSidePanel, visibleReportActions, currentUserAccountID, sessionStartTime, hasOlderActions]);
 
     const hasPreviousMessages = useMemo(() => {
-        if (!isConciergeSidePanel || !sessionStartActionIDs || !hadUserMessageAtSessionStart) {
+        if (!isConciergeSidePanel || !hadUserMessageAtSessionStart || !sessionStartTime) {
             return false;
         }
-        return visibleReportActions.some((action) => !isCreatedAction(action) && sessionStartActionIDs.has(action.reportActionID));
-    }, [isConciergeSidePanel, visibleReportActions, sessionStartActionIDs, hadUserMessageAtSessionStart]);
+        return visibleReportActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTime);
+    }, [isConciergeSidePanel, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart]);
 
     const showConciergeSidePanelWelcome = isConciergeSidePanel && hadUserMessageAtSessionStart && !hasUserSentMessage && !showFullHistory;
     const showConciergeGreeting = isConciergeSidePanel && hadUserMessageAtSessionStart && !showFullHistory;
@@ -99,25 +76,25 @@ function useConciergeSidePanelReportActions({
     }, [showConciergeGreeting, report.reportID, report.lastReadTime, greetingText]);
 
     const firstUserMessageCreated = useMemo(() => {
-        if (showConciergeSidePanelWelcome || !isConciergeSidePanel || !hasUserSentMessage || !sessionStartActionIDs) {
+        if (showConciergeSidePanelWelcome || !isConciergeSidePanel || !hasUserSentMessage || !sessionStartTime) {
             return undefined;
         }
         return reportActions.reduce<string | undefined>((earliest, action) => {
-            if (isCreatedAction(action) || sessionStartActionIDs.has(action.reportActionID) || action.actorAccountID !== currentUserAccountID) {
+            if (isCreatedAction(action) || action.created < sessionStartTime || action.actorAccountID !== currentUserAccountID) {
                 return earliest;
             }
             return !earliest || action.created < earliest ? action.created : earliest;
         }, undefined);
-    }, [showConciergeSidePanelWelcome, isConciergeSidePanel, hasUserSentMessage, sessionStartActionIDs, reportActions, currentUserAccountID]);
+    }, [showConciergeSidePanelWelcome, isConciergeSidePanel, hasUserSentMessage, sessionStartTime, reportActions, currentUserAccountID]);
 
     const isCurrentSessionAction = useCallback(
         (action: OnyxTypes.ReportAction): boolean => {
-            if (!firstUserMessageCreated) {
+            if (!firstUserMessageCreated || !sessionStartTime) {
                 return false;
             }
-            return isCreatedAction(action) || (!sessionStartActionIDs?.has(action.reportActionID) && action.created >= firstUserMessageCreated);
+            return isCreatedAction(action) || (action.created >= sessionStartTime && action.created >= firstUserMessageCreated);
         },
-        [firstUserMessageCreated, sessionStartActionIDs],
+        [firstUserMessageCreated, sessionStartTime],
     );
 
     const filterActions = useCallback(
