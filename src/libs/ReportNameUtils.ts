@@ -149,6 +149,15 @@ Onyx.connect({
     },
 });
 
+/**
+ * Strips accounting-style parentheses from currency amounts in report names.
+ * The backend formats negative amounts with parentheses (e.g., "($25.00)") instead of
+ * a minus sign. This function converts them to the standard format (e.g., "$25.00").
+ */
+function stripAccountingBrackets(reportName: string): string {
+    return reportName.replace(/\(([^)]*\d[^)]*)\)/g, '$1');
+}
+
 function generateArchivedReportName(reportName: string): string {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return `${reportName} (${translateLocal('common.archived')}) `;
@@ -335,7 +344,7 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
     }
 
     if (report?.reportName && isExpenseReport(report)) {
-        return report.reportName;
+        return stripAccountingBrackets(report.reportName);
     }
 
     const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
@@ -780,7 +789,7 @@ function computeReportName(
     }
 
     if (report?.reportName && report.type === CONST.REPORT.TYPE.EXPENSE) {
-        return report?.reportName;
+        return stripAccountingBrackets(report.reportName);
     }
 
     if (isTaskReport(report)) {

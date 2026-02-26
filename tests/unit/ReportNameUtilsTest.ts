@@ -744,6 +744,25 @@ describe('ReportNameUtils', () => {
             expect(reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
+        it('should strip accounting-style parentheses from expense report reportName', () => {
+            // Given an expense report with a reportName containing accounting-style parenthesized amount
+            const expenseReport: Report = {
+                ...createExpenseReport(202),
+                reportID: '202',
+                reportName: 'Workspace owes ($25.00)',
+                policyID: '202',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: -2500,
+                currency: 'USD',
+            };
+
+            // When we get the money request report name
+            const reportName = getMoneyRequestReportName({report: expenseReport});
+
+            // Then it should strip the accounting-style parentheses
+            expect(reportName).toBe('Workspace owes $25.00');
+        });
+
         it('should not return empty string for expense report with empty reportName when policy has a normal fieldList', () => {
             // Given an expense report with empty reportName
             const expenseReport: Report = {
