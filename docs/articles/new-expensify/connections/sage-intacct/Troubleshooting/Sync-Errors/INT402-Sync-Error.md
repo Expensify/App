@@ -1,31 +1,35 @@
 ---
-title: INT402 Sync Error: Unable to Return Values for User-Defined Dimension
-description: Learn why the INT402 sync error occurs and how to properly configure user-defined dimensions and permissions in Sage Intacct.
-keywords: INT402, Sage Intacct user-defined dimension error, UDD sync error, dimension permissions Sage Intacct, configure user-defined dimensions Expensify
-internalScope: Audience is Workspace Admins managing the Sage Intacct integration. Covers the INT402 sync error related to user-defined dimensions and permission setup. Does not cover export validation errors.
+title: INT402 Sync Error in Sage Intacct Integration
+description: Learn what the INT402 sync error means and how to properly configure user-defined dimensions and permissions in Sage Intacct.
+keywords: INT402, Sage Intacct user-defined dimension error, UDD sync error, dimension permissions Sage Intacct, configure user-defined dimensions Workspace, Sage Intacct integration
+internalScope: Audience is Workspace Admins managing the Sage Intacct integration. Covers resolving the INT402 sync error related to user-defined dimensions and permission setup. Does not cover export validation or report-level errors.
 ---
 
-# INT402 Sync Error: Unable to Return Values for User-Defined Dimension
+# INT402 Sync Error in Sage Intacct Integration
 
-If you see the error message:
+If you see the error:
 
-**“INT402 Sync Error: Sage Intacct couldn’t return values for dimension [X]. This typically occurs when user-defined dimensions aren’t set up correctly or are missing permissions.”**
+INT402 Sync Error: Sage Intacct couldn’t return values for dimension [X]. This typically occurs when user-defined dimensions aren’t set up correctly or are missing permissions.
 
-It means Sage Intacct cannot retrieve values for a user-defined dimension (UDD).
+This means Sage Intacct cannot retrieve values for a user-defined dimension (UDD).
 
 This usually indicates a setup or permissions issue in Sage Intacct or an incorrect configuration in the Workspace.
 
 ---
 
-## Why the INT402 Sync Error Happens
+## Why the INT402 Sync Error Happens in Sage Intacct
 
-The INT402 sync error occurs when:
+The INT402 error typically occurs when:
 
-- A user-defined dimension is not fully configured in Sage Intacct, or  
-- Required permissions are missing for the integration user, or  
-- The dimension is incorrectly configured in the Workspace  
+- A user-defined dimension is not fully configured in Sage Intacct.
+- The dimension is inactive.
+- Required permissions are missing for the integration user.
+- The dimension is incorrectly configured in the Workspace.
+- The integration user does not have access to the dimension object.
 
 If Sage Intacct cannot return dimension values, the sync will fail.
+
+This is a dimension configuration or permissions issue, not an export data issue.
 
 ---
 
@@ -35,34 +39,44 @@ Follow the steps below to verify configuration and permissions.
 
 ---
 
-## Step 1: Verify User-Defined Dimensions in Sage Intacct
+## Verify User-Defined Dimensions in Sage Intacct
 
-1. Log in to Sage Intacct.  
-2. Go to **Platform Services > Objects > List**.  
-3. Filter by **User-Defined Dimensions**.  
-4. Confirm the dimension referenced in the error:
-   - Is fully configured  
-   - Is active  
-   - Has appropriate permissions for the integration user  
+1. Log in to Sage Intacct as an administrator.
+2. Go to **Platform Services > Objects > List**.
+3. Filter by **User-Defined Dimensions**.
+4. Locate the dimension referenced in the error message.
+5. Confirm the dimension:
+   - Is fully configured.
+   - Is active.
+   - Has appropriate permissions assigned to the integration user.
+6. Update any missing configuration or permissions.
+7. Click **Save**.
 
-Update any missing configuration or permissions and save your changes.
-
----
-
-## Step 2: Reconfigure the Dimension in the Workspace
-
-1. Go to **Workspace > [Workspace Name] > Accounting > Coding**.  
-2. Disable the affected user-defined dimension.  
-3. Re-add the dimension by following the steps outlined here:  
-   https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct#user-defined-dimensions-udds  
-
-Save your changes.
+Ensure the integration user has access to view and retrieve values for the dimension.
 
 ---
 
-## Step 3: Retry the Sync
+## Reconfigure the User-Defined Dimension in the Workspace
 
-Return to **Workspace > [Workspace Name] > Accounting** and run **Sync** again.
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Open the coding or dimension settings section.
+5. Disable the affected user-defined dimension.
+6. Save your changes.
+7. Re-enable or re-add the dimension after confirming it is correctly configured in Sage Intacct.
+8. Click **Save**.
+
+Reconfiguring ensures the Workspace is aligned with the current Sage Intacct dimension setup.
+
+---
+
+## Run Sync
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
 
 If the dimension is properly configured and permissions are correct, the sync should complete successfully.
 
@@ -70,14 +84,14 @@ If the dimension is properly configured and permissions are correct, the sync sh
 
 # FAQ
 
-## Do user-defined dimensions require special permissions?
+## Do User-Defined Dimensions Require Special Permissions?
 
-Yes. The integration user must have permission to access the dimension object in Sage Intacct.
+Yes. The integration user must have permission to access and retrieve values for the user-defined dimension object in Sage Intacct.
 
-## Should I delete and recreate the dimension?
+## Should I Delete and Recreate the Dimension?
 
-Not necessarily. First confirm the configuration and permissions are correct. Only recreate the dimension if it is incorrectly configured.
+Not necessarily. First confirm the configuration and permissions are correct. Only recreate the dimension if it is incorrectly configured or corrupted.
 
-## Does this error affect exports?
+## Does the INT402 Error Affect Exports?
 
 Yes. If sync fails due to a dimension issue, exports that rely on that dimension may also fail until the issue is resolved.
