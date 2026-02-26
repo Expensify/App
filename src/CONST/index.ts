@@ -8889,12 +8889,10 @@ const CONST = {
         USER_LIST_ITEM: {
             CHECKBOX: 'UserListItem-Checkbox',
             CHECKBOX_RIGHT: 'UserListItem-CheckboxRight',
-            LEFT_CHECKBOX: 'UserListItem-LeftCheckbox',
-            RIGHT_CHECKBOX: 'UserListItem-RightCheckbox',
         },
         USER_LIST_ITEM_WITH_SECTIONS: {
-            CHECKBOX: 'UserListItemWithSections-Checkbox',
-            CHECKBOX_RIGHT: 'UserListItemWithSections-CheckboxRight',
+            LEFT_CHECKBOX: 'UserListItemWithSections-LeftCheckbox',
+            RIGHT_CHECKBOX: 'UserListItemWithSections-RightCheckbox',
         },
         UPLOAD_FILE: {
             REMOVE_BUTTON: 'UploadFile-RemoveButton',

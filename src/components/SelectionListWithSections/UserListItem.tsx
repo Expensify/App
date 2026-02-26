@@ -108,10 +108,9 @@ function UserListItem<TItem extends ListItem>({
                 >
                     {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
                         <PressableWithFeedback
-                            sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM.LEFT_CHECKBOX}
+                            sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.LEFT_CHECKBOX}
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
-                            sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.CHECKBOX}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
                             onPress={handleCheckboxPress}
@@ -178,10 +177,9 @@ function UserListItem<TItem extends ListItem>({
                     )}
                     {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
                         <PressableWithFeedback
-                            sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM.RIGHT_CHECKBOX}
+                            sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.RIGHT_CHECKBOX}
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
-                            sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.CHECKBOX_RIGHT}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
                             onPress={handleCheckboxPress}
