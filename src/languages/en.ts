@@ -976,6 +976,11 @@ const translations = {
                 subtitle: 'Provide an address to receive your Expensify Card.',
                 cta: 'Add address',
             },
+            addPaymentCard: {
+                title: 'Add a payment card to keep using Expensify',
+                subtitle: 'Account > Subscription',
+                cta: 'Add',
+            },
             activateCard: {
                 title: 'Activate your Expensify Card',
                 subtitle: 'Validate your card and start spending.',
@@ -1105,6 +1110,7 @@ const translations = {
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
+        crop: 'Crop',
         addAReceipt: {
             phrase1: 'Add a receipt',
             phrase2: 'or drag and drop one here',
@@ -1491,7 +1497,7 @@ const translations = {
                 markedAsResolved: 'marked the rejection reason as resolved',
             },
         },
-        moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
+        moveExpenses: 'Move to report',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         changeApprover: {
             title: 'Change approver',
@@ -4296,6 +4302,9 @@ const translations = {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
                 },
             },
+            travelInvoicing: 'Travel Invoicing',
+            travelInvoicingVendor: 'Travel vendor',
+            travelInvoicingPayableAccount: 'Travel payable account',
         },
         workspaceList: {
             joinNow: 'Join now',
@@ -5143,6 +5152,7 @@ const translations = {
                         confirm: 'Got it',
                     },
                 },
+                personalDetailsDescription: 'In order to book travel, please enter your legal name as it appears on your government-issued ID.',
             },
             expensifyCard: {
                 title: 'Expensify Card',

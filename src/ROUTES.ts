@@ -1632,6 +1632,24 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/invoice-account-select` as const, backTo),
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/travel-invoicing',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/travel-invoicing` as const, backTo),
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/travel-invoicing/vendor',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/travel-invoicing/vendor` as const, backTo),
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/travel-invoicing/payable-account',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/travel-invoicing/payable-account` as const, backTo),
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/preferred-exporter',
 
@@ -2613,6 +2631,10 @@ const ROUTES = {
     WORKSPACE_TRAVEL_SETTINGS_FREQUENCY: {
         route: 'workspaces/:policyID/travel/settings/frequency',
         getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/frequency` as const,
+    },
+    WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS: {
+        route: 'workspaces/:policyID/travel/missing-personal-details',
+        getRoute: (policyID: string) => `workspaces/${policyID}/travel/missing-personal-details` as const,
     },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'workspaces/:policyID/distance-rates/new',

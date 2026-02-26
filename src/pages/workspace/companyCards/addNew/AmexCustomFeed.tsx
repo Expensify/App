@@ -19,13 +19,8 @@ function AmexCustomFeed() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED> | undefined>(addNewCard?.data.selectedAmexCustomFeed);
-    const [prevSelectedFeed, setPrevSelectedFeed] = useState(addNewCard?.data.selectedAmexCustomFeed);
-    if (prevSelectedFeed !== addNewCard?.data.selectedAmexCustomFeed) {
-        setPrevSelectedFeed(addNewCard?.data.selectedAmexCustomFeed);
-        setTypeSelected(addNewCard?.data.selectedAmexCustomFeed);
-    }
-
+    const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
+    const typeSelected = localTypeSelected ?? addNewCard?.data.selectedAmexCustomFeed;
     const [hasError, setHasError] = useState(false);
 
     const submit = () => {
@@ -95,7 +90,7 @@ function AmexCustomFeed() {
                 data={data}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => {
-                    setTypeSelected(value);
+                    setLocalTypeSelected(value);
                     setHasError(false);
                 }}
                 confirmButtonOptions={confirmButtonOptions}
