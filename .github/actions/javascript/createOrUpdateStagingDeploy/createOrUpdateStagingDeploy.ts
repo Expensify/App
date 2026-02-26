@@ -5,12 +5,99 @@ import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import type {StagingDeployCashData} from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
+import type {MergedPR, SubmoduleUpdate} from '@github/libs/GitUtils';
 
 type IssuesCreateResponse = Awaited<ReturnType<typeof GithubUtils.octokit.issues.create>>['data'];
 
 type PackageJson = {
     version: string;
 };
+
+type TimelineEntry = {type: 'pr'; prNumber: number; date: string} | {type: 'submodule'; version: string; date: string; commit: string};
+
+async function buildChronologicalSection({
+    chronologicalPREntries,
+    submoduleUpdates,
+    mergedMobileExpensifyPREntries,
+}: {
+    chronologicalPREntries: MergedPR[];
+    submoduleUpdates: SubmoduleUpdate[];
+    mergedMobileExpensifyPREntries: MergedPR[];
+}): Promise<string> {
+    if (chronologicalPREntries.length === 0 && submoduleUpdates.length === 0 && mergedMobileExpensifyPREntries.length === 0) {
+        return '';
+    }
+
+    // Look up workflow run URLs for each submodule update commit
+    const submoduleRunURLs = new Map<string, string | undefined>();
+    const results = await Promise.allSettled(
+        submoduleUpdates.map(async (update) => {
+            const runURL = await GithubUtils.getWorkflowRunURLForCommit(update.commit, 'testBuildOnPush.yml');
+            return {commit: update.commit, runURL};
+        }),
+    );
+    for (const result of results) {
+        if (result.status === 'fulfilled') {
+            submoduleRunURLs.set(result.value.commit, result.value.runURL);
+        }
+    }
+
+    // Group Mobile-Expensify PRs by the submodule update that introduced them.
+    // A Mobile-Expensify PR is assigned to the first submodule bump whose date >= PR merge date,
+    // because merging to Mobile-Expensify doesn't matter until the submodule is actually bumped in App.
+    const sortedSubmoduleUpdates = [...submoduleUpdates].sort((a, b) => a.date.localeCompare(b.date));
+    const mobileExpensifyPRsBySubmodule = new Map<string, MergedPR[]>();
+    const mobileExpensifyPRsPendingSubmoduleUpdate: MergedPR[] = [];
+    for (const mobileExpensifyPR of mergedMobileExpensifyPREntries) {
+        const matchingUpdate = sortedSubmoduleUpdates.find((update) => update.date.localeCompare(mobileExpensifyPR.date) >= 0);
+        if (matchingUpdate) {
+            const existing = mobileExpensifyPRsBySubmodule.get(matchingUpdate.commit) ?? [];
+            existing.push(mobileExpensifyPR);
+            mobileExpensifyPRsBySubmodule.set(matchingUpdate.commit, existing);
+        } else {
+            mobileExpensifyPRsPendingSubmoduleUpdate.push(mobileExpensifyPR);
+        }
+    }
+
+    // Merge PRs and submodule updates into a single chronological timeline
+    const timeline: TimelineEntry[] = [
+        ...chronologicalPREntries.map((pr): TimelineEntry => ({type: 'pr', prNumber: pr.prNumber, date: pr.date})),
+        ...submoduleUpdates.map((update): TimelineEntry => ({type: 'submodule', version: update.version, date: update.date, commit: update.commit})),
+    ].sort((a, b) => a.date.localeCompare(b.date));
+
+    let section = '<details>\r\n<summary><b>Chronologically ordered merged PRs (oldest first)</b></summary>\r\n\r\n';
+    let prIndex = 0;
+    for (const entry of timeline) {
+        if (entry.type === 'submodule') {
+            prIndex++;
+            const runURL = submoduleRunURLs.get(entry.commit);
+            const buildLink = runURL ? ` — [Adhoc Build](${runURL})` : ` — ${entry.commit.substring(0, 7)}`;
+            section += `${prIndex}. Mobile-Expensify submodule update to \`${entry.version}\`${buildLink}\r\n`;
+            const mobileExpensifyPRs = mobileExpensifyPRsBySubmodule.get(entry.commit);
+            if (mobileExpensifyPRs) {
+                const sortedMobileExpensifyPRs = [...mobileExpensifyPRs].sort((a, b) => a.date.localeCompare(b.date));
+                for (const mobileExpensifyPR of sortedMobileExpensifyPRs) {
+                    const mobileExpensifyUrl = GithubUtils.getPullRequestURLFromNumber(mobileExpensifyPR.prNumber, CONST.MOBILE_EXPENSIFY_URL);
+                    section += `   ↳ ${mobileExpensifyUrl}\r\n`;
+                }
+            }
+        } else {
+            prIndex++;
+            const url = GithubUtils.getPullRequestURLFromNumber(entry.prNumber, CONST.APP_REPO_URL);
+            section += `${prIndex}. ${url}\r\n`;
+        }
+    }
+    if (mobileExpensifyPRsPendingSubmoduleUpdate.length > 0) {
+        const sortedPending = [...mobileExpensifyPRsPendingSubmoduleUpdate].sort((a, b) => a.date.localeCompare(b.date));
+        section += `\r\n--- PRs waiting for Mobile-Expensify submodule update\r\n`;
+        for (const mobileExpensifyPR of sortedPending) {
+            const mobileExpensifyUrl = GithubUtils.getPullRequestURLFromNumber(mobileExpensifyPR.prNumber, CONST.MOBILE_EXPENSIFY_URL);
+            section += `${mobileExpensifyUrl}\r\n`;
+        }
+    }
+    section += '\r\n</details>';
+    return section;
+}
 
 async function run(): Promise<IssuesCreateResponse | void> {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
@@ -55,7 +142,8 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const currentChecklistData: StagingDeployCashData | undefined = shouldCreateNewDeployChecklist ? undefined : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
+        const {mergedPRs: mergedPREntries, submoduleUpdates} = await GitUtils.getMergedPRsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
+        const mergedPRs = mergedPREntries.map((pr) => pr.prNumber).sort((a, b) => a - b);
 
         // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
         const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
@@ -76,19 +164,23 @@ async function run(): Promise<IssuesCreateResponse | void> {
         core.endGroup();
         console.info(`[api] Checklist PRs: ${newPRNumbers.join(', ')}`);
 
-        // Get merged Mobile-Expensify PRs
-        let mergedMobileExpensifyPRs: number[] = [];
+        // Get merged Mobile-Expensify PRs (with dates for chronological grouping by submodule update)
+        let mergedMobileExpensifyPREntries: MergedPR[] = [];
         try {
-            const allMobileExpensifyPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.MOBILE_EXPENSIFY_REPO);
-            mergedMobileExpensifyPRs = allMobileExpensifyPRs.filter((prNum) => !previousMobileExpensifyPRNumbers.has(prNum));
+            const {mergedPRs: allMobileExpensifyPREntries} = await GitUtils.getMergedPRsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.MOBILE_EXPENSIFY_REPO);
+            mergedMobileExpensifyPREntries = allMobileExpensifyPREntries.filter((pr) => !previousMobileExpensifyPRNumbers.has(pr.prNumber));
 
-            console.info(`Found ${allMobileExpensifyPRs.length} total Mobile-Expensify PRs, ${mergedMobileExpensifyPRs.length} new ones after filtering:`);
-            console.info(`Mobile-Expensify PRs: ${mergedMobileExpensifyPRs.join(', ')}`);
+            const allCount = allMobileExpensifyPREntries.length;
+            const newCount = mergedMobileExpensifyPREntries.length;
+            console.info(`Found ${allCount} total Mobile-Expensify PRs, ${newCount} new ones after filtering:`);
+            console.info(`Mobile-Expensify PRs: ${mergedMobileExpensifyPREntries.map((pr) => pr.prNumber).join(', ')}`);
 
             // Log the Mobile-Expensify PRs that were filtered out
-            const removedMobileExpensifyPRs = allMobileExpensifyPRs.filter((prNum) => previousMobileExpensifyPRNumbers.has(prNum));
+            const removedMobileExpensifyPRs = allMobileExpensifyPREntries.filter((pr) => previousMobileExpensifyPRNumbers.has(pr.prNumber));
             if (removedMobileExpensifyPRs.length > 0) {
-                core.info(`⚠️⚠️ Filtered out the following cherry-picked Mobile-Expensify PRs that were released with the previous checklist: ${removedMobileExpensifyPRs.join(', ')} ⚠️⚠️`);
+                core.info(
+                    `⚠️⚠️ Filtered out the following cherry-picked Mobile-Expensify PRs that were released with the previous checklist: ${removedMobileExpensifyPRs.map((pr) => pr.prNumber).join(', ')} ⚠️⚠️`,
+                );
             }
         } catch (error) {
             // Check if this is a forked repository
@@ -101,22 +193,24 @@ async function run(): Promise<IssuesCreateResponse | void> {
             }
         }
 
+        const chronologicalPREntries = mergedPREntries.filter((pr) => !previousPRNumbers.has(pr.prNumber)).sort((a, b) => a.date.localeCompare(b.date));
+        const chronologicalSection = await buildChronologicalSection({
+            chronologicalPREntries,
+            submoduleUpdates,
+            mergedMobileExpensifyPREntries,
+        });
+
         // Next, we generate the checklist body
         let checklistBody = '';
         let checklistAssignees: string[] = [];
         if (shouldCreateNewDeployChecklist) {
-            const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
-                newVersion,
-                newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.APP_REPO_URL)),
-                mergedMobileExpensifyPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.MOBILE_EXPENSIFY_URL)),
-                [], // verifiedPRList
-                [], // verifiedPRListMobileExpensify
-                [], // deployBlockers
-                [], // resolvedDeployBlockers
-                [], // resolvedInternalQAPRs
-                false, // isFirebaseChecked
-                false, // isGHStatusChecked
-            );
+            const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees({
+                tag: newVersion,
+                PRList: newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.APP_REPO_URL)),
+                PRListMobileExpensify: mergedMobileExpensifyPREntries.map((pr) => GithubUtils.getPullRequestURLFromNumber(pr.prNumber, CONST.MOBILE_EXPENSIFY_URL)),
+                previousTag: previousChecklistData.version,
+                chronologicalSection,
+            });
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
                 checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean) as string[];
@@ -134,12 +228,12 @@ async function run(): Promise<IssuesCreateResponse | void> {
             });
 
             // Generate the updated Mobile-Expensify PR list, preserving the previous state of `isVerified` for existing PRs
-            const PRListMobileExpensify = mergedMobileExpensifyPRs.map((prNum) => {
-                const indexOfPRInCurrentChecklist = currentChecklistData?.PRListMobileExpensify.findIndex((pr) => pr.number === prNum) ?? -1;
+            const PRListMobileExpensify = mergedMobileExpensifyPREntries.map((entry) => {
+                const indexOfPRInCurrentChecklist = currentChecklistData?.PRListMobileExpensify.findIndex((pr) => pr.number === entry.prNumber) ?? -1;
                 const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRListMobileExpensify[indexOfPRInCurrentChecklist].isVerified : false;
                 return {
-                    number: prNum,
-                    url: GithubUtils.getPullRequestURLFromNumber(prNum, CONST.MOBILE_EXPENSIFY_URL),
+                    number: entry.prNumber,
+                    url: GithubUtils.getPullRequestURLFromNumber(entry.prNumber, CONST.MOBILE_EXPENSIFY_URL),
                     isVerified,
                 };
             });
@@ -181,18 +275,20 @@ async function run(): Promise<IssuesCreateResponse | void> {
             }
 
             const didVersionChange = newVersion !== currentChecklistData?.version;
-            const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
-                newVersion,
-                PRList.map((pr) => pr.url),
-                PRListMobileExpensify.map((pr) => pr.url),
-                PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
-                PRListMobileExpensify.filter((pr) => pr.isVerified).map((pr) => pr.url),
-                deployBlockers.map((blocker) => blocker.url),
-                deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url),
-                currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url),
-                didVersionChange ? false : currentChecklistData.isFirebaseChecked,
-                didVersionChange ? false : currentChecklistData.isGHStatusChecked,
-            );
+            const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees({
+                tag: newVersion,
+                PRList: PRList.map((pr) => pr.url),
+                PRListMobileExpensify: PRListMobileExpensify.map((pr) => pr.url),
+                verifiedPRList: PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
+                verifiedPRListMobileExpensify: PRListMobileExpensify.filter((pr) => pr.isVerified).map((pr) => pr.url),
+                deployBlockers: deployBlockers.map((blocker) => blocker.url),
+                resolvedDeployBlockers: deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url),
+                resolvedInternalQAPRs: currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url),
+                isSentryChecked: didVersionChange ? false : currentChecklistData.isSentryChecked,
+                isGHStatusChecked: didVersionChange ? false : currentChecklistData.isGHStatusChecked,
+                previousTag: previousChecklistData.version,
+                chronologicalSection,
+            });
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
                 checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean) as string[];

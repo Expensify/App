@@ -49,7 +49,7 @@ jobs:
 
   cherryPick:
     needs: createNewVersion
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Extract PR information
         # Note: this step is only skipped when there's no PULL_REQUEST_URL, which is only ever be the case when we're CPing just a version bump.
@@ -116,10 +116,12 @@ jobs:
           VERSION_BUMP_COMMIT="$(git log -1 --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
           if [ -z "$VERSION_BUMP_COMMIT" ]; then
             echo "::error::❌ Could not find E/App version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
-            git log --oneline
-          else
-            echo "::notice::👀 Found E/App version bump commit $VERSION_BUMP_COMMIT"
+            echo "::error::This may indicate E/App and Mobile-Expensify versions are out of sync"
+            echo "::error::Run the syncVersions workflow to fix, then retry this cherry-pick"
+            git log --oneline -20
+            exit 1
           fi
+          echo "::notice::👀 Found E/App version bump commit $VERSION_BUMP_COMMIT"
           echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
 
       - name: Get Mobile-Expensify version bump commit
@@ -130,10 +132,12 @@ jobs:
           VERSION_BUMP_COMMIT="$(git log -1 --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
           if [ -z "$VERSION_BUMP_COMMIT" ]; then
             echo "::error::❌ Could not find Mobile-Expensify version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
-            git log --oneline
-          else
-            echo "::notice::👀 Found Mobile-Expensify version bump commit $VERSION_BUMP_COMMIT"
+            echo "::error::This may indicate E/App and Mobile-Expensify versions are out of sync"
+            echo "::error::Run the syncVersions workflow to fix, then retry this cherry-pick"
+            git log --oneline -20
+            exit 1
           fi
+          echo "::notice::👀 Found Mobile-Expensify version bump commit $VERSION_BUMP_COMMIT"
           echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
 
       - name: Get merge commit for pull request to CP

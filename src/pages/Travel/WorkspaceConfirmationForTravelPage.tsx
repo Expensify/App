@@ -15,8 +15,8 @@ import type SCREENS from '@src/SCREENS';
 type WorkspaceConfirmationForTravelPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.WORKSPACE_CONFIRMATION>;
 
 function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTravelPageProps) {
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const goBack = () => {

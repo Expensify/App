@@ -1512,6 +1512,9 @@ type ACHAccount = {
 
     /** Bank account state */
     state?: string;
+
+    /** Emails of users who have had the bank account shared with them */
+    sharees?: string[];
 };
 
 /** Prohibited expense types */
@@ -1744,6 +1747,12 @@ type CodingRule = {
 
     /** When this rule was created */
     created?: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
 };
 
 /** Model of policy data */
@@ -1775,6 +1784,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The URL for the policy avatar */
         avatarURL?: string;
+
+        /** The client ID set by an Approved! Accountant for tracking purposes */
+        clientID?: string;
 
         /** Error objects keyed by field name containing errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;

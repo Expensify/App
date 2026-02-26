@@ -101,12 +101,11 @@ function ReportFooter({
     const personalDetail = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
-    const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const isAnonymousUser = useIsAnonymousUser();
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: isBlockedFromChatSelector,
-        canBeMissing: true,
     });
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
@@ -183,21 +182,31 @@ function ReportFooter({
         [allPersonalDetails, ancestors, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report],
     );
 
-    const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? report.reportID}`, {canBeMissing: true});
+    const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? report.reportID}`);
     const targetReportAncestors = useAncestors(targetReport);
 
     const onSubmitComment = useCallback(
-        (text: string) => {
+        (text: string, reportActionID?: string) => {
             const isTaskCreated = handleCreateTask(text);
             if (isTaskCreated) {
                 return;
             }
             // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
             // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
-            addComment(targetReport, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true, isInSidePanel);
+            addComment({
+                report: targetReport,
+                notifyReportID: report.reportID,
+                ancestors: targetReportAncestors,
+                text,
+                timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: personalDetail.accountID,
+                shouldPlaySound: true,
+                isInSidePanel,
+                reportActionID,
+            });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [report.reportID, handleCreateTask, targetReport, targetReportAncestors, isInSidePanel],
+        [report.reportID, handleCreateTask, targetReport, targetReportAncestors, isInSidePanel, personalDetail.accountID],
     );
 
     const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);

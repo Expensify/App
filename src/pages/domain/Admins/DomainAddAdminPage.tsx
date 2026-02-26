@@ -1,14 +1,12 @@
 import {adminAccountIDsSelector, domainEmailSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
-import type {SectionListData} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
-import type {Section} from '@components/SelectionListWithSections/types';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+import SingleSelectWithAvatarListItem from '@components/SelectionListWithSections/SingleSelectWithAvatarListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -27,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type Sections = SectionListData<OptionData, Section<OptionData>>;
+type Sections = Section<OptionData>;
 
 type DomainAddAdminProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_ADMIN>;
 
@@ -37,14 +35,12 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [domainEmail] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: domainEmailSelector,
     });
     const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
 
@@ -73,7 +69,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         }
         didInvite.current = true;
 
-        addAdminToDomain(domainAccountID, currentlySelectedUser.accountID, currentlySelectedUser.login, domainName);
+        addAdminToDomain(domainAccountID, currentlySelectedUser.accountID, currentlySelectedUser.login, domainName, !!currentlySelectedUser.isOptimisticAccount);
         Navigation.dismissModal();
     };
 
@@ -87,6 +83,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             sections.push({
                 title: undefined,
                 data: [currentlySelectedUser],
+                sectionIndex: 0,
             });
         }
 
@@ -94,6 +91,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             sections.push({
                 title: translate('common.contacts'),
                 data: filteredOptions,
+                sectionIndex: 1,
             });
         }
 
@@ -101,6 +99,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             sections.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
+                sectionIndex: 2,
             });
         }
     }
@@ -129,6 +128,13 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         return getHeaderMessage(filteredOptions.length > 0 || !!currentlySelectedUser, !!availableOptions.userToInvite, searchValue, countryCode, false);
     };
 
+    const textInputOptions = {
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage: headerMessage(),
+    };
+
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
             <ScreenWrapper
@@ -142,22 +148,23 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                     title={translate('domain.admins.addAdmin')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID))}
                 />
-                <SelectionList
+                <SelectionListWithSections
                     sections={sections}
-                    headerMessage={headerMessage()}
-                    ListItem={InviteMemberListItem}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                    textInputValue={searchTerm}
-                    onChangeText={(value) => setSearchTerm(value)}
-                    onSelectRow={(option: OptionData) => toggleSelection(option)}
-                    onConfirm={inviteUser}
-                    showScrollIndicator
+                    ListItem={SingleSelectWithAvatarListItem}
+                    shouldSingleExecuteRowSelect
+                    onSelectRow={toggleSelection}
+                    textInputOptions={textInputOptions}
+                    confirmButtonOptions={{
+                        onConfirm: inviteUser,
+                    }}
                     showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
-                    addBottomSafeAreaPadding
                     onEndReached={onListEndReached}
+                    addBottomSafeAreaPadding
+                    shouldShowTextInput
+                    disableMaintainingScrollPosition
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

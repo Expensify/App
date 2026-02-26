@@ -78,7 +78,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = getFieldRequiredErrors(values, stepFields);
+            const errors = getFieldRequiredErrors(values, stepFields, translate);
 
             const firstName = values[firstNameInputID as keyof FormOnyxValues<TFormID>] as string;
             if (!isRequiredFulfilled(firstName)) {
@@ -139,6 +139,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
                     forwardedFSClass={forwardedFSClass}
+                    autoComplete="given-name"
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -150,6 +151,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
                     forwardedFSClass={forwardedFSClass}
+                    autoComplete="family-name"
                 />
                 {shouldShowHelpLinks && (
                     <>

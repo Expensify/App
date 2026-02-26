@@ -283,6 +283,32 @@ describe('TransactionItemRowRBR', () => {
         expect(screen.getByText('Unexpected error posting the comment. Please try again later. Missing category.')).toBeOnTheScreen();
     });
 
+    it('should not display tax columns for time expense transactions', async () => {
+        const mockTimeTransaction = createBaseTransaction({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
+            taxAmount: 1000,
+            taxCode: 'TAX_CODE_1',
+            taxValue: '10%',
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION_ID}`, mockTimeTransaction);
+
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                <TransactionItemRow
+                    transactionItem={mockTimeTransaction}
+                    violations={undefined}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...defaultProps}
+                    columns={[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdates();
+
+        expect(screen.queryByText('10%')).not.toBeOnTheScreen();
+        expect(screen.queryByText('$10.00')).not.toBeOnTheScreen();
+    });
+
     it('should display RBR message for transaction with violations, errors, and missing merchant error', async () => {
         // Given a transaction with violations, errors, and missing merchant error
         const mockViolations: TransactionViolations = [
