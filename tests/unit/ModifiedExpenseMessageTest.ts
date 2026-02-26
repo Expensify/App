@@ -1,12 +1,16 @@
+import Onyx from 'react-native-onyx';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getForReportAction, getForReportActionTemp, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as PolicyUtils from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
+import * as ReportNameUtils from '@libs/ReportNameUtils';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -20,6 +24,12 @@ jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
     getPolicy: jest.fn(),
     isPolicyAdmin: jest.fn(),
+}));
+
+// Mock ReportNameUtils so buildReportNameFromParticipantNames is controllable.
+jest.mock('@libs/ReportNameUtils', () => ({
+    ...jest.requireActual<typeof ReportNameUtils>('@libs/ReportNameUtils'),
+    buildReportNameFromParticipantNames: jest.fn(),
 }));
 
 const MOVED_TO_REPORT_ID = '1';
@@ -133,6 +143,26 @@ describe('ModifiedExpenseMessage', () => {
                 };
                 const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_LOGIN);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
+                expect(result).toEqual(expectedResult);
+            });
+            it('returns "moved from personal space to reportName" message when moving an expense to a 1:1 DM', async () => {
+                const mockAccountID = 12345;
+                const dmReportName = 'John Doe';
+                const dmReport = createRandomReport(1, undefined);
+
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [mockAccountID]: {accountID: mockAccountID, login: CURRENT_USER_LOGIN},
+                });
+
+                (ReportNameUtils.buildReportNameFromParticipantNames as jest.Mock).mockImplementation(({currentUserAccountID}) => {
+                    if (currentUserAccountID === mockAccountID) {
+                        return dmReportName;
+                    }
+                    return '';
+                });
+
+                const result = getMovedFromOrToReportMessage(translateLocal, undefined, dmReport, CURRENT_USER_LOGIN);
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {reportName: dmReportName});
                 expect(result).toEqual(expectedResult);
             });
         });
