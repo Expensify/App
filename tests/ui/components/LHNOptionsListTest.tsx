@@ -532,8 +532,10 @@ describe('LHNOptionsList', () => {
     });
 
     describe('IOU report avatar rendering', () => {
-        it('should render a single avatar for a multi-transaction IOU report', async () => {
-            // Given an IOU report with two participants (owner + manager), which produces 2 icons from getIconsForIOUReport
+        it('should render diagonal avatars for an IOU report between two users', async () => {
+            // Given an IOU report with two participants (owner + manager).
+            // shouldShowSubscript is naturally false for IOU, so icons are not trimmed
+            // and LHNAvatar renders DIAGONAL (two small user avatars).
             const policyID = 'iouTestPolicy';
             const reportID = 'iouTestReport';
             const ownerAccountID = 1;
@@ -571,10 +573,11 @@ describe('LHNOptionsList', () => {
             // When the LHNOptionsList renders the IOU report
             render(getLHNOptionsListElement({data: [report]}));
 
-            // Then it should render a single avatar, not a diagonal (multiple) avatar
+            // Then it should render diagonal (multiple) avatars
             await waitFor(() => {
-                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
-                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+                expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-SingleAvatar')).toBeNull();
+                expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
             });
         });
     });

@@ -246,6 +246,12 @@ function OptionRowLHN({
                 <View>
                     <Hoverable>
                         {(hovered) => {
+                            let secondaryAvatarBgColor = theme.sidebar;
+                            if (isOptionFocused) {
+                                secondaryAvatarBgColor = focusedBackgroundColor;
+                            } else if (hovered) {
+                                secondaryAvatarBgColor = hoveredBackgroundColor;
+                            }
                             return (
                                 <PressableWithSecondaryInteraction
                                     ref={popoverAnchor}
@@ -294,6 +300,8 @@ function OptionRowLHN({
                                                     shouldShowSubscript={!!optionItem.shouldShowSubscript}
                                                     size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                                     subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                                    useMidSubscriptSize={isInFocusMode}
+                                                    secondaryAvatarBackgroundColor={secondaryAvatarBgColor}
                                                     singleAvatarContainerStyle={singleAvatarContainerStyle}
                                                     shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
                                                     delegateAccountID={delegateAccountID}

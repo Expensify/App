@@ -771,7 +771,6 @@ function getOptionData({
     result.isPolicyExpenseChat = isPolicyExpenseChat(report);
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
-    // LHN suppresses subscript for threads (except trip rooms and expense requests with policy) and task reports.
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const threadSuppression = isChatThread(report) && !isTripRoom(report) && !(isExpenseRequest(report) && policy);
     const taskSuppression = isTaskReport(report);
@@ -1167,7 +1166,9 @@ function getOptionData({
         isReportArchived,
     );
 
-    result.icons = reportIcons;
+    const wasSuppressed = rawShouldShowSubscript && !result.shouldShowSubscript;
+    // eslint-disable-next-line rulesdir/prefer-at
+    result.icons = wasSuppressed && reportIcons.length > 1 ? [reportIcons[0]] : reportIcons;
 
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
