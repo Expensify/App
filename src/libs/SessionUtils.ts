@@ -11,7 +11,6 @@ function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): bo
     // The OldDot mobile app does not URL encode the parameters, but OldDot web
     // does. We don't want to deploy OldDot mobile again, so as a work around we
     // compare the session email to both the decoded and raw email from the transition link.
-
     const params = new URLSearchParams(transitionURL);
     const paramsEmail = params.get('email');
     const delegatorEmail = params.get('delegatorEmail');
@@ -35,23 +34,14 @@ function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): bo
     return linkedEmail !== sessionEmail && linkedDelegatorEmail !== sessionEmail;
 }
 
+/**
+ * Determine if the transitioning user is logging in as a delegate
+ */
 function isLoggingInAsDelegate(transitionURL?: string): boolean {
     const params = new URLSearchParams(transitionURL);
     const delegatorEmail = params.get('delegatorEmail');
 
-    // If the email param matches what is stored in the session then we are
-    // definitely not logging in as a new user
-    if (!delegatorEmail) {
-        return false;
-    }
-
-    // If they do not match it might be due to encoding, so check the raw value
-    // Capture the un-encoded text in the email param
-    const delegatorEmailParamRegex = /[?&]delegatorEmail=([^&]*)/g;
-    const delegatorMatches = delegatorEmailParamRegex.exec(transitionURL ?? '');
-    const linkedDelegatorEmail = delegatorMatches?.[1] ?? null;
-
-    return !!linkedDelegatorEmail;
+    return !!delegatorEmail;
 }
 
 let loggedInDuringSession: boolean | undefined;
