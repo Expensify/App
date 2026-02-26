@@ -6320,6 +6320,7 @@ describe('actions/IOU', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        isSelfTourViewed: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -6473,6 +6474,7 @@ describe('actions/IOU', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        isSelfTourViewed: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -6833,6 +6835,7 @@ describe('actions/IOU', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        isSelfTourViewed: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -8769,6 +8772,7 @@ describe('actions/IOU', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        isSelfTourViewed: false,
                     });
 
                     // Change the approval mode for the policy since default is Submit and Close
@@ -8900,6 +8904,7 @@ describe('actions/IOU', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        isSelfTourViewed: false,
                     });
 
                     setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -8976,6 +8981,7 @@ describe('actions/IOU', () => {
                             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
+                            isSelfTourViewed: false,
                         });
                         return waitForBatchedUpdates();
                     })
@@ -9228,6 +9234,7 @@ describe('actions/IOU', () => {
                             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
+                            isSelfTourViewed: false,
                         });
                         return waitForBatchedUpdates();
                     })
@@ -9430,6 +9437,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
+                isSelfTourViewed: false,
             });
             return waitForBatchedUpdates()
                 .then(() => {
@@ -9575,14 +9583,18 @@ describe('actions/IOU', () => {
 
             const iouReport = {...createRandomReport(1, undefined), type: CONST.REPORT.TYPE.INVOICE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver.policyID}`, {id: invoiceReceiver.policyID, role: CONST.POLICY.ROLE.ADMIN});
+            const invoiceReceiverPolicy = {
+                ...createRandomPolicy(Number(invoiceReceiver.policyID), CONST.POLICY.TYPE.TEAM),
+                id: invoiceReceiver.policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
 
-            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], true)).toBe(true);
-            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], false)).toBe(true);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], true, undefined, invoiceReceiverPolicy)).toBe(true);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], false, undefined, invoiceReceiverPolicy)).toBe(true);
 
             // When the invoice is archived
-            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], true, chatReportRNVP)).toBe(false);
-            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], false, chatReportRNVP)).toBe(false);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], true, chatReportRNVP, invoiceReceiverPolicy)).toBe(false);
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, [], false, chatReportRNVP, invoiceReceiverPolicy)).toBe(false);
         });
     });
 
@@ -11447,6 +11459,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -11545,6 +11558,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 activePolicyID: '123',
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -11917,6 +11931,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    isSelfTourViewed: false,
                 });
 
                 // Change the approval mode for the policy since default is Submit and Close
@@ -12079,6 +12094,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
+                    isSelfTourViewed: false,
                 });
 
                 // Change the approval mode for the policy since default is Submit and Close
@@ -12245,6 +12261,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    isSelfTourViewed: false,
                 });
 
                 setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -12420,6 +12437,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    isSelfTourViewed: false,
                 });
 
                 // Change the approval mode for the policy since default is Submit and Close
@@ -12730,7 +12748,7 @@ describe('actions/IOU', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, MOCK_REPORT_ACTIONS);
 
-            expect(getIOUReportActionToApproveOrPay(fakeReport, undefined, {})).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
+            expect(getIOUReportActionToApproveOrPay(fakeReport, undefined, {}, undefined)).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
         });
     });
 

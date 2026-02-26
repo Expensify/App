@@ -5,11 +5,11 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import ValuePicker from '@components/ValuePicker';
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -50,6 +50,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
         },
         [fieldsMap, translate],
     );
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
 
     const currencyHeaderContent = (
         <View style={styles.ph5}>
@@ -98,7 +99,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                 ))}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4]}>
                     <Icon
-                        src={Expensicons.QuestionMark}
+                        src={icons.QuestionMark}
                         width={12}
                         height={12}
                         fill={theme.icon}

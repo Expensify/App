@@ -123,7 +123,7 @@ describe('OnyxDerived', () => {
             const transaction = createRandomTransaction(1);
 
             // When the report attributes are recomputed with both report and transaction updates
-            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {areAllConnectionsSet: true});
+            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {});
             const reportAttributesComputedValue = reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {
                 sourceValues: {
                     [ONYXKEYS.COLLECTION.REPORT]: {
@@ -133,7 +133,6 @@ describe('OnyxDerived', () => {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
                     },
                 },
-                areAllConnectionsSet: true,
             }).reports;
 
             // Then the computed report attributes should contain both reports
@@ -591,6 +590,9 @@ describe('OnyxDerived', () => {
     describe('todos', () => {
         beforeAll(async () => {
             onyxDerivedTestSetup();
+            // Initialize dependency keys so Onyx.clear() in beforeEach triggers derived value recomputation
+            await Onyx.set(ONYXKEYS.SESSION, {});
+            await waitForBatchedUpdates();
         });
 
         const CURRENT_USER_ACCOUNT_ID = 1;

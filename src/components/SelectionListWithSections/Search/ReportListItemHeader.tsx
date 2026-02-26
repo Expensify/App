@@ -6,7 +6,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
@@ -212,7 +212,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = useSearchContext();
+    const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = useSearchStateContext();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
