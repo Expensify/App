@@ -14,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
@@ -34,7 +33,7 @@ function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {selectedTransactions, lastSearchType, currentSearchKey, currentSearchResults, lastNonEmptySearchResults} = useSearchStateContext();
+    const {lastSearchType, currentSearchResults, lastNonEmptySearchResults} = useSearchStateContext();
     const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
@@ -59,15 +58,11 @@ function SearchPage({route}: SearchPageProps) {
         setLastSearchType(currentSearchType);
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchType]);
 
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-
     const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
 
     const metadata = searchResults?.search;
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
-    const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
 
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 
@@ -103,7 +98,6 @@ function SearchPage({route}: SearchPageProps) {
                         metadata={metadata}
                         searchResults={searchResults}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        shouldShowFooter={shouldShowFooter}
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
@@ -130,7 +124,6 @@ function SearchPage({route}: SearchPageProps) {
                     isDragDisabled={isDragDisabled}
                     PDFValidationComponent={PDFValidationComponent}
                     ErrorModal={ErrorModal}
-                    shouldShowFooter={shouldShowFooter}
                 />
             )}
         </Animated.View>

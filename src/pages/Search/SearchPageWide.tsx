@@ -8,6 +8,7 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -15,6 +16,7 @@ import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
@@ -35,7 +37,6 @@ type SearchPageWideProps = {
     isDragDisabled: boolean;
     PDFValidationComponent: React.ReactNode;
     ErrorModal: React.ReactNode;
-    shouldShowFooter: boolean;
 };
 
 function SearchPageWide({
@@ -50,12 +51,15 @@ function SearchPageWide({
     isDragDisabled,
     PDFValidationComponent,
     ErrorModal,
-    shouldShowFooter,
 }: SearchPageWideProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {selectedTransactions, currentSearchKey} = useSearchStateContext();
     const {resetVideoPlayerData} = usePlaybackActionsContext();
+    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
+    const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
 
     useEffect(() => {
         resetVideoPlayerData();
