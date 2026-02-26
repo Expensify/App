@@ -947,6 +947,7 @@ describe('actions/Task', () => {
 
         it('should return early when report is undefined', () => {
             deleteTask(undefined, undefined, false, mockCurrentUserAccountID, false, undefined, 'concierge_123');
+
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).not.toHaveBeenCalled();
         });
