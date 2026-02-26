@@ -105,6 +105,15 @@ type ColumnIndexes = {
     category: number;
 };
 
+type TransactionField = 'date' | 'merchant' | 'amount' | 'category';
+
+/**
+ * Type guard to check if a string is a valid transaction field
+ */
+function isTransactionField(value: string): value is TransactionField {
+    return CONST.CSV_IMPORT_COLUMNS.TRANSACTION_FIELDS.includes(value as TransactionField);
+}
+
 /**
  * Extracts the column indexes for each transaction attribute from the spreadsheet column mapping
  */
@@ -119,7 +128,7 @@ function getColumnIndexes(columns: Record<number, string> | undefined): ColumnIn
     if (columns) {
         for (const [indexStr, role] of Object.entries(columns)) {
             const index = Number(indexStr);
-            if (role === 'date' || role === 'merchant' || role === 'amount' || role === 'category') {
+            if (isTransactionField(role)) {
                 indexes[role] = index;
             }
         }
@@ -151,7 +160,7 @@ function buildColumnLayout(spreadsheet: ImportedSpreadsheet, cardName: string, c
 
     if (columns) {
         for (const [indexStr, role] of Object.entries(columns)) {
-            if (role === 'date' || role === 'merchant' || role === 'amount' || role === 'category') {
+            if (isTransactionField(role)) {
                 const colIndex = Number(indexStr);
                 indexes[role] = colIndex;
 

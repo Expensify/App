@@ -7978,6 +7978,7 @@ const CONST = {
         ENABLED: 'enabled',
         IGNORE: 'ignore',
         DESTINATION: 'destination',
+        TRANSACTION_FIELDS: ['date', 'merchant', 'amount', 'category'] as const,
     },
 
     IMPORT_SPREADSHEET: {

@@ -127,9 +127,8 @@ function applySavedColumnMappings(spreadsheetData: string[][], savedLayout: Save
     }
 
     const columnUpdates: Record<number, string> = {};
-    const roles = ['date', 'merchant', 'amount', 'category'] as const;
 
-    for (const role of roles) {
+    for (const role of CONST.CSV_IMPORT_COLUMNS.TRANSACTION_FIELDS) {
         const savedColumnName = savedNames[role];
         if (typeof savedColumnName !== 'string') {
             continue;
