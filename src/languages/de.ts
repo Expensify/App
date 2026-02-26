@@ -5171,6 +5171,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     },
                     exportToPDF: 'Als PDF exportieren',
                     exportToCSV: 'Als CSV exportieren',
+                    selectDateRangeError: 'Bitte wählen Sie vor dem Export einen Datumsbereich aus',
                 },
             },
             expensifyCard: {

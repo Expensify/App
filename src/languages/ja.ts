@@ -5107,6 +5107,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     outstandingBalanceModal: {title: 'トラベル請求書作成をオフにできません', body: '未清算の出張残高があります。先に残高を精算してください。', confirm: '了解しました'},
                     exportToPDF: 'PDF にエクスポート',
                     exportToCSV: 'CSV にエクスポート',
+                    selectDateRangeError: 'エクスポートする前に日付範囲を選択してください',
                 },
             },
             expensifyCard: {

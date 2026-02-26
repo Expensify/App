@@ -45,6 +45,9 @@ type DatePresetFilterBaseProps = {
     /** Whether the search advanced filters form Onyx data is loading or not */
     isSearchAdvancedFiltersFormLoading?: boolean;
 
+    /** Callback when a date value changes (e.g. preset click or calendar save) */
+    onDateValueChange?: () => void;
+
     /** The ref handle */
     ref: Ref<DatePresetFilterBaseHandle>;
 };
@@ -59,7 +62,7 @@ type DatePresetFilterBaseProps = {
  * - On save: if a date modifier is selected (i.e. user clicked save at the calendar picker) you should `setDateValueOfSelectedDateModifier` otherwise `getDateValues`
  * - On reset: if a date modifier is selected (i.e. user clicked reset at the calendar picker) you should `clearDateValueOfSelectedDateModifier` otherwise `clearDateValues`
  */
-function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, isSearchAdvancedFiltersFormLoading, ref}: DatePresetFilterBaseProps) {
+function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, isSearchAdvancedFiltersFormLoading, onDateValueChange, ref}: DatePresetFilterBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -97,7 +100,8 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
 
             return {...prevDateValues, [dateModifier]: value};
         });
-    }, []);
+        onDateValueChange?.();
+    }, [onDateValueChange]);
 
     const dateDisplayValues = useMemo<SearchDateValues>(() => {
         const dateOn = dateValues[CONST.SEARCH.DATE_MODIFIERS.ON];

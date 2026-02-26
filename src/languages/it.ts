@@ -5161,6 +5161,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     },
                     exportToPDF: 'Esporta in PDF',
                     exportToCSV: 'Esporta in CSV',
+                    selectDateRangeError: 'Seleziona un intervallo di date prima di esportare',
                 },
             },
             expensifyCard: {

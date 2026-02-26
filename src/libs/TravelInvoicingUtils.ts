@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import fileDownload from '@libs/fileDownload';
+import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
+import fileDownload from './fileDownload';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, WorkspaceCardsList} from '@src/types/onyx';
@@ -172,7 +172,10 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 function downloadTravelInvoiceStatementPDF(translate: LocalizedTranslate, baseURL: string, fileName: string, startDate: string, endDate: string, currentUserEmail: string): Promise<void> {
     const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
-    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '');
+    // Explicitly typed due to this typecheck error that doesn't want to go away:
+    // https://github.com/Expensify/App/actions/runs/22380925082/job/64781289783?pr=82306
+    const hasOtherParams: boolean = true;
+    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, hasOtherParams), downloadFileName, '');
 }
 
 /**

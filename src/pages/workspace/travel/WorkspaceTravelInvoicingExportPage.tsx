@@ -5,8 +5,9 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import ScreenWrapper from '@components/ScreenWrapper';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
-import type {SearchDatePresetFilterBaseHandle} from '@components/Search/FilterComponents/DatePresetFilterBase';
+import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/DateFilterBase';
 import type {SearchDatePreset} from '@components/Search/types';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -39,10 +40,12 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     const isGenerating = travelInvoiceStatement?.isGenerating ?? false;
     const prevIsGenerating = usePrevious(isGenerating);
     const [isDownloading, setIsDownloading] = useState(isGenerating);
+    const [dateError, setDateError] = useState('');
+    const [isDateModifierOpen, setIsDateModifierOpen] = useState(false);
 
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
 
-    const dateFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
+    const dateFilterBaseRef = useRef<DateFilterBaseHandle>(null);
 
     const presets: SearchDatePreset[] = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
 
@@ -53,6 +56,17 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
             [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
         };
     }
+
+    /**
+     * Checks whether the user has selected any date value via the date filter.
+     */
+    const hasDateSelected = useCallback((): boolean => {
+        const values = dateFilterBaseRef.current?.getDateValues();
+        if (!values) {
+            return false;
+        }
+        return !!(values[CONST.SEARCH.DATE_MODIFIERS.ON] || values[CONST.SEARCH.DATE_MODIFIERS.AFTER] || values[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
+    }, []);
 
     /**
      * Computes startDate and endDate in YYYY-MM-DD format from the current date selection.
@@ -97,6 +111,11 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
             return;
         }
 
+        if (!hasDateSelected()) {
+            setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.selectDateRangeError'));
+            return;
+        }
+
         const {startDate, endDate} = getDateRange();
         const cacheKey = `${policyID}_${startDate}_${endDate}`;
 
@@ -111,7 +130,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
 
         // Request PDF generation — the useEffect will auto-download when it completes
         getTravelInvoiceStatementPDF(policyID, startDate, endDate);
-    }, [baseURL, isGenerating, getDateRange, translate, travelInvoiceStatement, policyID, currentUserPersonalDetails?.login]);
+    }, [baseURL, isGenerating, getDateRange, translate, travelInvoiceStatement, policyID, currentUserPersonalDetails?.login, hasDateSelected]);
 
     useEffect(() => {
         if (!prevIsGenerating || isGenerating) {
@@ -129,6 +148,10 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     }, [prevIsGenerating, isGenerating, processDownload, travelInvoiceStatement, policyID, getDateRange]);
 
     const handleDownloadCSV = () => {
+        if (!hasDateSelected()) {
+            setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.selectDateRangeError'));
+            return;
+        }
         const {startDate, endDate} = getDateRange();
         exportTravelInvoiceStatementCSV(policyID, startDate, endDate, translate);
     };
@@ -150,16 +173,20 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
-            <DateFilterBase
-                ref={dateFilterBaseRef}
-                title={translate('common.export')}
-                defaultDateValues={defaultDateValues}
-                presets={presets}
-                onBackButtonPress={goBack}
-                onSubmit={onSubmit}
-                Wrapper={FullPageOfflineBlockingView}
-                customFooter={
+            <FullPageOfflineBlockingView>
+                <DateFilterBase
+                    ref={dateFilterBaseRef}
+                    title={translate('common.export')}
+                    defaultDateValues={defaultDateValues}
+                    presets={presets}
+                    onBackButtonPress={goBack}
+                    onSubmit={onSubmit}
+                    onDateValuesChange={() => setDateError('')}
+                    onDateModifierChange={setIsDateModifierOpen}
+                />
+                {!isDateModifierOpen && (
                     <View style={[styles.ph5, styles.pb5]}>
+                        {!!dateError && <Text style={[styles.textDanger, styles.mb3, styles.textAlignCenter]}>{dateError}</Text>}
                         <Button
                             text={translate('workspace.moreFeatures.travel.travelInvoicing.exportToPDF')}
                             onPress={processDownload}
@@ -174,8 +201,8 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
                             large
                         />
                     </View>
-                }
-            />
+                )}
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }

@@ -5137,6 +5137,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     },
                     exportToPDF: 'Eksportuj do PDF',
                     exportToCSV: 'Eksportuj do CSV',
+                    selectDateRangeError: 'Wybierz zakres dat przed eksportem',
                 },
             },
             expensifyCard: {

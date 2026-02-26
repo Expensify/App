@@ -5029,6 +5029,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     outstandingBalanceModal: {title: '无法关闭差旅开票', body: '你仍有未结清的差旅余额。请先支付该余额。', confirm: '明白了'},
                     exportToPDF: '导出为 PDF',
                     exportToCSV: '导出为 CSV',
+                    selectDateRangeError: '请先选择日期范围再导出',
                 },
             },
             expensifyCard: {

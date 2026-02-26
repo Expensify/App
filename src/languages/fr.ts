@@ -5189,6 +5189,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     },
                     exportToPDF: 'Exporter en PDF',
                     exportToCSV: 'Exporter en CSV',
+                    selectDateRangeError: 'Veuillez sélectionner une plage de dates avant d’exporter',
                 },
             },
             expensifyCard: {

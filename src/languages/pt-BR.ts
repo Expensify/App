@@ -5143,6 +5143,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     },
                     exportToPDF: 'Exportar para PDF',
                     exportToCSV: 'Exportar para CSV',
+                    selectDateRangeError: 'Selecione um período de datas antes de exportar',
                 },
             },
             expensifyCard: {

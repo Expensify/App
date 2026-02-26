@@ -8,7 +8,7 @@ import type LocalFileDownload from './types';
  * and textContent, so we're able to copy it to the Android public download dir.
  * After the file is copied, it is removed from the internal dir.
  */
-const localFileDownload: LocalFileDownload = (fileName, textContent, translate, successMessage) => {
+const localFileDownload: LocalFileDownload = (fileName, textContent, translate, successMessage, shouldShowSuccessAlert) => {
     localFileCreate(fileName, textContent).then(({path, newFileName}) => {
         const {fileExtension} = splitExtensionFromFileName(newFileName);
         RNFetchBlob.MediaCollection.copyToMediaStore(
@@ -21,7 +21,9 @@ const localFileDownload: LocalFileDownload = (fileName, textContent, translate, 
             path,
         )
             .then(() => {
-                showSuccessAlert(translate, successMessage);
+                if (shouldShowSuccessAlert) {
+                    showSuccessAlert(translate, successMessage);
+                }
             })
             .catch(() => {
                 showGeneralErrorAlert(translate);

@@ -4986,6 +4986,7 @@ ${amount} para ${merchant} - ${date}`,
                     },
                     exportToPDF: 'Exportar a PDF',
                     exportToCSV: 'Exportar a CSV',
+                    selectDateRangeError: 'Por favor, selecciona un rango de fechas antes de exportar',
                 },
             },
             expensifyCard: {

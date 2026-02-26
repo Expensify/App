@@ -5140,6 +5140,7 @@ const translations = {
                     },
                     exportToPDF: 'Export to PDF',
                     exportToCSV: 'Export to CSV',
+                    selectDateRangeError: 'Please select a date range before exporting',
                 },
             },
             expensifyCard: {

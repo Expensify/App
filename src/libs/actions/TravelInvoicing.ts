@@ -372,7 +372,7 @@ function exportTravelInvoiceStatementCSV(policyID: string, startDate: string, en
     const onDownloadFailed = () => {
         // When no data exists for the selected date range, the backend returns a JSON error.
         // Download an empty CSV file in this case.
-        localFileDownload(filename, translate('common.noResultsFound'), translate);
+        localFileDownload(filename, translate('common.noResultsFound'), translate, undefined, true);
     };
 
     fileDownload(translate, commandURL, filename, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
