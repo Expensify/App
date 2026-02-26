@@ -171,7 +171,7 @@ function InternationalDepositAccountContent({
             testID="InternationalDepositAccountContent"
             shouldShowOfflineIndicatorInWideScreen={pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
-            {(isRedirecting || isAccountLoading) ? (
+            {isRedirecting || isAccountLoading ? (
                 <FullScreenLoadingIndicator />
             ) : (
                 <>
