@@ -1125,6 +1125,7 @@ describe('actions/Task', () => {
             // API.write should still be called
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).toHaveBeenCalledWith('CancelTask', expect.any(Object), expect.any(Object));
+
             // But no navigation should happen
             expect(result).toBeUndefined();
             expect(Navigation.goBack).not.toHaveBeenCalled();
