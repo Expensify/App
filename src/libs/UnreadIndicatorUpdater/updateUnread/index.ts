@@ -52,5 +52,12 @@ window.addEventListener('popstate', () => {
     updateUnread(unreadTotalCount);
 });
 
+/**
+ * Get the current page title (used by useDocumentTitle to check if another screen has already set a new title)
+ */
+function getPageTitle(): string {
+    return currentPageTitle;
+}
+
 export default updateUnread;
-export {setPageTitle};
+export {setPageTitle, getPageTitle};
