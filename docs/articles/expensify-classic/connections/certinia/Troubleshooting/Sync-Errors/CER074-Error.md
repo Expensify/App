@@ -1,90 +1,66 @@
 ---
-title: CER074 Error: Insufficient Permissions for Resource
-description: Learn why CER074 appears when exporting to Certinia and how to configure the required Permission Controls for the report creator or submitter.
-keywords: CER074, Certinia error CER074, insufficient permissions for resource, Certinia permission controls, report creator permission, report submitter permission, Sync Now, Workspace Admin
-internalScope: Audience is Workspace Admins using the Certinia integration. Covers resolving the CER074 permission control error for report creators or submitters and re-syncing the Workspace. Does not cover unrelated Certinia permission errors or general role configuration.
+title: CER074 Export Error in Certinia Integration
+description: Learn what the CER074 export error means in Certinia and how to configure the required Permission Controls to restore successful exports.
+keywords: CER074, Certinia export error, insufficient permissions for resource, Certinia permission controls error, Expensify Certinia sync error, Workspace Admin
+internalScope: Audience is Workspace Admins using the Certinia integration. Covers resolving the CER074 export error caused by missing or incorrect Permission Controls. Does not cover other Certinia error codes.
 ---
 
-# CER074 Error: Insufficient Permissions for Resource
+# CER074 Export Error in Certinia Integration
 
 If you see the error:
 
-**“CER074 Error: Insufficient permissions for Resource. The report creator or submitter doesn’t have the required permission controls.”**
+CER074: Insufficient permissions for Resource.
 
-this means the report creator or submitter does not have the required Permission Controls configured in Certinia.
-
-Until the correct permissions are applied, Certinia will block the export.
+This means the report creator or submitter does not have the required Permission Controls configured in Certinia, preventing the export from completing.
 
 ---
 
-## Why CER074 Happens
+## Why the CER074 Export Error Happens in Certinia
 
-Certinia requires Permission Controls to determine which users have access to specific Resources.
+The CER074 error typically indicates:
 
-If the report creator or submitter does not have the required permission settings for the associated Resource, Certinia fails validation and returns error **CER074**.
+- The report creator or submitter does not have access to the associated Resource.
+- Required Permission Controls have not been configured.
+- Certinia validation failed due to missing user-resource permissions.
 
-This is a Certinia permission configuration issue — not an Expensify Workspace configuration issue.
+Certinia requires Permission Controls to define which users can access specific Resources during export.
 
----
-
-## Who Can Fix CER074
-
-You must have access to manage Permission Controls in Certinia (typically a Certinia Admin) to resolve this error.
+This is a Certinia permission configuration issue, not a Workspace configuration issue.
 
 ---
 
-## How to Create or Update Permission Controls in Certinia
+## How to Fix the CER074 Export Error
+
+This issue must be resolved in Certinia.
 
 1. Log in to Certinia.
 2. Go to **Permission Controls**.
-3. Click **New** to create a permission control.
-4. Enter the required **User** and **Resource** fields.
-5. Check all required permission fields to grant appropriate access.
+3. Create a new Permission Control or update an existing one.
+4. Enter the required **User** and **Resource**.
+5. Enable all required permission fields.
 6. Save your changes.
 
-Ensure the Permission Control applies to the report creator or submitter and the specific Resource involved in the export.
+After updating permissions:
 
----
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
 
-## How to Sync Certinia After Updating Permission Controls
-
-After creating or updating the Permission Control, re-sync the connection in Expensify.
-
-1. Go to the navigation tabs on the left.
-2. Click **Settings**.
-3. Click **Workspaces**.
-4. Select your Workspace.
-5. Click **Accounting**.
-6. Click **Sync Now**.
-
----
-
-## How to Retry Exporting After CER074
-
-After syncing:
-
-1. Open the report you attempted to export.
-2. Retry the export.
-3. Confirm the export completes successfully.
-
-If the error continues, confirm that the Permission Control is assigned to the correct user and Resource.
+Then retry exporting the report.
 
 ---
 
 # FAQ
 
-## Does CER074 mean the report is invalid?
+## Can I Retry the Export?
 
-No. The report itself is not invalid. The export failed because the required Permission Controls were not configured in Certinia.
+Yes. After creating or updating the correct Permission Control and selecting **Sync Now**, retry the export. If the error persists, confirm the permission is assigned to the correct user and Resource.
 
----
+## Does CER074 Mean the Report Is Invalid?
 
-## Is CER074 caused by Expensify settings?
+No. The report remains valid in Expensify. The export failed due to missing permission configuration in Certinia.
 
-No. CER074 is triggered by missing or incorrect Permission Controls in Certinia, not by Workspace settings in Expensify.
+## Is CER074 Caused by Workspace Settings?
 
----
-
-## Do I need to reconnect the Certinia integration?
-
-No. In most cases, creating or updating the correct Permission Control and selecting **Sync Now** resolves the issue.
+No. CER074 is triggered by missing or incorrect Permission Controls in Certinia. Workspace accounting settings are not the cause.
