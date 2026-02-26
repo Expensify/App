@@ -1378,8 +1378,21 @@ function PureReportActionItem({
                 <RenderHTML html={`<comment><muted-text>${reason}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>);
         } else if (isDynamicExternalWorkflowApproveFailedAction(action)) {
-            const errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
-            children = <ReportActionItemBasicMessage message={errorMessage} />;
+            const wasAutoApproveAction = getOriginalMessage(action)?.automaticAction ?? false;
+
+            let failedApproveReason = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
+            // Uncapitalize the first letter of the failure reason since it will be concatenated to the end of another one
+            if (failedApproveReason.length) {
+                failedApproveReason = failedApproveReason[0].toLowerCase() + failedApproveReason.slice(1);
+            }
+
+            const reason = wasAutoApproveAction
+                ? translate('iou.failedToAutoApproveViaDEW', failedApproveReason)
+                : translate('iou.failedToApproveViaDEW', failedApproveReason);
+
+            children = (<ReportActionItemBasicMessage>
+                <RenderHTML html={`<comment><muted-text>${reason}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>);
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
             const paymentType = getOriginalMessage(action)?.paymentType;

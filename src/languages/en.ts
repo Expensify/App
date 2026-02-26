@@ -1282,6 +1282,8 @@ const translations = {
         queuedToSubmitViaDEW: 'queued to submit via custom approval workflow',
         failedToAutoSubmitViaDEW: (reason: string) => `failed to submit the report via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a> because ${reason}`,
         failedToSubmitViaDEW: (reason: string) => `failed to submit the report because ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `failed to approve via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a> because ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `failed to approve because ${reason}`,
         queuedToApproveViaDEW: 'queued to approve via custom approval workflow',
         trackedAmount: (formattedAmount: string, comment?: string) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: (amount: string) => `split ${amount}`,
