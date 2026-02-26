@@ -122,6 +122,10 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
     if (!card) {
         return '';
     }
+    const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
+    if (isCSVCard) {
+        return card.nameValuePairs?.cardTitle ?? card.cardName ?? '';
+    }
     const isPlaid = !!getPlaidInstitutionId(card.bank);
     const isPersonal = isPersonalCard(card);
     const bankName = isPlaid || isPersonal ? card?.cardName : getBankName(card.bank);

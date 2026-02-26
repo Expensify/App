@@ -4239,8 +4239,8 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getLastMessageTextForReport', () => {
-        describe('REPORT_PREVIEW action', () => {
-            it('should show report preview message for non-policy expense chat', async () => {
+        describe('getReportPreviewMessage', () => {
+            it('should format report preview message correctly for non-policy expense chat with IOU action', async () => {
                 const report: Report = {
                     ...createRandomReport(0, undefined),
                     isOwnPolicyExpenseChat: false,
@@ -4250,6 +4250,9 @@ describe('OptionsListUtils', () => {
                     isOwnPolicyExpenseChat: false,
                     type: CONST.REPORT.TYPE.IOU,
                     isWaitingOnBankAccount: false,
+                    currency: CONST.CURRENCY.USD,
+                    total: 100,
+                    unheldTotal: 100,
                 };
                 const reportPreviewAction: ReportAction = {
                     ...createRandomReportAction(1),
@@ -4273,6 +4276,7 @@ describe('OptionsListUtils', () => {
                 };
                 const iouAction: ReportAction = {
                     ...createRandomReportAction(2),
+                    reportID: iouReport.reportID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     message: [{type: 'COMMENT', text: ''}],
                     originalMessage: {
@@ -4289,16 +4293,9 @@ describe('OptionsListUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const lastMessage = getLastMessageTextForReport({
-                    translate: translateLocal,
-                    report,
-                    lastActorDetails: null,
-                    isReportArchived: false,
-                    chatReport: undefined,
-                });
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
-                const expected = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
-                expect(lastMessage).toBe(expected);
+                const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
+                expect(formattedMessage).toBe('$1.00 for A A A');
             });
         });
         it('MOVED_TRANSACTION action', async () => {
