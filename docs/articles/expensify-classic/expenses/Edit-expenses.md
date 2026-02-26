@@ -77,7 +77,7 @@ A violation is a flag applied to expenses that break Workspace rules, such as mi
 
 Violations appear with a note explaining which rule has been broken. You can resolve a violation by: 
 
-- Editing the expense to resolve the violation so it complies with the Workspace rules, or 
+A violation is a flag applied to expenses that break Workspace rules, such as missing required Categories or Tags, or exceeding the allowed amount. Violations should be resolved before reports are submitted for approval.
 - Adding a **Description** to the expense that explains why the violation can't be resolved.
    
 **Note:** Expenses with violation can be submitted manually, they cannot be submitted automatically. The violation will still appear but will not block submission if a comment or explanation is provided.
