@@ -36,14 +36,10 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [taskTitle, setTaskTitle] = useState(task?.title ?? '');
-    const [taskDescription, setTaskDescription] = useState(task?.description ?? '');
-    const [prevTask, setPrevTask] = useState({title: task?.title, description: task?.description});
-    if (prevTask.title !== task?.title || prevTask.description !== task?.description) {
-        setPrevTask({title: task?.title, description: task?.description});
-        setTaskTitle(Parser.htmlToMarkdown(Parser.replace(task?.title ?? '')));
-        setTaskDescription(Parser.htmlToMarkdown(Parser.replace(task?.description ?? '')));
-    }
+    const [localTitle, setLocalTitle] = useState<string>();
+    const [localDescription, setLocalDescription] = useState<string>();
+    const taskTitle = localTitle ?? Parser.htmlToMarkdown(Parser.replace(task?.title ?? ''));
+    const taskDescription = localDescription ?? Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''));
 
     const titleDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskTitle));
     const descriptionDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskDescription));
@@ -126,7 +122,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         accessibilityLabel={translate('task.title')}
                         defaultValue={titleDefaultValue}
                         value={taskTitle}
-                        onValueChange={setTaskTitle}
+                        onValueChange={setLocalTitle}
                         autoCorrect={false}
                         type="markdown"
                         autoGrowHeight
@@ -146,7 +142,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         shouldSubmitForm
                         defaultValue={descriptionDefaultValue}
                         value={taskDescription}
-                        onValueChange={setTaskDescription}
+                        onValueChange={setLocalDescription}
                         type="markdown"
                     />
                 </View>
