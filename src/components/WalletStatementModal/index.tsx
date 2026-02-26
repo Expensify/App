@@ -14,13 +14,14 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const authToken = session?.authToken ?? null;
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     /**
      * Handles in-app navigation for iframe links
      */
     const navigate = (event: MessageEvent<WalletStatementMessage>) => {
         const {data} = event;
         const {type, url} = data || {};
-        handleWalletStatementNavigation(conciergeReportID, type, url);
+        handleWalletStatementNavigation(conciergeReportID, introSelected, type, url);
     };
 
     return (

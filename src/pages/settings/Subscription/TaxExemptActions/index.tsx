@@ -21,6 +21,7 @@ function TaxExemptActions() {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Coins']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -30,11 +31,11 @@ function TaxExemptActions() {
                 text: translate('subscription.details.taxExempt'),
                 onSelected: () => {
                     requestTaxExempt();
-                    navigateToConciergeChat(conciergeReportID, false);
+                    navigateToConciergeChat(conciergeReportID, introSelected, false);
                 },
             },
         ],
-        [translate, icons.Coins, conciergeReportID],
+        [translate, icons.Coins, conciergeReportID, introSelected],
     );
 
     return (

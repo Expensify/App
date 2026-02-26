@@ -16,12 +16,13 @@ type ConciergeLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
 function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     const styles = useThemeStyles();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     /**
      * Simple wrapper to create a stable reference without passing event args to navigation function.
      */
     const navigateToConciergeChat = () => {
-        navigateToConciergeChatAction(conciergeReportID, false);
+        navigateToConciergeChatAction(conciergeReportID, introSelected, false);
     };
 
     // Define link style based on context

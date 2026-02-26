@@ -18,12 +18,13 @@ function PreTrialBillingBanner() {
     const illustrations = useMemoizedLazyIllustrations(['TreasureChest']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const navigateToChat = () => {
         const reportUsedForOnboarding = getChatUsedForOnboarding(onboarding, conciergeReportID);
 
         if (!reportUsedForOnboarding) {
-            navigateToConciergeChat(conciergeReportID, false);
+            navigateToConciergeChat(conciergeReportID, introSelected, false);
             return;
         }
 

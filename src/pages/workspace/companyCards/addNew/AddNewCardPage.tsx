@@ -43,6 +43,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
 
@@ -148,7 +149,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
-                    navigateToConciergeChat(conciergeReportID, false);
+                    navigateToConciergeChat(conciergeReportID, introSelected, false);
                 }}
             />
         </AccessOrNotFoundWrapper>

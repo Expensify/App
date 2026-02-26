@@ -23,6 +23,7 @@ function ConciergePage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     useFocusEffect(
         useCallback(() => {
@@ -33,12 +34,12 @@ function ConciergePage() {
                         return;
                     }
 
-                    navigateToConciergeChat(conciergeReportID, true, () => !isUnmounted.current);
+                    navigateToConciergeChat(conciergeReportID, introSelected, true, () => !isUnmounted.current);
                 });
             } else {
                 Navigation.navigate(ROUTES.INBOX);
             }
-        }, [session, isLoadingReportData, conciergeReportID]),
+        }, [session, isLoadingReportData, conciergeReportID, introSelected]),
     );
 
     useEffect(() => {

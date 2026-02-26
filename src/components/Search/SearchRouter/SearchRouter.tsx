@@ -63,6 +63,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -379,7 +380,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         if (item?.reportID) {
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                         } else if ('login' in item) {
-                            navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, false);
+                            navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, false);
                         }
                     });
                     onRouterClose();

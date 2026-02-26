@@ -18,6 +18,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     const styles = useThemeStyles();
     const {CompanyCardsPendingState} = useMemoizedLazyIllustrations(['CompanyCardsPendingState']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     return (
         <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
@@ -32,7 +33,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
             >
                 <Text>
                     {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
-                    <TextLink onPress={() => navigateToConciergeChat(conciergeReportID, false)}> {CONST.CONCIERGE_CHAT_NAME}</TextLink>.
+                    <TextLink onPress={() => navigateToConciergeChat(conciergeReportID, introSelected, false)}> {CONST.CONCIERGE_CHAT_NAME}</TextLink>.
                 </Text>
             </EmptyStateComponent>
         </ScrollView>

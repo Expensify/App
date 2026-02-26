@@ -21,6 +21,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const authToken = session?.authToken ?? null;
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const onMessage = useCallback(
         (event: WebViewMessageEvent) => {
             try {
@@ -30,12 +31,12 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
                     return;
                 }
 
-                handleWalletStatementNavigation(conciergeReportID, type, url);
+                handleWalletStatementNavigation(conciergeReportID, introSelected, type, url);
             } catch (error) {
                 console.error('Error parsing message from WebView:', error);
             }
         },
-        [conciergeReportID],
+        [conciergeReportID, introSelected],
     );
 
     return (

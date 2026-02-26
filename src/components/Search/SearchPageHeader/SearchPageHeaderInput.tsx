@@ -70,6 +70,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const {inputQuery: originalInputQuery} = queryJSON;
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const queryText = buildUserReadableQueryString({
         queryJSON,
         PersonalDetails: personalDetails,
@@ -318,7 +319,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         timestamp: endTime,
                     });
                 } else if ('login' in item) {
-                    navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, false);
+                    navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, false);
 
                     const endTime = Date.now();
                     Log.info('[CMD_K_DEBUG] Page user navigation handled', false, {
