@@ -28,7 +28,7 @@ import {isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} fr
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import isActionLoadingSelector from '@src/selectors/ReportMetaData';
+import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -210,6 +210,7 @@ function TransactionListItem<TItem extends ListItem>({
                         <TransactionItemRow
                             transactionItem={transactionItem}
                             report={transactionItem.report}
+                            policy={transactionItem.policy}
                             shouldShowTooltip={showTooltip}
                             onButtonPress={handleActionButtonPress}
                             onCheckboxPress={() => onCheckboxPress?.(item)}
