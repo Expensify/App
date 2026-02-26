@@ -1,0 +1,82 @@
+---
+title: INT402 Sync Error: Unable to Retrieve Sage Intacct Dimension Values
+description: Learn why the INT402 sync error occurs in Expensify Classic and how to properly configure User-Defined Dimensions (UDDs) in Sage Intacct.
+keywords: INT402, Sage Intacct dimension error, user-defined dimensions Intacct, UDD permissions Intacct, Expensify Classic Sage Intacct integration
+internalScope: Audience is Workspace Admins using the Sage Intacct integration in Expensify Classic. Covers the INT402 sync error related to User-Defined Dimensions configuration and permissions. Does not cover authentication or journal configuration errors.
+---
+
+# INT402 Sync Error: Unable to Retrieve Sage Intacct Dimension Values
+
+If you see the error message **“INT402 Sync Error: Sage Intacct couldn’t return values for dimension [X]. This typically occurs when user-defined dimensions aren’t set up correctly or are missing permissions.”**, it means Expensify cannot retrieve values for a User-Defined Dimension (UDD) from Sage Intacct.
+
+This usually indicates a configuration or permission issue.
+
+---
+
+## Why the INT402 Sync Error Happens
+
+The INT402 sync error occurs when:
+
+- A User-Defined Dimension (UDD) is not fully configured in Sage Intacct  
+- The Web Services user lacks permission to access the dimension  
+- The dimension is enabled in Expensify but not properly set up in Intacct  
+
+If Expensify cannot access dimension values, syncing fails.
+
+---
+
+## How to Fix the INT402 Sync Error in Expensify Classic
+
+### Step 1: Confirm User-Defined Dimensions in Sage Intacct
+
+In Sage Intacct:
+
+1. Go to **Platform Services > Objects > List**.
+2. Filter by **User-Defined Dimensions**.
+3. Confirm the dimension:
+   - Is fully configured
+   - Is active
+   - Has the correct permissions assigned to the Web Services user
+4. Save any changes if needed.
+
+Ensure the Web Services user has access to the dimension.
+
+---
+
+### Step 2: Reconfigure the Dimension in Expensify
+
+In Expensify:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Configure**.
+5. Open the **Coding** tab.
+6. Disable the affected User-Defined Dimension.
+7. Save your changes.
+
+Then re-add the dimension by following the steps outlined here:
+
+[Configure Sage Intacct – User-Defined Dimensions](https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Configure-Sage-Intacct#user-defined-dimensions-udd)
+
+8. Click **Save**.
+
+---
+
+### Step 3: Sync the Workspace
+
+1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
+2. Click **Sync now**.
+3. Confirm the dimension values import successfully.
+
+---
+
+# FAQ
+
+## Does this error mean the dimension does not exist?
+
+Not necessarily. It may exist but be missing permissions or not fully configured.
+
+## Do I need Sage Intacct admin access to fix this?
+
+Yes. Updating User-Defined Dimensions and permissions requires appropriate access in Sage Intacct.
