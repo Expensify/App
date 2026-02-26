@@ -25,7 +25,7 @@ function ForYouSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [reportCounts] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
 
     const icons = useMemoizedLazyExpensifyIcons(['MoneyBag', 'Send', 'ThumbsUp', 'Export']);
