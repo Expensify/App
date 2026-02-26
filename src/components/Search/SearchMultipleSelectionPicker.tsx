@@ -12,6 +12,7 @@ import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 type SearchMultipleSelectionPickerItem = {
     name: string;
     value: string | string[];
+    leftElement?: React.ReactNode;
 };
 
 type SearchMultipleSelectionPickerProps = {
@@ -29,14 +30,14 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const [selectedItemIDs, setSelectedItemIDs] = useState(() => new Set((initiallySelectedItems ?? []).map((item) => item.value.toString())));
 
     const searchLower = debouncedSearchTerm.toLowerCase();
-    const selectedSectionData: Array<{text: string; keyForList: string; isSelected: boolean; value: string | string[]}> = [];
+    const selectedSectionData: Array<{text: string; keyForList: string; isSelected: boolean; value: string | string[]; leftElement?: React.ReactNode}> = [];
     const remainingSectionData: typeof selectedSectionData = [];
     for (const item of items) {
         if (!item.name.toLowerCase().includes(searchLower)) {
             continue;
         }
         const isSelected = selectedItemIDs.has(item.value.toString());
-        (isSelected ? selectedSectionData : remainingSectionData).push({text: item.name, keyForList: item.name, isSelected, value: item.value});
+        (isSelected ? selectedSectionData : remainingSectionData).push({text: item.name, keyForList: item.name, isSelected, value: item.value, leftElement: item.leftElement});
     }
 
     const sortByValue = (a: {value: string | string[]}, b: {value: string | string[]}) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare);
