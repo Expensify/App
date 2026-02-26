@@ -34,7 +34,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Flag', 'Unlock']);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Flag', 'Unlock', 'CircularArrowBackwards']);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [shouldForceCloseAccount, setShouldForceCloseAccount] = useState<boolean>();
     // We need to use isSmallScreenWidth here because the DecisionModal is opening from RHP and ShouldUseNarrowLayout layout will not work in this place
@@ -163,7 +163,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 {!!accountRequiresTwoFactorAuth && (
                     <MenuItem
                         title={translate('domain.common.resetTwoFactorAuth')}
-                        icon={icons.Flag}
+                        icon={icons.CircularArrowBackwards}
                         onPress={() => {
                             clearValidateDomainTwoFactorCodeError();
                             Navigation.navigate(ROUTES.DOMAIN_MEMBER_RESET_TWO_FACTOR_AUTH.getRoute(domainAccountID, accountID));
