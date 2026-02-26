@@ -983,6 +983,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2024-11-19 08:04:13.728',
                     reportActionID: '1607371725956675966',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: '<mention-user accountID="18414674"/>',
@@ -1001,6 +1002,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2024-11-19 08:04:13.730',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
                     originalMessage: {
                         inviteeAccountIDs: [18414674],
