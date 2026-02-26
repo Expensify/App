@@ -652,6 +652,9 @@ const ONYXKEYS = {
     /** The transaction IDs to be highlighted when opening the Expenses search route page */
     TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE: 'transactionIdsHighlightOnSearchRoute',
 
+    /** Virtual employees configured for a workspace, keyed by policyID */
+    VIRTUAL_EMPLOYEES: 'virtualEmployees',
+
     /** Collection Keys */
     COLLECTION: {
         DOMAIN: 'domain_',
@@ -777,6 +780,8 @@ const ONYXKEYS = {
          * Key format: passkey_${userId}
          */
         PASSKEY_CREDENTIALS: 'passkeyCredentials_',
+        VIRTUAL_EMPLOYEES: 'virtualEmployees_',
+        VIRTUAL_EMPLOYEE_ACTIONS: 'virtualEmployeeActions_',
     },
 
     /** List of Form ids */

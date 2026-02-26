@@ -111,6 +111,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Workflows',
         'LuggageWithLines',
         'Clock',
+        'Sparkles',
     ] as const);
 
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -385,6 +386,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }
 
         protectedMenuItems.push({
+            translationKey: 'workspace.virtualEmployees.title',
+            icon: expensifyIcons.Sparkles,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_VIRTUAL_EMPLOYEES.getRoute(policyID)))),
+            screenName: SCREENS.WORKSPACE.VIRTUAL_EMPLOYEES,
+        });
+
+        protectedMenuItems.push({
             translationKey: 'workspace.common.moreFeatures',
             icon: expensifyIcons.Gear,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)))),
@@ -432,6 +440,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         expensifyIcons.CalendarSolid,
         expensifyIcons.InvoiceGeneric,
         expensifyIcons.Clock,
+        expensifyIcons.Sparkles,
         singleExecution,
         waitForNavigate,
         featureStates,

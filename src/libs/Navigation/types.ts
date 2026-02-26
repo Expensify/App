@@ -2721,6 +2721,13 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.TIME_TRACKING]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.VIRTUAL_EMPLOYEES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.VIRTUAL_EMPLOYEES_EDIT]: {
+        policyID: string;
+        virtualEmployeeID: string;
+    };
 };
 
 type DomainSplitNavigatorParamList = {

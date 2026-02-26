@@ -35,6 +35,8 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.TRAVEL]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/PolicyTravelPage').default,
     [SCREENS.WORKSPACE.RULES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/PolicyRulesPage').default,
     [SCREENS.WORKSPACE.TIME_TRACKING]: () => require<ReactComponentModule>('../../../../pages/workspace/timeTracking/WorkspaceTimeTrackingPage').default,
+    [SCREENS.WORKSPACE.VIRTUAL_EMPLOYEES]: () => require<ReactComponentModule>('../../../../pages/workspace/virtualEmployees/WorkspaceVirtualEmployeesPage').default,
+    [SCREENS.WORKSPACE.VIRTUAL_EMPLOYEES_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/virtualEmployees/WorkspaceVirtualEmployeePage').default,
 } satisfies Screens;
 
 const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
