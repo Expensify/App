@@ -103,15 +103,15 @@ function SearchAutocompleteInput({
     const currencyAutocompleteList = Object.keys(currencyList).filter((currencyCode) => !currencyList[currencyCode]?.retired);
     const currencySharedValue = useSharedValue(currencyAutocompleteList);
 
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const categoryAutocompleteList = getAutocompleteCategories(allPolicyCategories);
     const categorySharedValue = useSharedValue(categoryAutocompleteList);
 
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const tagAutocompleteList = getAutocompleteTags(allPoliciesTags);
     const tagSharedValue = useSharedValue(tagAutocompleteList);
 
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const emailList = Object.keys(loginList ?? {});
     const emailListSharedValue = useSharedValue(emailList);
 

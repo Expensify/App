@@ -48,7 +48,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const policy = usePolicy(policyID);
 
     const {translate} = useLocalize();
-    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
