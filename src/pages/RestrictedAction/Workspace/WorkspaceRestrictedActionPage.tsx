@@ -5,9 +5,10 @@ import {openSubscriptionPage} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RestrictedActionParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {isPolicyAdmin, isPolicyOwner, isPolicyUser} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceAdminRestrictedAction from './WorkspaceAdminRestrictedAction';
@@ -45,17 +46,17 @@ function WorkspaceRestrictedActionPage({
     }, [policyID, amountOwed, ownerBillingGracePeriodEnd, userBillingGracePeriodCollection]);
 
     // Workspace Owner
-    if (PolicyUtils.isPolicyOwner(policy, session?.accountID ?? -1)) {
+    if (isPolicyOwner(policy, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)) {
         return <WorkspaceOwnerRestrictedAction />;
     }
 
     // Workspace Admin
-    if (PolicyUtils.isPolicyAdmin(policy, session?.email)) {
+    if (isPolicyAdmin(policy, session?.email)) {
         return <WorkspaceAdminRestrictedAction policyID={policyID} />;
     }
 
     // Workspace User
-    if (PolicyUtils.isPolicyUser(policy, session?.email)) {
+    if (isPolicyUser(policy, session?.email)) {
         return <WorkspaceUserRestrictedAction policyID={policyID} />;
     }
 
