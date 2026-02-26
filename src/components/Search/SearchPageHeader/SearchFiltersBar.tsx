@@ -1,6 +1,6 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import {emailSelector} from '@selectors/Session';
-import React, {useContext, useRef} from 'react';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
@@ -11,6 +11,8 @@ import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
+import PopoverMenu from '@components/PopoverMenu';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
@@ -32,16 +34,20 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSortedActiveAdminPolicies from '@hooks/useSortedActiveAdminPolicies';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import {close} from '@libs/actions/Modal';
 import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
+import getIconForAction from '@libs/getIconForAction';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isExpenseReport} from '@libs/ReportUtils';
+import {generateReportID, isExpenseReport} from '@libs/ReportUtils';
 import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
@@ -145,6 +151,11 @@ function SearchFiltersBar({
     latestBankItems,
 }: SearchFiltersBarProps) {
     const scrollRef = useRef<FlatList<FilterItem>>(null);
+    const createButtonRef = useRef<View>(null);
+    const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
+    const [createMenuPosition, setCreateMenuPosition] = useState<{horizontal: number; vertical: number}>({horizontal: 0, vertical: 0});
+    const {calculatePopoverPosition} = usePopoverPosition();
+    const reportID = useMemo(() => generateReportID(), []);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
@@ -174,7 +185,7 @@ function SearchFiltersBar({
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns', 'Plus', 'Receipt', 'Location', 'Document', 'Coins', 'Cash', 'Transfer', 'MoneyCircle']);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
@@ -206,6 +217,51 @@ function SearchFiltersBar({
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
 
+    const hideCreateMenu = useCallback(() => setIsCreateMenuActive(false), []);
+    const showCreateMenu = useCallback(() => {
+        if (!createButtonRef.current) {
+            setIsCreateMenuActive(true);
+            return;
+        }
+        calculatePopoverPosition(createButtonRef, {
+            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+        }).then((position) => {
+            setCreateMenuPosition(position);
+            setIsCreateMenuActive(true);
+        });
+    }, [calculatePopoverPosition]);
+
+    const createMenuItems = useMemo(
+        (): PopoverMenuItem[] => [
+            {
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE, expensifyIcons),
+                text: translate('iou.createExpense'),
+                onSelected: () =>
+                    interceptAnonymousUser(() => {
+                        startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, undefined, true);
+                    }),
+            },
+            {
+                icon: expensifyIcons.Location,
+                text: translate('iou.trackDistance'),
+                onSelected: () =>
+                    interceptAnonymousUser(() => {
+                        startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, true);
+                    }),
+            },
+            {
+                icon: expensifyIcons.Document,
+                text: translate('report.newReport.createReport'),
+                onSelected: () =>
+                    interceptAnonymousUser(() => {
+                        Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                    }),
+            },
+        ],
+        [translate, reportID, expensifyIcons],
+    );
+
     const typeOptions = getTypeOptions(translate, allPolicies, email);
     const type = typeOptions.find((option) => option.value === unsafeType) ?? null;
 
@@ -221,7 +277,7 @@ function SearchFiltersBar({
             const reportIDs = new Set(
                 Object.values(selectedTransactions)
                     .map((transaction) => transaction?.reportID)
-                    .filter((reportID): reportID is string => !!reportID),
+                    .filter((transactionReportID): transactionReportID is string => !!transactionReportID),
             );
             return reportIDs.size;
         }
@@ -778,7 +834,7 @@ function SearchFiltersBar({
     const selectionButtonText = areAllMatchingItemsSelected ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedItemsCount});
 
     return (
-        <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
+        <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer, !shouldUseNarrowLayout && styles.gap5]}>
             {shouldShowSelectedDropdown ? (
                 <KYCWall
                     ref={kycWallRef}
@@ -836,20 +892,46 @@ function SearchFiltersBar({
                     )}
                 </KYCWall>
             ) : (
-                <FlatList
-                    horizontal
-                    keyboardShouldPersistTaps="always"
-                    style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
-                    contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
-                    ref={scrollRef}
-                    showsHorizontalScrollIndicator={false}
-                    data={filters}
-                    keyExtractor={(item) => item.label}
-                    renderItem={renderFilterItem}
-                    ListFooterComponent={renderListFooter}
-                    onEndReached={adjustScroll}
-                    onEndReachedThreshold={0.75}
-                />
+                <>
+                    <FlatList
+                        horizontal
+                        keyboardShouldPersistTaps="always"
+                        style={[styles.flexRow, styles.overflowScroll, !shouldUseNarrowLayout ? styles.flexShrink1 : styles.flexGrow0]}
+                        contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
+                        ref={scrollRef}
+                        showsHorizontalScrollIndicator={false}
+                        data={filters}
+                        keyExtractor={(item) => item.label}
+                        renderItem={renderFilterItem}
+                        ListFooterComponent={renderListFooter}
+                        onEndReached={adjustScroll}
+                        onEndReachedThreshold={0.75}
+                    />
+                    {!shouldUseNarrowLayout && (
+                        <View style={styles.pr5}>
+                            <PopoverMenu
+                                onClose={hideCreateMenu}
+                                isVisible={isCreateMenuActive}
+                                menuItems={createMenuItems}
+                                onItemSelected={hideCreateMenu}
+                                anchorRef={createButtonRef}
+                                anchorPosition={createMenuPosition}
+                                anchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                }}
+                            />
+                            <Button
+                                ref={createButtonRef}
+                                success
+                                small
+                                icon={expensifyIcons.Plus}
+                                text={translate('common.create')}
+                                onPress={showCreateMenu}
+                            />
+                        </View>
+                    )}
+                </>
             )}
         </View>
     );
