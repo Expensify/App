@@ -543,6 +543,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Quartal',
         vacationDelegate: 'Urlaubsvertretung',
         expensifyLogo: 'Expensify-Logo',
+        duplicateReport: 'Duplizierten Bericht',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -944,6 +945,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'Tag' : 'Tage'} verbleibend`,
             },
             addShippingAddress: {title: 'Wir benötigen deine Versandadresse', subtitle: 'Geben Sie eine Adresse an, um Ihre Expensify Karte zu erhalten.', cta: 'Adresse hinzufügen'},
+            addPaymentCard: {title: 'Fügen Sie eine Zahlungskarte hinzu, um Expensify weiter zu nutzen', subtitle: 'Konto > Abonnement', cta: 'Hinzufügen'},
             activateCard: {title: 'Aktivieren Sie Ihre Expensify Karte', subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.', cta: 'Aktivieren'},
             reviewCardFraud: {
                 title: 'Möglichen Betrug mit Ihrer Expensify Karte überprüfen',
@@ -954,17 +956,17 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: 'Beheben',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `${feedName}-Firmenkartenverbindung reparieren` : 'Firmenkarte reparieren Verbindung der Firmenkarte reparieren'),
-                defaultSubtitle: 'Workspace > Unternehmenskarten',
+                defaultSubtitle: 'Arbeitsbereich',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Unternehmenskarten`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `${integrationName}-Verbindung reparieren`,
-                defaultSubtitle: 'Arbeitsbereich > Buchhaltung',
+                defaultSubtitle: 'Arbeitsbereich',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Buchhaltung`,
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Verbindung der persönlichen Karte ${cardName} reparieren` : 'Verbindung der persönlichen Karte reparieren'),
-                subtitle: 'Wallet > Zugewiesene Karten',
+                subtitle: 'Wallet',
             },
         },
         assignedCards: 'Zugewiesene Karten',
@@ -1082,6 +1084,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Sind Sie sicher, dass Sie diesen Beleg löschen möchten?',
         addReceipt: 'Beleg hinzufügen',
         scanFailed: 'Der Beleg konnte nicht gescannt werden, da Händler, Datum oder Betrag fehlen.',
+        crop: 'Zuschneiden',
         addAReceipt: {
             phrase1: 'Beleg hinzufügen',
             phrase2: 'oder ziehe eine hierher und lege sie ab',
@@ -1390,7 +1393,12 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Einige dieser Duplikate wurden bereits genehmigt oder bezahlt.',
         reviewDuplicates: 'Duplikate prüfen',
         keepAll: 'Alle behalten',
-        confirmApprovalWithHeldAmount: 'Der Bericht enthält zurückgestellte Ausgaben. Nur konforme Ausgaben genehmigen oder den gesamten Bericht genehmigen?',
+        confirmApprove: 'Genehmigungsbetrag bestätigen',
+        confirmApprovalAmount: 'Nur regelkonforme Ausgaben genehmigen oder den gesamten Bericht genehmigen.',
+        confirmApprovalAllHoldAmount: () => ({
+            one: 'Diese Ausgabe ist zurückgestellt. Möchtest du sie trotzdem genehmigen?',
+            other: 'Diese Ausgaben sind zurückgestellt. Möchtest du sie trotzdem genehmigen?',
+        }),
         confirmPay: 'Zahlungsbetrag bestätigen',
         confirmPayAmount: 'Bezahle, was nicht zurückgestellt ist, oder bezahle den gesamten Bericht.',
         confirmPayAllHoldAmount: () => ({
@@ -1763,6 +1771,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Neue Kontaktmethode',
         goBackContactMethods: 'Zurück zu den Kontaktmethoden',
+        yourDefaultContactMethodRestrictedSwitch: 'Dies ist Ihre derzeitige standardmäßige Kontaktmethode. Ihr Unternehmen hat das Entfernen oder Ändern eingeschränkt.',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -3896,6 +3905,8 @@ ${
             workspaceOwner: 'Inhaber',
             workspaceType: 'Arbeitsbereichstyp',
             workspaceAvatar: 'Workspace-Avatar',
+            clientID: 'Kunden-ID',
+            clientIDInputHint: 'Geben Sie die eindeutige Kennung des Kunden ein',
             mustBeOnlineToViewMembers: 'Du musst online sein, um die Mitglieder dieses Arbeitsbereichs anzeigen zu können.',
             moreFeatures: 'Mehr Funktionen',
             requested: 'Angefordert',
@@ -4254,6 +4265,9 @@ ${
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagenausgaben werden beim Bezahlen exportiert',
                 },
             },
+            travelInvoicing: 'Reiseabrechnung',
+            travelInvoicingVendor: 'Reiseanbieter',
+            travelInvoicingPayableAccount: 'Verbindlichkeitenkonto Reisen',
         },
         workspaceList: {
             joinNow: 'Jetzt beitreten',
@@ -6358,6 +6372,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 adultEntertainment: 'Erwachsenenunterhaltung',
                 requireCompanyCard: 'Firmenkarten für alle Käufe vorschreiben',
                 requireCompanyCardDescription: 'Kennzeichne alle Barausgaben, einschließlich Kilometer- und Tagegeldspesen.',
+                requireCompanyCardDisabledTooltip: 'Aktiviere Firmenkarten (unter Weitere Funktionen), um dies freizuschalten.',
             },
             expenseReportRules: {
                 title: 'Erweitert',
@@ -7109,6 +7124,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         groupColumns: 'Spalten gruppieren',
         expenseColumns: 'Spalten für Ausgaben',
         statements: 'Abrechnungen',
+        cardStatements: 'Kartenabrechnungen',
+        monthlyAccrual: 'Monatliche Abgrenzung',
         unapprovedCash: 'Nicht genehmigtes Bargeld',
         unapprovedCard: 'Nicht genehmigte Karte',
         reconciliation: 'Abstimmung',
@@ -7210,6 +7227,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             table: 'Tabelle',
             bar: 'Leiste',
             line: 'Linie',
+            pie: 'Kreisdiagramm',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
@@ -7562,6 +7580,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             endTitle: 'Kilometerzähler-Endfoto',
             deleteOdometerPhoto: 'Kilometerzähler-Foto löschen',
             deleteOdometerPhotoConfirmation: 'Möchtest du dieses Kilometerzählerfoto wirklich löschen?',
+            cameraAccessRequired: 'Für das Aufnehmen von Bildern ist der Kamerazugriff erforderlich.',
+            snapPhotoStart: '<muted-text-label>Machen Sie zu <strong>Beginn</strong> Ihrer Fahrt ein Foto von Ihrem Kilometerzähler.</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>Machen Sie ein Foto von Ihrem Kilometerzähler am <strong>Ende</strong> Ihrer Fahrt.</muted-text-label>',
         },
     },
     gps: {
@@ -8486,14 +8507,17 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.',
                 vacationDelegate: 'Dieser Benutzer kann nicht als Urlaubsvertretung festgelegt werden. Bitte versuche es erneut.',
             },
+            cannotSetVacationDelegateForMember: (email: string) => `Du kannst keine Urlaubsvertretung für ${email} festlegen, weil sie derzeit die Vertretung für folgende Mitglieder sind:`,
+        },
+        common: {
+            settings: 'Einstellungen',
             forceTwoFactorAuth: 'Zwei-Faktor-Authentifizierung erzwingen',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>Bitte deaktiviere <a href="${samlPageUrl}">SAML</a>, um die Zwei-Faktor-Authentifizierung zu erzwingen.</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>Zwei-Faktor-Authentifizierung für alle Mitglieder dieser Domain verlangen. Domänenmitglieder werden beim Anmelden aufgefordert, die Zwei-Faktor-Authentifizierung für ihr Konto einzurichten.</muted-text>`,
             forceTwoFactorAuthError: 'Die Erzwingung der Zwei-Faktor-Authentifizierung konnte nicht geändert werden. Bitte versuche es später erneut.',
-            cannotSetVacationDelegateForMember: (email: string) => `Du kannst keine Urlaubsvertretung für ${email} festlegen, weil sie derzeit die Vertretung für folgende Mitglieder sind:`,
+            resetTwoFactorAuth: 'Zwei-Faktor-Authentifizierung zurücksetzen',
         },
-        common: {settings: 'Einstellungen'},
         groups: {title: 'Gruppen', memberCount: () => ({one: '1 Mitglied', other: (count: number) => `${count} Mitglieder`})},
     },
     proactiveAppReview: {

@@ -35,6 +35,18 @@ on:
       ROCK_ARTIFACT_URL:
         description: URL to download the ad-hoc build artifact (adhoc only)
         value: ${{ jobs.build.outputs.ROCK_ARTIFACT_URL }}
+      AAB_FILENAME:
+        description: Filename of the AAB artifact (empty if no AAB was produced)
+        value: ${{ jobs.build.outputs.AAB_FILENAME }}
+      APK_FILENAME:
+        description: Filename of the APK artifact (always Expensify.apk)
+        value: ${{ jobs.build.outputs.APK_FILENAME }}
+      SOURCEMAP_FILENAME:
+        description: Filename of the JS sourcemap artifact
+        value: ${{ jobs.build.outputs.SOURCEMAP_FILENAME }}
+      PROGUARD_MAPPING_FILENAME:
+        description: Filename of the proguard mapping artifact
+        value: ${{ jobs.build.outputs.PROGUARD_MAPPING_FILENAME }}
 
 jobs:
   build:
@@ -45,6 +57,10 @@ jobs:
     outputs:
       VERSION_CODE: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
       ROCK_ARTIFACT_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
+      AAB_FILENAME: ${{ steps.collectArtifacts.outputs.AAB_FILENAME }}
+      APK_FILENAME: ${{ steps.collectArtifacts.outputs.APK_FILENAME }}
+      SOURCEMAP_FILENAME: index.android.bundle.map
+      PROGUARD_MAPPING_FILENAME: mapping.txt
     steps:
       - name: Checkout
         # v6
@@ -192,7 +208,11 @@ jobs:
           if [ -n "$AAB_FILE" ]; then
             echo "Found AAB: $AAB_FILE"
             cp "$AAB_FILE" /tmp/android-artifacts/
-            echo "HAS_AAB=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "HAS_AAB=true"
+              echo "AAB_FILENAME=$(basename "$AAB_FILE")"
+              echo "APK_FILENAME=Expensify.apk"
+            } >> "$GITHUB_OUTPUT"
           else
             echo "::warning::No AAB file found (expected for remote-cache hits on Adhoc builds)"
             echo "HAS_AAB=false" >> "$GITHUB_OUTPUT"

@@ -154,6 +154,7 @@ const WRITE_COMMANDS = {
     DELETE_WORKSPACE_AVATAR: 'DeleteWorkspaceAvatar',
     UPDATE_WORKSPACE_GENERAL_SETTINGS: 'UpdateWorkspaceGeneralSettings',
     UPDATE_WORKSPACE_DESCRIPTION: 'UpdateWorkspaceDescription',
+    UPDATE_WORKSPACE_CLIENT_ID: 'UpdateWorkspaceClientID',
     UPDATE_WORKSPACE_MEMBERS_ROLE: 'UpdateWorkspaceMembersRole',
     CREATE_WORKSPACE: 'CreateWorkspace',
     DUPLICATE_POLICY: 'DuplicatePolicy',
@@ -307,6 +308,7 @@ const WRITE_COMMANDS = {
     UPDATE_QUICKBOOKS_ONLINE_SYNC_LOCATIONS: 'UpdateQuickbooksOnlineSyncLocations',
     UPDATE_QUICKBOOKS_ONLINE_SYNC_CUSTOMERS: 'UpdateQuickbooksOnlineSyncCustomers',
     UPDATE_QUICKBOOKS_ONLINE_SYNC_CLASSES: 'UpdateQuickbooksOnlineSyncClasses',
+    UPDATE_QUICKBOOKS_ONLINE_MAPPING: 'UpdateQuickbooksOnlineMapping',
     UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'UpdateQuickbooksOnlineNonReimbursableBillDefaultVendor',
     UPDATE_QUICKBOOKS_ONLINE_AUTO_SYNC: 'UpdateQuickbooksOnlineAutoSync',
     UPDATE_QUICKBOOKS_ONLINE_SYNC_PEOPLE: 'UpdateQuickbooksOnlineSyncPeople',
@@ -557,6 +559,8 @@ const WRITE_COMMANDS = {
     DELETE_DOMAIN: 'DeleteDomain',
     DELETE_DOMAIN_MEMBER: 'DeleteDomainMember',
     TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN: 'ToggleTwoFactorAuthRequiredForDomain',
+    SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN: 'SetTwoFactorAuthExemptEmailForDomain',
+    RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH: 'ResetDomainMemberTwoFactorAuth',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -702,6 +706,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_WORKSPACE_AVATAR]: Parameters.DeleteWorkspaceAvatarParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS]: Parameters.UpdateWorkspaceGeneralSettingsParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION]: Parameters.UpdateWorkspaceDescriptionParams;
+    [WRITE_COMMANDS.UPDATE_WORKSPACE_CLIENT_ID]: Parameters.UpdateWorkspaceClientIDParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE]: Parameters.UpdateWorkspaceMembersRoleParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE]: Parameters.CreateWorkspaceParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT]: Parameters.CreateWorkspaceFromIOUPaymentParams;
@@ -788,6 +793,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CANCEL_PAYMENT]: Parameters.CancelPaymentParams;
     [WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT]: Parameters.AcceptACHContractForBankAccount;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION]: Parameters.UpdateWorkspaceDescriptionParams;
+    [WRITE_COMMANDS.UPDATE_WORKSPACE_CLIENT_ID]: Parameters.UpdateWorkspaceClientIDParams;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_HARVESTING]: Parameters.SetWorkspaceAutoHarvestingParams;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY]: Parameters.SetWorkspaceAutoReportingFrequencyParams;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET]: Parameters.SetWorkspaceAutoReportingMonthlyOffsetParams;
@@ -891,6 +897,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD]: Parameters.UpdateQuickbooksOnlineAccountingMethodParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_MAPPING]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_ACCOUNTING_METHOD]: Parameters.UpdateXeroAccountingMethodParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD]: Parameters.UpdateQuickbooksDesktopAccountingMethodParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT_DATE]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
@@ -1136,6 +1143,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ADD_DOMAIN_ADMIN]: Parameters.AddAdminToDomainParams;
     [WRITE_COMMANDS.ADD_DOMAIN_MEMBER]: Parameters.AddMemberToDomainParams;
     [WRITE_COMMANDS.TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN]: Parameters.ToggleTwoFactorAuthRequiredForDomainParams;
+    [WRITE_COMMANDS.SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN]: Parameters.SetTwoFactorAuthExemptEmailForDomainParams;
+    [WRITE_COMMANDS.RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH]: Parameters.ResetDomainMemberTwoFactorAuthParams;
 };
 
 const READ_COMMANDS = {
@@ -1166,9 +1175,11 @@ const READ_COMMANDS = {
     OPEN_ROOM_MEMBERS_PAGE: 'OpenRoomMembersPage',
     SEARCH_FOR_REPORTS: 'SearchForReports',
     SEARCH_FOR_ROOMS_TO_MENTION: 'SearchForRoomsToMention',
+    SEARCH_FOR_USERS: 'SearchForUsers',
     GRAPHITE: 'Graphite',
     GET_ROUTE: 'GetRoute',
     GET_ROUTE_FOR_DRAFT: 'GetRouteForDraft',
+    GET_ROUTE_FOR_SPLIT_DRAFT: 'GetRouteForSplitDraft',
     GET_ROUTE_FOR_BACKUP: 'GetRouteForBackup',
     GET_STATEMENT_PDF: 'GetStatementPDF',
     OPEN_ONFIDO_FLOW: 'OpenOnfidoFlow',
@@ -1250,9 +1261,11 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE]: Parameters.OpenRoomMembersPageParams;
     [READ_COMMANDS.SEARCH_FOR_REPORTS]: Parameters.SearchForReportsParams;
     [READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION]: Parameters.SearchForRoomsToMentionParams;
+    [READ_COMMANDS.SEARCH_FOR_USERS]: Parameters.SearchForUsersParams;
     [READ_COMMANDS.GRAPHITE]: Parameters.GraphiteParams;
     [READ_COMMANDS.GET_ROUTE]: Parameters.GetRouteParams;
     [READ_COMMANDS.GET_ROUTE_FOR_DRAFT]: Parameters.GetRouteParams;
+    [READ_COMMANDS.GET_ROUTE_FOR_SPLIT_DRAFT]: Parameters.GetRouteParams;
     [READ_COMMANDS.GET_ROUTE_FOR_BACKUP]: Parameters.GetRouteParams;
     [READ_COMMANDS.GET_STATEMENT_PDF]: Parameters.GetStatementPDFParams;
     [READ_COMMANDS.OPEN_ONFIDO_FLOW]: null;

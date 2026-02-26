@@ -318,7 +318,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         timestamp: endTime,
                     });
                 } else if ('login' in item) {
-                    navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                    navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, false);
 
                     const endTime = Date.now();
                     Log.info('[CMD_K_DEBUG] Page user navigation handled', false, {
@@ -341,7 +341,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 throw error;
             }
         },
-        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue],
+        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue, currentUserAccountID],
     );
 
     const searchQueryItem = useMemo(

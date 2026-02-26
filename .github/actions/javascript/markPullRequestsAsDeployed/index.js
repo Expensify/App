@@ -13047,7 +13047,7 @@ const CONST = {
     },
     COMMENT: {
         TYPE_BOT: 'Bot',
-        NAME_MELVIN_BOT: 'melvin-bot',
+        NAME_MELVIN_BOT: 'melvin-bot[bot]',
         NAME_MELVIN_USER: 'MelvinBot',
         NAME_CODEX: 'chatgpt-codex-connector',
         NAME_GITHUB_ACTIONS: 'github-actions',
@@ -13475,6 +13475,20 @@ class GithubUtils {
             pull_number: pullRequestNumber,
         })
             .then(({ data: pullRequestComment }) => pullRequestComment.body);
+    }
+    static async getPullRequestMergeBaseSHA(pullRequestNumber) {
+        const { data: pullRequest } = await this.octokit.pulls.get({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+        });
+        const { data: comparison } = await this.octokit.repos.compareCommits({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            base: pullRequest.base.ref,
+            head: pullRequest.head.sha,
+        });
+        return comparison.merge_base_commit.sha;
     }
     static getAllReviewComments(pullRequestNumber) {
         return this.paginate(this.octokit.pulls.listReviews, {

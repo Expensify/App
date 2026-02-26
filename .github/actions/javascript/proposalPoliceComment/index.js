@@ -11614,9 +11614,9 @@ function getIsBotAuthor(user) {
         return false;
     }
     const knownBotLogins = [CONST_1.default.COMMENT.NAME_MELVIN_BOT, CONST_1.default.COMMENT.NAME_MELVIN_USER, CONST_1.default.COMMENT.NAME_CODEX, CONST_1.default.COMMENT.NAME_GITHUB_ACTIONS];
+    const isKnownBotLogin = knownBotLogins.includes(user.login ?? '');
     const isBotType = user.type === CONST_1.default.COMMENT.TYPE_BOT;
-    const isKnownLogin = knownBotLogins.includes(user.login ?? '');
-    return isBotType || isKnownLogin;
+    return isKnownBotLogin || isBotType;
 }
 // Main function to process the workflow event
 async function run() {
@@ -11664,6 +11664,10 @@ async function run() {
         const newProposalCreatedAt = new Date(payload.comment.created_at).getTime();
         const newProposalBody = payload.comment.body;
         const newProposalAuthor = payload.comment.user.login;
+        if (getIsBotAuthor(payload.comment.user)) {
+            console.log('New comment is from a bot. Skipping duplicate check.');
+            return;
+        }
         // Fetch all comments in the issue
         console.log('Get comments for issue #', issueNumber);
         const commentsResponse = await GithubUtils_1.default.getAllCommentDetails(issueNumber);
@@ -11894,7 +11898,7 @@ const CONST = {
     },
     COMMENT: {
         TYPE_BOT: 'Bot',
-        NAME_MELVIN_BOT: 'melvin-bot',
+        NAME_MELVIN_BOT: 'melvin-bot[bot]',
         NAME_MELVIN_USER: 'MelvinBot',
         NAME_CODEX: 'chatgpt-codex-connector',
         NAME_GITHUB_ACTIONS: 'github-actions',
@@ -12322,6 +12326,20 @@ class GithubUtils {
             pull_number: pullRequestNumber,
         })
             .then(({ data: pullRequestComment }) => pullRequestComment.body);
+    }
+    static async getPullRequestMergeBaseSHA(pullRequestNumber) {
+        const { data: pullRequest } = await this.octokit.pulls.get({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+        });
+        const { data: comparison } = await this.octokit.repos.compareCommits({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            base: pullRequest.base.ref,
+            head: pullRequest.head.sha,
+        });
+        return comparison.merge_base_commit.sha;
     }
     static getAllReviewComments(pullRequestNumber) {
         return this.paginate(this.octokit.pulls.listReviews, {
