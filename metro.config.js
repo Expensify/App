@@ -40,7 +40,7 @@ const config = {
         }),
     },
     serializer: {
-        getPolyfills: (opts) => [...defaultGetPolyfills(opts), path.resolve(__dirname, 'src/setup/moduleInitPolyfill.js')],
+        getPolyfills: (opts) => [...defaultGetPolyfills(opts), path.resolve(__dirname, 'src/setup/moduleInitPolyfill.ts')],
         ...(!isDev ? {customSerializer: createSentryMetroSerializer()} : {}),
     },
 };
