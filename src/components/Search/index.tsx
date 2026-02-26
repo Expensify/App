@@ -226,10 +226,9 @@ function Search({
     const isFocused = useIsFocused();
     const {markReportIDAsExpense} = useWideRHPActions();
 
-    // JACK_TODO: Rename currentSearchKey
     const {
         currentSearchHash,
-        currentSearchKey: searchKey,
+        currentSearchKey,
         selectedTransactions,
         shouldTurnOffSelectionMode,
         lastSearchType,
@@ -271,7 +270,7 @@ function Search({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, hash, offset === 0);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -362,7 +361,7 @@ function Search({
         transactions,
         previousTransactions,
         queryJSON,
-        searchKey,
+        searchKey: currentSearchKey,
         offset,
         shouldCalculateTotals,
         reportActions,
@@ -410,7 +409,7 @@ function Search({
             bankAccountList,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
-            currentSearch: searchKey,
+            currentSearch: currentSearchKey,
             archivedReportsIDList: archivedReportsIdSet,
             queryJSON,
             isActionLoadingSet,
@@ -423,7 +422,7 @@ function Search({
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
-        searchKey,
+        currentSearchKey,
         isOffline,
         exportReportActions,
         validGroupBy,
@@ -539,11 +538,11 @@ function Search({
             return;
         }
 
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search?.isLoading});
+        handleSearch({queryJSON, searchKey: currentSearchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search?.isLoading});
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals, validGroupBy]);
+    }, [handleSearch, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
@@ -558,8 +557,8 @@ function Search({
         }
 
         shouldRetrySearchWithTotalsOrGroupedRef.current = false;
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals: true, prevReportsLength: filteredDataLength, isLoading: false});
-    }, [filteredDataLength, handleSearch, offset, queryJSON, searchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
+        handleSearch({queryJSON, searchKey: currentSearchKey, offset, shouldCalculateTotals: true, prevReportsLength: filteredDataLength, isLoading: false});
+    }, [filteredDataLength, handleSearch, offset, queryJSON, currentSearchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
@@ -904,7 +903,7 @@ function Search({
             }
 
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
-                handleSearch({queryJSON: item.transactionsQueryJSON, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                handleSearch({queryJSON: item.transactionsQueryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
@@ -978,7 +977,7 @@ function Search({
             markReportIDAsExpense,
             toggleTransaction,
             handleSearch,
-            searchKey,
+            currentSearchKey,
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
             introSelected,
@@ -1240,8 +1239,8 @@ function Search({
             if (savedSearch.name !== savedSearch.query) {
                 chartTitle = savedSearch.name;
             }
-        } else if (searchKey && suggestedSearches[searchKey]) {
-            chartTitle = translate(suggestedSearches[searchKey].translationPath);
+        } else if (currentSearchKey && suggestedSearches[currentSearchKey]) {
+            chartTitle = translate(suggestedSearches[currentSearchKey].translationPath);
         }
 
         return (
