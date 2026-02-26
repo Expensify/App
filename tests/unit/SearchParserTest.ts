@@ -1531,13 +1531,13 @@ const keywordTests = [
         },
     },
     {
-        query: 'sortBy:groupweek type:expense groupBy:week view:table',
+        query: 'sortBy:groupmonth type:expense groupBy:month view:table',
         expected: {
             type: 'expense',
             status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
             sortOrder: 'desc',
-            groupBy: 'week',
+            groupBy: 'month',
             view: 'table',
             filters: null,
         },
