@@ -11,9 +11,9 @@ import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
@@ -42,9 +42,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import {close} from '@libs/actions/Modal';
 import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
+import DateUtils from '@libs/DateUtils';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {generateReportID, isExpenseReport} from '@libs/ReportUtils';
@@ -155,7 +155,6 @@ function SearchFiltersBar({
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const [createMenuPosition, setCreateMenuPosition] = useState<{horizontal: number; vertical: number}>({horizontal: 0, vertical: 0});
     const {calculatePopoverPosition} = usePopoverPosition();
-    const reportID = useMemo(() => generateReportID(), []);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
@@ -238,7 +237,7 @@ function SearchFiltersBar({
                 text: translate('iou.createExpense'),
                 onSelected: () =>
                     interceptAnonymousUser(() => {
-                        startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID);
+                        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
                     }),
             },
             {
@@ -246,7 +245,7 @@ function SearchFiltersBar({
                 text: translate('iou.trackDistance'),
                 onSelected: () =>
                     interceptAnonymousUser(() => {
-                        startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID);
+                        startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID());
                     }),
             },
             {
@@ -258,7 +257,7 @@ function SearchFiltersBar({
                     }),
             },
         ],
-        [translate, reportID, expensifyIcons],
+        [translate, expensifyIcons],
     );
 
     const typeOptions = getTypeOptions(translate, allPolicies, email);
