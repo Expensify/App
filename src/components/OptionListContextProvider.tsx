@@ -71,7 +71,7 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
     const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
-    const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
+    const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(areOptionsInitialized);
 
     const prevIsInitialized = usePrevious(areOptionsInitialized);
     const [prevOptionsSnapshot, setPrevOptionsSnapshot] = useState(optionsList);
