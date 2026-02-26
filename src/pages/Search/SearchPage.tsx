@@ -1,11 +1,10 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import type {SearchParams} from '@components/Search/types';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -14,8 +13,7 @@ import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
-import {search, updateAdvancedFilters} from '@libs/actions/Search';
+import {updateAdvancedFilters} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -44,19 +42,6 @@ function SearchPage({route}: SearchPageProps) {
     useConfirmReadyToOpenApp();
 
     const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
-
-    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
-
-    const handleSearchAction = useCallback((value: SearchParams | string) => {
-        if (typeof value === 'string') {
-            searchInServer(value);
-        } else {
-            setSearchRequestResponseStatusCode(null);
-            search(value)?.then((jsonCode) => {
-                setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
-            });
-        }
-    }, []);
 
     const scrollHandler = useCallback(
         (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -90,8 +75,6 @@ function SearchPage({route}: SearchPageProps) {
             ) : (
                 <SearchPageWide
                     queryJSON={queryJSON}
-                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                    handleSearchAction={handleSearchAction}
                     scrollHandler={scrollHandler}
                     initScanRequest={initScanRequest}
                     isDragDisabled={isDragDisabled}

@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -20,12 +20,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
+import {searchInServer} from '@userActions/Report';
+import {search} from '@userActions/Search';
 import ROUTES from '@src/ROUTES';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
-    searchRequestResponseStatusCode: number | null;
-    handleSearchAction: (value: SearchParams | string) => void;
     scrollHandler: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     initScanRequest: (e: DragEvent) => void;
     isDragDisabled: boolean;
@@ -33,16 +33,7 @@ type SearchPageWideProps = {
     ErrorModal: React.ReactNode;
 };
 
-function SearchPageWide({
-    queryJSON,
-    searchRequestResponseStatusCode,
-    handleSearchAction,
-    scrollHandler,
-    initScanRequest,
-    isDragDisabled,
-    PDFValidationComponent,
-    ErrorModal,
-}: SearchPageWideProps) {
+function SearchPageWide({queryJSON, scrollHandler, initScanRequest, isDragDisabled, PDFValidationComponent, ErrorModal}: SearchPageWideProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -50,6 +41,17 @@ function SearchPageWide({
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const metadata = searchResults?.search;
     const {resetVideoPlayerData} = usePlaybackActionsContext();
+    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
+    const handleSearchAction = useCallback((value: SearchParams | string) => {
+        if (typeof value === 'string') {
+            searchInServer(value);
+        } else {
+            setSearchRequestResponseStatusCode(null);
+            search(value)?.then((jsonCode) => {
+                setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
+            });
+        }
+    }, []);
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
     const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
