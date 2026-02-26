@@ -165,17 +165,13 @@ function InternationalDepositAccountContent({
         nextPage();
     }, [isEditing, goBackToConfirmStep, nextPage]);
 
-    if (isAccountLoading) {
-        return <FullScreenLoadingIndicator />;
-    }
-
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
             testID="InternationalDepositAccountContent"
             shouldShowOfflineIndicatorInWideScreen={pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
-            {isRedirecting ? (
+            {(isRedirecting || isAccountLoading) ? (
                 <FullScreenLoadingIndicator />
             ) : (
                 <>
