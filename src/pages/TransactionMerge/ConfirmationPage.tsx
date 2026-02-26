@@ -41,13 +41,11 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     const {transactionID, isOnSearch, backTo} = route.params;
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
-    const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
+    const {targetTransaction, sourceTransaction, targetTransactionReport, targetTransactionPolicy} = useMergeTransactions({mergeTransaction});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
-    const policyID = targetTransactionReport?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetTransactionPolicy?.id}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetTransactionPolicy?.id}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -81,7 +79,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             targetTransactionThreadParentReport,
             targetTransactionThreadParentReportNextStep,
             allTransactionViolations,
-            policy,
+            policy: targetTransactionPolicy,
             policyTags,
             policyCategories,
             currentUserAccountIDParam,
@@ -133,7 +131,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                         <Text>{translate('transactionMerge.confirmationPage.pageTitle')}</Text>
                     </View>
                     <MoneyRequestView
-                        expensePolicy={policy}
+                        expensePolicy={targetTransactionPolicy}
                         parentReportID={targetTransactionReport?.reportID}
                         shouldShowAnimatedBackground={false}
                         readonly

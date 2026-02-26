@@ -300,9 +300,10 @@ function MoneyRequestView({
     const shouldShowCard = isManagedCardTransaction && cardProgramName;
 
     const taxRates = policy?.taxRates;
-    const formattedTaxAmount = updatedTransaction?.taxAmount
-        ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), transactionCurrency)
-        : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), transactionCurrency);
+    const formattedTaxAmount =
+        updatedTransaction?.taxAmount !== undefined
+            ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), actualCurrency)
+            : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
 
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction, isExpenseUnreported) : getTaxName(policy, transaction, isExpenseUnreported);
@@ -401,7 +402,7 @@ function MoneyRequestView({
         canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest) || !!transaction?.taxName;
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
@@ -586,7 +587,7 @@ function MoneyRequestView({
     const decodedCategoryName = getDecodedCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
     const cardCopyValue = cardProgramName;
-    const taxRateValue = taxRateTitle ?? fallbackTaxRateTitle;
+    const taxRateValue = transaction?.taxName ?? taxRateTitle ?? fallbackTaxRateTitle;
     const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
     const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;

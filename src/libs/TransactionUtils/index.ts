@@ -750,6 +750,10 @@ function getUpdatedTransaction({
         }
     }
 
+    if (Object.hasOwn(transactionChanges, 'reportID') && typeof transactionChanges.reportID === 'string') {
+        updatedTransaction.reportID = transactionChanges.reportID;
+    }
+
     if (Object.hasOwn(transactionChanges, 'routes')) {
         updatedTransaction.routes = transactionChanges.routes;
     }
