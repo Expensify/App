@@ -1,4 +1,4 @@
-import React, {useDeferredValue, useEffect} from 'react';
+import React from 'react';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {SearchAutocompleteListProps} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
@@ -12,15 +12,14 @@ import CONST from '@src/CONST';
  */
 function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
     const [shouldRender, setShouldRender] = React.useState(false);
-    const deferredShouldRender = useDeferredValue(shouldRender);
 
-    useEffect(() => {
-        Navigation.isNavigationReady().then(() => {
+    React.useEffect(() => {
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
             setShouldRender(true);
         });
     }, []);
 
-    if (!deferredShouldRender) {
+    if (!shouldRender) {
         return (
             <OptionsListSkeletonView
                 fixedNumItems={4}
