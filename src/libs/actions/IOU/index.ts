@@ -6167,11 +6167,14 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
 
         const reportPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatParams.reportID}`]?.[chatParams.reportPreviewReportActionID];
         if (!reportPreviewAction || reportPreviewAction.isOptimisticAction) {
+            const previousPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatParams.reportID}`]?.[chatParams.reportPreviewReportActionID];
+
+            // Restore the optimistic preview action if it exists from an earlier request in the same chat/report; otherwise, clear it.
             additionalFailureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatParams.reportID}`,
                 value: {
-                    [chatParams.reportPreviewReportActionID]: null,
+                    [chatParams.reportPreviewReportActionID]: previousPreviewAction ?? null,
                 },
             });
         }
