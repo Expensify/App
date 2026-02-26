@@ -144,6 +144,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     renderScrollComponent,
     shouldShowRightCaret,
     shouldHighlightSelectedItem = true,
+    ListFooterComponentStyle,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
     shouldSkipContentHeaderHeightOffset,
@@ -292,12 +293,26 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         };
     }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight]);
 
+    const wasIncrementPageCancelledRef = useRef(false);
+
     const incrementPage = useCallback(() => {
         if (flattenedSections.allOptions.length <= CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
+            wasIncrementPageCancelledRef.current = true;
             return;
         }
         setCurrentPage((prev) => prev + 1);
+        wasIncrementPageCancelledRef.current = false;
     }, [flattenedSections.allOptions.length, currentPage]);
+
+    // When new items are received, check if we're at the bottom of the list and should increment the current page
+    useEffect(() => {
+        if (!wasIncrementPageCancelledRef.current) {
+            return;
+        }
+        incrementPage();
+        // We only really want to recall `incrementPage` after the data has been updated.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [flattenedSections.allOptions.length]);
 
     const slicedSections = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
@@ -604,7 +619,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
             // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionTitleStyles]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
+                <Text
+                    style={[styles.ph5, styles.textLabelSupporting]}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {section.title}
+                </Text>
             </View>
         );
     };
@@ -616,7 +636,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
                             testID="selection-list-select-all-checkbox"
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             isChecked={flattenedSections.allSelected}
                             isIndeterminate={flattenedSections.someSelected}
                             onPress={selectAllRow}
@@ -626,7 +646,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                             <PressableWithFeedback
                                 style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                                 onPress={selectAllRow}
-                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                                sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST_WITH_SECTIONS.SELECT_ALL}
                                 role="button"
                                 accessibilityState={{checked: flattenedSections.allSelected}}
                                 disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
@@ -853,6 +874,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
         // Reset the current page to 1 when the user types something
         setCurrentPage(1);
+        wasIncrementPageCancelledRef.current = false;
     }, [textInputValue, prevTextInputValue]);
 
     useEffect(() => {
@@ -1079,6 +1101,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 {listFooterContent}
                             </>
                         }
+                        ListFooterComponentStyle={ListFooterComponentStyle}
                         onEndReached={handleOnEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}

@@ -7,6 +7,7 @@ import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,7 +20,6 @@ import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
-import Performance from '@libs/Performance';
 import {
     getCombinedReportActions,
     getMostRecentIOURequestActionID,
@@ -81,6 +81,7 @@ function ReportActionsView({
     isReportTransactionThread,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
+    usePendingConciergeResponse(report.reportID);
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
@@ -96,12 +97,11 @@ function ReportActionsView({
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         {
             selector: getTransactionThreadReportActions,
-            canBeMissing: true,
         },
         [getTransactionThreadReportActions],
     );
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
@@ -269,7 +269,7 @@ function ReportActionsView({
 
         didLayout.current = true;
 
-        markOpenReportEnd(report);
+        markOpenReportEnd(report, {warm: true});
     }, [report]);
 
     // Check if the first report action in the list is the one we're currently linked to
@@ -304,8 +304,16 @@ function ReportActionsView({
 
     // Show skeleton while the app is loading and we're online
     const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
+    const shouldShowSkeleton = shouldShowSkeletonForInitialLoad ?? shouldShowSkeletonForAppLoad;
 
-    if (shouldShowSkeletonForInitialLoad ?? shouldShowSkeletonForAppLoad) {
+    useEffect(() => {
+        if (!shouldShowSkeleton) {
+            return;
+        }
+        markOpenReportEnd(report, {warm: false});
+    }, [report, shouldShowSkeleton]);
+
+    if (shouldShowSkeleton) {
         return <ReportActionsSkeletonView />;
     }
 
@@ -337,4 +345,4 @@ function ReportActionsView({
     );
 }
 
-export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'})(ReportActionsView);
+export default ReportActionsView;

@@ -14,7 +14,7 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 
 function Waypoints() {
     const styles = useThemeStyles();
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {translate} = useLocalize();
 
     const icons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled']);
@@ -63,7 +63,7 @@ export default Waypoints;
 const GPS_TOOLTIP_HORIZONTAL_PADDING = 40;
 
 function GPSTooltip({children}: React.PropsWithChildren) {
-    const [isTracking = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
+    const [isTracking = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
 
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();

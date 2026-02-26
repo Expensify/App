@@ -226,7 +226,7 @@ function SplitListItem<TItem extends ListItem>({
                                 accessibilityLabel={translate('common.edit')}
                                 role="button"
                                 style={styles.pointerEventsAuto}
-                                sentryLabel="SplitListItem-EditButton"
+                                sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.SPLIT_LIST_ITEM_EDIT_BUTTON}
                             >
                                 <Icon
                                     src={icons.ArrowRight}

@@ -3,6 +3,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import cardFeedErrorsConfig from './configs/cardFeedErrors';
 import nonPersonalAndWorkspaceCardListConfig from './configs/nonPersonalAndWorkspaceCardList';
 import outstandingReportsByPolicyIDConfig from './configs/outstandingReportsByPolicyID';
+import personalAndWorkspaceCardListConfig from './configs/personalAndWorkspaceCardList';
 import reportAttributesConfig from './configs/reportAttributes';
 import reportTransactionsAndViolationsConfig from './configs/reportTransactionsAndViolations';
 import todosConfig from './configs/todos';
@@ -17,6 +18,7 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]: reportTransactionsAndViolationsConfig,
     [ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID]: outstandingReportsByPolicyIDConfig,
     [ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST]: nonPersonalAndWorkspaceCardListConfig,
+    [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: personalAndWorkspaceCardListConfig,
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: cardFeedErrorsConfig,
     [ONYXKEYS.DERIVED.TODOS]: todosConfig,
 } as const satisfies {

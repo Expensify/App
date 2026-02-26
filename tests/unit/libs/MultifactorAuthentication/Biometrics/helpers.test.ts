@@ -27,7 +27,7 @@ describe('MultifactorAuthentication Biometrics helpers', () => {
             const responseMap = VALUES.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE;
             const result = parseHttpRequest(200, responseMap, 'Success');
 
-            expect(result.httpCode).toBe(200);
+            expect(result.httpStatusCode).toBe(200);
             expect(result.reason).toBe(VALUES.REASON.BACKEND.CHALLENGE_GENERATED);
         });
 
@@ -35,7 +35,7 @@ describe('MultifactorAuthentication Biometrics helpers', () => {
             const responseMap = VALUES.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE;
             const result = parseHttpRequest('401', responseMap, 'Too many attempts');
 
-            expect(result.httpCode).toBe(401);
+            expect(result.httpStatusCode).toBe(401);
             expect(result.reason).toBe(VALUES.REASON.BACKEND.TOO_MANY_ATTEMPTS);
         });
 
@@ -43,7 +43,7 @@ describe('MultifactorAuthentication Biometrics helpers', () => {
             const responseMap = VALUES.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE;
             const result = parseHttpRequest(999, responseMap, 'Something is needed');
 
-            expect(result.httpCode).toBe(999);
+            expect(result.httpStatusCode).toBe(999);
             expect(result.reason).toBe(VALUES.REASON.BACKEND.UNKNOWN_RESPONSE);
         });
 
@@ -51,7 +51,7 @@ describe('MultifactorAuthentication Biometrics helpers', () => {
             const responseMap = VALUES.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE;
             const result = parseHttpRequest(undefined, responseMap, undefined);
 
-            expect(result.httpCode).toBe(0);
+            expect(result.httpStatusCode).toBe(0);
             expect(result.reason).toBe(VALUES.REASON.BACKEND.UNKNOWN_RESPONSE);
         });
     });
