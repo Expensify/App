@@ -290,6 +290,8 @@ function CalendarPicker({
                                     aria-selected={isSelected}
                                     tabIndex={day ? 0 : -1}
                                     accessible={!!day}
+                                    accessibilityElementsHidden={!day}
+                                    importantForAccessibility={day ? 'auto' : 'no-hide-descendants'}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     role={CONST.ROLE.BUTTON}
                                     sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.DAY}

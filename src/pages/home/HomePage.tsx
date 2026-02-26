@@ -32,7 +32,7 @@ function HomePage() {
     const theme = useTheme();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
-    const {initScanRequest, PDFValidationComponent, ErrorModal} = useReceiptScanDrop();
+    const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
@@ -45,7 +45,7 @@ function HomePage() {
     usePreloadFullScreenNavigators();
 
     return (
-        <DragAndDropProvider>
+        <DragAndDropProvider isDisabled={isDragDisabled}>
             {PDFValidationComponent}
             <ScreenWrapper
                 shouldEnablePickerAvoiding={false}
