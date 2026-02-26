@@ -702,11 +702,7 @@ describe('ReportUtils', () => {
             expect(onboardingOptimistic).toBeUndefined();
         });
 
-        it('should revert isInviteOnboardingComplete in failureData when wasInvited is true', async () => {
-            // Set initial introSelected with isInviteOnboardingComplete = false
-            await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {isInviteOnboardingComplete: false});
-            await waitForBatchedUpdates();
-
+        it('should revert isInviteOnboardingComplete in failureData when wasInvited is true', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: {isInviteOnboardingComplete: false},
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
