@@ -104,6 +104,8 @@ export default {
     sideBarWidth: 375,
     sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
+    receiptPreviewMaxWidth: 440,
+    receiptPreviewMaxHeight: 440,
     homePageLeftColumnMaxWidth: 680,
     homePageRightColumnMaxWidth: 488,
     minScanTooltipWidth: 320,
@@ -413,4 +415,10 @@ export default {
     humptyDumptyHeight: 165,
     magnifyingGlassSpyMouthClosedWidth: 161,
     magnifyingGlassSpyMouthClosedHeight: 169,
+
+    // Odometer photo information container
+    leftPositionOdometerPhotoInformationContainer: 20,
+    rightPositionOdometerPhotoInformationContainer: 20,
+    bottomPositionOdometerPhotoInformationContainer: 20,
+    paddingOdometerPhotoInformationContainer: 13.5,
 } as const;
