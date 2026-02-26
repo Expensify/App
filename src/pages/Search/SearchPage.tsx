@@ -1002,7 +1002,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (canAllTransactionsBeMoved && !hasMultipleOwners && !typeExpenseReport) {
             options.push({
-                text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
+                text: translate('iou.moveExpenses'),
                 icon: expensifyIcons.DocumentMerge,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,

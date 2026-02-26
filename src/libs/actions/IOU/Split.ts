@@ -1559,6 +1559,7 @@ function updateSplitTransactions({
         const parameters = {
             ...splits.at(0),
             comment: splits.at(0)?.comment?.comment,
+            waypoints: splits.at(0)?.waypoints ? JSON.stringify(splits.at(0)?.waypoints) : undefined,
         } as RevertSplitTransactionParams;
         API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, onyxData);
     } else {
@@ -1880,6 +1881,7 @@ function getDistanceMerchantFromDistance(distanceInUnits: number, unit: Unit | u
         (phrase, ...parameters) => Localize.translate(currentLocale, phrase, ...parameters),
         (digit) => toLocaleDigit(currentLocale, digit),
         getCurrencySymbol,
+        true,
     );
 }
 
@@ -1978,8 +1980,7 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
             reportID,
             created: splitTransactionData?.created ?? '',
             category: splitTransactionData?.category ?? '',
-            distance: splitTransactionData?.customUnit?.quantity ?? undefined,
-            customUnitRateID: splitTransactionData?.customUnit?.customUnitRateID,
+            customUnit: splitTransactionData?.customUnit,
             waypoints: splitTransactionData?.waypoints ?? undefined,
             odometerStart: splitTransactionData?.odometerStart ?? undefined,
             odometerEnd: splitTransactionData?.odometerEnd ?? undefined,

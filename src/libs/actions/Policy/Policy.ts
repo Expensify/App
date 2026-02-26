@@ -486,16 +486,15 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: policyCardFeeds,
         },
-        ...(filteredBankAccountList !== bankAccountList
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.SET,
-                      key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                      value: bankAccountList ?? {},
-                  },
-              ]
-            : []),
     ];
+
+    if (filteredBankAccountList !== bankAccountList) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+            value: bankAccountList ?? {},
+        });
+    }
 
     if (policyID === activePolicyID) {
         const mostRecentlyCreatedGroupPolicy = Object.values(policies ?? {})
