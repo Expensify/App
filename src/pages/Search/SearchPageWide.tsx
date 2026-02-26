@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -12,6 +12,7 @@ import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -54,6 +55,13 @@ function SearchPageWide({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {resetVideoPlayerData} = usePlaybackActionsContext();
+
+    useEffect(() => {
+        resetVideoPlayerData();
+        return resetVideoPlayerData;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const offlineIndicatorStyle = useMemo(() => {
         if (shouldShowFooter) {
