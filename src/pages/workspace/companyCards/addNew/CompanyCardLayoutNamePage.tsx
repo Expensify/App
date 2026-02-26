@@ -32,6 +32,7 @@ function CompanyCardLayoutNamePage({route}: CompanyCardLayoutNamePageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const defaultValue = addNewCard?.data?.companyCardLayoutName ?? '';
+    const requiredFields = [INPUT_IDS.COMPANY_CARD_LAYOUT_NAME];
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.COMPANY_CARD_LAYOUT_NAME_FORM>) => {
         const companyCardLayoutName = values[INPUT_IDS.COMPANY_CARD_LAYOUT_NAME].trim();
@@ -42,7 +43,7 @@ function CompanyCardLayoutNamePage({route}: CompanyCardLayoutNamePageProps) {
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.COMPANY_CARD_LAYOUT_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.COMPANY_CARD_LAYOUT_NAME_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_CARD_LAYOUT_NAME]);
+        const errors = getFieldRequiredErrors(values, requiredFields, translate);
         const length = values[INPUT_IDS.COMPANY_CARD_LAYOUT_NAME].length;
         if (length > CONST.STANDARD_LENGTH_LIMIT) {
             addErrorMessage(errors, INPUT_IDS.COMPANY_CARD_LAYOUT_NAME, translate('common.error.characterLimitExceedCounter', length, CONST.STANDARD_LENGTH_LIMIT));

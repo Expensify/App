@@ -98,8 +98,8 @@ function SelectBankStep() {
             leftElement: (
                 <Icon
                     src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
-                    height={variables.iconSizeExtraLarge}
-                    width={variables.iconSizeExtraLarge}
+                    height={bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT ? variables.iconSizeLarge : variables.iconSizeExtraLarge}
+                    width={bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT ? variables.iconSizeLarge : variables.iconSizeExtraLarge}
                     additionalStyles={styles.mr3}
                 />
             ),
