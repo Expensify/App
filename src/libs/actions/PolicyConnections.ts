@@ -8,14 +8,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function openPolicyAccountingPage(policyID: string) {
     const hasConnectionsDataBeenFetchedKey = `${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}` as const;
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof hasConnectionsDataBeenFetchedKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: hasConnectionsDataBeenFetchedKey,
             value: true,
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof hasConnectionsDataBeenFetchedKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: hasConnectionsDataBeenFetchedKey,

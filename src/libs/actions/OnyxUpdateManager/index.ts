@@ -1,4 +1,5 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import * as Sentry from '@sentry/react-native';
+import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
@@ -84,7 +85,7 @@ function finalizeUpdatesAndResumeQueue() {
  *
  * @returns a promise that resolves when all Onyx updates are done being processed
  */
-function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>, clientLastUpdateID?: number): Promise<void> {
+function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer<TKey>>, clientLastUpdateID?: number): Promise<void> {
     // If isLoadingApp is positive it means that OpenApp command hasn't finished yet, and in that case
     // we don't have base state of the app (reports, policies, etc.) setup. If we apply this update,
     // we'll only have them overwritten by the openApp response. So let's skip it and return.
@@ -106,6 +107,11 @@ function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFr
     if (!isValidOnyxUpdateFromServer(onyxUpdatesFromServer)) {
         return Promise.resolve();
     }
+
+    const span = Sentry.startInactiveSpan({
+        name: CONST.TELEMETRY.SPAN_HANDLE_MISSING_ONYX_UPDATES,
+        op: CONST.TELEMETRY.SPAN_HANDLE_MISSING_ONYX_UPDATES,
+    });
 
     // Check if one of these onyx updates is for the authToken. If it is, let's update our authToken now because our
     // current authToken is probably invalid.
@@ -195,18 +201,33 @@ function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFr
     const shouldFinalizeAndResume = checkIfClientNeedsToBeUpdated();
 
     if (shouldFinalizeAndResume) {
-        return getMissingOnyxUpdatesQueryPromise()?.finally(finalizeUpdatesAndResumeQueue) as Promise<void>;
+        const promise = getMissingOnyxUpdatesQueryPromise();
+        if (promise) {
+            return promise
+                .finally(finalizeUpdatesAndResumeQueue)
+                .then(() => {
+                    span.setStatus({code: 1});
+                    span.end();
+                })
+                .catch((error: unknown) => {
+                    span.setStatus({code: 2, message: error instanceof Error ? error.message : undefined});
+                    span.end();
+                    throw error;
+                });
+        }
     }
 
+    span.setStatus({code: 1});
+    span.end();
     return Promise.resolve();
 }
 
-function updateAuthTokenIfNecessary(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>): void {
+function updateAuthTokenIfNecessary<TKey extends OnyxKey>(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer<TKey>>): void {
     // Consolidate all of the given Onyx updates
-    const onyxUpdates: OnyxUpdate[] = [];
+    const onyxUpdates: Array<OnyxUpdate<TKey>> = [];
     if (onyxUpdatesFromServer?.updates) {
         for (const updateEvent of onyxUpdatesFromServer.updates) {
-            onyxUpdates.push(...updateEvent.data);
+            onyxUpdates.push(...(updateEvent.data as Array<OnyxUpdate<TKey>>));
         }
     }
     onyxUpdates.push(...(onyxUpdatesFromServer?.response?.onyxData ?? []));

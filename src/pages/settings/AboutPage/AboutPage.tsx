@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -27,6 +28,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import pkg from '../../../../package.json';
 import useAboutSectionIllustration from './useAboutSectionIllustration';
 
@@ -41,7 +43,7 @@ function getFlavor(): string {
     return '';
 }
 
-type MenuItem = {
+type MenuItem = WithSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     iconRight?: IconAsset;
@@ -59,24 +61,28 @@ function AboutPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const aboutIllustration = useAboutSectionIllustration();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    useDocumentTitle(`${translate('common.settings')} - ${translate('initialSettingsPage.about')}`);
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
                 icon: icons.Link,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.APP_DOWNLOAD_LINKS,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
                 icon: icons.Keyboard,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.VIEW_KEYBOARD_SHORTCUTS,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
                 icon: icons.Eye,
                 iconRight: icons.NewWindow,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.VIEW_THE_CODE,
                 action: () => {
                     openExternalLink(CONST.GITHUB_URL);
                     return Promise.resolve();
@@ -87,6 +93,7 @@ function AboutPage() {
                 translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
                 icon: icons.MoneyBag,
                 iconRight: icons.NewWindow,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.VIEW_OPEN_JOBS,
                 action: () => {
                     openExternalLink(CONST.UPWORK_URL);
                     return Promise.resolve();
@@ -96,11 +103,12 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: icons.Bug,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.REPORT_A_BUG,
                 action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, false)),
             },
         ];
 
-        return baseMenuItems.map(({translationKey, icon, iconRight, action, link}: MenuItem) => ({
+        return baseMenuItems.map(({translationKey, icon, iconRight, action, link, sentryLabel}: MenuItem) => ({
             key: translationKey,
             title: translate(translationKey),
             icon,
@@ -119,6 +127,7 @@ function AboutPage() {
             ref: popoverAnchor,
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
+            sentryLabel,
         }));
     }, [icons, styles, translate, waitForNavigate, conciergeReportID]);
 

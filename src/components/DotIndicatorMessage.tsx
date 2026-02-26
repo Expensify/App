@@ -1,9 +1,10 @@
 /* eslint-disable react/no-array-index-key */
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
-import React, {useState} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,10 +13,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isReceiptError, isTranslationKeyError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
+import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import Button from './Button';
-import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
 import Text from './Text';
 
@@ -48,8 +49,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
-
-    const [shouldShowErrorModal, setShouldShowErrorModal] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     if (Object.keys(messages).length === 0) {
         return null;
@@ -79,6 +79,8 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                 // eslint-disable-next-line react/no-array-index-key
                 key={index}
                 style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
+                accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
+                accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
             >
                 {formattedMessage}
             </Text>
@@ -113,27 +115,29 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                             success
                             text={translate('iou.error.tryAgain')}
                             onPress={() => {
-                                handleRetryPress(receiptError, dismissError, setShouldShowErrorModal);
+                                handleRetryPress(receiptError, dismissError, () => {
+                                    showConfirmModal({
+                                        prompt: translate('common.genericErrorMessage'),
+                                        confirmText: translate('common.ok'),
+                                        shouldShowCancelButton: false,
+                                    });
+                                });
                             }}
                         />
                     </View>
                 </View>
-                <ConfirmModal
-                    isVisible={shouldShowErrorModal}
-                    onConfirm={() => {
-                        setShouldShowErrorModal(false);
-                    }}
-                    prompt={translate('common.genericErrorMessage')}
-                    confirmText={translate('common.ok')}
-                    shouldShowCancelButton={false}
-                />
             </View>
         );
     }
 
     return (
         <View style={[styles.dotIndicatorMessage, style]}>
-            <View style={styles.offlineFeedbackErrorDot}>
+            <View
+                style={styles.offlineFeedbackErrorDot}
+                accessible={isErrorMessage}
+                role={isErrorMessage ? CONST.ROLE.IMG : undefined}
+                accessibilityLabel={isErrorMessage ? (CONST.ACCESSIBILITY_LABELS.ERROR as string) : undefined}
+            >
                 <Icon
                     src={expensifyIcons.DotIndicator}
                     fill={isErrorMessage ? theme.danger : theme.success}
