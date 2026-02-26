@@ -2122,6 +2122,7 @@ const translations = {
     },
     personalCard: {
         addPersonalCard: 'Add personal card',
+        addCompanyCard: 'Add company card',
         lookingForCompanyCards: 'Looking for company cards?',
         lookingForCompanyCardsDescription: 'Assign cards from all major credit card providers to the entire team from workspace settings.',
         personalCardAdded: 'Personal card added!',
@@ -2141,6 +2142,16 @@ const translations = {
             connectionLink
                 ? `Your ${cardName} card connection is broken. <a href="${connectionLink}">Log into your bank</a> to fix the card.`
                 : `Your ${cardName} card connection is broken. Log into your bank to fix the card.`,
+        addAdditionalCards: 'Add additional cards',
+        upgradeDescription: 'Need to add more cards? Create a workspace to add additional personal cards or assign company cards to the entire team.',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+            `<muted-text>This is available on the Collect plan, which is <strong>${formattedPrice}</strong> per member per month.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Create a workspace to access this feature, or <a href="${subscriptionLink}">learn more</a> about our plans and pricing.</muted-text>`,
+        workspaceCreated: 'Workspace created',
+        newWorkspace: 'You created a workspace!',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>You’re all set to add additional cards. <a href="${subscriptionLink}">View your subscription</a> for more details.</centered-text>`,
     },
     walletPage: {
         balance: 'Balance',

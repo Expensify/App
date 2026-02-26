@@ -37,7 +37,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletTravelCVVSection from '@pages/settings/Wallet/TravelCVVPage/WalletTravelCVVSection';
@@ -53,6 +53,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
+import usePersonalCardList from '@hooks/usePersonalCardList';
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
 import useWalletSectionIllustration from './useWalletSectionIllustration';
 
@@ -103,6 +104,7 @@ function WalletPage() {
     const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
     const kycWallRef = useContext(KYCWallContext);
     const isCurrentUserPolicyAdmin = hasActiveAdminWorkspaces(currentUserLogin, allPolicies);
+    const personalCardList = usePersonalCardList();
 
     const hasWallet = !isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
@@ -111,6 +113,7 @@ function WalletPage() {
     const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
     const hasEligibleActiveAdmin = hasEligibleActiveAdminFromWorkspaces(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
+    const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
         // In order to prevent a loop, only update state of the spinner if there is a change
@@ -474,6 +477,10 @@ function WalletPage() {
     );
 
     const onAddPersonalCardPress = () => {
+        if (!paidGroupPolicy && Object.keys(personalCardList).length > 2) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_UPGRADE);
+            return;
+        }
         if (!isEmptyObject(cardFeedsByPolicy)) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING);
             return;
@@ -604,6 +611,7 @@ function WalletPage() {
                             title={translate('walletPage.assignedCards')}
                             isCentralPane
                             subtitleMuted
+                            centralPaneContainerStyle={hasAssignedCard ? styles.pb0 : undefined}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
                             <>
@@ -634,6 +642,7 @@ function WalletPage() {
                                 <MenuItem
                                     iconHeight={48}
                                     iconWidth={48}
+                                    containerStyle={styles.hoveredComponentBG}
                                     shouldShowRightIcon
                                     icon={illustrations.VerticalCreditCards}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}

@@ -1,0 +1,91 @@
+import React, {useState} from 'react';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@navigation/Navigation';
+import ROUTES from '@src/ROUTES';
+import {generatePolicyID} from '@userActions/Policy/Policy';
+import {createWorkspaceWithPolicyDraft} from '@userActions/App';
+import type {LastPaymentMethodType} from '@src/types/onyx';
+import useOnyx from '@hooks/useOnyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import UpgradeIntro from './UpgradeIntro';
+import UpgradeConfirmation from './UpgradeConfirmation';
+
+function PersonalCardUpgradePage() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const [isUpgraded, setIsUpgraded] = useState(false);
+    const policyID = generatePolicyID();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const onUpgrade = () => {
+        createWorkspaceWithPolicyDraft({
+            introSelected,
+            policyOwnerEmail: '',
+            transitionFromOldDot: false,
+            makeMeAdmin: false,
+            policyID,
+            lastUsedPaymentMethod: lastPaymentMethod?.[policyID] as LastPaymentMethodType,
+            activePolicyID,
+            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+            shouldCreateControlPolicy: false,
+        });
+        setIsUpgraded(true);
+    };
+
+    const addPersonalCard = () => {
+        Navigation.closeRHPFlow();
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW);
+    };
+
+    const addCompanyCard = () => {
+        Navigation.closeRHPFlow();
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+    };
+
+    return (
+        <ScreenWrapper
+            shouldShowOfflineIndicator
+            testID="personalCardUpgradePage"
+            offlineIndicatorStyle={styles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
+        >
+            <HeaderWithBackButton
+                title={translate(isUpgraded ? 'personalCard.workspaceCreated' : 'onboarding.workspace.createWorkspace')}
+                onBackButtonPress={() => {
+                    if (isUpgraded) {
+                        Navigation.closeRHPFlow();
+                    } else {
+                        Navigation.goBack();
+                    }
+                }}
+            />
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                {isUpgraded && (
+                    <UpgradeConfirmation
+                        addPersonalCard={addPersonalCard}
+                        addCompanyCard={addCompanyCard}
+                    />
+                )}
+                {!isUpgraded && (
+                    <UpgradeIntro
+                        onUpgrade={onUpgrade}
+                        buttonDisabled={isOffline}
+                    />
+                )}
+            </ScrollView>
+        </ScreenWrapper>
+    );
+}
+
+export default PersonalCardUpgradePage;

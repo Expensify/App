@@ -23,7 +23,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function SelectCountryStep() {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {currencyList} = useCurrencyListState();
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
@@ -83,7 +83,7 @@ function SelectCountryStep() {
                 isSelected: currentCountry === countryISO,
                 searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
             };
-        });
+        }).sort((a, b) => localeCompare(a.text, b.text));
 
     const countries = getCountries();
 

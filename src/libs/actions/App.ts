@@ -602,6 +602,40 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
     });
 }
 
+function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftParams) {
+    const {
+        introSelected,
+        policyOwnerEmail = '',
+        policyName = '',
+        makeMeAdmin = false,
+        policyID = '',
+        currency,
+        file,
+        lastUsedPaymentMethod,
+        activePolicyID,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        shouldCreateControlPolicy,
+    } = params;
+
+    createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyID, makeMeAdmin, currency, file);
+    savePolicyDraftByNewWorkspace({
+        policyID,
+        policyName,
+        policyOwnerEmail,
+        makeMeAdmin,
+        currency,
+        file,
+        lastUsedPaymentMethod,
+        introSelected,
+        activePolicyID,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        allReportsParam: allReports,
+        shouldCreateControlPolicy,
+    });
+}
+
 type SavePolicyDraftByNewWorkspaceParams = {
     policyID?: string;
     policyName?: string;
@@ -816,6 +850,7 @@ export {
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
+    createWorkspaceWithPolicyDraft,
     updateLastRoute,
     setIsUsingImportedState,
     clearOnyxAndResetApp,

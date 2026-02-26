@@ -10,17 +10,13 @@ import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import ROUTES from '@src/ROUTES';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
-import ONYXKEYS from '@src/ONYXKEYS';
-import useOnyx from '@hooks/useOnyx';
+import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 function PersonalCardWarning() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {cardFeedsByPolicy} = useCardFeedsForDisplay();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-
+    const {accountID} = useCurrentUserPersonalDetails();
     // All policies in which the current user is admin (active workspaces only)
     const adminPolicies = useActiveAdminPolicies();
     const adminPolicyIds = new Set(adminPolicies.map((p) => p.id));
@@ -36,9 +32,9 @@ function PersonalCardWarning() {
             if (!policyID) {
                 return;
             }
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            if (policy?.ownerAccountID) {
-                navigateToAndOpenReportWithAccountIDs([policy.ownerAccountID], currentUserPersonalDetails.accountID);
+            const expenseChatReportId = getPolicyExpenseChat(accountID, policyID)?.reportID;
+            if (expenseChatReportId) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(expenseChatReportId));
                 return;
             }
         }
