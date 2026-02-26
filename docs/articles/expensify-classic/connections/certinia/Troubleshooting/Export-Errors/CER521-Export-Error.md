@@ -1,88 +1,64 @@
 ---
-title: CER521 Export Error: Assignment Resource Must Match Expense Report Resource
-description: Learn why CER521 appears when exporting to Certinia and how to align assignment resources between Certinia and Expensify to complete the export.
-keywords: CER521, Certinia error CER521, assignment resource must match expense report resource, assignment not available to employee, Certinia assignment error, resource mismatch Certinia, Workspace Admin
-internalScope: Audience is Workspace Admins using the Certinia integration. Covers resolving the CER521 assignment resource mismatch error and retrying the export. Does not cover unrelated Certinia assignment configuration or project setup.
+title: CER521 Export Error in Certinia Integration
+description: Learn what the CER521 export error means in Certinia and how to align assignment resources to restore successful exports.
+keywords: CER521, Certinia export error, assignment resource must match expense report resource, assignment not available to employee, Certinia resource mismatch, Expensify Certinia export error, Workspace Admin
+internalScope: Audience is Workspace Admins using the Certinia integration. Covers resolving the CER521 export error caused by assignment resource mismatches. Does not cover other Certinia error codes.
 ---
 
-# CER521 Export Error: Assignment Resource Must Match Expense Report Resource
+# CER521 Export Error in Certinia Integration
 
 If you see the error:
 
-**“CER521 Export Error: Assignment resource must match expense report resource. The selected assignment is not available to this employee in Certinia.”**
+CER521: Assignment resource must match expense report resource.
 
-this means the assignment selected on the report does not match the employee’s assigned resource in Certinia.
-
-Until the assignment and employee resource match, Certinia will block the export.
+This means the assignment selected on the report does not match the employee’s assigned resource in Certinia, preventing the export from completing.
 
 ---
 
-## Why CER521 Happens
+## Why the CER521 Export Error Happens in Certinia
 
-Certinia requires that the assignment selected on an expense report matches the employee’s assigned resource.
+The CER521 error typically indicates:
 
-If the employee’s resource record in Certinia is assigned differently than what was selected on the report in Expensify, Certinia fails validation and returns error **CER521**.
+- The selected assignment is not available to the employee resource.
+- The assignment is inactive or not linked to the employee.
+- Certinia validation failed due to a resource mismatch.
 
-This is a Certinia assignment configuration issue — not an Expensify Workspace configuration issue.
+Certinia requires the assignment selected on the report to match an assignment available to the employee’s resource record.
 
----
-
-## Who Can Fix CER521
-
-You must have access to review employee resources and assignments in Certinia (typically a Certinia Admin or PSA Admin) to resolve this error.
+This is a Certinia assignment configuration issue, not a Workspace configuration issue.
 
 ---
 
-## How to Verify Employee Assignments in Certinia
+## How to Fix the CER521 Export Error
+
+This issue must be resolved in Certinia and confirmed in Expensify.
 
 1. Log in to Certinia.
-2. Navigate to the report submitter’s **Employee Resource** record.
-3. Review the assignments associated with that employee.
-4. Confirm which assignments are available and active.
+2. Navigate to the employee’s **Resource** record.
+3. Review the assignments associated with that resource.
+4. Confirm the correct assignment is active and available.
 
-Ensure you are reviewing the correct employee resource tied to the report creator or submitter.
+Then in Expensify:
 
----
+1. Open the affected report.
+2. Review the selected assignment or tag on the expenses.
+3. Update the assignment to match one available to the employee in Certinia.
+4. Save your changes.
 
-## How to Match Assignment Tags in Expensify
-
-1. Open the affected report in Expensify.
-2. Review the selected tags or assignment fields on the expenses.
-3. Compare these selections to the assignments listed on the employee resource in Certinia.
-4. Adjust any selections in Expensify so they match what is listed and available in Certinia.
-
-The assignment selected in Expensify must match an assignment available to that employee in Certinia.
-
----
-
-## How to Retry Exporting After CER521
-
-After confirming or updating the assignment:
-
-1. Retry exporting the report.
-2. Confirm the export completes successfully.
-
-If the error continues, verify that:
-- The correct employee resource was reviewed.
-- The assignment is active and available in Certinia.
-- The updated selections were saved before retrying the export.
+Retry exporting the report.
 
 ---
 
 # FAQ
 
-## Does CER521 mean the assignment does not exist?
+## Can I Retry the Export?
 
-Not necessarily. It usually means the assignment exists but is not available to the specific employee resource tied to the report.
+Yes. After aligning the assignment with the employee’s available resource assignments, retry the export. If the error persists, confirm the assignment is active and correctly linked.
 
----
+## Does CER521 Mean the Assignment Does Not Exist?
 
-## Is CER521 caused by Expensify settings?
+Not necessarily. It usually means the assignment exists but is not available to the specific employee resource.
 
-No. CER521 is triggered by a mismatch between the employee resource and assignment configuration in Certinia, not by Workspace settings in Expensify.
+## Is CER521 Caused by Workspace Settings?
 
----
-
-## Do I need to reconnect the Certinia integration?
-
-No. In most cases, aligning the assignment in Expensify with the employee’s available assignments in Certinia resolves the issue.
+No. CER521 is triggered by a mismatch between the employee resource and assignment configuration in Certinia. Workspace accounting settings are not the cause.
