@@ -89,6 +89,10 @@ type ThemeColors = {
     reactionActiveBackground: Color;
     reactionActiveText: Color;
     badgeDefaultBG: Color;
+    badgeSuccessBG: Color;
+    badgeDangerBG: Color;
+    badgeSuccessText: Color;
+    badgeDangerText: Color;
     badgeAdHoc: Color;
     badgeAdHocHover: Color;
     mentionText: Color;

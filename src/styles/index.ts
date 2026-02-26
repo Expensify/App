@@ -976,7 +976,7 @@ const staticStyles = (theme: ThemeColors) =>
         defaultBadge: {
             backgroundColor: theme.badgeDefaultBG,
             borderWidth: 1,
-            borderRadius: variables.buttonBorderRadius,
+            borderRadius: variables.componentBorderRadius,
             borderColor: theme.badgeDefaultBG,
             paddingHorizontal: 12,
             minHeight: 28,
@@ -1006,11 +1006,16 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeSuccess: {
+            backgroundColor: theme.badgeSuccessBG,
+            borderColor: theme.badgeSuccessBG,
+        },
+
+        badgeSuccessStrong: {
             backgroundColor: theme.success,
             borderColor: theme.success,
         },
 
-        badgeSuccessPressed: {
+        badgeSuccessStrongPressed: {
             backgroundColor: theme.successHover,
             borderColor: theme.successHover,
         },
@@ -1029,11 +1034,16 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeDanger: {
+            backgroundColor: theme.badgeDangerBG,
+            borderColor: theme.badgeDangerBG,
+        },
+
+        badgeDangerStrong: {
             backgroundColor: theme.danger,
             borderColor: theme.danger,
         },
 
-        badgeDangerPressed: {
+        badgeDangerStrongPressed: {
             backgroundColor: theme.dangerHover,
             borderColor: theme.dangerHover,
         },
@@ -1046,16 +1056,30 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: 16,
             height: 16,
             paddingHorizontal: 8,
+            borderRadius: variables.componentBorderRadiusMedium,
         },
 
         condensedBadgeWithIcon: {
-            minHeight: 20,
-            height: 20,
+            minHeight: 16,
+            height: 16,
             paddingHorizontal: 8,
+            borderRadius: variables.componentBorderRadiusMedium,
         },
 
         condensedBadgeText: {
             fontSize: variables.fontSizeExtraSmall,
+        },
+
+        badgeDefaultText: {
+            color: theme.text,
+        },
+
+        badgeSuccessText: {
+            color: theme.badgeSuccessText,
+        },
+
+        badgeDangerText: {
+            color: theme.badgeDangerText,
         },
 
         badgeText: {
@@ -5487,8 +5511,11 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         todoBadge: {
+            width: variables.w36,
             alignItems: 'center',
             justifyContent: 'center',
+            paddingLeft: 0,
+            paddingRight: 0,
         },
 
         stickToBottom: {

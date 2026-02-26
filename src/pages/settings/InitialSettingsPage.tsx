@@ -89,6 +89,7 @@ type MenuData = WithSentryLabel & {
     badgeText?: string;
     badgeStyle?: ViewStyle;
     badgeSuccess?: boolean;
+    badgeStrong?: boolean;
     badgeCondensed?: boolean;
 };
 
@@ -459,6 +460,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             badgeText={item.badgeText}
                             badgeStyle={item.badgeStyle}
                             badgeSuccess={item.badgeSuccess}
+                            badgeStrong={item.badgeStrong}
                             badgeCondensed={item.badgeCondensed}
                             fallbackIcon={item.fallbackIcon}
                             brickRoadIndicator={item.brickRoadIndicator}

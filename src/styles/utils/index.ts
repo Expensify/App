@@ -1473,20 +1473,40 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Generate a style for the background color of the Badge
      */
-    getBadgeColorStyle: (isSuccess: boolean, isError: boolean, isPressed = false, isAdHoc = false): ViewStyle => {
+    getBadgeColorStyle: (isSuccess: boolean, isError: boolean, isPressed = false, isAdHoc = false, isStrong = false): ViewStyle => {
         if (isSuccess) {
             if (isAdHoc) {
                 return isPressed ? styles.badgeAdHocSuccessPressed : styles.badgeAdHocSuccess;
             }
-            return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
+            if (isStrong) {
+                return isPressed ? styles.badgeSuccessStrongPressed : styles.badgeSuccessStrong;
+            }
+            return styles.badgeSuccess;
         }
         if (isError) {
-            return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+            if (isStrong) {
+                return isPressed ? styles.badgeDangerStrongPressed : styles.badgeDangerStrong;
+            }
+            return styles.badgeDanger;
         }
         return {};
     },
 
-    getIconColorStyle: (): string => theme.white,
+    getIconColorStyle: (isSuccess: boolean, isError: boolean, isStrong = false): string => {
+        if (isStrong) {
+            return theme.white;
+        }
+        if (!isSuccess && !isError) {
+            return theme.icon;
+        }
+        if (isSuccess) {
+            return theme.badgeSuccessText;
+        }
+        if (isError) {
+            return theme.badgeDangerText;
+        }
+        return theme.icon;
+    },
 
     getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean, isAdhoc: boolean): ViewStyle => {
         if (isAdhoc) {

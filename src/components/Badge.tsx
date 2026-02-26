@@ -17,6 +17,9 @@ type BadgeProps = {
     /** Is Error type */
     error?: boolean;
 
+    /** Whether badge uses strong (filled) style instead of outlined */
+    isStrong?: boolean;
+
     /** Whether badge uses condensed (smaller) sizing */
     isCondensed?: boolean;
 
@@ -54,6 +57,7 @@ type BadgeProps = {
 function Badge({
     success = false,
     error = false,
+    isStrong = false,
     isCondensed = false,
     pressable = false,
     text,
@@ -72,7 +76,7 @@ function Badge({
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
 
-    const iconColor = StyleUtils.getIconColorStyle();
+    const iconColor = StyleUtils.getIconColorStyle(success, error, isStrong);
 
     const iconSize = isCondensed || shouldUseXXSmallIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall;
 
@@ -82,7 +86,7 @@ function Badge({
             isCondensed && (icon ? styles.condensedBadgeWithIcon : styles.condensedBadge),
             styles.alignSelfCenter,
             styles.ml2,
-            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC),
+            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC, isStrong),
             badgeStyles,
         ],
         [
@@ -97,6 +101,7 @@ function Badge({
             environment,
             badgeStyles,
             isCondensed,
+            isStrong,
             icon,
         ],
     );
@@ -121,7 +126,16 @@ function Badge({
                 </View>
             )}
             <Text
-                style={[styles.badgeText, styles.textStrong, isCondensed && styles.condensedBadgeText, textStyles, isDeleted ? styles.offlineFeedbackDeleted : {}]}
+                style={[
+                    styles.badgeText,
+                    styles.textStrong,
+                    isCondensed && styles.condensedBadgeText,
+                    !isStrong && !success && !error && styles.badgeDefaultText,
+                    !isStrong && success && styles.badgeSuccessText,
+                    !isStrong && error && styles.badgeDangerText,
+                    textStyles,
+                    isDeleted ? styles.offlineFeedbackDeleted : {},
+                ]}
                 numberOfLines={1}
             >
                 {text}
