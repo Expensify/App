@@ -320,8 +320,8 @@ function AvatarWithDisplayName({
                                 <View style={[styles.flexShrink1]}>{displayNameContent}</View>
                                 <Icon
                                     src={icons.Pencil}
-                                    width={variables.iconSizeSmall}
-                                    height={variables.iconSizeSmall}
+                                    width={variables.iconSizeExtraSmall}
+                                    height={variables.iconSizeExtraSmall}
                                     additionalStyles={styles.ml1}
                                     fill={theme.icon}
                                 />
