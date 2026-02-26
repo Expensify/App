@@ -208,6 +208,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 tag: newVersion,
                 PRList: newPRNumbers.map((value) => GithubUtils.getPullRequestURLFromNumber(value, CONST.APP_REPO_URL)),
                 PRListMobileExpensify: mergedMobileExpensifyPREntries.map((pr) => GithubUtils.getPullRequestURLFromNumber(pr.prNumber, CONST.MOBILE_EXPENSIFY_URL)),
+                previousTag: previousChecklistData.version,
                 chronologicalSection,
             });
             if (stagingDeployCashBodyAndAssignees) {
@@ -283,8 +284,9 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 deployBlockers: deployBlockers.map((blocker) => blocker.url),
                 resolvedDeployBlockers: deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url),
                 resolvedInternalQAPRs: currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url),
-                isFirebaseChecked: didVersionChange ? false : currentChecklistData.isFirebaseChecked,
+                isSentryChecked: didVersionChange ? false : currentChecklistData.isSentryChecked,
                 isGHStatusChecked: didVersionChange ? false : currentChecklistData.isGHStatusChecked,
+                previousTag: previousChecklistData.version,
                 chronologicalSection,
             });
             if (stagingDeployCashBodyAndAssignees) {

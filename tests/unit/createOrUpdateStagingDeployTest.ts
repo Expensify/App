@@ -148,11 +148,11 @@ const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
 const deployerVerificationsHeader = '**Deployer verifications:**';
 // eslint-disable-next-line max-len
-const firebaseVerificationCurrentRelease =
-    'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
+const sentryVerificationCurrentRelease = (version: string) =>
+    `I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${version}/?project=app&environment=staging) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
 // eslint-disable-next-line max-len
-const firebaseVerificationPreviousRelease =
-    'I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/android:org.me.mobiexpensifyg/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).';
+const sentryVerificationPreviousRelease = (version: string) =>
+    `I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${version}/?project=app&environment=production) for **the previous release version** and verified that the release did not introduce any new crashes. Because mobile deploys use a phased rollout, completing this checklist will deploy the previous release version to 100% of users. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
 // eslint-disable-next-line max-len
 const ghVerification = 'I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.';
 const ccApplauseLeads = `cc @Expensify/applauseleads\r\n`;
@@ -279,8 +279,8 @@ describe('createOrUpdateStagingDeployCash', () => {
                 `${lineBreak}${openCheckbox}${baseMobileExpensifyPRList.at(2)}${lineBreak}` +
                 `${lineBreakDouble}${buildChronologicalSection(baseNewPullRequests, [20, 21, 22])}` +
                 `${lineBreakDouble}${deployerVerificationsHeader}` +
-                `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
+                `${lineBreak}${openCheckbox}${sentryVerificationCurrentRelease('1.0.2-1')}` +
+                `${lineBreak}${openCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                 `${lineBreak}${openCheckbox}${ghVerification}` +
                 `${lineBreakDouble}${ccApplauseLeads}`,
         });
@@ -327,8 +327,8 @@ describe('createOrUpdateStagingDeployCash', () => {
                 // Note: No Mobile-Expensify PRs section since there are none
                 `${lineBreakDouble}${buildChronologicalSection(baseNewPullRequests)}` +
                 `${lineBreakDouble}${deployerVerificationsHeader}` +
-                `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
+                `${lineBreak}${openCheckbox}${sentryVerificationCurrentRelease('1.0.2-1')}` +
+                `${lineBreak}${openCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                 `${lineBreak}${openCheckbox}${ghVerification}` +
                 `${lineBreakDouble}${ccApplauseLeads}`,
         });
@@ -351,8 +351,8 @@ describe('createOrUpdateStagingDeployCash', () => {
                 `${lineBreak}${openCheckbox}${basePRList.at(8)}` +
                 `${lineBreak}${closedCheckbox}${basePRList.at(9)}${lineBreak}` +
                 `${lineBreakDouble}${deployerVerificationsHeader}` +
-                `${lineBreak}${closedCheckbox}${firebaseVerificationCurrentRelease}` +
-                `${lineBreak}${closedCheckbox}${firebaseVerificationPreviousRelease}` +
+                `${lineBreak}${closedCheckbox}${sentryVerificationCurrentRelease('1.0.2-1')}` +
+                `${lineBreak}${closedCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                 `${lineBreak}${closedCheckbox}${ghVerification}` +
                 `${lineBreakDouble}${ccApplauseLeads}`,
             state: 'open',
@@ -454,9 +454,8 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${openCheckbox}${baseIssueList.at(1)}${lineBreak}` +
                     `${lineBreakDouble}${buildChronologicalSection([...baseNewPullRequests, ...newPullRequests], [20, 21, 22, 23, 24])}` +
                     `${lineBreakDouble}${deployerVerificationsHeader}` +
-                    // Note: these will be unchecked with a new app version, and that's intentional
-                    `${lineBreak}${openCheckbox}${firebaseVerificationCurrentRelease}` +
-                    `${lineBreak}${openCheckbox}${firebaseVerificationPreviousRelease}` +
+                    `${lineBreak}${openCheckbox}${sentryVerificationCurrentRelease('1.0.2-2')}` +
+                    `${lineBreak}${openCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                     `${lineBreak}${openCheckbox}${ghVerification}` +
                     `${lineBreakDouble}${ccApplauseLeads}`,
             });
@@ -531,8 +530,8 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${openCheckbox}${baseIssueList.at(1)}${lineBreak}` +
                     `${lineBreakDouble}${buildChronologicalSection(baseNewPullRequests, [20, 21, 22])}` +
                     `${lineBreakDouble}${deployerVerificationsHeader}` +
-                    `${lineBreak}${closedCheckbox}${firebaseVerificationCurrentRelease}` +
-                    `${lineBreak}${closedCheckbox}${firebaseVerificationPreviousRelease}` +
+                    `${lineBreak}${closedCheckbox}${sentryVerificationCurrentRelease('1.0.2-1')}` +
+                    `${lineBreak}${closedCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                     `${lineBreak}${closedCheckbox}${ghVerification}` +
                     `${lineBreakDouble}${ccApplauseLeads}`,
             });
@@ -586,8 +585,8 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${closedCheckbox}${basePRList.at(9)}${lineBreak}` +
                     `${lineBreakDouble}${buildChronologicalSection(baseNewPullRequests)}` +
                     `${lineBreakDouble}${deployerVerificationsHeader}` +
-                    `${lineBreak}${closedCheckbox}${firebaseVerificationCurrentRelease}` +
-                    `${lineBreak}${closedCheckbox}${firebaseVerificationPreviousRelease}` +
+                    `${lineBreak}${closedCheckbox}${sentryVerificationCurrentRelease('1.0.2-1')}` +
+                    `${lineBreak}${closedCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                     `${lineBreak}${closedCheckbox}${ghVerification}` +
                     `${lineBreakDouble}${ccApplauseLeads}`,
             });
@@ -631,7 +630,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 deployBlockers: [],
                 internalQAPRList: [],
                 isTimingDashboardChecked: true,
-                isFirebaseChecked: true,
+                isSentryChecked: true,
                 isGHStatusChecked: true,
                 version: '1.0.2-1',
                 tag: '1.0.2-1-staging',
@@ -697,7 +696,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 deployBlockers: [],
                 internalQAPRList: [],
                 isTimingDashboardChecked: true,
-                isFirebaseChecked: true,
+                isSentryChecked: true,
                 isGHStatusChecked: true,
                 tag: '1.0.2-1-staging',
                 version: '1.0.2-1',
@@ -887,8 +886,8 @@ describe('createOrUpdateStagingDeployCash', () => {
                     `${lineBreak}${closedCheckbox}${basePRList.at(6)}` +
                     `${lineBreak}${openCheckbox}${basePRList.at(7)}${lineBreak}` +
                     `${lineBreakDouble}${deployerVerificationsHeader}` +
-                    `${lineBreak}${closedCheckbox}${firebaseVerificationCurrentRelease}` +
-                    `${lineBreak}${closedCheckbox}${firebaseVerificationPreviousRelease}` +
+                    `${lineBreak}${closedCheckbox}${sentryVerificationCurrentRelease('1.0.2-1')}` +
+                    `${lineBreak}${closedCheckbox}${sentryVerificationPreviousRelease('1.0.1-0')}` +
                     `${lineBreak}${closedCheckbox}${ghVerification}` +
                     `${lineBreakDouble}${ccApplauseLeads}`,
                 state: 'open',
