@@ -1,75 +1,84 @@
 ---
-title: INT009 Export Error: Employee’s Manager Doesn’t Have a User Account in Sage Intacct
-description: Learn why the INT009 export error occurs and how to update approval settings in Sage Intacct before retrying the export.
-keywords: INT009, Sage Intacct manager no user account, expense report approval error, Time and Expenses approval configuration, Sage Intacct export failure
-internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers the INT009 export error related to manager approval configuration in Sage Intacct. Does not cover authentication or journal configuration errors.
+title: INT009 Export Error in Sage Intacct Integration
+description: Learn what the INT009 export error means and how to update manager approval settings in Sage Intacct before retrying the export.
+keywords: INT009, Sage Intacct manager no user account, expense report approval error Sage Intacct, Time & Expenses approval configuration Intacct, Sage Intacct export failure manager approval, Workspace Admin
+internalScope: Audience is Workspace Admins using the Sage Intacct integration. Covers resolving the INT009 export error caused by manager approval configuration in Sage Intacct. Does not cover authentication or journal configuration errors.
 ---
 
-# INT009 Export Error: Employee’s Manager Doesn’t Have a User Account in Sage Intacct
+# INT009 Export Error in Sage Intacct Integration
 
-If you see the error message:
+If you see the error:
 
-**“INT009 Export Error: The employee’s manager doesn’t have a user account in Sage Intacct. Please update the approval settings in Sage Intacct.”**
+INT009 Export Error: The employee’s manager doesn’t have a user account in Sage Intacct. Please update the approval settings in Sage Intacct.
 
-It means the employee’s manager listed in Sage Intacct does not have a valid user account.
+This means the employee’s manager listed in Sage Intacct does not have a valid user account.
 
-Sage Intacct requires managers to have user accounts when Expense Report Approval is enabled.
+When **Expense Report Approval** is enabled, Sage Intacct requires managers to have active user accounts in order to route approvals correctly.
 
 ---
 
-## Why the INT009 Export Error Happens
+## Why the INT009 Export Error Happens in Sage Intacct
 
-The INT009 export error occurs when:
+The INT009 error typically occurs when:
 
-- Expense Report Approval is enabled in Sage Intacct, and  
-- The employee’s manager does not have an active Sage Intacct user account  
+- **Expense Report Approval** is enabled in Sage Intacct.
+- The employee record includes a manager.
+- The manager does not have an active Sage Intacct user account.
 
 If Sage Intacct cannot assign the report to a valid approver, the export fails.
+
+This error applies specifically to expense report approval workflows.
 
 ---
 
 # How to Fix the INT009 Export Error
 
-The resolution depends on whether you are using approvals in Sage Intacct.
+The resolution depends on whether you use approvals in Sage Intacct.
 
 ---
 
-## If You Are Not Using Approvals
+## If You Are Not Using Expense Report Approvals
 
-### Step 1: Disable Expense Report Approval in Sage Intacct
+If you do not use Sage Intacct’s approval workflow, disable it.
 
-1. Log in to Sage Intacct.  
-2. Go to **Time & Expenses > Configure Time & Expenses**.  
-3. Disable **Expense Report Approval**.  
-4. Save your changes.  
+### Disable Expense Report Approval in Sage Intacct
 
-### Step 2: Run Sync
+1. Log in to Sage Intacct as an administrator.
+2. Go to **Time & Expenses > Configure Time & Expenses**.
+3. Disable **Expense Report Approval**.
+4. Click **Save**.
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**.  
-2. Click the three-dot icon next to the Sage Intacct connection.  
-3. Select **Sync Now** from the dropdown.  
+Then in the Workspace:
+
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
 
 Retry exporting the report.
 
 ---
 
-## If You Are Using Approvals
+## If You Are Using Expense Report Approvals
 
-### Step 1: Configure a Valid First Approver in Sage Intacct
+If approvals are required, the manager must have a valid user account.
 
-1. Log in to Sage Intacct.  
-2. Go to **Time & Expenses > Configure Time & Expenses**.  
-3. Set the **First Approver**.  
+### Configure a Valid First Approver in Sage Intacct
+
+1. Log in to Sage Intacct.
+2. Go to **Time & Expenses > Configure Time & Expenses**.
+3. Set or confirm the **First Approver**.
 4. Ensure the approver:
-   - Has an active Sage Intacct user account  
-   - Has appropriate admin or approval permissions  
-5. Save your changes.  
+   - Has an active Sage Intacct user account.
+   - Has appropriate approval or administrative permissions.
+5. Click **Save**.
 
-### Step 2: Run Sync
+Then in the Workspace:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**.  
-2. Click the three-dot icon next to the Sage Intacct connection.  
-3. Select **Sync Now** from the dropdown.  
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
 
 Retry exporting the report.
 
@@ -77,14 +86,14 @@ Retry exporting the report.
 
 # FAQ
 
-## Does the manager always need a user account?
+## Does the Manager Always Need a User Account?
 
-Only if Expense Report Approval is enabled in Sage Intacct.
+Only if **Expense Report Approval** is enabled in Sage Intacct.
 
-## Do I need Sage Intacct admin access to fix this?
+## Do I Need Sage Intacct Admin Access to Fix This?
 
-Yes. Updating approval settings and user accounts requires appropriate permissions in Sage Intacct.
+Yes. Updating approval settings and creating user accounts requires administrative access in Sage Intacct.
 
-## Does this error affect vendor bill exports?
+## Does This Error Affect Vendor Bill Exports?
 
-No. This error specifically applies to expense report approval workflows.
+No. This error applies specifically to expense report approval workflows.
