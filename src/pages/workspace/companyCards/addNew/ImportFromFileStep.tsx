@@ -28,7 +28,7 @@ function ImportFromFileStep() {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
     const companyCardLayoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const [hasError, setHasError] = useState(false);

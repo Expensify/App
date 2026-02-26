@@ -30,7 +30,7 @@ function CompanyCardLayoutNamePage({route}: CompanyCardLayoutNamePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const defaultValue = addNewCard?.data?.companyCardLayoutName ?? '';
     const requiredFields = [INPUT_IDS.COMPANY_CARD_LAYOUT_NAME];
 
