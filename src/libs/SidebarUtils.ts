@@ -170,7 +170,6 @@ import {
     isInvoiceReport,
     isInvoiceRoom,
     isIOUOwnedByCurrentUser,
-    isIOUReport,
     isJoinRequestInAdminRoom,
     isMoneyRequestReport,
     isOneOnOneChat,
@@ -772,11 +771,11 @@ function getOptionData({
     result.isPolicyExpenseChat = isPolicyExpenseChat(report);
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
-    // Chat threads should not show subscript in LHN even if shouldReportShowSubscript
-    // returns true — the workspace icon is suppressed to show only the actor avatar.
+    // LHN suppresses subscript for threads (except trip rooms and expense requests with policy) and task reports.
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
-    const threadSuppression = isChatThread(report) && !isTripRoom(report) && !isExpenseRequest(report) && !isExpenseReport(report) && !isIOUReport(report) && !isInvoiceReport(report);
-    result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression;
+    const threadSuppression = isChatThread(report) && !isTripRoom(report) && !(isExpenseRequest(report) && policy);
+    const taskSuppression = isTaskReport(report);
+    result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
@@ -1168,8 +1167,7 @@ function getOptionData({
         isReportArchived,
     );
 
-    // LHN only renders SINGLE or SUBSCRIPT — trim to 1 icon when no subscript.
-    result.icons = !result.shouldShowSubscript && reportIcons.length > 1 ? [reportIcons[0]] : reportIcons;
+    result.icons = reportIcons;
 
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 

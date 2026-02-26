@@ -383,8 +383,150 @@ describe('LHNOptionsList', () => {
 
             // Then it should render a single avatar, not a diagonal (multiple) avatar
             await waitFor(() => {
-                expect(screen.queryByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
                 expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+    });
+
+    describe('Expense request thread avatar rendering', () => {
+        it('should render a subscript avatar for an expense request thread', async () => {
+            // Given an expense request thread (chat thread whose parent is an expense report
+            // with a transaction action). Per Figma matrix, expense requests show subscript
+            // (Large User + Small Workspace).
+            const policyID = 'expReqPolicy';
+            const parentReportID = 'expReqParentReport';
+            const reportID = 'expReqThread';
+            const parentActionID = 'expReqParentAction';
+            const accountID1 = 1;
+            const accountID2 = 2;
+
+            const policy: Policy = {
+                id: policyID,
+                name: 'Expense Request Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            const parentReport: Report = {
+                reportID: parentReportID,
+                reportName: 'Expense Report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const parentAction: ReportAction = {
+                reportActionID: parentActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2024-01-01 00:00:00',
+                message: [{type: 'COMMENT', text: 'expense'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            };
+
+            const threadReport: Report = {
+                reportID,
+                reportName: 'Expense Request Thread',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: '' as Report['chatType'],
+                policyID,
+                parentReportID,
+                parentReportActionID: parentActionID,
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, threadReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentActionID]: parentAction,
+                });
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [accountID1]: {accountID: accountID1, login: 'user1@test.com', displayName: 'User One', avatar: 'user1-avatar'},
+                    [accountID2]: {accountID: accountID2, login: 'user2@test.com', displayName: 'User Two', avatar: 'user2-avatar'},
+                });
+            });
+
+            // When the LHNOptionsList renders the expense request thread
+            render(getLHNOptionsListElement({data: [threadReport]}));
+
+            // Then it should render a subscript avatar (Large User + Small Workspace)
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+    });
+
+    describe('Task report avatar rendering', () => {
+        it('should render a single avatar for a workspace task report (taskSuppression)', async () => {
+            // Given a task report inside a workspace (chatType policyExpenseChat).
+            // shouldReportShowSubscript returns true, but taskSuppression overrides it
+            // so that LHN shows SINGLE instead of SUBSCRIPT.
+            const policyID = 'taskTestPolicy';
+            const parentReportID = 'taskParentReport';
+            const reportID = 'taskTestReport';
+            const accountID1 = 1;
+            const accountID2 = 2;
+
+            const policy: Policy = {
+                id: policyID,
+                name: 'Task Test Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+            } as Policy;
+
+            const parentReport: Report = {
+                reportID: parentReportID,
+                reportName: 'Workspace Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const taskReport: Report = {
+                reportID,
+                reportName: 'Workspace Task',
+                type: CONST.REPORT.TYPE.TASK,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                parentReportID,
+                parentReportActionID: 'taskParentAction1',
+                ownerAccountID: accountID1,
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, taskReport);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [accountID1]: {accountID: accountID1, login: 'user1@test.com', displayName: 'User One', avatar: 'user1-avatar'},
+                    [accountID2]: {accountID: accountID2, login: 'user2@test.com', displayName: 'User Two', avatar: 'user2-avatar'},
+                });
+            });
+
+            // When the LHNOptionsList renders the task report
+            render(getLHNOptionsListElement({data: [taskReport]}));
+
+            // Then it should render a single avatar, not a subscript
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
             });
         });
     });
@@ -431,7 +573,7 @@ describe('LHNOptionsList', () => {
 
             // Then it should render a single avatar, not a diagonal (multiple) avatar
             await waitFor(() => {
-                expect(screen.queryByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
                 expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
             });
         });

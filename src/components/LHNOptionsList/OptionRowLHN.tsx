@@ -63,8 +63,8 @@ function OptionRowLHN({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil', 'DotIndicator', 'Pin']);
 
-    const session = useSession();
     const personalDetails = usePersonalDetails();
+    const session = useSession();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurpose);
@@ -246,12 +246,6 @@ function OptionRowLHN({
                 <View>
                     <Hoverable>
                         {(hovered) => {
-                            let secondaryAvatarBgColor = theme.sidebar;
-                            if (isOptionFocused) {
-                                secondaryAvatarBgColor = focusedBackgroundColor;
-                            } else if (hovered) {
-                                secondaryAvatarBgColor = hoveredBackgroundColor;
-                            }
                             return (
                                 <PressableWithSecondaryInteraction
                                     ref={popoverAnchor}
@@ -300,8 +294,6 @@ function OptionRowLHN({
                                                     shouldShowSubscript={!!optionItem.shouldShowSubscript}
                                                     size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                                     subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                                    useMidSubscriptSize={isInFocusMode}
-                                                    secondaryAvatarBackgroundColor={secondaryAvatarBgColor}
                                                     singleAvatarContainerStyle={singleAvatarContainerStyle}
                                                     shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
                                                     delegateAccountID={delegateAccountID}

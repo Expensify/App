@@ -2,7 +2,6 @@ import React from 'react';
 import type {ColorValue, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ReportActionAvatar from '@components/ReportActionAvatars/ReportActionAvatar';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -11,31 +10,18 @@ type LHNAvatarProps = {
     icons: Icon[];
     shouldShowSubscript: boolean;
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
-    secondaryAvatarBackgroundColor?: ColorValue;
     singleAvatarContainerStyle?: ViewStyle[];
     subscriptAvatarBorderColor?: ColorValue;
-    useMidSubscriptSize?: boolean;
     shouldShowTooltip?: boolean;
     delegateAccountID?: number;
 };
 
 /**
- * Lightweight avatar component for LHN rows. Reuses ReportActionAvatar sub-components
- * with pre-computed icons, avoiding the heavy hooks in ReportActionAvatars.
+ * Lightweight avatar component for LHN rows.
+ * LHN only renders SINGLE or SUBSCRIPT — never diagonal.
  */
-function LHNAvatar({
-    icons,
-    shouldShowSubscript,
-    size,
-    secondaryAvatarBackgroundColor,
-    singleAvatarContainerStyle,
-    subscriptAvatarBorderColor,
-    useMidSubscriptSize,
-    shouldShowTooltip = false,
-    delegateAccountID,
-}: LHNAvatarProps) {
+function LHNAvatar({icons, shouldShowSubscript, size, singleAvatarContainerStyle, subscriptAvatarBorderColor, shouldShowTooltip = false, delegateAccountID}: LHNAvatarProps) {
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
 
     const primaryIcon = icons.at(0);
     const secondaryIcon = icons.at(1);
@@ -44,23 +30,7 @@ function LHNAvatar({
         return null;
     }
 
-    // Single avatar
-    if (icons.length === 1 || !secondaryIcon) {
-        return (
-            <ReportActionAvatar.Single
-                accountID={Number(primaryIcon.id ?? CONST.DEFAULT_NUMBER_ID)}
-                avatar={primaryIcon}
-                shouldShowTooltip={shouldShowTooltip}
-                size={size}
-                containerStyles={singleAvatarContainerStyle}
-                fallbackIcon={primaryIcon.fallbackIcon}
-                delegateAccountID={delegateAccountID}
-            />
-        );
-    }
-
-    // Subscript avatar (user + workspace, or invoice room with 2 workspaces)
-    if (shouldShowSubscript) {
+    if (shouldShowSubscript && secondaryIcon) {
         return (
             <ReportActionAvatar.Subscript
                 primaryAvatar={primaryIcon}
@@ -72,17 +42,15 @@ function LHNAvatar({
         );
     }
 
-    // Diagonal avatar (two workspace icons for B2B invoices, or two people)
-    const secondaryAvatarContainerStyle = secondaryAvatarBackgroundColor ? StyleUtils.getBackgroundAndBorderStyle(secondaryAvatarBackgroundColor) : undefined;
-
     return (
-        <ReportActionAvatar.Multiple.Diagonal
-            icons={[primaryIcon, secondaryIcon]}
-            size={size}
+        <ReportActionAvatar.Single
+            accountID={Number(primaryIcon.id ?? CONST.DEFAULT_NUMBER_ID)}
+            avatar={primaryIcon}
             shouldShowTooltip={shouldShowTooltip}
-            useMidSubscriptSize={useMidSubscriptSize ?? false}
-            secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
-            isInReportAction={false}
+            size={size}
+            containerStyles={singleAvatarContainerStyle}
+            fallbackIcon={primaryIcon.fallbackIcon}
+            delegateAccountID={delegateAccountID}
         />
     );
 }
