@@ -27,7 +27,7 @@ function findColumnName(header: string): string {
 
         case 'category':
         case 'categories':
-            attribute = CONST.CSV_IMPORT_COLUMNS.EMAIL;
+            attribute = CONST.CSV_IMPORT_COLUMNS.CATEGORY;
             break;
 
         case 'glcode':
