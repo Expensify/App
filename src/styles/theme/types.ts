@@ -109,7 +109,6 @@ type ThemeColors = {
     white: Color;
     videoPlayerBG: Color;
     transparentWhite: Color;
-    travelBG: Color;
     trialTimer: Color;
 
     reportStatusBadge: Record<

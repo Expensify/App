@@ -71,7 +71,6 @@ type EmptySearchViewItem = {
     headerContentStyles: Array<Pick<ViewStyle, 'width' | 'height'>>;
     buttons?: EmptyStateButton[];
     titleStyles?: TextStyle;
-    subtitleStyle?: TextStyle;
     children?: React.ReactNode;
 };
 
@@ -392,10 +391,10 @@ function EmptySearchViewContent({
                 }
                 break;
             // We want to display the default nothing to show message if there is any filter applied.
-            // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.INVOICE:
                 if (!content && !hasResults) {
                     content = {
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyInvoiceResults.subtitle'),
                         buttons: [
@@ -413,11 +412,9 @@ function EmptySearchViewContent({
                                 success: true,
                             },
                         ],
-                        ...defaultViewItemHeader.folder,
                     };
                 }
                 break;
-            // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.CHAT:
             default:
                 if (!content) {
