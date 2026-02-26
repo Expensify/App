@@ -121,9 +121,9 @@ function FormProvider({
     ref,
     ...rest
 }: FormProviderProps) {
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
-    const [draftValues, draftValuesMetadata] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`, {canBeMissing: true});
+    const [network] = useOnyx(ONYXKEYS.NETWORK);
+    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
+    const [draftValues, draftValuesMetadata] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`);
     const {preferredLocale, translate} = useLocalize();
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});

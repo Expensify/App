@@ -52,8 +52,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const {translate} = useLocalize();
     const {currencyList} = useCurrencyListState();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'DotIndicator']);
 
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
@@ -62,8 +61,8 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const isCommercialFeed = isCustomFeed(feedName);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
 
     const {cardFeedErrors} = useCardFeedErrors();
     const feedErrors = cardFeedErrors[feedName];
@@ -171,7 +170,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
             {!isLoading && (isFeedConnectionBroken || hasFeedErrors) && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon
-                        src={expensifyIcons.DotIndicator}
+                        src={icons.DotIndicator}
                         fill={theme.danger}
                         additionalStyles={styles.mr1}
                     />
