@@ -836,23 +836,21 @@ function MoneyRequestConfirmationList({
                     sectionIndex: 1,
                 },
             );
-        } else {
-            // When adding an expense from within a report, hide the "To:" section since the destination is already the current report
-            if (!shouldHideToSection) {
-                const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
-                    ...participant,
-                    isSelected: false,
-                    keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
-                    isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-                    shouldShowRightCaret: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-                }));
+        // When adding an expense from within a report, hide the "To:" section since the destination is already the current report
+        } else if (!shouldHideToSection) {
+            const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
+                ...participant,
+                isSelected: false,
+                keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
+                isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                shouldShowRightCaret: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+            }));
 
-                options.push({
-                    title: translate('common.to'),
-                    data: formattedSelectedParticipants,
-                    sectionIndex: 0,
-                });
-            }
+            options.push({
+                title: translate('common.to'),
+                data: formattedSelectedParticipants,
+                sectionIndex: 0,
+            });
         }
 
         return options;
