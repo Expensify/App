@@ -3,7 +3,7 @@ import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {SearchContextProps} from '@components/Search/types';
+import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, RevertSplitTransactionParams, SplitBillParams, SplitTransactionParams, SplitTransactionSplitsParam, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -103,7 +103,7 @@ type UpdateSplitTransactionsParams = {
         splitExpenses: SplitExpense[];
         splitExpensesTotal?: number;
     };
-    searchContext?: Partial<SearchContextProps>;
+    searchContext?: Partial<SearchStateContextValue & SearchActionsContextValue>;
     policyCategories: OnyxTypes.PolicyCategories | undefined;
     policy: OnyxTypes.Policy | undefined;
     policyRecentlyUsedCategories: OnyxTypes.RecentlyUsedCategories | undefined;
@@ -852,7 +852,7 @@ function completeSplitBill(
         }
 
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
-        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, false);
+        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, false, betas);
 
         // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
         const optimisticTransactionID = NumberUtils.rand64();
