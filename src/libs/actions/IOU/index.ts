@@ -4413,7 +4413,8 @@ function calculateDiffAmount(
     if (!iouReport) {
         return 0;
     }
-    const isExpenseReportLocal = isExpenseReport(iouReport);
+    // Invoices store totals as negative (like expense reports), so we need to treat them the same way
+    const isExpenseReportLocal = isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport);
     const updatedCurrency = getCurrency(updatedTransaction);
     const currentCurrency = getCurrency(transaction);
 
