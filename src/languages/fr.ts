@@ -948,6 +948,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'jour' : 'jours'} restants`,
             },
             addShippingAddress: {title: 'Nous avons besoin de votre adresse de livraison', subtitle: 'Indiquez une adresse pour recevoir votre Carte Expensify.', cta: 'Ajouter une adresse'},
+            addPaymentCard: {title: 'Ajoutez une carte de paiement pour continuer à utiliser Expensify', subtitle: 'Compte > Abonnement', cta: 'Ajouter'},
             activateCard: {title: 'Activer votre Carte Expensify', subtitle: 'Validez votre carte et commencez à dépenser.', cta: 'Activer'},
             reviewCardFraud: {
                 title: 'Examiner une éventuelle fraude sur votre Carte Expensify',
@@ -1087,6 +1088,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce reçu ?',
         addReceipt: 'Ajouter un reçu',
         scanFailed: 'Le reçu n’a pas pu être scanné, car il lui manque un commerçant, une date ou un montant.',
+        crop: 'Recadrer',
         addAReceipt: {
             phrase1: 'Ajouter un reçu',
             phrase2: 'ou faites-en glisser un ici',
@@ -4272,6 +4274,9 @@ ${
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Les dépenses payées de votre poche seront exportées une fois remboursées',
                 },
             },
+            travelInvoicing: 'Facturation des déplacements',
+            travelInvoicingVendor: 'Fournisseur de voyage',
+            travelInvoicingPayableAccount: 'Compte fournisseur de voyages',
         },
         workspaceList: {
             joinNow: 'Rejoindre maintenant',
