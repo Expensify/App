@@ -14,6 +14,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
+import useOdometerImageStitching from '@hooks/useOdometerImageStitching';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
@@ -24,7 +25,7 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMoneyRequestDistance, setMoneyRequestOdometerReading, updateMoneyRequestDistance} from '@libs/actions/IOU';
+import {setMoneyRequestDistance, setMoneyRequestOdometerReading, setMoneyRequestReceipt, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -77,6 +78,7 @@ function IOURequestStepDistanceOdometer({
     const [startReading, setStartReading] = useState<string>('');
     const [endReading, setEndReading] = useState<string>('');
     const [formError, setFormError] = useState<string>('');
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     // Key to force TextInput remount when resetting state after tab switch
     const [inputKey, setInputKey] = useState<number>(0);
 
@@ -344,20 +346,18 @@ function IOURequestStepDistanceOdometer({
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const stitchImages = useOdometerImageStitching(odometerStartImage, odometerEndImage);
     // Navigate to next page following Manual tab pattern
-    const navigateToNextPage = () => {
+    const navigateToNextPage = async () => {
         const start = parseFloat(startReading);
         const end = parseFloat(endReading);
-
-        // Store odometer readings in transaction.comment.odometerStart/odometerEnd
-        setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
-
-        // Calculate total distance (endReading - startReading)
         const distance = end - start;
         const calculatedDistance = roundToTwoDecimalPlaces(distance);
 
-        // Store total distance in transaction.comment.customUnit.quantity
+        setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
         setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
+        const stitchedImage = await stitchImages();
+        setMoneyRequestReceipt(transactionID, stitchedImage?.uri, stitchedImage?.name, isTransactionDraft);
 
         if (isEditing) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
@@ -456,6 +456,10 @@ function IOURequestStepDistanceOdometer({
 
     // Handle form submission with validation
     const handleNext = () => {
+        if (isSubmitting) {
+            return;
+        }
+
         // Validation: Start and end readings must not be empty
         if (!startReading || !endReading) {
             setFormError(translate('iou.error.invalidReadings'));
@@ -478,7 +482,8 @@ function IOURequestStepDistanceOdometer({
         }
 
         // When validation passes, call navigateToNextPage
-        navigateToNextPage();
+        setIsSubmitting(true);
+        navigateToNextPage().finally(() => setIsSubmitting(false));
     };
 
     return (
@@ -610,6 +615,7 @@ function IOURequestStepDistanceOdometer({
                         success
                         allowBubble={!isEditing}
                         pressOnEnter
+                        isLoading={isSubmitting}
                         medium={isExtraSmallScreenHeight}
                         large={!isExtraSmallScreenHeight}
                         style={[styles.w100]}
