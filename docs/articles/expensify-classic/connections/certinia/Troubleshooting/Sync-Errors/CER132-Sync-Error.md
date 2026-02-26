@@ -1,97 +1,68 @@
 ---
-title: CER132 Sync Error: Insufficient Access – Modify All Data Permission Required
-description: Learn why CER132 appears when syncing with Certinia and how to enable the Modify All Data permission for the connected user.
-keywords: CER132, Certinia error CER132, insufficient access Certinia, Modify All Data permission, Certinia sync error, Certinia user permissions, Sync Now, Workspace Admin
-internalScope: Audience is Workspace Admins using the Certinia integration. Covers resolving the CER132 insufficient access error by enabling Modify All Data permission and re-syncing the Workspace. Does not cover unrelated Certinia role configuration or general permission design.
+title: CER132 Sync Error in Certinia Integration
+description: Learn what the CER132 sync error means in Certinia and how to enable the Modify All Data permission to restore successful syncing.
+keywords: CER132, Certinia sync error, insufficient access Certinia, Modify All Data permission required, Certinia user permissions error, Expensify Certinia sync failure, Workspace Admin
+internalScope: Audience is Workspace Admins using the Certinia integration. Covers resolving the CER132 sync error caused by missing Modify All Data permissions. Does not cover other Certinia error codes.
 ---
 
-# CER132 Sync Error: Insufficient Access – Modify All Data Permission Required
+# CER132 Sync Error in Certinia Integration
 
 If you see the error:
 
-**“CER132 Sync Error: Insufficient access. Please ensure the connection to Certinia is made with a user that has the 'Modify All Data' permission.”**
+CER132: Insufficient access. Modify All Data permission required.
 
-this means the Certinia user connected to Expensify does not have the required **Modify All Data** permission.
-
-Until this permission is enabled, Certinia will block syncing and exports.
+This means the Certinia user connected to Expensify does not have the required **Modify All Data** system permission, preventing syncing and exports from completing.
 
 ---
 
-## Why CER132 Happens
+## Why the CER132 Sync Error Happens in Certinia
 
-The Certinia integration requires broad access permissions to create, update, and sync records.
+The CER132 error typically indicates:
 
-If the connected Certinia user does not have the **Modify All Data** system permission, Certinia cannot complete sync operations and returns error **CER132**.
+- The connected Certinia user lacks the **Modify All Data** permission.
+- The integration user does not have sufficient system-level access.
+- Certinia validation failed due to restricted user permissions.
 
-This is a Certinia user permission issue — not an Expensify Workspace configuration issue.
+The Certinia integration requires broad system access to create, update, and sync records.
 
----
-
-## Who Can Fix CER132
-
-You must have access to manage user permissions in Certinia (typically a Certinia Admin or Salesforce Admin) to resolve this error.
+This is a Certinia user permission issue, not a Workspace configuration issue.
 
 ---
 
-## How to Enable Modify All Data Permission in Certinia
+## How to Fix the CER132 Sync Error
+
+This issue must be resolved in Certinia.
 
 1. Log in to Certinia.
 2. Go to **Setup**.
-3. Navigate to **Manage Users**.
-4. Click **Users**.
-5. Locate the user who established the Certinia connection with Expensify.
-6. Open the user’s profile.
-7. Go to **System**.
-8. Select **System Permissions**.
-9. Enable **Modify All Data**.
-10. Save your changes.
+3. Navigate to **Users**.
+4. Locate the user connected to the Expensify integration.
+5. Open the user’s profile.
+6. Go to **System Permissions**.
+7. Enable **Modify All Data**.
+8. Save your changes.
 
-This permission allows full data access, ensuring reports sync and export properly.
+After updating permissions:
 
----
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
 
-## How to Sync Certinia After Updating Permissions
-
-After enabling the permission, re-sync the connection in Expensify.
-
-1. Go to the navigation tabs on the left.
-2. Click **Settings**.
-3. Click **Workspaces**.
-4. Select your Workspace.
-5. Click **Accounting**.
-6. Click **Sync Now**.
-
----
-
-## How to Confirm CER132 Is Resolved
-
-After syncing:
-
-1. Confirm the sync completes without errors.
-2. Retry exporting any previously failed reports.
-3. Verify that exports complete successfully.
-
-If the error continues, confirm that:
-- The correct Certinia user profile was updated.
-- **Modify All Data** is enabled.
-- The changes were saved before syncing.
+Then confirm the sync completes successfully.
 
 ---
 
 # FAQ
 
-## Does CER132 mean my reports were deleted?
+## Can I Retry the Sync?
 
-No. The reports remain in Expensify. The sync failed because the connected Certinia user lacked sufficient permissions.
+Yes. After enabling **Modify All Data** and selecting **Sync Now**, retry the sync or export. If the error persists, confirm the correct user profile was updated.
 
----
+## Does CER132 Mean My Reports Were Deleted?
 
-## Is CER132 caused by Expensify settings?
+No. The reports remain in Expensify. The sync failed due to insufficient Certinia user permissions.
 
-No. CER132 is triggered by missing system permissions in Certinia, not by Workspace settings in Expensify.
+## Is CER132 Caused by Workspace Settings?
 
----
-
-## Do I need to reconnect the Certinia integration?
-
-Not necessarily. In most cases, enabling **Modify All Data** and selecting **Sync Now** resolves the issue.
+No. CER132 is triggered by missing system permissions in Certinia. Workspace accounting settings are not the cause.
