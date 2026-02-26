@@ -2,14 +2,17 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceVirtualEmployeesPage} from '@libs/actions/VirtualEmployee';
@@ -17,9 +20,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
+import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import Text from '@components/Text';
 import type {VirtualEmployee} from '@src/types/onyx/VirtualEmployee';
 
 type WorkspaceVirtualEmployeesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.VIRTUAL_EMPLOYEES>;
@@ -28,15 +35,17 @@ function WorkspaceVirtualEmployeesPage({route}: WorkspaceVirtualEmployeesPagePro
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBot'] as const);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [virtualEmployeesCollection] = useOnyx(`${ONYXKEYS.COLLECTION.VIRTUAL_EMPLOYEES}${policyID}`);
 
     const isPolicyAdmin = isPolicyAdminUtils(policy);
 
-    // Reload data each time the screen comes into focus (e.g. after creating/editing a VA)
     useFocusEffect(
         useCallback(() => {
             openWorkspaceVirtualEmployeesPage(policyID);
@@ -72,22 +81,6 @@ function WorkspaceVirtualEmployeesPage({route}: WorkspaceVirtualEmployeesPagePro
         [translate],
     );
 
-    const getStatusColor = useCallback(
-        (status: VirtualEmployee['status']): string => {
-            switch (status) {
-                case 'active':
-                    return theme.success;
-                case 'paused':
-                    return theme.warning;
-                case 'deleted':
-                    return theme.danger;
-                default:
-                    return theme.icon;
-            }
-        },
-        [theme],
-    );
-
     if (!isPolicyAdmin) {
         return (
             <ScreenWrapper testID="WorkspaceVirtualEmployeesPage">
@@ -105,6 +98,8 @@ function WorkspaceVirtualEmployeesPage({route}: WorkspaceVirtualEmployeesPagePro
     return (
         <ScreenWrapper testID="WorkspaceVirtualEmployeesPage">
             <HeaderWithBackButton
+                icon={illustrations.ConciergeBot}
+                shouldUseHeadlineHeader
                 title={translate('workspace.virtualEmployees.title')}
                 onBackButtonPress={Navigation.goBack}
             >
@@ -119,46 +114,47 @@ function WorkspaceVirtualEmployeesPage({route}: WorkspaceVirtualEmployeesPagePro
             </HeaderWithBackButton>
 
             {virtualEmployees.length === 0 ? (
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.p5]}>
-                    <Text style={[styles.textHeadlineH2, styles.mb2, styles.textAlignCenter]}>{translate('workspace.virtualEmployees.emptyStateTitle')}</Text>
-                    <Text style={[styles.textSupporting, styles.mb6, styles.textAlignCenter]}>{translate('workspace.virtualEmployees.emptyStateDescription')}</Text>
-                    <Button
-                        success
-                        text={translate('workspace.virtualEmployees.addNew')}
-                        onPress={navigateToCreate}
-                        isDisabled={isOffline}
-                    />
-                </View>
+                <EmptyStateComponent
+                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                    headerMedia={illustrations.ConciergeBot}
+                    title={translate('workspace.virtualEmployees.emptyStateTitle')}
+                    subtitle={translate('workspace.virtualEmployees.emptyStateDescription')}
+                    headerStyles={[
+                        styles.overflowHidden,
+                        StyleUtils.getBackgroundColorStyle(colors.green400),
+                        StyleUtils.getHeight(variables.sectionIllustrationHeight),
+                    ]}
+                    headerContentStyles={[styles.alignItemsCenter, styles.justifyContentCenter, {width: 120, height: 120}]}
+                    buttons={[
+                        {
+                            success: true,
+                            buttonText: translate('workspace.virtualEmployees.addNew'),
+                            buttonAction: navigateToCreate,
+                            isDisabled: isOffline,
+                        },
+                    ]}
+                />
             ) : (
                 <ScrollView contentContainerStyle={styles.pb4}>
-                    {virtualEmployees.map((ve) => (
-                        <OfflineWithFeedback
-                            key={ve.id}
-                            pendingAction={ve.pendingAction}
-                            errors={ve.errors}
-                        >
-                            <Button
-                                onPress={() => navigateToEdit(ve.id)}
-                                style={[styles.mh5, styles.mb3, styles.p3]}
+                    <View style={styles.mt3}>
+                        {virtualEmployees.map((ve) => (
+                            <OfflineWithFeedback
+                                key={ve.id}
+                                pendingAction={ve.pendingAction}
+                                errors={ve.errors}
                             >
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.w100]}>
-                                    <View style={styles.flex1}>
-                                        <Text style={[styles.textStrong, styles.mb1]}>{ve.displayName}</Text>
-                                        <Text style={[styles.textSupporting, styles.textMicro]}>{getCapabilitySummary(ve)}</Text>
-                                    </View>
-                                    <View
-                                        style={{
-                                            width: 8,
-                                            height: 8,
-                                            borderRadius: 4,
-                                            backgroundColor: getStatusColor(ve.status),
-                                            marginLeft: 8,
-                                        }}
-                                    />
-                                </View>
-                            </Button>
-                        </OfflineWithFeedback>
-                    ))}
+                                <MenuItem
+                                    icon={illustrations.ConciergeBot}
+                                    iconType="illustration"
+                                    title={ve.displayName}
+                                    description={getCapabilitySummary(ve)}
+                                    onPress={() => navigateToEdit(ve.id)}
+                                    shouldShowRightIcon
+                                    badgeText={ve.status !== 'active' ? translate('workspace.virtualEmployees.statusPaused') : undefined}
+                                />
+                            </OfflineWithFeedback>
+                        ))}
+                    </View>
                 </ScrollView>
             )}
         </ScreenWrapper>

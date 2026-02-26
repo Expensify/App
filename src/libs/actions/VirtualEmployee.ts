@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {VirtualEmployee, VirtualEmployeeCapability, VirtualEmployeeEventSubscription} from '@src/types/onyx/VirtualEmployee';
 
@@ -51,7 +51,12 @@ function createVirtualEmployee(policyID: string, displayName: string, systemProm
     );
 }
 
-function updateVirtualEmployee(policyID: string, virtualEmployeeID: string, updates: Partial<Pick<VirtualEmployee, 'displayName' | 'systemPrompt' | 'capabilities' | 'eventSubs'>>): void {
+function updateVirtualEmployee(
+    policyID: string,
+    virtualEmployeeID: string,
+    vaAccountID: number,
+    updates: Partial<Pick<VirtualEmployee, 'displayName' | 'systemPrompt' | 'capabilities' | 'eventSubs'>>,
+): void {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -80,7 +85,7 @@ function updateVirtualEmployee(policyID: string, virtualEmployeeID: string, upda
         WRITE_COMMANDS.UPDATE_VIRTUAL_EMPLOYEE,
         {
             policyID,
-            vaAccountID: Number(virtualEmployeeID),
+            vaAccountID,
             displayName: updates.displayName ?? '',
             systemPrompt: updates.systemPrompt ?? '',
             capabilities: JSON.stringify(updates.capabilities),
@@ -90,7 +95,7 @@ function updateVirtualEmployee(policyID: string, virtualEmployeeID: string, upda
     );
 }
 
-function deleteVirtualEmployee(policyID: string, virtualEmployeeID: string): void {
+function deleteVirtualEmployee(policyID: string, virtualEmployeeID: string, vaAccountID: number): void {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -115,11 +120,11 @@ function deleteVirtualEmployee(policyID: string, virtualEmployeeID: string): voi
         },
     ];
 
-    API.write(WRITE_COMMANDS.DELETE_VIRTUAL_EMPLOYEE, {policyID, vaAccountID: Number(virtualEmployeeID)}, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_VIRTUAL_EMPLOYEE, {policyID, vaAccountID}, {optimisticData, successData, failureData});
 }
 
 function openWorkspaceVirtualEmployeesPage(policyID: string): void {
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_WORKSPACE_VIRTUAL_EMPLOYEES_PAGE, {policyID}, {});
+    API.read(READ_COMMANDS.OPEN_WORKSPACE_VIRTUAL_EMPLOYEES_PAGE, {policyID});
 }
 
 export {createVirtualEmployee, updateVirtualEmployee, deleteVirtualEmployee, openWorkspaceVirtualEmployeesPage};
