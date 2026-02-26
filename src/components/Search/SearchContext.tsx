@@ -32,7 +32,6 @@ const defaultSearchInfo: SearchResultsInfo = {
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
-    currentRecentSearchHash: -1,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
@@ -92,6 +91,8 @@ function SearchContextProvider({children}: ChildrenProps) {
     const {accountID} = useCurrentUserPersonalDetails();
     const suggestedSearches = getSuggestedSearches(accountID);
     const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentSearchHash, suggestedSearches);
+
+    console.log(shouldUseLiveData);
 
     // If viewing a to-do search, use live data from useTodos, otherwise return the snapshot data
     // We do this so that we can show the counters for the to-do search results without visiting the specific to-do page, e.g. show `Approve [3]` while viewing the `Submit` to-do search.

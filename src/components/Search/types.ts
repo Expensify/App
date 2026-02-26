@@ -154,7 +154,6 @@ type SearchCustomColumnIds =
 
 type SearchContextData = {
     currentSearchHash: number;
-    currentRecentSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: SearchQueryJSON | undefined;
     currentSearchResults: SearchResults | undefined;

@@ -3432,9 +3432,9 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
+function isTodoSearch(similarSearchHash: number, suggestedSearches: Record<string, SearchTypeMenuItem>) {
     const TODO_KEYS: SearchKey[] = [CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.EXPORT];
-    const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.similarSearchHash === recentSearchHash)?.key;
+    const matchedSearchKey = Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key;
     return !!matchedSearchKey && TODO_KEYS.includes(matchedSearchKey);
 }
 
