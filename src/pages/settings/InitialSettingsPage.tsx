@@ -65,6 +65,7 @@ import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
@@ -214,6 +215,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             return;
         }
         if (isTrackingGPS) {
+            stopGpsTripNotification();
             stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
         }
         signOut(true);

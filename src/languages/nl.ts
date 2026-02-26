@@ -7599,6 +7599,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             title: 'GPS-tracking bezig',
             body: 'Ga naar de app om te voltooien',
         },
+        liveActivity: {
+            subtitle: 'Tracking distance',
+            button: 'View progress',
+        },
         continueGpsTripModal: {
             title: 'GPS-ritregistratie voortzetten?',
             prompt: 'Het lijkt erop dat de app is afgesloten tijdens je laatste GPS-rit. Wil je het opnemen van die rit hervatten?',

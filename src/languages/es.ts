@@ -8778,6 +8778,10 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Seguimiento GPS en curso',
             body: 'Ve a la app para finalizar',
         },
+        liveActivity: {
+            subtitle: 'Tracking distance',
+            button: 'View progress',
+        },
         continueGpsTripModal: {
             title: '¿Continuar el registro del viaje por GPS?',
             prompt: 'Parece que la app se cerró durante tu último viaje por GPS. ¿Te gustaría continuar grabando ese viaje?',

@@ -7534,6 +7534,10 @@ ${reportName}
             title: 'GPS追跡を実行中',
             body: 'アプリに移動して完了する',
         },
+        liveActivity: {
+            subtitle: 'Tracking distance',
+            button: 'View progress',
+        },
         continueGpsTripModal: {
             title: 'GPSでの走行記録を続けますか？',
             prompt: '前回のGPS走行中にアプリが終了したようです。その走行の記録を続けますか？',

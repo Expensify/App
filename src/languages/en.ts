@@ -7591,6 +7591,10 @@ const translations = {
             title: 'GPS tracking in progress',
             body: 'Go to the app to finish',
         },
+        liveActivity: {
+            subtitle: 'Tracking distance',
+            button: 'View progress',
+        },
         continueGpsTripModal: {
             title: 'Continue GPS trip recording?',
             prompt: 'Looks like the app closed during your last GPS trip. Would you like to continue recording from that trip?',

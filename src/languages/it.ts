@@ -7620,6 +7620,10 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             title: 'Monitoraggio GPS in corso',
             body: "Vai all'app per completare",
         },
+        liveActivity: {
+            subtitle: 'Tracking distance',
+            button: 'View progress',
+        },
         continueGpsTripModal: {
             title: 'Continuare la registrazione del viaggio GPS?',
             prompt: 'Sembra che l’app si sia chiusa durante il tuo ultimo viaggio GPS. Vuoi continuare la registrazione da quel viaggio?',

@@ -7419,6 +7419,10 @@ ${reportName}
             title: '正在进行 GPS 追踪',
             body: '前往应用完成操作',
         },
+        liveActivity: {
+            subtitle: 'Tracking distance',
+            button: 'View progress',
+        },
         continueGpsTripModal: {
             title: '继续记录 GPS 行程？',
             prompt: '看起来上次的 GPS 行程中应用已关闭。要从那次行程继续记录吗？',

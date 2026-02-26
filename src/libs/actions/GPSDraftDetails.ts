@@ -4,6 +4,8 @@ import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestSt
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
 import geodesicDistance from '@src/utils/geodesicDistance';
+import {updateGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
+import type {Unit} from '@src/types/onyx/Policy';
 
 function resetGPSDraftDetails() {
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, null);
@@ -21,7 +23,7 @@ function setEndAddress(endAddress: GpsDraftDetails['endAddress']) {
     });
 }
 
-function initGpsDraft(reportID: string) {
+function initGpsDraft(reportID: string, unit: Unit) {
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
         gpsPoints: [],
         isTracking: true,
@@ -29,6 +31,7 @@ function initGpsDraft(reportID: string) {
         startAddress: {value: '', type: 'coordinates'},
         endAddress: {value: '', type: 'coordinates'},
         reportID,
+        unit,
     });
 }
 
@@ -68,6 +71,10 @@ function addGpsPoints(gpsDraftDetails: OnyxEntry<GpsDraftDetails>, newGpsPoints:
     const updatedDistance = capturedDistance + distanceToAdd;
 
     const updatedGpsPoints = [...capturedPoints, ...gpsPointsToAdd];
+
+    if (updatedDistance > 0) {
+        updateGpsTripNotification(updatedDistance);
+    }
 
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
         gpsPoints: updatedGpsPoints,
