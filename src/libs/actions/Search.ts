@@ -450,6 +450,7 @@ function search({
     saveLastSearchParams({
         queryJSON,
         offset,
+        searchKey,
         allowPostSearchRecount: false,
     });
 
@@ -467,6 +468,7 @@ function search({
                     saveLastSearchParams({
                         queryJSON,
                         offset,
+                        searchKey,
                         hasMoreResults: !!response?.search?.hasMoreResults,
                         previousLengthOfResults: prevReportsLength,
                         allowPostSearchRecount: false,
@@ -477,6 +479,7 @@ function search({
                 saveLastSearchParams({
                     queryJSON,
                     offset,
+                    searchKey,
                     hasMoreResults: !!response?.search?.hasMoreResults,
                     previousLengthOfResults: reports.length,
                     allowPostSearchRecount: true,
