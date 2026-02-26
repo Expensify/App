@@ -43,7 +43,8 @@ export default function (): void {
 
     let jsParseStartMs: number | undefined;
     const observer = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
+        const entries = list.getEntries();
+        for (const entry of entries) {
             if (entry.name === 'runJsBundleStart' && jsParseStartMs === undefined) {
                 jsParseStartMs = entry.startTime;
                 startSpan(CONST.TELEMETRY.SPAN_JS_PARSE_TIME, {
@@ -52,8 +53,11 @@ export default function (): void {
                     startTime: jsParseStartMs / 1000,
                 });
             }
-            if (entry.name === 'runJsBundleEnd' && jsParseStartMs !== undefined) {
-                endSpan(CONST.TELEMETRY.SPAN_JS_PARSE_TIME, entry.startTime / 1000);
+            if (entry.name === 'runJsBundleEnd') {
+                const durationMs = jsParseStartMs !== undefined ? Math.round(entry.startTime - jsParseStartMs) : 'n/a';
+                if (jsParseStartMs !== undefined && durationMs !== 'n/a') {
+                    endSpan(CONST.TELEMETRY.SPAN_JS_PARSE_TIME, durationMs);
+                }
                 observer.disconnect();
             }
         }
