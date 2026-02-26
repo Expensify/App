@@ -12421,7 +12421,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {[123]: {accountID: 123, login: 'payee@example.com'}},
+                personalDetails: {123: {accountID: 123, login: 'payee@example.com'}},
             });
 
             expect(result.onyxData).toBeDefined();
@@ -12511,7 +12511,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {[123]: {accountID: 123, login: 'existing@example.com'}},
+                personalDetails: {123: {accountID: 123, login: 'existing@example.com'}},
             });
 
             // Then: Verify the result structure and key values
@@ -12645,7 +12645,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {[123]: {accountID: 123, login: 'existing@example.com'}},
+                personalDetails: {123: {accountID: 123, login: 'existing@example.com'}},
             });
 
             // Then: Verify the result uses existing chat report
@@ -12733,7 +12733,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 betas: [CONST.BETAS.ALL],
-                personalDetails: {[123]: {accountID: 123, login: 'existing@example.com'}},
+                personalDetails: {123: {accountID: 123, login: 'existing@example.com'}},
             });
 
             // Then: Verify policy expense chat handling
