@@ -144,12 +144,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
 
         return (
             // This container is necessary to hide card translation during transition. Without it the user would see un-clipped cards.
-            <View
-                style={[styles.modalStackNavigatorContainer, styles.modalStackNavigatorContainerWidth(isSmallScreenWidth)]}
-                accessibilityViewIsModal={isSmallScreenWidth}
-                aria-modal={isSmallScreenWidth || undefined}
-                role={isSmallScreenWidth ? 'dialog' : undefined}
-            >
+            <View style={[styles.modalStackNavigatorContainer, styles.modalStackNavigatorContainerWidth(isSmallScreenWidth)]}>
                 <ModalStackNavigator.Navigator>
                     {Object.keys(screens as Required<Screens>).map((name) => (
                         <ModalStackNavigator.Screen
@@ -500,6 +495,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsPayerPage').default,
     [SCREENS.WORKSPACE.NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceNamePage').default,
     [SCREENS.WORKSPACE.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewDescriptionPage').default,
+    [SCREENS.WORKSPACE.CLIENT_ID]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewClientIDPage').default,
     [SCREENS.WORKSPACE.SHARE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewSharePage').default,
     [SCREENS.WORKSPACE.CURRENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewCurrencyPage').default,
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategorySettingsPage').default,
@@ -904,6 +900,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.DOMAIN.ADD_MEMBER]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainAddMemberPage').default,
     [SCREENS.DOMAIN.MEMBERS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMembersSettingsPage').default,
     [SCREENS.DOMAIN.MEMBERS_SETTINGS_TWO_FACTOR_AUTH]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainRequireTwoFactorAuthPage').default,
+    [SCREENS.DOMAIN.MEMBER_FORCE_TWO_FACTOR_AUTH]: () => require<ReactComponentModule>('../../../../pages/domain/Members/TwoFactorAuth/DomainMemberForceTwoFactorAuthPage').default,
+    [SCREENS.DOMAIN.MEMBER_RESET_TWO_FACTOR_AUTH]: () => require<ReactComponentModule>('../../../../pages/domain/Members/TwoFactorAuth/DomainMemberResetTwoFactorAuthPage').default,
 });
 
 const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
@@ -992,6 +990,7 @@ const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<Searc
     [SCREENS.SEARCH.ADVANCED_FILTERS_APPROVED_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersApprovedPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_PAID_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersPaidPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_EXPORTED_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersExportedPage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_EXPORTED_TO_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersExportedToPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_POSTED_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersPostedPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWN_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersWithdrawnPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_CURRENCY_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersCurrencyPage').default,

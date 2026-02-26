@@ -7,6 +7,7 @@ import {requestMoney} from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
+import initSplitExpense from '@libs/actions/SplitExpenses';
 import {rand64} from '@libs/NumberUtils';
 import {getOriginalMessage, isActionOfType, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -15,7 +16,6 @@ import {
     completeSplitBill,
     evenlyDistributeSplitExpenseAmounts,
     initDraftSplitExpenseDataForEdit,
-    initSplitExpense,
     initSplitExpenseItemData,
     removeSplitExpenseField,
     resetSplitExpensesByDateRange,
@@ -1624,6 +1624,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            isSelfTourViewed: false,
         });
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
@@ -1827,6 +1828,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            isSelfTourViewed: false,
         });
 
         // Change the approval mode for the policy since default is Submit and Close
@@ -1989,6 +1991,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
+            isSelfTourViewed: false,
         });
 
         // Change the approval mode for the policy since default is Submit and Close
@@ -2155,6 +2158,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            isSelfTourViewed: false,
         });
 
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -2330,6 +2334,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            isSelfTourViewed: false,
         });
 
         // Change the approval mode for the policy since default is Submit and Close
@@ -2584,24 +2589,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        let allTransactions: OnyxCollection<Transaction>;
-        let allReports: OnyxCollection<Report>;
-        await getOnyxData({
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
-            callback: (value) => {
-                allTransactions = value;
-            },
-        });
-        await getOnyxData({
-            key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallback: true,
-            callback: (value) => {
-                allReports = value;
-            },
-        });
-
-        initSplitExpense(allTransactions, allReports, transaction);
+        initSplitExpense(transaction);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -2626,25 +2614,7 @@ describe('initSplitExpense', () => {
     });
     it('should not initialize split expense for null transaction', async () => {
         const transaction: Transaction | undefined = undefined;
-
-        let allTransactions: OnyxCollection<Transaction>;
-        let allReports: OnyxCollection<Report>;
-        await getOnyxData({
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
-            callback: (value) => {
-                allTransactions = value;
-            },
-        });
-        await getOnyxData({
-            key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallback: true,
-            callback: (value) => {
-                allReports = value;
-            },
-        });
-
-        initSplitExpense(allTransactions, allReports, transaction);
+        initSplitExpense(transaction);
         await waitForBatchedUpdates();
 
         expect(transaction).toBeFalsy();
@@ -2668,24 +2638,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        let allTransactions: OnyxCollection<Transaction>;
-        let allReports: OnyxCollection<Report>;
-        await getOnyxData({
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
-            callback: (value) => {
-                allTransactions = value;
-            },
-        });
-        await getOnyxData({
-            key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallback: true,
-            callback: (value) => {
-                allReports = value;
-            },
-        });
-
-        initSplitExpense(allTransactions, allReports, transaction);
+        initSplitExpense(transaction);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -2754,24 +2707,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        let allTransactions: OnyxCollection<Transaction>;
-        let allReports: OnyxCollection<Report>;
-        await getOnyxData({
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
-            waitForCollectionCallback: true,
-            callback: (value) => {
-                allTransactions = value;
-            },
-        });
-        await getOnyxData({
-            key: ONYXKEYS.COLLECTION.REPORT,
-            waitForCollectionCallback: true,
-            callback: (value) => {
-                allReports = value;
-            },
-        });
-
-        initSplitExpense(allTransactions, allReports, transaction, policy);
+        initSplitExpense(transaction, policy);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
