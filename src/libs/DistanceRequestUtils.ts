@@ -163,9 +163,9 @@ function getFormattedRateValue(
 
 /**
  * Get the rate title to display on the expense page.
+ * If the rate is out of policy, displays "Rate out of policy".
  * For workspace expenses, shows the rate name (e.g., "Default Rate") so that updating a rate's
  * value on the workspace does not retroactively change the displayed rate on historical expenses.
- * For workspace expenses where the rate is out of policy, displays "Rate out of policy".
  * For P2P expenses (no rate name), shows the formatted rate value (e.g., "$0.67 / mi").
  */
 function getRateForExpenseDisplay(
@@ -179,13 +179,13 @@ function getRateForExpenseDisplay(
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     isOffline?: boolean,
 ): string {
-    if (!rateName) {
-        return getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
-    }
     if (isCustomUnitOutOfPolicy) {
         return translate('common.rateOutOfPolicy');
     }
-    return rateName;
+    if (rateName) {
+        return rateName;
+    }
+    return getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 }
 
 /**
