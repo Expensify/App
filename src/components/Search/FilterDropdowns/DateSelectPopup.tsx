@@ -19,9 +19,6 @@ import {getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 
-/** Width of the popover when Range is selected (enough for two side-by-side calendars) */
-const RANGE_POPOVER_WIDTH = 672;
-
 type DateSelectPopupProps = {
     /** The label to show when in an overlay on mobile */
     label: string;
@@ -66,7 +63,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
     // Widen the popover when Range is selected, reset when not
     useEffect(() => {
         if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-            setPopoverWidth?.(RANGE_POPOVER_WIDTH);
+            setPopoverWidth?.(CONST.POPOVER_DATE_RANGE_WIDTH);
         } else {
             setPopoverWidth?.(undefined);
         }
