@@ -131,7 +131,7 @@ function MoneyRequestReportPreviewContent({
     onPress,
     forwardedFSClass,
 }: MoneyRequestReportPreviewContentProps) {
-    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {allowStaleData: true});
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -283,7 +283,7 @@ function MoneyRequestReportPreviewContent({
                         activePolicy,
                         policy,
                         betas,
-                        userBillingGraceEndPeriodCollection,
+                        userBillingGraceEndPeriods,
                     });
                 }
             }
@@ -302,7 +302,7 @@ function MoneyRequestReportPreviewContent({
             activePolicy,
             policy,
             betas,
-            userBillingGraceEndPeriodCollection,
+            userBillingGraceEndPeriods,
         ],
     );
 
@@ -338,7 +338,7 @@ function MoneyRequestReportPreviewContent({
                 isASAPSubmitBetaEnabled,
                 iouReportNextStep,
                 betas,
-                userBillingGraceEndPeriodCollection,
+                userBillingGraceEndPeriods,
                 true,
             );
         }
@@ -619,12 +619,12 @@ function MoneyRequestReportPreviewContent({
                 expensifyIcons,
                 iouReport?.reportID,
                 policy,
-                userBillingGraceEndPeriodCollection,
+                userBillingGraceEndPeriods,
                 chatReportID,
                 iouReport?.parentReportID,
                 lastDistanceExpenseType,
             ),
-        [translate, expensifyIcons, iouReport?.reportID, iouReport?.parentReportID, policy, userBillingGraceEndPeriodCollection, chatReportID, lastDistanceExpenseType],
+        [translate, expensifyIcons, iouReport?.reportID, iouReport?.parentReportID, policy, userBillingGraceEndPeriods, chatReportID, lastDistanceExpenseType],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -641,7 +641,7 @@ function MoneyRequestReportPreviewContent({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(iouReport, policy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, userBillingGraceEndPeriodCollection);
+                    submitReport(iouReport, policy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, userBillingGraceEndPeriods);
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
@@ -671,7 +671,7 @@ function MoneyRequestReportPreviewContent({
                         isASAPSubmitBetaEnabled,
                         iouReportNextStep,
                         betas,
-                        userBillingGraceEndPeriodCollection,
+                        userBillingGraceEndPeriods,
                         isFullApproval,
                     );
                 }}
