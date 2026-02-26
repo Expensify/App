@@ -299,7 +299,7 @@ function IOURequestStepDistanceManual({
         }
 
         navigateToNextPage(value);
-    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam, rate]);
+    }, [navigateToNextPage, translate, rate]);
 
     useEffect(() => {
         if (isLoadingSelectedTab) {
