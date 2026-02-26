@@ -1,7 +1,7 @@
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {OptionsListContext, useOptionsList} from '@components/OptionListContextProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
@@ -167,7 +167,7 @@ function SearchAutocompleteList({
     const computeSpanStarted = useRef(false);
     const spanHandoffDone = useRef(false);
     // eslint-disable-next-line react-hooks/refs -- intentional: telemetry span must start during render to measure computation time
-    if (!computeSpanStarted.current && getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER)) {
+    if (!computeSpanStarted.current && areOptionsInitialized && getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER)) {
         startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS, {
             name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS,
             op: 'function',
@@ -183,6 +183,7 @@ function SearchAutocompleteList({
         };
     }, []);
 
+    const {areOptionsInitialized: contextAreOptionsInitialized} = useContext(OptionsListContext);
     const coldStartAttributeSet = useRef(false);
     useEffect(() => {
         if (coldStartAttributeSet.current) {
@@ -190,10 +191,10 @@ function SearchAutocompleteList({
         }
         const parentSpan = getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
         if (parentSpan) {
-            parentSpan.setAttribute('cold_start', !areOptionsInitialized);
+            parentSpan.setAttribute('cold_start', !contextAreOptionsInitialized);
             coldStartAttributeSet.current = true;
         }
-    }, [areOptionsInitialized]);
+    }, [contextAreOptionsInitialized]);
 
     const searchOptions = (() => {
         if (!areOptionsInitialized) {
