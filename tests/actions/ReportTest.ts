@@ -4719,9 +4719,7 @@ describe('actions/Report', () => {
             await setupUserWithConciergeChat();
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             // Simulate a pending COMPLETE_GUIDED_SETUP side effect command in the persisted requests queue
-            await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [
-                {command: SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, data: {}} as OnyxTypes.AnyRequest,
-            ]);
+            await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [{command: SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP, data: {}} as OnyxTypes.AnyRequest]);
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
