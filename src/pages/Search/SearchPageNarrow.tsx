@@ -41,16 +41,15 @@ const ANIMATION_DURATION_IN_MS = 300;
 
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
-    isMobileSelectionModeEnabled: boolean;
 };
 
-function SearchPageNarrow({queryJSON, isMobileSelectionModeEnabled}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {selectedTransactions, currentSearchKey, currentSearchResults, lastNonEmptySearchResults} = useSearchStateContext();
+    const {selectedTransactions, currentSearchKey, currentSearchResults, lastNonEmptySearchResults, isMobileSelectionModeEnabled} = useSearchStateContext();
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const metadata = searchResults?.search;
     const {clearSelectedTransactions} = useSearchActionsContext();

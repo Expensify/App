@@ -3,6 +3,7 @@ import React, {useContext, useLayoutEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useTodos from '@hooks/useTodos';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
@@ -53,6 +54,7 @@ const defaultSearchStateContext: SearchStateContextValue = {
     currentSearchResults: undefined,
     lastNonEmptySearchResults: undefined,
     shouldUseLiveData: false,
+    isMobileSelectionModeEnabled: false,
 };
 
 const defaultSearchActionsContext: SearchActionsContextValue = {
@@ -292,6 +294,8 @@ function SearchContextProvider({children}: ChildrenProps) {
         }));
     };
 
+    const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
+
     const searchStateContextValue: SearchStateContextValue = {
         ...searchContextData,
         currentSearchResults,
@@ -301,6 +305,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         lastSearchType,
         shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
+        isMobileSelectionModeEnabled,
     };
 
     const searchActionsContextValue: SearchActionsContextValue = {

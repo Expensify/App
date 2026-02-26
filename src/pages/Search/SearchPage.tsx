@@ -5,13 +5,11 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import {useSearchActionsContext} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -33,9 +31,6 @@ function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {clearSelectedTransactions} = useSearchActionsContext();
-    const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
-
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
@@ -79,10 +74,7 @@ function SearchPage({route}: SearchPageProps) {
             {shouldUseNarrowLayout ? (
                 <DragAndDropProvider isDisabled={isDragDisabled}>
                     {PDFValidationComponent}
-                    <SearchPageNarrow
-                        queryJSON={queryJSON}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    />
+                    <SearchPageNarrow queryJSON={queryJSON} />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
                             icon={expensifyIcons.SmartScan}
@@ -99,7 +91,6 @@ function SearchPage({route}: SearchPageProps) {
                 <SearchPageWide
                     queryJSON={queryJSON}
                     searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     handleSearchAction={handleSearchAction}
                     scrollHandler={scrollHandler}
                     initScanRequest={initScanRequest}

@@ -176,6 +176,7 @@ type SearchStateContextValue = SearchContextData & {
     lastSearchType: string | undefined;
     shouldShowSelectAllMatchingItems: boolean;
     areAllMatchingItemsSelected: boolean;
+    isMobileSelectionModeEnabled: boolean;
 };
 
 type SearchActionsContextValue = {

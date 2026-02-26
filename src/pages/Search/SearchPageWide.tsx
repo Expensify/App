@@ -25,7 +25,6 @@ import ROUTES from '@src/ROUTES';
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
     searchRequestResponseStatusCode: number | null;
-    isMobileSelectionModeEnabled: boolean;
     handleSearchAction: (value: SearchParams | string) => void;
     scrollHandler: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     initScanRequest: (e: DragEvent) => void;
@@ -37,7 +36,6 @@ type SearchPageWideProps = {
 function SearchPageWide({
     queryJSON,
     searchRequestResponseStatusCode,
-    isMobileSelectionModeEnabled,
     handleSearchAction,
     scrollHandler,
     initScanRequest,
@@ -48,7 +46,7 @@ function SearchPageWide({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {selectedTransactions, currentSearchKey, currentSearchResults, lastNonEmptySearchResults} = useSearchStateContext();
+    const {selectedTransactions, currentSearchKey, currentSearchResults, lastNonEmptySearchResults, isMobileSelectionModeEnabled} = useSearchStateContext();
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const metadata = searchResults?.search;
     const {resetVideoPlayerData} = usePlaybackActionsContext();
