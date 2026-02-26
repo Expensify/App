@@ -223,6 +223,7 @@ describe('TravelInvoicing', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             isLoading: true,
+                            isSuccess: false,
                             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             pendingFields: expect.objectContaining({
                                 paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -236,6 +237,7 @@ describe('TravelInvoicing', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             isLoading: false,
+                            isSuccess: true,
                             pendingAction: null,
                             pendingFields: expect.objectContaining({
                                 paymentBankAccountID: null,
@@ -248,6 +250,7 @@ describe('TravelInvoicing', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             isLoading: false,
+                            isSuccess: false,
                             pendingAction: null,
                             pendingFields: expect.objectContaining({
                                 paymentBankAccountID: null,

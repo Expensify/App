@@ -39,6 +39,7 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
 
     const isLoading = !!cardSettings?.isLoading;
+    const isSuccess = !!cardSettings?.isSuccess;
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(cardSettings);
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList);
@@ -49,7 +50,7 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
         if (cardOnWaitlist) {
             return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.ON_WAITLIST;
         }
-        if (isTravelInvoicingEnabled && !cardOnWaitlist) {
+        if (isSuccess) {
             return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED;
         }
         if (isLoading || isPendingConfiguration) {

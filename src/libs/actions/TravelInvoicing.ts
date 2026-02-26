@@ -26,6 +26,7 @@ function openPolicyTravelPage(policyID: string, workspaceAccountID: number) {
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 isLoading: true,
+                isSuccess: false,
             },
         },
     ];
@@ -261,6 +262,7 @@ function configureTravelInvoicingForPolicy(policyID: string, workspaceAccountID:
             key: cardSettingsKey,
             value: {
                 isLoading: true,
+                isSuccess: false,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 pendingFields: {
                     paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -279,6 +281,7 @@ function configureTravelInvoicingForPolicy(policyID: string, workspaceAccountID:
             key: cardSettingsKey,
             value: {
                 isLoading: false,
+                isSuccess: true,
                 pendingAction: null,
                 pendingFields: {
                     paymentBankAccountID: null,
@@ -293,6 +296,7 @@ function configureTravelInvoicingForPolicy(policyID: string, workspaceAccountID:
             key: cardSettingsKey,
             value: {
                 isLoading: false,
+                isSuccess: false,
                 pendingAction: null,
                 pendingFields: {
                     paymentBankAccountID: null,
