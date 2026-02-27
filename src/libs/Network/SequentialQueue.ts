@@ -245,11 +245,7 @@ function process(): Promise<void> {
 
             // Track reports that had offline outgoing messages so we can refresh lastReadTime
             // for any subsequent offline ReadNewestAction targeting the same report.
-            if (
-                requestToProcess.initiatedOffline &&
-                OUTGOING_MESSAGE_COMMANDS.has(requestToProcess.command) &&
-                typeof requestToProcess.data?.reportID === 'string'
-            ) {
+            if (requestToProcess.initiatedOffline && OUTGOING_MESSAGE_COMMANDS.has(requestToProcess.command) && typeof requestToProcess.data?.reportID === 'string') {
                 reportsWithOfflineSentMessages.add(requestToProcess.data.reportID);
             }
 
