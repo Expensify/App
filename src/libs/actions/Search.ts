@@ -712,6 +712,22 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
         });
     }
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+        value: {
+            data: Object.fromEntries(
+                reportIDs.map((reportID) => [
+                    `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    {
+                        isExportedToIntegration: true,
+                    },
+                ]),
+            ),
+        },
+    });
+
     // If we are on the 'Export' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
     if (currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPORT) {
         successData.push({

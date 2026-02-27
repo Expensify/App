@@ -5217,11 +5217,11 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName) {
     API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData});
 }
 
-function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionName) {
+function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionName, hash?: number) {
     const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const reportData: Array<{reportID: string; label: string; optimisticReportActionID: string}> = [];
 
@@ -5261,6 +5261,24 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
                 [optimisticReportActionID]: {
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
+            },
+        });
+    }
+
+    if (hash) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: Object.fromEntries(
+                    reportIDs.map((reportID) => [
+                        `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                        {
+                            isExportedToIntegration: true,
+                        },
+                    ]),
+                ),
             },
         });
     }
