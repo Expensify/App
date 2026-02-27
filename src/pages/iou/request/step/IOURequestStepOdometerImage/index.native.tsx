@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/core';
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {Alert, AppState, StyleSheet, View} from 'react-native';
 import type {LayoutRectangle} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -31,6 +31,7 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
@@ -42,6 +43,7 @@ import variables from '@styles/variables';
 import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -63,7 +65,7 @@ function focusCamera(cameraRef: React.RefObject<Camera | null>, point: Point) {
 
 function IOURequestStepOdometerImage({
     route: {
-        params: {action, iouType, transactionID, imageType},
+        params: {action, iouType, transactionID, reportID, imageType},
     },
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
@@ -95,9 +97,19 @@ function IOURequestStepOdometerImage({
     const snapPhotoText = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.snapPhotoStart') : translate('distance.odometer.snapPhotoEnd');
     const icon = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
 
-    const navigateBack = () => {
-        Navigation.goBack();
-    };
+    const odometerRoute = ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action, iouType, transactionID, reportID);
+
+    const navigateBack = useCallback(() => {
+        // Fix for the issue where the navigation state is lost after returning from device settings https://github.com/Expensify/App/issues/65992
+        const navigationState = navigationRef.current?.getState();
+        const reportsSplitNavigator = navigationState?.routes?.findLast((route) => route.name === 'ReportsSplitNavigator');
+        const hasLostNavigationsState = reportsSplitNavigator && !reportsSplitNavigator.state;
+        if (hasLostNavigationsState) {
+            Navigation.navigate(odometerRoute);
+        } else {
+            Navigation.goBack(odometerRoute);
+        }
+    }, [odometerRoute]);
 
     const askForPermissions = () => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
@@ -142,33 +154,35 @@ function IOURequestStepOdometerImage({
             focusCamera(camera, point);
         });
 
-    useFocusEffect(() => {
-        setDidCapturePhoto(false);
-        const refreshCameraPermissionStatus = () => {
-            CameraPermission?.getCameraPermissionStatus?.()
-                .then(setCameraPermissionStatus)
-                .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
-        };
-
-        refreshCameraPermissionStatus();
-
-        // Refresh permission status when app gains focus
-        const subscription = AppState.addEventListener('change', (appState) => {
-            if (appState !== 'active') {
-                return;
-            }
+    useFocusEffect(
+        useCallback(() => {
+            setDidCapturePhoto(false);
+            const refreshCameraPermissionStatus = () => {
+                CameraPermission?.getCameraPermissionStatus?.()
+                    .then(setCameraPermissionStatus)
+                    .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
+            };
 
             refreshCameraPermissionStatus();
-        });
 
-        return () => {
-            subscription.remove();
+            // Refresh permission status when app gains focus
+            const subscription = AppState.addEventListener('change', (appState) => {
+                if (appState !== 'active') {
+                    return;
+                }
 
-            if (isLoaderVisible) {
-                setIsLoaderVisible(false);
-            }
-        };
-    });
+                refreshCameraPermissionStatus();
+            });
+
+            return () => {
+                subscription.remove();
+
+                if (isLoaderVisible) {
+                    setIsLoaderVisible(false);
+                }
+            };
+        }, [isLoaderVisible, setIsLoaderVisible]),
+    );
 
     const handleImageSelected = (files: FileObject[]) => {
         if (files.length === 0) {
