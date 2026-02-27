@@ -305,16 +305,16 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         // Simulates: user submitted expense from Self DM to workspace, then navigated to workspace chat.
         // The transaction is already in the transactions list by the time the component mounts.
         // 1. Component mounts, report not loaded yet, but transaction is already in Onyx
-        const {rerender, result} = renderHook<
-            Transaction[],
-            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: string[] | undefined}
-        >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs), {
-            initialProps: {
-                hasOnceLoadedReportActions: false,
-                transactions: [],
-                pendingNewTransactionIDs: [newTransaction.transactionID],
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: string[] | undefined}>(
+            (props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs),
+            {
+                initialProps: {
+                    hasOnceLoadedReportActions: false,
+                    transactions: [],
+                    pendingNewTransactionIDs: [newTransaction.transactionID],
+                },
             },
-        });
+        );
         expect(result.current).toEqual([]);
 
         // 2. Report loads, transactions arrive (including the new one that was submitted cross-navigation)
@@ -337,16 +337,16 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
 
     it('does not highlight transactions without pendingNewTransactionIDs', () => {
         // Normal navigation to a report (no cross-navigation pending IDs)
-        const {rerender, result} = renderHook<
-            Transaction[],
-            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: string[] | undefined}
-        >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs), {
-            initialProps: {
-                hasOnceLoadedReportActions: false,
-                transactions: [],
-                pendingNewTransactionIDs: undefined,
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: string[] | undefined}>(
+            (props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs),
+            {
+                initialProps: {
+                    hasOnceLoadedReportActions: false,
+                    transactions: [],
+                    pendingNewTransactionIDs: undefined,
+                },
             },
-        });
+        );
 
         rerender({
             hasOnceLoadedReportActions: true,
