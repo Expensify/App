@@ -59,6 +59,7 @@ const defaultSearchStateContext: SearchStateContextValue = {
     shouldUseLiveData: false,
     isMobileSelectionModeEnabled: false,
     shouldShowFooter: false,
+    footerMetadata: undefined,
 };
 
 const defaultSearchActionsContext: SearchActionsContextValue = {
@@ -323,6 +324,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         areAllMatchingItemsSelected,
         isMobileSelectionModeEnabled,
         shouldShowFooter,
+        footerMetadata,
     };
 
     const searchActionsContextValue: SearchActionsContextValue = {

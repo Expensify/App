@@ -92,7 +92,6 @@ type SearchProps = {
     contentContainerStyle?: StyleProp<ViewStyle>;
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
-    isMobileSelectionModeEnabled: boolean;
     searchRequestResponseStatusCode?: number | null;
     onDEWModalOpen?: () => void;
 };
@@ -200,16 +199,7 @@ function prepareTransactionsList(
     };
 }
 
-function Search({
-    queryJSON,
-    searchResults,
-    onSearchListScroll,
-    contentContainerStyle,
-    handleSearch,
-    isMobileSelectionModeEnabled,
-    searchRequestResponseStatusCode,
-    onDEWModalOpen,
-}: SearchProps) {
+function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, searchRequestResponseStatusCode, onDEWModalOpen}: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, recentSearchHash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
@@ -225,8 +215,16 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {markReportIDAsExpense} = useWideRHPActions();
-    const {currentSearchHash, selectedTransactions, shouldTurnOffSelectionMode, lastSearchType, areAllMatchingItemsSelected, shouldResetSearchQuery, shouldUseLiveData} =
-        useSearchStateContext();
+    const {
+        currentSearchHash,
+        selectedTransactions,
+        shouldTurnOffSelectionMode,
+        lastSearchType,
+        areAllMatchingItemsSelected,
+        shouldResetSearchQuery,
+        shouldUseLiveData,
+        isMobileSelectionModeEnabled,
+    } = useSearchStateContext();
     const {
         setCurrentSearchHashAndKey,
         setCurrentSearchQueryJSON,

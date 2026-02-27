@@ -20,7 +20,7 @@ import type {
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 /** Model of the selected transaction */
@@ -179,6 +179,8 @@ type SearchStateContextValue = SearchContextData & {
     isMobileSelectionModeEnabled: boolean;
     /** Whether the search page footer should be shown (selection active or totals eligible) */
     shouldShowFooter: boolean;
+    /** The search result metadata used by the footer (count, total, currency). Derived from the most recent non-empty results. */
+    footerMetadata: SearchResultsInfo | undefined;
 };
 
 type SearchActionsContextValue = {

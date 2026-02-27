@@ -67,7 +67,6 @@ type FilterItem = WithSentryLabel & {
 
 type SearchFiltersBarProps = {
     queryJSON: SearchQueryJSON;
-    isMobileSelectionModeEnabled: boolean;
 };
 
 type DatePickerFilterPopupProps = PopoverComponentProps & {
@@ -119,7 +118,7 @@ function MultiSelectFilterPopup<T extends string>({closeOverlay, translationKey,
     );
 }
 
-function SearchFiltersBar({queryJSON, isMobileSelectionModeEnabled}: SearchFiltersBarProps) {
+function SearchFiltersBar({queryJSON}: SearchFiltersBarProps) {
     const scrollRef = useRef<FlatList<FilterItem>>(null);
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
@@ -131,7 +130,7 @@ function SearchFiltersBar({queryJSON, isMobileSelectionModeEnabled}: SearchFilte
     const personalDetails = usePersonalDetails();
     const filterFormValues = useFilterFormValues(queryJSON);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
+    const {selectedTransactions, shouldShowFiltersBarLoading, currentSearchResults, isMobileSelectionModeEnabled} = useSearchStateContext();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
 

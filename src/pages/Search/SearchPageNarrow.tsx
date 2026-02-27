@@ -5,9 +5,6 @@ import {View} from 'react-native';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
-import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZone/DropZoneUI';
 import {useFullScreenBlockingViewActions} from '@components/FullScreenBlockingViewContextProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
@@ -20,16 +17,14 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchReceiptDropZone from '@components/Search/SearchReceiptDropZone';
 import type {SearchParams} from '@components/Search/types';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -50,22 +45,17 @@ const ANIMATION_DURATION_IN_MS = 300;
 function SearchPageNarrow() {
     const route = useRoute<RouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>>();
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
-    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {currentSearchResults, lastNonEmptySearchResults, isMobileSelectionModeEnabled, shouldShowFooter} = useSearchStateContext();
-    const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
-    const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
+    const {currentSearchResults, lastNonEmptySearchResults, isMobileSelectionModeEnabled} = useSearchStateContext();
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const metadata = searchResults?.search;
     const {clearSelectedTransactions} = useSearchActionsContext();
+    const {translate} = useLocalize();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
-    // Controls the visibility of the educational tooltip based on user scrolling.
-    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
 
@@ -163,8 +153,10 @@ function SearchPageNarrow() {
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
 
     return (
-        <DragAndDropProvider isDisabled={isDragDisabled}>
-            {PDFValidationComponent}
+        <SearchReceiptDropZone
+            dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
+            renderErrorModalInside
+        >
             <ScreenWrapper
                 testID="SearchPageNarrow"
                 shouldEnableMaxHeight
@@ -205,17 +197,9 @@ function SearchPageNarrow() {
                                                 setSearchRouterListVisible(true);
                                             }}
                                             handleSearch={handleSearchAction}
-                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                         />
                                     </View>
-                                    <View style={[styles.appBG]}>
-                                        {!searchRouterListVisible && (
-                                            <SearchFiltersBar
-                                                queryJSON={queryJSON}
-                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                            />
-                                        )}
-                                    </View>
+                                    <View style={[styles.appBG]}>{!searchRouterListVisible && <SearchFiltersBar queryJSON={queryJSON} />}</View>
                                 </Animated.View>
                             </View>
                         </View>
@@ -232,7 +216,6 @@ function SearchPageNarrow() {
                             <SearchPageHeader
                                 queryJSON={queryJSON}
                                 handleSearch={handleSearchAction}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             />
                         </>
                     )}
@@ -245,26 +228,14 @@ function SearchPageNarrow() {
                                 onSearchListScroll={scrollHandler}
                                 contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
                                 handleSearch={handleSearchAction}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                             />
                         </View>
                     )}
-                    {!!shouldShowFooter && !searchRouterListVisible && <SearchPageFooter metadata={metadata} />}
+                    {!searchRouterListVisible && <SearchPageFooter />}
                 </View>
             </ScreenWrapper>
-            <DragAndDropConsumer onDrop={initScanRequest}>
-                <DropZoneUI
-                    icon={expensifyIcons.SmartScan}
-                    dropTitle={translate('dropzone.scanReceipts')}
-                    dropStyles={styles.receiptDropOverlay(true)}
-                    dropTextStyles={styles.receiptDropText}
-                    dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
-                    dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
-                />
-            </DragAndDropConsumer>
-            {ErrorModal}
-        </DragAndDropProvider>
+        </SearchReceiptDropZone>
     );
 }
 

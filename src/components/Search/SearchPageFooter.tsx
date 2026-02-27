@@ -10,21 +10,16 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
-import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import {useSearchStateContext} from './SearchContext';
 
-type SearchPageFooterProps = {
-    metadata: SearchResultsInfo | undefined;
-};
-
-function SearchPageFooter({metadata}: SearchPageFooterProps) {
+function SearchPageFooter() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions, areAllMatchingItemsSelected, currentSearchKey, currentSearchHash} = useSearchStateContext();
+    const {selectedTransactions, areAllMatchingItemsSelected, currentSearchKey, currentSearchHash, shouldShowFooter, footerMetadata} = useSearchStateContext();
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchHash, true);
@@ -34,9 +29,9 @@ function SearchPageFooter({metadata}: SearchPageFooterProps) {
             return {count: undefined, total: undefined, currency: undefined};
         }
 
-        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
+        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 || !footerMetadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
-        const resolvedCurrency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency;
+        const resolvedCurrency = footerMetadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency;
         const numberOfExpense = shouldUseClientTotal
             ? selectedTransactionsKeys.reduce((acc, key) => {
                   const item = selectedTransactions[key];
@@ -45,13 +40,17 @@ function SearchPageFooter({metadata}: SearchPageFooterProps) {
                   }
                   return acc + 1;
               }, 0)
-            : metadata?.count;
-        const resolvedTotal = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
+            : footerMetadata?.count;
+        const resolvedTotal = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : footerMetadata?.total;
 
         return {count: numberOfExpense, total: resolvedTotal, currency: resolvedCurrency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
+    }, [areAllMatchingItemsSelected, footerMetadata?.count, footerMetadata?.currency, footerMetadata?.total, selectedTransactions, selectedTransactionsKeys, shouldAllowFooterTotals]);
 
     const valueTextStyle = useMemo(() => (isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong]), [isOffline, styles]);
+
+    if (!shouldShowFooter) {
+        return null;
+    }
 
     return (
         <View
