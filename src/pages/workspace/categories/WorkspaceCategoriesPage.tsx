@@ -277,7 +277,19 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return acc;
         }, []);
-    }, [policyCategories, isOffline, formatPhoneNumber, translate, updateWorkspaceCategoryEnabled, policy, isControlPolicyWithWideLayout, shouldShowApproverColumn, glCodeContainerStyle, glCodeTextStyle, switchContainerStyle]);
+    }, [
+        policyCategories,
+        isOffline,
+        formatPhoneNumber,
+        translate,
+        updateWorkspaceCategoryEnabled,
+        policy,
+        isControlPolicyWithWideLayout,
+        shouldShowApproverColumn,
+        glCodeContainerStyle,
+        glCodeTextStyle,
+        switchContainerStyle,
+    ]);
 
     const filterCategory = useCallback((categoryOption: ListItem, searchInput: string) => {
         const results = tokenizedSearch([categoryOption], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
