@@ -521,6 +521,7 @@
         "pdfs",
         "Perfetto",
         "persistable",
+        "peterparker",
         "Pettinella",
         "phonenumber",
         "Picklist",
@@ -711,6 +712,7 @@
         "Transpiles",
         "trivago",
         "trustcacerts",
+        "tsgo",
         "twocards",
         "Typeform",
         "uatp",
@@ -728,6 +730,7 @@
         "Unassigning",
         "unassignment",
         "unassigns",
+        "Uncapitalize",
         "uncategorized",
         "Undelete",
         "unheld",
@@ -830,9 +833,13 @@
         "Wooo",
         "Splittable",
         "pgrep",
+        "Nesw",
+        "nesw",
         "skia",
         "canvaskit",
-        "Invoicify"
+        "Invoicify",
+        "UKEU",
+        "USCA"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {InteractionManager} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -11,7 +11,7 @@ import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated, Transaction} from '@src/types/onyx';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import {usePersonalDetails, useSession} from './OnyxListItemProvider';
@@ -42,7 +42,22 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const getSelectedTransactions = useCallback(
+        (allTransactions: OnyxCollection<Transaction>) => {
+            if (!allTransactions) {
+                return {};
+            }
+            return Array.from(selectedIds).reduce<Record<string, Transaction>>((acc, id) => {
+                const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+                if (transaction) {
+                    acc[transaction.transactionID] = transaction;
+                }
+                return acc;
+            }, {});
+        },
+        [selectedIds],
+    );
+    const [selectedTransactions = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: getSelectedTransactions});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -54,12 +69,13 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
             setErrorMessage(translate('iou.selectUnreportedExpense'));
             return;
         }
+
         Navigation.dismissToSuperWideRHP();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (report && isIOUReport(report)) {
                 convertBulkTrackedExpensesToIOU({
-                    transactionIDs: [...selectedIds],
+                    transactions: Object.values(selectedTransactions),
                     iouReport: report,
                     chatReport,
                     isASAPSubmitBetaEnabled,
@@ -81,7 +97,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     policy,
                     reportNextStep,
                     policyCategories,
-                    allTransactions,
+                    allTransactions: selectedTransactions,
                 });
             }
         });
