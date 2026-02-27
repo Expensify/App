@@ -38,5 +38,10 @@ module.exports = {
         '@noble/ed25519': '<rootDir>/node_modules/@noble/ed25519/index.ts',
         '@noble/hashes/(.*)': '<rootDir>/node_modules/@noble/hashes/src/$1.ts',
         '^parse-imports-exports$': '<rootDir>/node_modules/parse-imports-exports/index.cjs',
+        // Redirect expo's winter runtime to a no-op mock to prevent Jest 30 scope errors.
+        // Expo's runtime.native.ts installs lazy getters on globals (TextDecoder, URL, etc.)
+        // that defer require() calls. Jest 30's stricter module scope guard blocks these
+        // delayed require() calls. The jsdom environment already provides these web APIs.
+        '^expo/src/winter$': '<rootDir>/__mocks__/expoWinterRuntime.ts',
     },
 };
