@@ -1,0 +1,93 @@
+name: Build and deploy apps for testing on push
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**', 'jest/**', '.claude/**']
+
+jobs:
+  queue:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Wait for earlier runs to finish (FIFO queue)
+        uses: ./.github/actions/javascript/waitForPreviousRuns
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          WORKFLOW_ID: testBuildOnPush.yml
+          CURRENT_RUN_ID: ${{ github.run_id }}
+
+  prep:
+    needs: [queue]
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    outputs:
+      APP_REF: ${{ github.sha }}
+      APP_PR_NUMBER: ${{ steps.getMergedPullRequest.outputs.PR_NUMBER }}
+      BUILD_WEB: ${{ steps.detectOSBotifyPush.outputs.BUILD_WEB || 'true' }}
+      BUILD_MOBILE: ${{ steps.detectOSBotifyPush.outputs.BUILD_MOBILE || 'true' }}
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Validate that user is an Expensify employee
+        uses: ./.github/actions/composite/validateActor
+        with:
+          REQUIRE_APP_DEPLOYER: false
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
+      - name: Detect OSBotify automated push
+        id: detectOSBotifyPush
+        if: ${{ github.actor == 'OSBotify' }}
+        # v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const commitMessage = context.payload?.head_commit?.message || '';
+            if (commitMessage.startsWith('Update Mobile-Expensify submodule')) {
+              core.notice(`${context.actor} automated push with Mobile-Expensify submodule update detected. Skipping web build and post comments. No PR associated with this commit.`);
+              core.setOutput('BUILD_WEB', 'false');
+            } else {
+              core.warning(`OSBotify automated push detected but without Mobile-Expensify submodule update commit phrase. Skipping rest of the workflow. No PR associated with this commit.`);
+              core.setOutput('BUILD_MOBILE', 'false');
+              core.setOutput('BUILD_WEB', 'false');
+            }
+
+      - name: Get merged pull request
+        id: getMergedPullRequest
+        if: ${{ github.actor != 'OSBotify' }}
+        # v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+            github-token: ${{ github.token }}
+            script: |
+                const prData = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  commit_sha: context.sha,
+                });
+                const prNumber = prData?.data?.find(p => p.state === 'closed' && p.merged_at)?.number?.toString();
+                if (prNumber) {
+                  const prUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${prNumber}`;
+                  core.notice(`Found merged pull request: [#${prNumber}](${prUrl})`);
+                  core.setOutput('PR_NUMBER', prNumber);
+                } else {
+                  core.setFailed(`Commit pushed by non-OSBotify actor. No merged pull request found for commit ${context.sha}`);
+                }
+
+  buildApps:
+    needs: [prep]
+    uses: ./.github/workflows/buildAdHoc.yml
+    with:
+      APP_REF: ${{ needs.prep.outputs.APP_REF }}
+      APP_PR_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
+      BUILD_WEB: ${{ needs.prep.outputs.BUILD_WEB }}
+      BUILD_IOS: ${{ needs.prep.outputs.BUILD_MOBILE }}
+      BUILD_ANDROID: ${{ needs.prep.outputs.BUILD_MOBILE }}
+      TRIGGER_ACTOR: ${{ github.actor }}
+    secrets: inherit

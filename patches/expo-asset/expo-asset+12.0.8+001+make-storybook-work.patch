@@ -1,0 +1,25 @@
+diff --git a/node_modules/expo-asset/build/PlatformUtils.web.js b/node_modules/expo-asset/build/PlatformUtils.web.js
+index c013cd0..03662e1 100644
+--- a/node_modules/expo-asset/build/PlatformUtils.web.js
++++ b/node_modules/expo-asset/build/PlatformUtils.web.js
+@@ -1,4 +1,19 @@
+-export const IS_ENV_WITH_LOCAL_ASSETS = false;
++import {requireOptionalNativeModule} from 'expo-modules-core';
++import Constants, {AppOwnership} from 'expo-constants';
++
++const ExpoUpdates = requireOptionalNativeModule('ExpoUpdates');
++const isRunningInExpoGo = Constants.appOwnership === AppOwnership.Expo;
++// expo-updates (and Expo Go expo-updates override) manages assets from updates and exposes
++// the ExpoUpdates.localAssets constant containing information about the assets.
++const expoUpdatesIsInstalledAndEnabled = !!ExpoUpdates?.isEnabled;
++const expoUpdatesIsUsingEmbeddedAssets = ExpoUpdates?.isUsingEmbeddedAssets;
++// if expo-updates is installed but we're running directly from the embedded bundle, we don't want
++// to override the AssetSourceResolver.
++const shouldUseUpdatesAssetResolution = expoUpdatesIsInstalledAndEnabled && !expoUpdatesIsUsingEmbeddedAssets;
++// Expo Go always uses the updates module for asset resolution (local assets) since it
++// overrides the expo-updates module.
++export const IS_ENV_WITH_LOCAL_ASSETS = isRunningInExpoGo || shouldUseUpdatesAssetResolution;
++
+ export function getLocalAssets() {
+     return {};
+ }

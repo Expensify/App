@@ -1,0 +1,166 @@
+name: Build and deploy apps for testing
+
+on:
+  workflow_dispatch:
+    inputs:
+      # If not specified, only build iOS and Android apps from the main branch of Expensify/App
+      APP_PULL_REQUEST_URL:
+        description: The Expensify/App pull request URL (e.g., https://github.com/Expensify/App/pull/12345). Defaults to main.
+        required: false
+        default: ''
+      # Pull Request URL from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both are specified. If nothing is specified defaults to Mobile-Expensify's main
+      MOBILE_EXPENSIFY_PULL_REQUEST_URL:
+        description: The Expensify/Mobile-Expensify pull request URL. Defaults to main. Overrides MOBILE-EXPENSIFY set in App's PR description.
+        required: false
+        default: ''
+      REVIEWED_CODE:
+        description: I reviewed this pull request and verified that it does not contain any malicious code.
+        type: boolean
+        required: true
+        default: false
+      WEB:
+        description: Should build web app?
+        type: boolean
+        default: true
+      IOS:
+        description: Should build iOS app?
+        type: boolean
+        default: true
+      ANDROID:
+        description: Should build android app?
+        type: boolean
+        default: true
+      FORCE_NATIVE_BUILD:
+        description: Force a full native build, bypassing Rock remote cache
+        type: boolean
+        default: false
+
+jobs:
+  prep:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    outputs:
+      APP_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
+      APP_PR_NUMBER: ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}
+      MOBILE_PR_NUMBER: ${{ steps.extractMobilePRNumber.outputs.PR_NUMBER }}
+    steps:
+      - name: Checkout
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Validate that user is an Expensify employee
+        uses: ./.github/actions/composite/validateActor
+        with:
+          REQUIRE_APP_DEPLOYER: false
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
+      - name: Validate that the user reviewed the pull request before running a test build
+        if: ${{ !inputs.REVIEWED_CODE }}
+        run: |
+          echo "::error::🕵️‍♀️ Please carefully review the pull request before running a test build to ensure it does not contain any malicious code"
+          exit 1
+
+      - name: Extract App PR number from URL
+        id: extractAppPRNumber
+        if: ${{ inputs.APP_PULL_REQUEST_URL != '' }}
+        run: |
+          PR_NUMBER=$(echo '${{ inputs.APP_PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::❌ Could not extract PR number from URL. Please provide a valid GitHub PR URL (e.g., https://github.com/Expensify/App/pull/12345)"
+            exit 1
+          fi
+          echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Extract Mobile-Expensify PR number from URL
+        id: extractMobilePRNumber
+        if: ${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_URL != '' }}
+        run: |
+          PR_NUMBER=$(echo '${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::❌ Could not extract PR number from URL. Please provide a valid GitHub PR URL (e.g., https://github.com/Expensify/Mobile-Expensify/pull/12345)"
+            exit 1
+          fi
+          echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Check if App pull request number is correct
+        id: getHeadRef
+        run: |
+          set -e
+          if [ -z "${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}" ]; then
+            echo "REF=" >> "$GITHUB_OUTPUT"
+          else
+            echo "REF=$(gh pr view ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  getMobileExpensifyPR:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    needs: [prep]
+    outputs:
+      MOBILE_EXPENSIFY_PR: ${{ steps.mobileExpensifyPR.outputs.result }}
+    steps:
+      - name: Check if author specified Expensify/Mobile-Expensify PR
+        id: mobileExpensifyPR
+        # v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          github-token: ${{ github.token }}
+          result-encoding: string
+          script: |
+            if ('${{ needs.prep.outputs.MOBILE_PR_NUMBER }}') {
+              return '${{ needs.prep.outputs.MOBILE_PR_NUMBER }}';
+            }
+
+            if (!'${{ needs.prep.outputs.APP_PR_NUMBER }}') {
+              return '';
+            }
+
+            const pullRequest = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: '${{ needs.prep.outputs.APP_PR_NUMBER }}',
+            });
+            
+            const body = pullRequest.data.body;
+            const regex = /MOBILE-EXPENSIFY:\s*https:\/\/github.com\/Expensify\/Mobile-Expensify\/pull\/(?<prNumber>\d+)/;
+            const found = body.match(regex)?.groups?.prNumber || "";
+
+            return found.trim();
+
+  getMobileExpensifyRef:
+      runs-on: blacksmith-4vcpu-ubuntu-2404
+      needs: [prep, getMobileExpensifyPR]
+      outputs:
+        MOBILE_EXPENSIFY_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
+      steps:
+        - name: Checkout
+          # v6
+          uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+        - name: Check if Expensify/Mobile-Expensify pull request number is correct
+          id: getHeadRef
+          run: |
+            set -e
+            if [[ -z "${{ needs.prep.outputs.MOBILE_PR_NUMBER }}" && -z "${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}" ]]; then
+              echo "REF=" >> "$GITHUB_OUTPUT"
+            else
+              echo "PR=${{ needs.prep.outputs.MOBILE_PR_NUMBER || needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}" >> "$GITHUB_OUTPUT"
+              echo "REF=$(gh pr view ${{ needs.prep.outputs.MOBILE_PR_NUMBER || needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+            fi
+          env:
+            GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+  buildApps:
+    needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
+    uses: ./.github/workflows/buildAdHoc.yml
+    with:
+      APP_REF: ${{ needs.prep.outputs.APP_REF }}
+      APP_PR_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
+      MOBILE_EXPENSIFY_REF: ${{ needs.getMobileExpensifyRef.outputs.MOBILE_EXPENSIFY_REF }}
+      MOBILE_EXPENSIFY_PR: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
+      BUILD_WEB: ${{ inputs.WEB && 'true' || 'false' }}
+      BUILD_IOS: ${{ inputs.IOS && 'true' || 'false' }}
+      BUILD_ANDROID: ${{ inputs.ANDROID && 'true' || 'false' }}
+      TRIGGER_ACTOR: ${{ github.actor }}
+      FORCE_NATIVE_BUILD: ${{ inputs.FORCE_NATIVE_BUILD && 'true' || 'false' }}
+    secrets: inherit
