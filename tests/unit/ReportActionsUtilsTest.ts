@@ -1200,8 +1200,9 @@ describe('ReportActionsUtils', () => {
             };
 
             const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
-            const expectedHtml = `<muted-text>${translateLocal('iou.failedToAutoSubmitViaDEW', errorMessage)}</muted-text>`;
-            expect(fragments).toEqual([{text: errorMessage, html: expectedHtml, type: 'COMMENT'}]);
+            const expectedText = translateLocal('iou.failedToAutoSubmitViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
         });
 
         it('should return the correct fragment for DEW_SUBMIT_FAILED without harvesting', () => {
@@ -1217,8 +1218,9 @@ describe('ReportActionsUtils', () => {
             };
 
             const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
-            const expectedHtml = `<muted-text>${translateLocal('iou.failedToSubmitViaDEW', errorMessage)}</muted-text>`;
-            expect(fragments).toEqual([{text: errorMessage, html: expectedHtml, type: 'COMMENT'}]);
+            const expectedText = translateLocal('iou.failedToSubmitViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
         });
 
         it('should return the correct fragment for DEW_APPROVE_FAILED with automaticAction', () => {
@@ -1235,8 +1237,9 @@ describe('ReportActionsUtils', () => {
             };
 
             const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
-            const expectedHtml = `<muted-text>${translateLocal('iou.failedToAutoApproveViaDEW', errorMessage)}</muted-text>`;
-            expect(fragments).toEqual([{text: errorMessage, html: expectedHtml, type: 'COMMENT'}]);
+            const expectedText = translateLocal('iou.failedToAutoApproveViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
         });
 
         it('should return the correct fragment for DEW_APPROVE_FAILED without automaticAction', () => {
@@ -1253,8 +1256,9 @@ describe('ReportActionsUtils', () => {
             };
 
             const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
-            const expectedHtml = `<muted-text>${translateLocal('iou.failedToApproveViaDEW', errorMessage)}</muted-text>`;
-            expect(fragments).toEqual([{text: errorMessage, html: expectedHtml, type: 'COMMENT'}]);
+            const expectedText = translateLocal('iou.failedToApproveViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
         });
     });
 
