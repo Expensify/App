@@ -3211,7 +3211,9 @@ describe('CardUtils', () => {
         });
 
         it('should return undefined when cardSettings is null', () => {
-            expect(getCardSettings(null)).toBeUndefined();
+            // OnyxEntry may resolve to undefined rather than null,
+            // but we cast to cover runtime safety
+            expect(getCardSettings(null as unknown as undefined)).toBeUndefined();
         });
 
         it('should return flat root when feedCountry is not provided', () => {
