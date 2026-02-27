@@ -122,46 +122,74 @@ function handlePushFullscreenAction(
 ) {
     const navigatorName = action.payload.name;
     const params = action.payload.params;
-
     const targetScreen = params && 'screen' in params ? (params.screen as string) : undefined;
 
-    const existingRoute = state.routes.find((route) => route.name === navigatorName);
+    let currentState = state;
+    const lastRoute = state.routes.at(-1);
+
+
+    if (lastRoute?.params && typeof (lastRoute.params as any).originalIndex === 'number') {
+        const originalIndex = (lastRoute.params as any).originalIndex;
+        const routes = [...state.routes];
+
+        const [movedRoute] = routes.splice(-1, 1);
+
+        const { originalIndex: _, ...cleanParams } = (movedRoute.params as any);
+        const restoredRoute = { ...movedRoute, params: cleanParams };
+
+        routes.splice(originalIndex, 0, restoredRoute);
+
+        currentState = {
+            ...state,
+            routes,
+            index: routes.length - 1,
+        };
+    }
+
+    const existingRoute = currentState.routes.find((route) => route.name === navigatorName);
 
     if (existingRoute) {
         if (existingRoute.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)) {
             screensWithEnteringAnimation.add(existingRoute.key);
         }
 
+        const currentPos = currentState.routes.indexOf(existingRoute);
+
         const updatedRoute = {
             ...existingRoute,
-            params: {...existingRoute.params, ...params},
+            params: {
+                ...existingRoute.params,
+                ...params,
+                originalIndex: currentPos
+            },
         };
 
+        const otherRoutes = currentState.routes.filter((route) => route.key !== existingRoute.key);
+
         return {
-            ...state,
-            routes: [...state.routes, updatedRoute],
-            index: state.routes.length,
+            ...currentState,
+            routes: [...otherRoutes, updatedRoute],
+            index: otherRoutes.length,
         };
     }
 
-    // If we navigate to the central screen of the split navigator, we need to filter this navigator from preloadedRoutes to remove a sidebar screen from the state
     const shouldFilterPreloadedRoutes =
         getIsNarrowLayout() &&
         isSplitNavigatorName(navigatorName) &&
         targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
-        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
+        currentState.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
 
-    const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
+    const adjustedState = shouldFilterPreloadedRoutes
+        ? { ...currentState, preloadedRoutes: currentState.preloadedRoutes.filter((r) => r.name !== navigatorName) }
+        : currentState;
+
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {
-        Log.hmmm(`[handlePushAction] ${navigatorName} has not been found in the navigation state.`);
         return null;
     }
 
     const lastFullScreenRoute = stateWithNavigator.routes.at(-1);
-
-    // Transitioning to all central screens in each split should be animated
     if (lastFullScreenRoute?.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)) {
         screensWithEnteringAnimation.add(lastFullScreenRoute.key);
     }
