@@ -66,6 +66,7 @@ import {
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markNavigateAfterExpenseCreateEnd from '@libs/telemetry/markNavigateAfterExpenseCreateEnd';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -404,6 +405,24 @@ function Search({
             (hasErrors && searchRequestResponseStatusCode === null) ||
             isCardFeedsLoading);
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
+
+    const loadingSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'Search',
+            shouldShowLoadingState,
+            isDataLoaded,
+        }),
+        [shouldShowLoadingState, isDataLoaded],
+    );
+
+    const loadMoreSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'Search.ListFooter',
+            shouldShowLoadingMoreItems: !!shouldShowLoadingMoreItems,
+        }),
+        [shouldShowLoadingMoreItems],
+    );
+
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     const [baseFilteredData, filteredDataLength, allDataLength] = useMemo(() => {
@@ -1213,6 +1232,7 @@ function Search({
                 <SearchRowSkeleton
                     shouldAnimate
                     containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
+                    reasonAttributes={loadingSkeletonReasonAttributes}
                 />
             </Animated.View>
         );
@@ -1348,6 +1368,7 @@ function Search({
                             <SearchRowSkeleton
                                 shouldAnimate
                                 fixedNumItems={5}
+                                reasonAttributes={loadMoreSkeletonReasonAttributes}
                             />
                         ) : undefined
                     }
