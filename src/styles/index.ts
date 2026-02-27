@@ -1104,7 +1104,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         editableCellHover: {
-            borderColor: theme.border,
+            borderColor: theme.buttonHoveredBG,
         },
 
         editableCellFocus: {
