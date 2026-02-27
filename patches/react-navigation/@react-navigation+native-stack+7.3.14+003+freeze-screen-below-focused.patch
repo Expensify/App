@@ -1,10 +1,11 @@
 diff --git a/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js b/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
+index 35dfc05..1758a24 100644
 --- a/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
 +++ b/node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.native.js
-@@ -376,9 +376,9 @@
+@@ -376,9 +376,9 @@ export function NativeStackView({
          const isModal = modalRouteKeys.includes(route.key);
          const isPreloaded = preloadedDescriptors[route.key] !== undefined && descriptors[route.key] === undefined;
-
+ 
 -        // On Fabric, when screen is frozen, animated and reanimated values are not updated
 -        // due to component being unmounted. To avoid this, we don't freeze the previous screen there
 -        const shouldFreeze = isFabric() ? !isPreloaded && !isFocused && !isBelowFocused : !isPreloaded && !isFocused;
@@ -14,3 +15,22 @@ diff --git a/node_modules/@react-navigation/native-stack/lib/module/views/Native
          return /*#__PURE__*/_jsx(SceneView, {
            index: index,
            focused: isFocused,
+diff --git a/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx b/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
+index ca15b1d..3191475 100644
+--- a/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
++++ b/node_modules/@react-navigation/native-stack/src/views/NativeStackView.native.tsx
+@@ -542,11 +542,9 @@ export function NativeStackView({
+             preloadedDescriptors[route.key] !== undefined &&
+             descriptors[route.key] === undefined;
+ 
+-          // On Fabric, when screen is frozen, animated and reanimated values are not updated
+-          // due to component being unmounted. To avoid this, we don't freeze the previous screen there
+-          const shouldFreeze = isFabric()
+-            ? !isPreloaded && !isFocused && !isBelowFocused
+-            : !isPreloaded && !isFocused;
++          // Freezing the screen below the focused one is safe on Fabric because
++          // DelayedFreeze defers it to the next macrotask, and transition animations run on the UI thread.
++          const shouldFreeze = !isPreloaded && !isFocused;
+ 
+           return (
+             <SceneView
