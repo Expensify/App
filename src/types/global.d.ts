@@ -45,7 +45,3 @@ interface ArrayBuffer {
     // Might be defined in browsers, in RN hermes it's not implemented yet
     transfer?: (length: number) => ArrayBuffer;
 }
-
-// Set by the React Native native layer (epoch ms) right before the JS bundle starts executing
-// eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
-declare var __BUNDLE_START_TIME__: number | undefined;
