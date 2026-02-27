@@ -58,8 +58,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Rock Remote Build - Android
-        # rock v3
-        uses: callstackincubator/android@1a7d52dfe3ca195ccbe5ad2f06c15f2fc3835115
+        uses: callstackincubator/android@4cedf4d9b5c167452c96fe67233577e0fde9a025
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ github.token }}
