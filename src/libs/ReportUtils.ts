@@ -61,7 +61,6 @@ import type {
     Transaction,
     TransactionViolation,
     TransactionViolations,
-    VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -227,7 +226,6 @@ import {
     isRenamedAction,
     isReopenedAction,
     isReportActionAttachment,
-    isReportActionVisible,
     isReportPreviewAction,
     isRetractedAction,
     isReversedTransaction,
@@ -240,6 +238,7 @@ import {
     isTransactionThread,
     isTripPreview,
     isWhisperAction,
+    shouldReportActionBeVisible,
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
@@ -5291,11 +5290,8 @@ function getReportPreviewMessage(
 
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
-
-            const merchantOrComment = getMerchantOrDescription(linkedTransaction);
-
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('iou.trackedAmount', formattedAmount, merchantOrComment);
+            return translateLocal('iou.trackedAmount', formattedAmount, getMerchantOrDescription(linkedTransaction));
         }
     }
 
@@ -6849,7 +6845,7 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = Parser.htmlToText(getReportName({report}) ?? report?.reportName ?? '');
+    const reportName = getReportName({report}) ?? report?.reportName ?? '';
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         return translate('iou.movedTransactionTo', reportUrl, reportName);
@@ -6865,7 +6861,7 @@ function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: 
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = Parser.htmlToText(getReportName({report: fromReport}) ?? fromReport?.reportName ?? '');
+    const reportName = getReportName({report: fromReport}) ?? fromReport?.reportName ?? '';
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
 
@@ -8964,22 +8960,14 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
-function shouldHideReport(
-    report: OnyxEntry<Report>,
-    currentReportId: string | undefined,
-    isReportArchived: boolean | undefined,
-    visibleReportActionsData?: VisibleReportActionsDerivedValue,
-): boolean {
+function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined, isReportArchived: boolean | undefined): boolean {
     const currentReport = getReportOrDraftReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
-    const reportID = report?.reportID;
-    const canPerformWrite = canUserPerformWriteAction(report, isReportArchived);
-    const isChildReportHasComment =
-        !!reportID &&
-        Object.values(reportActions ?? {})?.some(
-            (reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0 && isReportActionVisible(reportAction, reportID, canPerformWrite, visibleReportActionsData),
-        );
+    const isChildReportHasComment = Object.values(reportActions ?? {})?.some(
+        (reportAction) =>
+            (reportAction?.childVisibleActionCount ?? 0) > 0 && shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)),
+    );
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
 
@@ -10052,13 +10040,7 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function navigateToLinkedReportAction(
-    ancestor: Ancestor,
-    isInNarrowPaneModal: boolean,
-    canUserPerformWrite: boolean | undefined,
-    isOffline: boolean,
-    visibleReportActionsData?: VisibleReportActionsDerivedValue,
-) {
+function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: boolean, canUserPerformWrite: boolean | undefined, isOffline: boolean) {
     if (isInNarrowPaneModal) {
         Navigation.navigate(
             ROUTES.SEARCH_REPORT.getRoute({
@@ -10073,8 +10055,7 @@ function navigateToLinkedReportAction(
     // Pop the thread report screen before navigating to the chat report.
     Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
 
-    const reportID = ancestor.report.reportID;
-    const isVisibleAction = !!reportID && isReportActionVisible(ancestor.reportAction, reportID, canUserPerformWrite, visibleReportActionsData);
+    const isVisibleAction = shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID, canUserPerformWrite);
 
     if (isVisibleAction && !isOffline) {
         // Pop the chat report screen before navigating to the linked report action.
