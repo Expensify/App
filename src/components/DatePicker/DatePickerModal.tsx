@@ -1,6 +1,6 @@
 import {setYear} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import type {View} from 'react-native';
 import ConfirmCancelButtonRow from '@components/ConfirmCancelButtonRow';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -98,14 +98,12 @@ function DatePickerModal({
             forwardedFSClass={forwardedFSClass}
             shouldDisplayBelowModals
         >
-            <View>
-                <CalendarPicker
-                    minDate={minDate}
-                    maxDate={maxDate}
-                    value={pendingDate}
-                    onSelected={handleDateSelection}
-                />
-            </View>
+            <CalendarPicker
+                minDate={minDate}
+                maxDate={maxDate}
+                value={pendingDate}
+                onSelected={handleDateSelection}
+            />
             {showConfirmButtons && (
                 <ConfirmCancelButtonRow
                     onConfirm={handleConfirm}
