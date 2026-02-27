@@ -55,7 +55,7 @@ function DateCell({date, showTooltip, isLargeScreenWidth, canEdit, onSave}: Date
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     inputID="EditableDateCell"
-                    showConfirmButtons
+                    shouldShowConfirmButtons
                 />
             }
         >

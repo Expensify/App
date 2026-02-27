@@ -104,8 +104,8 @@ type DatePickerProps = {
     /** If the popover will be positioned from the top */
     shouldPositionFromTop?: boolean;
 
-    /** When true, shows Cancel/Apply buttons instead of immediately firing onSelected on date pick */
-    showConfirmButtons?: boolean;
+    /** When true, shows Cancel/Confirm buttons instead of immediately firing onSelected on date pick */
+    shouldShowConfirmButtons?: boolean;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
 export type {DatePickerBaseProps, DatePickerModalProps, DateInputWithPickerProps, DatePickerProps};
