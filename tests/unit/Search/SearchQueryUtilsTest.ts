@@ -180,7 +180,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc type:expense policyID:67890 merchant:Amazon description:Electronics laptop category:electronics,gadgets');
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense policyID:67890 merchant*:Amazon description:Electronics laptop category:electronics,gadgets');
         });
 
         test('currencies and categories', () => {
@@ -323,7 +323,7 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'amount', sortOrder: 'asc', limit: 25});
 
-                expect(result).toEqual('sortBy:amount sortOrder:asc type:expense merchant:Amazon limit:25');
+                expect(result).toEqual('sortBy:amount sortOrder:asc type:expense merchant*:Amazon limit:25');
             });
 
             test('omits limit when not provided', () => {
