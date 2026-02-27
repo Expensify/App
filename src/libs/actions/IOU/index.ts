@@ -13950,9 +13950,9 @@ function updateMultipleMoneyRequests(
         // Generate optimistic report action ID
         const modifiedExpenseReportActionID = NumberUtils.rand64();
 
-        const optimisticData: OnyxUpdate[] = [];
-        const successData: OnyxUpdate[] = [];
-        const failureData: OnyxUpdate[] = [];
+        const optimisticData: Array<OnyxUpdate<OnyxKey>> = [];
+        const successData: Array<OnyxUpdate<OnyxKey>> = [];
+        const failureData: Array<OnyxUpdate<OnyxKey>> = [];
 
         // Pending fields for the transaction
         const pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(Object.keys(transactionChanges).map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
