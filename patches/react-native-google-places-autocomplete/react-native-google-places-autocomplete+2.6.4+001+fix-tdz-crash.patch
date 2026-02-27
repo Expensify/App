@@ -1,0 +1,302 @@
+diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+index 9fedd7e..258a17a 100644
+--- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
++++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+@@ -17,11 +17,11 @@ import {
+   Image,
+   Keyboard,
+   Platform,
+-  Pressable,
+   ScrollView,
+   StyleSheet,
+   Text,
+   TextInput,
++  TouchableHighlight,
+   View,
+ } from 'react-native';
+ 
+@@ -158,7 +158,7 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+   const prevQueryStringRef = useRef(JSON.stringify(query));
+ 
+   // Store latest _request function - ensures debounced function always calls current version with latest closures
+-  const requestRef = useRef(_request);
++  const requestRef = useRef(null);
+   const queryString = useMemo(() => JSON.stringify(query), [query]);
+ 
+   const [stateText, setStateText] = useState('');
+@@ -347,6 +347,16 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+     return rowData;
+   };
+ 
++  const _disableRowLoaders = useCallback(() => {
++    for (let i = 0; i < resultsRef.current.length; i++) {
++      if (resultsRef.current[i].isLoading === true) {
++        resultsRef.current[i].isLoading = false;
++      }
++    }
++
++    setDataSource(buildRowsFromResults(resultsRef.current));
++  }, [buildRowsFromResults]);
++
+   // ==========================================================================
+   // API REQUEST FUNCTIONS
+   // ==========================================================================
+@@ -367,7 +377,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+         request.ontimeout = onTimeout;
+         request.onreadystatechange = () => {
+           if (request.readyState !== 4) {
+-            setListLoaderDisplayed(true);
++            // Only show the loading spinner when there are no prior results.
++            if (resultsRef.current.length === 0) {
++              setListLoaderDisplayed(true);
++              // Clear dataSource so FlatList's ListEmptyComponent can render
++              // the loading spinner (it only renders when data is empty).
++              setDataSource([]);
++            }
+             return;
+           }
+ 
+@@ -478,7 +494,15 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+       request.ontimeout = onTimeout;
+       request.onreadystatechange = () => {
+         if (request.readyState !== 4) {
+-          setListLoaderDisplayed(true);
++          // Only show the loading spinner when there are no prior results.
++          // When prior results exist they stay visible while the new request
++          // is in-flight, matching v2.5.6 production behavior.
++          if (resultsRef.current.length === 0) {
++            setListLoaderDisplayed(true);
++            // Clear dataSource so FlatList's ListEmptyComponent can render
++            // the loading spinner (it only renders when data is empty).
++            setDataSource([]);
++          }
+           return;
+         }
+ 
+@@ -650,15 +674,51 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+     }
+   };
+ 
+-  const _disableRowLoaders = useCallback(() => {
+-    for (let i = 0; i < resultsRef.current.length; i++) {
+-      if (resultsRef.current[i].isLoading === true) {
+-        resultsRef.current[i].isLoading = false;
++  const _renderDescription = (rowData) => {
++    if (props.renderDescription) {
++      return props.renderDescription(rowData);
++    }
++
++    return rowData.description || rowData.formatted_address || rowData.name;
++  };
++
++  const hideListView = useCallback(
++    (force = false) => {
++      if (!keepResultsAfterBlur || force) {
++        setListWasDismissed(true);
++        setListViewDisplayed(false);
+       }
++    },
++    [keepResultsAfterBlur],
++  );
++
++  const isNewFocusInAutocompleteResultList = ({
++    relatedTarget,
++    currentTarget,
++  }) => {
++    if (!relatedTarget) return false;
++
++    let node = relatedTarget.parentNode;
++
++    while (node) {
++      if (node.id === 'result-list-id') return true;
++      node = node.parentNode;
+     }
+ 
+-    setDataSource(buildRowsFromResults(resultsRef.current));
+-  }, [buildRowsFromResults]);
++    return false;
++  };
++
++  const _onBlur = (e) => {
++    if (e && isNewFocusInAutocompleteResultList(e)) return;
++
++    hideListView();
++    inputRef?.current?.blur();
++  };
++
++  const _onFocus = () => {
++    setListWasDismissed(false);
++    setListViewDisplayed(true);
++  };
+ 
+   const _onPress = (rowData) => {
+     if (rowData.isPredefinedPlace !== true && fetchDetails === true) {
+@@ -667,7 +727,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+         return;
+       }
+ 
+-      hideListView(true);
+       Keyboard.dismiss();
+ 
+       _abortRequests();
+@@ -776,7 +835,21 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+     }
+   };
+ 
++  // Debounce setup
++  const debounceData = useMemo(() => {
++    return debounce((text) => requestRef.current(text), debounceMs);
++  }, [debounceMs]);
++
+   const _onChangeText = (text) => {
++    // When the search text is cleared, immediately clear stale results so
++    // that the next search shows the loading spinner.  We cannot rely on
++    // _request("") via debounce because a fast follow-up keystroke cancels
++    // the pending debounce call.
++    if (!text) {
++      resultsRef.current = [];
++      setDataSource(buildRowsFromResults([]));
++    }
++
+     setListWasDismissed(false);
+     setStateText(text);
+     debounceData(text);
+@@ -792,56 +865,10 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+     }
+   };
+ 
+-  const hideListView = useCallback(
+-    (force = false) => {
+-      if (!keepResultsAfterBlur || force) {
+-        setListWasDismissed(true);
+-        setListViewDisplayed(false);
+-      }
+-    },
+-    [keepResultsAfterBlur],
+-  );
+-
+-  const isNewFocusInAutocompleteResultList = ({
+-    relatedTarget,
+-    currentTarget,
+-  }) => {
+-    if (!relatedTarget) return false;
+-
+-    let node = relatedTarget.parentNode;
+-
+-    while (node) {
+-      if (node.id === 'result-list-id') return true;
+-      node = node.parentNode;
+-    }
+-
+-    return false;
+-  };
+-
+-  const _onBlur = (e) => {
+-    if (e && isNewFocusInAutocompleteResultList(e)) return;
+-
+-    hideListView();
+-    inputRef?.current?.blur();
+-  };
+-
+-  const _onFocus = () => {
+-    setListWasDismissed(false);
+-    setListViewDisplayed(true);
+-  };
+-
+   // ==========================================================================
+   // RENDER FUNCTIONS
+   // ==========================================================================
+ 
+-  const _renderDescription = (rowData) => {
+-    if (props.renderDescription) {
+-      return props.renderDescription(rowData);
+-    }
+-
+-    return rowData.description || rowData.formatted_address || rowData.name;
+-  };
+-
+   const _getRowLoader = () => {
+     return <ActivityIndicator animating={true} size='small' />;
+   };
+@@ -894,19 +921,12 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+         showsHorizontalScrollIndicator={false}
+         showsVerticalScrollIndicator={false}
+       >
+-        <Pressable
+-          style={({ hovered, pressed }) => [
++        <TouchableHighlight
++          style={[
+             isRowScrollable ? { minWidth: '100%' } : { width: '100%' },
+-            {
+-              backgroundColor: pressed
+-                ? listUnderlayColor
+-                : hovered
+-                ? listHoverColor
+-                : undefined,
+-            },
+           ]}
+           onPress={() => _onPress(rowData)}
+-          onBlur={_onBlur}
++          underlayColor={listUnderlayColor}
+         >
+           <View
+             style={[
+@@ -918,7 +938,7 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+             {_renderLoader(rowData)}
+             {_renderRowData(rowData, index)}
+           </View>
+-        </Pressable>
++        </TouchableHighlight>
+       </ScrollView>
+     );
+   };
+@@ -1010,15 +1030,17 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+       return `item_${index}`;
+     };
+ 
+-    // Show list if:
+-    // 1. Platform is supported
+-    // 2. There's data to show (dataSource has items)
+-    // 3. listViewDisplayed is true OR we're in 'auto' mode (auto-shows when data exists)
++    // Show list when the user is actively searching, has predefined places, or
++    // uses current location.  We check stateText instead of dataSource.length so
++    // that the FlatList mounts while results are still loading — this lets
++    // ListEmptyComponent render the loading spinner.
+     const isAutoMode =
+       listViewDisplayedProp === 'auto' || listViewDisplayedProp === undefined;
+     const shouldShowList =
+       supportedPlatform() &&
+-      dataSource.length > 0 &&
++      (stateText !== '' ||
++        predefinedPlaces.length > 0 ||
++        currentLocation === true) &&
+       (listViewDisplayed === true || (isAutoMode && !listWasDismissed));
+ 
+     if (shouldShowList) {
+@@ -1078,11 +1100,6 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+   // Keep requestRef updated
+   requestRef.current = _request;
+ 
+-  // Debounce setup
+-  const debounceData = useMemo(() => {
+-    return debounce((text) => requestRef.current(text), debounceMs);
+-  }, [debounceMs]);
+-
+   useEffect(() => {
+     return () => {
+       // Cleanup debounced function on unmount
+@@ -1106,7 +1123,13 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+     return () => {
+       _abortRequests();
+     };
+-  }, [queryString, debounceData, stateText, minLength, _abortRequests]);
++    // Note: stateText is intentionally excluded — per-keystroke requests are
++    // handled by _onChangeText → debounceData.  Including stateText here
++    // causes the cleanup (_abortRequests) to fire on every keystroke, aborting
++    // in-flight XHRs before results arrive and making the loading spinner
++    // flash repeatedly.
++    // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [queryString, debounceData, minLength, _abortRequests]);
+ 
+   // Auto-show list when dataSource has items in 'auto' mode
+   useEffect(() => {
