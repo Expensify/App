@@ -3,7 +3,6 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -12,8 +11,7 @@ import Search from '@components/Search';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
+import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -22,28 +20,22 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
     searchResults: OnyxEntry<SearchResults>;
     searchRequestResponseStatusCode: number | null;
     isMobileSelectionModeEnabled: boolean;
-    headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     footerData: {
         count: number | undefined;
         total: number | undefined;
         currency: string | undefined;
     };
-    selectedPolicyIDs: Array<string | undefined>;
-    selectedTransactionReportIDs: string[];
-    selectedReportIDs: string[];
-    latestBankItems?: BankAccountMenuItem[];
-    onBulkPaySelected: (paymentMethod?: PaymentMethodType) => void;
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
     scrollHandler: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     initScanRequest: (e: DragEvent) => void;
+    isDragDisabled: boolean;
     PDFValidationComponent: React.ReactNode;
     ErrorModal: React.ReactNode;
     shouldShowFooter: boolean;
@@ -54,17 +46,12 @@ function SearchPageWide({
     searchResults,
     searchRequestResponseStatusCode,
     isMobileSelectionModeEnabled,
-    headerButtonsOptions,
     footerData,
-    selectedPolicyIDs,
-    selectedTransactionReportIDs,
-    selectedReportIDs,
-    latestBankItems,
-    onBulkPaySelected,
     handleSearchAction,
     onSortPressedCallback,
     scrollHandler,
     initScanRequest,
+    isDragDisabled,
     PDFValidationComponent,
     ErrorModal,
     shouldShowFooter,
@@ -99,22 +86,16 @@ function SearchPageWide({
                     shouldShowLink={false}
                 >
                     {!!queryJSON && (
-                        <DragAndDropProvider>
+                        <DragAndDropProvider isDisabled={isDragDisabled}>
                             {PDFValidationComponent}
                             <SearchPageHeader
                                 queryJSON={queryJSON}
-                                headerButtonsOptions={headerButtonsOptions}
                                 handleSearch={handleSearchAction}
                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             />
                             <SearchFiltersBar
                                 queryJSON={queryJSON}
-                                headerButtonsOptions={headerButtonsOptions}
                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
-                                currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
-                                confirmPayment={onBulkPaySelected}
-                                latestBankItems={latestBankItems}
                             />
                             <Search
                                 key={queryJSON.hash}

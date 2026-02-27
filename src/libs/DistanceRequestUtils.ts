@@ -177,13 +177,13 @@ function getDistanceForDisplay(
     rate: number | undefined,
     translate: LocaleContextProps['translate'],
     useShortFormUnit?: boolean,
-    isManualDistanceRequest?: boolean,
+    isZeroDistanceAllowed?: boolean,
 ): string {
     if (!hasRoute || !unit) {
         return translate('iou.fieldPending');
     }
 
-    if (!distanceInMeters && !isManualDistanceRequest) {
+    if (!distanceInMeters && !isZeroDistanceAllowed) {
         return '';
     }
 
@@ -223,17 +223,17 @@ function getDistanceMerchant(
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
-    isManualDistanceRequest?: boolean,
+    isZeroDistanceAllowed?: boolean,
 ): string {
     if (!hasRoute || !rate) {
         return translate('iou.fieldPending');
     }
 
-    if (!distanceInMeters && !isManualDistanceRequest) {
+    if (!distanceInMeters && !isZeroDistanceAllowed) {
         return '';
     }
 
-    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isManualDistanceRequest);
+    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isZeroDistanceAllowed);
     const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
 
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
