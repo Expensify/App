@@ -18,7 +18,7 @@ function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) 
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ??'';
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
     const country = mapCurrencyToCountry(currency) ?? reimbursementAccountDraft?.country;
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, country);
     const copyOfID = enterSignerInfoFormDraft?.[INPUT_IDS.SIGNER_COPY_OF_ID] ?? [];
