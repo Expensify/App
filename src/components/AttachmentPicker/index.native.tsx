@@ -19,6 +19,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, resizeImageIfNeeded, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
@@ -219,7 +220,9 @@ function AttachmentPicker({
                                                 checkAllProcessed();
                                             })
                                             .catch((error: Error) => {
-                                                showGeneralAlert(error.message ?? 'An unknown error occurred');
+                                                Log.info('Failed to convert HEIC image, using original', false, {error});
+                                                const processedAsset = processAssetWithFallbacks(asset);
+                                                processedAssets.push(processedAsset);
                                                 checkAllProcessed();
                                             });
                                     } else {
