@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -62,6 +63,8 @@ function AboutPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const aboutIllustration = useAboutSectionIllustration();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+
     useDocumentTitle(`${translate('common.settings')} - ${translate('initialSettingsPage.about')}`);
 
     const menuItems = useMemo(() => {
@@ -104,7 +107,7 @@ function AboutPage() {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: icons.Bug,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.REPORT_A_BUG,
-                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, false)),
+                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, currentUserAccountID, false)),
             },
         ];
 
@@ -129,7 +132,7 @@ function AboutPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel,
         }));
-    }, [icons, styles, translate, waitForNavigate, conciergeReportID]);
+    }, [icons, styles, translate, waitForNavigate, conciergeReportID, currentUserAccountID]);
 
     const overlayContent = useCallback(
         () => (
