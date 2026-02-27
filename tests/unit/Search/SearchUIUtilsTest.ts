@@ -4308,10 +4308,7 @@ describe('SearchUIUtils', () => {
             });
 
             it('should compute spend breakdown for expense report with mixed reimbursable and non-reimbursable spend', () => {
-                const data = makeSpendTestData(
-                    {total: -5000, nonReimbursableTotal: -2000, type: CONST.REPORT.TYPE.EXPENSE},
-                    [{transactionID: testTxID1}, {transactionID: testTxID2}],
-                );
+                const data = makeSpendTestData({total: -5000, nonReimbursableTotal: -2000, type: CONST.REPORT.TYPE.EXPENSE}, [{transactionID: testTxID1}, {transactionID: testTxID2}]);
                 const fields = getComputedFields(data);
                 expect(fields.totalDisplaySpend).toBe(5000);
                 expect(fields.nonReimbursableSpend).toBe(2000);
