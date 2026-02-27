@@ -975,9 +975,9 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: theme.badgeDefaultBG,
-            paddingHorizontal: 12,
-            minHeight: 28,
-            height: variables.iconSizeNormal,
+            paddingHorizontal: 8,
+            minHeight: 24,
+            height: 24,
             flexDirection: 'row',
             alignItems: 'center',
         },
@@ -1049,17 +1049,21 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.danger,
         },
 
+        badgeDefaultActive: {
+            backgroundColor: theme.buttonHoveredBG,
+        },
+
         condensedBadge: {
             minHeight: 16,
             height: 16,
-            paddingHorizontal: 8,
+            paddingHorizontal: 6,
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
         condensedBadgeWithIcon: {
             minHeight: 16,
             height: 16,
-            paddingHorizontal: 8,
+            paddingHorizontal: 6,
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
@@ -1079,8 +1083,12 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.badgeDangerText,
         },
 
-        badgeText: {
+        badgeStrongText: {
             color: colors.white,
+        },
+
+        badgeText: {
+            color: theme.text,
             fontSize: variables.fontSizeSmall,
             ...lineHeightBadge,
             ...whiteSpace.noWrap,
@@ -5531,11 +5539,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         todoBadge: {
-            width: variables.w36,
             alignItems: 'center',
             justifyContent: 'center',
-            paddingLeft: 0,
-            paddingRight: 0,
         },
 
         stickToBottom: {

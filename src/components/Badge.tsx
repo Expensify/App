@@ -133,6 +133,7 @@ function Badge({
                     !isStrong && !success && !error && styles.badgeDefaultText,
                     !isStrong && success && styles.badgeSuccessText,
                     !isStrong && error && styles.badgeDangerText,
+                    isStrong && (success || error) && styles.badgeStrongText,
                     textStyles,
                     isDeleted ? styles.offlineFeedbackDeleted : {},
                 ]}

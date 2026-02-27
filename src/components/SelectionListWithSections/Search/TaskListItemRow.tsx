@@ -70,9 +70,8 @@ function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellPr
 }
 
 function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const session = useSession();
     const {translate} = useLocalize();
@@ -89,8 +88,6 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
                 <Badge
                     isCondensed
                     text={translate('task.completed')}
-                    icon={icons.Checkmark}
-                    iconStyles={styles.mr0}
                     success
                     badgeStyles={[
                         styles.ml0,

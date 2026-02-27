@@ -987,7 +987,7 @@ function MenuItem({
                                                             <Badge
                                                                 text={badgeText}
                                                                 icon={badgeIcon}
-                                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml3, styles.mt2]}
+                                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml3, styles.mt2, focused && !badgeSuccess && styles.badgeDefaultActive]}
                                                                 success={badgeSuccess}
                                                                 isStrong={badgeStrong}
                                                                 isCondensed={badgeCondensed}
@@ -1005,7 +1005,7 @@ function MenuItem({
                                                     <Badge
                                                         text={badgeText}
                                                         icon={badgeIcon}
-                                                        badgeStyles={badgeStyle}
+                                                        badgeStyles={[badgeStyle, focused && !badgeSuccess && styles.badgeDefaultActive]}
                                                         success={badgeSuccess}
                                                         isStrong={badgeStrong}
                                                         isCondensed={badgeCondensed}
@@ -1105,7 +1105,7 @@ function MenuItem({
                                             <Badge
                                                 text={badgeText}
                                                 icon={badgeIcon}
-                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2]}
+                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2, focused && !badgeSuccess && styles.badgeDefaultActive]}
                                                 success={badgeSuccess}
                                                 isStrong={badgeStrong}
                                                 isCondensed={badgeCondensed}

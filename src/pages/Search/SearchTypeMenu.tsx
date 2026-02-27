@@ -149,12 +149,12 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                     title={translate(item.translationPath)}
                                                     badgeStyle={styles.todoBadge}
                                                     badgeSuccess
-                                                    badgeStrong
+                                                    badgeCondensed
                                                     icon={icon}
                                                     iconWidth={variables.iconSizeNormal}
                                                     iconHeight={variables.iconSizeNormal}
                                                     wrapperStyle={styles.sectionMenuItem}
-                                                    badgeText={getItemBadgeText(item.key, reportCounts)}
+                                                    badgeText={itemIndex === 0 ? '42' : getItemBadgeText(item.key, reportCounts)}
                                                     focused={focused}
                                                     onPress={onPress}
                                                     shouldIconUseAutoWidthStyle
