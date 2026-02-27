@@ -5759,7 +5759,8 @@ function getReportName(
     }
 
     if (isTaskReport(report)) {
-        return Parser.htmlToText(report?.reportName ?? '').trim();
+        const taskName = report?.reportName ?? '';
+        return Parser.isHTML(taskName) ? Parser.htmlToText(taskName).trim() : taskName.trim();
     }
 
     if (isChatThread(report)) {
