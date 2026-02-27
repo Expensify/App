@@ -14,12 +14,11 @@ type OwnershipPercentageProps = SubPageProps & {
     isUserEnteringHisOwnData: boolean;
     ownerBeingModifiedID: string;
     totalOwnedPercentage: Record<string, number>;
-    setTotalOwnedPercentage: (ownedPercentage: Record<string, number>) => void;
 };
 
 const {OWNERSHIP_PERCENTAGE, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
-function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID, totalOwnedPercentage, setTotalOwnedPercentage}: OwnershipPercentageProps) {
+function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID, totalOwnedPercentage}: OwnershipPercentageProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
@@ -35,14 +34,9 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
                 errors[ownershipPercentageInputID] = translate('bankAccount.error.ownershipPercentage');
             }
 
-            setTotalOwnedPercentage({
-                ...totalOwnedPercentage,
-                [ownerBeingModifiedID]: Number(values[ownershipPercentageInputID]),
-            });
-
             return errors;
         },
-        [ownerBeingModifiedID, ownershipPercentageInputID, setTotalOwnedPercentage, totalOwnedPercentage, translate],
+        [ownerBeingModifiedID, ownershipPercentageInputID, totalOwnedPercentage, translate],
     );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({

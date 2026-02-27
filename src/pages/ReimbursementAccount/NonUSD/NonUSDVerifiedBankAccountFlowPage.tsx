@@ -45,7 +45,7 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
     const policyID = route.params?.policyID;
     const currentPage = route.params?.page;
     const currentSubPage = route.params?.subPage;
-    const isComingFromExpensifyCard = route.params?.isComingFromExpensifyCard
+    const isComingFromExpensifyCard = route.params?.isComingFromExpensifyCard;
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);

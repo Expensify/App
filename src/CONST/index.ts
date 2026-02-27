@@ -696,6 +696,10 @@ const CONST = {
         },
         BENEFICIAL_OWNER_INFO_STEP: {
             SUB_PAGE_NAMES: {
+                IS_USER_BENEFICIAL_OWNER: 'is-user-beneficial-owner',
+                IS_ANYONE_ELSE_BENEFICIAL_OWNER: 'is-anyone-else-beneficial-owner',
+                ARE_THERE_MORE_BENEFICIAL_OWNERS: 'are-there-more-beneficial-owners',
+                BENEFICIAL_OWNERS_LIST: 'beneficial-owners-list',
                 NAME: 'name',
                 NATIONALITY: 'nationality',
                 OWNERSHIP_PERCENTAGE: 'ownership-percentage',
@@ -739,12 +743,15 @@ const CONST = {
         STEP_HEADER_HEIGHT: 40,
         SIGNER_INFO_STEP: {
             SUB_PAGE_NAMES: {
+                IS_DIRECTOR: 'is-director',
                 NAME: 'name',
                 JOB_TITLE: 'job-title',
                 DATE_OF_BIRTH: 'date-of-birth',
                 ADDRESS: 'address',
                 UPLOAD_DOCUMENTS: 'upload-documents',
                 CONFIRMATION: 'confirmation',
+                ENTER_EMAIL: 'enter-email',
+                HANG_TIGHT: 'hang-tight',
             },
             SUBSTEP: {
                 IS_DIRECTOR: 1,

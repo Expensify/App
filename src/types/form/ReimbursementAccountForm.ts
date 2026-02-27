@@ -173,6 +173,9 @@ type ReimbursementAccountFormExtraProps = BeneficialOwnersStepExtraProps & {bank
 type BeneficialOwnersStepExtraProps = {
     [key: BeneficialOwnerDataKey]: string | FileObject[];
     beneficialOwnerKeys?: string[];
+    isUserDirector?: boolean;
+    ownerBeingModifiedID?: string;
+    isEditingCreatedOwner?: boolean;
 };
 
 type BeneficialOwnersStepProps = BeneficialOwnersStepBaseProps & BeneficialOwnersStepExtraProps;
