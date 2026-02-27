@@ -1137,8 +1137,16 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
+    // For IOU reports, parentReportAction.childMoneyRequestCount is more up-to-date than report.childMoneyRequestCount.
+    // The report field can be stale (e.g. still 1 after new transactions were added), causing getIconsForIOUReport
+    // to incorrectly return only 1 icon via isOneTransactionReportDeprecated.
+    const reportForIcons =
+        report.type === CONST.REPORT.TYPE.IOU && parentReportAction?.childMoneyRequestCount !== undefined
+            ? {...report, childMoneyRequestCount: parentReportAction.childMoneyRequestCount}
+            : report;
+
     const reportIcons = getIcons(
-        report,
+        reportForIcons,
         formatPhoneNumberPhoneUtils,
         personalDetails,
         personalDetail?.avatar,
@@ -1149,9 +1157,22 @@ function getOptionData({
         isReportArchived,
     );
 
-    const wasSuppressed = rawShouldShowSubscript && !result.shouldShowSubscript;
-    // eslint-disable-next-line rulesdir/prefer-at
-    result.icons = wasSuppressed && reportIcons.length > 1 ? [reportIcons[0]] : reportIcons;
+    // IOU reports with multiple senders should preserve both icons for diagonal display.
+    // Use childMoneyRequestCount as the only reliable signal — childOwnerAccountID is always set once any transaction exists
+    // and does not indicate "single sender". When childMoneyRequestCount is not yet loaded (e.g. Onyx first render),
+    // default to multi-sender to avoid briefly showing a single large avatar that then changes to diagonal.
+    const isIOUWithMultipleSenders = report.type === CONST.REPORT.TYPE.IOU && parentReportAction?.childMoneyRequestCount !== 1;
+
+    if (!result.shouldShowSubscript && !isIOUWithMultipleSenders && reportIcons.length > 1) {
+        // For IOU reports trimmed to single, show the other person's avatar (not the current user's).
+        // getIconsForIOUReport puts the current user at index 0, so pick the counterpart at index 1.
+        const singleIcon =
+            // eslint-disable-next-line rulesdir/prefer-at
+            report.type === CONST.REPORT.TYPE.IOU ? (reportIcons.find((icon) => Number(icon.id) !== currentUserAccountID) ?? reportIcons[0]) : reportIcons[0];
+        result.icons = [singleIcon];
+    } else {
+        result.icons = reportIcons;
+    }
 
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
