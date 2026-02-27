@@ -137,7 +137,7 @@ function Composer({
      * Otherwise, convert pasted HTML to Markdown and set it on the composer.
      */
     const handlePaste = useCallback(
-        async (event: ClipboardEvent) => {
+        (event: ClipboardEvent) => {
             const isVisible = checkComposerVisibility();
             const isFocused = textInput.current?.isFocused();
             const isContenteditableDivFocused = document.activeElement?.nodeName === 'DIV' && document.activeElement?.hasAttribute('contenteditable');
@@ -181,13 +181,14 @@ function Composer({
                 }
             }
 
-            const pasteValidFiles = async () => {
+            const pasteValidFiles = () => {
                 const validFiles = files.filter((file) => file !== undefined);
-                if (validFiles.length > 0) {
-                    onPasteFile(validFiles);
-                    return true;
+                if (validFiles.length === 0) {
+                    return false;
                 }
-                return false;
+
+                onPasteFile(validFiles);
+                return true;
             };
 
             // If paste contains image from Google Workspaces ex: Sheets, Docs, Slide, etc
@@ -208,9 +209,11 @@ function Composer({
                     return Promise.resolve(undefined);
                 });
 
-                const f = await Promise.all(filePromises);
-                files.push(...f);
-                return pasteValidFiles();
+                Promise.all(filePromises).then((f) => {
+                    files.push(...f.filter((file) => file !== undefined));
+                    pasteValidFiles();
+                });
+                return true;
             }
 
             return pasteValidFiles();
