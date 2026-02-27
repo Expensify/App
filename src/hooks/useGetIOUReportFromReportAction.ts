@@ -10,9 +10,9 @@ function useGetIOUReportFromReportAction(reportAction: OnyxTypes.ReportAction | 
     isChatIOUReportArchived: boolean;
 } {
     const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true}) ?? null;
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`) ?? null;
     const isChatIOUReportArchived = useReportIsArchived(iouReportID);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`, {canBeMissing: true});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
     return {iouReport, chatReport, isChatIOUReportArchived};
 }
 

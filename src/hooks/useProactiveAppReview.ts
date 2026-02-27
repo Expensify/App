@@ -17,7 +17,7 @@ type UseProactiveAppReviewReturn = {
  * Hook to check if the proactive app review modal should be shown
  */
 function useProactiveAppReview(): UseProactiveAppReviewReturn {
-    const [proactiveAppReview] = useOnyx(ONYXKEYS.NVP_APP_REVIEW, {canBeMissing: true});
+    const [proactiveAppReview] = useOnyx(ONYXKEYS.NVP_APP_REVIEW);
 
     const shouldShowModal = useMemo(() => {
         if (!proactiveAppReview) {

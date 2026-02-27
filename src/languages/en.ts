@@ -12,6 +12,7 @@ import type {
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -52,8 +53,11 @@ import type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -402,6 +406,7 @@ const translations = {
         card: 'Card',
         whyDoWeAskForThis: 'Why do we ask for this?',
         required: 'Required',
+        automatic: 'Automatic',
         showing: 'Showing',
         of: 'of',
         default: 'Default',
@@ -449,6 +454,7 @@ const translations = {
         reportID: 'Report ID',
         longReportID: 'Long Report ID',
         withdrawalID: 'Withdrawal ID',
+        withdrawalStatus: 'Withdrawal status',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         chooseFiles: 'Choose files',
@@ -545,14 +551,17 @@ const translations = {
         duplicate: 'Duplicate',
         duplicated: 'Duplicated',
         duplicateExpense: 'Duplicate expense',
+        duplicateReport: 'Duplicate report',
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
+        opensInNewTab: 'Opens in a new tab',
         locked: 'Locked',
         month: 'Month',
         week: 'Week',
         year: 'Year',
         quarter: 'Quarter',
+        vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
     },
     socials: {
@@ -950,18 +959,27 @@ const translations = {
             },
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Fix ${feedName} company card connection` : 'Fix company card connection'),
-                defaultSubtitle: 'Workspace > Company cards',
-                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Company cards`,
+                defaultSubtitle: 'Workspace',
+                subtitle: ({policyName}: {policyName: string}) => policyName,
+            },
+            fixPersonalCardConnection: {
+                title: ({cardName}: {cardName?: string}) => (cardName ? `Fix ${cardName} personal card connection` : 'Fix personal card connection'),
+                subtitle: 'Wallet',
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
-                defaultSubtitle: 'Workspace > Accounting',
-                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Accounting`,
+                defaultSubtitle: 'Workspace',
+                subtitle: ({policyName}: {policyName: string}) => policyName,
             },
             addShippingAddress: {
                 title: 'We need your shipping address',
                 subtitle: 'Provide an address to receive your Expensify Card.',
                 cta: 'Add address',
+            },
+            addPaymentCard: {
+                title: 'Add a payment card to keep using Expensify',
+                subtitle: 'Account > Subscription',
+                cta: 'Add',
             },
             activateCard: {
                 title: 'Activate your Expensify Card',
@@ -975,6 +993,8 @@ const translations = {
                 cta: 'Review',
             },
         },
+        assignedCards: 'Your Expensify Cards',
+        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
@@ -989,10 +1009,38 @@ const translations = {
             export: ({count}: {count: number}) => `Export ${count} ${count === 1 ? 'report' : 'reports'}`,
             begin: 'Begin',
             emptyStateMessages: {
-                nicelyDone: 'Nicely done',
-                keepAnEyeOut: "Keep an eye out for what's coming next!",
-                allCaughtUp: "You're all caught up",
-                upcomingTodos: 'Upcoming to-dos will appear here.',
+                thumbsUpStarsTitle: "You're done!",
+                thumbsUpStarsDescription: 'Thumbs up to you, stay tuned for more tasks.',
+                smallRocketTitle: 'All caught up',
+                smallRocketDescription: 'Upcoming to-dos will launch here.',
+                cowboyHatTitle: "You're done!",
+                cowboyHatDescription: 'All tasks are wrangled, keep an eye out for more.',
+                trophy1Title: 'Nothing to show',
+                trophy1Description: 'You did it! Keep an eye out for more to-dos.',
+                palmTreeTitle: 'All caught up',
+                palmTreeDescription: 'Time to relax but stay tuned for future tasks.',
+                fishbowlBlueTitle: "You're done!",
+                fishbowlBlueDescription: "We'll bubble up future tasks here.",
+                targetTitle: 'All caught up',
+                targetDescription: 'Way to stay on target. Check back for more tasks!',
+                chairTitle: 'Nothing to show',
+                chairDescription: "Go relax, we'll list upcoming to-dos here.",
+                broomTitle: "You're done!",
+                broomDescription: 'Tasks are clean, though stay tuned for more to-dos.',
+                houseTitle: 'All caught up',
+                houseDescription: 'This is your home base for upcoming to-dos.',
+                conciergeBotTitle: 'Nothing to show',
+                conciergeBotDescription: 'Beep boop beep boop, check back for more tasks!',
+                checkboxTextTitle: 'All caught up',
+                checkboxTextDescription: 'Check off your upcoming to-dos here.',
+                flashTitle: "You're done!",
+                flashDescription: "We'll zap your future tasks here.",
+                sunglassesTitle: 'Nothing to show',
+                sunglassesDescription: "Time to chill, though stay tuned for what's next!",
+                f1FlagsTitle: 'All caught up',
+                f1FlagsDescription: "You've finished all outstanding to-dos.",
+                fireworksTitle: 'All caught up',
+                fireworksDescription: 'Upcoming to-dos will appear here.',
             },
         },
     },
@@ -1090,6 +1138,7 @@ const translations = {
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
+        crop: 'Crop',
         addAReceipt: {
             phrase1: 'Add a receipt',
             phrase2: 'or drag and drop one here',
@@ -1182,6 +1231,7 @@ const translations = {
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
         routePending: 'Route pending...',
+        automaticallyEnterExpenseDetails: 'Concierge will automatically enter the expense details for you, or you can add them manually.',
         receiptScanning: () => ({
             one: 'Receipt scanning...',
             other: 'Receipts scanning...',
@@ -1475,7 +1525,7 @@ const translations = {
                 markedAsResolved: 'marked the rejection reason as resolved',
             },
         },
-        moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
+        moveExpenses: 'Move to report',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         changeApprover: {
             title: 'Change approver',
@@ -1772,6 +1822,7 @@ const translations = {
         enterMagicCode: (contactMethod: string) => `Please enter the magic code sent to ${contactMethod}. It should arrive within a minute or two.`,
         setAsDefault: 'Set as default',
         yourDefaultContactMethod: "This is your current default contact method. Before you can delete it, you'll need to choose another contact method and click “Set as default”.",
+        yourDefaultContactMethodRestrictedSwitch: 'This is your current default contact method. Your company has restricted removing or changing it.',
         removeContactMethod: 'Remove contact method',
         removeAreYouSure: "Are you sure you want to remove this contact method? This action can't be undone.",
         failedNewContact: 'Failed to add this contact method.',
@@ -2109,6 +2160,14 @@ const translations = {
             genericFailureMessage: 'An error occurred while adding your card. Please try again.',
             password: 'Please enter your Expensify password',
         },
+    },
+    personalCard: {
+        brokenConnection: 'Your card connection is broken.',
+        fixCard: 'Fix card',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            connectionLink
+                ? `Your ${cardName} card connection is broken. <a href="${connectionLink}">Log into your bank</a> to fix the card.`
+                : `Your ${cardName} card connection is broken. Log into your bank to fix the card.`,
     },
     walletPage: {
         balance: 'Balance',
@@ -3085,7 +3144,6 @@ const translations = {
         time: 'Time',
         clearAfter: 'Clear after',
         whenClearStatus: 'When should we clear your status?',
-        vacationDelegate: 'Vacation delegate',
         setVacationDelegate: `Set a vacation delegate to approve reports on your behalf while you're out of office.`,
         cannotSetVacationDelegate: `You can't set a vacation delegate because you're currently the delegate for the following members:`,
         vacationDelegateError: 'There was an error updating your vacation delegate.',
@@ -3837,6 +3895,12 @@ const translations = {
         nightIn: 'night in',
         nightsIn: 'nights in',
     },
+    proactiveAppReview: {
+        title: 'Enjoying New Expensify?',
+        description: 'Let us know so we can help make your expensing experience even better.',
+        positiveButton: 'Yeah!',
+        negativeButton: 'Not really',
+    },
     workspace: {
         common: {
             card: 'Cards',
@@ -3900,6 +3964,8 @@ const translations = {
             workspaceOwner: 'Owner',
             workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
+            clientID: 'Client ID',
+            clientIDInputHint: "Enter the client's unique identifier",
             mustBeOnlineToViewMembers: 'You need to be online in order to view members of this workspace.',
             moreFeatures: 'More features',
             requested: 'Requested',
@@ -4264,6 +4330,9 @@ const translations = {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
                 },
             },
+            travelInvoicing: 'Travel Invoicing',
+            travelInvoicingVendor: 'Travel vendor',
+            travelInvoicingPayableAccount: 'Travel payable account',
         },
         workspaceList: {
             joinNow: 'Join now',
@@ -5111,6 +5180,7 @@ const translations = {
                         confirm: 'Got it',
                     },
                 },
+                personalDetailsDescription: 'In order to book travel, please enter your legal name as it appears on your government-issued ID.',
             },
             expensifyCard: {
                 title: 'Expensify Card',
@@ -5164,8 +5234,11 @@ const translations = {
                 updateCard: 'Update card',
                 unassignCard: 'Unassign card',
                 unassign: 'Unassign',
-                unassignCardDescription: 'Unassign this card will remove all transactions on draft reports from the cardholder’s account.',
+                unassignCardDescription: 'Unassigning this card will delete all unsubmitted transactions.',
                 assignCard: 'Assign card',
+                removeCard: 'Remove card',
+                remove: 'Remove',
+                removeCardDescription: 'Removing this card will delete all unsubmitted transactions.',
                 cardFeedName: 'Card feed name',
                 cardFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others.',
                 cardFeedTransaction: 'Delete transactions',
@@ -5471,6 +5544,11 @@ const translations = {
             reimbursementAccount: 'reimbursement account',
             welcomeNote: 'Please start using my new workspace',
             delayedSubmission: 'delayed submission',
+            merchantRules: 'Merchant rules',
+            merchantRulesCount: () => ({
+                one: '1 merchant rule',
+                other: (count: number) => `${count} merchant rules`,
+            }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
             error: 'An error occurred while duplicating your new workspace. Please try again.',
@@ -6276,6 +6354,7 @@ const translations = {
                 adultEntertainment: 'Adult entertainment',
                 requireCompanyCard: 'Require company cards for all purchases',
                 requireCompanyCardDescription: 'Flag all cash spend, including mileage and per-diem expenses.',
+                requireCompanyCardDisabledTooltip: 'Enable Company cards (under More features) to unlock.',
             },
             expenseReportRules: {
                 title: 'Advanced',
@@ -6324,7 +6403,7 @@ const translations = {
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
                 duplicateRuleTitle: 'Similar merchant rule already exists',
-                duplicateRulePrompt: (merchantName: string) => `Do you want to save a new rule for "${merchantName}" even though you already have an existing one?`,
+                duplicateRulePrompt: (merchantName: string) => `Your existing rule for "${merchantName}" will take priority over this one. Save anyway?`,
                 saveAnyway: 'Save anyway',
                 applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
             },
@@ -6871,6 +6950,10 @@ const translations = {
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `changed the authorized payer to "${newReimburser}" (previously "${previousReimburser}")` : `changed the authorized payer to "${newReimburser}"`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `changed the custom tax name to "${newName}" (previously "${oldName}")`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `changed the workspace currency default tax rate to "${newName}" (previously "${oldName}")`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
+            `changed the foreign currency default tax rate to "${newName}" (previously "${oldName}")`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7031,6 +7114,8 @@ const translations = {
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
         statements: 'Statements',
+        cardStatements: 'Card statements',
+        monthlyAccrual: 'Monthly accrual',
         unapprovedCash: 'Unapproved cash',
         unapprovedCard: 'Unapproved card',
         reconciliation: 'Reconciliation',
@@ -7133,6 +7218,7 @@ const translations = {
             table: 'Table',
             bar: 'Bar',
             line: 'Line',
+            pie: 'Pie',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'From',
@@ -7362,6 +7448,9 @@ const translations = {
         scrollToNewestMessages: 'Scroll to newest messages',
         preStyledText: 'Pre-styled text',
         viewAttachment: 'View attachment',
+        selectAllFeatures: 'Select all features',
+        selectAllTransactions: 'Select all transactions',
+        selectAllItems: 'Select all items',
     },
     parentReportAction: {
         deletedReport: 'Deleted report',
@@ -7478,6 +7567,9 @@ const translations = {
             deleteOdometerPhotoConfirmation: 'Are you sure you want to delete this odometer photo?',
             startMessageWeb: 'Add a photo of your odometer from the <strong>start</strong> of your trip. Drag a file here or choose one to upload.',
             endMessageWeb: 'Add a photo of your odometer from the <strong>end</strong> of your trip. Drag a file here or choose one to upload.',
+            cameraAccessRequired: 'Camera access is required to take pictures.',
+            snapPhotoStart: '<muted-text-label>Snap a photo of your odometer at the <strong>start</strong> of your trip.</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>Snap a photo of your odometer at the <strong>end</strong> of your trip.</muted-text-label>',
         },
     },
     gps: {
@@ -7685,9 +7777,17 @@ const translations = {
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Review required',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return "Can't auto-match receipt due to broken bank connection";
+                return "Can't auto-match receipt due to broken bank connection.";
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                if (!connectionLink) {
+                    return "Can't auto-match receipt due to broken bank connection.";
+                }
+                return isMarkAsCash
+                    ? `Can't auto-match receipt due to broken card connection. Mark as cash to ignore, or <a href="${connectionLink}">fix the card</a> to match the receipt.`
+                    : `Can't auto-match receipt due to broken card connection. <a href="${connectionLink}">Fix the card</a> to match the receipt.`;
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
@@ -8387,15 +8487,18 @@ const translations = {
             error: {
                 addMember: 'Unable to add this member. Please try again.',
                 removeMember: 'Unable to remove this user. Please try again.',
+                vacationDelegate: 'Unable to set this user as a vacation delegate. Please try again.',
             },
+            cannotSetVacationDelegateForMember: (email: string) => `You can't set a vacation delegate for ${email} because they're currently the delegate for the following members:`,
+        },
+        common: {
+            settings: 'Settings',
             forceTwoFactorAuth: 'Force two-factor authentication',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>Please disable <a href="${samlPageUrl}">SAML</a> to force two-factor authentication.</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>Require two-factor authentication for all members of this domain. Domain members will be prompted to set up two-factor authentication on their account when they sign in.</muted-text>`,
             forceTwoFactorAuthError: "Force two-factor authentication couldn't be changed. Please try again later.",
-        },
-        common: {
-            settings: 'Settings',
+            resetTwoFactorAuth: 'Reset two-factor authentication',
         },
         groups: {
             title: 'Groups',

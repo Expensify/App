@@ -2,8 +2,8 @@ import * as Sentry from '@sentry/react-native';
 import {Platform} from 'react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import {browserProfilingIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
-import processBeforeSendTransactions from '@libs/telemetry/middlewares';
+import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
+import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import pkg from '../../../package.json';
@@ -17,7 +17,7 @@ export default function (): void {
         return;
     }
 
-    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration].filter((integration) => !!integration);
+    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration].filter((integration) => !!integration);
 
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
@@ -29,10 +29,11 @@ export default function (): void {
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
         integrations,
-        environment: CONFIG.ENVIRONMENT,
+        environment: CONFIG.IS_IN_PRODUCTION ? CONFIG.ENVIRONMENT : CONST.ENVIRONMENT.DEV,
         release: `${pkg.name}@${pkg.version}`,
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,
+        beforeSendLog: processBeforeSendLogs,
     });
 
     startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {

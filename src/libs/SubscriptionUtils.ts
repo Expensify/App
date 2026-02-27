@@ -60,10 +60,10 @@ Onyx.connect({
     },
 });
 
-let amountOwed: OnyxEntry<number>;
+let privateAmountOwed: OnyxEntry<number>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
-    callback: (value) => (amountOwed = value),
+    callback: (value) => (privateAmountOwed = value),
 });
 
 let ownerBillingGraceEndPeriod: OnyxEntry<number>;
@@ -115,22 +115,22 @@ function hasGracePeriodOverdue(gracePeriodEnd?: OnyxEntry<number>): boolean {
 /**
  * @returns The amount owed by the workspace owner.
  */
-function getAmountOwed(): number {
-    return amountOwed ?? 0;
+function getAmountOwed(amountOwed?: OnyxEntry<number>): number {
+    return amountOwed ?? privateAmountOwed ?? 0;
 }
 
 /**
  * @returns Whether there is an amount owed by the workspace owner.
  */
 function hasAmountOwed(): boolean {
-    return !!amountOwed;
+    return !!privateAmountOwed;
 }
 
 /**
  * @returns Whether there is a card authentication error.
  */
-function hasCardAuthenticatedError(stripeCustomerId: OnyxEntry<StripeCustomerID>) {
-    return stripeCustomerId?.status === 'authentication_required' && getAmountOwed() === 0;
+function hasCardAuthenticatedError(stripeCustomerId: OnyxEntry<StripeCustomerID>, amountOwed: number) {
+    return stripeCustomerId?.status === 'authentication_required' && amountOwed === 0;
 }
 
 /**
@@ -144,7 +144,7 @@ function hasBillingDisputePending(billingDisputePending: number | undefined) {
  * @returns Whether there is a card expired error.
  */
 function hasCardExpiredError(billingStatus: OnyxEntry<BillingStatus>) {
-    return billingStatus?.declineReason === 'expired_card' && amountOwed !== 0;
+    return billingStatus?.declineReason === 'expired_card' && privateAmountOwed !== 0;
 }
 
 /**
@@ -284,6 +284,7 @@ function getSubscriptionStatus(
     retryBillingFailed: boolean | undefined,
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
+    amountOwed: number,
     ownerBillingGraceEndPeriodParam?: OnyxEntry<number>,
 ): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod(ownerBillingGraceEndPeriodParam)) {
@@ -330,7 +331,7 @@ function getSubscriptionStatus(
     }
 
     // 6. Card not authenticated
-    if (hasCardAuthenticatedError(stripeCustomerId)) {
+    if (hasCardAuthenticatedError(stripeCustomerId, amountOwed)) {
         return {
             status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
             isError: true,
@@ -390,10 +391,12 @@ function hasSubscriptionRedDotError(
     retryBillingFailed: boolean | undefined,
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
+    amountOwed: number,
     ownerBillingGraceEndPeriodParam?: OnyxEntry<number>,
 ): boolean {
     return (
-        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, ownerBillingGraceEndPeriodParam)?.isError ?? false
+        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGraceEndPeriodParam)
+            ?.isError ?? false
     );
 }
 
@@ -408,11 +411,12 @@ function hasSubscriptionGreenDotInfo(
     retryBillingFailed: boolean | undefined,
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
+    amountOwed: number,
     ownerBillingGraceEndPeriodParam?: OnyxEntry<number>,
 ): boolean {
     return (
-        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, ownerBillingGraceEndPeriodParam)?.isError ===
-        false
+        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGraceEndPeriodParam)
+            ?.isError === false
     );
 }
 
@@ -528,8 +532,8 @@ function shouldRestrictUserBillableActions(
     if (
         isPolicyOwner(policy, currentUserAccountID) &&
         ownerBillingGraceEndPeriod &&
-        amountOwed !== undefined &&
-        amountOwed > 0 &&
+        privateAmountOwed !== undefined &&
+        privateAmountOwed > 0 &&
         isAfter(currentDate, fromUnixTime(ownerBillingGraceEndPeriod))
     ) {
         return true;
