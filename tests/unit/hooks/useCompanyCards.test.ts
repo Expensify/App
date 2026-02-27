@@ -733,6 +733,46 @@ describe('useCompanyCards', () => {
             // lastFourPAN resolves both cardName and encryptedCardNumber from cardList
             expect(result.current.companyCardEntries).toEqual([entry('111222XXXX31234', 'v1:NEW_ENCRYPTED', true)]);
         });
+
+        it('should deduplicate when an old-format (4-digit) and new-format card both resolve to the same cardList entry', async () => {
+            const cdfCardsList = {
+                cardList: {
+                    '553312XXXXXX0487': 'v1:ENCRYPTED_0487',
+                },
+                // Old-format card: cardName is just last 4 digits, lastFourPAN is empty
+                '8100': {
+                    cardID: 8100,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: '0487',
+                    lastFourPAN: '',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+                // New-format card: full masked name with lastFourPAN
+                '8101': {
+                    cardID: 8101,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: '553312XXXXXX0487',
+                    lastFourPAN: '0487',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cdfCardsList);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            const entries = result.current.companyCardEntries ?? [];
+
+            // Only one entry should appear — the duplicate is suppressed
+            expect(entries).toHaveLength(1);
+            expect(entries[0]).toMatchObject({cardName: '553312XXXXXX0487', encryptedCardNumber: 'v1:ENCRYPTED_0487', isAssigned: true});
+        });
     });
 
     describe('card ID consistency', () => {
