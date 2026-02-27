@@ -21,6 +21,7 @@ import {
     isSelfDM,
     isTaskReport,
     isThread,
+    isTripRoom,
     isUserCreatedPolicyRoom,
     isWorkspaceTaskReport,
     isWorkspaceThread,
@@ -99,6 +100,17 @@ const FAKE_REPORTS = {
         ...LHNTestUtils.getFakeReport([1, 2], 0, true),
         reportID: 'chatReport',
     },
+    // Invoice room with business receiver for invoice report test
+    [`${ONYXKEYS.COLLECTION.REPORT}invoiceBiz`]: {
+        ...LHNTestUtils.getFakeReport([1, 2], 0, true),
+        reportID: 'invoiceBiz',
+        chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+        policyID: '1',
+        invoiceReceiver: {
+            type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+            policyID: '2',
+        },
+    },
 };
 const FAKE_POLICIES = {
     [`${ONYXKEYS.COLLECTION.POLICY}1`]: LHNTestUtils.getFakePolicy('1'),
@@ -127,6 +139,7 @@ describe('getIcons', () => {
         const report = {} as Report;
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
     });
 
     it('should return the correct icons for an expense request', () => {
@@ -144,7 +157,9 @@ describe('getIcons', () => {
 
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(2);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
         expect(icons.at(0)?.name).toBe('Email One');
+        expect(icons.at(1)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
     });
 
     it('should return the correct icons for archived non expense request/report', () => {
@@ -176,6 +191,7 @@ describe('getIcons', () => {
 
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
         expect(icons.at(0)?.name).toBe('Email\u00A0Two');
     });
 
@@ -191,6 +207,7 @@ describe('getIcons', () => {
 
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
         expect(icons.at(0)?.name).toBe('Email One');
     });
 
@@ -202,6 +219,7 @@ describe('getIcons', () => {
         };
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
         expect(icons.at(0)?.name).toBe('domain-test');
     });
 
@@ -214,6 +232,7 @@ describe('getIcons', () => {
         const policy = LHNTestUtils.getFakePolicy('1');
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
         expect(icons.at(0)?.name).toBe('Workspace-Test-001');
     });
 
@@ -287,6 +306,7 @@ describe('getIcons', () => {
 
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
         expect(icons.at(0)?.name).toBe('Email One');
     });
 
@@ -302,6 +322,7 @@ describe('getIcons', () => {
 
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
         expect(icons.at(0)?.name).toBe('Email Five');
     });
 
@@ -312,6 +333,7 @@ describe('getIcons', () => {
         };
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
         expect(icons.at(0)?.id).toBe(CONST.ACCOUNT_ID.NOTIFICATIONS);
     });
 
@@ -327,6 +349,7 @@ describe('getIcons', () => {
 
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
     });
 
     it('should return the correct icons for a group chat without an avatar', () => {
@@ -336,6 +359,7 @@ describe('getIcons', () => {
         };
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
     });
 
     it('should return the correct icons for a group chat with an avatar', () => {
@@ -346,6 +370,8 @@ describe('getIcons', () => {
         };
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
+        expect(icons.at(0)?.source).toBe('https://example.com/avatar.png');
     });
 
     it('should return the correct icons for an invoice report', () => {
@@ -372,6 +398,7 @@ describe('getIcons', () => {
         };
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
         expect(icons.at(0)?.name).toBe('Email One');
     });
 
@@ -382,6 +409,7 @@ describe('getIcons', () => {
         };
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(4);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
     });
 
     it('should return the correct icons for a workspace thread', () => {
@@ -530,7 +558,9 @@ describe('getIcons', () => {
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
 
         expect(icons).toHaveLength(2);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
         expect(icons.at(0)?.name).toBe('Email\u0020One');
+        expect(icons.at(1)?.type).toBe(CONST.ICON_TYPE_AVATAR);
         expect(icons.at(1)?.name).toBe('Email\u0020Two');
     });
 
@@ -545,6 +575,7 @@ describe('getIcons', () => {
         };
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
         expect(icons.at(0)?.id).toBe(CONST.ACCOUNT_ID.CONCIERGE);
     });
 
@@ -563,6 +594,73 @@ describe('getIcons', () => {
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(2);
         expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
+        expect(icons.at(1)?.type).toBe(CONST.ICON_TYPE_AVATAR);
         expect(icons.at(1)?.name).toBe('Email Three');
+    });
+
+    it('should return the correct icons for a trip room', () => {
+        const report: Report = {
+            ...LHNTestUtils.getFakeReport([], 0, true),
+            chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+            policyID: '1',
+        };
+        const policy = LHNTestUtils.getFakePolicy('1');
+
+        // Verify report type conditions
+        expect(isTripRoom(report)).toBe(true);
+        expect(isChatRoom(report)).toBe(true);
+
+        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
+    });
+
+    it('should return the correct icons for a multi-transaction IOU report where current user is manager', () => {
+        const report: Report = {
+            ...LHNTestUtils.getFakeReport([1, currentUserAccountID], 0, true),
+            reportID: 'multiTxn',
+            chatReportID: 'chatReport',
+            type: CONST.REPORT.TYPE.IOU,
+            ownerAccountID: 1,
+            managerID: currentUserAccountID, // Current user IS the manager
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            participants: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        };
+
+        // Verify report type conditions
+        expect(isIOUReport(report)).toBe(true);
+        expect(isMoneyRequestReport(report)).toBe(true);
+
+        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
+        expect(icons).toHaveLength(2);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
+        expect(icons.at(1)?.type).toBe(CONST.ICON_TYPE_AVATAR);
+        // When current user is manager, manager icon comes first
+        expect(icons.at(0)?.name).toBe('Email\u0020Five');
+        expect(icons.at(1)?.name).toBe('Email\u0020One');
+    });
+
+    it('should return the correct icons for an invoice report with business receiver', () => {
+        const receiverPolicy = LHNTestUtils.getFakePolicy('2', 'Receiver-Policy');
+        const report: Report = {
+            ...LHNTestUtils.getFakeReport([], 0, true),
+            type: CONST.REPORT.TYPE.INVOICE,
+            chatReportID: 'invoiceBiz',
+            policyID: '1',
+        };
+        const policy = LHNTestUtils.getFakePolicy('1');
+
+        // Verify report type conditions
+        expect(isInvoiceReport(report)).toBe(true);
+
+        const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS, null, '', -1, policy, receiverPolicy);
+        expect(icons).toHaveLength(2);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
+        expect(icons.at(1)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
+        expect(icons.at(1)?.name).toBe('Receiver-Policy');
     });
 });
