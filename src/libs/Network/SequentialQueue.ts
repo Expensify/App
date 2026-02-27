@@ -18,6 +18,7 @@ import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import NetworkConnection from '@libs/NetworkConnection';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
@@ -25,6 +26,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
 import {isOffline, onReconnection} from './NetworkStore';
+
+// Commands that create visible report actions whose timestamps the server may reassign
+const OUTGOING_MESSAGE_COMMANDS: ReadonlySet<string> = new Set([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
+
+// Tracks report IDs that had offline outgoing message commands processed during the current flush cycle.
+// Used to detect when an offline ReadNewestAction has a stale lastReadTime that needs refreshing.
+const reportsWithOfflineSentMessages = new Set<string>();
 
 let shouldFailAllRequests: boolean;
 // Use connectWithoutView since this is for network data and don't affect to any UI
@@ -189,6 +197,30 @@ function process(): Promise<void> {
         },
     });
 
+    // When offline messages were sent for a report and then ReadNewestAction was queued while still offline,
+    // the lastReadTime captured at that offline moment becomes stale. The server assigns new timestamps to the
+    // offline-sent messages during replay, which end up later than the stale lastReadTime, causing the report
+    // to incorrectly appear as unread. Refresh lastReadTime to current time so it covers the server-assigned
+    // timestamps. We only do this when the same report had offline messages earlier in this flush cycle to
+    // avoid auto-reading messages from other users in reports where the user didn't send anything offline.
+    if (
+        requestToProcess.command === WRITE_COMMANDS.READ_NEWEST_ACTION &&
+        requestToProcess.initiatedOffline &&
+        typeof requestToProcess.data?.reportID === 'string' &&
+        reportsWithOfflineSentMessages.has(requestToProcess.data.reportID)
+    ) {
+        const refreshedLastReadTime = NetworkConnection.getDBTimeWithSkew();
+        Log.info('[SequentialQueue] Refreshing lastReadTime for offline ReadNewestAction', false, {
+            reportID: requestToProcess.data.reportID,
+            originalLastReadTime: requestToProcess.data.lastReadTime,
+            refreshedLastReadTime,
+        });
+        requestToProcess.data = {
+            ...requestToProcess.data,
+            lastReadTime: refreshedLastReadTime,
+        };
+    }
+
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
         .then((response) => {
@@ -210,6 +242,16 @@ function process(): Promise<void> {
                 remainingRequests: getAllPersistedRequests().length,
             });
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
+
+            // Track reports that had offline outgoing messages so we can refresh lastReadTime
+            // for any subsequent offline ReadNewestAction targeting the same report.
+            if (
+                requestToProcess.initiatedOffline &&
+                OUTGOING_MESSAGE_COMMANDS.has(requestToProcess.command) &&
+                typeof requestToProcess.data?.reportID === 'string'
+            ) {
+                reportsWithOfflineSentMessages.add(requestToProcess.data.reportID);
+            }
 
             if (requestToProcess.queueFlushedData) {
                 Log.info('[SequentialQueue] Will store queueFlushedData.', false, {
@@ -364,6 +406,7 @@ function flush(shouldResetPromise = true) {
     });
 
     isSequentialQueueRunning = true;
+    reportsWithOfflineSentMessages.clear();
 
     if (shouldResetPromise) {
         // Reset the isReadyPromise so that the queue will be flushed as soon as the request is finished
