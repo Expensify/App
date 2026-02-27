@@ -5118,7 +5118,7 @@ describe('SearchUIUtils', () => {
                 .map((section) => section.menuItems)
                 .flat();
 
-            const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense-report sortBy:date sortOrder:desc', 'type:chat sortBy:date sortOrder:desc'];
+            const expectedQueries = ['type:expense-report sortBy:date sortOrder:desc', 'type:expense sortBy:date sortOrder:desc', 'type:chat sortBy:date sortOrder:desc'];
 
             for (const [index, item] of menuItems.entries()) {
                 expect(item.searchQuery).toStrictEqual(expectedQueries.at(index));
