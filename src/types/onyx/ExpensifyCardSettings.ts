@@ -69,6 +69,9 @@ type ExpensifyCardSettingsBase = {
 /** Model of Expensify card settings for a workspace - can have nested feed types from backend */
 type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
     ExpensifyCardSettingsBase & {
+        /** Nested Expensify Card settings keyed by feed country from backend */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        US?: ExpensifyCardSettingsBase;
         /** Nested Travel Invoicing settings from backend */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         TRAVEL_US?: ExpensifyCardSettingsBase;

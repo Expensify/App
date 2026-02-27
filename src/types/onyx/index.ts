@@ -64,6 +64,7 @@ import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
+import type {ExpensifyCardSettingsBase} from './ExpensifyCardSettings';
 import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -200,6 +201,7 @@ export type {
     WorkspaceCardsList,
     ExpenseRule,
     ExpensifyCardSettings,
+    ExpensifyCardSettingsBase,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
     Fund,
