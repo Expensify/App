@@ -161,7 +161,7 @@ function CalendarPicker({
     const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
 
     useEffect(() => {
-        if (isFirstRender.current) {
+        if (isSmallScreenWidth || isFirstRender.current) {
             isFirstRender.current = false;
             return;
         }
@@ -170,7 +170,7 @@ function CalendarPicker({
         const newHeight = rowCount * CONST.CALENDAR_PICKER_DAY_HEIGHT;
 
         heightValue.set(withTiming(newHeight, {duration: 50}));
-    }, [calendarDaysMatrix?.length, heightValue]);
+    }, [calendarDaysMatrix?.length, heightValue, isSmallScreenWidth]);
 
     const animatedStyle = useAnimatedStyle(() => {
         return {
@@ -179,7 +179,7 @@ function CalendarPicker({
     });
 
     const webOnlyMarginStyle = isSmallScreenWidth ? {} : styles.mh1;
-    const calendarContainerStyle = [webOnlyMarginStyle, animatedStyle];
+    const calendarContainerStyle = isSmallScreenWidth ? [webOnlyMarginStyle, themeStyles.calendarBodyContainer] : [webOnlyMarginStyle, animatedStyle];
     const headerPaddingStyle = headerContainerStyle ?? themeStyles.ph5;
 
     const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
