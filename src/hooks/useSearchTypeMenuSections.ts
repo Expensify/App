@@ -98,19 +98,19 @@ const useSearchTypeMenuSections = () => {
 
     const typeMenuSections = useMemo(
         () =>
-            createTypeMenuSections(
+            createTypeMenuSections({
                 icons,
-                currentUserLoginAndAccountID?.email,
-                currentUserLoginAndAccountID?.accountID,
+                currentUserEmail: currentUserLoginAndAccountID?.email,
+                currentUserAccountID: currentUserLoginAndAccountID?.accountID,
                 cardFeedsByPolicy,
-                defaultCardFeed ?? defaultExpensifyCard,
-                allPolicies,
+                defaultCardFeed: defaultCardFeed ?? defaultExpensifyCard,
+                policies: allPolicies,
                 savedSearches,
                 isOffline,
                 defaultExpensifyCard,
                 shouldRedirectToExpensifyClassic,
                 draftTransactionIDs,
-            ),
+            }),
         [
             currentUserLoginAndAccountID?.email,
             currentUserLoginAndAccountID?.accountID,
