@@ -4591,8 +4591,7 @@ describe('actions/Report', () => {
 
         beforeEach(() => {
             jest.resetModules();
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            handleWalletStatementNavigation = jest.requireActual('@components/WalletStatementModal/walletNavigationUtils').default;
+            handleWalletStatementNavigation = jest.requireActual<{default: typeof handleWalletStatementNavigationDefault}>('@components/WalletStatementModal/walletNavigationUtils').default;
         });
 
         it('should do nothing when type is undefined', () => {
@@ -4611,7 +4610,6 @@ describe('actions/Report', () => {
         });
 
         it('should navigate when type is CONCIERGE and conciergeReportID is provided', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const mockNavigation: {navigate: jest.Mock} = jest.requireMock('@libs/Navigation/Navigation');
             mockNavigation.navigate.mockClear();
 
