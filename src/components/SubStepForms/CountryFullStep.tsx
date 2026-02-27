@@ -59,13 +59,13 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
         reimbursementAccount?.achData?.currency ??
         CONST.BBA_COUNTRY_CURRENCY_MAP[reimbursementAccount?.achData?.country ?? ''];
 
-    const shouldAllowChange = currency === CONST.CURRENCY.EUR;
+    const shouldAllowChange = currency === CONST.CURRENCY.EUR && !reimbursementAccount?.achData?.accountNumber;
     const defaultCountries = shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES;
-    const currencyMappedToCountry = mapCurrencyToCountry(currency);
+    const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
+    const currencyMappedToCountry = mapCurrencyToCountry(currency) || countryDefaultValue;
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
     const countriesSupportedForExpensifyCard = getAvailableEuCountries();
 
-    const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const [userSelectedCountry, setUserSelectedCountry] = useState<string>(countryDefaultValue);
     const selectedCountry = shouldAllowChange ? userSelectedCountry : currencyMappedToCountry;
     const disableSubmit = !(currency in CONST.CURRENCY);
