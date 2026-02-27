@@ -21,6 +21,21 @@ type UseMergeTransactionsReturn = {
     sourceTransactionPolicy?: Policy;
 };
 
+function mergePolicyWithSearchSnapshot(onyxPolicy: OnyxEntry<Policy>, snapshotPolicy: OnyxEntry<Policy>) {
+    if (!snapshotPolicy) {
+        return onyxPolicy;
+    }
+
+    if (!onyxPolicy) {
+        return snapshotPolicy;
+    }
+
+    return {
+        ...onyxPolicy,
+        ...snapshotPolicy,
+    };
+}
+
 function getTransaction(
     mergeTransaction: MergeTransaction | undefined,
     transactionID: string | undefined,
@@ -63,9 +78,8 @@ function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): Us
         // If we're on search and main collection reports are not available, get them from the search snapshot
         targetTransactionReport = targetTransactionReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionReportID}`];
         sourceTransactionReport = sourceTransactionReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionReportID}`];
-        // If we're on search, search snapshot policies are more up to date
-        targetTransactionPolicy = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionPolicyID}`];
-        sourceTransactionPolicy = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${sourceTransactionPolicyID}`];
+        targetTransactionPolicy = mergePolicyWithSearchSnapshot(targetTransactionPolicy, currentSearchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionPolicyID}`]);
+        sourceTransactionPolicy = mergePolicyWithSearchSnapshot(sourceTransactionPolicy, currentSearchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${sourceTransactionPolicyID}`]);
     }
 
     return {
