@@ -1,8 +1,8 @@
 import * as core from '@actions/core';
-import GithubUtils from '@github/libs/GithubUtils';
+import {getDeployChecklist} from '@github/libs/DeployChecklistUtils';
 
 const run = function (): Promise<void> {
-    return GithubUtils.getStagingDeployCash()
+    return getDeployChecklist()
         .then(({labels, number}) => {
             const labelsNames = labels.map((label) => {
                 if (typeof label === 'string') {
@@ -10,12 +10,12 @@ const run = function (): Promise<void> {
                 }
                 return label.name;
             });
-            console.log(`Found StagingDeployCash with labels: ${JSON.stringify(labelsNames)}`);
+            console.log(`Found deploy checklist with labels: ${JSON.stringify(labelsNames)}`);
             core.setOutput('IS_LOCKED', labelsNames.includes('🔐 LockCashDeploys 🔐'));
             core.setOutput('NUMBER', number);
         })
         .catch((err) => {
-            console.warn('No open StagingDeployCash found, continuing...', err);
+            console.warn('No open deploy checklist found, continuing...', err);
             core.setOutput('IS_LOCKED', false);
             core.setOutput('NUMBER', 0);
         });

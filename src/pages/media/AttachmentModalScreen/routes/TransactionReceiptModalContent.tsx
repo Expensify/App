@@ -504,7 +504,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         icon={expensifyIcons.Camera}
                         onPress={() => {
                             Navigation.dismissModal({
-                                callback: () =>
+                                afterTransition: () =>
                                     Navigation.navigate(
                                         isOdometerImage
                                             ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType)
