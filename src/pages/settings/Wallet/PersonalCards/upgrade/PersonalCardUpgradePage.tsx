@@ -1,21 +1,21 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import ROUTES from '@src/ROUTES';
-import {generatePolicyID} from '@userActions/Policy/Policy';
 import {createWorkspaceWithPolicyDraft} from '@userActions/App';
-import type {LastPaymentMethodType} from '@src/types/onyx';
-import useOnyx from '@hooks/useOnyx';
+import {generatePolicyID} from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import UpgradeIntro from './UpgradeIntro';
+import ROUTES from '@src/ROUTES';
+import type {LastPaymentMethodType} from '@src/types/onyx';
 import UpgradeConfirmation from './UpgradeConfirmation';
+import UpgradeIntro from './UpgradeIntro';
 
 function PersonalCardUpgradePage() {
     const styles = useThemeStyles();

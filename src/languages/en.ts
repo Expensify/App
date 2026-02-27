@@ -2173,7 +2173,7 @@ const translations = {
         thisIsCompanyCard: 'This is a company card ',
         askAdmin: 'Ask your admin',
         warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
-            `You’re a member of a workspace with a company card feed. If this is a company card under that feed, adding it here could break the the company card connection.\n\nIf this is a company card, please ${isAdmin ? 'assign' : 'ask your admin to assign'} this card from your workspace.`,
+            `If so, great! But if it's a company card, please ${isAdmin ? 'assign it from your workspace instead.' : 'ask your admin to assign it to you from the workspace instead.'}`,
         bankConnectionError: 'Bank connection issue',
         bankConnectionDescription: 'Please try adding your cards again. Otherwise, you can',
         connectWithPlaid: 'connect via Plaid.',
