@@ -90,10 +90,10 @@ function Composer({
 
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
-            const filePromises: Array<Promise<FileObject | undefined>> = e.nativeEvent.items.map((item) => {
+            const filePromises: Array<Promise<FileObject | undefined>> = e.nativeEvent.items.map(async (item) => {
                 const clipboardContent = item;
                 if (clipboardContent?.type === 'text/plain') {
-                    return Promise.resolve(undefined);
+                    return;
                 }
 
                 const mimeType = clipboardContent?.type ?? '';
