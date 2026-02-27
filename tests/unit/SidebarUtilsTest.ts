@@ -2726,9 +2726,8 @@ describe('SidebarUtils', () => {
             it('should categorize reports into correct groups', () => {
                 const {reports, reportNameValuePairs} = createSidebarTestData();
 
-                // Given reportsDrafts contains a draft comment for report '2'
-                const reportsDrafts = {
-                    [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}2`]: 'test',
+                const reportsDrafts: Record<string, boolean> = {
+                    '2': true,
                 };
 
                 // When the reports are categorized
