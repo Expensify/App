@@ -10,6 +10,7 @@ import findMatchingDynamicSuffix from './findMatchingDynamicSuffix';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getRedirectedPath from './getRedirectedPath';
 import getStateForDynamicRoute from './getStateForDynamicRoute';
+import removeDynamicSuffixFromPath from './removeDynamicSuffixFromPath';
 
 /**
  * @param path - The path to parse
@@ -22,7 +23,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
 
     const dynamicRouteSuffix = findMatchingDynamicSuffix(normalizedPathAfterRedirection);
     if (dynamicRouteSuffix) {
-        const pathWithoutDynamicSuffix = normalizedPathAfterRedirection.slice(0, -(dynamicRouteSuffix.length + 1));
+        const pathWithoutDynamicSuffix = removeDynamicSuffixFromPath(normalizedPathAfterRedirection, dynamicRouteSuffix);
 
         type DynamicRouteKey = keyof typeof DYNAMIC_ROUTES;
         const dynamicRouteKeys = Object.keys(DYNAMIC_ROUTES) as DynamicRouteKey[];
