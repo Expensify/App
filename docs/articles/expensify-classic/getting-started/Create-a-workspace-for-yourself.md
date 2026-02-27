@@ -118,7 +118,7 @@ Yes, you can use Expensify for free to track expenses.
 
 ## Can I create a workspace to use just for myself?
 
-Yes, a workspace includes key features such as approval rules, direct connections to accounting integrations, and access to Expensify Travel. These are helpful features for automating expense tracking, even if you are the only member of the workspace.
+Yes, a workspace includes features such as approval rules, direct connections to accounting integrations, and access to Expensify Travel -- even if you are the only member.
 
 See pricing details [here](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing).
 

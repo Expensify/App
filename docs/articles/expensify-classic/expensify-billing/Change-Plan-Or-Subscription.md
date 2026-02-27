@@ -9,7 +9,7 @@ Expensify offers several plans based on your needs: **Collect, Control,** and **
 
 ---
 
-# Changing a Subscription on a Group Plan
+# Changing Your Subscription
 
 **Web:**
 1. Go to **Settings > Workspaces > Group > [Your Group Workspace]**.
@@ -40,7 +40,7 @@ Expensify offers several plans based on your needs: **Collect, Control,** and **
 
 ---
 
-# Downgrading to a Free Account from a Group Plan
+# Downgrading to a Free Account
 
 ## Pay-Per-Use Plan
 1. Go to **Settings > Workspaces > Group**.
