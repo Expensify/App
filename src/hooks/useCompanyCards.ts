@@ -58,6 +58,7 @@ type UseCompanyCardsResult = Partial<{
 function resolveCardListEntry(card: Card, cardListEntries: Array<[string, string]>): Card {
     const {cardName, encryptedCardNumber, lastFourPAN} = card;
 
+    // Using || instead of ?? because an empty-string lastFourPAN should fall through to cardName
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const panSuffix = lastFourPAN || cardName;
     if (!panSuffix) {
@@ -65,16 +66,14 @@ function resolveCardListEntry(card: Card, cardListEntries: Array<[string, string
     }
 
     const isLinkedByEncrypted = encryptedCardNumber && cardListEntries.some(([, entryEncryptedCardNumber]) => entryEncryptedCardNumber === encryptedCardNumber);
-    const normalizedCardName = cardName ? normalizeCardName(cardName) : undefined;
-    const isLinkedByName = normalizedCardName && cardListEntries.some(([name]) => normalizeCardName(name) === normalizedCardName);
-
     if (isLinkedByEncrypted) {
         return card;
     }
 
-    if (isLinkedByName) {
-        const matchedEntry = cardListEntries.find(([name]) => normalizeCardName(name) === normalizedCardName);
-        return matchedEntry ? {...card, encryptedCardNumber: matchedEntry[1]} : card;
+    const normalizedCardName = cardName ? normalizeCardName(cardName) : undefined;
+    const matchedByName = normalizedCardName ? cardListEntries.find(([name]) => normalizeCardName(name) === normalizedCardName) : undefined;
+    if (matchedByName) {
+        return {...card, encryptedCardNumber: matchedByName[1]};
     }
 
     const [matchedCard, ...otherMatchedCards] = cardListEntries.filter(([name]) => name.endsWith(panSuffix)).slice(0, 2);
