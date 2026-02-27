@@ -951,7 +951,7 @@ function MoneyReportHeader({
                 undefined,
                 lastDistanceExpenseType,
             ),
-        [moneyRequestReport?.reportID, policy, userBillingGraceEndPeriodCollection, lastDistanceExpenseType, expensifyIcons, translate, transactionDrafts, draftTransactionIDs],
+        [moneyRequestReport?.reportID, policy, userBillingGraceEndPeriodCollection, lastDistanceExpenseType, expensifyIcons, translate, draftTransactionIDs],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
