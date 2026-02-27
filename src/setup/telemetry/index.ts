@@ -49,11 +49,9 @@ export default function (): void {
         if (typeof __moduleInitTimes === 'undefined' || typeof __moduleNames === 'undefined') {
             return;
         }
-        const initTimes: Record<string, number> = __moduleInitTimes as Record<string, number>;
-        const names: Record<number, string> = __moduleNames as Record<number, string>;
-        const topModules = Object.entries(initTimes)
+        const topModules = Object.entries(__moduleInitTimes as Record<string, number>)
             .map(([id, ms]) => ({
-                name: names[Number(id)] ?? id,
+                name: (__moduleNames as Record<string, string>)[id] ?? id,
                 ms: Math.round(ms),
             }))
             .filter(({ms}) => ms >= 100)
