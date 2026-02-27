@@ -71,6 +71,7 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader
                         <CardIconSkeleton
                             width={iconWidth}
                             height={iconHeight}
+                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {loading && !useSkeletonLoader && (
