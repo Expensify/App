@@ -526,7 +526,7 @@ function ReportActionsList({
                     if (action?.reportActionID) {
                         setActionIdToHighlight(action.reportActionID);
                     }
-                } else if (Navigation.getReportRHPActiveRoute()) {
+                } else if (Navigation.getReportRHPActiveRoute() || hasNewestReportActionRef.current) {
                     setIsFloatingMessageCounterVisible(false);
                     reportScrollManager.scrollToBottom();
                 } else {
