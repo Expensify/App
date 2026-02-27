@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
@@ -20,7 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense, shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -70,6 +71,8 @@ import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
 import Text from './Text';
+import AmountTextInput from './AmountTextInput';
+import NumberWithSymbolForm from './NumberWithSymbolForm';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -83,6 +86,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The distance of the transaction */
     distance: number;
+
+    /** The amount of the transaction */    
+    amount: number;
 
     /** The formatted amount of the transaction */
     formattedAmount: string;
@@ -259,6 +265,7 @@ function MoneyRequestConfirmationListFooter({
     currency,
     didConfirm,
     distance,
+    amount,
     formattedAmount,
     formattedAmountPerAttendee,
     formError,
@@ -317,10 +324,15 @@ function MoneyRequestConfirmationListFooter({
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid', 'Sparkles', 'DownArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {windowWidth} = useWindowDimensions();
+    
+    const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+
+    const [transactionAmount, setTransactionAmount] = useState(convertToFrontendAmountAsString(amount, currency));
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -487,7 +499,19 @@ function MoneyRequestConfirmationListFooter({
 
     const fields: ConfirmationField[] = [
         {
-            item: (
+            item: isNewManualExpenseFlowEnabled ? (
+                <View style={styles.mh4}>
+                <NumberWithSymbolForm
+                    displayAsTextInput
+                    value={transactionAmount}
+                    decimals={getCurrencyDecimals(currency)}
+                    currency={currency}
+                    symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
+                    label={translate('iou.amount')}
+                    onInputChange={setTransactionAmount}
+                    />
+                </View>
+            ) : (
                 <MenuItemWithTopDescription
                     key={translate('iou.amount')}
                     shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields}
