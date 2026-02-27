@@ -569,7 +569,7 @@ function MenuItem({
     isFocused,
     sentryLabel,
     rootWrapperStyle,
-    role = CONST.ROLE.MENUITEM,
+    role = CONST.ROLE.BUTTON,
     shouldBeAccessible = true,
     tabIndex = 0,
     rightIconWrapperStyle,
