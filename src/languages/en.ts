@@ -5352,6 +5352,9 @@ const translations = {
             systemPromptPlaceholder:
                 'Example: You are an AP specialist for Acme Corp. When a report is submitted, check that every Amazon expense has a business purpose in the comment. If not, message the submitter and ask them to add one.',
             systemPromptHint: 'Be specific about what to check and when to act. The more detail, the better.',
+            unnamedEmployee: 'Unnamed employee',
+            virtualEmployeeLabel: 'Virtual Employee',
+            previewPlaceholder: 'Start typing instructions to preview how your virtual employee will behave\u2026',
             capabilitiesSection: 'Capabilities',
             capabilitiesSectionHint: 'Choose what actions this virtual employee is allowed to perform.',
             eventsSection: 'Triggers',
@@ -5359,6 +5362,7 @@ const translations = {
             statusPaused: 'Paused',
             noCapabilities: 'No capabilities',
             capabilityCount: ({count}: {count: number}) => (count === 1 ? '1 capability' : `${count} capabilities`),
+            triggerCount: ({count}: {count: number}) => (count === 1 ? '1 trigger' : `${count} triggers`),
             create: 'Create',
             capabilities: {
                 readTransactions: 'Read transactions',

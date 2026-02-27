@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -10,6 +11,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createVirtualEmployee, updateVirtualEmployee} from '@libs/actions/VirtualEmployee';
@@ -151,6 +153,7 @@ function WorkspaceVirtualEmployeePage({route}: WorkspaceVirtualEmployeePageProps
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const illustrations = useMemoizedLazyIllustrations([
         'ConciergeBot',
@@ -249,8 +252,6 @@ function WorkspaceVirtualEmployeePage({route}: WorkspaceVirtualEmployeePageProps
                 onBackButtonPress={Navigation.goBack}
             />
             <ScrollView contentContainerStyle={styles.pb10}>
-
-                {/* Name — simple and prominent at the top */}
                 <View style={[styles.mh5, styles.mt4, styles.mb4]}>
                     <TextInput
                         label={translate('workspace.virtualEmployees.displayNameLabel')}
@@ -262,98 +263,186 @@ function WorkspaceVirtualEmployeePage({route}: WorkspaceVirtualEmployeePageProps
                     />
                 </View>
 
-                {/* Instructions — left-border block gives the prompt a distinct, intentional feel */}
-                <View style={[styles.mh5, styles.mb5]}>
+                <View style={[styles.mh5, styles.mb5, !shouldUseNarrowLayout && styles.flexRow]}>
+                    <View style={!shouldUseNarrowLayout ? {flex: 3, marginRight: 16} : undefined}>
+                        <View
+                            style={[
+                                styles.p4,
+                                {borderRadius: 8},
+                                styles.highlightBG,
+                                {borderLeftWidth: 3, borderLeftColor: theme.success},
+                            ]}
+                        >
+                            <Text
+                                style={[styles.textMicroBold, {color: theme.success}, styles.mb2]}
+                                accessibilityRole="header"
+                            >
+                                {translate('workspace.virtualEmployees.systemPromptLabel').toUpperCase()}
+                            </Text>
+                            <TextInput
+                                placeholder={translate('workspace.virtualEmployees.systemPromptPlaceholder')}
+                                value={systemPrompt}
+                                onChangeText={setSystemPrompt}
+                                multiline
+                                numberOfLines={8}
+                                autoGrowHeight
+                            />
+                        </View>
+                        {!!systemPromptError && (
+                            <Text style={[styles.textMicro, {color: theme.danger}, styles.mt1]}>
+                                {systemPromptError}
+                            </Text>
+                        )}
+                        <Text style={[styles.textMicro, styles.textSupporting, styles.mt2]}>
+                            {translate('workspace.virtualEmployees.systemPromptHint')}
+                        </Text>
+                    </View>
+
+                    {!shouldUseNarrowLayout && (
+                        <View style={{flex: 2}}>
+                            <View
+                                style={[
+                                    styles.p4,
+                                    {borderRadius: 8},
+                                    styles.alignItemsCenter,
+                                    styles.flex1,
+                                    {backgroundColor: theme.cardBG, borderWidth: 1, borderColor: theme.border},
+                                ]}
+                            >
+                                <View style={styles.mb3}>
+                                    <Icon
+                                        src={illustrations.ConciergeBot}
+                                        width={64}
+                                        height={64}
+                                    />
+                                </View>
+                                <Text style={[styles.textStrong, styles.mb1, {textAlign: 'center'}]}>
+                                    {displayName || translate('workspace.virtualEmployees.unnamedEmployee')}
+                                </Text>
+                                <Text style={[styles.textMicro, styles.textSupporting, styles.mb3]}>
+                                    {translate('workspace.virtualEmployees.virtualEmployeeLabel')}
+                                </Text>
+
+                                <View
+                                    style={[
+                                        styles.p3,
+                                        {borderRadius: 8},
+                                        styles.highlightBG,
+                                        styles.mb3,
+                                        styles.flex1,
+                                        {width: '100%'},
+                                    ]}
+                                >
+                                    <Text style={[styles.textMicro, styles.textSupporting, {fontStyle: 'italic'}]}>
+                                        {systemPrompt
+                                            ? `\u201C${systemPrompt.substring(0, 200)}${systemPrompt.length > 200 ? '\u2026' : ''}\u201D`
+                                            : translate('workspace.virtualEmployees.previewPlaceholder')}
+                                    </Text>
+                                </View>
+
+                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
+                                        <View
+                                            style={{
+                                                width: 6,
+                                                height: 6,
+                                                borderRadius: 3,
+                                                backgroundColor: capabilities.length > 0 ? theme.success : theme.icon,
+                                                marginRight: 6,
+                                            }}
+                                        />
+                                        <Text style={[styles.textMicro, styles.textSupporting]}>
+                                            {translate('workspace.virtualEmployees.capabilityCount', {count: capabilities.length})}
+                                        </Text>
+                                    </View>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                        <View
+                                            style={{
+                                                width: 6,
+                                                height: 6,
+                                                borderRadius: 3,
+                                                backgroundColor: eventSubs.length > 0 ? theme.success : theme.icon,
+                                                marginRight: 6,
+                                            }}
+                                        />
+                                        <Text style={[styles.textMicro, styles.textSupporting]}>
+                                            {translate('workspace.virtualEmployees.triggerCount', {count: eventSubs.length})}
+                                        </Text>
+                                    </View>
+                                </View>
+                            </View>
+                        </View>
+                    )}
+                </View>
+
+                <View style={!shouldUseNarrowLayout ? [styles.flexRow, styles.mh5, {gap: 16}] : undefined}>
                     <View
                         style={[
-                            styles.p4,
-                            styles.borderRadius8,
-                            styles.highlightBG,
-                            {borderLeftWidth: 3, borderLeftColor: theme.success},
+                            styles.mb2,
+                            !shouldUseNarrowLayout && styles.flex1,
+                            !shouldUseNarrowLayout && {borderRadius: 8, backgroundColor: theme.cardBG, borderWidth: 1, borderColor: theme.border, overflow: 'hidden' as const},
                         ]}
                     >
-                        <Text
-                            style={[styles.textMicroBold, {color: theme.success}, styles.mb2]}
-                            accessibilityRole="header"
-                        >
-                            {translate('workspace.virtualEmployees.systemPromptLabel').toUpperCase()}
-                        </Text>
-                        <TextInput
-                            placeholder={translate('workspace.virtualEmployees.systemPromptPlaceholder')}
-                            value={systemPrompt}
-                            onChangeText={setSystemPrompt}
-                            multiline
-                            numberOfLines={8}
-                            autoGrowHeight
-                        />
+                        <View style={[styles.ph5, styles.pb2, !shouldUseNarrowLayout && styles.pt4]}>
+                            <Text
+                                style={styles.textLabelSupporting}
+                                accessibilityRole="header"
+                            >
+                                {translate('workspace.virtualEmployees.capabilitiesSection')}
+                            </Text>
+                            <Text style={[styles.textMicro, styles.textSupporting, styles.mt1]}>
+                                {translate('workspace.virtualEmployees.capabilitiesSectionHint')}
+                            </Text>
+                        </View>
+                        {ALL_CAPABILITIES.map(({key, illustrationKey, labelKey, descriptionKey}) => (
+                            <ToggleSettingOptionRow
+                                key={key}
+                                icon={illustrations[illustrationKey]}
+                                title={translate(labelKey)}
+                                subtitle={translate(descriptionKey)}
+                                switchAccessibilityLabel={translate(labelKey)}
+                                isActive={capabilities.includes(key)}
+                                onToggle={() => toggleCapability(key)}
+                                wrapperStyle={[styles.ph5, styles.pv3]}
+                                shouldPlaceSubtitleBelowSwitch
+                            />
+                        ))}
                     </View>
-                    {!!systemPromptError && (
-                        <Text style={[styles.textMicro, {color: theme.danger}, styles.mt1]}>
-                            {systemPromptError}
-                        </Text>
-                    )}
-                    <Text style={[styles.textMicro, styles.textSupporting, styles.mt2]}>
-                        {translate('workspace.virtualEmployees.systemPromptHint')}
-                    </Text>
+
+                    <View
+                        style={[
+                            styles.mb2,
+                            !shouldUseNarrowLayout && styles.flex1,
+                            !shouldUseNarrowLayout && {borderRadius: 8, backgroundColor: theme.cardBG, borderWidth: 1, borderColor: theme.border, overflow: 'hidden' as const},
+                        ]}
+                    >
+                        <View style={[styles.ph5, styles.pb2, !shouldUseNarrowLayout && styles.pt4]}>
+                            <Text
+                                style={styles.textLabelSupporting}
+                                accessibilityRole="header"
+                            >
+                                {translate('workspace.virtualEmployees.eventsSection')}
+                            </Text>
+                            <Text style={[styles.textMicro, styles.textSupporting, styles.mt1]}>
+                                {translate('workspace.virtualEmployees.eventsSectionHint')}
+                            </Text>
+                        </View>
+                        {ALL_EVENTS.map(({key, illustrationKey, labelKey, descriptionKey}) => (
+                            <ToggleSettingOptionRow
+                                key={key}
+                                icon={illustrations[illustrationKey]}
+                                title={translate(labelKey)}
+                                subtitle={translate(descriptionKey)}
+                                switchAccessibilityLabel={translate(labelKey)}
+                                isActive={eventSubs.includes(key)}
+                                onToggle={() => toggleEvent(key)}
+                                wrapperStyle={[styles.ph5, styles.pv3]}
+                                shouldPlaceSubtitleBelowSwitch
+                            />
+                        ))}
+                    </View>
                 </View>
 
-                {/* Capabilities */}
-                <View style={styles.mb2}>
-                    <View style={[styles.ph5, styles.pb2]}>
-                        <Text
-                            style={styles.textLabelSupporting}
-                            accessibilityRole="header"
-                        >
-                            {translate('workspace.virtualEmployees.capabilitiesSection')}
-                        </Text>
-                        <Text style={[styles.textMicro, styles.textSupporting, styles.mt1]}>
-                            {translate('workspace.virtualEmployees.capabilitiesSectionHint')}
-                        </Text>
-                    </View>
-                    {ALL_CAPABILITIES.map(({key, illustrationKey, labelKey, descriptionKey}) => (
-                        <ToggleSettingOptionRow
-                            key={key}
-                            icon={illustrations[illustrationKey]}
-                            title={translate(labelKey)}
-                            subtitle={translate(descriptionKey)}
-                            switchAccessibilityLabel={translate(labelKey)}
-                            isActive={capabilities.includes(key)}
-                            onToggle={() => toggleCapability(key)}
-                            wrapperStyle={[styles.ph5, styles.pv3]}
-                            shouldPlaceSubtitleBelowSwitch
-                        />
-                    ))}
-                </View>
-
-                {/* Triggers */}
-                <View style={styles.mb2}>
-                    <View style={[styles.ph5, styles.pb2]}>
-                        <Text
-                            style={styles.textLabelSupporting}
-                            accessibilityRole="header"
-                        >
-                            {translate('workspace.virtualEmployees.eventsSection')}
-                        </Text>
-                        <Text style={[styles.textMicro, styles.textSupporting, styles.mt1]}>
-                            {translate('workspace.virtualEmployees.eventsSectionHint')}
-                        </Text>
-                    </View>
-                    {ALL_EVENTS.map(({key, illustrationKey, labelKey, descriptionKey}) => (
-                        <ToggleSettingOptionRow
-                            key={key}
-                            icon={illustrations[illustrationKey]}
-                            title={translate(labelKey)}
-                            subtitle={translate(descriptionKey)}
-                            switchAccessibilityLabel={translate(labelKey)}
-                            isActive={eventSubs.includes(key)}
-                            onToggle={() => toggleEvent(key)}
-                            wrapperStyle={[styles.ph5, styles.pv3]}
-                            shouldPlaceSubtitleBelowSwitch
-                        />
-                    ))}
-                </View>
-
-                {/* Save */}
                 <View style={[styles.ph5, styles.mt4]}>
                     <Button
                         success
@@ -363,7 +452,6 @@ function WorkspaceVirtualEmployeePage({route}: WorkspaceVirtualEmployeePageProps
                         large
                     />
                 </View>
-
             </ScrollView>
         </ScreenWrapper>
     );

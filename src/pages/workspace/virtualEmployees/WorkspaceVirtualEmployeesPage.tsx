@@ -8,25 +8,25 @@ import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceVirtualEmployeesPage} from '@libs/actions/VirtualEmployee';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import Text from '@components/Text';
 import type {VirtualEmployee} from '@src/types/onyx/VirtualEmployee';
 
 type WorkspaceVirtualEmployeesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.VIRTUAL_EMPLOYEES>;
@@ -34,7 +34,6 @@ type WorkspaceVirtualEmployeesPageProps = PlatformStackScreenProps<WorkspaceSpli
 function WorkspaceVirtualEmployeesPage({route}: WorkspaceVirtualEmployeesPageProps) {
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
-    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -144,8 +143,9 @@ function WorkspaceVirtualEmployeesPage({route}: WorkspaceVirtualEmployeesPagePro
                                 errors={ve.errors}
                             >
                                 <MenuItem
-                                    icon={illustrations.ConciergeBot}
-                                    iconType="illustration"
+                                    icon={getDefaultAvatarURL({accountID: ve.accountID})}
+                                    iconType={CONST.ICON_TYPE_AVATAR}
+                                    avatarID={ve.accountID}
                                     title={ve.displayName}
                                     description={getCapabilitySummary(ve)}
                                     onPress={() => navigateToEdit(ve.id)}
