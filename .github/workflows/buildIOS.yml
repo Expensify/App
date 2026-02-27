@@ -8,7 +8,7 @@ on:
         type: string
         required: true
       variant:
-        description: "'Release' or 'Adhoc'"
+        description: "'Release', 'Adhoc', or 'Debug'"
         type: string
         required: true
       mobile-expensify-ref:
@@ -130,12 +130,14 @@ jobs:
           command: npm run pod-install
 
       - name: Setup 1Password CLI and certificates
+        if: ${{ inputs.variant != 'Debug' }}
         uses: Expensify/GitHub-Actions/setup-certificate-1p@main
         with:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           SHOULD_LOAD_SSL_CERTIFICATES: 'false'
 
       - name: Load provisioning profiles from 1Password
+        if: ${{ inputs.variant != 'Debug' }}
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
@@ -152,6 +154,7 @@ jobs:
           op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
       - name: Create ExportOptions.plist
+        if: ${{ inputs.variant != 'Debug' }}
         run: |
           if [ "${{ inputs.variant }}" == "Release" ]; then
             cat > Mobile-Expensify/iOS/ExportOptions.plist << EOF
@@ -208,6 +211,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Prepare provisioning profiles JSON
+        if: ${{ inputs.variant != 'Debug' }}
         id: prepare-profiles
         run: |
           if [ "${{ inputs.variant }}" == "Release" ]; then
@@ -225,12 +229,12 @@ jobs:
           IS_HYBRID_APP: true
           FORCE_NATIVE_BUILD: ${{ inputs.force-native-build == 'true' && github.run_id || '' }}
         with:
-          destination: device
-          re-sign: true
+          destination: ${{ inputs.variant == 'Debug' && 'simulator' || 'device' }}
+          re-sign: ${{ inputs.variant != 'Debug' }}
           ad-hoc: ${{ inputs.variant == 'Adhoc' }}
-          scheme: ${{ inputs.variant == 'Release' && 'Expensify' || 'Expensify AdHoc' }}
-          configuration: ${{ inputs.variant == 'Release' && 'Release' || 'AdHoc' }}
-          certificate-file: './Certificates.p12'
+          scheme: ${{ inputs.variant == 'Release' && 'Expensify' || inputs.variant == 'Adhoc' && 'Expensify AdHoc' || 'Expensify Dev' }}
+          configuration: ${{ inputs.variant == 'Release' && 'Release' || inputs.variant == 'Adhoc' && 'AdHoc' || 'Debug' }}
+          certificate-file: ${{ inputs.variant != 'Debug' && './Certificates.p12' || '' }}
           provisioning-profiles: ${{ steps.prepare-profiles.outputs.PROFILES }}
           comment-bot: false
           custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
@@ -241,6 +245,7 @@ jobs:
         run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
 
       - name: Set artifact filenames
+        if: ${{ inputs.variant != 'Debug' }}
         id: set-ipa-filename
         run: |
           IPA_FILE=$(find .rock/cache/ios/export/ -maxdepth 1 -name '*.ipa' -print -quit 2>/dev/null || true)
@@ -254,6 +259,7 @@ jobs:
           fi
 
       - name: Find and upload IPA artifact
+        if: ${{ inputs.variant != 'Debug' }}
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
@@ -261,6 +267,7 @@ jobs:
           path: .rock/cache/ios/export/*.ipa
 
       - name: Zip dSYMs from xcarchive
+        if: ${{ inputs.variant != 'Debug' }}
         id: zip-dsyms
         continue-on-error: true
         run: |
@@ -279,7 +286,7 @@ jobs:
 
       - name: Find and upload dSYM artifact
         id: upload-dsym
-        if: steps.zip-dsyms.outputs.DSYM_PATH != ''
+        if: ${{ inputs.variant != 'Debug' && steps.zip-dsyms.outputs.DSYM_PATH != '' }}
         continue-on-error: true
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
@@ -289,10 +296,11 @@ jobs:
           if-no-files-found: warn
 
       - name: Log dSYM upload failure
-        if: steps.upload-dsym.outcome == 'failure'
+        if: ${{ inputs.variant != 'Debug' && steps.upload-dsym.outcome == 'failure' }}
         run: echo "::error::Failed to upload dSYM artifact – symbolication data may be missing for this build"
 
       - name: Upload iOS sourcemap artifact
+        if: ${{ inputs.variant != 'Debug' }}
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:

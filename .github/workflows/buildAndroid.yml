@@ -8,7 +8,7 @@ on:
         type: string
         required: true
       variant:
-        description: "'Release' or 'Adhoc'"
+        description: "'Release', 'Adhoc', or 'Debug'"
         type: string
         required: true
       mobile-expensify-ref:
@@ -94,6 +94,7 @@ jobs:
           IS_HYBRID_BUILD: 'true'
 
       - name: Run grunt build
+        if: ${{ inputs.variant != 'Debug' }}
         run: |
           cd Mobile-Expensify
           npm run grunt:build:shared
@@ -124,12 +125,14 @@ jobs:
         uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
 
       - name: Setup 1Password CLI and certificates
+        if: ${{ inputs.variant != 'Debug' }}
         uses: Expensify/GitHub-Actions/setup-certificate-1p@main
         with:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           SHOULD_LOAD_SSL_CERTIFICATES: 'false'
 
       - name: Load files from 1Password
+        if: ${{ inputs.variant != 'Debug' }}
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
@@ -138,6 +141,7 @@ jobs:
           cp ./upload-key.keystore Mobile-Expensify/Android
 
       - name: Load Android upload keystore credentials from 1Password
+        if: ${{ inputs.variant != 'Debug' }}
         id: load-credentials
         # v3
         uses: 1password/load-secrets-action@8d0d610af187e78a2772c2d18d627f4c52d3fbfb
@@ -171,17 +175,17 @@ jobs:
         with:
           variant: ${{ inputs.variant }}
           aab: ${{ inputs.variant == 'Release' }}
-          sign: true
-          re-sign: true
+          sign: ${{ inputs.variant != 'Debug' }}
+          re-sign: ${{ inputs.variant != 'Debug' }}
           ad-hoc: ${{ inputs.variant == 'Adhoc' }}
-          keystore-file: './upload-key.keystore'
-          keystore-store-file: 'upload-key.keystore'
+          keystore-file: ${{ inputs.variant != 'Debug' && './upload-key.keystore' || '' }}
+          keystore-store-file: ${{ inputs.variant != 'Debug' && 'upload-key.keystore' || '' }}
           keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           keystore-key-alias: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           keystore-key-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
           keystore-path: '../tools/buildtools/upload-key.keystore'
           comment-bot: false
-          rock-build-extra-params: ${{ inputs.variant == 'Adhoc' && '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"' || '--extra-params "--profile"' }}
+          rock-build-extra-params: ${{ inputs.variant == 'Debug' && '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64"' || inputs.variant == 'Adhoc' && '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"' || '--extra-params "--profile"' }}
           custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
           validate-elf-alignment: false
 
@@ -200,6 +204,7 @@ jobs:
         run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
 
       - name: Collect build artifacts
+        if: ${{ inputs.variant != 'Debug' }}
         id: collectArtifacts
         run: |
           mkdir -p /tmp/android-artifacts
@@ -235,7 +240,7 @@ jobs:
           fi
 
       - name: Find and upload AAB artifact
-        if: steps.collectArtifacts.outputs.HAS_AAB == 'true'
+        if: ${{ inputs.variant != 'Debug' && steps.collectArtifacts.outputs.HAS_AAB == 'true' }}
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
@@ -243,6 +248,7 @@ jobs:
           path: /tmp/android-artifacts/*.aab
 
       - name: Upload Android sourcemap artifact
+        if: ${{ inputs.variant != 'Debug' }}
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
@@ -251,6 +257,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload proguard mapping artifact
+        if: ${{ inputs.variant != 'Debug' }}
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
@@ -259,7 +266,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Install bundletool
-        if: steps.collectArtifacts.outputs.HAS_AAB == 'true'
+        if: ${{ inputs.variant != 'Debug' && steps.collectArtifacts.outputs.HAS_AAB == 'true' }}
         run: |
           readonly BUNDLETOOL_VERSION="1.18.1"
           readonly BUNDLETOOL_URL="https://github.com/google/bundletool/releases/download/${BUNDLETOOL_VERSION}/bundletool-all-${BUNDLETOOL_VERSION}.jar"
@@ -272,7 +279,7 @@ jobs:
           fi
 
       - name: Generate APK from AAB
-        if: steps.collectArtifacts.outputs.HAS_AAB == 'true'
+        if: ${{ inputs.variant != 'Debug' && steps.collectArtifacts.outputs.HAS_AAB == 'true' }}
         run: |
           AAB_PATH=$(find Mobile-Expensify/Android -path '*/outputs/bundle/*/*.aab' | head -1)
           java -jar bundletool.jar build-apks --bundle="$AAB_PATH" --output=Expensify.apks \
@@ -284,7 +291,7 @@ jobs:
           unzip -p Expensify.apks universal.apk > Expensify.apk
 
       - name: Upload Android APK build artifact
-        if: steps.collectArtifacts.outputs.HAS_AAB == 'true'
+        if: ${{ inputs.variant != 'Debug' && steps.collectArtifacts.outputs.HAS_AAB == 'true' }}
         # v6
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
