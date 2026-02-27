@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -8,9 +8,7 @@ import CardFeedIcon from '@components/CardFeedIcon';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import {Plus} from '@components/Icon/Expensicons';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -61,7 +59,7 @@ type WorkspaceExpensifyCardListPageProps = {
 };
 
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus'] as const);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -77,9 +75,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const shouldShowSelector = Object.keys(allExpensifyCardFeeds ?? {}).length > 1;
 
-    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
@@ -108,7 +107,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             showLockedAccountModal();
             return;
         }
-        if (isActingAsDelegate) {
+        if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
@@ -135,7 +134,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 <Button
                     success
                     onPress={handleIssueCardPress}
-                    icon={Plus}
+                    icon={icons.Plus}
                     text={translate('workspace.expensifyCard.issueCard')}
                     style={shouldChangeLayout && styles.flex1}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
