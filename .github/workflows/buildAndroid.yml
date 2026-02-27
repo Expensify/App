@@ -36,7 +36,7 @@ on:
         description: URL to download the ad-hoc build artifact (adhoc only)
         value: ${{ jobs.build.outputs.ROCK_ARTIFACT_URL }}
       SENTRY_URL:
-        description: URL to Sentry size analysis (adhoc only)
+        description: URL to Sentry size analysis
         value: ${{ jobs.build.outputs.SENTRY_URL }}
       AAB_FILENAME:
         description: Filename of the AAB artifact (empty if no AAB was produced)
@@ -220,11 +220,11 @@ jobs:
 
       - name: Upload Android build to Sentry for size analysis
         id: sentry-upload
-        if: ${{ env.ARTIFACT_PATH != '' && inputs.variant == 'Adhoc' }}
+        if: ${{ env.ARTIFACT_PATH != '' }}
         continue-on-error: true
         timeout-minutes: 5
         run: |
-          OUTPUT=$(npx sentry-cli build upload "$ARTIFACT_PATH" --org expensify --project app --build-configuration AdHoc --log-level debug 2>&1)
+          OUTPUT=$(npx sentry-cli build upload "$ARTIFACT_PATH" --org expensify --project app --build-configuration ${{ inputs.variant == 'Adhoc' && 'AdHoc' || 'Release' }} --log-level debug 2>&1)
           echo "$OUTPUT"
           SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
           if [ -n "$SENTRY_URL" ]; then
@@ -335,12 +335,3 @@ jobs:
           name: ${{ inputs.artifact-prefix }}android-apk-artifact
           path: Expensify.apk
 
-      - name: Upload Android build to Sentry for size analysis
-        if: ${{ inputs.variant == 'Release' && steps.collectArtifacts.outputs.HAS_AAB == 'true' }}
-        continue-on-error: true
-        timeout-minutes: 5
-        run: |
-          AAB_PATH=$(find /tmp/android-artifacts -name '*.aab' | head -1)
-          npx sentry-cli build upload "$AAB_PATH" --org expensify --project app --build-configuration Release --log-level debug
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
