@@ -11,7 +11,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
@@ -24,6 +24,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
@@ -78,13 +79,15 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {showDeleteModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const personalDetails = usePersonalDetails();
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const taxRates = getAllTaxRates(allPolicies);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const {clearSelectedTransactions} = useSearchContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
+    const cardsForSavedSearchDisplay = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList), [workspaceCardList, cardList]);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
 
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
@@ -111,7 +114,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     PersonalDetails: personalDetails,
                     reports,
                     taxRates,
-                    cardList: personalAndWorkspaceCards,
+                    cardList: cardsForSavedSearchDisplay,
                     cardFeeds: allFeeds,
                     policies: allPolicies,
                     currentUserAccountID,
@@ -164,7 +167,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             personalDetails,
             reports,
             taxRates,
-            personalAndWorkspaceCards,
+            cardsForSavedSearchDisplay,
             allFeeds,
             feedKeysWithCards,
             currentUserAccountID,

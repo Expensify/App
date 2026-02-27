@@ -3,7 +3,7 @@ import {DeviceEventEmitter} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
@@ -75,7 +75,8 @@ function useSelectedTransactionsActions({
     const {isOffline} = useNetworkWithOfflineStatus();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
+    const {selectedTransactionIDs, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchStateContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
     const allTransactions = useAllTransactions();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
@@ -348,7 +349,7 @@ function useSelectedTransactionsActions({
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
         if (canSelectedExpensesBeMoved && canUserPerformWriteAction && !hasTransactionsFromMultipleOwners) {
             options.push({
-                text: translate('iou.moveExpenses', {count: selectedTransactionIDs.length}),
+                text: translate('iou.moveExpenses'),
                 icon: expensifyIcons.DocumentMerge,
                 value: MOVE,
                 onSelected: () => {

@@ -1117,11 +1117,8 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
 /**
  * Verify that the transaction is in Self DM or is an original split transaction and that its distance rate is invalid.
  */
-function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined) {
+function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInputOrEntry<Transaction>, policy: OnyxEntry<Policy>) {
     if (transaction && isDistanceRequest(transaction)) {
-        const report = getReportOrDraftReport(transaction.reportID);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const policy = policyParam ?? getPolicy(report?.policyID);
         const {rate} = DistanceRequestUtils.getRate({transaction, policy});
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || String(transaction.reportID) === CONST.REPORT.SPLIT_REPORT_ID;
 
@@ -2180,6 +2177,47 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     return taxRate?.modifiedName;
 }
 
+/**
+ * Checks if the tax rate with matching transaction's tax rate value exists in the policy tax rates
+ */
+function hasTaxRateWithMatchingValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
+    if (!policy || !transaction) {
+        return false;
+    }
+
+    const transactionTaxCode = getTaxCode(transaction);
+    const transformedRates = transformedTaxRates(policy, transaction);
+    const taxRate = Object.values(transformedRates).find((rate) => rate.code === transactionTaxCode);
+
+    if (!transaction?.taxValue) {
+        return !!taxRate;
+    }
+
+    return taxRate?.value === transaction?.taxValue;
+}
+
+/**
+ * Gets the tax rate title for display, handling the case when moving expenses from track to submit
+ */
+function getTaxRateTitle(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, isMovingFromTrackExpense: boolean, policyForMovingExpenses?: OnyxEntry<Policy>): string {
+    const currentTaxName = getTaxName(policy, transaction);
+
+    if (currentTaxName) {
+        // If moving from track expense show the tax name from the moving policy
+        if (isMovingFromTrackExpense && !hasTaxRateWithMatchingValue(policy, transaction)) {
+            return getTaxName(policyForMovingExpenses, transaction) ?? '';
+        }
+        return getTaxName(policy, transaction, true) ?? '';
+    }
+
+    // If no tax name on current policy but moving from track expense, use the moving policy
+    if (isMovingFromTrackExpense) {
+        return getTaxName(policyForMovingExpenses, transaction, true) ?? '';
+    }
+
+    return '';
+}
+
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
 type FieldsToChange = {
     category?: Array<string | undefined>;
@@ -2758,6 +2796,8 @@ export {
     transformedTaxRates,
     getTaxValue,
     getTaxName,
+    getTaxRateTitle,
+    hasTaxRateWithMatchingValue,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
     getClearedPendingFields,
