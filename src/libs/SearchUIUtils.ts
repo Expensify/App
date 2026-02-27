@@ -4500,65 +4500,64 @@ function applySelectionToItem(
     canSelectMultiple: boolean,
     selectedTransactions: SelectedTransactions,
 ): {originalItem: SearchListItem; itemWithSelection: SearchListItem; isSelected: boolean} {
-    let isSelected = false;
-    let itemWithSelection: SearchListItem = item;
-
-    if ('transactions' in item && item.transactions) {
-        if (!canSelectMultiple) {
-            if (item.isSelected) {
-                itemWithSelection = {...item, isSelected: false};
-            }
-        } else {
-            const isEmptyReportSelected =
-                item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
-
-            const hasAnySelected = item.transactions.some((t) => t.keyForList && selectedTransactions[t.keyForList]?.isSelected) || isEmptyReportSelected;
-
-            if (!hasAnySelected) {
-                if (item.isSelected) {
-                    itemWithSelection = {...item, isSelected: false};
-                }
-            } else if (isEmptyReportSelected) {
-                isSelected = true;
-                if (!item.isSelected) {
-                    itemWithSelection = {...item, isSelected};
-                }
-            } else {
-                let allNonDeletedSelected = true;
-                let hasNonDeletedTransactions = false;
-                let hasTransactionSelectionChanged = false;
-
-                const mappedTransactions = item.transactions.map((transaction) => {
-                    const isTransactionSelected = !!(transaction.keyForList && selectedTransactions[transaction.keyForList]?.isSelected);
-
-                    if (transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                        hasNonDeletedTransactions = true;
-                        if (!isTransactionSelected) {
-                            allNonDeletedSelected = false;
-                        }
-                    }
-
-                    if (!!transaction.isSelected !== isTransactionSelected) {
-                        hasTransactionSelectionChanged = true;
-                    }
-
-                    return isTransactionSelected === !!transaction.isSelected ? transaction : {...transaction, isSelected: isTransactionSelected};
-                });
-
-                isSelected = hasNonDeletedTransactions && allNonDeletedSelected;
-                if (hasTransactionSelectionChanged || !!item.isSelected !== isSelected) {
-                    itemWithSelection = {...item, isSelected, transactions: hasTransactionSelectionChanged ? mappedTransactions : item.transactions};
-                }
-            }
-        }
-    } else {
-        isSelected = !!(canSelectMultiple && item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
-        if (!!item.isSelected !== isSelected) {
-            itemWithSelection = {...item, isSelected};
-        }
+    // Simple items without transactions
+    if (!('transactions' in item) || !item.transactions) {
+        const isSelected = !!(canSelectMultiple && item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
+        const itemWithSelection = !!item.isSelected !== isSelected ? {...item, isSelected} : item;
+        return {originalItem: item, itemWithSelection, isSelected};
     }
 
-    return {originalItem: item, itemWithSelection, isSelected};
+    // Single-select mode: group items are never selected via selectedTransactions
+    if (!canSelectMultiple) {
+        const itemWithSelection = item.isSelected ? {...item, isSelected: false} : item;
+        return {originalItem: item, itemWithSelection, isSelected: false};
+    }
+
+    const isEmptyReportSelected = item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
+
+    const hasAnySelected = item.transactions.some((t) => t.keyForList && selectedTransactions[t.keyForList]?.isSelected) || isEmptyReportSelected;
+
+    // Item thinks it's selected but nothing actually is → deselect
+    if (!hasAnySelected && item.isSelected) {
+        return {originalItem: item, itemWithSelection: {...item, isSelected: false}, isSelected: false};
+    }
+
+    // Empty report is selected
+    if (isEmptyReportSelected) {
+        const itemWithSelection = !item.isSelected ? {...item, isSelected: true} : item;
+        return {originalItem: item, itemWithSelection, isSelected: true};
+    }
+
+    // Map individual transactions and derive group selection state
+    let allNonDeletedSelected = true;
+    let hasNonDeletedTransactions = false;
+    let hasTransactionSelectionChanged = false;
+
+    const mappedTransactions = item.transactions.map((transaction) => {
+        const isTransactionSelected = !!(transaction.keyForList && selectedTransactions[transaction.keyForList]?.isSelected);
+
+        if (transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            hasNonDeletedTransactions = true;
+            if (!isTransactionSelected) {
+                allNonDeletedSelected = false;
+            }
+        }
+
+        if (!!transaction.isSelected !== isTransactionSelected) {
+            hasTransactionSelectionChanged = true;
+        }
+
+        return isTransactionSelected === !!transaction.isSelected ? transaction : {...transaction, isSelected: isTransactionSelected};
+    });
+
+    const isSelected = hasNonDeletedTransactions && allNonDeletedSelected;
+
+    if (!hasTransactionSelectionChanged && !!item.isSelected === isSelected) {
+        return {originalItem: item, itemWithSelection: item, isSelected};
+    }
+
+    const transactions = hasTransactionSelectionChanged ? mappedTransactions : item.transactions;
+    return {originalItem: item, itemWithSelection: {...item, isSelected, transactions}, isSelected};
 }
 
 export {
