@@ -14,6 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {resolveExportedIconNames} from '@libs/SearchFormatUtils';
 import {isScanning as isTransactionScanning} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -197,7 +198,7 @@ function ExpenseReportListItemRow({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
-                <ExportedIconCell reportActions={reportActions} />
+                <ExportedIconCell exportedIconNames={resolveExportedIconNames(reportActions ?? [])} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (

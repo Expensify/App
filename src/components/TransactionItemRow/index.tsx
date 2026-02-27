@@ -26,6 +26,7 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
+import {resolveExportedIconNames} from '@libs/SearchFormatUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
@@ -629,7 +630,7 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}
                     >
-                        <ExportedIconCell reportActions={reportActions} />
+                        <ExportedIconCell exportedIconNames={resolveExportedIconNames(reportActions ?? [])} />
                     </View>
                 );
             default:
