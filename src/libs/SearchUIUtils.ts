@@ -26,6 +26,7 @@ import type {
     SearchWithdrawalType,
     SelectedReports,
     SelectedTransactionInfo,
+    SelectedTransactions,
     SingularSearchStatus,
     SortOrder,
 } from '@components/Search/types';
@@ -117,6 +118,7 @@ import {
     findSelfDMReportID,
     generateReportID,
     getIcons,
+    getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getPolicyName,
     getReportName,
@@ -2339,7 +2341,17 @@ function getReportSections({
         }
     }
 
-    const reportIDToTransactionsValues = Object.values(reportIDToTransactions);
+    const reportIDToTransactionsValues = Object.values(reportIDToTransactions).map((reportItem) => {
+        const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(reportItem);
+        return {
+            ...reportItem,
+            totalDisplaySpend,
+            nonReimbursableSpend,
+            reimbursableSpend,
+            isAllScanning: reportItem.transactions.length > 0 && reportItem.transactions.every((t) => isScanning(t as Parameters<typeof isScanning>[0])),
+        };
+    });
+
     return [reportIDToTransactionsValues, reportIDToTransactionsValues.length];
 }
 
@@ -4483,6 +4495,72 @@ function shouldShowDeleteOption(
           });
 }
 
+function applySelectionToItem(
+    item: SearchListItem,
+    canSelectMultiple: boolean,
+    selectedTransactions: SelectedTransactions,
+): {originalItem: SearchListItem; itemWithSelection: SearchListItem; isSelected: boolean} {
+    let isSelected = false;
+    let itemWithSelection: SearchListItem = item;
+
+    if ('transactions' in item && item.transactions) {
+        if (!canSelectMultiple) {
+            if (item.isSelected) {
+                itemWithSelection = {...item, isSelected: false};
+            }
+        } else {
+            const isEmptyReportSelected =
+                item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
+
+            const hasAnySelected = item.transactions.some((t) => t.keyForList && selectedTransactions[t.keyForList]?.isSelected) || isEmptyReportSelected;
+
+            if (!hasAnySelected) {
+                if (item.isSelected) {
+                    itemWithSelection = {...item, isSelected: false};
+                }
+            } else if (isEmptyReportSelected) {
+                isSelected = true;
+                if (!item.isSelected) {
+                    itemWithSelection = {...item, isSelected};
+                }
+            } else {
+                let allNonDeletedSelected = true;
+                let hasNonDeletedTransactions = false;
+                let hasTransactionSelectionChanged = false;
+
+                const mappedTransactions = item.transactions.map((transaction) => {
+                    const isTransactionSelected = !!(transaction.keyForList && selectedTransactions[transaction.keyForList]?.isSelected);
+
+                    if (transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                        hasNonDeletedTransactions = true;
+                        if (!isTransactionSelected) {
+                            allNonDeletedSelected = false;
+                        }
+                    }
+
+                    if (!!transaction.isSelected !== isTransactionSelected) {
+                        hasTransactionSelectionChanged = true;
+                    }
+
+                    return isTransactionSelected === !!transaction.isSelected ? transaction : {...transaction, isSelected: isTransactionSelected};
+                });
+
+                isSelected = hasNonDeletedTransactions && allNonDeletedSelected;
+                if (hasTransactionSelectionChanged || !!item.isSelected !== isSelected) {
+                    itemWithSelection = {...item, isSelected, transactions: hasTransactionSelectionChanged ? mappedTransactions : item.transactions};
+                }
+            }
+        }
+    } else {
+        isSelected = !!(canSelectMultiple && item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
+        if (!!item.isSelected !== isSelected) {
+            itemWithSelection = {...item, isSelected};
+        }
+    }
+
+    return {originalItem: item, itemWithSelection, isSelected};
+}
+
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -4549,5 +4627,6 @@ export {
     isTodoSearch,
     adjustTimeRangeToDateFilters,
     isEligibleForApproveSuggestion,
+    applySelectionToItem,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
