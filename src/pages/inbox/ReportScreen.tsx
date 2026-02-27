@@ -42,7 +42,6 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
-import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
@@ -297,30 +296,14 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const isConciergeSidePanel = useMemo(() => isInSidePanel && isConciergeChatReport(report, conciergeReportID), [isInSidePanel, report, conciergeReportID]);
 
-    // Tracks which reportActionIDs existed when the current side-panel session started.
-    // Mutated during render (not in useEffect) so the value is available synchronously
-    // for the hasUserSentMessage memo below — avoids an extra render cycle.
-    const {shouldHideSidePanel} = useSidePanelState();
-    const wasPanelHidden = useRef(true);
-    const sessionStartTime = useRef<string | null>(null);
-
-    const isPanelActive = isConciergeSidePanel && !shouldHideSidePanel;
-    if (isPanelActive) {
-        if (wasPanelHidden.current) {
-            sessionStartTime.current = DateUtils.getDBTime();
-            wasPanelHidden.current = false;
-        }
-    } else {
-        wasPanelHidden.current = true;
-    }
+    const {sessionStartTime} = useSidePanelState();
 
     const hasUserSentMessage = useMemo(() => {
-        const startTime = sessionStartTime.current;
-        if (!isConciergeSidePanel || !startTime) {
+        if (!isConciergeSidePanel || !sessionStartTime) {
             return false;
         }
-        return reportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= startTime);
-    }, [isConciergeSidePanel, reportActions, currentUserAccountID]);
+        return reportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
+    }, [isConciergeSidePanel, reportActions, currentUserAccountID, sessionStartTime]);
     const viewportOffsetTop = useViewportOffsetTop();
 
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
@@ -1072,7 +1055,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 isReportTransactionThread={isTransactionThreadView}
                                                 isConciergeSidePanel={isConciergeSidePanel}
                                                 hasUserSentMessage={hasUserSentMessage}
-                                                sessionStartTime={sessionStartTime.current}
+                                                sessionStartTime={sessionStartTime}
                                             />
                                         ) : null}
                                         {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
