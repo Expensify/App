@@ -488,7 +488,7 @@ function WalletPage() {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING);
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW);
+        // TODO navigate to add new personal card
     };
 
     const openCompanyCardFlow = () => {

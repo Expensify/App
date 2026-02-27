@@ -49,7 +49,7 @@ function PersonalCardUpgradePage() {
 
     const addPersonalCard = () => {
         Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW);
+        // TODO navigate to add personal card
     };
 
     const addCompanyCard = () => {

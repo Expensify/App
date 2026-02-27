@@ -64,7 +64,6 @@ export type {default as OpenPlaidCompanyCardLoginParams} from './OpenPlaidCompan
 export type {default as OpenSidePanelParams} from './OpenSidePanelParams';
 export type {default as OpenPolicyReceiptPartnersPageParams} from './OpenPolicyReceiptPartnersPageParams';
 export type {default as PaymentCardParams} from './PaymentCardParams';
-export type {default as ImportPersonalPlaidAccountsParams} from './ImportPersonalPlaidAccountsParams';
 export type {default as PusherPingParams} from './PusherPingParams';
 export type {default as ReconnectAppParams} from './ReconnectAppParams';
 export type {default as ReferTeachersUniteVolunteerParams} from './ReferTeachersUniteVolunteerParams';
