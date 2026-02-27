@@ -1,15 +1,19 @@
-import {useContext} from 'react';
-import {ActiveElementRoleContext} from '@components/ActiveElementRoleProvider';
+import {useSyncExternalStore} from 'react';
 import type UseActiveElementRole from './types';
 
-/**
- * Listens for the focusin and focusout events and sets the DOM activeElement to the state.
- * On native, we just return null.
- */
-const useActiveElementRole: UseActiveElementRole = () => {
-    const {role} = useContext(ActiveElementRoleContext);
+function subscribe(callback: () => void) {
+    document.addEventListener('focusin', callback);
+    document.addEventListener('focusout', callback);
+    return () => {
+        document.removeEventListener('focusin', callback);
+        document.removeEventListener('focusout', callback);
+    };
+}
 
-    return role;
-};
+function getSnapshot() {
+    return document.activeElement?.role ?? null;
+}
+
+const useActiveElementRole: UseActiveElementRole = () => useSyncExternalStore(subscribe, getSnapshot);
 
 export default useActiveElementRole;

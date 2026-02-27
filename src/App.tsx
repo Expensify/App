@@ -7,7 +7,6 @@ import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
-import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from './components/CurrentUserPersonalDetailsProvider';
@@ -115,7 +114,6 @@ function App() {
                                         PickerStateProvider,
                                         EnvironmentProvider,
                                         CustomStatusBarAndBackgroundContextProvider,
-                                        ActiveElementRoleProvider,
                                         ActionSheetAwareScrollViewProvider,
                                         PlaybackContextProvider,
                                         FullScreenContextProvider,
