@@ -62,7 +62,7 @@ export default function (): void {
             console.debug(`[Module]  ${ms}ms — ${name}`);
         }
         Sentry.addBreadcrumb({
-            category: 'module.init',
+            category: CONST.TELEMETRY.BREADCRUMB_CATEGORY_MODULE_INIT,
             level: 'info',
             data: {modules: topModules},
         });
