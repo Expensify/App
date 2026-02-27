@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -56,6 +57,24 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
+
+    const initialSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'AddUnreportedExpense.InitialSkeleton',
+            isLoadingUnreportedTransactions,
+        }),
+        [isLoadingUnreportedTransactions],
+    );
+
+    const paginationSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'AddUnreportedExpense.PaginationSkeleton',
+            isLoadingUnreportedTransactions,
+            hasMoreUnreportedTransactionsResults,
+            isOffline,
+        }),
+        [isLoadingUnreportedTransactions, hasMoreUnreportedTransactionsResults, isOffline],
+    );
 
     const getUnreportedTransactions = useCallback(
         (transactions: OnyxCollection<Transaction>) => {
@@ -235,7 +254,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     title={translate('iou.addUnreportedExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
-                <UnreportedExpensesSkeleton />
+                <UnreportedExpensesSkeleton reasonAttributes={initialSkeletonReasonAttributes} />
             </ScreenWrapper>
         );
     }
@@ -308,7 +327,14 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 onEndReached={fetchMoreUnreportedTransactions}
                 onEndReachedThreshold={0.75}
                 addBottomSafeAreaPadding
-                listFooterContent={shouldShowUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined}
+                listFooterContent={
+                    shouldShowUnreportedTransactionsSkeletons ? (
+                        <UnreportedExpensesSkeleton
+                            fixedNumberOfItems={3}
+                            reasonAttributes={paginationSkeletonReasonAttributes}
+                        />
+                    ) : undefined
+                }
                 footerContent={footerContent}
                 disableMaintainingScrollPosition
             />
