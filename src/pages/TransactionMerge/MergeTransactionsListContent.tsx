@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
 import {getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getCreated, isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -129,6 +130,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         return !isIOUReport(transaction?.reportID);
     });
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MergeTransactionsListContent',
+        isEligibleTransactionsLoaded: eligibleTransactions !== undefined,
+    };
+
     if (filteredTransactions?.length === 0) {
         return (
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
@@ -153,7 +159,12 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             ListItem={MergeTransactionItem}
             customListHeader={headerContent}
             confirmButtonOptions={confirmButtonOptions}
-            customLoadingPlaceholder={<MergeExpensesSkeleton fixedNumItems={3} />}
+            customLoadingPlaceholder={
+                <MergeExpensesSkeleton
+                    fixedNumItems={3}
+                    reasonAttributes={reasonAttributes}
+                />
+            }
             showLoadingPlaceholder
         />
     );
