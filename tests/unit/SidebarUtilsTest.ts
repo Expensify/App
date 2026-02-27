@@ -3268,7 +3268,7 @@ describe('SidebarUtils', () => {
                     currentReportId: '1',
                     isInFocusMode: false,
                     betas: [],
-
+                    transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
@@ -3289,7 +3289,7 @@ describe('SidebarUtils', () => {
                     currentReportId: undefined,
                     isInFocusMode: false,
                     betas: [],
-
+                    transactions: {},
                     transactionViolations: {},
                     reportNameValuePairs: {},
                     reportAttributes: undefined,
