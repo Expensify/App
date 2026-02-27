@@ -44,6 +44,7 @@ function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, sho
             wrapperStyle={styles.flexShrink1}
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
             accessibilityLabel={feedName ?? ''}
+            sentryLabel="FeedSelector"
         >
             {CardFeedIcon}
 
