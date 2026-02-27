@@ -50,6 +50,16 @@ jest.mock('@src/hooks/useRootNavigationState', () => ({
     default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
 }));
 
+jest.mock('@hooks/useExportedToFilterOptions', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: () => ({
+        exportedToFilterOptions: [],
+        combinedUniqueExportTemplates: [],
+        connectedIntegrationNames: new Set<string>(),
+    }),
+}));
+
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
