@@ -11461,6 +11461,47 @@ describe('actions/IOU', () => {
             buildOptimisticSpy.mockRestore();
             canEditFieldSpy.mockRestore();
         });
+
+        it('saves changes for unreported (track) expenses without a reportAction', () => {
+            const transactionID = 'transaction-unreported';
+            const transactionThreadReportID = 'thread-unreported';
+            const policy = createRandomPolicy(10, CONST.POLICY.TYPE.TEAM);
+
+            const transactionThread: Report = {
+                ...createRandomReport(10, undefined),
+                reportID: transactionThreadReportID,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(10),
+                transactionID,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                transactionThreadReportID,
+                amount: 500,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Old merchant',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // No canEditFieldOfMoneyRequest mock — unreported expenses must bypass that check
+            updateMultipleMoneyRequests([transactionID], {merchant: 'New merchant'}, policy, reports, transactions, {});
+
+            expect(writeSpy).toHaveBeenCalled();
+            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
+            const updates = JSON.parse(params.updates) as {merchant: string};
+            expect(updates.merchant).toBe('New merchant');
+
+            writeSpy.mockRestore();
+        });
     });
 
     describe('bulk edit draft transaction', () => {
