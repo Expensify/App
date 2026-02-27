@@ -42,7 +42,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -250,7 +249,7 @@ function TransactionPreviewContent({
 
     const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'TransactionPreviewContent',
-        isTransactionLoaded: !isEmptyObject(transaction),
+        shouldShowSkeleton,
     };
 
     return (
