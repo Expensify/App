@@ -115,3 +115,4 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
 };
 
 export default useFilterFormValues;
+export {policiesSelector, reportsSelector, policyCategoriesSelector, policyTagsSelector};
