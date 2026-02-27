@@ -561,8 +561,11 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
         return true;
     }
 
-    const isProcessingReport = isProcessingReportUtils(report);
+    if (isSubmitter) {
+        return isAwaitingFirstLevelApproval(report);
+    }
 
+    const isProcessingReport = isProcessingReportUtils(report);
     return isProcessingReport;
 }
 

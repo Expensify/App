@@ -544,6 +544,7 @@ function MoneyRequestReportTransactionList({
                                           shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
                                           columns={columnsToShow}
                                           report={report}
+                                          policy={policy}
                                           isSelectionModeEnabled={isMobileSelectionModeEnabled}
                                           toggleTransaction={toggleTransaction}
                                           isSelected={isTransactionSelected(transaction.transactionID)}
@@ -567,6 +568,7 @@ function MoneyRequestReportTransactionList({
                           shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
                           columns={columnsToShow}
                           report={report}
+                          policy={policy}
                           isSelectionModeEnabled={isMobileSelectionModeEnabled}
                           toggleTransaction={toggleTransaction}
                           isSelected={isTransactionSelected(transaction.transactionID)}

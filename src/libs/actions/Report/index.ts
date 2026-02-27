@@ -1287,6 +1287,7 @@ function openReport(
         parentReportActionID,
         transactionID: transaction?.transactionID,
         includePartiallySetupBankAccounts: true,
+        useLastUnreadReportAction: true,
     };
 
     if (optimisticSelfDMReport) {
@@ -1858,7 +1859,7 @@ function createTransactionThreadReport(
 function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
     if (shouldDismissModal) {
         Navigation.dismissModal({
-            callback: () => {
+            afterTransition: () => {
                 if (!reportID) {
                     return;
                 }
@@ -2027,7 +2028,7 @@ function explain(
  */
 function getOlderActions(reportID: string | undefined, reportActionID: string | undefined) {
     if (!reportID || !reportActionID) {
-        return;
+        return Promise.resolve();
     }
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
@@ -2067,7 +2068,7 @@ function getOlderActions(reportID: string | undefined, reportActionID: string | 
         reportActionID,
     };
 
-    API.paginate(
+    return API.paginate(
         CONST.API_REQUEST_TYPE.READ,
         READ_COMMANDS.GET_OLDER_ACTIONS,
         parameters,
@@ -2125,7 +2126,7 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
         reportActionID,
     };
 
-    API.paginate(
+    return API.paginate(
         CONST.API_REQUEST_TYPE.READ,
         READ_COMMANDS.GET_NEWER_ACTIONS,
         parameters,
@@ -2154,11 +2155,18 @@ function expandURLPreview(reportID: string | undefined, reportActionID: string) 
 }
 
 /** Marks the new report actions as read
+ * @param hasOnceLoadedReportActions Whether the report actions have been loaded at least once.
+ * If false, the API call will be skipped to avoid 401 errors from reading reports not yet shared with the user.
  * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
  * Currently, the unread indicator needs to be reset only when users mark a report as read.
  */
-function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker = false) {
+function readNewestAction(reportID: string | undefined, hasOnceLoadedReportActions: boolean, shouldResetUnreadMarker = false) {
     if (!reportID) {
+        return;
+    }
+
+    // Do not try to mark the report as read if the report has not been loaded and shared with the user
+    if (!hasOnceLoadedReportActions) {
         return;
     }
 
@@ -4030,8 +4038,11 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeR
         if (lastAccessedReportID === topmostSuperWideRHP && !getIsNarrowLayout()) {
             Navigation.dismissToSuperWideRHP();
         } else {
-            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-            Navigation.goBack(lastAccessedReportRoute);
+            Navigation.dismissModal();
+            Navigation.isNavigationReady().then(() => {
+                const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+                Navigation.goBack(lastAccessedReportRoute);
+            });
         }
     } else {
         const isChatThread = isChatThreadReportUtils(currentReport);

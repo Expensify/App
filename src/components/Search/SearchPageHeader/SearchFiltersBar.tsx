@@ -1,16 +1,8 @@
-import {isUserValidatedSelector} from '@selectors/Account';
 import {emailSelector} from '@selectors/Session';
-import React, {useContext, useRef} from 'react';
+import React, {useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import KYCWall from '@components/KYCWall';
-import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
-import type {PaymentMethodType} from '@components/KYCWall/types';
-import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
@@ -20,8 +12,9 @@ import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSele
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import type {BankAccountMenuItem, SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
+import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
+import {useSearchStateContext} from '@components/Search/SearchContext';
+import type {SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
@@ -31,17 +24,14 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSortedActiveAdminPolicies from '@hooks/useSortedActiveAdminPolicies';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
-import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
+import {updateAdvancedFilters} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isExpenseReport} from '@libs/ReportUtils';
 import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
@@ -67,7 +57,6 @@ import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFilte
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 type FilterItem = WithSentryLabel & {
     label: string;
@@ -78,12 +67,7 @@ type FilterItem = WithSentryLabel & {
 
 type SearchFiltersBarProps = {
     queryJSON: SearchQueryJSON;
-    headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     isMobileSelectionModeEnabled: boolean;
-    currentSelectedPolicyID?: string | undefined;
-    currentSelectedReportID?: string | undefined;
-    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
-    latestBankItems?: BankAccountMenuItem[] | undefined;
 };
 
 type DatePickerFilterPopupProps = PopoverComponentProps & {
@@ -135,34 +119,19 @@ function MultiSelectFilterPopup<T extends string>({closeOverlay, translationKey,
     );
 }
 
-function SearchFiltersBar({
-    queryJSON,
-    headerButtonsOptions,
-    isMobileSelectionModeEnabled,
-    currentSelectedPolicyID,
-    currentSelectedReportID,
-    confirmPayment,
-    latestBankItems,
-}: SearchFiltersBarProps) {
+function SearchFiltersBar({queryJSON, isMobileSelectionModeEnabled}: SearchFiltersBarProps) {
     const scrollRef = useRef<FlatList<FilterItem>>(null);
-    const currentPolicy = usePolicy(currentSelectedPolicyID);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    // type, groupBy, status, and view values are not guaranteed to respect the ts type as they come from user input
     const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
-    const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`);
-    const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const kycWallRef = useContext(KYCWallContext);
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const filterFormValues = useFilterFormValues(queryJSON);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, areAllMatchingItemsSelected, shouldShowSelectAllMatchingItems, shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
-    const {selectAllMatchingItems} = useSearchActionsContext();
+    const {selectedTransactions, shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
 
@@ -172,11 +141,7 @@ function SearchFiltersBar({
     const [hasMultipleOutputCurrency] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasMultipleOutputCurrenciesSelector});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
-    const {isAccountLocked} = useLockedAccountState();
-    const {showLockedAccountModal} = useLockedAccountActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
-    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
-    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const {typeFiltersKeys, workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFilters();
 
@@ -204,31 +169,11 @@ function SearchFiltersBar({
     })();
 
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
-    const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
+    const hasSelectedItems = selectedTransactionsKeys.length > 0;
+    const shouldShowSelectedDropdown = hasSelectedItems && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
 
     const typeOptions = getTypeOptions(translate, allPolicies, email);
     const type = typeOptions.find((option) => option.value === unsafeType) ?? null;
-
-    const isExpenseReportType = type?.value === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-
-    const selectedItemsCount = (() => {
-        if (!selectedTransactions) {
-            return 0;
-        }
-
-        if (isExpenseReportType) {
-            // In expense report mode, count unique reports instead of individual transactions
-            const reportIDs = new Set(
-                Object.values(selectedTransactions)
-                    .map((transaction) => transaction?.reportID)
-                    .filter((reportID): reportID is string => !!reportID),
-            );
-            return reportIDs.size;
-        }
-
-        // Otherwise count transactions
-        return selectedTransactionsKeys.length;
-    })();
 
     const groupByOptions = getGroupByOptions(translate);
     const groupBy = groupByOptions.find((option) => option.value === unsafeGroupBy) ?? null;
@@ -297,8 +242,6 @@ function SearchFiltersBar({
 
     const withdrawalTypeOptions = getWithdrawalTypeOptions(translate);
     const withdrawalType = withdrawalTypeOptions.find((option) => option.value === searchAdvancedFiltersForm.withdrawalType) ?? null;
-    const activeAdminPolicies = useSortedActiveAdminPolicies();
-
     const updateFilterForm = (values: Partial<SearchAdvancedFiltersForm>) => {
         const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
             ...searchAdvancedFiltersForm,
@@ -775,66 +718,10 @@ function SearchFiltersBar({
         return <SearchFiltersSkeleton shouldAnimate />;
     }
 
-    const selectionButtonText = areAllMatchingItemsSelected ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedItemsCount});
-
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
             {shouldShowSelectedDropdown ? (
-                <KYCWall
-                    ref={kycWallRef}
-                    chatReportID={currentSelectedReportID}
-                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                    iouReport={selectedIOUReport}
-                    addBankAccountRoute={
-                        isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: currentSelectedPolicyID, backTo: Navigation.getActiveRoute()}) : undefined
-                    }
-                    onSuccessfulKYC={(paymentType) => confirmPayment?.(paymentType)}
-                >
-                    {(triggerKYCFlow, buttonRef) => (
-                        <View style={[styles.flexRow, styles.gap3]}>
-                            <ButtonWithDropdownMenu
-                                onPress={() => null}
-                                shouldAlwaysShowDropdownMenu
-                                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                                customText={selectionButtonText}
-                                options={headerButtonsOptions}
-                                onSubItemSelected={(subItem) =>
-                                    handleBulkPayItemSelected({
-                                        item: subItem,
-                                        triggerKYCFlow,
-                                        isAccountLocked,
-                                        showLockedAccountModal,
-                                        policy: currentPolicy,
-                                        latestBankItems,
-                                        activeAdminPolicies,
-                                        isUserValidated,
-                                        isDelegateAccessRestricted,
-                                        showDelegateNoAccessModal,
-                                        confirmPayment,
-                                    })
-                                }
-                                isSplitButton={false}
-                                buttonRef={buttonRef}
-                                anchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                }}
-                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DROPDOWN}
-                            />
-                            {!areAllMatchingItemsSelected && shouldShowSelectAllMatchingItems && (
-                                <Button
-                                    link
-                                    small
-                                    shouldUseDefaultHover={false}
-                                    innerStyles={styles.p0}
-                                    onPress={() => selectAllMatchingItems(true)}
-                                    text={translate('search.exportAll.selectAllMatchingItems')}
-                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_MATCHING_BUTTON}
-                                />
-                            )}
-                        </View>
-                    )}
-                </KYCWall>
+                <SearchBulkActionsButton queryJSON={queryJSON} />
             ) : (
                 <FlatList
                     horizontal
