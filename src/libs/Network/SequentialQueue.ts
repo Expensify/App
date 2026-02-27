@@ -34,6 +34,7 @@ const OUTGOING_MESSAGE_COMMANDS: ReadonlySet<string> = new Set([WRITE_COMMANDS.A
 const reportsWithOfflineSentMessages = new Set<string>();
 
 let shouldFailAllRequests: boolean;
+let networkTimeSkew = 0;
 // Use connectWithoutView since this is for network data and don't affect to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
@@ -42,6 +43,7 @@ Onyx.connectWithoutView({
             return;
         }
         shouldFailAllRequests = !!network.shouldFailAllRequests;
+        networkTimeSkew = network?.timeSkew ?? 0;
     },
 });
 
@@ -208,10 +210,12 @@ function process(): Promise<void> {
         typeof requestToProcess.data?.reportID === 'string' &&
         reportsWithOfflineSentMessages.has(requestToProcess.data.reportID)
     ) {
-        // Lazy-require to avoid circular dependency: SequentialQueue → NetworkConnection → DateUtils → Localize → memoize → … → SequentialQueue
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const NetworkConnectionModule = require('@libs/NetworkConnection') as {default: {getDBTimeWithSkew: (timestamp?: string | number) => string}};
-        const refreshedLastReadTime = NetworkConnectionModule.default.getDBTimeWithSkew();
+        // Inline the DB-time-with-skew logic here to avoid importing NetworkConnection,
+        // which triggers heavy module-level side effects (NetInfo, Onyx subscriptions) and
+        // causes a circular dependency: SequentialQueue → NetworkConnection → DateUtils → … → SequentialQueue.
+        // networkTimeSkew is already read from the ONYXKEYS.NETWORK subscription above.
+        const now = networkTimeSkew > 0 ? new Date(Date.now() + networkTimeSkew) : new Date();
+        const refreshedLastReadTime = now.toISOString().replace('T', ' ').replace('Z', '');
         Log.info('[SequentialQueue] Refreshing lastReadTime for offline ReadNewestAction', false, {
             reportID: requestToProcess.data.reportID,
             originalLastReadTime: requestToProcess.data.lastReadTime,
