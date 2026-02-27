@@ -5,7 +5,17 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Card,
+    PersonalDetails,
+    PersonalDetailsList,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    ReportNameValuePairs,
+    Transaction,
+    TransactionViolation,
+    VisibleReportActionsDerivedValue,
+} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -47,7 +57,6 @@ import {
     getInvoiceCompanyWebsiteUpdateMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
-    getOneTransactionThreadReportAction,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogAddEmployeeMessage,
@@ -113,12 +122,10 @@ import {
     isActionOfType,
     isCardIssuedAction,
     isInviteOrRemovedAction,
-    isMoneyRequestAction,
     isOldDotReportAction,
     isRenamedAction,
     isTagModificationAction,
     isTaskAction,
-    isTransactionThread,
 } from './ReportActionsUtils';
 import type {OptionData} from './ReportUtils';
 import {
@@ -133,6 +140,7 @@ import {
     getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
+    getReceiptUploadErrorReason,
     getReportDescription,
     getReportMetadata,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -142,7 +150,6 @@ import {
     getReportSubtitlePrefix,
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
-    hasReceiptError,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
     isAnnounceRoom,
@@ -176,7 +183,6 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
-import {getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
 
@@ -208,6 +214,7 @@ function shouldDisplayReportInLHN(
     betas: OnyxEntry<Beta[]>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     draftComment: OnyxEntry<string>,
+    transactions: OnyxCollection<Transaction>,
     isReportArchived?: boolean,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -226,7 +233,7 @@ function shouldDisplayReportInLHN(
     const isFocused = report.reportID === currentReportId;
     const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
-    const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, chatReport, doesReportHaveViolations, transactionViolations, reportAttributes);
+    const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, chatReport, doesReportHaveViolations, transactionViolations, transactions, reportAttributes);
     const isReportInAccessible = report?.errorFields?.notFound;
     if (isOneTransactionThread(report, parentReport, parentReportAction)) {
         return {shouldDisplay: false};
@@ -278,6 +285,7 @@ function getReportsToDisplayInLHN(
     priorityMode: OnyxEntry<PriorityMode>,
     draftComments: OnyxCollection<string>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    transactions: OnyxCollection<Transaction>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -300,6 +308,7 @@ function getReportsToDisplayInLHN(
             betas,
             transactionViolations,
             reportDraftComment,
+            transactions,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
         );
@@ -325,6 +334,7 @@ type UpdateReportsToDisplayInLHNProps = {
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     draftComments: OnyxCollection<string>;
+    transactions: OnyxCollection<Transaction>;
 };
 
 function updateReportsToDisplayInLHN({
@@ -338,6 +348,7 @@ function updateReportsToDisplayInLHN({
     reportNameValuePairs,
     reportAttributes,
     draftComments,
+    transactions,
 }: UpdateReportsToDisplayInLHNProps) {
     // Use a lazy copy to avoid creating a new object reference when no entries actually change.
     let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
@@ -369,6 +380,7 @@ function updateReportsToDisplayInLHN({
             betas,
             transactionViolations,
             reportDraftComment,
+            transactions,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] ?? {}),
             reportAttributes,
         );
@@ -639,27 +651,8 @@ function getReasonAndReportActionThatHasRedBrickRoad(
             reason: CONST.RBR_REASONS.HAS_VIOLATIONS,
         };
     }
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
 
-    if (transactionThreadReportAction) {
-        const transactionID = isMoneyRequestAction(transactionThreadReportAction) ? getOriginalMessage(transactionThreadReportAction)?.IOUTransactionID : undefined;
-        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (hasReceiptError(transaction)) {
-            return {
-                reason: CONST.RBR_REASONS.HAS_ERRORS,
-            };
-        }
-    }
-    const transactionID = getTransactionID(report);
-    const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
-        return {
-            reason: CONST.RBR_REASONS.HAS_ERRORS,
-        };
-    }
-
-    return null;
+    return getReceiptUploadErrorReason(report, chatReport, reportActions, transactions);
 }
 
 function shouldShowRedBrickRoad(
@@ -698,7 +691,7 @@ function getOptionData({
     movedFromReport,
     movedToReport,
     currentUserAccountID,
-    chatReport,
+    visibleReportActionsData,
     reportAttributesDerived,
 }: {
     report: OnyxEntry<Report>;
@@ -720,7 +713,7 @@ function getOptionData({
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number;
-    chatReport: OnyxEntry<Report>;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
@@ -860,8 +853,9 @@ function getOptionData({
             movedToReport,
             policy,
             isReportArchived,
-            chatReport,
+            reportMetadata,
             reportAttributesDerived,
+            lastAction,
         });
     }
 
@@ -1036,7 +1030,8 @@ function getOptionData({
             result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             const displayName =
-                (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails)) ||
+                (lastMessageTextFromReport.length > 0 &&
+                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
                 lastActorDisplayName;
             result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else if (lastAction && isOldDotReportAction(lastAction)) {
@@ -1111,7 +1106,7 @@ function getOptionData({
             result.alternateText =
                 lastMessageTextFromReport.length > 0
                     ? formatReportLastMessageText(Parser.htmlToText(lastMessageText))
-                    : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
+                    : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction, visibleReportActionsData)?.lastMessageText;
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(
@@ -1131,7 +1126,8 @@ function getOptionData({
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
             const displayName =
-                (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails)) ||
+                (lastMessageTextFromReport.length > 0 &&
+                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
                 lastActorDisplayName;
             result.alternateText = `${displayName}: ${formatReportLastMessageText(lastMessageText)}`;
         } else {
@@ -1305,4 +1301,5 @@ export default {
     shouldShowRedBrickRoad,
     getReportsToDisplayInLHN,
     updateReportsToDisplayInLHN,
+    shouldDisplayReportInLHN,
 };

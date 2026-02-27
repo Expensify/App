@@ -942,6 +942,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({days}: {days: number}) => `Restam ${days} ${days === 1 ? 'dia' : 'dias'}`,
             },
             addShippingAddress: {title: 'Precisamos do seu endereço de entrega', subtitle: 'Informe um endereço para receber seu Cartão Expensify.', cta: 'Adicionar endereço'},
+            addPaymentCard: {title: 'Adicione um cartão de pagamento para continuar usando o Expensify', subtitle: 'Conta > Assinatura', cta: 'Adicionar'},
             activateCard: {title: 'Ative seu Cartão Expensify', subtitle: 'Valide seu cartão e comece a gastar.', cta: 'Ativar'},
             reviewCardFraud: {
                 title: 'Analisar possível fraude no seu Cartão Expensify',
@@ -952,17 +953,17 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: 'Corrigir',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Corrigir conexão do cartão corporativo ${feedName}` : 'Corrigir conexão do cartão corporativo'),
-                defaultSubtitle: 'Área de trabalho > Cartões corporativos',
+                defaultSubtitle: 'Espaço de trabalho',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Cartões corporativos`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Corrigir conexão com ${integrationName}`,
-                defaultSubtitle: 'Espaço de trabalho > Contabilidade',
+                defaultSubtitle: 'Espaço de trabalho',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Contabilidade`,
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Corrigir conexão do cartão pessoal ${cardName}` : 'Corrigir conexão do cartão pessoal'),
-                subtitle: 'Carteira > Cartões atribuídos',
+                subtitle: 'Carteira',
             },
         },
         assignedCards: 'Cartões atribuídos',
@@ -1079,6 +1080,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Tem certeza de que deseja excluir este recibo?',
         addReceipt: 'Adicionar recibo',
         scanFailed: 'O recibo não pôde ser digitalizado porque está faltando o comerciante, a data ou o valor.',
+        crop: 'Cortar',
         addAReceipt: {
             phrase1: 'Adicionar um recibo',
             phrase2: 'ou arraste e solte um aqui',
@@ -1759,6 +1761,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Novo método de contato',
         goBackContactMethods: 'Voltar para métodos de contato',
+        yourDefaultContactMethodRestrictedSwitch: 'Este é seu método de contato padrão atual. Sua empresa restringiu a remoção ou alteração dele.',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -4234,6 +4237,9 @@ ${
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas reembolsáveis serão exportadas quando pagas',
                 },
             },
+            travelInvoicing: 'Faturamento de Viagens',
+            travelInvoicingVendor: 'Fornecedor de viagens',
+            travelInvoicingPayableAccount: 'Conta a pagar de viagens',
         },
         workspaceList: {
             joinNow: 'Participar agora',
@@ -7076,6 +7082,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         groupColumns: 'Agrupar colunas',
         expenseColumns: 'Colunas de despesas',
         statements: 'Extratos',
+        cardStatements: 'Extratos de cartão',
+        monthlyAccrual: 'Acréscimo mensal',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCard: 'Cartão não aprovado',
         reconciliation: 'Conciliação',
