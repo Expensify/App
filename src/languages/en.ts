@@ -6,7 +6,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {
     AddBudgetParams,
     AddedOrDeletedPolicyReportFieldParams,
@@ -1553,15 +1553,17 @@ const translations = {
         },
         correctRateError: 'Fix the rate error and try again.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
+        rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"'),
             billable: (value: boolean) => (value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `set the tax rate to "${value}"` : `tax rate to "${value}"`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `moved this expense to report "${value}"`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `set the ${field} to "${value}"` : `${field} to "${value}"`;
             },
-            format: (fragments: string, route: string) => `${fragments} via <a href="${route}">workspace rules</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">personal expense rules</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">workspace rules</a>`,
         },
         duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per diem expenses across workspaces because the rates may differ between workspaces.",
     },

@@ -826,7 +826,7 @@ function MoneyRequestReportPreviewContent({
                                                         >
                                                             {/* This will be fixed as follow up https://github.com/Expensify/App/pull/75357 */}
                                                             {/* eslint-disable-next-line @typescript-eslint/no-deprecated */}
-                                                            {getReportName(iouReport, undefined, undefined, undefined, undefined, reportAttributes) || action.childReportName}
+                                                            {getReportName({report: iouReport, reportAttributes}) || action.childReportName}
                                                         </Text>
                                                     </Animated.View>
                                                 </View>
