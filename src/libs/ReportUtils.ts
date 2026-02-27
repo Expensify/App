@@ -190,6 +190,7 @@ import {
     getMostRecentActiveDEWApproveFailedAction,
     getMostRecentActiveDEWSubmitFailedAction,
     getNumberOfMoneyRequests,
+    getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getRenamedAction,
@@ -285,6 +286,7 @@ import {
     getTaxAmount,
     getTaxCode,
     getAmount as getTransactionAmount,
+    getTransactionID,
     getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
     hasNoticeTypeViolation,
@@ -5757,7 +5759,8 @@ function getReportName(
     }
 
     if (isTaskReport(report)) {
-        return Parser.htmlToText(report?.reportName ?? '').trim();
+        const taskName = report?.reportName ?? '';
+        return Parser.isHTML(taskName) ? Parser.htmlToText(taskName).trim() : taskName.trim();
     }
 
     if (isChatThread(report)) {
@@ -9256,11 +9259,34 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
     return allReportErrors;
 }
 
+function getReceiptUploadErrorReason(report: Report, chatReport: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>, transactions: OnyxCollection<Transaction>) {
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
+    if (transactionThreadReportAction) {
+        const transactionID = isMoneyRequestAction(transactionThreadReportAction) ? getOriginalMessage(transactionThreadReportAction)?.IOUTransactionID : undefined;
+        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (hasReceiptError(transaction)) {
+            return {
+                reason: CONST.RBR_REASONS.HAS_ERRORS,
+            };
+        }
+    }
+    const transactionID = getTransactionID(report);
+    const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
+        return {
+            reason: CONST.RBR_REASONS.HAS_ERRORS,
+        };
+    }
+    return null;
+}
+
 function hasReportErrorsOtherThanFailedReceipt(
     report: Report,
     chatReport: OnyxEntry<Report>,
     doesReportHaveViolations: boolean,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    transactions: OnyxCollection<Transaction>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     const allReportErrors = reportAttributes?.[report?.reportID]?.reportErrors ?? {};
@@ -9275,7 +9301,8 @@ function hasReportErrorsOtherThanFailedReceipt(
         doesTransactionThreadReportHasViolations ||
         doesReportHaveViolations ||
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        Object.values(allReportErrors).some((error) => error?.[0] !== translateLocal('iou.error.genericSmartscanFailureMessage'))
+        Object.values(allReportErrors).some((error) => error?.[0] !== translateLocal('iou.error.genericSmartscanFailureMessage')) ||
+        !!getReceiptUploadErrorReason(report, chatReport, transactionReportActions, transactions)
     );
 }
 
@@ -13271,6 +13298,7 @@ export {
     getReportStatusColorStyle,
     getMovedActionMessage,
     excludeParticipantsForDisplay,
+    getReceiptUploadErrorReason,
     getAncestors,
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated

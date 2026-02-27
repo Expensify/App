@@ -1,5 +1,6 @@
 import type {StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
+import {spanToJSON} from '@sentry/react-native';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
@@ -39,7 +40,10 @@ function endSpan(spanId: string) {
         Log.info(`[Sentry][${spanId}] Trying to end span but it does not exist`, undefined, {spanId, timestamp: Date.now()});
         return;
     }
-    Log.info(`[Sentry][${spanId}] Ending span`, undefined, {spanId, timestamp: Date.now()});
+    const now = Date.now();
+    const startTimestamp = spanToJSON(span).start_timestamp;
+    const durationMs = Math.round(now - startTimestamp * 1000);
+    Log.info(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, undefined, {spanId, durationMs, timestamp: now});
     span.setStatus({code: 1});
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);
     span.end();
@@ -52,10 +56,10 @@ function cancelSpan(spanId: string) {
         return;
     }
     Log.info(`[Sentry][${spanId}] Canceling span`, undefined, {spanId, timestamp: Date.now()});
-    span?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true);
+    span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true);
     // In Sentry there are only OK or ERROR status codes.
     // We treat canceled spans as OK, so we can properly track spans that are not finished at all (their status would be different)
-    span?.setStatus({code: 1});
+    span.setStatus({code: 1});
     endSpan(spanId);
 }
 
