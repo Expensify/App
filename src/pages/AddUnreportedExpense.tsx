@@ -58,23 +58,17 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
-    const initialSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
-        () => ({
-            context: 'AddUnreportedExpense.InitialSkeleton',
-            isLoadingUnreportedTransactions,
-        }),
-        [isLoadingUnreportedTransactions],
-    );
+    const initialSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'AddUnreportedExpense.InitialSkeleton',
+        isLoadingUnreportedTransactions,
+    };
 
-    const paginationSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
-        () => ({
-            context: 'AddUnreportedExpense.PaginationSkeleton',
-            isLoadingUnreportedTransactions,
-            hasMoreUnreportedTransactionsResults,
-            isOffline,
-        }),
-        [isLoadingUnreportedTransactions, hasMoreUnreportedTransactionsResults, isOffline],
-    );
+    const paginationSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'AddUnreportedExpense.PaginationSkeleton',
+        isLoadingUnreportedTransactions,
+        hasMoreUnreportedTransactionsResults,
+        isOffline,
+    };
 
     const getUnreportedTransactions = useCallback(
         (transactions: OnyxCollection<Transaction>) => {
