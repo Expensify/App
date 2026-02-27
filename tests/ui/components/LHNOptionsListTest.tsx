@@ -323,4 +323,410 @@ describe('LHNOptionsList', () => {
             });
         });
     });
+
+    describe('LHN avatar rendering', () => {
+        const accountID1 = 1;
+        const accountID2 = 2;
+
+        const twoParticipants = {[accountID1]: {notificationPreference: 'always' as const}, [accountID2]: {notificationPreference: 'always' as const}};
+
+        const personalDetailsList = {
+            [accountID1]: {accountID: accountID1, login: 'user1@test.com', displayName: 'User One', avatar: 'https://example.com/avatar1.png'},
+            [accountID2]: {accountID: accountID2, login: 'user2@test.com', displayName: 'User Two', avatar: 'https://example.com/avatar2.png'},
+        };
+
+        // SUBSCRIPT cases
+
+        it('should render subscript avatar for policy expense chat', async () => {
+            const policyID = 'avatarPolicyExpense';
+            const reportID = 'avatarPolicyExpenseReport';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Test Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+            const report: Report = {
+                reportID,
+                reportName: 'Policy Expense Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                isOwnPolicyExpenseChat: false,
+                ownerAccountID: accountID1,
+                participants: twoParticipants,
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            });
+
+            render(getLHNOptionsListElement({data: [report]}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+
+        it('should render subscript avatar for expense report', async () => {
+            const policyID = 'avatarExpenseReportPolicy';
+            const chatReportID = 'avatarExpenseChatReport';
+            const expenseReportID = 'avatarExpenseReport';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Expense Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+            const chatReport: Report = {
+                reportID: chatReportID,
+                reportName: 'Expense Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                isOwnPolicyExpenseChat: false,
+                ownerAccountID: accountID1,
+                participants: twoParticipants,
+            };
+            const expenseReport: Report = {
+                reportID: expenseReportID,
+                reportName: 'Expense Report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                chatReportID,
+                ownerAccountID: accountID1,
+                participants: twoParticipants,
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            });
+
+            render(getLHNOptionsListElement({data: [expenseReport]}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+
+        it('should render subscript avatar for invoice room with individual receiver', async () => {
+            const policyID = 'avatarInvoiceIndivPolicy';
+            const reportID = 'avatarInvoiceIndivReport';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Invoice Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+            const report: Report = {
+                reportID,
+                reportName: 'Invoice Room',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                policyID,
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: accountID2},
+                participants: twoParticipants,
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            });
+
+            render(getLHNOptionsListElement({data: [report]}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+
+        it('should render subscript avatar for invoice room with business receiver', async () => {
+            const senderPolicyID = 'avatarInvoiceBizSender';
+            const receiverPolicyID = 'avatarInvoiceBizReceiver';
+            const reportID = 'avatarInvoiceBizReport';
+            const senderPolicy: Policy = {
+                id: senderPolicyID,
+                name: 'Sender Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+            const receiverPolicy: Policy = {
+                id: receiverPolicyID,
+                name: 'Receiver Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+            const report: Report = {
+                reportID,
+                reportName: 'B2B Invoice Room',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                policyID: senderPolicyID,
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: receiverPolicyID},
+                participants: twoParticipants,
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${senderPolicyID}`, senderPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicyID}`, receiverPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            });
+
+            render(getLHNOptionsListElement({data: [report]}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+
+        // SINGLE cases
+
+        it('should render single avatar for 1:1 DM', async () => {
+            const reportID = 'avatarDMReport';
+            const report: Report = {
+                reportID,
+                reportName: 'DM Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: twoParticipants,
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            });
+
+            render(getLHNOptionsListElement({data: [report]}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
+                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+
+        it('should render single avatar for self DM', async () => {
+            const reportID = 'avatarSelfDMReport';
+            const report: Report = {
+                reportID,
+                reportName: 'Self DM',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                participants: {[accountID1]: {notificationPreference: 'always'}},
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: accountID1, email: 'user1@test.com'});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            });
+
+            render(getLHNOptionsListElement({data: [report]}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
+                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+
+        it('should render single avatar for workspace thread', async () => {
+            const policyID = 'avatarWsThreadPolicy';
+            const parentReportID = 'avatarWsThreadParent';
+            const threadReportID = 'avatarWsThreadReport';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Thread Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+            const parentReport: Report = {
+                reportID: parentReportID,
+                reportName: 'Workspace Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                policyID,
+                participants: twoParticipants,
+            };
+            const threadReport: Report = {
+                reportID: threadReportID,
+                reportName: 'Thread in Workspace',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                policyID,
+                parentReportID,
+                parentReportActionID: 'parentAction1',
+                participants: twoParticipants,
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
+            });
+
+            render(getLHNOptionsListElement({data: [threadReport]}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
+                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+
+        it('should render single avatar for admin room', async () => {
+            const policyID = 'avatarAdminRoomPolicy';
+            const reportID = 'avatarAdminRoomReport';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Admin Room Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+            const report: Report = {
+                reportID,
+                reportName: '#admins',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                policyID,
+                participants: twoParticipants,
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            });
+
+            render(getLHNOptionsListElement({data: [report]}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
+                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+
+        // DIAGONAL/MULTIPLE case
+
+        it('should render diagonal avatar for IOU report preview with multiple senders', async () => {
+            const chatReportID = 'avatarIOUMultiChat';
+            const iouReportID = 'avatarIOUMultiIOU';
+            const chatReport: Report = {
+                reportID: chatReportID,
+                reportName: 'Personal Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: twoParticipants,
+            };
+            const iouReport: Report = {
+                reportID: iouReportID,
+                reportName: 'IOU Report',
+                type: CONST.REPORT.TYPE.IOU,
+                chatReportID,
+                ownerAccountID: accountID1,
+                managerID: accountID2,
+                participants: twoParticipants,
+                parentReportID: chatReportID,
+                parentReportActionID: 'previewAction1',
+            };
+            const reportPreviewAction: ReportAction = {
+                reportActionID: 'previewAction1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-01-01 00:00:00',
+                childReportID: iouReportID,
+                message: [{type: 'COMMENT', text: 'Report preview'}],
+                originalMessage: {},
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                    [reportPreviewAction.reportActionID]: reportPreviewAction,
+                });
+                await Onyx.merge(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+                    [chatReportID]: {
+                        [reportPreviewAction.reportActionID]: true,
+                    },
+                });
+            });
+
+            render(getLHNOptionsListElement({data: [iouReport]}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
+            });
+        });
+
+        // Contrast case
+
+        it('should render single avatar for IOU report preview with single sender', async () => {
+            const chatReportID = 'avatarIOUSingleChat';
+            const iouReportID = 'avatarIOUSingleIOU';
+            const chatReport: Report = {
+                reportID: chatReportID,
+                reportName: 'Personal Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: twoParticipants,
+            };
+            const iouReport: Report = {
+                reportID: iouReportID,
+                reportName: 'IOU Report',
+                type: CONST.REPORT.TYPE.IOU,
+                chatReportID,
+                ownerAccountID: accountID1,
+                managerID: accountID2,
+                participants: twoParticipants,
+                parentReportID: chatReportID,
+                parentReportActionID: 'previewAction2',
+            };
+            const reportPreviewAction: ReportAction = {
+                reportActionID: 'previewAction2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-01-01 00:00:00',
+                childReportID: iouReportID,
+                childOwnerAccountID: accountID1,
+                message: [{type: 'COMMENT', text: 'Report preview'}],
+                originalMessage: {},
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                    [reportPreviewAction.reportActionID]: reportPreviewAction,
+                });
+                await Onyx.merge(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+                    [chatReportID]: {
+                        [reportPreviewAction.reportActionID]: true,
+                    },
+                });
+            });
+
+            render(getLHNOptionsListElement({data: [iouReport]}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
+                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+    });
 });
