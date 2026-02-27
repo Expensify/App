@@ -107,6 +107,7 @@ function buildCompanyCardEntries(accountList: string[] | undefined, cardList: As
         const resolved = resolveCardListEntry(card, cardListEntries);
         const {cardName = card.cardName, encryptedCardNumber = card.cardName} = resolved;
 
+        // Skip duplicate when two assigned-card records (e.g. old-format + new-format) resolve to the same cardList entry.
         const alreadyCovered = encryptedCardNumber !== cardName && coveredEncrypted.has(encryptedCardNumber);
         if (!alreadyCovered) {
             entries.push({cardName, encryptedCardNumber, isAssigned: true, assignedCard: card});
