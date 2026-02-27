@@ -5,6 +5,7 @@ import type {CropOrRotateImage} from './types';
 const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
     new Promise((resolve, reject) => {
         const format = getSaveFormat(options.type);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         manipulateAsync(uri, actions, {compress: options.compress, format})
             .then((result) =>
                 fetch(result.uri)

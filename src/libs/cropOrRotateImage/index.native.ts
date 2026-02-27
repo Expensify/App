@@ -11,6 +11,7 @@ const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
         const format = getSaveFormat(options.type);
         // We need to remove the base64 value from the result, as it is causing crashes on Release builds.
         // More info: https://github.com/Expensify/App/issues/37963#issuecomment-1989260033
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         manipulateAsync(uri, actions, {compress: options.compress, format})
             .then(({base64, ...result}) => {
                 RNFetchBlob.fs
