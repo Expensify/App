@@ -782,6 +782,7 @@ const CONST = {
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         FREEZE_CARD: 'freezeCard',
+        NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
