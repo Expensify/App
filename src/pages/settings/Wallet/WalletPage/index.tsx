@@ -34,7 +34,7 @@ import usePersonalCardList from '@hooks/usePersonalCardList';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {hasDisplayableAssignedCards, maskCardNumber} from '@libs/CardUtils';
+import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -53,7 +53,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
 import useWalletSectionIllustration from './useWalletSectionIllustration';
 
@@ -83,6 +83,9 @@ function WalletPage() {
     const {login: currentUserLogin, accountID, email} = useCurrentUserPersonalDetails();
     const {translate, localeCompare} = useLocalize();
     const {cardFeedsByPolicy} = useCardFeedsForDisplay();
+
+    console.log('cardFeedsByPolicy');
+    console.log(cardFeedsByPolicy);
 
     const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const hasSinglePolicy = activeAdminPolicies.length === 1;
@@ -482,7 +485,8 @@ function WalletPage() {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_UPGRADE);
             return;
         }
-        if (!isEmptyObject(cardFeedsByPolicy)) {
+        const hasDirectFeed = Object.values(cardFeedsByPolicy).some((feeds) => feeds.some((feed) => isDirectFeed(feed.name)));
+        if (hasDirectFeed) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING);
             // return;
         }
