@@ -24,11 +24,12 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    const canUseTagsForLocations = canImportLocationsAsTags(qboConfig);
 
     const data: CardListItem[] = useMemo(() => {
         const items: CardListItem[] = [];
 
-        if (canImportLocationsAsTags(qboConfig)) {
+        if (canUseTagsForLocations) {
             items.push({
                 value: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                 text: translate('workspace.common.tags'),
@@ -45,7 +46,7 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
         });
 
         return items;
-    }, [qboConfig?.syncLocations, qboConfig?.reimbursableExpensesExportDestination, qboConfig?.nonReimbursableExpensesExportDestination, translate]);
+    }, [canUseTagsForLocations, qboConfig?.syncLocations, translate]);
 
     const selectDisplayedAs = useCallback(
         (row: CardListItem) => {

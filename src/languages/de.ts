@@ -714,7 +714,7 @@ const translations: TranslationDeepObject<typeof en> = {
             auf dem er ursprünglich angefordert wurde
         `),
         doNotShare: dedent(`
-            Gib deinen Code an niemanden weiter.  
+            Gib deinen Code an niemanden weiter.
             Expensify wird niemals danach fragen!
         `),
         or: 'oder',
@@ -969,7 +969,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Wallet',
             },
         },
-        assignedCards: 'Zugewiesene Karten',
+        assignedCards: 'Ihre Expensify Karten',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} verbleibend`,
         announcements: 'Ankündigungen',
         discoverSection: {
