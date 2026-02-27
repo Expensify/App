@@ -10,7 +10,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
-import {useEditingCellContext} from '@components/Table/EditableCell/EditingCellContext';
+import {getIsEditingCell} from '@components/Table/EditableCell/editingCellState';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -63,7 +63,6 @@ function TransactionListItem<TItem extends ListItem>({
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isEditingCell} = useEditingCellContext();
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
@@ -163,7 +162,7 @@ function TransactionListItem<TItem extends ListItem>({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     // Captures editing state at mousedown so onPress can guard correctly.
-    // isEditingCell may already be false by the time onPress fires (blur resets it first).
+    // getIsEditingCell() may already return false by the time onPress fires (blur resets it first).
     const wasEditingOnMouseDownRef = useRef(false);
 
     // Inline edit
@@ -194,7 +193,7 @@ function TransactionListItem<TItem extends ListItem>({
 
     const handleOnPress = () => {
         // Consume the tap that dismissed an editing cell — a second tap will open the row.
-        // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
+        // We check the ref rather than getIsEditingCell() because blur fires before onPress and resets the state.
         if (wasEditingOnMouseDownRef.current) {
             wasEditingOnMouseDownRef.current = false;
             return;
@@ -235,9 +234,9 @@ function TransactionListItem<TItem extends ListItem>({
                 role={getButtonRole(true)}
                 isNested
                 onMouseDown={(e) => {
-                    wasEditingOnMouseDownRef.current = isEditingCell;
+                    wasEditingOnMouseDownRef.current = getIsEditingCell();
                     // Skip preventDefault when editing so the browser naturally blurs the input (triggering save/cancel).
-                    if (!isEditingCell) {
+                    if (!getIsEditingCell()) {
                         e.preventDefault();
                     }
                 }}

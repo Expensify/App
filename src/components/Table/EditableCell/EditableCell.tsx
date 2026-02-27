@@ -5,7 +5,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useEditingCellContext} from './EditingCellContext';
+import {decrementEditingCellCount, incrementEditingCellCount} from './editingCellState';
 
 type EditableCellProps = {
     /** Content to display when not editing */
@@ -47,7 +47,6 @@ type EditableCellProps = {
  */
 function EditableCell({children, editContent, popoverContent, isEditing, canEdit, onStartEditing, anchorRef}: EditableCellProps) {
     const styles = useThemeStyles();
-    const {setEditingCellCount} = useEditingCellContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const isEditable = isLargeScreenWidth;
 
@@ -55,9 +54,9 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
         if (!isEditable || !isEditing) {
             return;
         }
-        setEditingCellCount((count) => count + 1);
-        return () => setEditingCellCount((count) => count - 1);
-    }, [isEditing, isEditable, setEditingCellCount]);
+        incrementEditingCellCount();
+        return () => decrementEditingCellCount();
+    }, [isEditing, isEditable]);
 
     // Architectural exclusion (e.g. narrow layout) — no container, no padding.
     if (!isEditable) {
@@ -70,7 +69,7 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     }
 
     // Popover edit mode: keep showing display content with active border
-    if (isEditing) {
+    if (isEditing && popoverContent) {
         return (
             <>
                 <View
@@ -87,30 +86,22 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
     // Transient non-editable state (loading, permissions pending): render the container for layout
     // consistency but skip the pressable so the user cannot trigger edit mode.
     if (!canEdit) {
-        return (
-            <>
-                <View style={[styles.editableCell]}>{children}</View>
-                {popoverContent}
-            </>
-        );
+        return <View style={[styles.editableCell]}>{children}</View>;
     }
 
     return (
-        <>
-            <PressableWithFeedback
-                accessibilityRole={CONST.ROLE.BUTTON}
-                accessibilityLabel="Edit cell"
-                sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
-                onPress={onStartEditing}
-                style={styles.editableCell}
-                wrapperStyle={styles.w100}
-                focusStyle={styles.editableCellFocus}
-                hoverStyle={styles.editableCellHover}
-            >
-                {children}
-            </PressableWithFeedback>
-            {popoverContent}
-        </>
+        <PressableWithFeedback
+            accessibilityRole={CONST.ROLE.BUTTON}
+            accessibilityLabel="Edit cell"
+            sentryLabel={CONST.SENTRY_LABEL.TABLE.EDITABLE_CELL}
+            onPress={onStartEditing}
+            style={styles.editableCell}
+            wrapperStyle={styles.w100}
+            focusStyle={styles.editableCellFocus}
+            hoverStyle={styles.editableCellHover}
+        >
+            {children}
+        </PressableWithFeedback>
     );
 }
 
