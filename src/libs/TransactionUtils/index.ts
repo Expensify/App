@@ -24,7 +24,6 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getDistanceRateCustomUnit,
     getDistanceRateCustomUnitRate,
-    getPolicy,
     getTaxByID,
     isInstantSubmitEnabled,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
