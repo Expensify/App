@@ -221,7 +221,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 firstName: currentUserPersonalDetails?.firstName,
                 lastName: currentUserPersonalDetails?.lastName,
                 selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
-                shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
                 shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
                 introSelected,
             });
