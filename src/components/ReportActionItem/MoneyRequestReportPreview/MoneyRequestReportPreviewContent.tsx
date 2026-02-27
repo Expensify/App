@@ -79,6 +79,7 @@ import {
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -148,6 +149,12 @@ function MoneyRequestReportPreviewContent({
     const shouldShowAccessPlaceHolder = !iouReport && !shouldShowLoading;
     const shouldShowEmptyPlaceholder = transactions.length === 0 && !shouldShowLoading;
     const showStatusAndSkeleton = !shouldShowEmptyPlaceholder;
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MoneyRequestReportPreviewContent',
+        shouldShowSkeleton,
+        showStatusAndSkeleton,
+        shouldShowLoading,
+    };
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -831,7 +838,7 @@ function MoneyRequestReportPreviewContent({
                                                     </Animated.View>
                                                 </View>
                                                 {showStatusAndSkeleton && shouldShowSkeleton ? (
-                                                    <MoneyReportHeaderStatusBarSkeleton />
+                                                    <MoneyReportHeaderStatusBarSkeleton reasonAttributes={skeletonReasonAttributes} />
                                                 ) : (
                                                     (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) &&
                                                     (shouldShowReportStatus || !shouldShowAccessPlaceHolder) && (
