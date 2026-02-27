@@ -108,7 +108,13 @@ function useConciergeSidePanelReportActions({
                 const createdAction = actions.find(isCreatedAction);
                 return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
             }
-            if (!isConciergeSidePanel || showFullHistory || !hadUserMessageAtSessionStart) {
+            if (!isConciergeSidePanel || showFullHistory) {
+                return actions;
+            }
+            if (!sessionStartTime) {
+                return actions.filter(isCreatedAction);
+            }
+            if (!hadUserMessageAtSessionStart) {
                 return actions;
             }
             const filtered = actions.filter(isCurrentSessionAction);
@@ -121,7 +127,7 @@ function useConciergeSidePanelReportActions({
             }
             return filtered;
         },
-        [showConciergeSidePanelWelcome, conciergeGreetingAction, isConciergeSidePanel, showFullHistory, isCurrentSessionAction, hadUserMessageAtSessionStart],
+        [showConciergeSidePanelWelcome, conciergeGreetingAction, isConciergeSidePanel, showFullHistory, sessionStartTime, isCurrentSessionAction, hadUserMessageAtSessionStart],
     );
 
     const filteredVisibleActions = useMemo(() => filterActions(visibleReportActions), [filterActions, visibleReportActions]);
