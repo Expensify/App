@@ -34,7 +34,7 @@ import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
     getTaxAmount,
-    getTaxName,
+    getTaxRateTitle,
     isAmountMissing,
     isCreatedMissing,
     isFetchingWaypointsFromServer,
@@ -418,14 +418,8 @@ function MoneyRequestConfirmationListFooter({
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
     // Get the tax rate title based on the policy and transaction
-    let taxRateTitle;
-    if (getTaxName(policy, transaction)) {
-        taxRateTitle = getTaxName(policy, transaction);
-    } else if (isMovingCurrentTransactionFromTrackExpense) {
-        taxRateTitle = getTaxName(policyForMovingExpenses, transaction);
-    } else {
-        taxRateTitle = '';
-    }
+    const taxRateTitle = getTaxRateTitle(policy, transaction, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
+
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';

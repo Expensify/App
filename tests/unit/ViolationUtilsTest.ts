@@ -1631,6 +1631,16 @@ describe('getIsViolationFixed', () => {
             });
             expect(result).toBe(true);
         });
+
+        it("should return false when taxCodes match but the taxValues doesn't", () => {
+            const result = getIsViolationFixed('violations.taxOutOfPolicy', {
+                ...defaultParams,
+                taxCode: 'CUSTOM_TAX',
+                taxValue: '15',
+                policyTaxRates: {CUSTOM_TAX: {name: '10%', value: '10'}},
+            });
+            expect(result).toBe(false);
+        });
     });
 
     describe('violations.missingAttendees', () => {
