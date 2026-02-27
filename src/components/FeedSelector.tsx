@@ -35,7 +35,7 @@ function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, sho
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
 
     if (isLoading) {
-        return <SearchInputSelectionSkeleton />;
+        return <SearchInputSelectionSkeleton reasonAttributes={{context: 'FeedSelector', isLoading}} />;
     }
 
     return (
