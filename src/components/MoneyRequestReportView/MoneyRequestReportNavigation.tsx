@@ -96,7 +96,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             return;
         }
 
-        const prevIndex = (currentIndex - 1 + allReports.length) % allReports.length;
+        const prevIndex = (currentIndex - 1) % allReports.length;
         goToReportId(allReports.at(prevIndex));
     };
 
