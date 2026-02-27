@@ -1,4 +1,3 @@
-import {setYear} from 'date-fns';
 import React from 'react';
 import DatePickerModal from '@components/DatePicker/DatePickerModal';
 import {EditableCell, usePopoverEditState} from '@components/Table/EditableCell';
@@ -53,8 +52,8 @@ function DateCell({date, showTooltip, isLargeScreenWidth, canEdit, onSave}: Date
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     }}
                     shouldPositionFromTop={!isInverted}
-                    minDate={setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR)}
-                    maxDate={setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR)}
+                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     inputID="EditableDateCell"
                     showConfirmButtons
                 />
