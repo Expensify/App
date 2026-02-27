@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.3.26-4",
+  "version": "9.3.26-7",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -44,6 +44,7 @@
     "test:debug": "TZ=utc NODE_OPTIONS='--inspect-brk --experimental-vm-modules' jest --runInBand",
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
     "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc",
+    "typecheck-tsgo": "tsgo --project tsconfig.tsgo.json",
     "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=383 --cache --cache-location=node_modules/.cache/eslint --cache-strategy content --concurrency=auto",
     "lint-changed": "NODE_OPTIONS=--max_old_space_size=8192 ./scripts/lintChanged.sh",
     "check-lazy-loading": "ts-node scripts/checkLazyLoading.ts",
@@ -279,6 +280,7 @@
     "@types/setimmediate": "^1.0.2",
     "@types/webpack": "^5.28.5",
     "@types/webpack-bundle-analyzer": "^4.7.0",
+    "@typescript/native-preview": "^7.0.0-dev.20260219.1",
     "@vercel/ncc": "0.38.1",
     "@vitest/mocker": "4.0.16",
     "@vue/preload-webpack-plugin": "^2.0.0",
@@ -300,7 +302,7 @@
     "dotenv": "^16.0.3",
     "eslint": "^9.36.0",
     "eslint-config-airbnb-typescript": "^18.0.0",
-    "eslint-config-expensify": "2.0.103",
+    "eslint-config-expensify": "2.0.105",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-file-progress": "3.0.1",
     "eslint-plugin-jest": "^29.0.1",
@@ -401,7 +403,7 @@
     }
   },
   "engines": {
-    "node": "20.19.5",
+    "node": "20.20.0",
     "npm": "10.8.2"
   }
 }
