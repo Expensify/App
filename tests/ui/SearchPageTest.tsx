@@ -100,8 +100,11 @@ describe('SearchPageNarrow', () => {
         });
     });
 
-    afterAll(() => {
-        Onyx.clear();
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        jest.clearAllMocks();
     });
 
     it('NavigationTabBar should be hidden when the search input is focused', async () => {

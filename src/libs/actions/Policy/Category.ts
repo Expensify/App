@@ -9,10 +9,12 @@ import type {
     EnablePolicyCategoriesParams,
     GetPolicyCategoriesParams,
     OpenPolicyCategoriesPageParams,
+    RemovePolicyCategoryItemizedReceiptsRequiredParams,
     RemovePolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryApproverParams,
     SetPolicyCategoryAttendeesRequiredParams,
     SetPolicyCategoryDescriptionRequiredParams,
+    SetPolicyCategoryItemizedReceiptsRequiredParams,
     SetPolicyCategoryMaxAmountParams,
     SetPolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryTaxParams,
@@ -38,6 +40,40 @@ import type {Policy, PolicyCategories, PolicyCategory, Report, ReportAction} fro
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+type CreatePolicyCategoryParams = {
+    policyID: string;
+    categoryName: string;
+    isSetupCategoriesTaskParentReportArchived: boolean;
+    setupCategoryTaskReport: OnyxEntry<Report>;
+    setupCategoryTaskParentReport: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    hasOutstandingChildTask: boolean;
+    parentReportAction: OnyxEntry<ReportAction>;
+    setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>;
+    setupCategoriesAndTagsTaskParentReport?: OnyxEntry<Report>;
+    isSetupCategoriesAndTagsTaskParentReportArchived?: boolean;
+    setupCategoriesAndTagsHasOutstandingChildTask?: boolean;
+    setupCategoriesAndTagsParentReportAction?: OnyxEntry<ReportAction>;
+    policyHasTags?: boolean;
+};
+
+type SetWorkspaceCategoryEnabledParams = {
+    policyData: PolicyData;
+    categoriesToUpdate: Record<string, {name: string; enabled: boolean}>;
+    isSetupCategoriesTaskParentReportArchived: boolean;
+    setupCategoryTaskReport: OnyxEntry<Report>;
+    setupCategoryTaskParentReport: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    hasOutstandingChildTask: boolean;
+    parentReportAction: OnyxEntry<ReportAction> | undefined;
+    setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>;
+    setupCategoriesAndTagsTaskParentReport?: OnyxEntry<Report>;
+    isSetupCategoriesAndTagsTaskParentReportArchived?: boolean;
+    setupCategoriesAndTagsHasOutstandingChildTask?: boolean;
+    setupCategoriesAndTagsParentReportAction?: OnyxEntry<ReportAction>;
+    policyHasTags?: boolean;
+};
 
 function appendSetupCategoriesOnboardingData(
     onyxData: OnyxData<
@@ -328,16 +364,22 @@ function getPolicyCategories(policyID: string) {
     API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
 }
 
-function setWorkspaceCategoryEnabled(
-    policyData: PolicyData,
-    categoriesToUpdate: Record<string, {name: string; enabled: boolean}>,
-    isSetupCategoriesTaskParentReportArchived: boolean,
-    setupCategoryTaskReport: OnyxEntry<Report>,
-    setupCategoryTaskParentReport: OnyxEntry<Report>,
-    currentUserAccountID: number,
-    hasOutstandingChildTask: boolean,
-    parentReportAction: OnyxEntry<ReportAction> | undefined,
-) {
+function setWorkspaceCategoryEnabled({
+    policyData,
+    categoriesToUpdate,
+    isSetupCategoriesTaskParentReportArchived,
+    setupCategoryTaskReport,
+    setupCategoryTaskParentReport,
+    currentUserAccountID,
+    hasOutstandingChildTask,
+    parentReportAction,
+    setupCategoriesAndTagsTaskReport,
+    setupCategoriesAndTagsTaskParentReport,
+    isSetupCategoriesAndTagsTaskParentReportArchived,
+    setupCategoriesAndTagsHasOutstandingChildTask,
+    setupCategoriesAndTagsParentReportAction,
+    policyHasTags,
+}: SetWorkspaceCategoryEnabledParams) {
     const policyID = policyData.policy?.id;
     const policyCategoriesOptimisticData = {
         ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
@@ -414,6 +456,18 @@ function setWorkspaceCategoryEnabled(
         parentReportAction,
     );
 
+    if (setupCategoriesAndTagsTaskReport && policyHasTags) {
+        appendSetupCategoriesOnboardingData(
+            onyxData,
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived ?? false,
+            currentUserAccountID,
+            setupCategoriesAndTagsHasOutstandingChildTask ?? false,
+            setupCategoriesAndTagsParentReportAction,
+        );
+    }
+
     const parameters = {
         policyID,
         categories: JSON.stringify(Object.keys(categoriesToUpdate).map((key) => categoriesToUpdate[key])),
@@ -425,10 +479,6 @@ function setWorkspaceCategoryEnabled(
 function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: string, areCommentsRequired: boolean, policyCategories: PolicyCategories = {}) {
     const policyCategoryToUpdate = policyCategories?.[categoryName];
     const originalAreCommentsRequired = policyCategoryToUpdate?.areCommentsRequired;
-    const originalCommentHint = policyCategoryToUpdate?.commentHint;
-
-    // When areCommentsRequired is set to false, commentHint has to be reset
-    const updatedCommentHint = areCommentsRequired ? policyCategories?.[categoryName]?.commentHint : '';
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
         optimisticData: [
@@ -442,7 +492,6 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
                             areCommentsRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                         areCommentsRequired,
-                        commentHint: updatedCommentHint,
                     },
                 },
             },
@@ -458,7 +507,6 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
                             areCommentsRequired: null,
                         },
                         areCommentsRequired,
-                        commentHint: updatedCommentHint,
                     },
                 },
             },
@@ -475,7 +523,6 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
                             areCommentsRequired: null,
                         },
                         areCommentsRequired: originalAreCommentsRequired,
-                        commentHint: originalCommentHint,
                     },
                 },
             },
@@ -620,16 +667,151 @@ function removePolicyCategoryReceiptsRequired(policyData: PolicyData, categoryNa
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED, parameters, onyxData);
 }
 
-function createPolicyCategory(
-    policyID: string,
-    categoryName: string,
-    isSetupCategoriesTaskParentReportArchived: boolean,
-    setupCategoryTaskReport: OnyxEntry<Report>,
-    setupCategoryTaskParentReport: OnyxEntry<Report>,
-    currentUserAccountID: number,
-    hasOutstandingChildTask: boolean,
-    parentReportAction: OnyxEntry<ReportAction>,
-) {
+function setPolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoItemizedReceipt: number) {
+    const policyID = policyData.policy?.id;
+    const originalMaxAmountNoItemizedReceipt = policyData.categories[categoryName]?.maxAmountNoItemizedReceipt;
+    const policyCategoriesOptimisticData = {
+        [categoryName]: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            pendingFields: {
+                maxAmountNoItemizedReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+            maxAmountNoItemizedReceipt,
+        },
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: policyCategoriesOptimisticData,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        pendingAction: null,
+                        pendingFields: {
+                            maxAmountNoItemizedReceipt: null,
+                        },
+                        maxAmountNoItemizedReceipt,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        pendingAction: null,
+                        pendingFields: {
+                            maxAmountNoItemizedReceipt: null,
+                        },
+                        maxAmountNoItemizedReceipt: originalMaxAmountNoItemizedReceipt,
+                    },
+                },
+            },
+        ],
+    };
+
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+
+    const parameters: SetPolicyCategoryItemizedReceiptsRequiredParams = {
+        policyID,
+        categoryName,
+        maxExpenseAmountNoItemizedReceipt: maxAmountNoItemizedReceipt,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, onyxData);
+}
+
+function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, categoryName: string) {
+    const policyID = policyData.policy?.id;
+    const originalMaxAmountNoItemizedReceipt = policyData.categories[categoryName]?.maxAmountNoItemizedReceipt;
+    const policyCategoriesOptimisticData = {
+        [categoryName]: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            pendingFields: {
+                maxAmountNoItemizedReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+            maxAmountNoItemizedReceipt: null,
+        },
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: policyCategoriesOptimisticData,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        pendingAction: null,
+                        pendingFields: {
+                            maxAmountNoItemizedReceipt: null,
+                        },
+                        maxAmountNoItemizedReceipt: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        pendingAction: null,
+                        pendingFields: {
+                            maxAmountNoItemizedReceipt: null,
+                        },
+                        maxAmountNoItemizedReceipt: originalMaxAmountNoItemizedReceipt,
+                    },
+                },
+            },
+        ],
+    };
+
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+
+    const parameters: RemovePolicyCategoryItemizedReceiptsRequiredParams = {
+        policyID,
+        categoryName,
+    };
+
+    API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, onyxData);
+}
+
+function createPolicyCategory({
+    policyID,
+    categoryName,
+    isSetupCategoriesTaskParentReportArchived,
+    setupCategoryTaskReport,
+    setupCategoryTaskParentReport,
+    currentUserAccountID,
+    hasOutstandingChildTask,
+    parentReportAction,
+    setupCategoriesAndTagsTaskReport,
+    setupCategoriesAndTagsTaskParentReport,
+    isSetupCategoriesAndTagsTaskParentReportArchived,
+    setupCategoriesAndTagsHasOutstandingChildTask,
+    setupCategoriesAndTagsParentReportAction,
+    policyHasTags,
+}: CreatePolicyCategoryParams) {
     const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
     appendSetupCategoriesOnboardingData(
         onyxData,
@@ -640,6 +822,18 @@ function createPolicyCategory(
         hasOutstandingChildTask,
         parentReportAction,
     );
+    // Complete the combined "Set up categories and tags" task only if tags already exist
+    if (setupCategoriesAndTagsTaskReport && policyHasTags) {
+        appendSetupCategoriesOnboardingData(
+            onyxData,
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived ?? false,
+            currentUserAccountID,
+            setupCategoriesAndTagsHasOutstandingChildTask ?? false,
+            setupCategoriesAndTagsParentReportAction,
+        );
+    }
     const parameters = {
         policyID,
         categories: JSON.stringify([{name: categoryName}]),
@@ -1597,6 +1791,7 @@ export {
     importPolicyCategories,
     openPolicyCategoriesPage,
     removePolicyCategoryReceiptsRequired,
+    removePolicyCategoryItemizedReceiptsRequired,
     renamePolicyCategory,
     setPolicyCategoryApprover,
     setPolicyCategoryAttendeesRequired,
@@ -1606,6 +1801,7 @@ export {
     setPolicyCategoryMaxAmount,
     setPolicyCategoryPayrollCode,
     setPolicyCategoryReceiptsRequired,
+    setPolicyCategoryItemizedReceiptsRequired,
     setPolicyCategoryTax,
     setPolicyCustomUnitDefaultCategory,
     setWorkspaceCategoryDescriptionHint,

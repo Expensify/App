@@ -68,7 +68,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
@@ -80,10 +80,14 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-        preferredLocale,
     );
     const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
     const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
+    const statusBadge = !!badgeProps && (
+        <View style={[styles.reportStatusContainer, badgeProps.badgeStyles]}>
+            <Text style={[styles.reportStatusText, badgeProps.textStyles]}>{badgeProps.text}</Text>
+        </View>
+    );
     const withdrawalInfoText = translate('settlement.withdrawalInfo', {date: formattedWithdrawalDate, withdrawalID: withdrawalIDItem.entryID});
 
     const failedErrorHTML =
@@ -115,6 +119,14 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                     text={formattedWithdrawalDate}
                     style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
                 />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS)}
+            >
+                {statusBadge}
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: (
@@ -176,11 +188,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
                                 />
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                                    {!!badgeProps && (
-                                        <View style={[styles.reportStatusContainer, badgeProps.badgeStyles]}>
-                                            <Text style={[styles.reportStatusText, badgeProps.textStyles]}>{badgeProps.text}</Text>
-                                        </View>
-                                    )}
+                                    {statusBadge}
                                     <TextWithTooltip
                                         text={withdrawalInfoText}
                                         style={[styles.textLabelSupporting, styles.lh16, styles.pre]}

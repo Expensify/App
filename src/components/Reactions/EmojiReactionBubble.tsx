@@ -5,7 +5,7 @@ import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ReactionListEvent} from '@pages/home/ReportScreenContext';
+import type {ReactionListEvent} from '@pages/inbox/ReportScreenContext';
 import CONST from '@src/CONST';
 
 type EmojiReactionBubbleProps = {

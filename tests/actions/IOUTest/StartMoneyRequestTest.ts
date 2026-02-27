@@ -24,10 +24,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
 }));
 
-jest.mock('@libs/Performance', () => ({
-    markStart: jest.fn(),
-}));
-
 jest.mock('@libs/telemetry/activeSpans', () => ({
     startSpan: jest.fn(),
 }));
@@ -58,14 +54,8 @@ describe('startMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // Verify drafts exist
-            const draftTransactionsBeforeClear = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction1.transactionID}`]: draftTransaction1,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`]: draftTransaction2,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction3.transactionID}`]: draftTransaction3,
-            };
-
             // When: clearMoneyRequest is called with draftTransactions
-            clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, false, draftTransactionsBeforeClear);
+            clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, false, [draftTransaction1.transactionID, draftTransaction2.transactionID, draftTransaction3.transactionID]);
             await waitForBatchedUpdates();
 
             // Then: All draft transactions should be cleared
@@ -81,15 +71,12 @@ describe('startMoneyRequest', () => {
         it('should set skipConfirmation correctly when draftTransactions is provided', async () => {
             // Given: A draft transaction exists
             const draftTransaction = createRandomTransaction(1);
-            const draftTransactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction.transactionID}`]: draftTransaction,
-            };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction.transactionID}`, draftTransaction);
             await waitForBatchedUpdates();
 
             // When: clearMoneyRequest is called with skipConfirmation = true
-            clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, true, draftTransactions);
+            clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, true, [draftTransaction.transactionID]);
             await waitForBatchedUpdates();
 
             // Then: skipConfirmation should be set to true
@@ -100,10 +87,8 @@ describe('startMoneyRequest', () => {
 
         it('should handle empty draftTransactions gracefully', async () => {
             // Given: No draft transactions exist
-            const emptyDraftTransactions = {};
-
             // When: clearMoneyRequest is called with empty draftTransactions
-            clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, false, emptyDraftTransactions);
+            clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, false, undefined);
             await waitForBatchedUpdates();
 
             // Then: Should complete without errors and set skipConfirmation
@@ -134,13 +119,10 @@ describe('startMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`, draftTransaction2);
             await waitForBatchedUpdates();
 
-            const draftTransactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction1.transactionID}`]: draftTransaction1,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`]: draftTransaction2,
-            };
+            const draftTransactionIDs = [draftTransaction1.transactionID, draftTransaction2.transactionID];
 
             // When: startMoneyRequest is called with draftTransactions
-            startMoneyRequest(CONST.IOU.TYPE.SUBMIT, 'reportID123', CONST.IOU.REQUEST_TYPE.MANUAL, false, undefined, draftTransactions);
+            startMoneyRequest(CONST.IOU.TYPE.SUBMIT, 'reportID123', CONST.IOU.REQUEST_TYPE.MANUAL, false, undefined, draftTransactionIDs);
             await waitForBatchedUpdates();
 
             // Then: All draft transactions should be cleared
@@ -162,13 +144,10 @@ describe('startMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`, draftTransaction2);
             await waitForBatchedUpdates();
 
-            const draftTransactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction1.transactionID}`]: draftTransaction1,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction2.transactionID}`]: draftTransaction2,
-            };
+            const draftTransactionIDs = [draftTransaction1.transactionID, draftTransaction2.transactionID];
 
-            // When: startDistanceRequest is called with draftTransactions
-            startDistanceRequest(CONST.IOU.TYPE.SUBMIT, 'reportID123', CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, false, undefined, draftTransactions);
+            // When: startDistanceRequest is called with draftTransactionIDs
+            startDistanceRequest(CONST.IOU.TYPE.SUBMIT, 'reportID123', CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, false, undefined, draftTransactionIDs);
             await waitForBatchedUpdates();
 
             // Then: All draft transactions should be cleared

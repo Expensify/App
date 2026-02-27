@@ -37,13 +37,14 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
+    const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const {currentStep} = addNewCardFeed ?? {};
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: false});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
 
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
 
@@ -63,14 +64,11 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     }, []);
 
     useEffect(() => {
-        // If the user only has a domain feed, a workspace account may not have been created yet.
-        // However, adding a workspace feed requires a workspace account.
-        // Calling openPolicyAddCardFeedPage will trigger the creation of a workspace account.
-        if (workspaceAccountID) {
-            return;
-        }
+        // If the user only has a domain feed, then the workspace account may not have been created yet, or the "Company cards" workspace-level feature may not have been enabled yet
+        // However, adding a workspace feed requires a workspace account with "Company cards" feature enabled.
+        // Calling openPolicyAddCardFeedPage will trigger the creation of the workspace account (if necessary) and enable the "Company cards" feature (if not enabled).
         openPolicyAddCardFeedPage(policyID);
-    }, [workspaceAccountID, policyID]);
+    }, [policyID]);
 
     if (isAddCardFeedLoading || isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
         return <FullScreenLoadingIndicator />;
@@ -150,7 +148,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
-                    navigateToConciergeChat();
+                    navigateToConciergeChat(conciergeReportID, false);
                 }}
             />
         </AccessOrNotFoundWrapper>

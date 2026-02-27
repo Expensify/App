@@ -1,0 +1,44 @@
+import React from 'react';
+import type {ListItem, TransactionMerchantGroupListItemType} from '@components/SelectionListWithSections/types';
+import CONST from '@src/CONST';
+import type {BaseListItemHeaderProps} from './BaseListItemHeader';
+import BaseListItemHeader from './BaseListItemHeader';
+
+type MerchantListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
+    /** The merchant currently being looked at */
+    merchant: TransactionMerchantGroupListItemType;
+};
+
+function MerchantListItemHeader<TItem extends ListItem>({
+    merchant: merchantItem,
+    onCheckboxPress,
+    isDisabled,
+    canSelectMultiple,
+    isSelectAllChecked,
+    isIndeterminate,
+    isExpanded,
+    onDownArrowClick,
+    columns,
+}: MerchantListItemHeaderProps<TItem>) {
+    // formattedMerchant is already translated to "No merchant" for empty values in SearchUIUtils
+    const merchantName = merchantItem.formattedMerchant ?? merchantItem.merchant ?? '';
+
+    return (
+        <BaseListItemHeader
+            item={merchantItem}
+            displayName={merchantName}
+            groupColumnKey={CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT}
+            columnStyleKey={CONST.SEARCH.TABLE_COLUMNS.MERCHANT}
+            onCheckboxPress={onCheckboxPress}
+            isDisabled={isDisabled}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            isIndeterminate={isIndeterminate}
+            isExpanded={isExpanded}
+            onDownArrowClick={onDownArrowClick}
+            columns={columns}
+        />
+    );
+}
+
+export default MerchantListItemHeader;

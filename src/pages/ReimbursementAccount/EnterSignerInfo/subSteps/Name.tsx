@@ -12,14 +12,14 @@ import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 
 function Name({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
-    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT, {canBeMissing: true});
+    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
 
     const inputID = INPUT_IDS.SIGNER_FULL_NAME;
     const defaultValue = String(enterSignerInfoFormDraft?.[inputID] ?? '');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
-            const errors = getFieldRequiredErrors(values, [inputID]);
+            const errors = getFieldRequiredErrors(values, [inputID], translate);
 
             if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
                 errors[inputID] = translate('bankAccount.error.fullName');

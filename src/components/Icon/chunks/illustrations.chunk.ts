@@ -12,6 +12,9 @@ import PlaidCompanyCardDetail from '@assets/images/companyCards/card-plaid.svg';
 import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
+import CompanyCardsEmptyStateGeneric from '@assets/images/companyCards/companycards-generic.svg';
+import CompanyCardsEmptyStateUKEU from '@assets/images/companyCards/companycards-uk_eu.svg';
+import CompanyCardsEmptyStateUSCA from '@assets/images/companyCards/companycards-us_ca.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
 import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
@@ -42,6 +45,7 @@ import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Multifactor Authentication Illustrations
 import HumptyDumpty from '@assets/images/multifactorAuthentication/humpty-dumpty.svg';
+import MagnifyingGlassSpyMouthClosed from '@assets/images/multifactorAuthentication/magnifying-glass-spy-mouth-closed.svg';
 import OpenPadlock from '@assets/images/multifactorAuthentication/open-padlock.svg';
 import RunOutOfTime from '@assets/images/multifactorAuthentication/running-out-of-time.svg';
 import PendingTravel from '@assets/images/pending-travel.svg';
@@ -79,7 +83,7 @@ import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cl
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
-import ReceiptUpload from '@assets/images/receipt-upload.svg';
+import ReceiptStack from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
 import Shutter from '@assets/images/shutter.svg';
 // Simple Illustrations - Bucket 3 (Common)
@@ -91,18 +95,25 @@ import Alert from '@assets/images/simple-illustrations/simple-illustration__aler
 import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import ShareBank from '@assets/images/simple-illustrations/simple-illustration__bank-share.svg';
+import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
+import Broom from '@assets/images/simple-illustrations/simple-illustration__broom.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
+import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
+import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
+import CheckboxText from '@assets/images/simple-illustrations/simple-illustration__checkboxtext.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
 import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
+import ConciergeBot from '@assets/images/simple-illustrations/simple-illustration__concierge-bot.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
+import CowboyHat from '@assets/images/simple-illustrations/simple-illustration__cowboy-hat.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
 import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
 import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
@@ -110,7 +121,10 @@ import EmailAddress from '@assets/images/simple-illustrations/simple-illustratio
 import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
+import F1Flags from '@assets/images/simple-illustrations/simple-illustration__f1-flags.svg';
+import FastMoney from '@assets/images/simple-illustrations/simple-illustration__fastmoney.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
+import FishbowlBlue from '@assets/images/simple-illustrations/simple-illustration__fishbowl--blue.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
@@ -143,15 +157,19 @@ import RealtimeReport from '@assets/images/simple-illustrations/simple-illustrat
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReceiptPartners from '@assets/images/simple-illustrations/simple-illustration__receipt.svg';
+import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
 import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
+import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
 import SplitBill from '@assets/images/simple-illustrations/simple-illustration__splitbill.svg';
 import Stopwatch from '@assets/images/simple-illustrations/simple-illustration__stopwatch.svg';
 import SubscriptionAnnual from '@assets/images/simple-illustrations/simple-illustration__subscription-annual.svg';
 import SubscriptionPPU from '@assets/images/simple-illustrations/simple-illustration__subscription-ppu.svg';
+import Sunglasses from '@assets/images/simple-illustrations/simple-illustration__sunglasses.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
+import Target from '@assets/images/simple-illustrations/simple-illustration__target.svg';
 import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
 import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration__thumbsdown.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
@@ -159,11 +177,15 @@ import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TravelAlerts from '@assets/images/simple-illustrations/simple-illustration__travelalerts.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
+import Trophy1 from '@assets/images/simple-illustrations/simple-illustration__trophy-1.svg';
+import Trophy from '@assets/images/simple-illustrations/simple-illustration__trophy.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import UserShield from '@assets/images/simple-illustrations/simple-illustration__user-shield.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
+import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 // Create the illustrations object with all imported illustrations
@@ -192,6 +214,9 @@ const Illustrations = {
     VisaCompanyCardDetailLarge,
     WellsFargoCompanyCardDetailLarge,
     CompanyCardsEmptyState,
+    CompanyCardsEmptyStateGeneric,
+    CompanyCardsEmptyStateUKEU,
+    CompanyCardsEmptyStateUSCA,
     EmptyCardState,
     PendingBank,
     CompanyCardsPendingState,
@@ -249,15 +274,17 @@ const Illustrations = {
     // Other Images
     Hand,
     PendingTravel,
-    ReceiptUpload,
+    ReceiptStack,
     RunningTurtle,
     Shutter,
     ExpensifyApprovedLogo,
+    TravelCVV,
     TurtleInShell,
 
     // Simple Illustrations
     Accounting,
     Building,
+    BankCoin,
     Coins,
     CreditCardsNew,
     FolderOpen,
@@ -272,6 +299,7 @@ const Illustrations = {
     RealtimeReport,
     ReceiptPartners,
     ReceiptWrangler,
+    ReceiptUpload,
     TravelAlerts,
     ReportReceipt,
     Rules,
@@ -309,6 +337,7 @@ const Illustrations = {
     Approval,
     Binoculars,
     Buildings,
+    CalendarMonthly,
     Car,
     ChatBubbles,
     CheckmarkCircle,
@@ -320,6 +349,7 @@ const Illustrations = {
     EmptyShelves,
     Encryption,
     EnvelopeReceipt,
+    FastMoney,
     Filters,
     Flash,
     Gears,
@@ -334,9 +364,23 @@ const Illustrations = {
     ShieldYellow,
     Clock,
     Members,
+    WalletAlt2,
     UserShield,
+    Broom,
+    Chair,
+    CheckboxText,
+    ConciergeBot,
+    CowboyHat,
+    F1Flags,
+    FishbowlBlue,
+    SmallRocket,
+    Sunglasses,
+    Target,
+    Trophy,
+    Trophy1,
 
     // Multifactor Authentication Illustrations
+    MagnifyingGlassSpyMouthClosed,
     OpenPadlock,
     RunOutOfTime,
     HumptyDumpty,

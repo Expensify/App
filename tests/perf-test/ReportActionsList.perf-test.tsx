@@ -5,13 +5,12 @@ import {measureRenders} from 'reassure';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
+import ReportActionsList from '@pages/inbox/report/ReportActionsList';
+import {ActionListContext, ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ReportActionsList from '@src/pages/home/report/ReportActionsList';
-import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
@@ -61,19 +60,17 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
-beforeAll(() => {
+beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
         evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-    });
-    IntlStore.load('en');
-    return waitForBatchedUpdates();
-});
+    }),
+);
 
 const mockOnLayout = jest.fn();
 const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
-const mockRef = {current: null, flatListRef: null, scrollPosition: null, setScrollPosition: () => {}};
+const mockRef = {current: null, flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}};
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'test@test.com';

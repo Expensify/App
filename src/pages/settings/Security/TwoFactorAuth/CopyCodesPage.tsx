@@ -1,11 +1,10 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
@@ -31,15 +30,16 @@ import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download']);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
+    const isFocused = useIsFocused();
 
-    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const isUserValidated = account?.validated ?? false;
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
@@ -53,9 +53,16 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
         if (isLoadingOnyxValue(accountMetadata) || account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
             return;
         }
+
+        // This screen is rendered underneath other 2FA screens. We don't want it making
+        // API calls in the background in response to state updates
+        if (!isFocused) {
+            return;
+        }
+
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status]);
+    }, [isUserValidated, accountMetadata.status, isFocused]);
 
     return (
         <TwoFactorAuthWrapper
@@ -107,7 +114,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                         <PressableWithDelayToggle
                                             text={translate('twoFactorAuth.copy')}
                                             textChecked={translate('common.copied')}
-                                            icon={Expensicons.Copy}
+                                            icon={icons.Copy}
                                             inline={false}
                                             onPress={() => {
                                                 Clipboard.setString(account?.recoveryCodes ?? '');
@@ -119,6 +126,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             accessible={false}
                                             tooltipText=""
                                             tooltipTextChecked=""
+                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
                                         />
                                         <PressableWithDelayToggle
                                             text={translate('common.download')}
@@ -134,6 +142,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             accessible={false}
                                             tooltipText=""
                                             tooltipTextChecked=""
+                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD_CODES}
                                         />
                                     </View>
                                 </>

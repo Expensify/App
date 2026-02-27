@@ -2,8 +2,10 @@ import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import type {TupleToUnion} from 'type-fest';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
@@ -13,10 +15,10 @@ import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Button from './Button';
-import ConfirmModal from './ConfirmModal';
 import DragAndDropConsumer from './DragAndDrop/Consumer';
 import DragAndDropProvider from './DragAndDrop/Provider';
 import FilePicker from './FilePicker';
@@ -38,14 +40,13 @@ type ImportSpreadsheetProps = {
 };
 
 function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpreadsheetProps) {
+    const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [isReadingFile, setIsReadingFile] = useState(false);
     const [fileTopPosition, setFileTopPosition] = useState(0);
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
-    const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use different copies depending on the screen size
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -57,10 +58,14 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
         }),
     ).current;
 
-    const setUploadFileError = (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => {
-        setIsAttachmentInvalid(isInvalid);
-        setAttachmentInvalidReasonTitle(title);
-        setAttachmentValidReason(reason);
+    const showUploadFileError = (title: TranslationPaths, reason: TranslationPaths) => {
+        showConfirmModal({
+            title: translate(title),
+            prompt: translate(reason),
+            confirmText: translate('common.close'),
+            shouldShowCancelButton: false,
+            shouldHandleNavigationBack: true,
+        });
     };
 
     const validateFile = (file: FileObject) => {
@@ -68,12 +73,12 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
         const allowedExtensions: readonly string[] = isImportingMultiLevelTags ? CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS : CONST.ALLOWED_SPREADSHEET_EXTENSIONS;
 
         if (!allowedExtensions.includes(fileExtension.toLowerCase())) {
-            setUploadFileError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+            showUploadFileError('attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
             return false;
         }
 
         if ((file?.size ?? 0) <= 0) {
-            setUploadFileError(true, 'attachmentPicker.attachmentTooSmall', 'spreadsheet.sizeNotMet');
+            showUploadFileError('attachmentPicker.attachmentTooSmall', 'spreadsheet.sizeNotMet');
             return false;
         }
         return true;
@@ -104,26 +109,46 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                             .then((data) => {
                                 return data.text();
                             })
-                            .then((text) => XLSX.read(text, {type: 'string'}));
+                            .then((text) => XLSX.read(text, {type: 'string', raw: true}));
                     }
                     return fetch(fileURI)
                         .then((data) => {
                             return data.arrayBuffer();
                         })
-                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'}));
+                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer', raw: true}));
                 };
                 readWorkbook()
                     .then((workbook) => {
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
-                        const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
-                        setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false)
-                            .then(() => {
-                                Navigation.navigate(goTo);
-                            })
-                            .catch(() => {
-                                setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
-                            });
+                        // Use raw: true to preserve original string values from CSV (especially dates)
+                        const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false, raw: true}) as string[][] | unknown[][];
+                        const formattedSpreadsheetData = data.map((row) =>
+                            row.map((cell) => {
+                                if (cell == null) {
+                                    return '';
+                                }
+                                // Handle primitives (string, number, boolean) directly
+                                if (typeof cell === 'string' || typeof cell === 'number' || typeof cell === 'boolean') {
+                                    return String(cell);
+                                }
+                                // For objects (Date, arrays, etc.), serialize to JSON
+                                return JSON.stringify(cell);
+                            }),
+                        );
+                        return setSpreadsheetData(
+                            formattedSpreadsheetData,
+                            fileURI,
+                            file.type,
+                            file.name,
+                            isImportingMultiLevelTags ?? false,
+                            importedSpreadsheet?.importTransactionSettings,
+                        );
+                    })
+                    .then(() => {
+                        Navigation.navigate(goTo);
+                    })
+                    .catch(() => {
+                        showUploadFileError('spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
                     })
                     .finally(() => {
                         setIsReadingFile(false);
@@ -131,7 +156,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
             })
             .catch((error) => {
                 console.error('Failed to load XLSX library:', error);
-                setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.importSpreadsheetLibraryError');
+                showUploadFileError('spreadsheet.importFailedTitle', 'spreadsheet.importSpreadsheetLibraryError');
                 setIsReadingFile(false);
             });
     };
@@ -192,10 +217,6 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
         </>
     );
 
-    const hideInvalidAttachmentModal = () => {
-        setIsAttachmentInvalid(false);
-    };
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -241,16 +262,6 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                                     </View>
                                 </View>
                             </DragAndDropConsumer>
-                            <ConfirmModal
-                                title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                                onConfirm={hideInvalidAttachmentModal}
-                                onCancel={hideInvalidAttachmentModal}
-                                isVisible={isAttachmentInvalid}
-                                prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                                confirmText={translate('common.close')}
-                                shouldShowCancelButton={false}
-                                shouldHandleNavigationBack
-                            />
                         </View>
                     </View>
                 </DragAndDropProvider>
