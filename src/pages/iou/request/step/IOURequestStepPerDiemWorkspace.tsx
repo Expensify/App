@@ -36,11 +36,13 @@ function IOURequestStepPerDiemWorkspace({route, navigation}: IOURequestStepPerDi
             navigation={navigation}
             getPolicies={getActivePoliciesWithExpenseChatAndPerDiemEnabled}
             onSelectWorkspace={(policy) => {
-                let targetReport: OnyxEntry<Report> = getPolicyExpenseChat(accountID, policy?.id);
-                let targetIouType = iouType;
-                let transactionReportID;
-                // eslint-disable-next-line prefer-const
-                ({targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(targetReport, selfDMReport, targetIouType, defaultExpensePolicy, personalPolicy));
+                const {targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
+                    getPolicyExpenseChat(accountID, policy?.id),
+                    selfDMReport,
+                    iouType,
+                    defaultExpensePolicy,
+                    personalPolicy,
+                );
 
                 if (!targetReport) {
                     return;
