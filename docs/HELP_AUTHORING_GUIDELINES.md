@@ -1,4 +1,4 @@
-# Expensify HelpDot Authoring Spec (Bot Reference Version)
+# Expensify HelpDot Authoring Spec 
 
 ## Purpose
 
@@ -25,14 +25,8 @@ If multiple workflows are detected → split into multiple articles.
 
 # 2. Heading Rules (Strict)
 
-## Allowed
-
-- `#` (exactly one per article)
-- `##` (unlimited)
-
 ## Forbidden
 
-- `###` or deeper
 - Generic headings:
   - Overview
   - Introduction
@@ -50,11 +44,11 @@ If multiple workflows are detected → split into multiple articles.
   - Explicit
   - Feature-specific
 
-### Valid Examples
+**Valid Examples**
 
-# Connect a business bank account in Expensify
-## Enable ACH reimbursements in a Workspace
-## Troubleshoot bank connection errors in Expensify
+# Who can connect a business bank account in Expensify
+## Where to enable ACH reimbursements in a Workspace
+## How to troubleshoot bank connection errors in Expensify
 
 ---
 
@@ -87,63 +81,31 @@ Each article must include:
  - One primary # heading
  - Task-based ## sections
  - Sequential numbered steps (if procedural)
- - # FAQ section (if needed)
+ - An FAQ section (if needed)
 
-FAQ rules:
- - Heading must be exactly: # FAQ
- - Questions must use ##
- - Answers must be plain text
- - FAQ is not collapsible
+If including an FAQ section, it must comply with:
+/docs/HELPSITE_NAMING_CONVENTIONS.md
 
 ---
 
-# 5. Formatting Rules
+# 5. Step Formatting Standard
 
-## Text
- - Plain text under headings
- -  No bold paragraphs
- - No decorative formatting
- - No emojis
-
-## Lists
- - Numbered list → sequential steps
- - Bullets → unordered information
-
-## If bullet is:
- - Full sentence → add period.
- - Phrase → no period
-
-## Numbers
- - Nine and below → spelled out
- - 10 and above → numeric
+Step instructions must be:
+- Sequential
+- Clear
+- Action-oriented
+- Aligned with actual UI flow
 
 ---
 
-# 6. Step Formatting Standard
-
-Use:
-
-To complete X:
-1. Go to Y.
-2. Select Z.
-3. Click Save.
-
-Sub-steps:
-1. Complete the form.
-  - Enter routing number
-  - Enter account number
-2. Click Confirm.
-
----
-
-# 7. AI Retrieval Optimization Rules
+# 6. AI Retrieval Optimization Rules
 
 Every article must:
- - Include at least one full "How to.." heading using feature name
+ - Include at least one full "How to..." heading using feature name
  - Include realistic search phrases
  - Avoid vague wording
- - Avoid multi-feature coverage
- - Use Ul-exact labels
+- Avoid multi-feature coverage
+ - Use UI-exact labels
  - Avoid internal language
 
 Do not combine:
@@ -152,21 +114,24 @@ Do not combine:
 
 ---
 
-# 8. Screenshot Placeholder Format (Non-Rendered)
+# 7. Screenshot Placeholder Format (Non-Rendered)
 
 Screenshot suggestions must use HTML comments so they are invisible in the rendered HelpDot article.
 
 Use this exact structure:
 
-‹!-- SCREENSHOT: Suggestion: [Clear description of Ul state] Location: [Where it appears in article]
-Purpose: [Why this screenshot helps] -->
+<!-- SCREENSHOT:
+Suggestion: [Clear description of UI state]
+Location: [Where it appears in article]
+Purpose: [Why this screenshot helps]
+-->
 
 Rules:
- - Must begin with <! - SCREENSHOT:
+ - Must begin with <!-- SCREENSHOT:
  - Must end with -->
  - Must not appear inline in a sentence
  - Place immediately after the section or step it supports
- - Keep description specific and Ul-based
+ - Keep description specific and UI-based
 
 Prioritize screenshots for:
  - Navigation flows
@@ -177,17 +142,15 @@ Prioritize screenshots for:
 
 ---
 
-# 9. Pre-Publish Validation Checklist
+# 8. Pre-Publish Validation Checklist
 
 Before outputting an article, confirm:
  - Only # and ## used
  - No generic headings
- - Feature names match Ul
+ - Feature names match UI
  - Metadata aligns with search intent
  - Navigation included (if applicable)
  - Single workflow only
  - Includes at least one "How to" heading
- - Number formatting correct
- - Terminology compliant
 
 If any condition fails → regenerate.
