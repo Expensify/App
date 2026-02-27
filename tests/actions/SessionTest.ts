@@ -189,8 +189,6 @@ describe('Session', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        await waitForBatchedUpdates();
-
         expect(getAllPersistedRequests().length).toBe(0);
     });
 
@@ -227,8 +225,6 @@ describe('Session', () => {
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
-
-        await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
     });

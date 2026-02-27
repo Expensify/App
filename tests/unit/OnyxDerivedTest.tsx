@@ -104,8 +104,6 @@ describe('OnyxDerived', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
             await IntlStore.load(CONST.LOCALES.ES);
 
-            await waitForBatchedUpdates();
-
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             expect(derivedReportAttributes).toMatchObject({
