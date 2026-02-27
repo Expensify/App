@@ -73,7 +73,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             createOptionFromReport({...reportData, reportID: id}, personalDetails, currentUserAccountID, chatReport, privateIsArchived, reportAttributesDerived),
         );
         const isReportArchived = !!privateIsArchived;
-        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {}, reportAttributesDerived);
+        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {}, undefined, undefined, reportAttributesDerived);
         return {...report, alternateText};
     });
 
