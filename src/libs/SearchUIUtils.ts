@@ -3540,6 +3540,7 @@ function createTypeMenuSections(
     isOffline: boolean,
     defaultExpensifyCard: CardFeedForDisplay | undefined,
     shouldRedirectToExpensifyClassic: boolean,
+    draftTransactionIDs: string[] | undefined,
 ): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -3593,7 +3594,7 @@ function createTypeMenuSections(
                                               return;
                                           }
 
-                                          startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN);
+                                          startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
                                       });
                                   },
                               },

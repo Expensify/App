@@ -1,4 +1,5 @@
 import {defaultExpensifyCardSelector} from '@selectors/Card';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
@@ -60,6 +61,7 @@ const useSearchTypeMenuSections = () => {
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
@@ -107,6 +109,7 @@ const useSearchTypeMenuSections = () => {
                 isOffline,
                 defaultExpensifyCard,
                 shouldRedirectToExpensifyClassic,
+                draftTransactionIDs,
             ),
         [
             currentUserLoginAndAccountID?.email,
@@ -119,6 +122,7 @@ const useSearchTypeMenuSections = () => {
             isOffline,
             shouldRedirectToExpensifyClassic,
             icons,
+            draftTransactionIDs,
         ],
     );
 
