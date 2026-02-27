@@ -6,7 +6,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {
     AddBudgetParams,
     AddedOrDeletedPolicyReportFieldParams,
@@ -976,6 +976,11 @@ const translations = {
                 subtitle: 'Provide an address to receive your Expensify Card.',
                 cta: 'Add address',
             },
+            addPaymentCard: {
+                title: 'Add a payment card to keep using Expensify',
+                subtitle: 'Account > Subscription',
+                cta: 'Add',
+            },
             activateCard: {
                 title: 'Activate your Expensify Card',
                 subtitle: 'Validate your card and start spending.',
@@ -988,7 +993,7 @@ const translations = {
                 cta: 'Review',
             },
         },
-        assignedCards: 'Assigned cards',
+        assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
         announcements: 'Announcements',
         discoverSection: {
@@ -1004,10 +1009,38 @@ const translations = {
             export: ({count}: {count: number}) => `Export ${count} ${count === 1 ? 'report' : 'reports'}`,
             begin: 'Begin',
             emptyStateMessages: {
-                nicelyDone: 'Nicely done',
-                keepAnEyeOut: "Keep an eye out for what's coming next!",
-                allCaughtUp: "You're all caught up",
-                upcomingTodos: 'Upcoming to-dos will appear here.',
+                thumbsUpStarsTitle: "You're done!",
+                thumbsUpStarsDescription: 'Thumbs up to you, stay tuned for more tasks.',
+                smallRocketTitle: 'All caught up',
+                smallRocketDescription: 'Upcoming to-dos will launch here.',
+                cowboyHatTitle: "You're done!",
+                cowboyHatDescription: 'All tasks are wrangled, keep an eye out for more.',
+                trophy1Title: 'Nothing to show',
+                trophy1Description: 'You did it! Keep an eye out for more to-dos.',
+                palmTreeTitle: 'All caught up',
+                palmTreeDescription: 'Time to relax but stay tuned for future tasks.',
+                fishbowlBlueTitle: "You're done!",
+                fishbowlBlueDescription: "We'll bubble up future tasks here.",
+                targetTitle: 'All caught up',
+                targetDescription: 'Way to stay on target. Check back for more tasks!',
+                chairTitle: 'Nothing to show',
+                chairDescription: "Go relax, we'll list upcoming to-dos here.",
+                broomTitle: "You're done!",
+                broomDescription: 'Tasks are clean, though stay tuned for more to-dos.',
+                houseTitle: 'All caught up',
+                houseDescription: 'This is your home base for upcoming to-dos.',
+                conciergeBotTitle: 'Nothing to show',
+                conciergeBotDescription: 'Beep boop beep boop, check back for more tasks!',
+                checkboxTextTitle: 'All caught up',
+                checkboxTextDescription: 'Check off your upcoming to-dos here.',
+                flashTitle: "You're done!",
+                flashDescription: "We'll zap your future tasks here.",
+                sunglassesTitle: 'Nothing to show',
+                sunglassesDescription: "Time to chill, though stay tuned for what's next!",
+                f1FlagsTitle: 'All caught up',
+                f1FlagsDescription: "You've finished all outstanding to-dos.",
+                fireworksTitle: 'All caught up',
+                fireworksDescription: 'Upcoming to-dos will appear here.',
             },
         },
     },
@@ -1105,6 +1138,7 @@ const translations = {
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
+        crop: 'Crop',
         addAReceipt: {
             phrase1: 'Add a receipt',
             phrase2: 'or drag and drop one here',
@@ -1405,6 +1439,8 @@ const translations = {
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
+        noDuplicatesTitle: 'All set!',
+        noDuplicatesDescription: 'There are no duplicate transactions for review here.',
         confirmApprove: 'Confirm approval amount',
         confirmApprovalAmount: 'Approve only compliant expenses, or approve the entire report.',
         confirmApprovalAllHoldAmount: () => ({
@@ -1491,7 +1527,7 @@ const translations = {
                 markedAsResolved: 'marked the rejection reason as resolved',
             },
         },
-        moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
+        moveExpenses: 'Move to report',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         changeApprover: {
             title: 'Change approver',
@@ -1519,15 +1555,17 @@ const translations = {
         },
         correctRateError: 'Fix the rate error and try again.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
+        rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"'),
             billable: (value: boolean) => (value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `set the tax rate to "${value}"` : `tax rate to "${value}"`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `moved this expense to report "${value}"`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `set the ${field} to "${value}"` : `${field} to "${value}"`;
             },
-            format: (fragments: string, route: string) => `${fragments} via <a href="${route}">workspace rules</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">personal expense rules</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">workspace rules</a>`,
         },
         duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per diem expenses across workspaces because the rates may differ between workspaces.",
     },
@@ -4296,6 +4334,9 @@ const translations = {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
                 },
             },
+            travelInvoicing: 'Travel Invoicing',
+            travelInvoicingVendor: 'Travel vendor',
+            travelInvoicingPayableAccount: 'Travel payable account',
         },
         workspaceList: {
             joinNow: 'Join now',
@@ -5143,6 +5184,7 @@ const translations = {
                         confirm: 'Got it',
                     },
                 },
+                personalDetailsDescription: 'In order to book travel, please enter your legal name as it appears on your government-issued ID.',
             },
             expensifyCard: {
                 title: 'Expensify Card',

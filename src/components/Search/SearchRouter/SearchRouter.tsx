@@ -25,7 +25,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {scrollToRight} from '@libs/InputUtils';
-import Log from '@libs/Log';
 import backHistory from '@libs/Navigation/helpers/backHistory';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
@@ -200,49 +199,17 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const onSearchQueryChange = useCallback(
         (userQuery: string, autoScrollToRight = false) => {
-            const actionId = `search_query_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-            const startTime = Date.now();
+            if (autoScrollToRight) {
+                shouldScrollRef.current = true;
+            }
+            const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
+            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
+            setTextInputValue(updatedUserQuery);
+            setAutocompleteQueryValue(updatedUserQuery);
 
-            Log.info('[CMD_K_DEBUG] Search query change started', false, {
-                actionId,
-                inputLength: userQuery.length,
-                previousInputLength: textInputValue.length,
-                autoScrollToRight,
-                timestamp: startTime,
-            });
-
-            try {
-                if (autoScrollToRight) {
-                    shouldScrollRef.current = true;
-                }
-                const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
-                const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
-                setTextInputValue(updatedUserQuery);
-                setAutocompleteQueryValue(updatedUserQuery);
-
-                const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
-                if (!deepEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
-                    setAutocompleteSubstitutions(updatedSubstitutionsMap);
-                }
-
-                const endTime = Date.now();
-                Log.info('[CMD_K_DEBUG] Search query change completed', false, {
-                    actionId,
-                    duration: endTime - startTime,
-                    finalInputLength: updatedUserQuery.length,
-                    substitutionsUpdated: !deepEqual(autocompleteSubstitutions, updatedSubstitutionsMap),
-                    timestamp: endTime,
-                });
-            } catch (error) {
-                const endTime = Date.now();
-                Log.alert('[CMD_K_FREEZE] Search query change failed', {
-                    actionId,
-                    error: String(error),
-                    duration: endTime - startTime,
-                    inputLength: userQuery.length,
-                    timestamp: endTime,
-                });
-                throw error;
+            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
+            if (!deepEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
+                setAutocompleteSubstitutions(updatedSubstitutionsMap);
             }
         },
         [autocompleteSubstitutions, setTextInputValue, textInputValue],
@@ -273,137 +240,58 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
-            const actionId = `list_item_press_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-            const startTime = Date.now();
-
-            Log.info('[CMD_K_DEBUG] List item press started', false, {
-                actionId,
-                itemType: isSearchQueryItem(item) ? 'SearchQueryItem' : 'OptionData',
-                searchItemType: isSearchQueryItem(item) ? item.searchItemType : undefined,
-                hasSearchQuery: isSearchQueryItem(item) ? !!item.searchQuery : undefined,
-                hasReportID: 'reportID' in item ? !!item.reportID : undefined,
-                hasLogin: 'login' in item ? !!item.login : undefined,
-                timestamp: startTime,
-            });
-
             const setFocusAndScrollToRight = () => {
-                try {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => {
-                        if (!textInputRef.current) {
-                            Log.info('[CMD_K_DEBUG] Focus skipped - no text input ref', false, {
-                                actionId,
-                                timestamp: Date.now(),
-                            });
-                            return;
-                        }
-                        textInputRef.current.focus();
-                        scrollToRight(textInputRef.current);
-                    });
-                } catch (error) {
-                    Log.alert('[CMD_K_FREEZE] Focus and scroll failed', {
-                        actionId,
-                        error: String(error),
-                        timestamp: Date.now(),
-                    });
-                }
-            };
-
-            try {
-                if (isSearchQueryItem(item)) {
-                    if (!item.searchQuery) {
-                        Log.info('[CMD_K_DEBUG] List item press skipped - no search query', false, {
-                            actionId,
-                            itemType: 'SearchQueryItem',
-                            timestamp: Date.now(),
-                        });
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => {
+                    if (!textInputRef.current) {
                         return;
                     }
-
-                    if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
-                        const searchQuery = getContextualSearchQuery(item, policies, reports);
-                        const newSearchQuery = `${searchQuery}\u00A0`;
-                        onSearchQueryChange(newSearchQuery, true);
-                        setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
-
-                        const autocompleteKey = getContextualSearchAutocompleteKey(item, policies, reports);
-                        if (autocompleteKey && item.autocompleteID) {
-                            const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: item.autocompleteID};
-                            setAutocompleteSubstitutions(substitutions);
-                        }
-                        setFocusAndScrollToRight();
-
-                        const endTime = Date.now();
-                        Log.info('[CMD_K_DEBUG] Contextual suggestion handled', false, {
-                            actionId,
-                            duration: endTime - startTime,
-                            newQueryLength: newSearchQuery.length,
-                            hasSubstitutions: !!(autocompleteKey && item.autocompleteID),
-                            timestamp: endTime,
-                        });
-                    } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
-                        const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
-                        const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
-                        const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
-                        onSearchQueryChange(newSearchQuery, true);
-                        setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
-
-                        if (item.mapKey && item.autocompleteID) {
-                            const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
-                            setAutocompleteSubstitutions(substitutions);
-                        }
-                        setFocusAndScrollToRight();
-
-                        const endTime = Date.now();
-                        Log.info('[CMD_K_DEBUG] Autocomplete suggestion handled', false, {
-                            actionId,
-                            duration: endTime - startTime,
-                            trimmedQueryLength: trimmedUserSearchQuery.length,
-                            newQueryLength: newSearchQuery.length,
-                            hasMapKey: !!(item.mapKey && item.autocompleteID),
-                            timestamp: endTime,
-                        });
-                    } else {
-                        submitSearch(item.searchQuery);
-
-                        const endTime = Date.now();
-                        Log.info('[CMD_K_DEBUG] Search submitted', false, {
-                            actionId,
-                            duration: endTime - startTime,
-                            searchQuery: item.searchQuery,
-                            timestamp: endTime,
-                        });
-                    }
-                } else {
-                    backHistory(() => {
-                        if (item?.reportID) {
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
-                        } else if ('login' in item) {
-                            navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, false);
-                        }
-                    });
-                    onRouterClose();
-
-                    const endTime = Date.now();
-                    Log.info('[CMD_K_DEBUG] Navigation item handled', false, {
-                        actionId,
-                        duration: endTime - startTime,
-                        reportID: item?.reportID,
-                        hasLogin: 'login' in item ? !!item.login : false,
-                        timestamp: endTime,
-                    });
-                }
-            } catch (error) {
-                const endTime = Date.now();
-                Log.alert('[CMD_K_FREEZE] List item press failed', {
-                    actionId,
-                    error: String(error),
-                    duration: endTime - startTime,
-                    itemType: isSearchQueryItem(item) ? 'SearchQueryItem' : 'OptionData',
-                    searchItemType: isSearchQueryItem(item) ? item.searchItemType : undefined,
-                    timestamp: endTime,
+                    textInputRef.current.focus();
+                    scrollToRight(textInputRef.current);
                 });
-                throw error;
+            };
+
+            if (isSearchQueryItem(item)) {
+                if (!item.searchQuery) {
+                    return;
+                }
+
+                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
+                    const searchQuery = getContextualSearchQuery(item, policies, reports);
+                    const newSearchQuery = `${searchQuery}\u00A0`;
+                    onSearchQueryChange(newSearchQuery, true);
+                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
+
+                    const autocompleteKey = getContextualSearchAutocompleteKey(item, policies, reports);
+                    if (autocompleteKey && item.autocompleteID) {
+                        const substitutions = {...autocompleteSubstitutions, [autocompleteKey]: item.autocompleteID};
+                        setAutocompleteSubstitutions(substitutions);
+                    }
+                    setFocusAndScrollToRight();
+                } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
+                    const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
+                    const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
+                    const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
+                    onSearchQueryChange(newSearchQuery, true);
+                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
+
+                    if (item.mapKey && item.autocompleteID) {
+                        const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
+                        setAutocompleteSubstitutions(substitutions);
+                    }
+                    setFocusAndScrollToRight();
+                } else {
+                    submitSearch(item.searchQuery);
+                }
+            } else {
+                backHistory(() => {
+                    if (item?.reportID) {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
+                    } else if ('login' in item) {
+                        navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, false);
+                    }
+                });
+                onRouterClose();
             }
         },
         [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, policies, reports, submitSearch, textInputValue, currentUserAccountID],
