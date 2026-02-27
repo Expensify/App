@@ -18,7 +18,6 @@ import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import NetworkConnection from '@libs/NetworkConnection';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
@@ -209,7 +208,10 @@ function process(): Promise<void> {
         typeof requestToProcess.data?.reportID === 'string' &&
         reportsWithOfflineSentMessages.has(requestToProcess.data.reportID)
     ) {
-        const refreshedLastReadTime = NetworkConnection.getDBTimeWithSkew();
+        // Lazy-require to avoid circular dependency: SequentialQueue → NetworkConnection → DateUtils → Localize → memoize → … → SequentialQueue
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const NetworkConnectionModule = require('@libs/NetworkConnection') as {default: {getDBTimeWithSkew: (timestamp?: string | number) => string}};
+        const refreshedLastReadTime = NetworkConnectionModule.default.getDBTimeWithSkew();
         Log.info('[SequentialQueue] Refreshing lastReadTime for offline ReadNewestAction', false, {
             reportID: requestToProcess.data.reportID,
             originalLastReadTime: requestToProcess.data.lastReadTime,
