@@ -67,6 +67,15 @@ const categoryOverLimitViolation = {
     },
 };
 
+const overTripLimitViolation = {
+    name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: {
+        formattedLimit: convertAmountToDisplayString(400),
+    },
+};
+
 const categoryMissingCommentViolation = {
     name: CONST.VIOLATIONS.MISSING_COMMENT,
     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -553,7 +562,8 @@ describe('getViolationsOnyxData', () => {
                 iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             };
-            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const iouReport = {reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE} as Report;
+            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
             expect(result.value).toEqual(
                 expect.arrayContaining([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}, missingCategoryViolation]),
             );
@@ -806,13 +816,13 @@ describe('getViolationsOnyxData', () => {
             } as Report;
         });
 
-        (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should add missingAttendees violation when no attendees are present', () => {
+        it('should add missingAttendees violation when no attendees are present', () => {
             transaction.comment = {attendees: []};
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
             expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
         });
 
-        (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should add missingAttendees violation when only owner is an attendee', () => {
+        it('should add missingAttendees violation when only owner is an attendee', () => {
             transaction.comment = {
                 attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID}],
             };
@@ -860,7 +870,7 @@ describe('getViolationsOnyxData', () => {
         describe('optimistic / offline scenarios (iouReport is undefined)', () => {
             // In offline scenarios, iouReport is undefined so we can't get ownerAccountID.
             // The code falls back to using getCurrentUserEmail() to identify the owner by login/email.
-            (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should correctly calculate violation when iouReport is undefined but attendees have matching email', () => {
+            it('should correctly calculate violation when iouReport is undefined but attendees have matching email', () => {
                 // When iouReport is undefined, we use getCurrentUserEmail() as fallback
                 // If only the current user (matching MOCK_CURRENT_USER_EMAIL) is an attendee, violation should show
                 transactionViolations = [];
@@ -900,7 +910,7 @@ describe('getViolationsOnyxData', () => {
                 expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
 
-            (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should preserve violation when only owner attendee remains (offline)', () => {
+            it('should preserve violation when only owner attendee remains (offline)', () => {
                 // If violation existed and only owner attendee remains, violation stays
                 transactionViolations = [missingAttendeesViolation];
                 transaction.comment = {
@@ -928,7 +938,7 @@ describe('getViolationsOnyxData', () => {
                 jest.restoreAllMocks();
             });
 
-            (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)("should add missingAttendees violation when no attendees are present (can't identify owner)", () => {
+            it("should add missingAttendees violation when no attendees are present (can't identify owner)", () => {
                 transactionViolations = [];
                 transaction.comment = {attendees: []};
                 const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
@@ -936,7 +946,7 @@ describe('getViolationsOnyxData', () => {
                 expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
 
-            (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should add missingAttendees violation when only 1 attendee exists (assumed to be owner)', () => {
+            it('should add missingAttendees violation when only 1 attendee exists (assumed to be owner)', () => {
                 transactionViolations = [];
                 transaction.comment = {
                     attendees: [{email: 'anyone@example.com', displayName: 'Someone', avatarUrl: ''}],
@@ -971,6 +981,62 @@ describe('getViolationsOnyxData', () => {
                 // Violation should be removed since we now have 2 attendees
                 expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
+        });
+    });
+
+    describe('overTripLimit violation', () => {
+        it('should add overTripLimit violation if the modified transaction amount is over the original transaction amount', () => {
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -400;
+            transaction.modifiedAmount = -600;
+            transaction.receipt = {
+                reservationList: [
+                    {
+                        start: {date: '2023-07-24'},
+                        end: {date: '2023-07-25'},
+                        type: 'train',
+                    },
+                ],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual(expect.arrayContaining([overTripLimitViolation, ...transactionViolations]));
+        });
+
+        it('should not add overTripLimit violation if the modified transaction currency is different from the original transaction currency', () => {
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -400;
+            transaction.modifiedAmount = -600;
+            transaction.currency = CONST.CURRENCY.USD;
+            transaction.modifiedCurrency = CONST.CURRENCY.GBP;
+            transaction.receipt = {
+                reservationList: [
+                    {
+                        start: {date: '2023-07-24'},
+                        end: {date: '2023-07-25'},
+                        type: 'train',
+                    },
+                ],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([]);
+        });
+
+        it('should remove overTripLimit violation if the modified transaction amount is not over the original transaction amount', () => {
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -400;
+            transaction.modifiedAmount = -300;
+            transaction.receipt = {
+                reservationList: [
+                    {
+                        start: {date: '2023-07-24'},
+                        end: {date: '2023-07-25'},
+                        type: 'train',
+                    },
+                ],
+            };
+            const modifiedTransactionViolations = [overTripLimitViolation, ...transactionViolations];
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, modifiedTransactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([]);
         });
     });
 });
@@ -1565,6 +1631,16 @@ describe('getIsViolationFixed', () => {
             });
             expect(result).toBe(true);
         });
+
+        it("should return false when taxCodes match but the taxValues doesn't", () => {
+            const result = getIsViolationFixed('violations.taxOutOfPolicy', {
+                ...defaultParams,
+                taxCode: 'CUSTOM_TAX',
+                taxValue: '15',
+                policyTaxRates: {CUSTOM_TAX: {name: '10%', value: '10'}},
+            });
+            expect(result).toBe(false);
+        });
     });
 
     describe('violations.missingAttendees', () => {
@@ -1592,6 +1668,7 @@ describe('getIsViolationFixed', () => {
             const result = getIsViolationFixed('violations.missingAttendees', {
                 ...defaultParams,
                 isAttendeeTrackingEnabled: true,
+                isControlPolicy: true,
                 category: 'Meals',
                 policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
                 iouAttendees: [],
@@ -1603,6 +1680,7 @@ describe('getIsViolationFixed', () => {
             const result = getIsViolationFixed('violations.missingAttendees', {
                 ...defaultParams,
                 isAttendeeTrackingEnabled: true,
+                isControlPolicy: true,
                 category: 'Meals',
                 policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
                 iouAttendees: [createAttendee('user@example.com')],
@@ -1614,9 +1692,24 @@ describe('getIsViolationFixed', () => {
             const result = getIsViolationFixed('violations.missingAttendees', {
                 ...defaultParams,
                 isAttendeeTrackingEnabled: true,
+                isControlPolicy: true,
                 category: 'Meals',
                 policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
                 iouAttendees: [createAttendee('user@example.com'), createAttendee('other@example.com')],
+            });
+            expect(result).toBe(true);
+        });
+
+        it('should return true (violation fixed) when policy is not Control type, even if category requires attendees', () => {
+            // This covers the downgrade scenario: after downgrading from Control to Collect,
+            // the category may still have areAttendeesRequired: true but we should not enforce it
+            const result = getIsViolationFixed('violations.missingAttendees', {
+                ...defaultParams,
+                isAttendeeTrackingEnabled: true,
+                isControlPolicy: false,
+                category: 'Meals',
+                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
+                iouAttendees: [],
             });
             expect(result).toBe(true);
         });

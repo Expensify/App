@@ -1,4 +1,5 @@
 /* eslint-disable max-classes-per-file */
+// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
 import type {ReactNode} from 'react';
@@ -11,9 +12,9 @@ import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
 import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/Biometrics/SecureStore/index.web';
+import '@src/polyfills/PromiseWithResolvers';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
-import setupMockReactNativeWorklets from './setupMockReactNativeWorklets';
 
 // Needed for tests to have the necessary environment variables set
 if (!('GITHUB_REPOSITORY' in process.env)) {
@@ -101,11 +102,12 @@ jest.mock('react-native-reanimated', () => ({
     useReducedMotion: jest.fn,
     useScrollViewOffset: jest.fn(() => 0),
     useAnimatedRef: jest.fn(() => jest.fn()),
-    LayoutAnimationConfig: jest.fn,
+    LayoutAnimationConfig: ({children}: {children: React.ReactNode}) => children,
     makeShareableCloneRecursive: jest.fn,
 }));
 
-setupMockReactNativeWorklets();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
 
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
 
@@ -117,12 +119,6 @@ jest.mock('@libs/scheduleOnLiveMarkdownRuntime', () => {
     };
     return scheduleOnLiveMarkdownRuntime;
 });
-
-jest.mock('@src/libs/actions/Timing', () => ({
-    start: jest.fn(),
-    end: jest.fn(),
-    clearData: jest.fn(),
-}));
 
 jest.mock('@src/setup/telemetry', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention

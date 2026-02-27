@@ -24,10 +24,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
 
 function CloseAccountPage() {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {
-        canBeMissing: false,
-    });
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -58,7 +56,7 @@ function CloseAccountPage() {
     const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM> => {
-        const errors = getFieldRequiredErrors(values, ['phoneOrEmail']);
+        const errors = getFieldRequiredErrors(values, ['phoneOrEmail'], translate);
 
         if (values.phoneOrEmail && userEmailOrPhone) {
             let isValid = false;

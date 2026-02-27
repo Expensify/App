@@ -1,9 +1,8 @@
-import {getPathFromState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
-import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isAuthenticating as isAuthenticatingNetworkStore} from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
@@ -41,7 +40,7 @@ function captureNavigationState(): NavigationStateInfo {
             return {currentPath: undefined};
         }
 
-        const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
+        const routeFromState = getPathFromState(navigationRef.getRootState());
         return {
             currentPath: routeFromState || undefined,
         };

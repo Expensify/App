@@ -104,9 +104,10 @@ export default {
     sideBarWidth: 375,
     sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
-    homePageLeftColumnMaxWidth: 920,
-    homePageRightColumnMaxWidth: 460,
-    superWideRHPMaxWidth: 1260,
+    receiptPreviewMaxWidth: 440,
+    receiptPreviewMaxHeight: 440,
+    homePageLeftColumnMaxWidth: 680,
+    homePageRightColumnMaxWidth: 488,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
@@ -146,8 +147,12 @@ export default {
     checkboxLabelActiveOpacity: 0.7,
     checkboxLabelHoverOpacity: 1,
     avatarChatSpacing: 12,
+    cornerHandleSize: 12,
+    cornerTapTargetSize: 40,
+    edgeHandleTapTargetThickness: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    cropBorderWidth: 1,
     emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
     emptyLHNIconHeight: 16,
     emptySelectionListIconWidth: 120,
@@ -183,6 +188,7 @@ export default {
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
+    tabSelectorScrollMarginInline: 20,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
@@ -243,6 +249,7 @@ export default {
     changePolicyEducationModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
     changePolicyEducationModalIconHeight: 180,
+    transactionReceiptButtonWidth: 100,
 
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
 
@@ -269,6 +276,9 @@ export default {
 
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
+    cardScarfOverlayWidth: 264,
+    cardScarfOverlayHeight: 172,
+    cardScarfOverlayZIndex: 2,
     cardIconWidth: 40,
     cardIconHeight: 26,
     cardBorderRadius: 4,
@@ -408,4 +418,12 @@ export default {
     runOutOfTimeHeight: 200,
     humptyDumptyWidth: 245,
     humptyDumptyHeight: 165,
+    magnifyingGlassSpyMouthClosedWidth: 161,
+    magnifyingGlassSpyMouthClosedHeight: 169,
+
+    // Odometer photo information container
+    leftPositionOdometerPhotoInformationContainer: 20,
+    rightPositionOdometerPhotoInformationContainer: 20,
+    bottomPositionOdometerPhotoInformationContainer: 20,
+    paddingOdometerPhotoInformationContainer: 13.5,
 } as const;

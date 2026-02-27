@@ -65,7 +65,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = getFieldRequiredErrors(values, stepFields);
+            const errors = getFieldRequiredErrors(values, stepFields, translate);
 
             const valuesToValidate = values[dobInputID as keyof FormOnyxValues<TFormID>] as string;
             if (valuesToValidate) {
@@ -106,6 +106,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 shouldSaveDraft={!isEditing}
                 autoFocus
                 forwardedFSClass={forwardedFSClass}
+                autoComplete="birthdate-full"
             />
             {footerComponent}
             {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}

@@ -321,7 +321,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         });
         Navigation.dismissModalWithReport({reportID: parentReportID});
     }
-    notifyNewAction(parentReportID, currentUserAccountID, optimisticAddCommentReport.reportAction);
+    notifyNewAction(parentReportID, optimisticAddCommentReport.reportAction, true);
 }
 
 function buildTaskData(
@@ -1181,7 +1181,7 @@ function deleteTask(
     };
 
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
-    notifyNewAction(report.reportID, currentUserAccountID);
+    notifyNewAction(report.reportID, undefined, true);
 
     const urlToNavigateBack = getNavigationUrlOnTaskDelete(report);
     if (urlToNavigateBack) {
@@ -1273,7 +1273,7 @@ function canActionTask(
     return sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === getTaskAssigneeAccountID(taskReport, parentReportAction);
 }
 
-function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>) {
+function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined) {
     const reportID = report?.reportID;
     if (!reportID) {
         return;
@@ -1283,7 +1283,7 @@ function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>) {
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 
-        navigateToConciergeChatAndDeleteReport(reportID);
+        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID);
         return;
     }
 
