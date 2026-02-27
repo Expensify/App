@@ -1,4 +1,4 @@
-import type {StartSpanOptions, SpanAttributeValue} from '@sentry/core';
+import type {SpanAttributeValue, StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {spanToJSON} from '@sentry/react-native';
 import Log from '@libs/Log';
