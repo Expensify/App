@@ -77,7 +77,12 @@ function PreferencesPage() {
                         <View style={[styles.flex1, styles.mt5]}>
                             <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.sectionMenuItemTopDescription]}>
                                 <View style={styles.flex4}>
-                                    <Text>{translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>
+                                    <Text
+                                        accessible={false}
+                                        aria-hidden
+                                    >
+                                        {translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                                    </Text>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
@@ -89,7 +94,12 @@ function PreferencesPage() {
                             </View>
                             <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween]}>
                                 <View style={styles.flex4}>
-                                    <Text>{translate('preferencesPage.muteAllSounds')}</Text>
+                                    <Text
+                                        accessible={false}
+                                        aria-hidden
+                                    >
+                                        {translate('preferencesPage.muteAllSounds')}
+                                    </Text>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
