@@ -3,6 +3,7 @@ import tsParser from '@typescript-eslint/parser';
 import expensifyConfig from 'eslint-config-expensify';
 import fileProgress from 'eslint-plugin-file-progress';
 import jsdoc from 'eslint-plugin-jsdoc';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 import lodash from 'eslint-plugin-lodash';
 import react from 'eslint-plugin-react';
 import reactNativeA11Y from 'eslint-plugin-react-native-a11y';
@@ -14,6 +15,9 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import typescriptEslint from 'typescript-eslint';
 import reactCompilerCompat from './eslint-plugin-react-compiler-compat/index.mjs';
+
+// Custom touchable components used in this codebase
+const customTouchables = ['PressableWithoutFeedback', 'PressableWithFeedback'];
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -178,6 +182,7 @@ const config = defineConfig([
             'airbnb-typescript',
             'plugin:storybook/recommended',
             'plugin:react-native-a11y/all',
+            'plugin:jsx-a11y/strict',
             'plugin:@dword-design/import-alias/recommended',
             'plugin:you-dont-need-lodash-underscore/all',
             'prettier',
@@ -187,6 +192,7 @@ const config = defineConfig([
             jsdoc,
             'you-dont-need-lodash-underscore': youDontNeedLodashUnderscore,
             'react-native-a11y': reactNativeA11Y,
+            'jsx-a11y': jsxA11y,
             react,
             'testing-library': testingLibrary,
             lodash,
@@ -306,7 +312,6 @@ const config = defineConfig([
             ],
 
             // React and React Native specific rules
-            'react-native-a11y/has-accessibility-hint': ['warn'],
             'react/require-default-props': 'off',
             'react/prop-types': 'off',
             'react/jsx-key': 'error',
@@ -324,12 +329,12 @@ const config = defineConfig([
                     ],
                 },
             ],
-            'react-native-a11y/has-valid-accessibility-descriptors': [
-                'error',
-                {
-                    touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
-                },
-            ],
+
+            // React Native accessibility rules - configure custom touchables
+            'react-native-a11y/has-accessibility-hint': ['warn', {touchables: customTouchables}],
+            'react-native-a11y/has-accessibility-props': ['error', {touchables: customTouchables}],
+            'react-native-a11y/has-valid-accessibility-descriptors': ['error', {touchables: customTouchables}],
+            'react-native-a11y/no-nested-touchables': ['error', {touchables: customTouchables}],
 
             // Disallow usage of certain functions and imports
             'no-restricted-syntax': [
