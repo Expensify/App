@@ -1165,8 +1165,8 @@ const transactionReportGroupListItems = [
     {
         groupedBy: 'expense-report',
         accountID: 18439984,
-        action: 'view',
-        allActions: ['view'],
+        action: 'approve',
+        allActions: ['approve'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         submitted: '2024-12-21 13:05:20',
