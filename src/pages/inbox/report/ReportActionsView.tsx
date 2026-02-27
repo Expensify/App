@@ -283,7 +283,6 @@ function ReportActionsView({
 
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({
         reportID,
-        reportActionID,
         reportActions,
         allReportActionIDs,
         transactionThreadReport,

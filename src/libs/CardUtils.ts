@@ -36,6 +36,7 @@ import type {
     CompanyCardFeedWithDomainID,
     CompanyCardFeedWithNumber,
     CompanyFeeds,
+    NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -76,6 +77,29 @@ const COMPANY_CARD_BANK_ICON_NAMES = [
 
 type CompanyCardBankIconName = TupleToUnion<typeof COMPANY_CARD_BANK_ICON_NAMES>;
 type CompanyCardBankIcons = Record<CompanyCardBankIconName, IconAsset>;
+
+const CUSTOM_FEED_PREFIXES = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
+
+const feedNamesMapping = {
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.CSV,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.VISA,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.MASTERCARD,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: CONST.COMPANY_CARDS.BANKS.AMEX,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: CONST.COMPANY_CARDS.BANKS.STRIPE,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: CONST.COMPANY_CARDS.BANKS.AMEX,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: CONST.COMPANY_CARDS.BANKS.CHASE,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: CONST.COMPANY_CARDS.BANKS.CITI_BANK,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: CONST.COMPANY_CARDS.BANKS.WELLS_FARGO,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: CONST.COMPANY_CARDS.BANKS.BREX,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205]: CONST.COMPANY_CARDS.BANKS.AMEX,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: CONST.COMPANY_CARDS.BANKS.AMEX,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_BANK]: CONST.COMPANY_CARDS.BANKS.MOCK_BANK,
+    [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: CONST.COMPANY_CARDS.NON_CONNECTABLE_BANKS.PEX,
+} satisfies Partial<Record<CardFeed, BankName | NonConnectableBankName | CardTypeName>>;
+
+const feedNamesMappingKeys = Object.keys(feedNamesMapping) as Array<keyof typeof feedNamesMapping>;
 
 /**
  * @returns string with a month in MM format
@@ -465,7 +489,7 @@ function isCustomFeed(feed: string | undefined): boolean {
         return false;
     }
 
-    return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
+    return CUSTOM_FEED_PREFIXES.some((value) => feed.startsWith(value));
 }
 
 /**
@@ -559,32 +583,12 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
 }
 
 function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): string {
-    const feedNamesMapping = {
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.CSV,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.VISA,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.MASTERCARD,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: CONST.COMPANY_CARDS.BANKS.AMEX,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: CONST.COMPANY_CARDS.BANKS.STRIPE,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: CONST.COMPANY_CARDS.BANKS.AMEX,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE]: CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: CONST.COMPANY_CARDS.BANKS.CHASE,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: CONST.COMPANY_CARDS.BANKS.CITI_BANK,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: CONST.COMPANY_CARDS.BANKS.WELLS_FARGO,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: CONST.COMPANY_CARDS.BANKS.BREX,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205]: CONST.COMPANY_CARDS.BANKS.AMEX,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: CONST.COMPANY_CARDS.BANKS.AMEX,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: CONST.COMPANY_CARDS.BANKS.PEX,
-        [CONST.EXPENSIFY_CARD.BANK]: CONST.COMPANY_CARDS.BANKS.AMEX,
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_BANK]: CONST.COMPANY_CARDS.BANKS.MOCK_BANK,
-    } satisfies Partial<Record<CardFeed, BankName | CardTypeName>>;
-
-    // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
-    const feedKey = (Object.keys(feedNamesMapping) as Array<keyof typeof feedNamesMapping>).find((feed) => feedType?.startsWith(feed));
-
     if (feedType?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
         return CONST.COMPANY_CARDS.CARD_TYPE.CSV;
     }
+
+    // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
+    const feedKey = feedNamesMappingKeys.find((feed) => feedType?.startsWith(feed));
 
     if (!feedKey) {
         return '';
@@ -593,8 +597,8 @@ function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): strin
     return feedNamesMapping[feedKey];
 }
 
-const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
-    const iconMap: Record<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>, IconAsset> = {
+const getBankCardDetailsImage = (bank: BankName, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
+    const iconMap: Record<BankName, IconAsset> = {
         [CONST.COMPANY_CARDS.BANKS.AMEX]: companyCardIllustrations.AmexCardCompanyCardDetail,
         [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA]: companyCardIllustrations.BankOfAmericaCompanyCardDetail,
         [CONST.COMPANY_CARDS.BANKS.CAPITAL_ONE]: companyCardIllustrations.CapitalOneCompanyCardDetail,
@@ -604,8 +608,6 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
         [CONST.COMPANY_CARDS.BANKS.BREX]: companyCardIllustrations.BrexCompanyCardDetail,
         [CONST.COMPANY_CARDS.BANKS.STRIPE]: companyCardIllustrations.StripeCompanyCardDetail,
         [CONST.COMPANY_CARDS.BANKS.MOCK_BANK]: illustrations.GenericCompanyCard,
-        [CONST.COMPANY_CARDS.BANKS.PEX]: illustrations.GenericCompanyCard,
-        [CONST.COMPANY_CARDS.BANKS.EXPENSIFY]: Illustrations.ExpensifyCardImage,
         [CONST.COMPANY_CARDS.BANKS.OTHER]: illustrations.GenericCompanyCard,
     };
     return iconMap[bank];
@@ -740,7 +742,7 @@ function getPlaidCountry(outputCurrency?: string, currencyList?: CurrencyList, c
     return country ?? '';
 }
 
-function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>) {
+function getCorrectStepForPlaidSelectedBank(selectedBank: BankName) {
     if (selectedBank === CONST.COMPANY_CARDS.BANKS.STRIPE) {
         return CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS;
     }

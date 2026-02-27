@@ -73,10 +73,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Start**: User clicks inbox/home tab ([`src/components/Navigation/NavigationTabBar/index.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/components/Navigation/NavigationTabBar/index.tsx#L160))
 **End**:
 - User sees: Chat list displayed
-- Technical: Sidebar layout complete (onLayout event)
-  - Ordered reports list loaded from Onyx
-  - Reports sorted by priority mode
-  - Sidebar layout rendered ([`src/pages/home/sidebar/SidebarLinksData.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/home/sidebar/SidebarLinksData.tsx#L34))
+- Technical: Sidebar layout complete via `onLayout` or screen focus via `useFocusEffect` ([`src/pages/inbox/sidebar/SidebarLinksData.tsx`](https://github.com/Expensify/App/blob/main/src/pages/inbox/sidebar/SidebarLinksData.tsx))
 
 ### Open Search Modal
 
