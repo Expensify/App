@@ -5,28 +5,7 @@ keywords: [Expensify Classic, workspace plan, subscription]
 ---
 
 
-Expensify offers several plans based on your needs: **Track, Submit, Collect, Control,** and **Free**. Your choice depends on whether you manage expenses individually, for a group, or for a company. You may need to upgrade if you hire employees who need access to a **Group Workspace** or require features exclusive to paid plans.
-
----
-
-# Change a Subscription on an Individual Plan
-
-**Web:**
-1. Go to **Settings > Workspaces > Individual > [Workspace Name]**.
-2. Click **Overview** and select **Switch** under your desired plan.
-
-**Mobile:**
-1. Open the Expensify app.
-2. Tap the **hamburger menu** (three lines) on the top left.
-3. Tap **Settings**.
-4. Tap **View All** under your Workspace.
-5. Select the Workspace under the **Individual** tab.
-6. Tap **Current Plan**.
-7. Tap **Switch** to change plans.
-
-## Upgrade to a Group Workspace
-1. Go to **Settings > Workspaces > Group**.
-2. Select a **Collect** or **Control** plan.
+Expensify offers several plans based on your needs: **Collect, Control,** and **Free**. You may need to upgrade if you hire employees who need access to your workspace or require features exclusive to paid plans.
 
 ---
 
@@ -58,22 +37,6 @@ Expensify offers several plans based on your needs: **Track, Submit, Collect, Co
 1. Go to **Settings > Workspaces > Group > Subscription**.
 2. Toggle **Auto-renew** off before your current subscription ends if you do not want it to renew.
    - If **Auto-renew** is disabled, your final bill at the annual rate will be issued on the date listed under **Subscriptions**.
-
----
-
-# Downgrading to a Free Account from an Individual Plan
-
-**Web:**
-1. Log in via a web browser.
-2. Go to **Settings > Workspaces > Individual > Subscription**.
-3. Click **Cancel Subscription**.
-   - **Note**: The subscription is prepaid for 30 days of unlimited **SmartScanning**. No refunds are issued, but you retain access until the period ends.
-
-**App Store (iOS Users):**
-1. Go to the **App Store**.
-2. Tap your **Apple ID** > **Subscriptions**.
-3. Cancel your Expensify subscription.
-   - **Note**: This cannot be done within Expensify. Downgrading to a free account must happen from the App Store. 
 
 ---
 
