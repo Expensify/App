@@ -3,7 +3,7 @@ import type {TextInput} from 'react-native';
 
 type UseHtmlPaste = (
     textInputRef: RefObject<(HTMLTextAreaElement & TextInput) | TextInput | null>,
-    preHtmlPasteCallback?: (event: ClipboardEvent) => boolean | Promise<boolean>,
+    preHtmlPasteCallback?: (event: ClipboardEvent) => boolean,
     isActive?: boolean,
     maxLength?: number, // Maximum length of the text input value after pasting
 ) => void | {

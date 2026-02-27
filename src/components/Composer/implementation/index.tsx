@@ -181,6 +181,15 @@ function Composer({
                 }
             }
 
+            const pasteValidFiles = async () => {
+                const validFiles = files.filter((file) => file !== undefined);
+                if (validFiles.length > 0) {
+                    onPasteFile(validFiles);
+                    return true;
+                }
+                return false;
+            };
+
             // If paste contains image from Google Workspaces ex: Sheets, Docs, Slide, etc
             if (clipboardDataHtml?.includes(CONST.GOOGLE_DOC_IMAGE_LINK_MATCH)) {
                 const domparser = new DOMParser();
@@ -201,15 +210,10 @@ function Composer({
 
                 const f = await Promise.all(filePromises);
                 files.push(...f);
+                return pasteValidFiles();
             }
 
-            const validFiles = files.filter((file) => file !== undefined);
-            if (validFiles.length > 0) {
-                onPasteFile(validFiles);
-                return true;
-            }
-
-            return false;
+            return pasteValidFiles();
         },
         [onPasteFile, checkComposerVisibility],
     );
