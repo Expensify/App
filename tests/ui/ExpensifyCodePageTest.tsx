@@ -38,6 +38,8 @@ jest.mock('@libs/Navigation/Navigation', () => {
     };
 });
 
+jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
+
 jest.mock('@pages/ErrorPage/NotFoundPage', () => {
     // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const {View, Text} = jest.requireActual<typeof import('react-native')>('react-native');
