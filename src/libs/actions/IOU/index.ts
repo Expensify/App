@@ -13950,9 +13950,11 @@ function updateMultipleMoneyRequests(
         // Generate optimistic report action ID
         const modifiedExpenseReportActionID = NumberUtils.rand64();
 
-        const optimisticData: Array<OnyxUpdate<OnyxKey>> = [];
-        const successData: Array<OnyxUpdate<OnyxKey>> = [];
-        const failureData: Array<OnyxUpdate<OnyxKey>> = [];
+        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+        const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+        const snapshotOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
+        const snapshotFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
 
         // Pending fields for the transaction
         const pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(Object.keys(transactionChanges).map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
@@ -13988,19 +13990,21 @@ function updateMultipleMoneyRequests(
         // new values immediately (the snapshot is the exclusive data source for search
         // result rendering and is not automatically updated by the TRANSACTION write above).
         if (hash) {
-            optimisticData.push({
+            snapshotOptimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
                 value: {
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     data: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: updatedTransaction,
                     },
                 },
             });
-            failureData.push({
+            snapshotFailureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
                 value: {
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     data: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
                     },
@@ -14137,7 +14141,15 @@ function updateMultipleMoneyRequests(
             updates: JSON.stringify(updates),
         };
 
-        API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, params, {optimisticData, successData, failureData});
+        API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, params, {
+            optimisticData: [...optimisticData, ...snapshotOptimisticData] as Array<
+                OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+            >,
+            successData,
+            failureData: [...failureData, ...snapshotFailureData] as Array<
+                OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+            >,
+        });
     }
 }
 
