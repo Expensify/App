@@ -2,7 +2,10 @@ import React, {useLayoutEffect, useState} from 'react';
 import {Freeze} from 'react-freeze';
 
 type ScreenFreezeWrapperProps = {
+    /** Whether the screen is not currently visible to the user */
     isScreenBlurred: boolean;
+
+    /** The screen content to freeze when blurred */
     children: React.ReactNode;
 };
 
