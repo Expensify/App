@@ -8693,6 +8693,7 @@ const CONST = {
                 GALLERY: 'OdometerImage-Gallery',
                 SHUTTER: 'OdometerImage-Shutter',
                 CHOOSE_FILE: 'OdometerImage-ChooseFile',
+                REQUEST_PERMISSION: 'OdometerImage-RequestPermission',
             },
         },
         NEW_CHAT: {
