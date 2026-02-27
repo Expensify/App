@@ -63,16 +63,18 @@ class GpsLiveUpdateHandler : SuspendLiveUpdateNotificationHandler() {
 
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
-            "GPS Trip Tracking",
+            NOTIFICATION_CHANNEL_NAME,
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Shows when a GPS distance trip is being tracked"
+            description = NOTIFICATION_CHANNEL_DESCRIPTION
         }
         manager.createNotificationChannel(channel)
     }
 
     companion object {
         const val NOTIFICATION_CHANNEL_ID = "gps_trip_notification_channel_id"
+        const val NOTIFICATION_CHANNEL_NAME = "GPS Trip Tracking"
+        const val NOTIFICATION_CHANNEL_DESCRIPTION = "Shows when a GPS distance trip is being tracked"
         const val TYPE = "gps_trip_notification"
     }
 }

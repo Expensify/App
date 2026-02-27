@@ -25,14 +25,18 @@ function stopGpsTripNotification() {
 }
 
 async function checkAndCleanGpsNotification() {
-    const liveUpdates = await Airship.android.liveUpdateManager.listAll();
+    try {
+        const liveUpdates = await Airship.android.liveUpdateManager.listAll();
 
-    for (const liveUpdate of liveUpdates) {
-        if (liveUpdate.name !== LIVE_UPDATE_NAME) {
-            continue;
+        for (const liveUpdate of liveUpdates) {
+            if (liveUpdate.name !== LIVE_UPDATE_NAME) {
+                continue;
+            }
+
+            stopGpsTripNotification();
         }
-
-        stopGpsTripNotification();
+    } catch (error) {
+        console.error('[GPS Live Update] Failed to check live updates', error);
     }
 }
 
