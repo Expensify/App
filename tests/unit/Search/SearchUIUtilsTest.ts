@@ -7208,7 +7208,7 @@ describe('SearchUIUtils', () => {
             });
         });
 
-        // ─── Reference identity (the core optimization) ───────────────────────────
+        // ─── Preserving reference identity ───────────────────────────
 
         describe('reference identity — avoids unnecessary object creation', () => {
             test('unchanged transaction keeps its original reference inside mappedTransactions', () => {
