@@ -120,7 +120,7 @@ import {
     updateGroupChatAvatar,
 } from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {canActionTask, canModifyTask, deleteTask, reopenTask} from '@userActions/Task';
+import {canActionTask, canModifyTask, deleteTask, getNavigationUrlOnTaskDelete, reopenTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -933,6 +933,18 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     // Where to navigate back to after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
         let urlToNavigateBack: string | undefined;
+
+        // Handle task deletion navigation
+        if (caseID === CASES.DEFAULT) {
+            urlToNavigateBack = getNavigationUrlOnTaskDelete(report);
+            if (urlToNavigateBack) {
+                navigateBackOnDeleteTransaction(urlToNavigateBack as Route);
+                return;
+            }
+            Navigation.dismissModal();
+            return;
+        }
+
         // Only proceed with navigation logic if transaction was actually deleted
         if (!isEmptyObject(requestParentReportAction)) {
             const rootState = navigationRef.getRootState();
@@ -996,7 +1008,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route);
         }
-    }, [requestParentReportAction, route.params.reportID, moneyRequestReport, iouTransactionID, iouReport, chatIOUReport, isChatIOUReportArchived, isSingleTransactionView]);
+    }, [caseID, report, requestParentReportAction, route.params.reportID, moneyRequestReport, iouTransactionID, iouReport, chatIOUReport, isChatIOUReportArchived, isSingleTransactionView]);
 
     const showDeleteModal = useCallback(async () => {
         const {action} = await showConfirmModal({
