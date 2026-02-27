@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -543,6 +543,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Zastępca urlopowy',
         expensifyLogo: 'Logo Expensify',
         duplicateReport: 'Zduplikowany raport',
+        explain: 'Wyjaśnij',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
@@ -944,6 +945,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({days}: {days: number}) => `Pozostało ${days} ${days === 1 ? 'dzień' : 'dni'}`,
             },
             addShippingAddress: {title: 'Potrzebujemy Twojego adresu wysyłki', subtitle: 'Podaj adres, na który mamy wysłać twoją Kartę Expensify.', cta: 'Dodaj adres'},
+            addPaymentCard: {title: 'Dodaj kartę płatniczą, żeby dalej korzystać z Expensify', subtitle: 'Konto > Subskrypcja', cta: 'Dodaj'},
             activateCard: {title: 'Aktywuj swoją Kartę Expensify', subtitle: 'Zatwierdź swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
             reviewCardFraud: {
                 title: 'Sprawdź potencjalne oszustwo na swojej Karcie Expensify',
@@ -967,7 +969,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Portfel',
             },
         },
-        assignedCards: 'Przypisane karty',
+        assignedCards: 'Twoje Karty Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `Pozostało ${amount}`,
         announcements: 'Ogłoszenia',
         discoverSection: {
@@ -983,10 +985,38 @@ const translations: TranslationDeepObject<typeof en> = {
             export: ({count}: {count: number}) => `Eksportuj ${count} ${count === 1 ? 'raport' : 'raporty'}`,
             begin: 'Rozpocznij',
             emptyStateMessages: {
-                nicelyDone: 'Dobra robota',
-                keepAnEyeOut: 'Wypatruj tego, co nadejdzie!',
-                allCaughtUp: 'Wszystko odrobione',
-                upcomingTodos: 'Nadchodzące zadania pojawią się tutaj.',
+                thumbsUpStarsTitle: 'Gotowe!',
+                thumbsUpStarsDescription: 'Brawo dla ciebie, wypatruj kolejnych zadań.',
+                smallRocketTitle: 'Wszystko nadrobione',
+                smallRocketDescription: 'Nadchodzące zadania pojawią się tutaj.',
+                cowboyHatTitle: 'Gotowe!',
+                cowboyHatDescription: 'Wszystkie zadania ogarnięte, wypatruj kolejnych.',
+                trophy1Title: 'Nic do wyświetlenia',
+                trophy1Description: 'Udało ci się! Wypatruj kolejnych zadań do wykonania.',
+                palmTreeTitle: 'Wszystko nadrobione',
+                palmTreeDescription: 'Czas na relaks, ale wypatruj przyszłych zadań.',
+                fishbowlBlueTitle: 'Gotowe!',
+                fishbowlBlueDescription: 'Przyszłe zadania pojawią się tutaj.',
+                targetTitle: 'Wszystko nadrobione',
+                targetDescription: 'Świetnie trzymasz się celu. Wróć po kolejne zadania!',
+                chairTitle: 'Nic do wyświetlenia',
+                chairDescription: 'Idź odpocząć, nadchodzące zadania wyświetlimy tutaj.',
+                broomTitle: 'Gotowe!',
+                broomDescription: 'Zadania są ogarnięte, ale wypatruj kolejnych rzeczy do zrobienia.',
+                houseTitle: 'Wszystko nadrobione',
+                houseDescription: 'To twoja baza dla nadchodzących zadań.',
+                conciergeBotTitle: 'Nic do wyświetlenia',
+                conciergeBotDescription: 'Bip bop bip bop, wróć po kolejne zadania!',
+                checkboxTextTitle: 'Wszystko nadrobione',
+                checkboxTextDescription: 'Odhaczaj tutaj swoje nadchodzące zadania.',
+                flashTitle: 'Gotowe!',
+                flashDescription: 'Twoje przyszłe zadania błyskawicznie pojawią się tutaj.',
+                sunglassesTitle: 'Nic do wyświetlenia',
+                sunglassesDescription: 'Czas się zrelaksować, ale wypatruj tego, co nadchodzi!',
+                f1FlagsTitle: 'Wszystko nadrobione',
+                f1FlagsDescription: 'Ukończyłeś wszystkie zaległe zadania.',
+                fireworksTitle: 'Wszystko nadrobione',
+                fireworksDescription: 'Nadchodzące zadania pojawią się tutaj.',
             },
         },
     },
@@ -1080,6 +1110,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Czy na pewno chcesz usunąć ten paragon?',
         addReceipt: 'Dodaj paragon',
         scanFailed: 'Nie można było zeskanować paragonu, ponieważ brakuje na nim sprzedawcy, daty lub kwoty.',
+        crop: 'Przytnij',
         addAReceipt: {
             phrase1: 'Dodaj paragon',
             phrase2: 'lub przeciągnij i upuść tutaj',
@@ -1385,6 +1416,8 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Niektóre z tych duplikatów zostały już zatwierdzone lub opłacone.',
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystko',
+        noDuplicatesTitle: 'Wszystko gotowe!',
+        noDuplicatesDescription: 'Nie ma tutaj zduplikowanych transakcji do sprawdzenia.',
         confirmApprove: 'Potwierdź kwotę zatwierdzenia',
         confirmApprovalAmount: 'Zatwierdź tylko zgodne wydatki lub zatwierdź cały raport.',
         confirmApprovalAllHoldAmount: () => ({
@@ -1471,7 +1504,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: 'oznaczono powód odrzucenia jako rozwiązany',
             },
         },
-        moveExpenses: () => ({one: 'Przenieś wydatek', other: 'Przenieś wydatki'}),
+        moveExpenses: 'Przenieś do raportu',
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
         changeApprover: {
             title: 'Zmień osobę zatwierdzającą',
@@ -1498,19 +1531,20 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Łączna kwota jest zbyt wysoka. Zmniejsz liczbę godzin lub obniż stawkę.',
         },
         correctRateError: 'Napraw błąd stawki i spróbuj ponownie.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Wyjaśnij</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
-            reimbursable: (value: boolean) => (value ? 'oznaczył(a) wydatek jako „podlegający zwrotowi”' : 'oznaczył(a) wydatek jako „niepodlegający zwrotowi”'),
+        duplicateNonDefaultWorkspacePerDiemError:
+            'Nie możesz duplikować wydatków z tytułu diet między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
+        rulesModifiedFields: {
+            reimbursable: (value: boolean) => (value ? 'oznaczył(a) wydatek jako „podlegający zwrotowi”' : 'oznaczył(a) wydatek jako „niepodlegający zwrotowi kosztów”'),
             billable: (value: boolean) => (value ? 'oznaczył(-a) wydatek jako „fakturowany”' : 'oznaczono wydatek jako „niefakturowalny”'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `ustaw stawkę podatku na „${value}”` : `stawka podatku na „${value}”`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `przeniósł ten wydatek do raportu „${value}”`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `ustaw ${field} na „${value}”` : `${field} na „${value}”`;
             },
-            format: (fragments: string, route: string) => `${fragments} przez <a href="${route}">zasady przestrzeni roboczej</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} przez <a href="${route}">zasady wydatków prywatnych</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} przez <a href="${route}">zasady workspace’u</a>`,
         },
-        duplicateNonDefaultWorkspacePerDiemError:
-            'Nie możesz duplikować wydatków z tytułu diet między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
     },
     transactionMerge: {
         listPage: {
@@ -4232,6 +4266,9 @@ ${
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
                 },
             },
+            travelInvoicing: 'Fakturowanie podróży',
+            travelInvoicingVendor: 'Dostawca usług turystycznych',
+            travelInvoicingPayableAccount: 'Konto zobowiązań z tytułu podróży',
         },
         workspaceList: {
             joinNow: 'Dołącz teraz',
@@ -5140,6 +5177,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         confirm: 'Rozumiem',
                     },
                 },
+                personalDetailsDescription: 'Aby zarezerwować podróż, wpisz swoje imię i nazwisko dokładnie tak, jak widnieje w Twoim dokumencie tożsamości wydanym przez organ państwowy.',
             },
             expensifyCard: {
                 title: 'Karta Expensify',

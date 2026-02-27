@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -543,6 +543,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: '休暇代理人',
         expensifyLogo: 'Expensifyロゴ',
         duplicateReport: 'レポートを複製',
+        explain: '説明',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -939,6 +940,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({days}: {days: number}) => `残り ${days} ${days === 1 ? '日' : '日数'} 日`,
             },
             addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify カードを受け取る住所を入力してください。', cta: '住所を追加'},
+            addPaymentCard: {title: 'Expensify を引き続きご利用いただくには、支払いカードを追加してください', subtitle: 'アカウント ＞ サブスクリプション', cta: '追加'},
             activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
             reviewCardFraud: {
                 title: 'Expensify カードの不正利用の可能性を確認する',
@@ -959,7 +961,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
         },
-        assignedCards: '割り当て済みカード',
+        assignedCards: 'お客様の Expensify カード',
         assignedCardsRemaining: ({amount}: {amount: string}) => `残額：${amount}`,
         announcements: 'お知らせ',
         discoverSection: {
@@ -975,10 +977,38 @@ const translations: TranslationDeepObject<typeof en> = {
             export: ({count}: {count: number}) => `${count} 件の ${count === 1 ? 'レポート' : 'レポート'} をエクスポート`,
             begin: '開始',
             emptyStateMessages: {
-                nicelyDone: 'よくできました',
-                keepAnEyeOut: '次に何が起こるか楽しみにしていてください！',
-                allCaughtUp: 'すべて確認済みです',
-                upcomingTodos: '今後のTo-doはここに表示されます。',
+                thumbsUpStarsTitle: '完了しました！',
+                thumbsUpStarsDescription: 'この調子です！新しいタスクをお楽しみに。',
+                smallRocketTitle: 'すべて確認済みです',
+                smallRocketDescription: '今後の To-do がここに表示されます。',
+                cowboyHatTitle: '完了しました！',
+                cowboyHatDescription: 'すべてのタスクが片付きました。次のタスクにご注目ください。',
+                trophy1Title: '表示するものがありません',
+                trophy1Description: 'やりました！次の To-do にご注目ください。',
+                palmTreeTitle: 'すべて確認済みです',
+                palmTreeDescription: 'ひと息つく時間ですが、今後のタスクをお楽しみに。',
+                fishbowlBlueTitle: '完了しました！',
+                fishbowlBlueDescription: '今後のタスクがここに表示されます。',
+                targetTitle: 'すべて確認済みです',
+                targetDescription: '目標どおりですね。次のタスクをまた確認してください！',
+                chairTitle: '表示するものがありません',
+                chairDescription: 'ゆっくりおくつろぎください。今後のやることリストはこちらに表示します。',
+                broomTitle: '完了しました！',
+                broomDescription: 'タスクは順調です。新しい To-do をお楽しみに。',
+                houseTitle: 'すべて確認済みです',
+                houseDescription: 'ここが今後のやることのホームベースです。',
+                conciergeBotTitle: '表示するものがありません',
+                conciergeBotDescription: 'ピッピッ、ブッブッ。次のタスクをまた確認してください！',
+                checkboxTextTitle: 'すべて確認済みです',
+                checkboxTextDescription: 'ここで今後のやることにチェックを付けましょう。',
+                flashTitle: '完了しました！',
+                flashDescription: '今後のタスクをここでサッと表示します。',
+                sunglassesTitle: '表示するものがありません',
+                sunglassesDescription: 'ひと休みするときですが、次の予定をお楽しみに！',
+                f1FlagsTitle: 'すべて確認済みです',
+                f1FlagsDescription: 'すべての未処理の To-do が完了しました。',
+                fireworksTitle: 'すべて確認済みです',
+                fireworksDescription: '今後のやることがここに表示されます。',
             },
         },
     },
@@ -1073,6 +1103,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
         addReceipt: '領収書を追加',
         scanFailed: 'このレシートは、店舗名、日付、または金額が不足しているためスキャンできませんでした。',
+        crop: 'トリミング',
         addAReceipt: {
             phrase1: '領収書を追加',
             phrase2: 'または、ここにファイルをドラッグ＆ドロップしてください',
@@ -1375,9 +1406,11 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseOnHold: 'この経費は保留されています。今後の手順についてコメントを確認してください。',
         expensesOnHold: 'すべての経費が保留になっています。次のステップについてはコメントを確認してください。',
         expenseDuplicate: 'この経費は別の経費と詳細がよく似ています。続行するには重複しているものを確認してください。',
-        someDuplicatesArePaid: 'これらの重複のうち、いくつかはすでに承認または支払い済みです。',
+        someDuplicatesArePaid: 'これらの重複の一部は、すでに承認または支払い済みです。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
+        noDuplicatesTitle: '準備完了！',
+        noDuplicatesDescription: '確認が必要な重複取引はありません。',
         confirmApprove: '承認金額を確認',
         confirmApprovalAmount: '準拠している経費のみを承認するか、レポート全体を承認します。',
         confirmApprovalAllHoldAmount: () => ({
@@ -1464,7 +1497,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: '却下理由を解決済みにしました',
             },
         },
-        moveExpenses: () => ({one: '経費を移動', other: '経費を移動'}),
+        moveExpenses: 'レポートに移動',
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
         changeApprover: {
             title: '承認者を変更',
@@ -1491,18 +1524,19 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
         correctRateError: 'レートのエラーを修正して、もう一度お試しください。',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
-            reimbursable: (value: boolean) => (value ? '経費を「精算対象」としてマークしました' : '経費を「非精算」としてマークしました'),
+        duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
+        rulesModifiedFields: {
+            reimbursable: (value: boolean) => (value ? '経費を「精算対象」に指定しました' : '経費を「精算対象外」にマークしました'),
             billable: (value: boolean) => (value ? '経費を「請求可能」に設定しました' : '経費を「請求不可」としてマークしました'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `税率を「${value}」に設定する` : `税率を「${value}」に`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `この経費をレポート「${value}」に移動しました`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `${field} を「${value}」に設定する` : `${field} から「${value}」へ`;
             },
-            format: (fragments: string, route: string) => `${fragments}（<a href="${route}">ワークスペースルール</a>経由）`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} (<a href="${route}">個人経費ルール</a> 経由)`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} (<a href="${route}">ワークスペースルール</a> 経由)`,
         },
-        duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
     },
     transactionMerge: {
         listPage: {
@@ -4217,6 +4251,9 @@ ${
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担経費は支払われた時点でエクスポートされます',
                 },
             },
+            travelInvoicing: '出張請求書作成',
+            travelInvoicingVendor: '出張業者',
+            travelInvoicingPayableAccount: '旅費未払勘定',
         },
         workspaceList: {
             joinNow: '今すぐ参加',
@@ -5107,6 +5144,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     },
                     outstandingBalanceModal: {title: 'トラベル請求書作成をオフにできません', body: '未清算の出張残高があります。先に残高を精算してください。', confirm: '了解しました'},
                 },
+                personalDetailsDescription: '旅行を予約するために、政府発行の身分証明書に記載されているとおりの正式な氏名を入力してください。',
             },
             expensifyCard: {
                 title: 'Expensify カード',

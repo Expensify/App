@@ -26,19 +26,19 @@ Each time slot includes two training tracks:
 
 Select the date and time that works best for you. Admins are encouraged to attend both sessions.
 
-**Tuesdays – 23:00 UTC**
+**Mondays – 23:00 UTC**
 
 (3pm Monday PST / 12pm Tuesday NZ / 10am SYD / 7am MNL)
 
 👉 **[Register here](https://events.zoom.us/ev/AsNhZCGJb8qpCLyZC3uo6s3WuVrcCvxJK25CxoiTwKoKaTJZUuP9~AnwAZJQZuLuVfZvrvX6QRPlgfkVBTBIYRm_MuWWV3HfCDPlrxANJU0sjCw)**
 
-**Wednesdays – 18:00 UTC**
+**Tuesdays – 18:00 UTC**
 
 (10am Tuesday PST / 1pm EST / 6pm GMT)
 
 👉 **[Register here](https://events.zoom.us/ev/Ag9wyeaHoM2MdgrEudeM2khDhyVlOVeoJ0em2duEOYrYoGBnu1GR~AjXo_keo4nLLLaBzstxCEOOxskKk4NqV4gurDM4MIZGA1R3dMLZUCgxoFw)**
 
-**Thursdays – 14:00 UTC**
+**Wednesdays – 14:00 UTC**
 
 (9am Wednesday EST / 2pm GMT / 3pm CEST)
 
