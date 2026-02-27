@@ -1,76 +1,86 @@
 ---
-title: INT576 Sync Error: No Expense Types Found in Sage Intacct
-description: Learn why the INT576 sync error occurs and how to create Expense Types in Sage Intacct or update the export configuration.
-keywords: INT576, no expense types found, Sage Intacct Time and Expenses module, expense report export error, change export type to vendor bill, sync expense types
-internalScope: Audience is Workspace Admins managing the Sage Intacct integration. Covers the INT576 sync error related to missing Expense Types in Sage Intacct. Does not cover export validation or permission errors.
+title: INT576 Sync Error in Sage Intacct Integration
+description: Learn what the INT576 sync error means and how to create Expense Types in Sage Intacct or update the export configuration.
+keywords: INT576, no expense types found Sage Intacct, Time and Expenses module error, expense report export error, change export type to Vendor bill, sync Expense Types, Workspace Admin
+internalScope: Audience is Workspace Admins managing the Sage Intacct integration. Covers resolving the INT576 sync error related to missing Expense Types in Sage Intacct. Does not cover export validation or permission errors.
 ---
 
-# INT576 Sync Error: No Expense Types Found in Sage Intacct
+# INT576 Sync Error in Sage Intacct Integration
 
-If you see the error message:
+If you see the error:
 
-**“INT576 Sync Error: No Expense Types found. The connection is set to export as Expense Reports, but no ‘expense types’ exist in Sage Intacct.”**
+INT576 Sync Error: No Expense Types found. The connection is set to export as Expense Reports, but no “Expense Types” exist in Sage Intacct.
 
-It means the integration is configured to export reimbursable expenses as **Expense Reports**, but there are no Expense Types created in Sage Intacct.
+This means the integration is configured to export reimbursable expenses as **Expense reports**, but there are no Expense Types created in Sage Intacct.
+
+Expense Types are required to export expense reports.
 
 ---
 
-## Why the INT576 Sync Error Happens
+## Why the INT576 Sync Error Happens in Sage Intacct
 
-The INT576 sync error occurs when:
+The INT576 error typically occurs when:
 
-- The export type is set to **Expense Reports**, and  
-- No Expense Types exist in the **Time and Expenses** module in Sage Intacct  
+- The export type is set to **Expense reports**.
+- No Expense Types exist in the **Time and Expenses** module in Sage Intacct.
+- The Workspace attempts to sync configuration data.
 
-Expense Types are required to export expense reports. If they do not exist, the sync cannot complete.
+If Expense Types do not exist, Sage Intacct cannot complete the sync.
+
+This is an Expense Type configuration issue, not a report data or permission issue.
 
 ---
 
 # How to Fix the INT576 Sync Error
 
-You can resolve this by creating Expense Types or changing the export type.
+You can resolve this by creating Expense Types in Sage Intacct or changing the export type.
 
 ---
 
-## Option 1: Create Expense Types in Sage Intacct
+## Create Expense Types in Sage Intacct
 
-1. Log in to Sage Intacct.  
-2. Go to **Applications > Time and Expenses**.  
-3. Create the required **Expense Types**.  
-4. Save your changes.  
+1. Log in to Sage Intacct as an administrator.
+2. Go to **Applications > Time and Expenses**.
+3. Create the required **Expense Types**.
+4. Click **Save**.
 
 Then:
 
-1. Go to **Workspace > [Workspace Name] > Accounting**.  
-2. Click the three-dot icon next to the Sage Intacct connection.  
-3. Select **Sync Now** from the dropdown.  
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
 
 If Expense Types exist, the sync should complete successfully.
 
 ---
 
-## Option 2: Change the Export Type to Vendor Bill
+## Change the Export Type to Vendor Bill in the Workspace
 
 If you do not use the Time and Expenses module:
 
-1. Go to **Workspace > [Workspace Name] > Accounting > Export**.  
-2. Change the export type from **Expense Report** to **Vendor Bill**.  
-3. Save your changes.  
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Locate the reimbursable export configuration.
+5. Change the export type from **Expense report** to **Vendor bill**.
+6. Click **Save**.
+7. Click **Sync Now**.
 
-Retry the sync.
+This allows reimbursable expenses to export without requiring Expense Types.
 
 ---
 
 # FAQ
 
-## Do I need the Time and Expenses module to export expense reports?
+## Do I Need the Time and Expenses Module to Export Expense Reports?
 
-Yes. Expense Types must exist in the Time and Expenses module to export as Expense Reports.
+Yes. Expense Types must exist in the Time and Expenses module to export as **Expense reports**.
 
-## When should I use Vendor Bill instead?
+## When Should I Use Vendor Bill Instead?
 
-If you do not use the Time and Expenses module in Sage Intacct, exporting as **Vendor Bill** is typically the correct configuration.
+If you do not use the Time and Expenses module in Sage Intacct, exporting as **Vendor bill** is typically the correct configuration.
 
-## Does this error affect existing reports?
+## Does the INT576 Error Affect Existing Reports?
 
 The error prevents syncing configuration data. Once Expense Types are created or the export type is updated, reports can be exported normally.
