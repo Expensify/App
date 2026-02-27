@@ -36,7 +36,7 @@ on:
         description: URL to download the ad-hoc build artifact (adhoc only)
         value: ${{ jobs.build.outputs.ROCK_ARTIFACT_URL }}
       SENTRY_URL:
-        description: URL to Sentry size analysis (adhoc only)
+        description: URL to Sentry size analysis
         value: ${{ jobs.build.outputs.SENTRY_URL }}
       IPA_FILENAME:
         description: Filename of the IPA artifact produced by the build
@@ -241,11 +241,11 @@ jobs:
 
       - name: Upload iOS build to Sentry for size analysis
         id: sentry-upload
-        if: ${{ env.ARTIFACT_PATH != '' && inputs.variant == 'Adhoc' }}
+        if: ${{ env.ARTIFACT_PATH != '' }}
         continue-on-error: true
         timeout-minutes: 5
         run: |
-          OUTPUT=$(npx sentry-cli build upload "$ARTIFACT_PATH" --org expensify --project app --build-configuration AdHoc --log-level debug 2>&1)
+          OUTPUT=$(npx sentry-cli build upload "$ARTIFACT_PATH" --org expensify --project app --build-configuration ${{ inputs.variant == 'Adhoc' && 'AdHoc' || 'Release' }} --log-level debug 2>&1)
           echo "$OUTPUT"
           SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
           if [ -n "$SENTRY_URL" ]; then
@@ -324,12 +324,3 @@ jobs:
           name: ${{ inputs.artifact-prefix }}ios-sourcemap-artifact
           path: Mobile-Expensify/main.jsbundle.map
 
-      - name: Upload iOS build to Sentry for size analysis
-        if: ${{ inputs.variant == 'Release' }}
-        continue-on-error: true
-        timeout-minutes: 5
-        run: |
-          IPA_PATH=$(find .rock/cache/ios/export -name '*.ipa' | head -1)
-          npx sentry-cli build upload "$IPA_PATH" --org expensify --project app --build-configuration Release --log-level debug
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
