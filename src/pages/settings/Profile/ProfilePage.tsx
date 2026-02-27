@@ -15,7 +15,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -71,8 +70,6 @@ function ProfilePage() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    useDocumentTitle(`${translate('common.settings')} - ${translate('common.profile')}`);
-
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),

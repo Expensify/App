@@ -2,6 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {getArchiveReason} from '@selectors/Report';
+import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -45,6 +46,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -259,6 +261,7 @@ function MoneyReportHeader({
         'NetSuiteSquare',
         'IntacctSquare',
         'QBDSquare',
+        'CertiniaSquare',
         'Feed',
         'Close',
         'Location',
@@ -269,6 +272,9 @@ function MoneyReportHeader({
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
+    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
+    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
+
     const {translate, localeCompare} = useLocalize();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
@@ -707,6 +713,9 @@ function MoneyReportHeader({
             const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
 
             for (const item of transactionList) {
+                const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
+                const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
+
                 duplicateTransactionAction({
                     transaction: item,
                     optimisticChatReportID,
@@ -721,6 +730,8 @@ function MoneyReportHeader({
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
+                    existingTransactionDraft,
+                    draftTransactionIDs,
                     betas,
                     personalDetails,
                     recentWaypoints,
@@ -731,7 +742,9 @@ function MoneyReportHeader({
             activePolicyExpenseChat,
             activePolicyID,
             allPolicyCategories,
+            transactionDrafts,
             defaultExpensePolicy,
+            draftTransactionIDs,
             introSelected,
             isASAPSubmitBetaEnabled,
             quickAction,
