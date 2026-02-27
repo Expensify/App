@@ -172,7 +172,7 @@ const OnboardingGuard: NavigationGuard = {
         }
 
         const shouldSkipOnboarding =
-            context.isLoading || isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember || CONFIG.SKIP_ONBOARDING;
+            CONFIG.SKIP_ONBOARDING || context.isLoading || isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
