@@ -56,21 +56,27 @@ type UseCompanyCardsResult = Partial<{
  * Only the lastFourPAN path enriches the card; the other two confirm the card is already linked.
  */
 function resolveCardListEntry(card: Card, cardListEntries: Array<[string, string]>): Card {
-    if (!card.lastFourPAN) {
+    const {cardName, encryptedCardNumber, lastFourPAN} = card;
+
+    const panSuffix = lastFourPAN || cardName;
+    if (!panSuffix) {
         return card;
     }
-
-    const {cardName, encryptedCardNumber, lastFourPAN} = card;
 
     const isLinkedByEncrypted = encryptedCardNumber && cardListEntries.some(([, entryEncryptedCardNumber]) => entryEncryptedCardNumber === encryptedCardNumber);
     const normalizedCardName = cardName ? normalizeCardName(cardName) : undefined;
     const isLinkedByName = normalizedCardName && cardListEntries.some(([name]) => normalizeCardName(name) === normalizedCardName);
 
-    if (isLinkedByEncrypted || isLinkedByName) {
+    if (isLinkedByEncrypted) {
         return card;
     }
 
-    const [matchedCard, ...otherMatchedCards] = cardListEntries.filter(([name]) => name.endsWith(lastFourPAN)).slice(0, 2);
+    if (isLinkedByName) {
+        const matchedEntry = cardListEntries.find(([name]) => normalizeCardName(name) === normalizedCardName);
+        return matchedEntry ? {...card, encryptedCardNumber: matchedEntry[1]} : card;
+    }
+
+    const [matchedCard, ...otherMatchedCards] = cardListEntries.filter(([name]) => name.endsWith(panSuffix)).slice(0, 2);
 
     // If there are other matched cards, return the original card.
     if (otherMatchedCards.length > 0) {
@@ -101,10 +107,18 @@ function buildCompanyCardEntries(accountList: string[] | undefined, cardList: As
         const resolved = resolveCardListEntry(card, cardListEntries);
         const {cardName = card.cardName, encryptedCardNumber = card.cardName} = resolved;
 
-        entries.push({cardName, encryptedCardNumber, isAssigned: true, assignedCard: card});
-        coveredNames.add(normalizeCardName(cardName));
-        if (encryptedCardNumber !== cardName) {
-            coveredEncrypted.add(encryptedCardNumber);
+        const alreadyCovered = encryptedCardNumber !== cardName && coveredEncrypted.has(encryptedCardNumber);
+        if (!alreadyCovered) {
+            entries.push({cardName, encryptedCardNumber, isAssigned: true, assignedCard: card});
+            coveredNames.add(normalizeCardName(cardName));
+            if (encryptedCardNumber !== cardName) {
+                coveredEncrypted.add(encryptedCardNumber);
+            }
+        } else {
+            coveredNames.add(normalizeCardName(card.cardName ?? ''));
+            if (card.encryptedCardNumber && card.encryptedCardNumber !== card.cardName) {
+                coveredEncrypted.add(card.encryptedCardNumber);
+            }
         }
     }
 
