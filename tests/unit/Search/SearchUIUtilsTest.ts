@@ -5118,7 +5118,7 @@ describe('SearchUIUtils', () => {
                 .map((section) => section.menuItems)
                 .flat();
 
-            const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense-report sortBy:date sortOrder:desc', 'type:chat sortBy:date sortOrder:desc'];
+            const expectedQueries = ['type:expense-report sortBy:date sortOrder:desc', 'type:expense sortBy:date sortOrder:desc', 'type:chat sortBy:date sortOrder:desc'];
 
             for (const [index, item] of menuItems.entries()) {
                 expect(item.searchQuery).toStrictEqual(expectedQueries.at(index));
@@ -5717,6 +5717,27 @@ describe('SearchUIUtils', () => {
             expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.LINE}`);
             expect(searchQuery).toContain(`sortBy:${CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH}`);
             expect(searchQuery).toContain(`sortOrder:${CONST.SEARCH.SORT_ORDER.ASC}`);
+        });
+
+        test('Should return Top Merchants search query with pie view', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const topMerchantsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
+
+            expect(topMerchantsSearch).toBeDefined();
+            const searchQueryJSON = topMerchantsSearch.searchQueryJSON;
+
+            expect(searchQueryJSON).toBeDefined();
+            expect(searchQueryJSON?.view).toBe(CONST.SEARCH.VIEW.PIE);
+        });
+
+        test('Should return Top Merchants search query string with pie view', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const topMerchantsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
+
+            expect(topMerchantsSearch).toBeDefined();
+            const searchQuery = topMerchantsSearch.searchQuery;
+
+            expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.PIE}`);
         });
     });
 

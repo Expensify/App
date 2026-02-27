@@ -1,13 +1,15 @@
 import {useRoute} from '@react-navigation/native';
+import {accountGuideDetailsSelector} from '@selectors/Account';
+import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {isPast} from 'date-fns';
-import React, {memo, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import DisplayNames from '@components/DisplayNames';
+import HeaderLoadingBar from '@components/HeaderLoadingBar';
 import Icon from '@components/Icon';
-import LoadingBar from '@components/LoadingBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -22,9 +24,9 @@ import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -35,6 +37,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     canJoinChat,
     canUserPerformWriteAction,
@@ -45,7 +48,6 @@ import {
     getPolicyDescriptionText,
     getPolicyName,
     getReportDescription,
-    getReportName,
     getReportStatusColorStyle,
     getReportStatusTranslation,
     hasReportNameError,
@@ -78,6 +80,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import reportsSelector from '@src/selectors/Attributes';
 import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -106,21 +109,19 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
-    const invoiceReceiverPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`);
     const [grandParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
-    const [grandParentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
+    const grandParentReportAction = useParentReportAction(parentReport);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const shouldShowLoadingBar = useLoadingBarVisibility();
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [accountGuideDetails] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountGuideDetailsSelector});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector});
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
@@ -129,6 +130,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
     const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
@@ -144,13 +146,12 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // This is used to check if the report is a chat thread and has a parent invoice report.
     const isParentInvoiceAndIsChatThread = isChatThread && !!parentReport && isInvoiceReport(parentReport);
     const reportHeaderData = (!isTaskReport && !isChatThread && report?.parentReportID) || isParentInvoiceAndIsChatThread ? parentReport : report;
-    const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportActions?.[`${parentReport?.parentReportActionID}`]);
+    const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportAction);
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     // Use sorted display names for the title for group chats on native small screen widths
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived);
+    const title = getReportName(reportHeaderData, reportAttributes, reports, parentReportAction);
     const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
     // This is used to get the status badge for invoice report subtitle.
     const statusTextForInvoiceReport = isParentInvoiceAndIsChatThread
@@ -185,9 +186,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     };
 
     const shouldShowGuideBooking =
-        !!account &&
-        account?.guideDetails?.email !== CONST.EMAIL.CONCIERGE &&
-        !!account?.guideDetails?.calendarLink &&
+        !!accountGuideDetails &&
+        accountGuideDetails?.email !== CONST.EMAIL.CONCIERGE &&
+        !!accountGuideDetails?.calendarLink &&
         isAdminRoom(report) &&
         !!canUserPerformWriteAction(report, isReportArchived) &&
         !isChatThread &&
@@ -244,11 +245,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !isInSidePanel;
     const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
     const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
-    const shouldShowBackButton = shouldUseNarrowLayout || !!isInSidePanel;
-
-    const shouldShowCloseButton = isInSidePanel && !shouldUseNarrowLayout && isConciergeChatReport(report);
-    const backButtonIcon = shouldShowCloseButton ? icons.Close : icons.BackArrow;
-    const backButtonLabel = shouldShowCloseButton ? translate('common.close') : translate('common.back');
+    const shouldShowCloseButton = !!isInSidePanel && !shouldUseNarrowLayout && isConciergeChatReport(report);
+    const shouldShowBackButton = (shouldUseNarrowLayout || !!isInSidePanel) && !shouldShowCloseButton;
 
     const onboardingHelpDropdownButton = (
         <OnboardingHelpDropdownButton
@@ -284,17 +282,17 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     onPress={onNavigationMenuButtonClicked}
                                     style={[styles.LHNToggle, shouldUseNarrowLayout && styles.pl5]}
                                     accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
-                                    accessibilityLabel={backButtonLabel}
+                                    accessibilityLabel={translate('common.back')}
                                     role={CONST.ROLE.BUTTON}
                                     sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.BACK_BUTTON}
                                 >
                                     <Tooltip
-                                        text={backButtonLabel}
+                                        text={translate('common.back')}
                                         shiftVertical={4}
                                     >
                                         <View>
                                             <Icon
-                                                src={backButtonIcon}
+                                                src={icons.BackArrow}
                                                 fill={theme.icon}
                                             />
                                         </View>
@@ -389,6 +387,22 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
+                                {shouldShowCloseButton && (
+                                    <Tooltip text={translate('common.close')}>
+                                        <PressableWithoutFeedback
+                                            onPress={onNavigationMenuButtonClicked}
+                                            style={[styles.touchableButtonImage]}
+                                            role={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={translate('common.close')}
+                                            sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.BACK_BUTTON}
+                                        >
+                                            <Icon
+                                                src={icons.Close}
+                                                fill={theme.icon}
+                                            />
+                                        </PressableWithoutFeedback>
+                                    </Tooltip>
+                                )}
                                 {!isInSidePanel && <SidePanelButton style={styles.ml2} />}
                                 {shouldDisplaySearchRouter && <SearchButton />}
                             </View>
@@ -416,7 +430,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                         </View>
                     </View>
                 )}
-                <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
+                <HeaderLoadingBar />
             </View>
             {shouldShowEarlyDiscountBanner && (
                 <EarlyDiscountBanner
@@ -429,4 +443,4 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     );
 }
 
-export default memo(HeaderView);
+export default HeaderView;

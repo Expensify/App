@@ -107,6 +107,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
+    policy?: Policy;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
@@ -165,6 +166,7 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
 function TransactionItemRow({
     transactionItem,
     report,
+    policy,
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
@@ -248,7 +250,8 @@ function TransactionItemRow({
             return '';
         }
 
-        const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
+        const policyParam = policy ?? transactionItem.policy;
+        const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem, policyParam);
         const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
@@ -266,7 +269,7 @@ function TransactionItemRow({
             }
             return error;
         }
-    }, [transactionItem, translate, report]);
+    }, [transactionItem, translate, report, policy]);
 
     const exchangeRateMessage = getExchangeRate(transactionItem);
 
@@ -687,7 +690,7 @@ function TransactionItemRow({
                             style={styles.mr3}
                         />
                         <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5]}>
                                 <DateCell
                                     date={createdAt}
                                     showTooltip={shouldShowTooltip}
@@ -750,7 +753,7 @@ function TransactionItemRow({
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
                         <View style={[styles.flexColumn, styles.flex1]}>
                             {hasCategoryOrTag && !isIOUReport(report) && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight6]}>
                                     <CategoryCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}

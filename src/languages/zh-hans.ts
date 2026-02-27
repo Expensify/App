@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -950,7 +950,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
         },
-        assignedCards: '已分配的卡片',
+        assignedCards: '你的 Expensify 卡',
         assignedCardsRemaining: ({amount}: {amount: string}) => `剩余 ${amount}`,
         announcements: '公告',
         discoverSection: {
@@ -966,10 +966,38 @@ const translations: TranslationDeepObject<typeof en> = {
             export: ({count}: {count: number}) => `导出 ${count} 个 ${count === 1 ? '报表' : '报表'}`,
             begin: '开始',
             emptyStateMessages: {
-                nicelyDone: '做得好',
-                keepAnEyeOut: '留意接下来会发生的事情！',
-                allCaughtUp: '全部处理完毕',
-                upcomingTodos: '即将到来的待办事项会显示在这里。',
+                thumbsUpStarsTitle: '你已完成！',
+                thumbsUpStarsDescription: '为你点赞，请留意更多任务。',
+                smallRocketTitle: '全部完成',
+                smallRocketDescription: '即将推出的待办事项会在此显示。',
+                cowboyHatTitle: '你已完成！',
+                cowboyHatDescription: '所有任务都已处理完毕，请留意更多任务。',
+                trophy1Title: '暂无内容展示',
+                trophy1Description: '你成功了！请留意更多待办事项。',
+                palmTreeTitle: '全部完成',
+                palmTreeDescription: '是时候放松一下了，但请留意未来的任务。',
+                fishbowlBlueTitle: '你已完成！',
+                fishbowlBlueDescription: '未来的任务会在这里显示。',
+                targetTitle: '全部完成',
+                targetDescription: '保持专注。稍后再来查看更多任务！',
+                chairTitle: '暂无内容展示',
+                chairDescription: '去放松一下吧，我们会在这里列出即将到来的待办事项。',
+                broomTitle: '你已完成！',
+                broomDescription: '任务已清理完毕，但请留意更多待办事项。',
+                houseTitle: '全部完成',
+                houseDescription: '这里是你即将处理的待办事项的大本营。',
+                conciergeBotTitle: '暂无内容展示',
+                conciergeBotDescription: '哔哔啵啵，稍后再来查看更多任务！',
+                checkboxTextTitle: '全部完成',
+                checkboxTextDescription: '在这里勾选完成你即将要做的事项。',
+                flashTitle: '你已完成！',
+                flashDescription: '我们会在这里快速显示你未来的任务。',
+                sunglassesTitle: '暂无内容展示',
+                sunglassesDescription: '是时候放松一下了，但请留意接下来的动态！',
+                f1FlagsTitle: '全部完成',
+                f1FlagsDescription: '你已完成所有未完成的待办事项。',
+                fireworksTitle: '全部完成',
+                fireworksDescription: '即将到来的待办事项将显示在此处。',
             },
         },
     },
@@ -1445,7 +1473,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: '已将拒绝原因标记为已解决',
             },
         },
-        moveExpenses: () => ({one: '移动报销', other: '移动报销费用'}),
+        moveExpenses: '移动到报告',
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
         changeApprover: {
             title: '更改审批人',
@@ -1471,19 +1499,21 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / 小时`,
             amountTooLargeError: '总金额过大。请减少工时或降低费率。',
         },
-        correctRateError: '修复费率错误后重试。',
-        AskToExplain: `。<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>说明</strong></a> ✨`,
-        policyRulesModifiedFields: {
-            reimbursable: (value: boolean) => (value ? '已将该报销单标记为“可报销”' : '将该报销单标记为“不可报销”'),
+        correctRateError: '修复费率错误后请重试。',
+        AskToExplain: `。<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>说明</strong></a> &#x2728;`,
+        duplicateNonDefaultWorkspacePerDiemError: '您无法在不同工作区之间复制每日津贴报销，因为各工作区的补贴标准可能不同。',
+        rulesModifiedFields: {
+            reimbursable: (value: boolean) => (value ? '将该报销单标记为“可报销”' : '将该报销单标记为“不可报销”'),
             billable: (value: boolean) => (value ? '将该报销标记为“可计费”' : '将该报销标记为“不可计费”'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `将税率设置为“${value}”` : `税率为“${value}”`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `已将此报销移至报销单“${value}”`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `将 ${field} 设置为“${value}”` : `${field} 至 “${value}”`;
             },
-            format: (fragments: string, route: string) => `${fragments} 通过 <a href="${route}">工作区规则</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} 通过 <a href="${route}">个人报销规则</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} 通过 <a href="${route}">工作区规则</a>`,
         },
-        duplicateNonDefaultWorkspacePerDiemError: '您无法在不同工作区之间复制每日津贴报销，因为各工作区的补贴标准可能不同。',
     },
     transactionMerge: {
         listPage: {
@@ -5037,6 +5067,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     disableModal: {title: '关闭差旅开票？', body: '即将到来的酒店和汽车租赁预订可能需要使用不同的付款方式重新预订，以避免被取消。', confirm: '关闭'},
                     outstandingBalanceModal: {title: '无法关闭差旅开票', body: '你仍有未结清的差旅余额。请先支付该余额。', confirm: '明白了'},
                 },
+                personalDetailsDescription: '为预订行程，请输入您在政府签发的身份证件上显示的法定姓名。',
             },
             expensifyCard: {
                 title: 'Expensify 卡',

@@ -1,7 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {ConciergeBrokenCardConnectionParams, CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, UpdatedPolicyTagParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
@@ -824,7 +824,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Revisar',
             },
         },
-        assignedCards: 'Tarjetas asignadas',
+        assignedCards: 'Tus tarjetas Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restantes`,
         announcements: 'Anuncios',
         discoverSection: {
@@ -840,10 +840,38 @@ const translations: TranslationDeepObject<typeof en> = {
             export: ({count}: {count: number}) => `Exportar ${count} ${count === 1 ? 'informe' : 'informes'}`,
             begin: 'Comenzar',
             emptyStateMessages: {
-                nicelyDone: '¡Muy bien hecho!',
-                keepAnEyeOut: '¡Mantente atento a lo que viene a continuación!',
-                allCaughtUp: 'Ya estás al día',
-                upcomingTodos: 'Las tareas pendientes aparecerán aquí.',
+                thumbsUpStarsTitle: '¡Has terminado!',
+                thumbsUpStarsDescription: 'Pulgar arriba, mantente atento a más tareas.',
+                smallRocketTitle: 'Todo al día',
+                smallRocketDescription: 'Las próximas tareas se lanzarán aquí.',
+                cowboyHatTitle: '¡Has terminado!',
+                cowboyHatDescription: 'Todas las tareas están domadas, mantente atento a más.',
+                trophy1Title: 'Nada que mostrar',
+                trophy1Description: '¡Lo lograste! Mantente atento a más tareas.',
+                palmTreeTitle: 'Todo al día',
+                palmTreeDescription: 'Hora de relajarse, pero mantente atento a futuras tareas.',
+                fishbowlBlueTitle: '¡Has terminado!',
+                fishbowlBlueDescription: 'Aquí mostraremos las futuras tareas.',
+                targetTitle: 'Todo al día',
+                targetDescription: 'Justo en el blanco. ¡Vuelve a revisar para más tareas!',
+                chairTitle: 'Nada que mostrar',
+                chairDescription: 'Relájate, listaremos las próximas tareas aquí.',
+                broomTitle: '¡Has terminado!',
+                broomDescription: 'Las tareas están limpias, pero mantente atento a más tareas.',
+                houseTitle: 'Todo al día',
+                houseDescription: 'Esta es tu base para las próximas tareas.',
+                conciergeBotTitle: 'Nada que mostrar',
+                conciergeBotDescription: '¡Bip bup bip bup, vuelve a revisar para más tareas!',
+                checkboxTextTitle: 'Todo al día',
+                checkboxTextDescription: 'Marca tus próximas tareas aquí.',
+                flashTitle: '¡Has terminado!',
+                flashDescription: 'Aquí mostraremos tus futuras tareas.',
+                sunglassesTitle: 'Nada que mostrar',
+                sunglassesDescription: '¡Hora de relajarse, pero mantente atento a lo que viene!',
+                f1FlagsTitle: 'Todo al día',
+                f1FlagsDescription: 'Has completado todas las tareas pendientes.',
+                fireworksTitle: 'Todo al día',
+                fireworksDescription: 'Las próximas tareas aparecerán aquí.',
             },
         },
     },
@@ -1331,7 +1359,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
 
-        moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
+        moveExpenses: 'Mover a informe',
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
         changeApprover: {
             title: 'Cambiar aprobador',
@@ -1359,15 +1387,17 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Corrige el error de la tasa y vuelve a intentarlo.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
+        rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcó el gasto como "reembolsable"' : 'marcó el gasto como "no reembolsable"'),
             billable: (value: boolean) => (value ? 'marcó el gasto como "facturable"' : 'marcó el gasto como "no facturable"'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `estableció la tasa de impuesto a "${value}"` : `tasa de impuesto a "${value}"`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `movió este gasto al informe "${value}"`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `estableció el ${field} a "${value}"` : `${field} a "${value}"`;
             },
-            format: (fragments: string, route: string) => `${fragments} a través de <a href="${route}">reglas del espacio de trabajo</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} vía <a href="${route}">reglas de gastos personales</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} vía <a href="${route}">reglas del espacio de trabajo</a>`,
         },
         duplicateNonDefaultWorkspacePerDiemError: 'No puedes duplicar gastos de viáticos entre espacios de trabajo porque las tarifas pueden variar entre ellos.',
     },
@@ -4998,6 +5028,7 @@ ${amount} para ${merchant} - ${date}`,
                         confirm: 'Entendido',
                     },
                 },
+                personalDetailsDescription: 'Para poder reservar el viaje, por favor ingrese su nombre legal tal como aparece en su identificación oficial emitida por el gobierno.',
             },
             expensifyCard: {
                 title: 'Tarjeta Expensify',
