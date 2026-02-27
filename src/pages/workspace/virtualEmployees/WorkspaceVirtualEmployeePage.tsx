@@ -271,6 +271,7 @@ function WorkspaceVirtualEmployeePage({route}: WorkspaceVirtualEmployeePageProps
                                 {borderRadius: 8},
                                 styles.highlightBG,
                                 {borderLeftWidth: 3, borderLeftColor: theme.success},
+                                !shouldUseNarrowLayout && styles.flex1,
                             ]}
                         >
                             <Text
@@ -285,7 +286,9 @@ function WorkspaceVirtualEmployeePage({route}: WorkspaceVirtualEmployeePageProps
                                 onChangeText={setSystemPrompt}
                                 multiline
                                 numberOfLines={8}
-                                autoGrowHeight
+                                autoGrowHeight={shouldUseNarrowLayout}
+                                containerStyles={!shouldUseNarrowLayout ? [styles.flex1] : undefined}
+                                inputStyle={!shouldUseNarrowLayout ? [styles.flex1, {textAlignVertical: 'top' as const}] : undefined}
                             />
                         </View>
                         {!!systemPromptError && (
