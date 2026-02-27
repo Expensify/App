@@ -2440,7 +2440,7 @@ function getValidOptions(
         maxRecentReportElements = undefined,
         shouldAcceptName = false,
         personalDetails,
-        policyTags,
+        allPolicyTags,
         countryCode = CONST.DEFAULT_COUNTRY_CODE,
         visibleReportActionsData = {},
         reportAttributesDerived,
@@ -2549,7 +2549,7 @@ function getValidOptions(
                 },
                 visibleReportActionsData,
                 reportAttributesDerived,
-                policyTags,
+                allPolicyTags,
             ).at(0);
         }
 
@@ -2571,7 +2571,7 @@ function getValidOptions(
             },
             visibleReportActionsData,
             reportAttributesDerived,
-            policyTags,
+            allPolicyTags,
         );
 
         workspaceChats = prepareReportOptionsForDisplay(
@@ -2589,7 +2589,7 @@ function getValidOptions(
             },
             visibleReportActionsData,
             reportAttributesDerived,
-            policyTags,
+            allPolicyTags,
         );
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
@@ -2715,7 +2715,7 @@ type SearchOptionsConfig = {
     currentUserEmail: string;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
-    policyTags?: OnyxCollection<PolicyTagLists>;
+    allPolicyTags?: OnyxCollection<PolicyTagLists>;
 };
 
 /**
@@ -2743,7 +2743,7 @@ function getSearchOptions({
     currentUserEmail,
     reportAttributesDerived,
     personalDetails,
-    policyTags,
+    allPolicyTags,
 }: SearchOptionsConfig): Options {
     const optionList = getValidOptions(options, policyCollection, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
         betas,
@@ -2769,7 +2769,7 @@ function getSearchOptions({
         countryCode,
         visibleReportActionsData,
         reportAttributesDerived,
-        policyTags,
+        allPolicyTags,
     });
 
     return optionList;

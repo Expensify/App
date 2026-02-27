@@ -174,7 +174,7 @@ type GetValidReportsConfig = {
     shouldUnreadBeBold?: boolean;
     shouldAlwaysIncludeDM?: boolean;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
-    policyTags?: OnyxCollection<PolicyTagLists>;
+    allPolicyTags?: OnyxCollection<PolicyTagLists>;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
