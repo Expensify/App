@@ -260,7 +260,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     // Create transaction thread for legacy transactions that don't have one yet.
     // Wait for all data to load to avoid duplicates or stale data when navigating between reports.
     useEffect(() => {
-        if (hasCreatedLegacyThreadRef.current || transactionThreadReportID || (Object.keys(allReportTransactions).length !== 1 && !snapshotTransaction)) {
+        if (
+            hasCreatedLegacyThreadRef.current ||
+            transactionThreadReportID ||
+            (Object.keys(allReportTransactions).length !== 1 && !snapshotTransaction) ||
+            !reportMetadata?.hasOnceLoadedReportActions ||
+            reportActions.length === 0
+        ) {
             return;
         }
 
@@ -303,7 +309,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         report,
         reportActions,
         reportIDFromRoute,
-        reportMetadata?.isLoadingInitialReportActions,
+        reportMetadata?.hasOnceLoadedReportActions,
+        reportMetadata.isLoadingInitialReportActions,
         snapshot,
         snapshotTransaction,
         snapshotViolations,
