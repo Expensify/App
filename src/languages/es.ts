@@ -1,7 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {ConciergeBrokenCardConnectionParams, CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, UpdatedPolicyTagParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
@@ -790,22 +790,27 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Reconectar la tarjeta corporativa de ${feedName}` : 'Reconectar la tarjeta corporativa'),
-                defaultSubtitle: 'Espacio de trabajo > Tarjetas de empresa',
-                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Tarjetas de empresa`,
+                defaultSubtitle: 'Espacio de trabajo',
+                subtitle: ({policyName}: {policyName: string}) => policyName,
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Arreglar la conexión de la tarjeta personal de ${cardName}` : 'Arreglar la conexión de la tarjeta personal'),
-                subtitle: 'Monedero > Tarjetas asignadas',
+                subtitle: 'Monedero',
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Reconectar con ${integrationName}`,
-                defaultSubtitle: 'Espacio de trabajo > Contabilidad',
-                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Contabilidad`,
+                defaultSubtitle: 'Espacio de trabajo',
+                subtitle: ({policyName}: {policyName: string}) => policyName,
             },
             addShippingAddress: {
                 title: 'Necesitamos tu dirección de envío',
                 subtitle: 'Proporciona una dirección para recibir tu Tarjeta Expensify.',
                 cta: 'Añade dirección',
+            },
+            addPaymentCard: {
+                title: 'Añade una tarjeta de pago para seguir usando Expensify',
+                subtitle: 'Cuenta > Suscripción',
+                cta: 'Añadir',
             },
             activateCard: {
                 title: 'Activa tu Tarjeta Expensify',
@@ -819,7 +824,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Revisar',
             },
         },
-        assignedCards: 'Tarjetas asignadas',
+        assignedCards: 'Tus tarjetas Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restantes`,
         announcements: 'Anuncios',
         discoverSection: {
@@ -835,10 +840,38 @@ const translations: TranslationDeepObject<typeof en> = {
             export: ({count}: {count: number}) => `Exportar ${count} ${count === 1 ? 'informe' : 'informes'}`,
             begin: 'Comenzar',
             emptyStateMessages: {
-                nicelyDone: '¡Muy bien hecho!',
-                keepAnEyeOut: '¡Mantente atento a lo que viene a continuación!',
-                allCaughtUp: 'Ya estás al día',
-                upcomingTodos: 'Las tareas pendientes aparecerán aquí.',
+                thumbsUpStarsTitle: '¡Has terminado!',
+                thumbsUpStarsDescription: 'Pulgar arriba, mantente atento a más tareas.',
+                smallRocketTitle: 'Todo al día',
+                smallRocketDescription: 'Las próximas tareas se lanzarán aquí.',
+                cowboyHatTitle: '¡Has terminado!',
+                cowboyHatDescription: 'Todas las tareas están domadas, mantente atento a más.',
+                trophy1Title: 'Nada que mostrar',
+                trophy1Description: '¡Lo lograste! Mantente atento a más tareas.',
+                palmTreeTitle: 'Todo al día',
+                palmTreeDescription: 'Hora de relajarse, pero mantente atento a futuras tareas.',
+                fishbowlBlueTitle: '¡Has terminado!',
+                fishbowlBlueDescription: 'Aquí mostraremos las futuras tareas.',
+                targetTitle: 'Todo al día',
+                targetDescription: 'Justo en el blanco. ¡Vuelve a revisar para más tareas!',
+                chairTitle: 'Nada que mostrar',
+                chairDescription: 'Relájate, listaremos las próximas tareas aquí.',
+                broomTitle: '¡Has terminado!',
+                broomDescription: 'Las tareas están limpias, pero mantente atento a más tareas.',
+                houseTitle: 'Todo al día',
+                houseDescription: 'Esta es tu base para las próximas tareas.',
+                conciergeBotTitle: 'Nada que mostrar',
+                conciergeBotDescription: '¡Bip bup bip bup, vuelve a revisar para más tareas!',
+                checkboxTextTitle: 'Todo al día',
+                checkboxTextDescription: 'Marca tus próximas tareas aquí.',
+                flashTitle: '¡Has terminado!',
+                flashDescription: 'Aquí mostraremos tus futuras tareas.',
+                sunglassesTitle: 'Nada que mostrar',
+                sunglassesDescription: '¡Hora de relajarse, pero mantente atento a lo que viene!',
+                f1FlagsTitle: 'Todo al día',
+                f1FlagsDescription: 'Has completado todas las tareas pendientes.',
+                fireworksTitle: 'Todo al día',
+                fireworksDescription: 'Las próximas tareas aparecerán aquí.',
             },
         },
     },
@@ -936,6 +969,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
         scanFailed: 'El recibo no pudo ser escaneado, ya que falta el comerciante, la fecha o el monto.',
+        crop: 'Recortar',
         addAReceipt: {
             phrase1: 'Añade un recibo',
             phrase2: 'o arrastra y suelta uno aquí',
@@ -1325,7 +1359,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
 
-        moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
+        moveExpenses: 'Mover a informe',
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
         changeApprover: {
             title: 'Cambiar aprobador',
@@ -1353,15 +1387,17 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Corrige el error de la tasa y vuelve a intentarlo.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
+        rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcó el gasto como "reembolsable"' : 'marcó el gasto como "no reembolsable"'),
             billable: (value: boolean) => (value ? 'marcó el gasto como "facturable"' : 'marcó el gasto como "no facturable"'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `estableció la tasa de impuesto a "${value}"` : `tasa de impuesto a "${value}"`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `movió este gasto al informe "${value}"`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `estableció el ${field} a "${value}"` : `${field} a "${value}"`;
             },
-            format: (fragments: string, route: string) => `${fragments} a través de <a href="${route}">reglas del espacio de trabajo</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} vía <a href="${route}">reglas de gastos personales</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} vía <a href="${route}">reglas del espacio de trabajo</a>`,
         },
         duplicateNonDefaultWorkspacePerDiemError: 'No puedes duplicar gastos de viáticos entre espacios de trabajo porque las tarifas pueden variar entre ellos.',
     },
@@ -1610,6 +1646,7 @@ const translations: TranslationDeepObject<typeof en> = {
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
             'Este es tu método de contacto predeterminado. Antes de poder eliminarlo, tendrás que elegir otro método de contacto y haz clic en "Establecer como predeterminado".',
+        yourDefaultContactMethodRestrictedSwitch: 'Este es tu método de contacto predeterminado actual. Tu empresa ha restringido su eliminación o modificación.',
         removeContactMethod: 'Eliminar método de contacto',
         removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
         failedNewContact: 'Se ha producido un error al añadir este método de contacto.',
@@ -4126,6 +4163,9 @@ ${amount} para ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
                 },
             },
+            travelInvoicing: 'Facturación de viajes',
+            travelInvoicingVendor: 'Proveedor de viajes',
+            travelInvoicingPayableAccount: 'Cuenta por pagar de viajes',
         },
         workspaceList: {
             joinNow: 'Únete ahora',
@@ -4988,6 +5028,7 @@ ${amount} para ${merchant} - ${date}`,
                         confirm: 'Entendido',
                     },
                 },
+                personalDetailsDescription: 'Para poder reservar el viaje, por favor ingrese su nombre legal tal como aparece en su identificación oficial emitida por el gobierno.',
             },
             expensifyCard: {
                 title: 'Tarjeta Expensify',
@@ -6928,6 +6969,8 @@ ${amount} para ${merchant} - ${date}`,
         groupColumns: 'Columnas de grupo',
         expenseColumns: 'Columnas de gastos',
         statements: 'Extractos',
+        cardStatements: 'Extractos de tarjeta',
+        monthlyAccrual: 'Devengo mensual',
         unapprovedCash: 'Efectivo no aprobado',
         unapprovedCard: 'Tarjeta no aprobada',
         reconciliation: 'Conciliación',

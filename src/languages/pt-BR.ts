@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -942,6 +942,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({days}: {days: number}) => `Restam ${days} ${days === 1 ? 'dia' : 'dias'}`,
             },
             addShippingAddress: {title: 'Precisamos do seu endereço de entrega', subtitle: 'Informe um endereço para receber seu Cartão Expensify.', cta: 'Adicionar endereço'},
+            addPaymentCard: {title: 'Adicione um cartão de pagamento para continuar usando o Expensify', subtitle: 'Conta > Assinatura', cta: 'Adicionar'},
             activateCard: {title: 'Ative seu Cartão Expensify', subtitle: 'Valide seu cartão e comece a gastar.', cta: 'Ativar'},
             reviewCardFraud: {
                 title: 'Analisar possível fraude no seu Cartão Expensify',
@@ -952,20 +953,20 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: 'Corrigir',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Corrigir conexão do cartão corporativo ${feedName}` : 'Corrigir conexão do cartão corporativo'),
-                defaultSubtitle: 'Área de trabalho > Cartões corporativos',
+                defaultSubtitle: 'Espaço de trabalho',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Cartões corporativos`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Corrigir conexão com ${integrationName}`,
-                defaultSubtitle: 'Espaço de trabalho > Contabilidade',
+                defaultSubtitle: 'Espaço de trabalho',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Contabilidade`,
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Corrigir conexão do cartão pessoal ${cardName}` : 'Corrigir conexão do cartão pessoal'),
-                subtitle: 'Carteira > Cartões atribuídos',
+                subtitle: 'Carteira',
             },
         },
-        assignedCards: 'Cartões atribuídos',
+        assignedCards: 'Seus Cartões Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restante`,
         announcements: 'Comunicados',
         discoverSection: {
@@ -981,10 +982,38 @@ const translations: TranslationDeepObject<typeof en> = {
             export: ({count}: {count: number}) => `Exportar ${count} ${count === 1 ? 'relatório' : 'relatórios'}`,
             begin: 'Iniciar',
             emptyStateMessages: {
-                nicelyDone: 'Muito bem feito',
-                keepAnEyeOut: 'Fique de olho no que vem por aí!',
-                allCaughtUp: 'Você está em dia',
-                upcomingTodos: 'Os próximos afazeres aparecerão aqui.',
+                thumbsUpStarsTitle: 'Você terminou!',
+                thumbsUpStarsDescription: 'Parabéns para você, fique atento a mais tarefas.',
+                smallRocketTitle: 'Tudo em dia',
+                smallRocketDescription: 'As próximas tarefas pendentes serão exibidas aqui.',
+                cowboyHatTitle: 'Você terminou!',
+                cowboyHatDescription: 'Todas as tarefas estão controladas, fique de olho nas próximas.',
+                trophy1Title: 'Nada para mostrar',
+                trophy1Description: 'Você conseguiu! Fique de olho nas próximas tarefas.',
+                palmTreeTitle: 'Tudo em dia',
+                palmTreeDescription: 'Hora de relaxar, mas fique atento a futuras tarefas.',
+                fishbowlBlueTitle: 'Você terminou!',
+                fishbowlBlueDescription: 'As futuras tarefas aparecerão aqui.',
+                targetTitle: 'Tudo em dia',
+                targetDescription: 'Boa, você está mantendo o foco. Volte para mais tarefas!',
+                chairTitle: 'Nada para mostrar',
+                chairDescription: 'Vá relaxar, listaremos as próximas tarefas aqui.',
+                broomTitle: 'Você terminou!',
+                broomDescription: 'As tarefas estão em dia, mas fique atento a mais tarefas.',
+                houseTitle: 'Tudo em dia',
+                houseDescription: 'Esta é sua base para as próximas tarefas.',
+                conciergeBotTitle: 'Nada para mostrar',
+                conciergeBotDescription: 'Bi bi bi bi, volte para mais tarefas!',
+                checkboxTextTitle: 'Tudo em dia',
+                checkboxTextDescription: 'Marque aqui suas próximas tarefas pendentes.',
+                flashTitle: 'Você terminou!',
+                flashDescription: 'Suas futuras tarefas aparecerão aqui.',
+                sunglassesTitle: 'Nada para mostrar',
+                sunglassesDescription: 'Hora de relaxar, mas fique atento ao que vem por aí!',
+                f1FlagsTitle: 'Tudo em dia',
+                f1FlagsDescription: 'Você concluiu todas as tarefas pendentes.',
+                fireworksTitle: 'Tudo em dia',
+                fireworksDescription: 'As próximas tarefas aparecerão aqui.',
             },
         },
     },
@@ -1079,6 +1108,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Tem certeza de que deseja excluir este recibo?',
         addReceipt: 'Adicionar recibo',
         scanFailed: 'O recibo não pôde ser digitalizado porque está faltando o comerciante, a data ou o valor.',
+        crop: 'Cortar',
         addAReceipt: {
             phrase1: 'Adicionar um recibo',
             phrase2: 'ou arraste e solte um aqui',
@@ -1469,7 +1499,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: 'marcou o motivo da rejeição como resolvido',
             },
         },
-        moveExpenses: () => ({one: 'Mover despesa', other: 'Mover despesas'}),
+        moveExpenses: 'Mover para relatório',
         moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros workspaces, porque as tarifas de diária podem ser diferentes entre os workspaces.',
         changeApprover: {
             title: 'Alterar aprovador',
@@ -1497,17 +1527,19 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Corrija o erro de taxa e tente novamente.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
+        duplicateNonDefaultWorkspacePerDiemError: 'Você não pode duplicar despesas de diárias entre espaços de trabalho porque as tarifas podem variar entre eles.',
+        rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcou a despesa como "reembolsável"' : 'marcou a despesa como “não reembolsável”'),
-            billable: (value: boolean) => (value ? 'marcou a despesa como "faturável"' : 'marcou a despesa como “não faturável”'),
-            tax: (value: string, isFirst: boolean) => (isFirst ? `definir a alíquota de imposto como "${value}"` : `alíquota de imposto para “${value}”`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            billable: (value: boolean) => (value ? 'marcou a despesa como "faturável"' : 'marcou a despesa como "não faturável"'),
+            tax: (value: string, isFirst: boolean) => (isFirst ? `definir a alíquota de imposto como "${value}"` : `alíquota de imposto para "${value}"`),
+            reportName: (value: string) => `moveu esta despesa para o relatório "${value}"`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `defina ${field} como "${value}"` : `${field} para "${value}"`;
             },
-            format: (fragments: string, route: string) => `${fragments} via <a href="${route}">regras do espaço de trabalho</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">regras de despesas pessoais</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">regras do workspace</a>`,
         },
-        duplicateNonDefaultWorkspacePerDiemError: 'Você não pode duplicar despesas de diárias entre espaços de trabalho porque as tarifas podem variar entre eles.',
     },
     transactionMerge: {
         listPage: {
@@ -1759,6 +1791,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Novo método de contato',
         goBackContactMethods: 'Voltar para métodos de contato',
+        yourDefaultContactMethodRestrictedSwitch: 'Este é seu método de contato padrão atual. Sua empresa restringiu a remoção ou alteração dele.',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -4234,6 +4267,9 @@ ${
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas reembolsáveis serão exportadas quando pagas',
                 },
             },
+            travelInvoicing: 'Faturamento de Viagens',
+            travelInvoicingVendor: 'Fornecedor de viagens',
+            travelInvoicingPayableAccount: 'Conta a pagar de viagens',
         },
         workspaceList: {
             joinNow: 'Participar agora',
@@ -5145,6 +5181,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         confirm: 'Entendi',
                     },
                 },
+                personalDetailsDescription: 'Para reservar viagens, insira seu nome legal exatamente como consta no documento de identificação emitido pelo governo.',
             },
             expensifyCard: {
                 title: 'Cartão Expensify',
@@ -7076,6 +7113,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         groupColumns: 'Agrupar colunas',
         expenseColumns: 'Colunas de despesas',
         statements: 'Extratos',
+        cardStatements: 'Extratos de cartão',
+        monthlyAccrual: 'Acréscimo mensal',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCard: 'Cartão não aprovado',
         reconciliation: 'Conciliação',

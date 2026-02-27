@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -943,6 +943,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'dag' : 'dagen'} resterend`,
             },
             addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.', cta: 'Adres toevoegen'},
+            addPaymentCard: {title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken', subtitle: 'Account > Abonnement', cta: 'Toevoegen'},
             activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
             reviewCardFraud: {
                 title: 'Controleer mogelijk misbruik van je Expensify Kaart',
@@ -953,20 +954,20 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: 'Repareren',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Verbinding bedrijfskaart ${feedName} herstellen` : 'Verbinding van bedrijfskaart repareren'),
-                defaultSubtitle: 'Werkruimte > Bedrijfspassen',
+                defaultSubtitle: 'Werkruimte',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Bedrijfspassen`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Verbinding met ${integrationName} repareren`,
-                defaultSubtitle: 'Werkruimte > Boekhouding',
+                defaultSubtitle: 'Werkruimte',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Boekhouding`,
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Verbinding van persoonlijke kaart ${cardName} herstellen` : 'Verbinding persoonlijke kaart herstellen'),
-                subtitle: 'Wallet > Toegewezen kaarten',
+                subtitle: 'Portemonnee',
             },
         },
-        assignedCards: 'Toegewezen kaarten',
+        assignedCards: 'Je Expensify Kaarten',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} resterend`,
         announcements: 'Aankondigingen',
         discoverSection: {
@@ -982,10 +983,38 @@ const translations: TranslationDeepObject<typeof en> = {
             export: ({count}: {count: number}) => `Exporteer ${count} ${count === 1 ? 'rapport' : 'rapporten'}`,
             begin: 'Begin',
             emptyStateMessages: {
-                nicelyDone: 'Mooi gedaan',
-                keepAnEyeOut: 'Hou in de gaten wat er hierna komt!',
-                allCaughtUp: 'Je bent helemaal bij',
-                upcomingTodos: 'Aankomende taken verschijnen hier.',
+                thumbsUpStarsTitle: 'Je bent klaar!',
+                thumbsUpStarsDescription: 'Duim omhoog voor jou, houd je klaar voor meer taken.',
+                smallRocketTitle: 'Helemaal bij',
+                smallRocketDescription: 'Aankomende taken verschijnen hier.',
+                cowboyHatTitle: 'Je bent klaar!',
+                cowboyHatDescription: 'Alle taken zijn geregeld, houd de volgende in de gaten.',
+                trophy1Title: 'Niets om weer te geven',
+                trophy1Description: "Je hebt het gedaan! Houd de volgende to-do's in de gaten.",
+                palmTreeTitle: 'Helemaal bij',
+                palmTreeDescription: 'Tijd om te ontspannen, maar houd je klaar voor toekomstige taken.',
+                fishbowlBlueTitle: 'Je bent klaar!',
+                fishbowlBlueDescription: 'Toekomstige taken verschijnen hier.',
+                targetTitle: 'Helemaal bij',
+                targetDescription: 'Goed bezig, je blijft op koers. Kom terug voor meer taken!',
+                chairTitle: 'Niets om weer te geven',
+                chairDescription: "Ga maar ontspannen, we zetten aankomende to-do's hier neer.",
+                broomTitle: 'Je bent klaar!',
+                broomDescription: "Taken zijn afgerond, maar houd je klaar voor meer to-do's.",
+                houseTitle: 'Helemaal bij',
+                houseDescription: "Dit is je thuisbasis voor aankomende to-do's.",
+                conciergeBotTitle: 'Niets om weer te geven',
+                conciergeBotDescription: 'Biep boep biep boep, kom terug voor meer taken!',
+                checkboxTextTitle: 'Helemaal bij',
+                checkboxTextDescription: 'Vink hier je komende taken af.',
+                flashTitle: 'Je bent klaar!',
+                flashDescription: 'We laten je toekomstige taken hier zien.',
+                sunglassesTitle: 'Niets om weer te geven',
+                sunglassesDescription: 'Tijd om te relaxen, maar houd je klaar voor wat er komt!',
+                f1FlagsTitle: 'Helemaal bij',
+                f1FlagsDescription: "Je hebt alle openstaande to-do's afgerond.",
+                fireworksTitle: 'Helemaal bij',
+                fireworksDescription: 'Aankomende taken verschijnen hier.',
             },
         },
     },
@@ -1080,6 +1109,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Weet je zeker dat je deze bon wilt verwijderen?',
         addReceipt: 'Bon toevoegen',
         scanFailed: 'De bon is niet gescand, omdat er een handelaar, datum of bedrag ontbreekt.',
+        crop: 'Bijsnijden',
         addAReceipt: {
             phrase1: 'Voeg een bon toe',
             phrase2: 'of sleep ze hier naartoe',
@@ -1472,7 +1502,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: 'heeft de afwijsreden als opgelost gemarkeerd',
             },
         },
-        moveExpenses: () => ({one: 'Kosten verplaatsen', other: 'Declaraties verplaatsen'}),
+        moveExpenses: 'Verplaatsen naar rapport',
         moveExpensesError: 'Je kunt dagvergoedingdeclaraties niet naar rapporten in andere werkruimten verplaatsen, omdat de dagvergoedingsbedragen per werkruimte kunnen verschillen.',
         changeApprover: {
             title: 'Goedkeurder wijzigen',
@@ -1498,19 +1528,21 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / uur`,
             amountTooLargeError: 'Het totale bedrag is te hoog. Verlaag het aantal uren of verlaag het tarief.',
         },
-        correctRateError: 'Herstel de koersfout en probeer het opnieuw.',
+        correctRateError: 'Los de tarieffout op en probeer het opnieuw.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Uitleggen</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
-            reimbursable: (value: boolean) => (value ? 'heeft de uitgave gemarkeerd als „vergoedbaar”' : 'markeerde de uitgave als ‘niet-terugbetaalbaar’'),
-            billable: (value: boolean) => (value ? 'heeft de uitgave gemarkeerd als ‘door te belasten’' : 'heeft de uitgave gemarkeerd als ‘niet factureerbaar’'),
+        duplicateNonDefaultWorkspacePerDiemError: 'Je kunt dagvergoedingen niet dupliceren tussen werkruimtes, omdat de tarieven per werkruimte kunnen verschillen.',
+        rulesModifiedFields: {
+            reimbursable: (value: boolean) => (value ? 'markeerde de uitgave als „terugbetaalbaar”' : 'heeft de uitgave als ‘niet-vergoedbaar’ gemarkeerd'),
+            billable: (value: boolean) => (value ? `heeft de uitgave gemarkeerd als ‘door te belasten’` : `heeft de uitgave gemarkeerd als ‘niet factureerbaar’`),
             tax: (value: string, isFirst: boolean) => (isFirst ? `stel het belastingtarief in op „${value}”` : `belastingtarief naar „${value}”`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `heeft deze uitgave verplaatst naar rapport „${value}”`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `stel de ${field} in op "${value}"` : `${field} naar "${value}"`;
             },
-            format: (fragments: string, route: string) => `${fragments} via <a href="${route}">werkruimte­regels</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">persoonlijke onkostregels</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">werkruimte­regels</a>`,
         },
-        duplicateNonDefaultWorkspacePerDiemError: 'Je kunt dagvergoedingen niet dupliceren tussen werkruimtes, omdat de tarieven per werkruimte kunnen verschillen.',
     },
     transactionMerge: {
         listPage: {
@@ -1763,6 +1795,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Nieuwe contactmethode',
         goBackContactMethods: 'Ga terug naar contactmethoden',
+        yourDefaultContactMethodRestrictedSwitch: 'Dit is je huidige standaardcontactmethode. Je bedrijf heeft beperkt dat je deze kunt verwijderen of wijzigen.',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -4239,6 +4272,9 @@ ${
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uit eigen zak gemaakte uitgaven worden geëxporteerd zodra ze zijn betaald',
                 },
             },
+            travelInvoicing: 'Reisfacturatie',
+            travelInvoicingVendor: 'Reisleverancier',
+            travelInvoicingPayableAccount: 'Reiskosten crediteurenrekening',
         },
         workspaceList: {
             joinNow: 'Nu lid worden',
@@ -5145,6 +5181,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     },
                     outstandingBalanceModal: {title: 'Kan Reiskostenfacturatie niet uitschakelen', body: 'Je hebt nog een openstaand reissaldo. Betaal eerst je saldo.', confirm: 'Begrepen'},
                 },
+                personalDetailsDescription: 'Om een reis te boeken, voer je wettelijke naam in zoals deze op je door de overheid uitgegeven identiteitsbewijs staat.',
             },
             expensifyCard: {
                 title: 'Expensify Kaart',
@@ -7084,6 +7121,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         groupColumns: 'Kolommen groeperen',
         expenseColumns: 'Onkostencolommen',
         statements: 'Afschriften',
+        cardStatements: 'Kaartafschriften',
+        monthlyAccrual: 'Maandelijkse opbouw',
         unapprovedCash: 'Niet-goedgekeurde contante uitgaven',
         unapprovedCard: 'Niet-goedgekeurde kaart',
         reconciliation: 'Afstemming',

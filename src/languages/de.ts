@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -714,7 +714,7 @@ const translations: TranslationDeepObject<typeof en> = {
             auf dem er ursprünglich angefordert wurde
         `),
         doNotShare: dedent(`
-            Gib deinen Code an niemanden weiter.  
+            Gib deinen Code an niemanden weiter.
             Expensify wird niemals danach fragen!
         `),
         or: 'oder',
@@ -945,6 +945,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'Tag' : 'Tage'} verbleibend`,
             },
             addShippingAddress: {title: 'Wir benötigen deine Versandadresse', subtitle: 'Geben Sie eine Adresse an, um Ihre Expensify Karte zu erhalten.', cta: 'Adresse hinzufügen'},
+            addPaymentCard: {title: 'Fügen Sie eine Zahlungskarte hinzu, um Expensify weiter zu nutzen', subtitle: 'Konto > Abonnement', cta: 'Hinzufügen'},
             activateCard: {title: 'Aktivieren Sie Ihre Expensify Karte', subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.', cta: 'Aktivieren'},
             reviewCardFraud: {
                 title: 'Möglichen Betrug mit Ihrer Expensify Karte überprüfen',
@@ -955,20 +956,20 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: 'Beheben',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `${feedName}-Firmenkartenverbindung reparieren` : 'Firmenkarte reparieren Verbindung der Firmenkarte reparieren'),
-                defaultSubtitle: 'Workspace > Unternehmenskarten',
+                defaultSubtitle: 'Arbeitsbereich',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Unternehmenskarten`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `${integrationName}-Verbindung reparieren`,
-                defaultSubtitle: 'Arbeitsbereich > Buchhaltung',
+                defaultSubtitle: 'Arbeitsbereich',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Buchhaltung`,
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Verbindung der persönlichen Karte ${cardName} reparieren` : 'Verbindung der persönlichen Karte reparieren'),
-                subtitle: 'Wallet > Zugewiesene Karten',
+                subtitle: 'Wallet',
             },
         },
-        assignedCards: 'Zugewiesene Karten',
+        assignedCards: 'Ihre Expensify Karten',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} verbleibend`,
         announcements: 'Ankündigungen',
         discoverSection: {
@@ -984,10 +985,38 @@ const translations: TranslationDeepObject<typeof en> = {
             export: ({count}: {count: number}) => `${count} ${count === 1 ? 'Bericht' : 'Berichte'} exportieren`,
             begin: 'Begin',
             emptyStateMessages: {
-                nicelyDone: 'Gut gemacht',
-                keepAnEyeOut: 'Behalte im Blick, was als Nächstes kommt!',
-                allCaughtUp: 'Alles erledigt',
-                upcomingTodos: 'Anstehende To-dos werden hier angezeigt.',
+                thumbsUpStarsTitle: 'Sie sind fertig!',
+                thumbsUpStarsDescription: 'Daumen hoch für Sie, bleiben Sie gespannt auf weitere Aufgaben.',
+                smallRocketTitle: 'Alles erledigt',
+                smallRocketDescription: 'Anstehende To-dos werden hier angezeigt.',
+                cowboyHatTitle: 'Sie sind fertig!',
+                cowboyHatDescription: 'Alle Aufgaben sind erledigt, halten Sie Ausschau nach weiteren.',
+                trophy1Title: 'Nichts anzuzeigen',
+                trophy1Description: 'Geschafft! Halten Sie Ausschau nach weiteren Aufgaben.',
+                palmTreeTitle: 'Alles erledigt',
+                palmTreeDescription: 'Zeit zum Entspannen, aber bleiben Sie gespannt auf zukünftige Aufgaben.',
+                fishbowlBlueTitle: 'Sie sind fertig!',
+                fishbowlBlueDescription: 'Zukünftige Aufgaben werden hier angezeigt.',
+                targetTitle: 'Alles erledigt',
+                targetDescription: 'Weiter so, Sie bleiben auf Kurs. Schauen Sie später nach weiteren Aufgaben!',
+                chairTitle: 'Nichts anzuzeigen',
+                chairDescription: 'Entspannen Sie sich, wir listen anstehende Aufgaben hier auf.',
+                broomTitle: 'Sie sind fertig!',
+                broomDescription: 'Aufgaben sind erledigt, bleiben Sie aber gespannt auf weitere To-dos.',
+                houseTitle: 'Alles erledigt',
+                houseDescription: 'Hier ist Ihre Zentrale für anstehende Aufgaben.',
+                conciergeBotTitle: 'Nichts anzuzeigen',
+                conciergeBotDescription: 'Biep biep biep biep, schauen Sie später nach weiteren Aufgaben!',
+                checkboxTextTitle: 'Alles erledigt',
+                checkboxTextDescription: 'Haken Sie hier Ihre anstehenden Aufgaben ab.',
+                flashTitle: 'Sie sind fertig!',
+                flashDescription: 'Zukünftige Aufgaben werden hier blitzschnell angezeigt.',
+                sunglassesTitle: 'Nichts anzuzeigen',
+                sunglassesDescription: 'Zeit zum Entspannen, aber bleiben Sie gespannt auf das, was kommt!',
+                f1FlagsTitle: 'Alles erledigt',
+                f1FlagsDescription: 'Sie haben alle offenen Aufgaben abgeschlossen.',
+                fireworksTitle: 'Alles erledigt',
+                fireworksDescription: 'Anstehende Aufgaben erscheinen hier.',
             },
         },
     },
@@ -1083,6 +1112,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Sind Sie sicher, dass Sie diesen Beleg löschen möchten?',
         addReceipt: 'Beleg hinzufügen',
         scanFailed: 'Der Beleg konnte nicht gescannt werden, da Händler, Datum oder Betrag fehlen.',
+        crop: 'Zuschneiden',
         addAReceipt: {
             phrase1: 'Beleg hinzufügen',
             phrase2: 'oder ziehe eine hierher und lege sie ab',
@@ -1477,7 +1507,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: 'hat den Ablehnungsgrund als gelöst markiert',
             },
         },
-        moveExpenses: () => ({one: 'Ausgabe verschieben', other: 'Ausgaben verschieben'}),
+        moveExpenses: 'Zum Bericht verschieben',
         moveExpensesError: 'Sie können Pauschalspesen nicht in Berichte anderer Arbeitsbereiche verschieben, da die Pauschalsätze je nach Arbeitsbereich unterschiedlich sein können.',
         changeApprover: {
             title: 'Genehmigende Person ändern',
@@ -1503,20 +1533,22 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / Stunde`,
             amountTooLargeError: 'Der Gesamtbetrag ist zu hoch. Verringere die Stunden oder reduziere den Satz.',
         },
-        correctRateError: 'Behebe den Kursfehler und versuche es erneut.',
+        correctRateError: 'Beheben Sie den Kursfehler und versuchen Sie es erneut.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Erklären</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
+        duplicateNonDefaultWorkspacePerDiemError:
+            'Sie können Per-Diem-Ausgaben nicht über mehrere Workspaces hinweg duplizieren, da sich die Sätze zwischen den Workspaces unterscheiden können.',
+        rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'hat die Ausgabe als „erstattungsfähig“ markiert' : 'hat die Ausgabe als „nicht erstattungsfähig“ markiert'),
             billable: (value: boolean) => (value ? 'hat die Ausgabe als „verrechenbar“ markiert' : 'hat die Ausgabe als „nicht abrechenbar“ markiert'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `Steuersatz auf „${value}“ festlegen` : `Steuersatz auf „${value}“`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `hat diese Ausgabe in den Bericht „${value}“ verschoben`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `setze ${field} auf „${value}“` : `${field} zu „${value}“`;
             },
-            format: (fragments: string, route: string) => `${fragments} über <a href="${route}">Workspace-Regeln</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} über <a href="${route}">Regeln für persönliche Ausgaben</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} über <a href="${route}">Workspace-Regeln</a>`,
         },
-        duplicateNonDefaultWorkspacePerDiemError:
-            'Sie können Per-Diem-Ausgaben nicht über mehrere Workspaces hinweg duplizieren, da sich die Sätze zwischen den Workspaces unterscheiden können.',
     },
     transactionMerge: {
         listPage: {
@@ -1769,6 +1801,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Neue Kontaktmethode',
         goBackContactMethods: 'Zurück zu den Kontaktmethoden',
+        yourDefaultContactMethodRestrictedSwitch: 'Dies ist Ihre derzeitige standardmäßige Kontaktmethode. Ihr Unternehmen hat das Entfernen oder Ändern eingeschränkt.',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -4262,6 +4295,9 @@ ${
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagenausgaben werden beim Bezahlen exportiert',
                 },
             },
+            travelInvoicing: 'Reiseabrechnung',
+            travelInvoicingVendor: 'Reiseanbieter',
+            travelInvoicingPayableAccount: 'Verbindlichkeitenkonto Reisen',
         },
         workspaceList: {
             joinNow: 'Jetzt beitreten',
@@ -5173,6 +5209,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         confirm: 'Verstanden',
                     },
                 },
+                personalDetailsDescription: 'Um eine Reise zu buchen, gib bitte deinen amtlichen Namen genau so ein, wie er auf deinem amtlichen Ausweis steht.',
             },
             expensifyCard: {
                 title: 'Expensify Karte',
@@ -7118,6 +7155,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         groupColumns: 'Spalten gruppieren',
         expenseColumns: 'Spalten für Ausgaben',
         statements: 'Abrechnungen',
+        cardStatements: 'Kartenabrechnungen',
+        monthlyAccrual: 'Monatliche Abgrenzung',
         unapprovedCash: 'Nicht genehmigtes Bargeld',
         unapprovedCard: 'Nicht genehmigte Karte',
         reconciliation: 'Abstimmung',
