@@ -5,13 +5,6 @@
  */
 type EditableProps<T> = {
     /**
-     * Architectural flag: true only on wide/desktop layouts where inline editing is
-     * supported. When false the cell renders bare children with no wrapper.
-     * Use this only for permanent, layout-driven decisions.
-     */
-    isEditable?: boolean;
-
-    /**
      * Transient flag: false while editing is temporarily unavailable
      * (e.g. receipt scanning, insufficient permissions).
      * The styled container is still rendered to preserve column alignment.

@@ -14,7 +14,7 @@ import type TransactionDataCellProps from './TransactionDataCellProps';
 
 type TotalCellProps = TransactionDataCellProps & EditableProps<number>;
 
-function TotalCell({shouldShowTooltip, transactionItem, isEditable, canEdit, onSave}: TotalCellProps) {
+function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currency = getTransactionCurrency(transactionItem);
@@ -65,8 +65,7 @@ function TotalCell({shouldShowTooltip, transactionItem, isEditable, canEdit, onS
 
     return (
         <EditableCell
-            isEditable={isEditable}
-            canEdit={canEdit && !isScanning(transactionItem)}
+            canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={startEditing}
             editContent={

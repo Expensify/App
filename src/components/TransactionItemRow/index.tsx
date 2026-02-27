@@ -211,11 +211,9 @@ function TransactionItemRow({
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    // Inline editing is desktop-only: large screen widths correspond to desktop/tablet layouts.
-    // On narrow mobile layouts isLargeScreenWidth is false, so canInlineEdit will be false and
-    // none of the editable cells will enter edit mode.
-    const canInlineEdit = isLargeScreenWidth;
-    const canEditCell = canInlineEdit && !isScanning(transactionItem);
+    // Whether this cell can currently be edited. EditableCell derives the layout gate (isLargeScreenWidth)
+    // internally, so this flag only needs to capture transient blockers such as receipt scanning.
+    const canEditCell = isLargeScreenWidth && !isScanning(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -333,7 +331,6 @@ function TransactionItemRow({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false)]}
                     >
                         <DateCell
-                            isEditable={canInlineEdit}
                             canEdit={canEditCell}
                             date={createdAt}
                             onSave={onEditDate}
@@ -404,7 +401,6 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
-                            isEditable={canInlineEdit}
                             canEdit={canEditCell}
                             onSave={onEditCategory}
                             policyID={report?.policyID ?? transactionItem.report?.policyID}
@@ -462,7 +458,6 @@ function TransactionItemRow({
                             merchantOrDescription={merchant ?? ''}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
-                            isEditable={canInlineEdit}
                             canEdit={canEditCell}
                             onSave={onEditMerchant}
                         />
@@ -479,7 +474,6 @@ function TransactionItemRow({
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
                             isDescription
-                            isEditable={canInlineEdit}
                             canEdit={canEditCell}
                             onSave={onEditDescription}
                         />
@@ -555,7 +549,6 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
-                            isEditable={canInlineEdit}
                             canEdit={canEditCell}
                             onSave={onEditAmount}
                         />

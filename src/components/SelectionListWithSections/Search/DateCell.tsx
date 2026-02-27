@@ -14,7 +14,7 @@ type DateCellProps = {
     isLargeScreenWidth: boolean;
 } & EditableProps<string>;
 
-function DateCell({date, showTooltip, isLargeScreenWidth, isEditable, canEdit, onSave}: DateCellProps) {
+function DateCell({date, showTooltip, isLargeScreenWidth, canEdit, onSave}: DateCellProps) {
     const styles = useThemeStyles();
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState({
         anchorEdge: 'left',
@@ -37,7 +37,6 @@ function DateCell({date, showTooltip, isLargeScreenWidth, isEditable, canEdit, o
 
     return (
         <EditableCell
-            isEditable={isEditable}
             canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={startEditing}

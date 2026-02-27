@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import {useEditingCellContext} from './EditingCellContext';
@@ -20,16 +21,8 @@ type EditableCellProps = {
     isEditing: boolean;
 
     /**
-     * Whether this cell type architecturally supports inline editing at all (e.g. false on narrow/mobile layouts).
-     * When false the cell renders bare children with no wrapper — use this only for permanent, layout-driven decisions.
-     * For transient states (loading, insufficient permissions) use `canEdit=false` with `isEditable=true` so the
-     * cell keeps its container and padding consistent with its editable siblings.
-     */
-    isEditable?: boolean;
-
-    /**
      * Whether editing is currently permitted.
-     * Only meaningful when `isEditable=true`. When false the styled container is still rendered (maintaining layout
+     * Only meaningful when the layout supports editing. When false the styled container is still rendered (maintaining layout
      * consistency) but the pressable is disabled and editing cannot be triggered.
      */
     canEdit?: boolean;
@@ -52,9 +45,11 @@ type EditableCellProps = {
  *   4. canEdit=false              → styled container View, no pressable (transient: loading / no permission)
  *   5. default                    → PressableWithFeedback (hover border, click triggers edit)
  */
-function EditableCell({children, editContent, popoverContent, isEditing, isEditable, canEdit, onStartEditing, anchorRef}: EditableCellProps) {
+function EditableCell({children, editContent, popoverContent, isEditing, canEdit, onStartEditing, anchorRef}: EditableCellProps) {
     const styles = useThemeStyles();
     const {setEditingCellCount} = useEditingCellContext();
+    const {isLargeScreenWidth} = useResponsiveLayout();
+    const isEditable = isLargeScreenWidth;
 
     useEffect(() => {
         if (!isEditable || !isEditing) {

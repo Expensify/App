@@ -11,7 +11,6 @@ function MerchantOrDescriptionCell({
     shouldShowTooltip,
     shouldUseNarrowLayout,
     isDescription,
-    isEditable,
     canEdit,
     onSave,
 }: {
@@ -37,7 +36,6 @@ function MerchantOrDescriptionCell({
 
     return (
         <EditableCell
-            isEditable={isEditable}
             canEdit={canEdit}
             isEditing={isEditing}
             onStartEditing={startEditing}
