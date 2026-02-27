@@ -441,10 +441,11 @@ describe('TransactionUtils', () => {
                 transactionChanges: {currency: 'CAD'},
             });
 
-            // Then: convertedAmount should be cleared to prevent stale conversion data
+            // Then: convertedAmount should be cleared (set to null, not undefined, because
+            // Onyx.merge treats undefined as no-op) to prevent stale conversion data
             // being incorrectly applied during export
             expect(updatedTransaction.modifiedCurrency).toBe('CAD');
-            expect(updatedTransaction.convertedAmount).toBeUndefined();
+            expect(updatedTransaction.convertedAmount).toBeNull();
         });
 
         it('should clear convertedAmount when amount is manually changed to prevent incorrect export conversion', () => {
@@ -462,10 +463,11 @@ describe('TransactionUtils', () => {
                 transactionChanges: {amount: 6285}, // C$62.85
             });
 
-            // Then: convertedAmount should be cleared since the manual amount
+            // Then: convertedAmount should be cleared (set to null, not undefined, because
+            // Onyx.merge treats undefined as no-op) since the manual amount
             // is the final value and shouldn't be re-converted during export
             expect(updatedTransaction.modifiedAmount).toBe(-6285);
-            expect(updatedTransaction.convertedAmount).toBeUndefined();
+            expect(updatedTransaction.convertedAmount).toBeNull();
         });
     });
 

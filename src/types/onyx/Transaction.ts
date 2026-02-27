@@ -441,7 +441,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         accountant?: Accountant;
 
         /** The transaction converted amount in report's currency */
-        convertedAmount?: number;
+        convertedAmount?: number | null;
 
         /** The transaction tax amount */
         taxAmount?: number;

@@ -701,7 +701,8 @@ function getUpdatedTransaction({
         shouldStopSmartscan = true;
         // Clear convertedAmount when amount is manually modified to prevent stale conversion data
         // from being used during export (the server will recalculate if needed)
-        updatedTransaction.convertedAmount = undefined;
+        // Use null instead of undefined because Onyx.merge treats undefined as no-op
+        updatedTransaction.convertedAmount = null;
     }
     if (Object.hasOwn(transactionChanges, 'currency')) {
         updatedTransaction.modifiedCurrency = transactionChanges.currency;
@@ -709,7 +710,8 @@ function getUpdatedTransaction({
         // Clear convertedAmount when currency is manually modified to prevent incorrect
         // currency conversion being applied during export (fixes issue where manually entered
         // amounts in a different currency were being re-converted)
-        updatedTransaction.convertedAmount = undefined;
+        // Use null instead of undefined because Onyx.merge treats undefined as no-op
+        updatedTransaction.convertedAmount = null;
     }
 
     if (Object.hasOwn(transactionChanges, 'merchant')) {
