@@ -295,9 +295,6 @@ function getMergeableDataAndConflictFields(
         }
 
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
-            if (field === 'taxValue' && isTargetValueEmpty) {
-                continue;
-            }
             const selectedTransaction = isTargetValueEmpty ? sourceTransaction : targetTransaction;
             const selectedFieldValue = isTargetValueEmpty ? sourceValue : targetValue;
             const selectedPolicy = isTargetValueEmpty ? sourceTransactionPolicy : targetTransactionPolicy;
