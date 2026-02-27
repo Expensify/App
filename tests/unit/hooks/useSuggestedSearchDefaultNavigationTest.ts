@@ -25,6 +25,7 @@ function createApproveMenuItem(): SearchTypeMenuItem {
         searchQueryJSON: undefined,
         hash: 1,
         similarSearchHash: 101,
+        recentSearchHash: 1001,
     };
 }
 
@@ -41,6 +42,7 @@ function createSubmitMenuItem(): SearchTypeMenuItem {
         searchQueryJSON: undefined,
         hash: 2,
         similarSearchHash: 202,
+        recentSearchHash: 2002,
     };
 }
 
@@ -56,6 +58,7 @@ function createExpenseMenuItem(): SearchTypeMenuItem {
         searchQueryJSON: undefined,
         hash: 3,
         similarSearchHash: 303,
+        recentSearchHash: 3003,
     };
 }
 
@@ -71,6 +74,7 @@ function createExpenseReportMenuItem(): SearchTypeMenuItem {
         searchQueryJSON: undefined,
         hash: 4,
         similarSearchHash: 404,
+        recentSearchHash: 4004,
     };
 }
 
@@ -86,6 +90,7 @@ function createChatMenuItem(): SearchTypeMenuItem {
         searchQueryJSON: undefined,
         hash: 5,
         similarSearchHash: 505,
+        recentSearchHash: 5005,
     };
 }
 
@@ -94,7 +99,7 @@ describe('useSuggestedSearchDefaultNavigation', () => {
         jest.clearAllMocks();
     });
 
-    it('navigates to the Approve search when skeleton hides and approve menu item is available', () => {
+    it('navigates to the Reports search when skeleton hides and Reports menu item is available', () => {
         const clearSelectedTransactions = jest.fn();
         const approveMenuItem = createApproveMenuItem();
         const submitMenuItem = createSubmitMenuItem();
@@ -119,33 +124,7 @@ describe('useSuggestedSearchDefaultNavigation', () => {
         });
 
         expect(clearSelectedTransactions).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approveMenuItem.searchQuery}));
-    });
-
-    it('goes to Submit search when Approve is unavailable and Submit menu item is available', () => {
-        const clearSelectedTransactions = jest.fn();
-        const submitMenuItem = createSubmitMenuItem();
-        const expenseMenuItem = createExpenseMenuItem();
-        const expenseReportMenuItem = createExpenseReportMenuItem();
-        const chatMenuItem = createChatMenuItem();
-
-        const {rerender} = renderHook((props: Parameters<typeof useSuggestedSearchDefaultNavigation>[0]) => useSuggestedSearchDefaultNavigation(props), {
-            initialProps: {
-                shouldShowSkeleton: true,
-                flattenedMenuItems: [submitMenuItem, expenseMenuItem, expenseReportMenuItem, chatMenuItem],
-                similarSearchHash: undefined,
-                clearSelectedTransactions,
-            },
-        });
-
-        rerender({
-            shouldShowSkeleton: false,
-            flattenedMenuItems: [submitMenuItem, expenseMenuItem, expenseReportMenuItem, chatMenuItem],
-            similarSearchHash: undefined,
-            clearSelectedTransactions,
-        });
-
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: submitMenuItem.searchQuery}));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: expenseReportMenuItem.searchQuery}));
     });
 
     it('does not navigate if skeleton never rendered', () => {
