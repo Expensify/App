@@ -30,8 +30,13 @@ function useConciergeSidePanelReportActions({
     loadOlderChats,
 }: UseConciergeSidePanelReportActionsParams) {
     const [showFullHistory, setShowFullHistory] = useState(false);
+    const [prevSessionStartTime, setPrevSessionStartTime] = useState(sessionStartTime);
     const [prevHasUserSentMessage, setPrevHasUserSentMessage] = useState(hasUserSentMessage);
-    if (prevHasUserSentMessage && !hasUserSentMessage) {
+
+    if (prevSessionStartTime !== sessionStartTime) {
+        setPrevSessionStartTime(sessionStartTime);
+        setShowFullHistory(false);
+    } else if (prevHasUserSentMessage && !hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
         setShowFullHistory(false);
     } else if (prevHasUserSentMessage !== hasUserSentMessage) {
