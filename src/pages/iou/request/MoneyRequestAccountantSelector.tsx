@@ -97,8 +97,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 action,
                 personalDetails,
+                countryCode,
             },
-            countryCode,
         );
 
         const orderedOptions = orderOptions(optionList);
