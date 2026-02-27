@@ -450,26 +450,34 @@ function AttachmentPicker({
     const selectItem = useCallback(
         (item: Item) => {
             onOpenPicker?.();
-            /* setTimeout delays execution to the frame after the modal closes
-             * without this on iOS closing the modal closes the gallery/camera as well */
+            /* We use TransitionTracker.runAfterTransitions to wait for the modal close animation to complete,
+             * then add an extra requestAnimationFrame to ensure the native iOS view controller hierarchy
+             * has fully settled before presenting PHPickerViewController. On iOS 18.x, presenting
+             * the picker too early (while the previous modal is still transitioning) causes the picker's
+             * touch responder chain to be broken, making it unresponsive. */
             onModalHide.current = () => {
-                setTimeout(() => {
-                    item.pickAttachment()
-                        .catch((error: Error) => {
-                            if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
-                                return;
-                            }
+                TransitionTracker.runAfterTransitions({
+                    callback: () => {
+                        // Additional frame delay to let iOS native view hierarchy fully settle
+                        requestAnimationFrame(() => {
+                            item.pickAttachment()
+                                .catch((error: Error) => {
+                                    if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
+                                        return;
+                                    }
 
-                            showGeneralAlert(error.message);
-                            throw error;
-                        })
-                        .then((result) => pickAttachment(result))
-                        .catch(console.error)
-                        .finally(() => {
-                            onClosed.current();
-                            delete onModalHide.current;
+                                    showGeneralAlert(error.message);
+                                    throw error;
+                                })
+                                .then((result) => pickAttachment(result))
+                                .catch(console.error)
+                                .finally(() => {
+                                    onClosed.current();
+                                    delete onModalHide.current;
+                                });
                         });
-                }, 200);
+                    },
+                });
             };
             close();
         },
