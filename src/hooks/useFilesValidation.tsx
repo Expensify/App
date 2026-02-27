@@ -351,6 +351,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
         if (result.isValid) {
             const fileObjects = result.validatedFiles.map((f) => f.file);
             onFilesValidated(fileObjects, dataTransferItemList.current);
+            resetValidationState();
             return;
         }
 
@@ -381,6 +382,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
     const handleSingleFileResult = (result: Awaited<ReturnType<typeof validateAttachmentFile>>, file: FileObject) => {
         if (result.isValid) {
             onFilesValidated([result.validatedFile.file], dataTransferItemList.current);
+            resetValidationState();
             return;
         }
 
