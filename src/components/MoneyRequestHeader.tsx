@@ -51,8 +51,8 @@ import {
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {
     getOriginalTransactionWithSplitInfo,
-    hasMultipleSplitChildren,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
+    hasMultipleSplitChildren,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,

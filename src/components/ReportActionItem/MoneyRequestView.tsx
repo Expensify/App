@@ -91,6 +91,7 @@ import {
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
+    hasMultipleSplitChildren,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
     isFromCreditCardImport as isCardTransactionTransactionUtils,
@@ -107,7 +108,6 @@ import {
     isScanning,
     isTimeRequest as isTimeRequestTransactionUtils,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
-    hasMultipleSplitChildren,
 } from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
