@@ -72,7 +72,7 @@ function SearchPageWide() {
             <ScreenWrapper
                 testID="Search"
                 shouldEnableMaxHeight
-                shouldShowOfflineIndicatorInWideScreen={!!searchResults}
+                shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={offlineIndicatorStyle}
             >
                 <FullPageNotFoundView
