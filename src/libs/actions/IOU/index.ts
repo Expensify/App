@@ -6577,12 +6577,11 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     }
 
     // Mark the transaction for highlight/scroll when the target report first loads (cross-navigation case)
-    const {transactionID} = transactionParams;
-    if (chatReportID && transactionID) {
+    if (chatReportID && transactionParams.transactionID) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`,
-            value: {pendingNewTransactionIDs: [transactionID]},
+            value: {pendingNewTransactionIDs: [transactionParams.transactionID]},
         });
         onyxData.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
