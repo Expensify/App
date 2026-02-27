@@ -6125,6 +6125,25 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     successData?.push(...(convertTrackedExpenseInformation.successData ?? []));
     failureData?.push(...(convertTrackedExpenseInformation.failureData ?? []));
 
+    // Mark the transaction for highlight/scroll when the target report first loads (cross-navigation case)
+    if (chatParams.reportID && transactionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatParams.reportID}`,
+            value: {pendingNewTransactionIDs: [transactionID]},
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatParams.reportID}`,
+            value: {pendingNewTransactionIDs: null},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatParams.reportID}`,
+            value: {pendingNewTransactionIDs: null},
+        });
+    }
+
     if (transactionThreadReportID) {
         const transactionThreadReport = getReportOrDraftReport(transactionThreadReportID);
 
@@ -6421,6 +6440,25 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
 
+    // Mark the transaction for highlight/scroll when the target report first loads (cross-navigation case)
+    if (reportInformation.chatReportID && transactionID) {
+        optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportInformation.chatReportID}`,
+            value: {pendingNewTransactionIDs: [transactionID]},
+        });
+        successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportInformation.chatReportID}`,
+            value: {pendingNewTransactionIDs: null},
+        });
+        failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportInformation.chatReportID}`,
+            value: {pendingNewTransactionIDs: null},
+        });
+    }
+
     const parameters: CategorizeTrackedExpenseApiParams = {
         ...{
             ...reportInformation,
@@ -6536,6 +6574,26 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         onyxData.optimisticData?.push(...inviteAccountantToRoomOptimisticData);
         onyxData.successData?.push(...inviteAccountantToRoomSuccessData);
         onyxData.failureData?.push(...inviteAccountantToRoomFailureData);
+    }
+
+    // Mark the transaction for highlight/scroll when the target report first loads (cross-navigation case)
+    const {transactionID} = transactionParams;
+    if (chatReportID && transactionID) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`,
+            value: {pendingNewTransactionIDs: [transactionID]},
+        });
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`,
+            value: {pendingNewTransactionIDs: null},
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`,
+            value: {pendingNewTransactionIDs: null},
+        });
     }
 
     const parameters: ShareTrackedExpenseParams = {

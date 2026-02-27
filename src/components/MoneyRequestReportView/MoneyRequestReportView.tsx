@@ -135,7 +135,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
 
-    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions);
+    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions, reportMetadata?.pendingNewTransactionIDs);
 
     const parentReportAction = useParentReportAction(report);
 

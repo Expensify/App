@@ -294,6 +294,69 @@ describe('useNewTransactions with transactions in cache', () => {
     });
 });
 
+describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', () => {
+    const transactionsAlreadyInReport = [
+        {transactionID: '2', amount: 200, created: '2023-10-02', currency: 'USD', reportID: 'report1', merchant: ''},
+        {transactionID: '3', amount: 300, created: '2023-10-03', currency: 'USD', reportID: 'report1', merchant: ''},
+    ];
+    const newTransaction = {transactionID: '1', amount: 100, created: '2023-10-01T00:00:00Z', currency: 'USD', reportID: 'report1', merchant: ''};
+
+    it('returns pending new transactions on first load when submitted from another report', () => {
+        // Simulates: user submitted expense from Self DM to workspace, then navigated to workspace chat.
+        // The transaction is already in the transactions list by the time the component mounts.
+        // 1. Component mounts, report not loaded yet, but transaction is already in Onyx
+        const {rerender, result} = renderHook<
+            Transaction[],
+            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: string[] | undefined}
+        >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs), {
+            initialProps: {
+                hasOnceLoadedReportActions: false,
+                transactions: [],
+                pendingNewTransactionIDs: [newTransaction.transactionID],
+            },
+        });
+        expect(result.current).toEqual([]);
+
+        // 2. Report loads, transactions arrive (including the new one that was submitted cross-navigation)
+        rerender({
+            hasOnceLoadedReportActions: true,
+            transactions: [...transactionsAlreadyInReport, newTransaction],
+            pendingNewTransactionIDs: [newTransaction.transactionID],
+        });
+        // The pending transaction should be detected even though it was present from the first load
+        expect(result.current).toEqual([newTransaction]);
+
+        // 3. On subsequent renders, the pending transaction should not be returned again
+        rerender({
+            hasOnceLoadedReportActions: true,
+            transactions: [...transactionsAlreadyInReport, newTransaction],
+            pendingNewTransactionIDs: undefined, // cleared by success data
+        });
+        expect(result.current).toEqual([]);
+    });
+
+    it('does not highlight transactions without pendingNewTransactionIDs', () => {
+        // Normal navigation to a report (no cross-navigation pending IDs)
+        const {rerender, result} = renderHook<
+            Transaction[],
+            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: string[] | undefined}
+        >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs), {
+            initialProps: {
+                hasOnceLoadedReportActions: false,
+                transactions: [],
+                pendingNewTransactionIDs: undefined,
+            },
+        });
+
+        rerender({
+            hasOnceLoadedReportActions: true,
+            transactions: transactionsAlreadyInReport,
+            pendingNewTransactionIDs: undefined,
+        });
+        expect(result.current).toEqual([]);
+    });
+});
+
 afterAll(() => {
     jest.restoreAllMocks();
 });

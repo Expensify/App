@@ -335,7 +335,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata, isOffline);
 
-    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
+    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions, reportMetadata?.pendingNewTransactionIDs);
 
     const {closeSidePanel} = useSidePanelActions();
 
