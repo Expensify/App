@@ -84,9 +84,6 @@ function WalletPage() {
     const {translate, localeCompare} = useLocalize();
     const {cardFeedsByPolicy} = useCardFeedsForDisplay();
 
-    console.log('cardFeedsByPolicy');
-    console.log(cardFeedsByPolicy);
-
     const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const hasSinglePolicy = activeAdminPolicies.length === 1;
 
@@ -490,6 +487,7 @@ function WalletPage() {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING);
             // return;
         }
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING);
         // TODO navigate to add new personal card
     };
 
@@ -643,7 +641,7 @@ function WalletPage() {
                                     />
                                 </View>
                             )}
-                            {!hasAssignedCard ? (
+                            {hasAssignedCard ? (
                                 <MenuItem
                                     iconHeight={48}
                                     iconWidth={48}
