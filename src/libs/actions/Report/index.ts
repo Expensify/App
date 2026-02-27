@@ -211,6 +211,7 @@ import type {
     ReportUserIsTyping,
     Transaction,
     TransactionViolations,
+    VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
@@ -1286,6 +1287,7 @@ function openReport(
         parentReportActionID,
         transactionID: transaction?.transactionID,
         includePartiallySetupBankAccounts: true,
+        useLastUnreadReportAction: true,
     };
 
     if (optimisticSelfDMReport) {
@@ -1857,7 +1859,7 @@ function createTransactionThreadReport(
 function navigateToReport(reportID: string | undefined, shouldDismissModal = true) {
     if (shouldDismissModal) {
         Navigation.dismissModal({
-            callback: () => {
+            afterTransition: () => {
                 if (!reportID) {
                     return;
                 }
@@ -2026,7 +2028,7 @@ function explain(
  */
 function getOlderActions(reportID: string | undefined, reportActionID: string | undefined) {
     if (!reportID || !reportActionID) {
-        return;
+        return Promise.resolve();
     }
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
@@ -2066,7 +2068,7 @@ function getOlderActions(reportID: string | undefined, reportActionID: string | 
         reportActionID,
     };
 
-    API.paginate(
+    return API.paginate(
         CONST.API_REQUEST_TYPE.READ,
         READ_COMMANDS.GET_OLDER_ACTIONS,
         parameters,
@@ -2124,7 +2126,7 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
         reportActionID,
     };
 
-    API.paginate(
+    return API.paginate(
         CONST.API_REQUEST_TYPE.READ,
         READ_COMMANDS.GET_NEWER_ACTIONS,
         parameters,
@@ -2153,11 +2155,18 @@ function expandURLPreview(reportID: string | undefined, reportActionID: string) 
 }
 
 /** Marks the new report actions as read
+ * @param hasOnceLoadedReportActions Whether the report actions have been loaded at least once.
+ * If false, the API call will be skipped to avoid 401 errors from reading reports not yet shared with the user.
  * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
  * Currently, the unread indicator needs to be reset only when users mark a report as read.
  */
-function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker = false) {
+function readNewestAction(reportID: string | undefined, hasOnceLoadedReportActions: boolean, shouldResetUnreadMarker = false) {
     if (!reportID) {
+        return;
+    }
+
+    // Do not try to mark the report as read if the report has not been loaded and shared with the user
+    if (!hasOnceLoadedReportActions) {
         return;
     }
 
@@ -2313,6 +2322,7 @@ function deleteReportComment(
     isReportArchived: boolean | undefined,
     isOriginalReportArchived: boolean | undefined,
     currentEmail: string,
+    visibleReportActionsDataParam?: VisibleReportActionsDerivedValue,
 ) {
     const reportID = report?.reportID;
     const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
@@ -2359,7 +2369,7 @@ function deleteReportComment(
             (action) =>
                 action.reportActionID !== reportAction.reportActionID &&
                 ReportActionsUtils.didMessageMentionCurrentUser(action, currentEmail) &&
-                ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID),
+                ReportActionsUtils.isReportActionVisible(action, reportID, undefined, visibleReportActionsDataParam),
         );
         optimisticReport.lastMentionedTime = latestMentionedReportAction?.created ?? null;
     }
@@ -2513,6 +2523,7 @@ function editReportComment(
     isOriginalParentReportArchived: boolean | undefined,
     currentUserLogin: string,
     videoAttributeCache?: Record<string, string>,
+    visibleReportActionsDataParam?: VisibleReportActionsDerivedValue,
 ) {
     const originalReportID = originalReport?.reportID;
     if (!originalReportID || !originalReportAction) {
@@ -2545,7 +2556,7 @@ function editReportComment(
 
     //  Delete the comment if it's empty
     if (!htmlForNewComment) {
-        deleteReportComment(originalReport, originalReportAction, ancestors, isOriginalReportArchived, isOriginalParentReportArchived, currentUserLogin);
+        deleteReportComment(originalReport, originalReportAction, ancestors, isOriginalReportArchived, isOriginalParentReportArchived, currentUserLogin, visibleReportActionsDataParam);
         return;
     }
 
@@ -4027,8 +4038,11 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeR
         if (lastAccessedReportID === topmostSuperWideRHP && !getIsNarrowLayout()) {
             Navigation.dismissToSuperWideRHP();
         } else {
-            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-            Navigation.goBack(lastAccessedReportRoute);
+            Navigation.dismissModal();
+            Navigation.isNavigationReady().then(() => {
+                const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+                Navigation.goBack(lastAccessedReportRoute);
+            });
         }
     } else {
         const isChatThread = isChatThreadReportUtils(currentReport);
@@ -5701,6 +5715,19 @@ function deleteAppReport(
         key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
         value: {hasOutstandingChildRequest: report?.hasOutstandingChildRequest},
     });
+
+    if (hash) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {pendingAction: null},
+                },
+            },
+        });
+    }
 
     const parameters: DeleteAppReportParams = {
         reportID,

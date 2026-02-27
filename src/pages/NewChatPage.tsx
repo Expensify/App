@@ -110,9 +110,9 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             includeSelfDM: true,
             shouldAlwaysIncludeDM: true,
             personalDetails: allPersonalDetails,
+            countryCode,
+            reportAttributesDerived,
         },
-        countryCode,
-        reportAttributesDerived,
     );
 
     const unselectedOptions = filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
@@ -379,7 +379,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         if (option?.reportID) {
             Navigation.dismissModal({
-                callback: () => {
+                afterTransition: () => {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option?.reportID));
                 },
             });
