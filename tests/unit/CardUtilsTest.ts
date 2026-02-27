@@ -16,6 +16,7 @@ import {
     filterInactiveCards,
     flattenWorkspaceCardsList,
     formatCardExpiration,
+    formatMaskedCardName,
     getAllCardsForWorkspace,
     getAssignedCardSortKey,
     getBankCardDetailsImage,
@@ -54,7 +55,6 @@ import {
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
-    formatMaskedCardName,
     splitCardFeedWithDomainID,
     splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
@@ -3195,6 +3195,6 @@ describe('formatMaskedCardName', () => {
     });
 
     it('returns non-commercial card names unchanged', () => {
-        expect(formatMaskedCardName('K. IACOVINO...4306')).toBe('K. IACOVINO...4306');
+        expect(formatMaskedCardName('J. SMITH...4306')).toBe('J. SMITH...4306');
     });
 });
