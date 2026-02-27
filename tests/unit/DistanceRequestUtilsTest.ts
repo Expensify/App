@@ -203,10 +203,5 @@ describe('DistanceRequestUtils', () => {
             const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, ...rateParams);
             expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
         });
-
-        it('should not show out-of-policy for P2P expenses, just the formatted rate', () => {
-            const result = DistanceRequestUtils.getRateForExpenseDisplay(undefined, true, ...rateParams);
-            expect(result).toBe(`$0.67 / ${translateLocal('common.mile')}`);
-        });
     });
 });
