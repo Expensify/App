@@ -155,7 +155,7 @@ describe('MoneyRequestReportPreview', () => {
 
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        expect(screen.getByText(ReportUtils.getReportName(mockIOUReport, undefined, undefined, undefined, undefined, undefined))).toBeOnTheScreen();
+        expect(screen.getByText(ReportUtils.getReportName({report: mockIOUReport}))).toBeOnTheScreen();
 
         for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
