@@ -2108,8 +2108,8 @@ const translations: TranslationDeepObject<typeof en> = {
     personalCard: {
         addPersonalCard: '個人カードを追加',
         addCompanyCard: '会社カードを追加',
-        lookingForCompanyCards: '会社カードをお探しですか？',
-        lookingForCompanyCardsDescription: 'ワークスペースの設定から、すべての主要クレジットカード会社のカードをチーム全体に割り当てることができます。',
+        lookingForCompanyCards: '会社カードを追加する必要がありますか？',
+        lookingForCompanyCardsDescription: '世界中の10,000以上の銀行から自分のカードを追加できます。',
         personalCardAdded: '個人カードが追加されました！',
         personalCardAddedDescription: 'おめでとうございます。カードからの取引のインポートを開始します。',
         isPersonalCard: 'これは個人カードですか？',

@@ -2084,8 +2084,8 @@ const translations: TranslationDeepObject<typeof en> = {
     personalCard: {
         addPersonalCard: '添加个人卡',
         addCompanyCard: '添加公司卡',
-        lookingForCompanyCards: '正在查找公司卡？',
-        lookingForCompanyCardsDescription: '在工作区设置中，将所有主要信用卡提供商的卡分配给整个团队。',
+        lookingForCompanyCards: '需要添加公司卡？',
+        lookingForCompanyCardsDescription: '从全球 10,000 多家银行添加您自己的卡。',
         personalCardAdded: '个人卡已添加！',
         personalCardAddedDescription: '恭喜，我们将开始导入您卡的交易记录。',
         isPersonalCard: '这是个人卡吗？',

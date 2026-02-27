@@ -2118,8 +2118,8 @@ const translations: TranslationDeepObject<typeof en> = {
     personalCard: {
         addPersonalCard: 'Persoonlijke kaart toevoegen',
         addCompanyCard: 'Bedrijfskaart toevoegen',
-        lookingForCompanyCards: 'Op zoek naar bedrijfskaarten?',
-        lookingForCompanyCardsDescription: 'Wijs kaarten van alle grote creditcardaanbieders toe aan het hele team vanuit de werkruimte-instellingen.',
+        lookingForCompanyCards: 'Bedrijfskaarten toevoegen?',
+        lookingForCompanyCardsDescription: 'Koppel je eigen kaarten van meer dan 10.000 banken wereldwijd.',
         personalCardAdded: 'Persoonlijke kaart toegevoegd!',
         personalCardAddedDescription: 'Gefeliciteerd, we beginnen met het importeren van transacties van uw kaart.',
         isPersonalCard: 'Is dit een persoonlijke kaart?',

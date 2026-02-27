@@ -2129,8 +2129,8 @@ const translations: TranslationDeepObject<typeof en> = {
     personalCard: {
         addPersonalCard: 'Ajouter une carte personnelle',
         addCompanyCard: "Ajouter une carte d'entreprise",
-        lookingForCompanyCards: "Vous recherchez des cartes d'entreprise?",
-        lookingForCompanyCardsDescription: "Attribuez des cartes de tous les principaux fournisseurs de cartes de crédit à toute l'équipe depuis les paramètres de l'espace de travail.",
+        lookingForCompanyCards: "Vous devez ajouter des cartes d'entreprise ?",
+        lookingForCompanyCardsDescription: 'Connectez vos propres cartes auprès de plus de 10 000 banques dans le monde.',
         personalCardAdded: 'Carte personnelle ajoutée!',
         personalCardAddedDescription: 'Félicitations, nous allons commencer à importer les transactions de votre carte.',
         isPersonalCard: "S'agit-il d'une carte personnelle?",

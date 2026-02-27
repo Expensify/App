@@ -2164,8 +2164,8 @@ const translations = {
     personalCard: {
         addPersonalCard: 'Add personal card',
         addCompanyCard: 'Add company card',
-        lookingForCompanyCards: 'Looking for company cards?',
-        lookingForCompanyCardsDescription: 'Assign cards from all major credit card providers to the entire team from workspace settings.',
+        lookingForCompanyCards: 'Need to add company cards?',
+        lookingForCompanyCardsDescription: 'Bring your own cards from 10,000+ banks worldwide.',
         personalCardAdded: 'Personal card added!',
         personalCardAddedDescription: 'Congrats, we’ll begin importing transactions from your card.',
         isPersonalCard: 'Is this a personal card?',
