@@ -10571,6 +10571,7 @@ function approveMoneyRequest(
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     full?: boolean,
+    onApproved?: () => void,
 ) {
     if (!expenseReport) {
         return;
@@ -10909,6 +10910,7 @@ function approveMoneyRequest(
         optimisticCreatedReportForUnapprovedTransactionsActionID,
     };
 
+    onApproved?.();
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
     return optimisticHoldReportID;
@@ -11452,6 +11454,7 @@ function submitReport(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    onSubmitted?: () => void,
 ) {
     if (!expenseReport) {
         return;
@@ -11714,6 +11717,7 @@ function submitReport(
     };
 
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
+    onSubmitted?.();
 }
 
 function cancelPayment(
@@ -11969,7 +11973,7 @@ function completePaymentOnboarding(
     });
 }
 
-function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
+function payMoneyRequest(params: PayMoneyRequestFunctionParams, onPaid?: () => void) {
     const {paymentType, chatReport, iouReport, introSelected, iouReportCurrentNextStepDeprecated, currentUserAccountID, paymentPolicyID, full = true, activePolicy, policy, betas} = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
@@ -11998,6 +12002,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     // Expensify Wallets.
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
 
+    onPaid?.();
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, payMoneyRequestParams, onyxData);
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);

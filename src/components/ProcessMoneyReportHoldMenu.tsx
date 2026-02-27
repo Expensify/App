@@ -92,9 +92,6 @@ function ProcessMoneyReportHoldMenu({
         }
 
         if (isApprove) {
-            if (startAnimation) {
-                startAnimation();
-            }
             approveMoneyRequest(
                 moneyRequestReport,
                 activePolicy,
@@ -105,23 +102,24 @@ function ProcessMoneyReportHoldMenu({
                 moneyRequestReportNextStep,
                 betas,
                 full,
+                startAnimation,
             );
         } else if (chatReport && paymentType) {
-            if (startAnimation) {
-                startAnimation();
-            }
-            payMoneyRequest({
-                paymentType,
-                chatReport,
-                iouReport: moneyRequestReport,
-                introSelected,
-                iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
-                currentUserAccountID: currentUserDetails.accountID,
-                full,
-                activePolicy,
-                policy,
-                betas,
-            });
+            payMoneyRequest(
+                {
+                    paymentType,
+                    chatReport,
+                    iouReport: moneyRequestReport,
+                    introSelected,
+                    iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
+                    currentUserAccountID: currentUserDetails.accountID,
+                    full,
+                    activePolicy,
+                    policy,
+                    betas,
+                },
+                startAnimation,
+            );
         }
         onClose();
     };

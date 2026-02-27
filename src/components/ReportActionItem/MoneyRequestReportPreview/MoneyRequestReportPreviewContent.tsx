@@ -259,8 +259,8 @@ function MoneyRequestReportPreviewContent({
             } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
                 setIsHoldMenuVisible(true);
             } else if (chatReport && iouReport) {
-                startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
+                    startAnimation();
                     payInvoice({
                         paymentMethodType: type,
                         chatReport,
@@ -277,17 +277,20 @@ function MoneyRequestReportPreviewContent({
                         betas,
                     });
                 } else {
-                    payMoneyRequest({
-                        paymentType: type,
-                        chatReport,
-                        iouReport,
-                        introSelected,
-                        iouReportCurrentNextStepDeprecated: iouReportNextStep,
-                        currentUserAccountID,
-                        activePolicy,
-                        policy,
-                        betas,
-                    });
+                    payMoneyRequest(
+                        {
+                            paymentType: type,
+                            chatReport,
+                            iouReport,
+                            introSelected,
+                            iouReportCurrentNextStepDeprecated: iouReportNextStep,
+                            currentUserAccountID,
+                            activePolicy,
+                            policy,
+                            betas,
+                        },
+                        startAnimation,
+                    );
                 }
             }
         },
@@ -333,8 +336,18 @@ function MoneyRequestReportPreviewContent({
         } else if (hasHeldExpensesReportUtils(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
-            startApprovedAnimation();
-            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, betas, true);
+            approveMoneyRequest(
+                iouReport,
+                activePolicy,
+                currentUserAccountID,
+                currentUserEmail,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                iouReportNextStep,
+                betas,
+                true,
+                startApprovedAnimation,
+            );
         }
     };
 
@@ -661,8 +674,7 @@ function MoneyRequestReportPreviewContent({
                         showDEWModal();
                         return;
                     }
-                    startSubmittingAnimation();
-                    submitReport(iouReport, policy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep);
+                    submitReport(iouReport, policy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, startSubmittingAnimation);
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}

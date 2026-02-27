@@ -613,18 +613,20 @@ function MoneyReportHeader({
                     betas,
                 });
             } else {
-                startAnimation();
-                payMoneyRequest({
-                    paymentType: type,
-                    chatReport,
-                    iouReport: moneyRequestReport,
-                    introSelected,
-                    iouReportCurrentNextStepDeprecated: nextStep,
-                    currentUserAccountID: accountID,
-                    activePolicy,
-                    policy,
-                    betas,
-                });
+                payMoneyRequest(
+                    {
+                        paymentType: type,
+                        chatReport,
+                        iouReport: moneyRequestReport,
+                        introSelected,
+                        iouReportCurrentNextStepDeprecated: nextStep,
+                        currentUserAccountID: accountID,
+                        activePolicy,
+                        policy,
+                        betas,
+                    },
+                    startAnimation,
+                );
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
@@ -685,8 +687,7 @@ function MoneyReportHeader({
         } else if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else {
-            startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, true);
+            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, true, startApprovedAnimation);
         }
     };
 
@@ -1050,8 +1051,7 @@ function MoneyReportHeader({
                         showDWEModal();
                         return;
                     }
-                    startSubmittingAnimation();
-                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, startSubmittingAnimation);
                     if (currentSearchQueryJSON && !isOffline) {
                         search({
                             searchKey: currentSearchKey,
