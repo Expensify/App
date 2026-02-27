@@ -2,6 +2,9 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import type {PropsWithChildren} from 'react';
+// Import after mocks
+// eslint-disable-next-line import/first
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 type CapturedPopoverProps = {
     isVisible?: boolean;
@@ -136,10 +139,6 @@ jest.mock('@libs/NavigationFocusManager', () => ({
         clearKeyboardInteractionFlag: () => mockClearKeyboardInteractionFlag(),
     },
 }));
-
-// Import after mocks
-// eslint-disable-next-line import/first
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 describe('ThreeDotsMenu focus coverage', () => {
     const menuItems = [{text: 'First action'}];

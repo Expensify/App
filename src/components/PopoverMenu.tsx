@@ -719,6 +719,7 @@ export default React.memo(
         prevProps.animationOut === nextProps.animationOut &&
         prevProps.animationInTiming === nextProps.animationInTiming &&
         prevProps.disableAnimation === nextProps.disableAnimation &&
+        prevProps.wasOpenedViaKeyboard === nextProps.wasOpenedViaKeyboard &&
         prevProps.withoutOverlay === nextProps.withoutOverlay &&
         prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
 );
