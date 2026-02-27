@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, AppState, InteractionManager, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -155,6 +156,14 @@ function ShareRootPage() {
         closeModal();
     }, []);
 
+    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'ShareRootPage',
+            isFileReady,
+        }),
+        [isFileReady],
+    );
+
     const shareTabInputRef = useRef<AnimatedTextInputRef | null>(null);
     const submitTabInputRef = useRef<AnimatedTextInputRef | null>(null);
 
@@ -197,7 +206,7 @@ function ShareRootPage() {
                         {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab ref={submitTabInputRef} />}</TopTab.Screen>}
                     </OnyxTabNavigator>
                 ) : (
-                    <TabNavigatorSkeleton />
+                    <TabNavigatorSkeleton reasonAttributes={reasonAttributes} />
                 )}
             </View>
         </ScreenWrapper>
