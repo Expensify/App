@@ -4245,6 +4245,129 @@ describe('SearchUIUtils', () => {
                 expect(typeof item.transactionsQueryJSON?.hash).toBe('number');
             }
         });
+
+        describe('getReportSections computed fields (totalDisplaySpend, nonReimbursableSpend, reimbursableSpend, isAllScanning)', () => {
+            const testReportID = 'spend-test-report';
+            const testTxID1 = 'spend-tx-1';
+            const testTxID2 = 'spend-tx-2';
+
+            function makeSpendTestData(reportOverrides: Partial<OnyxTypes.Report>, transactionOverrides: Array<{transactionID: string; overrides?: Partial<OnyxTypes.Transaction>}>) {
+                const baseData = {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${testReportID}`]: {
+                        ...report1,
+                        reportID: testReportID,
+                        transactionCount: transactionOverrides.length,
+                        ...reportOverrides,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${testReportID}`]: {},
+                };
+
+                for (const tx of transactionOverrides) {
+                    Object.assign(baseData, {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`]: {
+                            ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`],
+                            transactionID: tx.transactionID,
+                            reportID: testReportID,
+                            ...tx.overrides,
+                        },
+                    });
+                }
+
+                return baseData;
+            }
+
+            function getComputedFields(data: typeof searchResults.data) {
+                const sections = SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    allReportMetadata: {},
+                })[0] as TransactionReportGroupListItemType[];
+
+                const item = sections.find((s) => s.keyForList === testReportID);
+                expect(item).toBeDefined();
+                return {
+                    totalDisplaySpend: item?.totalDisplaySpend,
+                    nonReimbursableSpend: item?.nonReimbursableSpend,
+                    reimbursableSpend: item?.reimbursableSpend,
+                    isAllScanning: item?.isAllScanning,
+                };
+            }
+
+            it('should compute spend breakdown for expense report with only reimbursable spend', () => {
+                const data = makeSpendTestData({total: -3000, nonReimbursableTotal: 0, type: CONST.REPORT.TYPE.EXPENSE}, [{transactionID: testTxID1}]);
+                const fields = getComputedFields(data);
+                expect(fields.totalDisplaySpend).toBe(3000);
+                expect(fields.reimbursableSpend).toBe(3000);
+                expect(fields.nonReimbursableSpend).toBe(-0);
+            });
+
+            it('should compute spend breakdown for expense report with mixed reimbursable and non-reimbursable spend', () => {
+                const data = makeSpendTestData(
+                    {total: -5000, nonReimbursableTotal: -2000, type: CONST.REPORT.TYPE.EXPENSE},
+                    [{transactionID: testTxID1}, {transactionID: testTxID2}],
+                );
+                const fields = getComputedFields(data);
+                expect(fields.totalDisplaySpend).toBe(5000);
+                expect(fields.nonReimbursableSpend).toBe(2000);
+                expect(fields.reimbursableSpend).toBe(3000);
+            });
+
+            it('should compute spend breakdown for expense report with only non-reimbursable spend', () => {
+                const data = makeSpendTestData({total: -4000, nonReimbursableTotal: -4000, type: CONST.REPORT.TYPE.EXPENSE}, [{transactionID: testTxID1}]);
+                const fields = getComputedFields(data);
+                expect(fields.totalDisplaySpend).toBe(4000);
+                expect(fields.nonReimbursableSpend).toBe(4000);
+                expect(fields.reimbursableSpend).toBe(0);
+            });
+
+            it('should compute spend breakdown for IOU report (non-expense type)', () => {
+                const data = makeSpendTestData({total: 7500, nonReimbursableTotal: 2500, type: CONST.REPORT.TYPE.IOU}, [{transactionID: testTxID1}]);
+                const fields = getComputedFields(data);
+                expect(fields.totalDisplaySpend).toBe(7500);
+                expect(fields.nonReimbursableSpend).toBe(2500);
+                expect(fields.reimbursableSpend).toBe(5000);
+            });
+
+            it('should return zero spend breakdown when total and nonReimbursableTotal are both 0', () => {
+                const data = makeSpendTestData({total: 0, nonReimbursableTotal: 0, type: CONST.REPORT.TYPE.EXPENSE}, [{transactionID: testTxID1}]);
+                const fields = getComputedFields(data);
+                expect(fields.totalDisplaySpend).toBe(0);
+                expect(fields.nonReimbursableSpend).toBe(0);
+                expect(fields.reimbursableSpend).toBe(0);
+            });
+
+            it('should set isAllScanning=true when all transactions are scanning', () => {
+                const scanningReceipt = {state: CONST.IOU.RECEIPT_STATE.SCANNING};
+                const data = makeSpendTestData({total: -2000, type: CONST.REPORT.TYPE.EXPENSE}, [
+                    {transactionID: testTxID1, overrides: {receipt: scanningReceipt, merchant: '', modifiedMerchant: ''}},
+                    {transactionID: testTxID2, overrides: {receipt: scanningReceipt, merchant: '', modifiedMerchant: ''}},
+                ]);
+                const fields = getComputedFields(data);
+                expect(fields.isAllScanning).toBe(true);
+            });
+
+            it('should set isAllScanning=false when some transactions are not scanning', () => {
+                const scanningReceipt = {state: CONST.IOU.RECEIPT_STATE.SCANNING};
+                const data = makeSpendTestData({total: -2000, type: CONST.REPORT.TYPE.EXPENSE}, [
+                    {transactionID: testTxID1, overrides: {receipt: scanningReceipt, merchant: '', modifiedMerchant: ''}},
+                    {transactionID: testTxID2},
+                ]);
+                const fields = getComputedFields(data);
+                expect(fields.isAllScanning).toBe(false);
+            });
+
+            it('should set isAllScanning=false when there are no transactions', () => {
+                const data = makeSpendTestData({total: 0, transactionCount: 0, type: CONST.REPORT.TYPE.EXPENSE}, []);
+                const fields = getComputedFields(data);
+                expect(fields.isAllScanning).toBe(false);
+            });
+        });
     });
 
     describe('Test getSortedSections', () => {

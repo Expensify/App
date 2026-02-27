@@ -2348,7 +2348,7 @@ function getReportSections({
             totalDisplaySpend,
             nonReimbursableSpend,
             reimbursableSpend,
-            isAllScanning: reportItem.transactions.length > 0 && reportItem.transactions.every((t) => isScanning(t as Parameters<typeof isScanning>[0])),
+            isAllScanning: reportItem.transactions.length > 0 && reportItem.transactions.every(isScanning),
         };
     });
 
