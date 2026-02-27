@@ -772,6 +772,10 @@ describe('useCompanyCards', () => {
             // Only one entry should appear — the duplicate is suppressed
             expect(entries).toHaveLength(1);
             expect(entries.at(0)).toMatchObject({cardName: '553312XXXXXX0487', encryptedCardNumber: 'v1:ENCRYPTED_0487', isAssigned: true});
+
+            // The canonical (new-format) card with lastFourPAN should be kept as assignedCard
+            expect(entries.at(0)?.assignedCard?.cardID).toBe(8101);
+            expect(entries.at(0)?.assignedCard?.lastFourPAN).toBe('0487');
         });
 
         it('should enrich encryptedCardNumber via name match when card has no encryptedCardNumber', async () => {
@@ -961,6 +965,10 @@ describe('useCompanyCards', () => {
             // Same result regardless of iteration order
             expect(entries).toHaveLength(1);
             expect(entries.at(0)).toMatchObject({cardName: '553312XXXXXX0487', encryptedCardNumber: 'v1:ENCRYPTED_0487', isAssigned: true});
+
+            // The canonical (new-format) card should be kept as assignedCard regardless of iteration order
+            expect(entries.at(0)?.assignedCard?.cardID).toBe(8099);
+            expect(entries.at(0)?.assignedCard?.lastFourPAN).toBe('0487');
         });
     });
 

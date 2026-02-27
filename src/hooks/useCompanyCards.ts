@@ -117,6 +117,12 @@ function buildCompanyCardEntries(accountList: string[] | undefined, cardList: As
                 coveredEncrypted.add(encryptedCardNumber);
             }
         } else {
+            // When deduplicating, prefer the card with richer metadata (e.g. new-format with lastFourPAN)
+            // so that downstream UI/actions use the canonical record.
+            const existingIdx = entries.findIndex((e) => e.encryptedCardNumber === encryptedCardNumber);
+            if (existingIdx !== -1 && card.lastFourPAN && !entries[existingIdx].assignedCard?.lastFourPAN) {
+                entries[existingIdx] = {...entries[existingIdx], assignedCard: card};
+            }
             coveredNames.add(normalizeCardName(card.cardName ?? ''));
             if (card.encryptedCardNumber && card.encryptedCardNumber !== card.cardName) {
                 coveredEncrypted.add(card.encryptedCardNumber);
