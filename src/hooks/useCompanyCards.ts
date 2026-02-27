@@ -58,7 +58,8 @@ type UseCompanyCardsResult = Partial<{
 function resolveCardListEntry(card: Card, cardListEntries: Array<[string, string]>): Card {
     const {cardName, encryptedCardNumber, lastFourPAN} = card;
 
-    const panSuffix = lastFourPAN ?? cardName;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const panSuffix = lastFourPAN || cardName;
     if (!panSuffix) {
         return card;
     }
