@@ -21,6 +21,7 @@ type LocalNotificationModifiedExpenseParams = {
     onClick: LocalNotificationClickHandler;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
+    currentUserLogin: string;
 };
 
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {

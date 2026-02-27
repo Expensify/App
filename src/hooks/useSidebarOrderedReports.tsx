@@ -1,10 +1,10 @@
-import reportsSelector from '@selectors/Attributes';
-import {createPoliciesSelector} from '@selectors/Policy';
 import {deepEqual} from 'fast-equals';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
+import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
+import {isOneTransactionReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,8 +13,10 @@ import {useCurrentReportIDState} from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDeepCompareRef from './useDeepCompareRef';
 import useLocalize from './useLocalize';
+import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
+import useReportAttributes from './useReportAttributes';
 import useResponsiveLayout from './useResponsiveLayout';
 
 const componentsUsingHook = new Map<string, {renderDuration: number}>();
@@ -44,15 +46,13 @@ const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextV
     clearLHNCache: () => {},
 });
 
-const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
+const policyMapper = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
     (policy && {
         type: policy.type,
         name: policy.name,
         avatarURL: policy.avatarURL,
         employeeList: policy.employeeList,
     }) as PartialPolicyForSidebar;
-
-const policiesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => createPoliciesSelector(policies, policySelector);
 
 function SidebarOrderedReportsContextProvider({
     children,
@@ -67,15 +67,16 @@ function SidebarOrderedReportsContextProvider({
     currentReportIDForTests,
 }: SidebarOrderedReportsContextProviderProps) {
     const {localeCompare} = useLocalize();
-    const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
-    const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [policies, {sourceValue: policiesUpdates}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
-    const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-    const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
+    const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies, {sourceValue: policiesUpdates}] = useMappedPolicies(policyMapper);
+    const [transactions, {sourceValue: transactionsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactionViolations, {sourceValue: transactionViolationsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [reportNameValuePairs, {sourceValue: reportNameValuePairsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [reportsDrafts, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -118,7 +119,13 @@ function SidebarOrderedReportsContextProvider({
             }
         }
         if (transactionsUpdates) {
-            for (const key of Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`)) {
+            // We need to select the report linked to a transaction, to properly recalculate getReceiptUploadErrorReason, which is the expense report if it is isOneTransactionReport
+            // or the transaction thread report if it is otherwise.
+            for (const key of Object.values(transactionsUpdates ?? {}).map((transaction) =>
+                transaction?.reportID && isOneTransactionReport(chatReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`])
+                    ? `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`
+                    : `${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(transaction)}`,
+            )) {
                 reportsToUpdate.add(key);
             }
         }
@@ -189,6 +196,7 @@ function SidebarOrderedReportsContextProvider({
                 reportNameValuePairs,
                 reportAttributes,
                 draftComments: reportsDrafts,
+                transactions,
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
@@ -200,6 +208,7 @@ function SidebarOrderedReportsContextProvider({
                 priorityMode,
                 reportsDrafts,
                 transactionViolations,
+                transactions,
                 reportNameValuePairs,
                 reportAttributes,
             );
@@ -232,10 +241,11 @@ function SidebarOrderedReportsContextProvider({
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, deepComparedReportsDrafts, reportNameValuePairs),
+        () =>
+            SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, deepComparedReportsDrafts, reportNameValuePairs, conciergeReportID),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [deepComparedReportsToDisplayInLHN, localeCompare, deepComparedReportsDrafts],
+        [deepComparedReportsToDisplayInLHN, localeCompare, deepComparedReportsDrafts, conciergeReportID],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);

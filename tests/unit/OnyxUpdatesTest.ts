@@ -66,6 +66,38 @@ describe('OnyxUpdatesTest', () => {
             });
     });
 
+    it('preserves the response object when HTTPS update is old and request has no successData/failureData/finallyData', async () => {
+        // Given the client already has a lastUpdateID applied
+        const currentUpdateID = 100;
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, currentUpdateID);
+        await waitForBatchedUpdates();
+
+        const mockResponse = {
+            jsonCode: 200,
+            transactionsPending3DSReview: {
+                txn123: {amount: 1000, currency: 'USD', created: '2026-02-23', expires: '2026-02-24', lastFourPAN: 1234, merchant: 'TestMerchant'},
+            },
+            onyxData: [],
+        };
+
+        // When we apply an HTTPS update where lastUpdateID is already applied (i.e. "old"),
+        // and the request has no successData/failureData/finallyData
+        const result = await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            lastUpdateID: currentUpdateID,
+            previousUpdateID: currentUpdateID - 1,
+            request: {
+                command: 'GetTransactionsPending3DSReview',
+                data: {},
+            },
+            response: mockResponse,
+        });
+
+        // Then the response should still be returned to the caller, not undefined
+        expect(result).toBeDefined();
+        expect(result?.jsonCode).toBe(200);
+    });
+
     it('applies full ReconnectApp Onyx updates even if they appear old', async () => {
         // Given the current lastUpdateIDAppliedToClient is merged
         const currentUpdateID = 100;
