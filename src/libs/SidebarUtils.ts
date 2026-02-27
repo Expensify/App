@@ -1149,9 +1149,19 @@ function getOptionData({
         isReportArchived,
     );
 
-    const wasSuppressed = rawShouldShowSubscript && !result.shouldShowSubscript;
-    // eslint-disable-next-line rulesdir/prefer-at
-    result.icons = wasSuppressed && reportIcons.length > 1 ? [reportIcons[0]] : reportIcons;
+    // For IOU reports with multiple senders, preserve both icons for diagonal display.
+    // childMoneyRequestCount is the reliable signal — when it is not yet loaded, default to
+    // multi-sender to avoid a brief flash from single to diagonal.
+    const isIOUWithMultipleSenders = report.type === CONST.REPORT.TYPE.IOU && parentReportAction?.childMoneyRequestCount !== 1;
+
+    if (!result.shouldShowSubscript && !isIOUWithMultipleSenders && reportIcons.length > 1) {
+        const singleIcon =
+            // eslint-disable-next-line rulesdir/prefer-at
+            report.type === CONST.REPORT.TYPE.IOU ? (reportIcons.find((icon) => Number(icon.id) !== currentUserAccountID) ?? reportIcons[0]) : reportIcons[0];
+        result.icons = [singleIcon];
+    } else {
+        result.icons = reportIcons;
+    }
 
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
