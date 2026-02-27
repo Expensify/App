@@ -1,4 +1,3 @@
-import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -8,14 +7,15 @@ import {ImageBehaviorContextProvider} from '@components/Image/ImageBehaviorConte
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setDraftSplitTransaction} from '@libs/actions/IOU';
-import {completeSplitBill} from '@libs/actions/IOU/Split';
+import {completeSplitBill, setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -25,9 +25,17 @@ import Parser from '@libs/Parser';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionDetails, isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest as isDistanceRequestUtil, isManualDistanceRequest as isManualDistanceRequestUtil, isScanning} from '@libs/TransactionUtils';
-import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
-import type {WithReportAndReportActionOrNotFoundProps} from '@pages/home/report/withReportAndReportActionOrNotFound';
+import {
+    areRequiredFieldsEmpty,
+    hasReceipt,
+    isDistanceRequest as isDistanceRequestUtil,
+    isGPSDistanceRequest as isGPSDistanceRequestUtil,
+    isManualDistanceRequest as isManualDistanceRequestUtil,
+    isMapDistanceRequest as isMapDistanceRequestUtil,
+    isScanning,
+} from '@libs/TransactionUtils';
+import withReportAndReportActionOrNotFound from '@pages/inbox/report/withReportAndReportActionOrNotFound';
+import type {WithReportAndReportActionOrNotFoundProps} from '@pages/inbox/report/withReportAndReportActionOrNotFound';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,27 +51,29 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const reportID = report?.reportID;
     const originalMessage = reportAction && isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
     const IOUTransactionID = originalMessage?.IOUTransactionID;
     const participantAccountIDs = originalMessage?.participantAccountIDs ?? [];
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(IOUTransactionID)}`, {canBeMissing: true});
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(IOUTransactionID)}`);
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const reportAttributesDerived = useReportAttributes();
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
     let participants: Array<Participant | OptionData>;
     if (isPolicyExpenseChat(report)) {
         participants = [
             getParticipantsOption({accountID: participantAccountIDs.at(0), selected: true, reportID: ''}, personalDetails),
-            getPolicyExpenseReportOption({...report, selected: true, reportID}, reportAttributesDerived),
+            getPolicyExpenseReportOption({...report, selected: true, reportID}, currentUserPersonalDetails.accountID, personalDetails, report, chatReport, reportAttributesDerived),
         ];
     } else {
         participants = participantAccountIDs.map((accountID) => getParticipantsOption({accountID, selected: true, reportID: ''}, personalDetails));
@@ -77,11 +87,12 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const isEditingSplitBill =
         session?.accountID === actorAccountID && (areRequiredFieldsEmpty(transaction, transactionReport) || (transaction?.amount === 0 && !hasReceipt(transaction))) && !isDistanceRequest;
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
-    const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
+    const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
+    const isMapDistanceRequest = isMapDistanceRequestUtil(transaction);
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {
         amount: splitAmount,
         currency: splitCurrency,
@@ -102,9 +113,10 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
             isASAPSubmitBetaEnabled,
             quickAction,
             transactionViolations,
+            betas,
             session?.email,
         );
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations]);
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas]);
 
     return (
         <ScreenWrapper testID="SplitBillDetailsPage">
@@ -150,6 +162,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 receiptFilename={transaction?.receipt?.filename}
                                 isDistanceRequest={isDistanceRequest}
                                 isManualDistanceRequest={isManualDistanceRequest}
+                                isGPSDistanceRequest={isGPSDistanceRequest}
                                 isEditingSplitBill={isEditingSplitBill}
                                 hasSmartScanFailed={hasSmartScanFailed}
                                 reportID={reportID}

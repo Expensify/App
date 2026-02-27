@@ -1,16 +1,16 @@
-import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import type {IndicatorStatus} from '@hooks/useNavigationTabBarIndicatorChecks';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -80,10 +80,10 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
             return ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithErrors);
         case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
-            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(
-                reimbursementAccount?.achData?.policyID,
-                getReimbursementAccountRouteForCurrentStep(reimbursementAccount?.achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT),
-            );
+            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
+                policyID: reimbursementAccount?.achData?.policyID,
+                stepToOpen: getReimbursementAccountRouteForCurrentStep(reimbursementAccount?.achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT),
+            });
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS:
             return ROUTES.SETTINGS_SUBSCRIPTION.route;
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
@@ -104,13 +104,14 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const reportAttributes = useReportAttributes();
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
     const {orderedReportIDs} = useSidebarOrderedReports();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
 
     const message = useMemo((): TranslationPaths | undefined => {
-        if (selectedTab === NAVIGATION_TABS.HOME) {
+        if (selectedTab === NAVIGATION_TABS.INBOX) {
             if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
                 return 'debug.indicatorStatus.theresAReportAwaitingAction';
             }
@@ -124,7 +125,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     }, [selectedTab, chatTabBrickRoad, status]);
 
     const indicator = useMemo(() => {
-        if (selectedTab === NAVIGATION_TABS.HOME) {
+        if (selectedTab === NAVIGATION_TABS.INBOX) {
             if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
                 return theme.success;
             }
@@ -140,7 +141,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     }, [selectedTab, chatTabBrickRoad, theme.success, theme.danger, status, indicatorColor]);
 
     const navigateTo = useCallback(() => {
-        if (selectedTab === NAVIGATION_TABS.HOME && !!chatTabBrickRoad) {
+        if (selectedTab === NAVIGATION_TABS.INBOX && !!chatTabBrickRoad) {
             const reportID = getChatTabBrickRoadReportID(orderedReportIDs, reportAttributes);
 
             if (reportID) {
@@ -156,7 +157,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
         }
     }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, policyIDWithErrors]);
 
-    if (!([NAVIGATION_TABS.HOME, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator) {
+    if (!([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator) {
         return null;
     }
 
@@ -167,7 +168,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
         >
             <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
                 <Icon
-                    src={Expensicons.DotIndicator}
+                    src={icons.DotIndicator}
                     fill={indicator}
                 />
                 {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}

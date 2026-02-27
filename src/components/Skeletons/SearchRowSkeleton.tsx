@@ -5,6 +5,7 @@ import {Circle, Rect} from 'react-native-svg';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -15,6 +16,7 @@ type SearchRowSkeletonProps = {
     fixedNumItems?: number;
     gradientOpacityEnabled?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
 const barHeight = 8;
@@ -33,11 +35,11 @@ const centralPanePadding = 40;
 // 80 is the width of the button on the right side
 const rightButtonWidth = 80;
 
-function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, containerStyle}: SearchRowSkeletonProps) {
+function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, containerStyle, reasonAttributes}: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    useSkeletonSpan('SearchRowSkeleton');
+    useSkeletonSpan('SearchRowSkeleton', reasonAttributes);
 
     if (shouldUseNarrowLayout) {
         return (

@@ -20,11 +20,11 @@ const STEP_FIELDS = [COMPANY_WEBSITE];
 
 function Website({onNext, onMove, isEditing}: WebsiteProps) {
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
     const isWebsiteRequired = currency === CONST.CURRENCY.USD || CONST.CURRENCY.CAD;
 
@@ -33,7 +33,7 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = isWebsiteRequired ? getFieldRequiredErrors(values, STEP_FIELDS) : {};
+            const errors = isWebsiteRequired ? getFieldRequiredErrors(values, STEP_FIELDS, translate) : {};
 
             if (values[COMPANY_WEBSITE] && !isValidWebsite(Str.sanitizeURL(values[COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME))) {
                 errors[COMPANY_WEBSITE] = translate('bankAccount.error.website');

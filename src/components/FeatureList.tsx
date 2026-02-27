@@ -5,6 +5,7 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
@@ -128,6 +129,7 @@ function FeatureList({
                         success
                         isDisabled={isButtonDisabled}
                         large
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.FEATURE_LIST.CTA_BUTTON}
                     />
                 )}
                 {!!footer && footer}

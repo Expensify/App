@@ -2,7 +2,7 @@ import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import type {ReactionListAnchor, ReactionListEvent, ReactionListRef} from '@pages/home/ReportScreenContext';
+import type {ReactionListAnchor, ReactionListEvent, ReactionListRef} from '@pages/inbox/ReportScreenContext';
 import type {ReportActionReactions} from '@src/types/onyx';
 
 type BasePopoverReactionListProps = {

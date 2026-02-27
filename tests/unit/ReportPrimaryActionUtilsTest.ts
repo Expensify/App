@@ -5,7 +5,14 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getValidConnectedIntegration} from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getReportPrimaryAction, getTransactionThreadPrimaryAction, isMarkAsResolvedAction, isPrimaryMarkAsResolvedAction, isReviewDuplicatesAction} from '@libs/ReportPrimaryActionUtils';
+import {
+    getReportPrimaryAction,
+    getTransactionThreadPrimaryAction,
+    isApproveAction,
+    isMarkAsResolvedAction,
+    isPrimaryMarkAsResolvedAction,
+    isReviewDuplicatesAction,
+} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -290,6 +297,60 @@ describe('getPrimaryAction', () => {
                 isChatReportArchived: false,
             }),
         ).toBe('');
+    });
+
+    it('should return true from isApproveAction for DEW policy report without pending approval', async () => {
+        // Given a submitted expense report on a DEW policy without any pending approval action
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+        } as unknown as Policy;
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        // When checking if approve action is available
+        // Then it should return true because DEW approval is not in progress
+        expect(isApproveAction(report, [transaction], CURRENT_USER_ACCOUNT_ID, {}, policy)).toBe(true);
+    });
+
+    it('should return false from isApproveAction for DEW policy report with pending approval', async () => {
+        // Given a submitted expense report on a DEW policy with a pending approval action
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: CURRENT_USER_ACCOUNT_ID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+        } as unknown as Policy;
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        // When checking if approve action is available while DEW approval is pending
+        // Then it should return false because DEW is already processing an approval
+        expect(isApproveAction(report, [transaction], CURRENT_USER_ACCOUNT_ID, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE}, policy)).toBe(false);
     });
 
     it('should return PAY for submitted invoice report  if paid as personal', async () => {

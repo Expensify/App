@@ -75,7 +75,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     const policy = usePolicy(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const {environmentURL} = useEnvironment();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -155,12 +155,26 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         return prohibitedExpensesList.join(', ');
     }, [policy?.prohibitedExpenses, translate]);
 
+    const maxExpenseAmountNoItemizedReceiptText = useMemo(() => {
+        if (policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoItemizedReceipt === undefined) {
+            return '';
+        }
+
+        return convertToDisplayString(policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency);
+    }, [policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency]);
+
     const individualExpenseRulesItems: IndividualExpenseRulesMenuItem[] = [
         {
             title: maxExpenseAmountNoReceiptText,
             descriptionTranslationKey: 'workspace.rules.individualExpenseRules.receiptRequiredAmount',
             action: () => Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt,
+        },
+        {
+            title: maxExpenseAmountNoItemizedReceiptText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmount',
+            action: () => Navigation.navigate(ROUTES.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt,
         },
         {
             title: maxExpenseAmountText,
@@ -225,6 +239,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     >
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
                             title={item.title}
                             description={translate(item.descriptionTranslationKey)}
                             onPress={item.action}
@@ -239,6 +254,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
                     disabled={disableRequireCompanyCardToggle}
                     showLockIcon={disableRequireCompanyCardToggle}
+                    disabledText={translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip')}
                     wrapperStyle={[styles.mt3]}
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}

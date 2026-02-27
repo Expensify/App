@@ -26,24 +26,21 @@ ps aux | grep "webpack" | grep -v grep
 
 ## Dev Server Details
 - **URL**: `https://dev.new.expensify.com:8082/`
-- **Location**: HOST machine (not inside VM)
-- **Start command**: `cd App && npm run web`
 
 ## Playwright Testing Workflow
 
 1. **Verify server**: Check webpack process is running
-2. **Navigate**: Use `mcp__playwright__browser_navigate` to `https://dev.new.expensify.com:8082/`
-3. **Interact**: Use Playwright MCP tools including:
-   - **Inspection**: `browser_snapshot`, `browser_take_screenshot`, `browser_console_messages`
-   - **Interaction**: `browser_click`, `browser_type`, `browser_fill_form`, `browser_hover`
-   - **Navigation**: `browser_navigate_back`, `browser_tabs`, `browser_wait_for`
-   - All other Playwright tools as needed
+2. **Navigate**: Open `https://dev.new.expensify.com:8082/` in the browser
+3. **Interact**: Use Playwright MCP tools to inspect, click, type, and navigate
+
+Do NOT add arbitrary waits after actions. Instead, take a snapshot to check the result and only add short waits if the page hasn't updated yet.
 
 ## Dev Environment Sign-In
 
 When signing in to dev environment:
 - **Email**: Generate random Gmail address (e.g., `user+throwaway<random>@gmail.com`)
-- **Magic code**: Always `000000` (six zeros)
+    - **New Account**: Press join to create account
+    - **Existing Account**: Magic code: Always `000000`
 - **Onboarding**: Skip all optional steps
 
 ## Example Usage

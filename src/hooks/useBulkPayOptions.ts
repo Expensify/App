@@ -3,8 +3,10 @@ import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
+import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     getBankAccountRoute,
@@ -16,11 +18,13 @@ import {
 import {useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AccountData, Policy} from '@src/types/onyx';
+import type {AccountData} from '@src/types/onyx';
+import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
 import useThemeStyles from './useThemeStyles';
 
@@ -30,7 +34,6 @@ type UseBulkPayOptionProps = {
     selectedPolicyID: string | undefined;
     selectedReportID: string | undefined;
     lastPaymentMethod?: string | undefined;
-    activeAdminPolicies: Policy[];
     isCurrencySupportedWallet?: boolean;
     currency: string | undefined;
     formattedAmount: string;
@@ -48,24 +51,26 @@ type UseBulkPayOptionReturnType = {
 function useBulkPayOptions({
     selectedPolicyID,
     selectedReportID,
-    activeAdminPolicies,
     isCurrencySupportedWallet,
     currency,
     formattedAmount,
     onlyShowPayElsewhere,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet']);
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const policy = usePolicy(selectedPolicyID);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`, {canBeMissing: true});
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
+    const {isBetaEnabled} = usePermissions();
+    const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
+    const activeAdminPolicies = useActiveAdminPolicies();
     const isIOUReport = isIOUReportUtil(selectedReportID);
     const isExpenseReport = isExpenseReportUtil(selectedReportID);
     const isInvoiceReport = isInvoiceReportUtil(selectedReportID);
@@ -98,12 +103,13 @@ function useBulkPayOptions({
         });
     }
 
-    const getPaymentSubitems = (payAsBusiness: boolean) => {
+    const getPaymentSubItems = (payAsBusiness: boolean) => {
         const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
         return formattedPaymentMethods
             .filter((method) => {
                 const accountData = method?.accountData as AccountData;
-                return accountData?.type === requiredAccountType;
+                const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
+                return accountData?.type === requiredAccountType && !isPartiallySetup;
             })
             .map((formattedPaymentMethod) => ({
                 text: formattedPaymentMethod?.title ?? '',
@@ -140,7 +146,7 @@ function useBulkPayOptions({
         if (canUseWallet) {
             if (personalBankAccountList.length && canUsePersonalBankAccount) {
                 bulkPayButtonOptions.push({
-                    text: translate('iou.settleWallet', {formattedAmount: ''}),
+                    text: translate('iou.settleWallet', ''),
                     key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                     icon: icons.Wallet,
                 });
@@ -154,10 +160,11 @@ function useBulkPayOptions({
         }
 
         if ((hasMultiplePolicies || hasSinglePolicy) && canUseWallet && !isPersonalOnlyOption) {
-            for (const activePolicy of activeAdminPolicies) {
+            const sortedActiveAdminPolicies = sortPoliciesByName(activeAdminPolicies, localeCompare);
+            for (const activePolicy of sortedActiveAdminPolicies) {
                 const policyName = activePolicy.name;
                 bulkPayButtonOptions.push({
-                    text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
+                    text: translate('iou.payWithPolicy', truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
                     icon: icons.Building,
                     key: activePolicy.id,
                     shouldUpdateSelectedIndex: false,
@@ -170,7 +177,7 @@ function useBulkPayOptions({
         }
 
         if (isInvoiceReport) {
-            const isCurrencySupported = isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
+            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
@@ -181,10 +188,10 @@ function useBulkPayOptions({
                     },
                 };
                 return [
-                    ...(isCurrencySupported ? getPaymentSubitems(payAsBusiness) : []),
-                    ...(isCurrencySupported ? [addBankAccountItem] : []),
+                    ...(showPayViaExpensifyOptions ? getPaymentSubItems(payAsBusiness) : []),
+                    ...(showPayViaExpensifyOptions ? [addBankAccountItem] : []),
                     {
-                        text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                        text: translate('iou.payElsewhere', ''),
                         icon: icons.Cash,
                         key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         additionalData: {
@@ -196,13 +203,13 @@ function useBulkPayOptions({
 
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 bulkPayButtonOptions.push({
-                    text: translate('iou.settlePersonal', {formattedAmount}),
+                    text: translate('iou.settlePersonal', formattedAmount),
                     icon: icons.User,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: getInvoicesOptions(false),
                 });
                 bulkPayButtonOptions.push({
-                    text: translate('iou.settleBusiness', {formattedAmount}),
+                    text: translate('iou.settleBusiness', formattedAmount),
                     icon: icons.Building,
                     backButtonText: translate('iou.business'),
                     subMenuItems: getInvoicesOptions(true),

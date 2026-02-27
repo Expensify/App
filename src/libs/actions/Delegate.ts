@@ -1,6 +1,6 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddDelegateParams as APIAddDelegateParams, RemoveDelegateParams as APIRemoveDelegateParams, UpdateDelegateRoleParams as APIUpdateDelegateRoleParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -190,12 +190,15 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
             const policyID = activePolicyID;
 
             return SequentialQueue.waitForIdle()
-                .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
                 .then(() => {
-                    // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
-                    updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
-
+                    // Update authToken in Onyx so it persists if the further flow does not complete for any reason.
+                    return updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken);
+                })
+                .then(() => {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
+                    return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
+                })
+                .then(() => {
                     confirmReadyToOpenApp();
                     return openApp().then(() => {
                         if (!CONFIG.IS_HYBRID_APP || !policyID) {
@@ -276,27 +279,31 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
             const requesterEmail = response.requesterEmail;
             const authToken = response.authToken;
             return SequentialQueue.waitForIdle()
-                .then(() => Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS))
+                .then(() => {
+                    return Promise.all([
+                        Onyx.set(ONYXKEYS.SESSION, {
+                            ...stashedSession,
+                            accountID: response.requesterID,
+                            email: requesterEmail,
+                            authToken,
+                            encryptedAuthToken: response.encryptedAuthToken,
+                        }),
+                        Onyx.merge(ONYXKEYS.ACCOUNT, {
+                            primaryLogin: requesterEmail,
+                        }),
+                    ]);
+                })
+                .then(() => {
+                    NetworkStore.setAuthToken(response?.authToken ?? null);
+                    return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
+                })
                 .then(() => {
                     Onyx.set(ONYXKEYS.CREDENTIALS, {
                         ...stashedCredentials,
                         accountID: response.requesterID,
                     });
-                    Onyx.set(ONYXKEYS.SESSION, {
-                        ...stashedSession,
-                        accountID: response.requesterID,
-                        email: requesterEmail,
-                        authToken,
-                        encryptedAuthToken: response.encryptedAuthToken,
-                    });
-                    Onyx.merge(ONYXKEYS.ACCOUNT, {
-                        primaryLogin: requesterEmail,
-                    });
                     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
-
-                    NetworkStore.setAuthToken(response?.authToken ?? null);
-
                     confirmReadyToOpenApp();
                     openApp().then(() => {
                         if (!CONFIG.IS_HYBRID_APP) {
@@ -688,7 +695,7 @@ function clearDelegateRolePendingAction({email, delegatedAccess}: ClearDelegateR
     Onyx.update(optimisticData);
 }
 
-function restoreDelegateSession(authenticateResponse: Response) {
+function restoreDelegateSession<TKey extends OnyxKey>(authenticateResponse: Response<TKey>) {
     Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS).then(() => {
         updateSessionAuthTokens(authenticateResponse?.authToken, authenticateResponse?.encryptedAuthToken);
         updateSessionUser(authenticateResponse?.accountID, authenticateResponse?.email);

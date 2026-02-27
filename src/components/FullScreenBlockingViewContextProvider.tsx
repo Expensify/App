@@ -1,22 +1,28 @@
-import React, {createContext, useCallback, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
 
-type FullScreenBlockingViewContextValue = {
+type FullScreenBlockingViewStateContextType = {
+    isBlockingViewVisible: boolean;
+};
+
+type FullScreenBlockingViewActionsContextType = {
     addRouteKey: (key: string) => void;
     removeRouteKey: (key: string) => void;
-    isBlockingViewVisible: boolean;
 };
 
 type FullScreenBlockingViewContextProviderProps = {
     children: React.ReactNode;
 };
 
-const defaultValue: FullScreenBlockingViewContextValue = {
+const defaultActionsValue: FullScreenBlockingViewActionsContextType = {
     addRouteKey: () => {},
     removeRouteKey: () => {},
-    isBlockingViewVisible: false,
 };
 
-const FullScreenBlockingViewContext = createContext<FullScreenBlockingViewContextValue>(defaultValue);
+const FullScreenBlockingViewStateContext = createContext<FullScreenBlockingViewStateContextType>({
+    isBlockingViewVisible: false,
+});
+
+const FullScreenBlockingViewActionsContext = createContext<FullScreenBlockingViewActionsContextType>(defaultActionsValue);
 
 /**
  * Provides a context for getting information about the visibility of a full-screen blocking view.
@@ -42,18 +48,32 @@ function FullScreenBlockingViewContextProvider({children}: FullScreenBlockingVie
 
     const isBlockingViewVisible = useMemo(() => routeKeys.size > 0, [routeKeys.size]);
 
-    const contextValue = useMemo(
-        () => ({
-            addRouteKey,
-            removeRouteKey,
-            isBlockingViewVisible,
-        }),
-        [addRouteKey, removeRouteKey, isBlockingViewVisible],
-    );
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const actionsContextValue = {
+        addRouteKey,
+        removeRouteKey,
+    };
 
-    return <FullScreenBlockingViewContext.Provider value={contextValue}>{children}</FullScreenBlockingViewContext.Provider>;
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const stateContextValue = {isBlockingViewVisible};
+
+    return (
+        <FullScreenBlockingViewActionsContext.Provider value={actionsContextValue}>
+            <FullScreenBlockingViewStateContext.Provider value={stateContextValue}>{children}</FullScreenBlockingViewStateContext.Provider>
+        </FullScreenBlockingViewActionsContext.Provider>
+    );
+}
+
+function useFullScreenBlockingViewState(): FullScreenBlockingViewStateContextType {
+    return useContext(FullScreenBlockingViewStateContext);
+}
+
+function useFullScreenBlockingViewActions(): FullScreenBlockingViewActionsContextType {
+    return useContext(FullScreenBlockingViewActionsContext);
 }
 
 export default FullScreenBlockingViewContextProvider;
 
-export {FullScreenBlockingViewContext};
+export {useFullScreenBlockingViewState, useFullScreenBlockingViewActions};

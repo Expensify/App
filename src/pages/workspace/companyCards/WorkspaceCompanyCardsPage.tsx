@@ -1,14 +1,12 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import DecisionModal from '@components/DecisionModal';
 import useAssignCard from '@hooks/useAssignCard';
-import useCardsList from '@hooks/useCardsList';
 import useCompanyCards from '@hooks/useCompanyCards';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
 import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -32,40 +30,63 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
+    const companyCards = useCompanyCards({policyID});
     const {
         allCardFeeds,
         feedName,
         selectedFeed,
         bankName,
-        onyxMetadata: {allCardFeedsMetadata},
-    } = useCompanyCards({policyID});
-    const [, cardsListMetadata] = useCardsList(feedName);
+        isFeedPending,
+        isFeedAdded,
+        onyxMetadata: {cardListMetadata},
+    } = companyCards;
 
-    const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
-    const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
-    const isFeedPending = !!selectedFeed?.pending;
-    const isFeedAdded = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed;
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
-    const {isOffline} = useNetwork({
-        onReconnect: () => openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID),
-    });
 
+    // Use a ref so that changes to the employee list (e.g. after inviting a member) don't
+    // recreate the callback and trigger an unnecessary re-fetch that flashes a skeleton loader.
+    const employeeListRef = useRef(policy?.employeeList);
     useEffect(() => {
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
-    }, [policyID, domainOrWorkspaceAccountID]);
+        employeeListRef.current = policy?.employeeList;
+    }, [policy?.employeeList]);
 
-    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardsListMetadata)));
-    useEffect(() => {
-        if (isLoading || !bankName || isFeedPending) {
+    const loadPolicyCompanyCardsPage = useCallback(() => {
+        // Skip the API call when workspaceAccountID is 0 -- Onyx discards writes to collection keys with member ID '0'.
+        if (domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID) {
             return;
         }
 
-        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
-        openWorkspaceMembersPage(policyID, clientMemberEmails);
-        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName);
-    }, [bankName, isLoading, policyID, isFeedPending, domainOrWorkspaceAccountID, policy?.employeeList]);
+        const emailList = Object.keys(getMemberAccountIDsForWorkspace(employeeListRef.current));
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
+    }, [domainOrWorkspaceAccountID, policyID, translate]);
 
+    const {isOffline} = useNetwork({
+        onReconnect: loadPolicyCompanyCardsPage,
+    });
+
+    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
+
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+
+        loadPolicyCompanyCardsPage();
+    }, [loadPolicyCompanyCardsPage, isOffline]);
+
+    const loadPolicyCompanyCardsFeed = useCallback(() => {
+        if (isLoading || !bankName || isFeedPending || isOffline) {
+            return;
+        }
+
+        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName, translate);
+    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policyID, translate, isOffline]);
+
+    useEffect(() => {
+        loadPolicyCompanyCardsFeed();
+    }, [loadPolicyCompanyCardsFeed]);
+
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
 
     return (
@@ -82,9 +103,14 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                 addBottomSafeAreaPadding
             >
                 <WorkspaceCompanyCardsTable
-                    policy={policy}
+                    policyID={policyID}
+                    isPolicyLoaded={!!policy}
+                    domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
+                    companyCards={companyCards}
                     onAssignCard={assignCard}
                     isAssigningCardDisabled={isAssigningCardDisabled}
+                    onReloadPage={loadPolicyCompanyCardsPage}
+                    onReloadFeed={loadPolicyCompanyCardsFeed}
                 />
             </WorkspacePageWithSections>
 

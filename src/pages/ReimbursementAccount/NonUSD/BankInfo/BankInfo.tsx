@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import type {ComponentType} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -39,19 +39,21 @@ type BankInfoProps = {
 function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
-    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
     const country = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
     const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
     const startFrom = useMemo(() => getInitialSubStepForBankInfoStep(values, corpayFields), [corpayFields, values]);
+    const isSubmittingRef = useRef(false);
 
     const submit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
 
+        isSubmittingRef.current = true;
         createCorpayBankAccount({...values, ...corpayData} as ReimbursementAccountForm, policyID);
     };
 
@@ -66,7 +68,9 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoPr
             return;
         }
 
-        if (reimbursementAccount?.isSuccess === true) {
+        // We need to check value of local isSubmittingRef because on initial render reimbursementAccount?.isSuccess is still true after submitting the previous step
+        if (reimbursementAccount?.isSuccess === true && isSubmittingRef.current) {
+            isSubmittingRef.current = false;
             onSubmit();
             clearReimbursementAccountBankCreation();
         }

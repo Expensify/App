@@ -465,14 +465,95 @@ function isHighResolutionImage(resolution: {width: number; height: number} | nul
     return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
 }
 
-const getImageDimensionsAfterResize = (file: FileObject) =>
-    ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
-        const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
-        const newWidth = Math.max(1, width * scaleFactor);
-        const newHeight = Math.max(1, height * scaleFactor);
+/**
+ * Reads image dimensions directly from the file header (JPEG SOF marker or PNG IHDR chunk).
+ * This bypasses browser Image API which may downsample large images on mobile browsers.
+ */
+// eslint-disable-next-line no-bitwise
+const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; height: number} | null> => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const arr = new Uint8Array(reader.result as ArrayBuffer);
 
-        return {width: newWidth, height: newHeight};
+            // Check for JPEG (starts with 0xFF 0xD8)
+            if (arr[0] === 0xff && arr[1] === 0xd8) {
+                let offset = 2;
+                while (offset < arr.length) {
+                    if (arr[offset] !== 0xff) {
+                        break;
+                    }
+                    const marker = arr[offset + 1];
+                    // SOF0 (0xC0), SOF1 (0xC1), SOF2 (0xC2) contain dimensions
+                    if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
+                        // eslint-disable-next-line no-bitwise
+                        const height = (arr[offset + 5] << 8) | arr[offset + 6];
+                        // eslint-disable-next-line no-bitwise
+                        const width = (arr[offset + 7] << 8) | arr[offset + 8];
+                        resolve({width, height});
+                        return;
+                    }
+                    // eslint-disable-next-line no-bitwise
+                    const segmentLength = (arr[offset + 2] << 8) | arr[offset + 3];
+                    offset += 2 + segmentLength;
+                }
+            }
+
+            // Check for PNG (starts with 0x89 0x50 0x4E 0x47)
+            if (arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4e && arr[3] === 0x47) {
+                // PNG IHDR chunk is at offset 16, dimensions are at offset 16+4=20
+                // eslint-disable-next-line no-bitwise
+                const width = (arr[16] << 24) | (arr[17] << 16) | (arr[18] << 8) | arr[19];
+                // eslint-disable-next-line no-bitwise
+                const height = (arr[20] << 24) | (arr[21] << 16) | (arr[22] << 8) | arr[23];
+                resolve({width, height});
+                return;
+            }
+
+            resolve(null);
+        };
+        reader.onerror = () => resolve(null);
+        // Read first 64KB which should be enough for headers
+        reader.readAsArrayBuffer(blob.slice(0, 65536));
     });
+};
+
+/**
+ * Calculates the scaled dimensions for an image, throwing if the image exceeds the max pixel count.
+ */
+const calculateScaledDimensions = (width: number, height: number): {width: number; height: number} => {
+    const totalPixels = width * height;
+
+    if (totalPixels > CONST.MAX_IMAGE_PIXEL_COUNT) {
+        throw new Error(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+    }
+
+    const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
+    const newWidth = Math.max(1, width * scaleFactor);
+    const newHeight = Math.max(1, height * scaleFactor);
+
+    return {width: newWidth, height: newHeight};
+};
+
+const getImageDimensionsAfterResize = async (file: FileObject): Promise<{width: number; height: number}> => {
+    // For blob URLs (web), read dimensions directly from file header to avoid
+    // Android Chrome's Image API downsampling which returns incorrect dimensions
+    if (file.uri?.startsWith('blob:')) {
+        const response = await fetch(file.uri);
+        const blob = await response.blob();
+        const headerDimensions = await getImageDimensionsFromFileHeader(blob);
+
+        if (headerDimensions) {
+            return calculateScaledDimensions(headerDimensions.width, headerDimensions.height);
+        }
+
+        const {width, height} = await ImageSize.getSize(file.uri ?? '');
+        return calculateScaledDimensions(width, height);
+    }
+
+    const {width, height} = await ImageSize.getSize(file.uri ?? '');
+    return calculateScaledDimensions(width, height);
+};
 
 const createFile = (file: File): FileObject => {
     if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
@@ -588,6 +669,7 @@ const validateAttachment = (file: FileObject, validationOptions?: ValidateAttach
         return validationOptions?.isValidatingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
     }
 
+    // Images are exempt from file size check since they will be resized
     if (!Str.isImage(file.name ?? '') && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
         return validationOptions?.isValidatingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
@@ -672,6 +754,11 @@ const getFileValidationErrorText = (
             return {
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.protectedPDFNotSupported'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE:
+            return {
+                title: translate('attachmentPicker.attachmentError'),
+                reason: translate('attachmentPicker.imageDimensionsTooLarge'),
             };
         default:
             return {
