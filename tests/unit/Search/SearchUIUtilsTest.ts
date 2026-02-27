@@ -7033,10 +7033,10 @@ describe('SearchUIUtils', () => {
                 expect(result.isSelected).toBe(false);
                 expect(result.itemWithSelection).not.toBe(item);
                 const withSel = result.itemWithSelection as TransactionGroupListItemType;
-                expect(withSel.transactions[0].isSelected).toBe(true);
+                expect(withSel.transactions.at(0)?.isSelected).toBe(true);
                 // t2 unchanged — same reference kept, isSelected remains undefined (not explicitly false)
-                expect(withSel.transactions[1]).toBe(t2);
-                expect(withSel.transactions[1].isSelected).toBeFalsy();
+                expect(withSel.transactions.at(1)).toBe(t2);
+                expect(withSel.transactions.at(1)?.isSelected).toBeFalsy();
             });
 
             test('all non-deleted selected: isSelected=true', () => {
@@ -7098,8 +7098,8 @@ describe('SearchUIUtils', () => {
                 // t1 already selected, t2 newly selected → only t2 gets a spread
                 const result = SearchUIUtils.applySelectionToItem(item, true, selectedMap('t1', 't2'));
                 const withSel = result.itemWithSelection as TransactionGroupListItemType;
-                expect(withSel.transactions[0]).toBe(t1); // unchanged — same reference
-                expect(withSel.transactions[1]).not.toBe(t2); // changed — new object
+                expect(withSel.transactions.at(0)).toBe(t1); // unchanged — same reference
+                expect(withSel.transactions.at(1)).not.toBe(t2); // changed — new object
             });
 
             test('when selection state is already correct, originalItem reference is returned unchanged', () => {
