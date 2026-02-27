@@ -900,8 +900,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             return;
         }
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
-        readNewestAction(report?.reportID);
-    }, [report]);
+        readNewestAction(report?.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
+    }, [report, reportMetadata?.hasOnceLoadedReportActions]);
 
     // Reset the ref when navigating to a different report
     useEffect(() => {
