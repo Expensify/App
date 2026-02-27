@@ -1,6 +1,6 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {useContext, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
@@ -12,8 +12,6 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
-import PopoverMenu from '@components/PopoverMenu';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
@@ -34,20 +32,16 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSortedActiveAdminPolicies from '@hooks/useSortedActiveAdminPolicies';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import {close} from '@libs/actions/Modal';
 import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
-import getIconForAction from '@libs/getIconForAction';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {generateReportID, isExpenseReport} from '@libs/ReportUtils';
+import {isExpenseReport} from '@libs/ReportUtils';
 import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
@@ -73,6 +67,7 @@ import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFilte
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import SearchFiltersBarCreateButton from './SearchFiltersBarCreateButton';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 type FilterItem = WithSentryLabel & {
@@ -151,10 +146,6 @@ function SearchFiltersBar({
     latestBankItems,
 }: SearchFiltersBarProps) {
     const scrollRef = useRef<FlatList<FilterItem>>(null);
-    const createButtonRef = useRef<View>(null);
-    const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
-    const [createMenuPosition, setCreateMenuPosition] = useState<{horizontal: number; vertical: number}>({horizontal: 0, vertical: 0});
-    const {calculatePopoverPosition} = usePopoverPosition();
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
@@ -184,7 +175,7 @@ function SearchFiltersBar({
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns', 'Plus', 'Location', 'Document', 'Receipt', 'Coins', 'Cash', 'Transfer', 'MoneyCircle']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns', 'Receipt', 'Coins', 'Cash', 'Transfer', 'MoneyCircle']);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
@@ -215,50 +206,6 @@ function SearchFiltersBar({
 
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
-
-    const hideCreateMenu = useCallback(() => setIsCreateMenuActive(false), []);
-    const showCreateMenu = useCallback(() => {
-        if (!createButtonRef.current) {
-            return;
-        }
-        calculatePopoverPosition(createButtonRef, {
-            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-        }).then((position) => {
-            setCreateMenuPosition(position);
-            setIsCreateMenuActive(true);
-        });
-    }, [calculatePopoverPosition]);
-
-    const createMenuItems = useMemo(
-        (): PopoverMenuItem[] => [
-            {
-                icon: getIconForAction(CONST.IOU.TYPE.CREATE, expensifyIcons),
-                text: translate('iou.createExpense'),
-                onSelected: () =>
-                    interceptAnonymousUser(() => {
-                        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
-                    }),
-            },
-            {
-                icon: expensifyIcons.Location,
-                text: translate('iou.trackDistance'),
-                onSelected: () =>
-                    interceptAnonymousUser(() => {
-                        startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID());
-                    }),
-            },
-            {
-                icon: expensifyIcons.Document,
-                text: translate('report.newReport.createReport'),
-                onSelected: () =>
-                    interceptAnonymousUser(() => {
-                        Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
-                    }),
-            },
-        ],
-        [translate, expensifyIcons],
-    );
 
     const typeOptions = getTypeOptions(translate, allPolicies, email);
     const type = typeOptions.find((option) => option.value === unsafeType) ?? null;
@@ -920,30 +867,7 @@ function SearchFiltersBar({
                             {renderListFooter()}
                         </View>
                     )}
-                    {!shouldUseNarrowLayout && (
-                        <View style={[styles.pr5, styles.searchFiltersBarCreateButton]}>
-                            <PopoverMenu
-                                onClose={hideCreateMenu}
-                                isVisible={isCreateMenuActive}
-                                menuItems={createMenuItems}
-                                onItemSelected={hideCreateMenu}
-                                anchorRef={createButtonRef}
-                                anchorPosition={createMenuPosition}
-                                anchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                }}
-                            />
-                            <Button
-                                ref={createButtonRef}
-                                success
-                                small
-                                icon={expensifyIcons.Plus}
-                                text={translate('common.create')}
-                                onPress={showCreateMenu}
-                            />
-                        </View>
-                    )}
+                    {!shouldUseNarrowLayout && <SearchFiltersBarCreateButton />}
                 </>
             )}
         </View>
