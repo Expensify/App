@@ -1,8 +1,7 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {SearchAutocompleteListProps} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
-import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 
 /**
@@ -12,18 +11,17 @@ import CONST from '@src/CONST';
  */
 function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
     const [shouldRender, setShouldRender] = React.useState(false);
+    const [, startTransition] = React.useTransition();
 
-    React.useEffect(() => {
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            setShouldRender(true);
-        });
-    }, []);
+    // Run the transition after the skeleton is mounted
+    const renderComponent = useCallback(() => startTransition(() => setShouldRender(true)), []);
 
     if (!shouldRender) {
         return (
             <OptionsListSkeletonView
                 fixedNumItems={4}
                 shouldStyleAsTable
+                onLayout={renderComponent}
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
             />
         );
