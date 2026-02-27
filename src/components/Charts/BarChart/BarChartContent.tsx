@@ -2,6 +2,7 @@ import {useFont} from '@shopify/react-native-skia';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
+import {GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue} from 'react-native-reanimated';
 import type {ChartBounds, PointsArray, Scale} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
@@ -130,6 +131,12 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
             }
             const barLeft = args.targetX - currentBarWidth / 2;
             const barRight = args.targetX + currentBarWidth / 2;
+
+            const isInLabelArea = args.chartBottom > 0 && args.cursorY >= args.chartBottom && args.cursorX >= barLeft && args.cursorX <= barRight;
+            if (isInLabelArea) {
+                return true;
+            }
+
             // For positive bars: targetY < yZero, bar goes from targetY (top) to yZero (bottom)
             // For negative bars: targetY > yZero, bar goes from yZero (top) to targetY (bottom)
             const barTop = Math.min(args.targetY, currentYZero);
@@ -140,7 +147,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         [barWidth, yZero],
     );
 
-    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
+    const {actionsRef, customGestures, outerHoverGesture, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handleBarPress,
         checkIsOver: checkIsOverBar,
         chartBottom,
@@ -197,60 +204,62 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 title={title}
                 titleIcon={titleIcon}
             />
-            <View
-                style={[styles.barChartChartContainer, dynamicChartStyle]}
-                onLayout={handleLayout}
-            >
-                {chartWidth > 0 && (
-                    <CartesianChart
-                        xKey="x"
-                        padding={CHART_PADDING}
-                        yKeys={['y']}
-                        domainPadding={domainPadding}
-                        actionsRef={actionsRef}
-                        customGestures={customGestures}
-                        onChartBoundsChange={handleChartBoundsChange}
-                        onScaleChange={handleScaleChange}
-                        xAxis={{
-                            font,
-                            tickCount: data.length,
-                            labelColor: theme.textSupporting,
-                            lineWidth: X_AXIS_LINE_WIDTH,
-                            // Victory-native positions x-axis labels at: chartBounds.bottom + labelOffset + fontSize.
-                            // We subtract descent (fontSize - ascent) so the gap from chart to the ascent line equals AXIS_LABEL_GAP.
-                            labelOffset: AXIS_LABEL_GAP - Math.abs(font?.getMetrics().descent ?? 0),
-                            formatXLabel: formatLabel,
-                            labelRotate: labelRotation,
-                            labelOverflow: 'visible',
-                        }}
-                        yAxis={[
-                            {
+            <GestureDetector gesture={outerHoverGesture}>
+                <View
+                    style={[styles.barChartChartContainer, dynamicChartStyle]}
+                    onLayout={handleLayout}
+                >
+                    {chartWidth > 0 && (
+                        <CartesianChart
+                            xKey="x"
+                            padding={CHART_PADDING}
+                            yKeys={['y']}
+                            domainPadding={domainPadding}
+                            actionsRef={actionsRef}
+                            customGestures={customGestures}
+                            onChartBoundsChange={handleChartBoundsChange}
+                            onScaleChange={handleScaleChange}
+                            xAxis={{
                                 font,
+                                tickCount: data.length,
                                 labelColor: theme.textSupporting,
-                                formatYLabel: formatValue,
-                                tickCount: Y_AXIS_TICK_COUNT,
-                                lineWidth: Y_AXIS_LINE_WIDTH,
-                                lineColor: theme.border,
-                                labelOffset: AXIS_LABEL_GAP,
-                                domain: yAxisDomain,
-                            },
-                        ]}
-                        frame={{lineWidth: 0}}
-                        data={chartData}
-                    >
-                        {({points, chartBounds}) => <>{points.y.map((point) => renderBar(point, chartBounds, points.y.length))}</>}
-                    </CartesianChart>
-                )}
-                {isTooltipActive && !!tooltipData && (
-                    <ChartTooltip
-                        label={tooltipData.label}
-                        amount={tooltipData.amount}
-                        percentage={tooltipData.percentage}
-                        chartWidth={chartWidth}
-                        initialTooltipPosition={initialTooltipPosition}
-                    />
-                )}
-            </View>
+                                lineWidth: X_AXIS_LINE_WIDTH,
+                                // Victory-native positions x-axis labels at: chartBounds.bottom + labelOffset + fontSize.
+                                // We subtract descent (fontSize - ascent) so the gap from chart to the ascent line equals AXIS_LABEL_GAP.
+                                labelOffset: AXIS_LABEL_GAP - Math.abs(font?.getMetrics().descent ?? 0),
+                                formatXLabel: formatLabel,
+                                labelRotate: labelRotation,
+                                labelOverflow: 'visible',
+                            }}
+                            yAxis={[
+                                {
+                                    font,
+                                    labelColor: theme.textSupporting,
+                                    formatYLabel: formatValue,
+                                    tickCount: Y_AXIS_TICK_COUNT,
+                                    lineWidth: Y_AXIS_LINE_WIDTH,
+                                    lineColor: theme.border,
+                                    labelOffset: AXIS_LABEL_GAP,
+                                    domain: yAxisDomain,
+                                },
+                            ]}
+                            frame={{lineWidth: 0}}
+                            data={chartData}
+                        >
+                            {({points, chartBounds}) => <>{points.y.map((point) => renderBar(point, chartBounds, points.y.length))}</>}
+                        </CartesianChart>
+                    )}
+                    {isTooltipActive && !!tooltipData && (
+                        <ChartTooltip
+                            label={tooltipData.label}
+                            amount={tooltipData.amount}
+                            percentage={tooltipData.percentage}
+                            chartWidth={chartWidth}
+                            initialTooltipPosition={initialTooltipPosition}
+                        />
+                    )}
+                </View>
+            </GestureDetector>
         </View>
     );
 }

@@ -35,6 +35,8 @@ type UseChartInteractionsProps = {
      * over a specific chart element (e.g., within a bar's width or a point's radius).
      */
     checkIsOver: (args: HitTestArgs) => boolean;
+    /** Worklet function to determine if the cursor is hovering over the label area */
+    checkIsOverLabel?: (args: HitTestArgs, activeIndex: number) => boolean;
     /** Optional shared value containing bar dimensions used for hit-testing in bar charts */
     chartBottom?: SharedValue<number>;
     yZero?: SharedValue<number>;
@@ -52,7 +54,7 @@ type CartesianActionsHandle = {
  * Manages chart interactions (hover, tap, hit-testing) and animated tooltip positioning.
  * Synchronizes high-frequency UI thread data to React state for tooltip display and navigation.
  */
-function useChartInteractions({handlePress, checkIsOver, chartBottom, yZero}: UseChartInteractionsProps) {
+function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, chartBottom, yZero}: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
     const {state: chartInteractionState, isActive: isTooltipActiveState} = useChartInteractionState();
 
@@ -76,14 +78,16 @@ function useChartInteractions({handlePress, checkIsOver, chartBottom, yZero}: Us
         const targetY = chartInteractionState.y.y.position.get();
 
         const currentChartBottom = chartBottom?.get() ?? 0;
-
-        return checkIsOver({
-            cursorX,
-            cursorY,
-            targetX,
-            targetY,
-            chartBottom: currentChartBottom,
-        });
+        return (
+            checkIsOver({
+                cursorX,
+                cursorY,
+                targetX,
+                targetY,
+                chartBottom: currentChartBottom,
+            }) ||
+            (checkIsOverLabel?.({cursorX, cursorY, targetX, targetY, chartBottom: currentChartBottom}, activeDataIndex) ?? false)
+        );
     });
 
     /** Syncs the matched data index from the UI thread to React state */
@@ -103,8 +107,12 @@ function useChartInteractions({handlePress, checkIsOver, chartBottom, yZero}: Us
     );
 
     /**
-     * Hover gesture configuration.
-     * Primarily used for web/desktop to track mouse movement without clicking.
+     * Hover gesture to be placed on the full-height outer container (chart + label area).
+     * Clamps the y coordinate to chartBottom before passing to Victory so that hovering
+     * over x-axis labels below the plot area still resolves the nearest data point.
+     * This gesture is returned separately and must NOT be passed to CartesianChart's
+     * customGestures prop, because Victory's internal GestureHandler view only covers
+     * the plot area and would drop events from the label area.
      */
     const hoverGesture = useMemo(
         () =>
@@ -115,21 +123,28 @@ function useChartInteractions({handlePress, checkIsOver, chartBottom, yZero}: Us
                     chartInteractionState.isActive.set(true);
                     chartInteractionState.cursor.x.set(e.x);
                     chartInteractionState.cursor.y.set(e.y);
-                    actionsRef.current?.handleTouch(chartInteractionState, e.x, e.y);
+                    const bottom = chartBottom?.get() ?? e.y;
+                    actionsRef.current?.handleTouch(chartInteractionState, e.x, Math.min(e.y, bottom));
                 })
                 .onUpdate((e) => {
                     'worklet';
 
                     chartInteractionState.cursor.x.set(e.x);
                     chartInteractionState.cursor.y.set(e.y);
-                    actionsRef.current?.handleTouch(chartInteractionState, e.x, e.y);
+                    // Only update the matched index when the cursor is not over the current target.
+                    // This keeps the active index locked while hovering over a bar/point/label,
+                    // preventing it from jumping to a different point during continuous movement.
+                    if (!isCursorOverTarget.get()) {
+                        const bottom = chartBottom?.get() ?? e.y;
+                        actionsRef.current?.handleTouch(chartInteractionState, e.x, Math.min(e.y, bottom));
+                    }
                 })
                 .onEnd(() => {
                     'worklet';
 
                     chartInteractionState.isActive.set(false);
                 }),
-        [chartInteractionState],
+        [chartInteractionState, chartBottom, isCursorOverTarget],
     );
 
     /**
@@ -166,8 +181,8 @@ function useChartInteractions({handlePress, checkIsOver, chartBottom, yZero}: Us
         [chartInteractionState, checkIsOver, chartBottom, handlePress],
     );
 
-    /** Combined gesture object to be passed to CartesianChart's customGestures prop */
-    const customGestures = useMemo(() => Gesture.Race(hoverGesture, tapGesture), [hoverGesture, tapGesture]);
+    /** Tap-only gesture passed to CartesianChart. Hover is handled by hoverGesture on the container. */
+    const customGestures = useMemo(() => Gesture.Race(tapGesture), [tapGesture]);
 
     /**
      * Raw tooltip positioning data.
@@ -189,8 +204,13 @@ function useChartInteractions({handlePress, checkIsOver, chartBottom, yZero}: Us
     return {
         /** Ref to be passed to CartesianChart */
         actionsRef,
-        /** Gestures to be passed to CartesianChart */
+        /** Tap-only gesture to be passed to CartesianChart's customGestures prop */
         customGestures,
+        /**
+         * Hover gesture to be attached to the full-height container wrapping CartesianChart.
+         * Covers both the plot area and the label area below chartBounds.bottom.
+         */
+        hoverGesture,
         /** The currently active data index (React state) */
         activeDataIndex,
         /** Whether the tooltip should currently be rendered and visible */

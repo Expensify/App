@@ -2,6 +2,8 @@ import {Group, Text as SkiaText, useFont, vec} from '@shopify/react-native-skia'
 import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
+import {GestureDetector} from 'react-native-gesture-handler';
+import {useSharedValue} from 'react-native-reanimated';
 import type {CartesianChartRenderArg, ChartBounds} from 'victory-native';
 import {CartesianChart, Line, Scatter} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -69,9 +71,15 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         setChartWidth(event.nativeEvent.layout.width);
     }, []);
 
-    const handleChartBoundsChange = useCallback((bounds: ChartBounds) => {
-        setPlotAreaWidth(bounds.right - bounds.left);
-    }, []);
+    const chartBottom = useSharedValue(0);
+
+    const handleChartBoundsChange = useCallback(
+        (bounds: ChartBounds) => {
+            setPlotAreaWidth(bounds.right - bounds.left);
+            chartBottom.set(bounds.bottom);
+        },
+        [chartBottom],
+    );
 
     // Calculate dynamic domain padding for centered labels
     // Optimize by reducing wasted space when edge labels are shorter than tick spacing
@@ -146,9 +154,87 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
     }, []);
 
-    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
+    const checkIsOverLabel = useCallback(
+        (args: HitTestArgs, activeIndex: number) => {
+            'worklet';
+
+            const labelWidth = labelWidths.at(activeIndex) ?? 0;
+            const fontMetrics = font?.getMetrics();
+            if (!fontMetrics) {
+                return false;
+            }
+            const ascent = Math.abs(fontMetrics.ascent);
+            const descent = Math.abs(fontMetrics.descent);
+            // center of label when looking vertically
+            const labelY = args.chartBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - variables.iconSizeExtraSmall / 2;
+            if (angleRad === 0) {
+                return (
+                    args.cursorY >= labelY - variables.iconSizeExtraSmall / 2 &&
+                    args.cursorY <= labelY + variables.iconSizeExtraSmall / 2 &&
+                    args.cursorX >= args.targetX - labelWidth / 2 &&
+                    args.cursorX <= args.targetX + labelWidth / 2
+                );
+            }
+            // When labels are rotated 45° we need to check it the other way
+            if (angleRad < 1) {
+                console.log('activeIndex', activeIndex);
+                const rightUpperCorner = {
+                    x: args.targetX - (variables.iconSizeExtraSmall / 3) * Math.sin(angleRad),
+                    y: labelY + (variables.iconSizeExtraSmall / 3) * Math.sin(angleRad),
+                };
+                const rightLowerCorner = {
+                    x: rightUpperCorner.x + variables.iconSizeExtraSmall * Math.sin(angleRad),
+                    y: rightUpperCorner.y + variables.iconSizeExtraSmall * Math.sin(angleRad),
+                };
+                const leftUpperCorner = {
+                    x: rightUpperCorner.x - labelWidth * Math.sin(angleRad),
+                    y: rightUpperCorner.y + labelWidth * Math.sin(angleRad),
+                };
+                const leftLowerCorner = {
+                    x: rightLowerCorner.x - labelWidth * Math.sin(angleRad),
+                    y: rightLowerCorner.y + labelWidth * Math.sin(angleRad),
+                };
+
+                // Point-in-convex-polygon test using cross products
+                // Vertices in clockwise order: rightUpper -> rightLower -> leftLower -> leftUpper
+                const corners = [rightUpperCorner, rightLowerCorner, leftLowerCorner, leftUpperCorner];
+                const px = args.cursorX;
+                const py = args.cursorY;
+                let sign = 0;
+                for (let i = 0; i < corners.length; i++) {
+                    const a = corners.at(i);
+                    const b = corners.at((i + 1) % corners.length);
+                    if (a == null || b == null) {
+                        continue;
+                    }
+                    const cross = (b.x - a.x) * (py - a.y) - (b.y - a.y) * (px - a.x);
+                    if (cross !== 0) {
+                        const crossSign = cross > 0 ? 1 : -1;
+                        if (sign === 0) {
+                            sign = crossSign;
+                        } else if (crossSign !== sign) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            // the last case when labels are rotated 90°
+            return (
+                args.cursorX >= args.targetX - variables.iconSizeExtraSmall / 2 &&
+                args.cursorX <= args.targetX + variables.iconSizeExtraSmall / 2 &&
+                args.cursorY >= labelY + variables.iconSizeExtraSmall / 2 &&
+                args.cursorY <= labelY + labelWidth + variables.iconSizeExtraSmall / 2
+            );
+        },
+        [angleRad, font, labelWidths],
+    );
+
+    const {actionsRef, customGestures, hoverGesture, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handlePointPress,
         checkIsOver: checkIsOverDot,
+        checkIsOverLabel,
+        chartBottom,
     });
 
     const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
@@ -242,66 +328,68 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                 title={title}
                 titleIcon={titleIcon}
             />
-            <View
-                style={[styles.lineChartChartContainer, dynamicChartStyle]}
-                onLayout={handleLayout}
-            >
-                {chartWidth > 0 && (
-                    <CartesianChart
-                        xKey="x"
-                        padding={{top: CHART_PADDING, left: CHART_PADDING, right: CHART_PADDING, bottom: (xAxisLabelHeight ?? 0) + CHART_PADDING}}
-                        yKeys={['y']}
-                        domainPadding={domainPadding}
-                        actionsRef={actionsRef}
-                        customGestures={customGestures}
-                        onChartBoundsChange={handleChartBoundsChange}
-                        renderOutside={renderCustomXLabels}
-                        xAxis={{
-                            tickCount: data.length,
-                            lineWidth: X_AXIS_LINE_WIDTH,
-                        }}
-                        yAxis={[
-                            {
-                                font,
-                                labelColor: theme.textSupporting,
-                                formatYLabel: formatValue,
-                                tickCount: Y_AXIS_TICK_COUNT,
-                                lineWidth: Y_AXIS_LINE_WIDTH,
-                                lineColor: theme.border,
-                                labelOffset: AXIS_LABEL_GAP,
-                                domain: yAxisDomain,
-                            },
-                        ]}
-                        frame={{lineWidth: {left: 1, bottom: 1, top: 0, right: 0}, lineColor: theme.border}}
-                        data={chartData}
-                    >
-                        {({points}) => (
-                            <>
-                                <Line
-                                    points={points.y}
-                                    color={DEFAULT_CHART_COLOR}
-                                    strokeWidth={2}
-                                    curveType="linear"
-                                />
-                                <Scatter
-                                    points={points.y}
-                                    radius={DOT_RADIUS}
-                                    color={DEFAULT_CHART_COLOR}
-                                />
-                            </>
-                        )}
-                    </CartesianChart>
-                )}
-                {isTooltipActive && !!tooltipData && (
-                    <ChartTooltip
-                        label={tooltipData.label}
-                        amount={tooltipData.amount}
-                        percentage={tooltipData.percentage}
-                        chartWidth={chartWidth}
-                        initialTooltipPosition={initialTooltipPosition}
-                    />
-                )}
-            </View>
+            <GestureDetector gesture={hoverGesture}>
+                <View
+                    style={[styles.lineChartChartContainer, dynamicChartStyle]}
+                    onLayout={handleLayout}
+                >
+                    {chartWidth > 0 && (
+                        <CartesianChart
+                            xKey="x"
+                            padding={{top: CHART_PADDING, left: CHART_PADDING, right: CHART_PADDING, bottom: (xAxisLabelHeight ?? 0) + CHART_PADDING}}
+                            yKeys={['y']}
+                            domainPadding={domainPadding}
+                            actionsRef={actionsRef}
+                            customGestures={customGestures}
+                            onChartBoundsChange={handleChartBoundsChange}
+                            renderOutside={renderCustomXLabels}
+                            xAxis={{
+                                tickCount: data.length,
+                                lineWidth: X_AXIS_LINE_WIDTH,
+                            }}
+                            yAxis={[
+                                {
+                                    font,
+                                    labelColor: theme.textSupporting,
+                                    formatYLabel: formatValue,
+                                    tickCount: Y_AXIS_TICK_COUNT,
+                                    lineWidth: Y_AXIS_LINE_WIDTH,
+                                    lineColor: theme.border,
+                                    labelOffset: AXIS_LABEL_GAP,
+                                    domain: yAxisDomain,
+                                },
+                            ]}
+                            frame={{lineWidth: {left: 1, bottom: 1, top: 0, right: 0}, lineColor: theme.border}}
+                            data={chartData}
+                        >
+                            {({points}) => (
+                                <>
+                                    <Line
+                                        points={points.y}
+                                        color={DEFAULT_CHART_COLOR}
+                                        strokeWidth={2}
+                                        curveType="linear"
+                                    />
+                                    <Scatter
+                                        points={points.y}
+                                        radius={DOT_RADIUS}
+                                        color={DEFAULT_CHART_COLOR}
+                                    />
+                                </>
+                            )}
+                        </CartesianChart>
+                    )}
+                    {isTooltipActive && !!tooltipData && (
+                        <ChartTooltip
+                            label={tooltipData.label}
+                            amount={tooltipData.amount}
+                            percentage={tooltipData.percentage}
+                            chartWidth={chartWidth}
+                            initialTooltipPosition={initialTooltipPosition}
+                        />
+                    )}
+                </View>
+            </GestureDetector>
         </View>
     );
 }
