@@ -771,7 +771,7 @@ describe('useCompanyCards', () => {
 
             // Only one entry should appear — the duplicate is suppressed
             expect(entries).toHaveLength(1);
-            expect(entries[0]).toMatchObject({cardName: '553312XXXXXX0487', encryptedCardNumber: 'v1:ENCRYPTED_0487', isAssigned: true});
+            expect(entries.at(0)).toMatchObject({cardName: '553312XXXXXX0487', encryptedCardNumber: 'v1:ENCRYPTED_0487', isAssigned: true});
         });
     });
 

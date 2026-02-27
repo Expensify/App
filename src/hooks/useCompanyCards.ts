@@ -58,7 +58,7 @@ type UseCompanyCardsResult = Partial<{
 function resolveCardListEntry(card: Card, cardListEntries: Array<[string, string]>): Card {
     const {cardName, encryptedCardNumber, lastFourPAN} = card;
 
-    const panSuffix = lastFourPAN || cardName;
+    const panSuffix = lastFourPAN ?? cardName;
     if (!panSuffix) {
         return card;
     }
