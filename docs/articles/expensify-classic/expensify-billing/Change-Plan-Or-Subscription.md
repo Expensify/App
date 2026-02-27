@@ -62,11 +62,11 @@ Once downgraded, your Workspace will be deleted, and a refund line item will app
 
 # FAQ
 
-## Will I be charged for a monthly subscription even if I don't use SmartScans?
+## Will I be charged for my subscription even if I don't use SmartScans?
 
-Yes, monthly subscriptions are prepaid and not usage-based, so you will be charged regardless of activity.
+Yes, Collect and Control subscriptions are prepaid and not usage-based, so you will be charged regardless of activity.
 
-## I'm in a Group Workspace. Do I need the monthly subscription too?
+## I'm in a workspace. Do I need my own subscription too?
 
-No, Group Workspace members already have unlimited **SmartScans**. However, you can keep a subscription for personal use if you leave your company's Workspace.
+No, workspace members already have unlimited **SmartScans**. However, you can keep a subscription for personal use if you leave your company's workspace.
 
