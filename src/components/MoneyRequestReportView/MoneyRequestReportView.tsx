@@ -28,6 +28,7 @@ import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, 
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
+import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
@@ -141,7 +142,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
-
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -155,6 +155,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportMetadata, isOffline);
+
+    const shouldShowOpenReportLoadingSkeleton = !!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions;
 
     const isEmptyTransactionReport = visibleTransactions && visibleTransactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
@@ -204,7 +206,14 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         };
     }, [reportID]);
 
-    if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
+    useEffect(() => {
+        if (!shouldShowOpenReportLoadingSkeleton || !report) {
+            return;
+        }
+        markOpenReportEnd(report, {warm: false});
+    }, [report, shouldShowOpenReportLoadingSkeleton]);
+
+    if (shouldShowOpenReportLoadingSkeleton) {
         return <InitialLoadingSkeleton styles={styles} />;
     }
 

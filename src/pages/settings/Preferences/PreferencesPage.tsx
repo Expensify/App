@@ -8,7 +8,6 @@ import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -48,7 +47,6 @@ function PreferencesPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    useDocumentTitle(`${translate('common.settings')} - ${translate('common.preferences')}`);
 
     return (
         <ScreenWrapper
@@ -79,7 +77,12 @@ function PreferencesPage() {
                         <View style={[styles.flex1, styles.mt5]}>
                             <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.sectionMenuItemTopDescription]}>
                                 <View style={styles.flex4}>
-                                    <Text>{translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>
+                                    <Text
+                                        accessible={false}
+                                        aria-hidden
+                                    >
+                                        {translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                                    </Text>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
@@ -91,7 +94,12 @@ function PreferencesPage() {
                             </View>
                             <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween]}>
                                 <View style={styles.flex4}>
-                                    <Text>{translate('preferencesPage.muteAllSounds')}</Text>
+                                    <Text
+                                        accessible={false}
+                                        aria-hidden
+                                    >
+                                        {translate('preferencesPage.muteAllSounds')}
+                                    </Text>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
