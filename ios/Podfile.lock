@@ -141,7 +141,7 @@ PODS:
     - SDWebImageWebPCoder
   - ExpoLocation (19.0.7):
     - ExpoModulesCore
-  - ExpoModulesCore (3.0.18):
+  - ExpoModulesCore (3.0.24):
     - boost
     - DoubleConversion
     - fast_float

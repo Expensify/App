@@ -132,7 +132,7 @@
     "expo-image": "3.0.8",
     "expo-image-manipulator": "^13.1.5",
     "expo-location": "^19.0.7",
-    "expo-modules-core": "3.0.18",
+    "expo-modules-core": "3.0.24",
     "expo-secure-store": "~14.2.4",
     "expo-store-review": "~9.0.8",
     "expo-task-manager": "~14.0.9",
