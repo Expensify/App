@@ -6,6 +6,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import ScreenWrapper from '@components/ScreenWrapper';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/DateFilterBase';
+import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePreset} from '@components/Search/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -57,22 +58,32 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     }
 
     /**
-     * Checks whether the user has selected any date value via the date filter.
+     * Checks whether the user has a complete date selection.
+     * A selection is complete when either ON is set (preset or specific date),
+     * or both AFTER and BEFORE are set. A single After or Before alone is
+     * incomplete — we don't silently fill in today's date for the missing value
+     * because that can produce invalid ranges the backend rejects.
      */
-    const hasDateSelected = (): boolean => {
-        const values = dateFilterBaseRef.current?.getDateValues();
+    const hasDateSelected = (valuesToValidate?: SearchDateValues): boolean => {
+        const values = valuesToValidate ?? dateFilterBaseRef.current?.getDateValues();
         if (!values) {
             return false;
         }
+
+        if (values[CONST.SEARCH.DATE_MODIFIERS.ON]) {
+            return true;
+        }
+
+        // Both after and before must be set for a complete range
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- We intentionally use logical OR (||) instead of ?? because these values are strings and we want to treat empty strings as "not set" (i.e., falsy).
-        return !!(values[CONST.SEARCH.DATE_MODIFIERS.ON] || values[CONST.SEARCH.DATE_MODIFIERS.AFTER] || values[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
+        return !!(values[CONST.SEARCH.DATE_MODIFIERS.AFTER] && values[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
     };
 
     /**
      * Checks whether the selected date range is invalid (start date is after end date).
      */
-    const isDateRangeInvalid = (): boolean => {
-        const values = dateFilterBaseRef.current?.getDateValues();
+    const isDateRangeInvalid = (valuesToValidate?: SearchDateValues): boolean => {
+        const values = valuesToValidate ?? dateFilterBaseRef.current?.getDateValues();
         const dateAfter = values?.[CONST.SEARCH.DATE_MODIFIERS.AFTER];
         const dateBefore = values?.[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
 
@@ -83,14 +94,14 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     };
 
     /**
-     * Re-validates date selection on every change instead of simply clearing the error.
-     * This keeps the error visible while the user is still in an invalid state (e.g. after > before),
-     * so they get continuous feedback rather than the error disappearing and reappearing only on export press.
+     * Re-validates date selection on every change.
+     * Receives the freshest values directly from the DateFilterBase callback,
+     * avoiding the need to wait for a re-render to read from the ref.
      */
-    const handleDateValuesChange = () => {
-        if (!hasDateSelected()) {
+    const handleDateValuesChange = (newValues: SearchDateValues) => {
+        if (!hasDateSelected(newValues)) {
             setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.selectDateRangeError'));
-        } else if (isDateRangeInvalid()) {
+        } else if (isDateRangeInvalid(newValues)) {
             setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.invalidDateRangeError'));
         } else {
             setDateError('');
@@ -99,6 +110,8 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
 
     /**
      * Computes startDate and endDate in YYYY-MM-DD format from the current date selection.
+     * Callers must validate via hasDateSelected() before calling — this function
+     * assumes the selection is complete (ON is set, or both AFTER and BEFORE are set).
      */
     const getDateRange = useCallback((): {startDate: string; endDate: string} => {
         const values = dateFilterBaseRef.current?.getDateValues();
@@ -115,15 +128,14 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
             return {startDate: dateOn, endDate: dateOn};
         }
 
-        if (dateAfter || dateBefore) {
-            const now = format(new Date(), 'yyyy-MM-dd');
+        if (dateAfter && dateBefore) {
             return {
-                startDate: dateAfter ?? now,
-                endDate: dateBefore ?? now,
+                startDate: dateAfter,
+                endDate: dateBefore,
             };
         }
 
-        // Default: this month
+        // Default: this month (only reached on initial mount before any interaction)
         const now = new Date();
         return {
             startDate: format(startOfMonth(now), 'yyyy-MM-dd'),

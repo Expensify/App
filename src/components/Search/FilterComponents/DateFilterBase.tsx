@@ -29,8 +29,8 @@ type DateFilterBaseProps = {
     onBackButtonPress: () => void;
     /** Callback when the filter is submitted with the selected date values */
     onSubmit: (values: SearchDateValues) => void;
-    /** Callback when any date value changes (preset click, calendar save, modifier selection) */
-    onDateValuesChange?: () => void;
+    /** Callback when a date value changes (e.g. preset click or calendar save) */
+    onDateValuesChange?: (values: SearchDateValues) => void;
     /** Callback when the date modifier screen is opened or closed (on/after/before) */
     onDateModifierChange?: (isOpen: boolean) => void;
     /** If true, the Reset/Save buttons are only shown when a date modifier (On/After/Before) is selected. Defaults to false (always show buttons). */
@@ -61,7 +61,14 @@ function DateFilterBase({
     const handleSelectDateModifier = (dateModifier: SearchDateModifier | null) => {
         setSelectedDateModifier(dateModifier);
         onDateModifierChange?.(!!dateModifier);
-        onDateValuesChange?.();
+        if (onDateValuesChange) {
+            const values = searchDatePresetFilterBaseRef.current?.getDateValues() ?? {
+                [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
+                [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
+                [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
+            };
+            onDateValuesChange(values);
+        }
     };
 
     useImperativeHandle(ref, () => ({

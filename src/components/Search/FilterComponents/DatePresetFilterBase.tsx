@@ -46,7 +46,7 @@ type DatePresetFilterBaseProps = {
     isSearchAdvancedFiltersFormLoading?: boolean;
 
     /** Callback when a date value changes (e.g. preset click or calendar save) */
-    onDateValueChange?: () => void;
+    onDateValueChange?: (values: SearchDateValues) => void;
 
     /** The ref handle */
     ref: Ref<DatePresetFilterBaseHandle>;
@@ -91,25 +91,29 @@ function DatePresetFilterBase({
     const setDateValue = useCallback(
         (dateModifier: SearchDateModifier, value: string | undefined) => {
             setDateValues((prevDateValues) => {
+                let newValues: SearchDateValues;
+
                 if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(value)) {
-                    return {
+                    newValues = {
                         [CONST.SEARCH.DATE_MODIFIERS.ON]: value,
                         [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
                         [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
                     };
-                }
-
-                if (dateModifier !== CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(prevDateValues[CONST.SEARCH.DATE_MODIFIERS.ON])) {
-                    return {
+                } else if (dateModifier !== CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(prevDateValues[CONST.SEARCH.DATE_MODIFIERS.ON])) {
+                    newValues = {
                         ...prevDateValues,
                         [dateModifier]: value,
                         [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
                     };
+                } else {
+                    newValues = {...prevDateValues, [dateModifier]: value};
                 }
 
-                return {...prevDateValues, [dateModifier]: value};
+                // Call the callback immediately with the new values so parents don't need to depend on async state updates or refs
+                onDateValueChange?.(newValues);
+
+                return newValues;
             });
-            onDateValueChange?.();
         },
         [onDateValueChange],
     );
