@@ -12,6 +12,10 @@ const cursor: CursorStyles = {
     cursorZoomOut: {},
     cursorInitial: {},
     cursorText: {},
+    cursorEwResize: {},
+    cursorNsResize: {},
+    cursorNeswResize: {},
+    cursorNwseResize: {},
 };
 
 export default cursor;

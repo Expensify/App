@@ -376,6 +376,9 @@ describe('Pagination', () => {
         // Here we have 5 messages from the initial OpenReport and 5 from the initial GetNewerActions.
         expect(getReportActions()).toHaveLength(10);
 
+        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
+        mockGetNewerActions(0);
+
         // There is 1 extra call here because of the comment linking report.
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
@@ -390,22 +393,20 @@ describe('Pagination', () => {
 
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
         // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
-
-        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
-        mockGetNewerActions(0);
 
         scrollToOffset(500);
         await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
+        // When there are no newer actions, we don't want to trigger GetNewerActions again.
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
         // We still have 15 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
