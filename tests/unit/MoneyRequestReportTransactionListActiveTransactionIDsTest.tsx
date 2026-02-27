@@ -34,6 +34,10 @@ function useActiveTransactionIDsEffect(visualOrderTransactionIDs: string[]) {
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
+        const backTo = (focusedRoute.params as Record<string, string> | undefined)?.backTo;
+        if (backTo?.replaceAll(/\?.*/g, '').endsWith('/duplicates/review')) {
+            return;
+        }
         setActiveTransactionIDs(visualOrderTransactionIDs);
     }, [visualOrderTransactionIDs]);
 
@@ -171,6 +175,40 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         expect(mockSetActiveTransactionIDs).toHaveBeenCalledTimes(2);
         expect(mockSetActiveTransactionIDs).toHaveBeenLastCalledWith(sameContentNewArray);
         expect(mockClearActiveTransactionIDs).not.toHaveBeenCalled();
+    });
+
+    it('should NOT call setActiveTransactionIDs when backTo includes duplicates review', () => {
+        // Given the focused route is SEARCH_REPORT with backTo pointing to a duplicate review
+        mockFindFocusedRoute.mockReturnValue({
+            name: SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            key: 'test-key',
+            params: {backTo: '/r/123/duplicates/review'},
+        });
+
+        const transactionIDs = ['trans1', 'trans2'];
+
+        // When the hook is rendered
+        renderHook(() => useActiveTransactionIDsEffect(transactionIDs));
+
+        // Then setActiveTransactionIDs should NOT be called because the IDs were already set by Review.tsx
+        expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
+    });
+
+    it('should NOT call setActiveTransactionIDs when backTo includes duplicates review with query params', () => {
+        // Given the focused route is SEARCH_REPORT with backTo including query params after duplicates/review
+        mockFindFocusedRoute.mockReturnValue({
+            name: SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            key: 'test-key',
+            params: {backTo: '/r/456/duplicates/review?someParam=value'},
+        });
+
+        const transactionIDs = ['trans1', 'trans2'];
+
+        // When the hook is rendered
+        renderHook(() => useActiveTransactionIDsEffect(transactionIDs));
+
+        // Then setActiveTransactionIDs should NOT be called
+        expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
     });
 
     it('should handle empty transaction IDs array', () => {

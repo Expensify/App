@@ -288,6 +288,12 @@ function MoneyRequestReportTransactionList({
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
+        // Don't overwrite active transaction IDs when navigating from the duplicate review,
+        // as Review.tsx sets its own order via onPreviewPressed.
+        const backTo = (focusedRoute.params as Record<string, string> | undefined)?.backTo;
+        if (backTo?.replaceAll(/\?.*/g, '').endsWith('/duplicates/review')) {
+            return;
+        }
         setActiveTransactionIDs(visualOrderTransactionIDs);
     }, [visualOrderTransactionIDs]);
 
