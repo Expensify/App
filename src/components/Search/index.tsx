@@ -64,7 +64,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {cancelSpan, endSpanWithAttributes, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, getSpan, endSpanWithAttributes, startSpan} from '@libs/telemetry/activeSpans';
 import markNavigateAfterExpenseCreateEnd from '@libs/telemetry/markNavigateAfterExpenseCreateEnd';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
