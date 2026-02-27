@@ -1,8 +1,5 @@
 import type OverflowMoneyRequestViewStyles from './types';
 
-const overflowMoneyRequestView: OverflowMoneyRequestViewStyles = {
-    overflowX: 'hidden',
-    overflowY: 'auto',
-};
+const overflowMoneyRequestView: OverflowMoneyRequestViewStyles = {};
 
 export default overflowMoneyRequestView;
