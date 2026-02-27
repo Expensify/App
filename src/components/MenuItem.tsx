@@ -569,7 +569,7 @@ function MenuItem({
     isFocused,
     sentryLabel,
     rootWrapperStyle,
-    role = CONST.ROLE.MENUITEM,
+    role = CONST.ROLE.BUTTON,
     shouldBeAccessible = true,
     tabIndex = 0,
     rightIconWrapperStyle,
@@ -781,10 +781,10 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                role={role}
+                                role={interactive ? role : undefined}
                                 accessibilityLabel={`${enhancedAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                                 accessible={shouldBeAccessible}
-                                tabIndex={tabIndex}
+                                tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
                             >
