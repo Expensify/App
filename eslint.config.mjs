@@ -177,7 +177,7 @@ const config = defineConfig([
         extends: new FlatCompat({baseDirectory: dirname}).extends(
             'airbnb-typescript',
             'plugin:storybook/recommended',
-            'plugin:react-native-a11y/basic',
+            'plugin:react-native-a11y/all',
             'plugin:@dword-design/import-alias/recommended',
             'plugin:you-dont-need-lodash-underscore/all',
             'prettier',
@@ -306,7 +306,7 @@ const config = defineConfig([
             ],
 
             // React and React Native specific rules
-            'react-native-a11y/has-accessibility-hint': ['off'],
+            'react-native-a11y/has-accessibility-hint': ['warn'],
             'react/require-default-props': 'off',
             'react/prop-types': 'off',
             'react/jsx-key': 'error',
