@@ -487,7 +487,6 @@ function WalletPage() {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING);
             // return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING);
         // TODO navigate to add new personal card
     };
 
@@ -641,7 +640,7 @@ function WalletPage() {
                                     />
                                 </View>
                             )}
-                            {hasAssignedCard ? (
+                            {!hasAssignedCard ? (
                                 <MenuItem
                                     iconHeight={48}
                                     iconWidth={48}
