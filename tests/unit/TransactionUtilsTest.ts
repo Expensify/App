@@ -1801,6 +1801,158 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasTaxRateWithMatchingValue', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            taxRates: CONST.DEFAULT_TAX,
+        };
+
+        it('should return true when transaction has no taxValue and a matching tax rate exists', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: undefined,
+            });
+
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(policy, transaction);
+
+            expect(result).toBe(true);
+        });
+
+        it('should return false when transaction has no taxValue and no matching tax rate exists', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_CUSTOM',
+                taxValue: undefined,
+            });
+
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(policy, transaction);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return true when transaction has taxValue and the tax rate value matches exactly', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '5%',
+            });
+
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(policy, transaction);
+
+            expect(result).toBe(true);
+        });
+
+        it('should return false when transaction has taxValue but the tax rate value does not match', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '15%',
+            });
+
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(policy, transaction);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy is undefined', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '10%',
+            });
+
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(undefined, transaction);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when transaction is undefined', () => {
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(policy, undefined);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when both policy and transaction are undefined', () => {
+            const result = TransactionUtils.hasTaxRateWithMatchingValue(undefined, undefined);
+
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('getTaxRateTitle', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            taxRates: CONST.DEFAULT_TAX,
+        };
+
+        const policyForMovingExpenses: Policy = {
+            ...createRandomPolicy(1),
+            taxRates: {
+                ...CONST.DEFAULT_TAX,
+                taxes: {
+                    ...CONST.DEFAULT_TAX.taxes,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    id_TAX_RATE_1: {
+                        name: 'Tax Rate 1 - Default Policy',
+                        value: '15%',
+                        code: 'id_TAX_RATE_1',
+                    },
+                },
+            },
+        };
+
+        it('should return tax name with fallback when tax exists and not moving from track expense', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '5%',
+            });
+
+            const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
+
+            expect(result).toBe('Tax Rate 1 (5%)');
+        });
+
+        it('should return default policy tax name when moving from track expense', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '15%',
+            });
+
+            const result = TransactionUtils.getTaxRateTitle(policy, transaction, true, policyForMovingExpenses);
+
+            expect(result).toBe('Tax Rate 1 - Default Policy (15%)');
+        });
+
+        it('should return chosen policy tax name with fallback when moving from track expense but tax rate value is the same', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '5%',
+            });
+
+            const result = TransactionUtils.getTaxRateTitle(policy, transaction, true, policyForMovingExpenses);
+
+            expect(result).toBe('Tax Rate 1 (5%)');
+        });
+
+        it('should return default tax name when transaction has empty taxCode', () => {
+            const transaction = generateTransaction({
+                taxCode: '',
+                taxValue: undefined,
+            });
+
+            const result = TransactionUtils.getTaxRateTitle(policy, transaction, false, undefined);
+
+            expect(result).toBe('Tax exempt (0%) • Default');
+        });
+
+        it('should return empty string when policy is undefined', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '10%',
+            });
+
+            const result = TransactionUtils.getTaxRateTitle(undefined, transaction, false, undefined);
+
+            expect(result).toBe('');
+        });
+    });
+
     describe('compareDuplicateTransactionFields', () => {
         const fakeReportID = 'fakeReportID';
         const fakeReport = {
