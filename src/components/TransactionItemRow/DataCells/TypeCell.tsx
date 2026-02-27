@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import Icon from '@components/Icon';
 import TextWithTooltip from '@components/TextWithTooltip';
 import Tooltip from '@components/Tooltip';
@@ -78,12 +79,14 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
         />
     ) : (
         <Tooltip text={getTooltipText()}>
-            <Icon
-                src={typeIcon}
-                fill={theme.icon}
-                height={variables.iconSizeNormal}
-                width={variables.iconSizeNormal}
-            />
+            <View>
+                <Icon
+                    src={typeIcon}
+                    fill={theme.icon}
+                    height={variables.iconSizeNormal}
+                    width={variables.iconSizeNormal}
+                />
+            </View>
         </Tooltip>
     );
 }
