@@ -1,5 +1,5 @@
 import {emailSelector} from '@selectors/Session';
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
@@ -130,6 +130,11 @@ function SearchFiltersBar({queryJSON, isMobileSelectionModeEnabled}: SearchFilte
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const filterFormValues = useFilterFormValues(queryJSON);
+
+    useEffect(() => {
+        updateAdvancedFilters(filterFormValues, true);
+    }, [filterFormValues]);
+
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
     const {currencyList} = useCurrencyListState();

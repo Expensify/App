@@ -9,7 +9,6 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
-import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -19,8 +18,32 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
-import {search, updateAdvancedFilters} from '@libs/actions/Search';
+import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import {deleteAppReport, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
+import {
+    approveMoneyRequestOnSearch,
+    bulkDeleteReports,
+    exportSearchItemsToCSV,
+    exportToIntegrationOnSearch,
+    getExportTemplates,
+    getLastPolicyBankAccountID,
+    getLastPolicyPaymentMethod,
+    getPayMoneyOnSearchInvoiceParams,
+    getPayOption,
+    getReportType,
+    getTotalFormattedAmount,
+    isCurrencySupportWalletBulkPay,
+    payMoneyRequestOnSearch,
+    queueExportSearchItemsToCSV,
+    queueExportSearchWithTemplate,
+    search,
+    submitMoneyRequestOnSearch,
+    unholdMoneyRequestOnSearch,
+} from '@libs/actions/Search';
+import initSplitExpense from '@libs/actions/SplitExpenses';
+import {setNameValuePair} from '@libs/actions/User';
+import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -47,12 +70,6 @@ function SearchPage({route}: SearchPageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
-
-    const formValues = useFilterFormValues(queryJSON);
-
-    useEffect(() => {
-        updateAdvancedFilters(formValues, true);
-    }, [formValues]);
 
     useConfirmReadyToOpenApp();
 
