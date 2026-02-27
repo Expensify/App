@@ -154,7 +154,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                     iconWidth={variables.iconSizeNormal}
                                                     iconHeight={variables.iconSizeNormal}
                                                     wrapperStyle={styles.sectionMenuItem}
-                                                    badgeText={itemIndex === 0 ? '42' : getItemBadgeText(item.key, reportCounts)}
+                                                    badgeText={getItemBadgeText(item.key, reportCounts)}
                                                     focused={focused}
                                                     onPress={onPress}
                                                     shouldIconUseAutoWidthStyle

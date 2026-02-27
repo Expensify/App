@@ -88,7 +88,6 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
                 <Badge
                     isCondensed
                     text={translate('task.completed')}
-                    success
                     badgeStyles={[
                         styles.ml0,
                         styles.gap1,

@@ -987,7 +987,13 @@ function MenuItem({
                                                             <Badge
                                                                 text={badgeText}
                                                                 icon={badgeIcon}
-                                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml3, styles.mt2, focused && !badgeSuccess && styles.badgeDefaultActive]}
+                                                                badgeStyles={[
+                                                                    badgeStyle,
+                                                                    styles.alignSelfStart,
+                                                                    styles.ml3,
+                                                                    styles.mt2,
+                                                                    focused && !badgeSuccess && styles.badgeDefaultActive,
+                                                                ]}
                                                                 success={badgeSuccess}
                                                                 isStrong={badgeStrong}
                                                                 isCondensed={badgeCondensed}
