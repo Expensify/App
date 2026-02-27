@@ -113,34 +113,9 @@ function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>
 
 function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
-    debugger;
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
-            debugger;
-            if (action.type === 'POP' || action.type === 'GO_BACK') {
-                const lastRoute = state.routes.at(-1);
-
-                if (lastRoute?.params && typeof (lastRoute.params as any).originalIndex === 'number') {
-                    const originalIndex = (lastRoute.params as any).originalIndex;
-
-                    const newState = stackRouter.getStateForAction(state, action, configOptions);
-                    if (!newState) return null;
-
-                    const routes = [...newState.routes];
-
-                    const { originalIndex: _, ...cleanParams } = (lastRoute.params as any);
-                    const restoredRoute = { ...lastRoute, params: cleanParams };
-
-                    routes.splice(originalIndex, 0, restoredRoute);
-
-                    return {
-                        ...newState,
-                        routes,
-                        index: routes.length - 1,
-                    };
-                }
-            }
 
             // Evaluate navigation guards FIRST
             const guardState = handleNavigationGuards(state, action, configOptions, stackRouter);

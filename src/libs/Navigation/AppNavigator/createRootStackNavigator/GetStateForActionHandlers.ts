@@ -1,15 +1,57 @@
-import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import {StackActions} from '@react-navigation/native';
-import type {ParamListBase, Router} from '@react-navigation/routers';
+import type { CommonActions, RouterConfigOptions, StackActionType, StackNavigationState } from '@react-navigation/native';
+import { StackActions } from '@react-navigation/native';
+import type { ParamListBase, Router } from '@react-navigation/routers';
 import SCREENS_WITH_NAVIGATION_TAB_BAR from '@components/Navigation/TopLevelNavigationTabBar/SCREENS_WITH_NAVIGATION_TAB_BAR';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
-import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
+import { isSplitNavigatorName } from '@libs/Navigation/helpers/isNavigatorName';
+import { SPLIT_TO_SIDEBAR } from '@libs/Navigation/linkingConfig/RELATIONS';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {OpenDomainSplitActionType, OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, ToggleSidePanelWithHistoryActionType} from './types';
+import type { OpenDomainSplitActionType, OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, ToggleSidePanelWithHistoryActionType } from './types';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
@@ -121,71 +163,19 @@ function handlePushFullscreenAction(
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
     const navigatorName = action.payload.name;
-    const params = action.payload.params;
-    const targetScreen = params && 'screen' in params ? (params.screen as string) : undefined;
-
-    let currentState = state;
-    const lastRoute = state.routes.at(-1);
-
-
-    if (lastRoute?.params && typeof (lastRoute.params as any).originalIndex === 'number') {
-        const originalIndex = (lastRoute.params as any).originalIndex;
-        const routes = [...state.routes];
-
-        const [movedRoute] = routes.splice(-1, 1);
-
-        const { originalIndex: _, ...cleanParams } = (movedRoute.params as any);
-        const restoredRoute = { ...movedRoute, params: cleanParams };
-
-        routes.splice(originalIndex, 0, restoredRoute);
-
-        currentState = {
-            ...state,
-            routes,
-            index: routes.length - 1,
-        };
-    }
-
-    const existingRoute = currentState.routes.find((route) => route.name === navigatorName);
-
-    if (existingRoute) {
-        if (existingRoute.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)) {
-            screensWithEnteringAnimation.add(existingRoute.key);
-        }
-
-        const currentPos = currentState.routes.indexOf(existingRoute);
-
-        const updatedRoute = {
-            ...existingRoute,
-            params: {
-                ...existingRoute.params,
-                ...params,
-                originalIndex: currentPos
-            },
-        };
-
-        const otherRoutes = currentState.routes.filter((route) => route.key !== existingRoute.key);
-
-        return {
-            ...currentState,
-            routes: [...otherRoutes, updatedRoute],
-            index: otherRoutes.length,
-        };
-    }
 
     const shouldFilterPreloadedRoutes =
         getIsNarrowLayout() &&
         isSplitNavigatorName(navigatorName) &&
         targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
-        currentState.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
+        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
 
-    const adjustedState = shouldFilterPreloadedRoutes
-        ? { ...currentState, preloadedRoutes: currentState.preloadedRoutes.filter((r) => r.name !== navigatorName) }
-        : currentState;
+    const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
 
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {
+        Log.hmmm(`[handlePushAction] ${navigatorName} has not been found in the navigation state.`);
         return null;
     }
 

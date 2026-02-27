@@ -404,7 +404,6 @@ const defaultGoBackOptions: Required<GoBackOptions> = {
  * @param options - Optional configuration that affects navigation logic, such as parameter comparison.
  */
 function goUp(backToRoute: Route, options?: GoBackOptions) {
-    debugger;
     if (!canNavigate('goUp', {backToRoute}) || !navigationRef.current) {
         Log.hmmm(`[Navigation] Unable to go up. Can't navigate.`);
         return;
@@ -458,7 +457,6 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
  * @param options - Optional configuration that affects navigation logic
  */
 function goBack(backToRoute?: Route, options?: GoBackOptions) {
-    debugger;
     clearSelectedText();
 
     if (!canNavigate('goBack', {backToRoute})) {
@@ -490,7 +488,6 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
  */
 function popToSidebar() {
 
-    debugger;
     setShouldPopToSidebar(false);
 
     const rootState = navigationRef.current?.getRootState();
