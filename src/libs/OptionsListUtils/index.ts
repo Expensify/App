@@ -950,6 +950,7 @@ function getLastMessageTextForReport({
 /**
  * Creates a report list option - optimized for SearchOption context
  */
+// eslint-disable-next-line max-params, @typescript-eslint/max-params -- this should be handled in the seperate issue
 function createOption(
     accountIDs: number[],
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
