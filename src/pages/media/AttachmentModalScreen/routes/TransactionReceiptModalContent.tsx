@@ -1,3 +1,5 @@
+import {findFocusedRoute} from '@react-navigation/native';
+import type {NavigationState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
@@ -12,7 +14,7 @@ import {openReport} from '@libs/actions/Report';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
@@ -24,7 +26,7 @@ import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScree
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
@@ -313,11 +315,23 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     icon: expensifyIcons.Camera,
                     text: translate('common.replace'),
                     onSelected: () => {
+                        let isFromOdometerStep = false;
+                        if (isOdometerImage) {
+                            // Determine if we were in the STEP_DISTANCE_ODOMETER context (isEditingConfirmation)
+                            // by inspecting the screen active before the receipt preview overlay was pushed.
+                            // The overlay (TRANSACTION_RECEIPT or MONEY_REQUEST.RECEIPT_PREVIEW) is always at(-1),
+                            // so the route underneath is always at(-2).
+                            const rootState = navigationRef.getRootState();
+                            const routes = rootState?.routes ?? [];
+                            const previousRoute = routes.at(-2);
+                            const previousFocusedName = previousRoute?.state ? findFocusedRoute(previousRoute.state as NavigationState)?.name : previousRoute?.name;
+                            isFromOdometerStep = previousFocusedName === SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER;
+                        }
                         Navigation.dismissModal({
                             callback: () =>
                                 Navigation.navigate(
                                     isOdometerImage
-                                        ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType)
+                                        ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType, undefined, isFromOdometerStep)
                                         : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                               action ?? CONST.IOU.ACTION.EDIT,
                                               iouType,

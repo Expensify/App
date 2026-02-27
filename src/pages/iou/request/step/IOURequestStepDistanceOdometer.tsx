@@ -70,6 +70,7 @@ function IOURequestStepDistanceOdometer({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['GalleryPlus'] as const);
 
     const startReadingInputRef = useRef<BaseTextInputRef | null>(null);
     const endReadingInputRef = useRef<BaseTextInputRef | null>(null);
@@ -319,9 +320,9 @@ function IOURequestStepDistanceOdometer({
 
     const handleCaptureImage = useCallback(
         (imageType: OdometerImageType) => {
-            Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(action, iouType, transactionID, reportID, imageType));
+            Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(action, iouType, transactionID, reportID, imageType, backToReport, isEditingConfirmation));
         },
-        [action, iouType, transactionID, reportID],
+        [action, iouType, transactionID, reportID, backToReport, isEditingConfirmation],
     );
 
     const handleViewOdometerImage = useCallback(
@@ -344,7 +345,6 @@ function IOURequestStepDistanceOdometer({
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const icons = useMemoizedLazyExpensifyIcons(['GalleryPlus'] as const);
     // Navigate to next page following Manual tab pattern
     const navigateToNextPage = () => {
         const start = parseFloat(startReading);

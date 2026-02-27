@@ -1908,7 +1908,9 @@ type MoneyRequestNavigatorParamList = {
         iouType: IOUType;
         transactionID: string;
         reportID: string;
+        backToReport?: string;
         imageType: OdometerImageType;
+        isEditingConfirmation: boolean;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
@@ -2902,6 +2904,7 @@ type AttachmentModalScreensParamList = {
         iouType?: IOUType;
         mergeTransactionID?: string;
         imageType?: OdometerImageType;
+        isEditingConfirmation?: boolean;
     };
     [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: AttachmentModalContainerModalProps & {
         reportID: string;
