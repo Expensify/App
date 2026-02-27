@@ -334,3 +334,13 @@ jobs:
         with:
           name: ${{ inputs.artifact-prefix }}android-apk-artifact
           path: Expensify.apk
+
+      - name: Upload Android build to Sentry for size analysis
+        if: ${{ inputs.variant == 'Release' && steps.collectArtifacts.outputs.HAS_AAB == 'true' }}
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          AAB_PATH=$(find /tmp/android-artifacts -name '*.aab' | head -1)
+          npx sentry-cli build upload "$AAB_PATH" --org expensify --project app --build-configuration Release --log-level debug
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}

@@ -323,3 +323,13 @@ jobs:
         with:
           name: ${{ inputs.artifact-prefix }}ios-sourcemap-artifact
           path: Mobile-Expensify/main.jsbundle.map
+
+      - name: Upload iOS build to Sentry for size analysis
+        if: ${{ inputs.variant == 'Release' }}
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          IPA_PATH=$(find .rock/cache/ios/export -name '*.ipa' | head -1)
+          npx sentry-cli build upload "$IPA_PATH" --org expensify --project app --build-configuration Release --log-level debug
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
