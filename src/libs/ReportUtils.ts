@@ -3735,14 +3735,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
         name: ownerDetails?.displayName ?? '',
         fallbackIcon: ownerDetails?.fallbackIcon,
     };
-    const isManager = currentUserAccountID === report?.managerID;
-
-    // For one transaction IOUs, display a simplified report icon
-    if (isOneTransactionReport(report)) {
-        return [ownerIcon];
-    }
-
-    return isManager ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
+    return [managerIcon, ownerIcon];
 }
 
 /**

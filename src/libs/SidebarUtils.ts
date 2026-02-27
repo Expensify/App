@@ -1149,16 +1149,10 @@ function getOptionData({
         isReportArchived,
     );
 
-    // For IOU reports with multiple senders, preserve both icons for diagonal display.
-    // childMoneyRequestCount is the reliable signal — when it is not yet loaded, default to
-    // multi-sender to avoid a brief flash from single to diagonal.
-    const isIOUWithMultipleSenders = report.type === CONST.REPORT.TYPE.IOU && parentReportAction?.childMoneyRequestCount !== 1;
-
-    if (!result.shouldShowSubscript && !isIOUWithMultipleSenders && reportIcons.length > 1) {
-        const singleIcon =
-            // eslint-disable-next-line rulesdir/prefer-at
-            report.type === CONST.REPORT.TYPE.IOU ? (reportIcons.find((icon) => Number(icon.id) !== currentUserAccountID) ?? reportIcons[0]) : reportIcons[0];
-        result.icons = [singleIcon];
+    // IOU icon trimming (single vs diagonal) is handled at the component level
+    // using useReportPreviewSenderID which has access to transaction attendee data.
+    if (!result.shouldShowSubscript && report.type !== CONST.REPORT.TYPE.IOU && reportIcons.length > 1) {
+        result.icons = [reportIcons.at(0)].filter(Boolean);
     } else {
         result.icons = reportIcons;
     }

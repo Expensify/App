@@ -286,8 +286,9 @@ describe('getIcons', () => {
         expect(isMoneyRequestReport(report)).toBe(true);
 
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
-        expect(icons).toHaveLength(1);
-        expect(icons.at(0)?.name).toBe('Email One');
+        expect(icons).toHaveLength(2);
+        expect(icons.at(0)?.name).toBe('Email\u0020Two');
+        expect(icons.at(1)?.name).toBe('Email One');
     });
 
     it('should return the correct icons for a Self DM', () => {
@@ -530,8 +531,8 @@ describe('getIcons', () => {
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
 
         expect(icons).toHaveLength(2);
-        expect(icons.at(0)?.name).toBe('Email\u0020One');
-        expect(icons.at(1)?.name).toBe('Email\u0020Two');
+        expect(icons.at(0)?.name).toBe('Email\u0020Two');
+        expect(icons.at(1)?.name).toBe('Email\u0020One');
     });
 
     it('should return the correct icons for a concierge chat', () => {

@@ -1,9 +1,11 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
+import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
@@ -58,6 +60,14 @@ function OptionRowLHNData({
     const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
+
+    const isIOUReport = fullReport?.type === CONST.REPORT.TYPE.IOU;
+    const [chatReportForIOU] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isIOUReport ? fullReport?.chatReportID : undefined)}`);
+    const reportPreviewSenderID = useReportPreviewSenderID({
+        iouReport: isIOUReport ? fullReport : null,
+        action: parentReportAction,
+        chatReport: chatReportForIOU,
+    });
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -125,12 +135,25 @@ function OptionRowLHNData({
         reportAttributesDerived,
     ]);
 
+    // For single-sender IOUs, trim to the sender's avatar to match the header.
+    // The header uses reportPreviewSenderID as accountID for its primary avatar,
+    // so we pick the matching icon from getIconsForIOUReport to stay consistent.
+    const finalOptionItem = useMemo(() => {
+        if (!optionItem || !isIOUReport || reportPreviewSenderID === undefined || !optionItem.icons || optionItem.icons.length <= 1) {
+            return optionItem;
+        }
+        // eslint-disable-next-line rulesdir/prefer-at
+        const senderIcon = optionItem.icons.find((icon) => Number(icon.id) === reportPreviewSenderID);
+        const fallbackIcon = optionItem.icons.at(0);
+        return {...optionItem, icons: [senderIcon ?? fallbackIcon].filter(Boolean)};
+    }, [optionItem, isIOUReport, reportPreviewSenderID]);
+
     return (
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
             isOptionFocused={isReportFocused}
-            optionItem={optionItem}
+            optionItem={finalOptionItem}
             report={fullReport}
         />
     );
