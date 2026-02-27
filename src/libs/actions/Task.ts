@@ -15,6 +15,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +27,6 @@ import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction, optimisticReportLastData} from './Report';
 import {setSelfTourViewed} from './Welcome';
 
@@ -206,7 +206,9 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         },
     ];
 
-    // FOR TASK REPORT
+    // We intentionally aren't deleting the optimistic
+    // task report/action on API failure so the task stays visible until the user dismiss the
+    // error from chat.
     const failureData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT
@@ -215,18 +217,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
             | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
-    > = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
-            value: null,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
-            value: null,
-        },
-    ];
+    > = [];
 
     if (assigneeChatReport && assigneeChatReportID) {
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
@@ -341,20 +332,6 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
             hasOutstandingChildTask: parentReport?.hasOutstandingChildTask,
         },
     });
-
-    const snapshotDataToClear = {
-        [`${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`]: null,
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`]: null,
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: null,
-    };
-
-    // We are clearing out the snapshot data for task snapshot on API failure so that there won't be any ghost task on "Reports > Task".
-    for (const type of searchDataTypes) {
-        const failureSnapshotUpdate = buildOptimisticSnapshotData(type, snapshotDataToClear);
-        if (failureSnapshotUpdate) {
-            failureData.push(failureSnapshotUpdate);
-        }
-    }
 
     const parameters: CreateTaskParams = {
         parentReportActionID: optimisticAddCommentReport.reportAction.reportActionID,

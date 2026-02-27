@@ -160,7 +160,7 @@ import {
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
-import {getCurrentSearchQueryJSON, buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
+import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getAmount, getCurrency, hasValidModifiedAmount, isOnHold, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
@@ -812,17 +812,6 @@ function addActions({
             value: failureReportActions as ReportActions,
         },
     ];
-
-    const snapshotDataToClear = {
-        [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
-    };
-    const failureSnapshotUpdate = buildOptimisticSnapshotData(CONST.SEARCH.DATA_TYPES.CHAT, snapshotDataToClear);
-
-    // We are clearing out the snapshot data for chat snapshot on API failure so that there won't be any ghost chat message on "Reports > Chats".
-    if (failureSnapshotUpdate) {
-        failureData.push(failureSnapshotUpdate);
-    }
 
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
     if (DateUtils.canUpdateTimezone() && currentUserAccountID) {
