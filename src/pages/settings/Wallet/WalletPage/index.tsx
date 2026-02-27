@@ -484,7 +484,7 @@ function WalletPage() {
         }
         if (!isEmptyObject(cardFeedsByPolicy)) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING);
-            return;
+            // return;
         }
         // TODO navigate to add new personal card
     };

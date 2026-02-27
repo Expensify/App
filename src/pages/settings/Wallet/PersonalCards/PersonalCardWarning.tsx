@@ -62,7 +62,7 @@ function PersonalCardWarning() {
                         testID="confirmation-secondary-button"
                         style={styles.mt3}
                         onPress={() => {
-                            //TODO - navigate to personal card page
+                            // TODO - navigate to personal card page
                         }}
                     />
                     <Button
