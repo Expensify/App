@@ -2308,7 +2308,7 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
         const wasSubmittedViaHarvesting = originalMessage?.harvesting ?? false;
         const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
         const failedSubmitReason = wasSubmittedViaHarvesting ? translate('iou.failedToAutoSubmitViaDEW', message) : translate('iou.failedToSubmitViaDEW', message);
-        return [{text: message, html: `<muted-text>${failedSubmitReason}</muted-text>`, type: 'COMMENT'}];
+        return [{text: failedSubmitReason, html: `<muted-text>${failedSubmitReason}</muted-text>`, type: 'COMMENT'}];
     }
 
     if (isDynamicExternalWorkflowApproveFailedAction(action)) {
@@ -2316,7 +2316,7 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
         const wasAutoApproveAction = originalMessage?.automaticAction ?? false;
         const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
         const failedApproveReason = wasAutoApproveAction ? translate('iou.failedToAutoApproveViaDEW', message) : translate('iou.failedToApproveViaDEW', message);
-        return [{text: message, html: `<muted-text>${failedApproveReason}</muted-text>`, type: 'COMMENT'}];
+        return [{text: failedApproveReason, html: `<muted-text>${failedApproveReason}</muted-text>`, type: 'COMMENT'}];
     }
 
     const actionMessage = action.previousMessage ?? action.message;
