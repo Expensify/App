@@ -33,6 +33,7 @@ import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
@@ -41,6 +42,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -246,6 +248,11 @@ function TransactionPreviewContent({
 
     const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
 
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'TransactionPreviewContent',
+        isTransactionLoaded: !isEmptyObject(transaction),
+    };
+
     return (
         <Animated.View style={[transactionWrapperStyles, containerStyles, animatedHighlightStyle]}>
             <OfflineWithFeedback
@@ -267,7 +274,10 @@ function TransactionPreviewContent({
                         shouldUseAspectRatio={!isMapDistanceRequest(transaction) && !isGPSDistanceRequest(transaction)}
                     />
                     {shouldShowSkeleton ? (
-                        <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
+                        <TransactionPreviewSkeletonView
+                            transactionPreviewWidth={transactionPreviewWidth}
+                            reasonAttributes={skeletonReasonAttributes}
+                        />
                     ) : (
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
