@@ -3,7 +3,7 @@ import {Platform} from 'react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
-import processBeforeSendTransactions from '@libs/telemetry/middlewares';
+import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import pkg from '../../../package.json';
@@ -33,6 +33,7 @@ export default function (): void {
         release: `${pkg.name}@${pkg.version}`,
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,
+        beforeSendLog: processBeforeSendLogs,
     });
 
     startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
