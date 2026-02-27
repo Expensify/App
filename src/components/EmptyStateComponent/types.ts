@@ -5,10 +5,12 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import type TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
+import type WorkspaceRowSkeleton from '@components/Skeletons/WorkspaceRowSkeleton';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type ValidSkeletons = typeof SearchRowSkeleton | typeof TableRowSkeleton;
+type ValidSkeletons = typeof SearchRowSkeleton | typeof TableRowSkeleton | typeof WorkspaceRowSkeleton;
 type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
 type HeaderMedia = string | IconAsset | DotLottieAnimation;
 type EmptyStateButton = {
@@ -27,6 +29,7 @@ type EmptyStateButton = {
 
 type SharedProps<TMediaType> = {
     SkeletonComponent?: ValidSkeletons;
+    skeletonReasonAttributes?: SkeletonSpanReasonAttributes;
     title: string;
     titleStyles?: StyleProp<TextStyle>;
     subtitle?: string;

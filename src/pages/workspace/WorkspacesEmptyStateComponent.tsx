@@ -7,10 +7,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import useWorkspacesEmptyStateIllustration from './useWorkspacesEmptyStateIllustration';
+
+const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+    context: 'WorkspacesListPage.WorkspacesEmptyStateComponent',
+};
 
 function WorkspacesEmptyStateComponent() {
     const styles = useThemeStyles();
@@ -24,6 +29,7 @@ function WorkspacesEmptyStateComponent() {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...illustration}
             SkeletonComponent={WorkspaceRowSkeleton}
+            skeletonReasonAttributes={skeletonReasonAttributes}
             title={translate('workspace.emptyWorkspace.title')}
             subtitle={translate('workspace.emptyWorkspace.subtitle')}
             titleStyles={styles.pt2}
