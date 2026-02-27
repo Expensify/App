@@ -39,7 +39,6 @@ type SearchPageWideProps = {
     PDFValidationComponent: React.ReactNode;
     ErrorModal: React.ReactNode;
     shouldShowFooter: boolean;
-    [key: string]: unknown;
 };
 
 function SearchPageWide({

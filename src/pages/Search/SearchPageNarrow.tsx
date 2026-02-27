@@ -51,7 +51,6 @@ type SearchPageNarrowProps = {
         currency: string | undefined;
     };
     shouldShowFooter: boolean;
-    [key: string]: unknown;
 };
 
 function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnabled, metadata, footerData, shouldShowFooter}: SearchPageNarrowProps) {

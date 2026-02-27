@@ -22,18 +22,15 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+
     // Helps to avoid unnecessary recalculations when user open report details screen. React Compiler does not provide same result.
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [workspaceCardFeeds, userCardList]);
     const {exportedToFilterOptions} = useExportedToFilterOptions();
 
-    const formValues = useMemo(() => {
-        if (!queryJSON) {
-            return getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
-        }
-
-        return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, allReports, taxRates, exportedToFilterOptions);
-    }, [queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, allReports, taxRates]);
+    const formValues = queryJSON
+        ? buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, allReports, taxRates, exportedToFilterOptions)
+        : getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
 
     return formValues;
 };
