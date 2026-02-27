@@ -372,7 +372,7 @@ function IOURequestStepOdometerImage({
             </View>
 
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
+                <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                     {({openPicker}) => (
                         <PressableWithFeedback
                             role={CONST.ROLE.BUTTON}
@@ -422,7 +422,7 @@ function IOURequestStepOdometerImage({
     }, []);
 
     const handleDrop = (event: DragEvent) => {
-        const files = Array.from(event.dataTransfer?.files ?? []);
+        const files = Array.from(event.dataTransfer?.files ?? []).filter((file) => CONST.FILE_TYPE_REGEX.IMAGE.test(file.name));
         if (files.length === 0) {
             return;
         }
@@ -471,7 +471,7 @@ function IOURequestStepOdometerImage({
                     <RenderHTML html={messageHTML} />
                 </View>
             </View>
-            <AttachmentPicker>
+            <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                 {({openPicker}) => (
                     <Button
                         success
