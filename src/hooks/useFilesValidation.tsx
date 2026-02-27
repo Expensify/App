@@ -101,6 +101,18 @@ const mergeResizedIntoConverted = (convertedFiles: FileObject[], convertedNeedin
     });
 };
 
+/** Extracts the ordered file list from validation result. Downstream logic does not need the original files param. */
+function getFilesFromValidationResult(result: Awaited<ReturnType<typeof validateMultipleAttachmentFiles>>): FileObject[] {
+    if (result.isValid) {
+        return result.validatedFiles.map((f) => f.file);
+    }
+    // fileResults preserves original order; each result has .file or .validatedFile.file
+    if (result.fileResults?.length) {
+        return result.fileResults.map((r) => (r.isValid ? r.validatedFile.file : r.file));
+    }
+    return result.files ?? [];
+}
+
 function useFilesValidation(onFilesValidated: OnFilesValidated) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -121,7 +133,6 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
     const validatedPDFs = useRef<FileObject[]>([]);
     const validFiles = useRef<FileObject[]>([]);
     const filesToValidate = useRef<FileObject[]>([]);
-    const invalidFileResults = useRef<SingleAttachmentInvalidResult[]>([]);
     const dataTransferItemList = useRef<DataTransferItem[]>([]);
     const collectedErrors = useRef<ErrorObject[]>([]);
     const originalFileOrder = useRef<Map<string, number>>(new Map());
@@ -242,8 +253,8 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
             });
     };
 
-    /** Resizes filesToResize (if any), then returns combined processedFiles and pdfsToLoad. */
-    const finishProcessing = (
+    /** Merges converted, resized, and valid files into one list; resizes filesToResize if any. */
+    const mergeConvertedResizedAndValid = (
         convertedFiles: FileObject[],
         validFilesToProcess: FileObject[],
         filesToResize: FileObject[],
@@ -259,8 +270,8 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
         });
     };
 
-    /** Applies the result of convert+resize: either show PDFs for validation or complete with errors/onFilesValidated. */
-    const applyProcessedResult = ({processedFiles, pdfsToLoad}: {processedFiles: FileObject[]; pdfsToLoad: FileObject[]}) => {
+    /** Completes validation: either show PDFs for validation or finish with errors/onFilesValidated. */
+    const completeWithProcessedFiles = ({processedFiles, pdfsToLoad}: {processedFiles: FileObject[]; pdfsToLoad: FileObject[]}) => {
         if (pdfsToLoad.length > 0) {
             validFiles.current = processedFiles;
             setPdfFilesToRender(pdfsToLoad);
@@ -304,10 +315,10 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
                     if (convertedNeedingResize.length > 0) {
                         return resizeFilesWithLoader(convertedNeedingResize).then((resizedConverted) => {
                             const mergedConverted = mergeResizedIntoConverted(convertedFiles, convertedNeedingResize, resizedConverted);
-                            return finishProcessing(mergedConverted, validFilesToProcess, filesToResize, pdfsToLoad);
+                            return mergeConvertedResizedAndValid(mergedConverted, validFilesToProcess, filesToResize, pdfsToLoad);
                         });
                     }
-                    return finishProcessing(convertedFiles, validFilesToProcess, filesToResize, pdfsToLoad);
+                    return mergeConvertedResizedAndValid(convertedFiles, validFilesToProcess, filesToResize, pdfsToLoad);
                 })
                 .catch((error) => {
                     Log.alert('Error converting HEIC/HEIF files:', {error});
@@ -323,38 +334,47 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
             if (anyNonPdfTooLarge) {
                 return resizeFilesWithLoader(nonPdfFiles).then((processedFiles) => ({processedFiles, pdfsToLoad}));
             }
-            return finishProcessing([], validFilesToProcess, filesToResize, pdfsToLoad);
+            return mergeConvertedResizedAndValid([], validFilesToProcess, filesToResize, pdfsToLoad);
         };
 
         const promise = filesToConvert.length > 0 ? runConversionThenFinish() : runNoConversionPath();
 
-        promise.then(applyProcessedResult);
+        promise.then(completeWithProcessedFiles);
     };
 
     /** Handles result of multiple-file validation: either completes with valid files or starts convert/resize for invalid. */
-    const handleMultipleFilesResult = (result: Awaited<ReturnType<typeof validateMultipleAttachmentFiles>>, files: FileObject[], items?: DataTransferItem[]) => {
+    const handleMultipleFilesResult = (result: Awaited<ReturnType<typeof validateMultipleAttachmentFiles>>, items?: DataTransferItem[]) => {
+        if (items) {
+            dataTransferItemList.current = items;
+        }
+
         if (result.isValid) {
             const fileObjects = result.validatedFiles.map((f) => f.file);
             onFilesValidated(fileObjects, dataTransferItemList.current);
             return;
         }
 
+        const derivedFiles = getFilesFromValidationResult(result);
+
         if (result.error === CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED) {
-            filesToValidate.current = files.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
+            filesToValidate.current = result.files?.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) ?? [];
             if (items) {
                 dataTransferItemList.current = items.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
             }
         }
 
-        const invalidResults = result.fileResults.filter((r) => r.isValid === false);
-        invalidFileResults.current = invalidResults;
+        for (const [index, file] of derivedFiles.entries()) {
+            originalFileOrder.current.set(file.uri ?? '', index);
+        }
+
+        const invalidResults = result.fileResults?.filter((r) => r.isValid === false) ?? [];
 
         if (result.error) {
             collectedErrors.current.push({error: result.error});
             setErrorAndOpenModal(result.error);
         }
 
-        convertAndResizeFiles(invalidResults, files);
+        convertAndResizeFiles(invalidResults, derivedFiles);
     };
 
     /** Handles result of single-file validation: either completes with valid file or starts convert/resize for invalid. */
@@ -364,14 +384,12 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
             return;
         }
 
-        invalidFileResults.current = [result];
-
         if (result.error) {
             collectedErrors.current.push({error: result.error});
             setErrorAndOpenModal(result.error);
         }
 
-        convertAndResizeFiles(invalidFileResults.current, [file]);
+        convertAndResizeFiles([result], [file]);
     };
 
     const validateFiles = (files: File | FileObject[], items?: DataTransferItem[], validationOptions?: ValidationOptions) => {
@@ -385,6 +403,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
         }
 
         setIsValidatingFiles(true);
+        dataTransferItemList.current = items ?? [];
 
         const isReceiptValidation = validationOptions?.isValidatingReceipts ?? DEFAULT_IS_VALIDATING_RECEIPTS;
         setIsValidatingReceipt(isReceiptValidation);
@@ -392,10 +411,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
 
         if (Array.isArray(files)) {
             setIsValidatingMultipleFiles(true);
-            for (const [index, file] of files.entries()) {
-                originalFileOrder.current.set(file.uri ?? '', index);
-            }
-            validateMultipleAttachmentFiles(files, items, isReceiptValidation).then((result) => handleMultipleFilesResult(result, files, items));
+            validateMultipleAttachmentFiles(files, items, isReceiptValidation).then((result) => handleMultipleFilesResult(result, items));
             return;
         }
 
@@ -406,7 +422,7 @@ function useFilesValidation(onFilesValidated: OnFilesValidated) {
     const onConfirmError = () => {
         if (fileError === CONST.FILE_VALIDATION_ERRORS.MULTIPLE_FILES.MAX_FILE_LIMIT_EXCEEDED) {
             setIsErrorModalVisible(false);
-            convertAndResizeFiles(invalidFileResults.current, filesToValidate.current);
+            convertAndResizeFiles([], filesToValidate.current);
             return;
         }
 
