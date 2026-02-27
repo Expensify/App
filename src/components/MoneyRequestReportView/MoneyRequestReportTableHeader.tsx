@@ -16,20 +16,34 @@ type SearchTableHeaderProps = {
     taxAmountColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
     columns: SearchColumnType[];
+    sortableColumns?: readonly SearchColumnType[];
 };
-function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, columns, amountColumnSize, taxAmountColumnSize}: SearchTableHeaderProps) {
+function MoneyRequestReportTableHeader({
+    sortBy,
+    sortOrder,
+    onSortPress,
+    dateColumnSize,
+    shouldShowSorting,
+    columns,
+    amountColumnSize,
+    taxAmountColumnSize,
+    sortableColumns,
+}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
     const columnConfig = useMemo(
         () => [
-            ...getExpenseHeaders(),
+            ...getExpenseHeaders().map((header) => ({
+                ...header,
+                isColumnSortable: sortableColumns ? sortableColumns.includes(header.columnName) : header.isColumnSortable,
+            })),
             {
                 columnName: CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
                 translationKey: undefined,
                 isColumnSortable: false,
             },
         ],
-        [],
+        [sortableColumns],
     );
 
     const orderedColumnConfig = useMemo(() => {

@@ -15,7 +15,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import type {SearchCustomColumnIds, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SearchCustomColumnIds, SortOrder} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
@@ -118,7 +118,7 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-];
+] as const satisfies readonly SearchColumnType[];
 
 type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
 
@@ -274,7 +274,7 @@ function MoneyRequestReportTransactionList({
         );
     }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn, reportDetailsColumns]);
 
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);
     const shouldScrollHorizontally = !shouldUseNarrowLayout && minTableWidth > windowWidth;
     const horizontalScrollViewRef = useRef<RNScrollView>(null);
@@ -489,21 +489,23 @@ function MoneyRequestReportTransactionList({
     const groupByPopoverComponent = useCallback(
         (props: {closeOverlay: () => void}) => (
             <View style={[styles.pt4, styles.pb1]}>
-                <SelectionList
-                    data={groupByOptions}
-                    shouldSingleExecuteRowSelect
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={(item) => {
-                        if (!item.keyForList) {
-                            return;
-                        }
-                        setReportLayoutGroupBy(item.keyForList, reportLayoutGroupBy);
-                        props.closeOverlay();
-                    }}
-                />
+                <View style={styles.getSelectionListPopoverHeight(groupByOptions.length || 1, windowHeight, false)}>
+                    <SelectionList
+                        data={groupByOptions}
+                        shouldSingleExecuteRowSelect
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={(item) => {
+                            if (!item.keyForList) {
+                                return;
+                            }
+                            setReportLayoutGroupBy(item.keyForList, reportLayoutGroupBy);
+                            props.closeOverlay();
+                        }}
+                    />
+                </View>
             </View>
         ),
-        [groupByOptions, reportLayoutGroupBy, styles.pt4, styles.pb1],
+        [groupByOptions, reportLayoutGroupBy, styles, windowHeight],
     );
 
     const transactionListContent = (
@@ -604,6 +606,7 @@ function MoneyRequestReportTransactionList({
                         sortBy={sortBy}
                         sortOrder={sortOrder}
                         columns={columnsToShow}
+                        sortableColumns={sortableColumnNames}
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}

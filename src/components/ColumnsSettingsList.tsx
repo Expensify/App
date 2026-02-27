@@ -18,23 +18,51 @@ import Text from './Text';
 import TextLink from './TextLink';
 
 type ColumnItem = {
+    /** Display label for the column */
     text: string;
+
+    /** Column identifier value */
     value: SearchCustomColumnIds;
+
+    /** Unique key used for list rendering */
     keyForList: SearchCustomColumnIds;
+
+    /** Whether the column is currently enabled/visible */
     isSelected: boolean;
+
+    /** Whether the column toggle is disabled (e.g. for required columns) */
     isDisabled: boolean;
+
+    /** Whether the column cannot be reordered via drag */
     isDragDisabled: boolean;
+
+    /** Element rendered on the left side of the list item (e.g. drag handle) */
     leftElement: React.JSX.Element;
 };
 
 type ColumnsSettingsListProps = {
+    /** All available column IDs that can be displayed */
     allColumns: SearchCustomColumnIds[];
+
+    /** The default set of selected columns when no customization has been applied */
     defaultSelectedColumns: SearchCustomColumnIds[];
+
+    /** The currently selected and ordered columns */
     currentColumns: SearchCustomColumnIds[];
+
+    /** Columns that cannot be deselected by the user */
     requiredColumns: Set<SearchCustomColumnIds>;
+
+    /** The active group-by field (e.g. category, tag) */
     groupBy?: string;
+
+    /** The currently selected columns specific to the active group-by mode */
     groupColumns?: SearchCustomColumnIds[];
+
+    /** The default columns for the active group-by mode when no customization has been applied */
     defaultGroupColumns?: SearchCustomColumnIds[];
+
+    /** Callback fired with the updated column list when the user saves changes */
     onSave: (columns: SearchCustomColumnIds[]) => void;
 };
 
