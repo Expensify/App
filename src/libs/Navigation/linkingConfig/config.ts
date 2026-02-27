@@ -2212,6 +2212,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.WORKSPACE.TIME_TRACKING]: {
                     path: ROUTES.WORKSPACE_TIME_TRACKING.route,
                 },
+                [SCREENS.WORKSPACE.VIRTUAL_EMPLOYEES]: {
+                    path: ROUTES.WORKSPACE_VIRTUAL_EMPLOYEES.route,
+                },
+                [SCREENS.WORKSPACE.VIRTUAL_EMPLOYEES_EDIT]: {
+                    path: ROUTES.WORKSPACE_VIRTUAL_EMPLOYEES_EDIT.route,
+                },
             },
         },
 

@@ -561,6 +561,9 @@ const WRITE_COMMANDS = {
     TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN: 'ToggleTwoFactorAuthRequiredForDomain',
     SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN: 'SetTwoFactorAuthExemptEmailForDomain',
     RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH: 'ResetDomainMemberTwoFactorAuth',
+    CREATE_VIRTUAL_EMPLOYEE: 'CreateVirtualEmployee',
+    UPDATE_VIRTUAL_EMPLOYEE: 'UpdateVirtualEmployee',
+    DELETE_VIRTUAL_EMPLOYEE: 'DeleteVirtualEmployee',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -1139,6 +1142,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN]: Parameters.ToggleTwoFactorAuthRequiredForDomainParams;
     [WRITE_COMMANDS.SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN]: Parameters.SetTwoFactorAuthExemptEmailForDomainParams;
     [WRITE_COMMANDS.RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH]: Parameters.ResetDomainMemberTwoFactorAuthParams;
+    [WRITE_COMMANDS.CREATE_VIRTUAL_EMPLOYEE]: Parameters.CreateVirtualEmployeeParams;
+    [WRITE_COMMANDS.UPDATE_VIRTUAL_EMPLOYEE]: Parameters.UpdateVirtualEmployeeParams;
+    [WRITE_COMMANDS.DELETE_VIRTUAL_EMPLOYEE]: Parameters.DeleteVirtualEmployeeParams;
 };
 
 const READ_COMMANDS = {
@@ -1225,6 +1231,7 @@ const READ_COMMANDS = {
     GET_SAML_SETTINGS: 'GetSAMLSettings',
     GET_DUPLICATE_TRANSACTION_DETAILS: 'GetDuplicateTransactionDetails',
     GET_TRANSACTIONS_MATCHING_CODING_RULE: 'GetTransactionsMatchingCodingRule',
+    OPEN_WORKSPACE_VIRTUAL_EMPLOYEES_PAGE: 'OpenWorkspaceVirtualEmployeesPage',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1313,6 +1320,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_DOMAIN_INITIAL_PAGE]: Parameters.DomainParams;
     [READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS]: Parameters.GetDuplicateTransactionDetailsParams;
     [READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE]: Parameters.GetTransactionsMatchingCodingRuleParams;
+    [READ_COMMANDS.OPEN_WORKSPACE_VIRTUAL_EMPLOYEES_PAGE]: Parameters.OpenWorkspaceVirtualEmployeesPageParams;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

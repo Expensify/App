@@ -2636,6 +2636,15 @@ const ROUTES = {
         route: 'workspaces/:policyID/travel/missing-personal-details',
         getRoute: (policyID: string) => `workspaces/${policyID}/travel/missing-personal-details` as const,
     },
+    WORKSPACE_VIRTUAL_EMPLOYEES: {
+        route: 'workspace/:policyID/virtual-employees',
+        getRoute: (policyID: string) => `workspace/${policyID}/virtual-employees` as const,
+    },
+    WORKSPACE_VIRTUAL_EMPLOYEES_EDIT: {
+        route: 'workspace/:policyID/virtual-employees/:virtualEmployeeID',
+        getRoute: (policyID: string, virtualEmployeeID: string) =>
+            `workspace/${policyID}/virtual-employees/${virtualEmployeeID}` as const,
+    },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'workspaces/:policyID/distance-rates/new',
         getRoute: (policyID: string, transactionID?: string, reportID?: string) =>

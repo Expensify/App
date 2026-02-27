@@ -807,6 +807,8 @@ const SCREENS = {
         PER_DIEM_EDIT_CURRENCY: 'Per_Diem_Edit_Currency',
         TIME_TRACKING: 'Time_Tracking',
         TIME_TRACKING_DEFAULT_RATE: 'Time_Tracking_Default_Rate',
+        VIRTUAL_EMPLOYEES: 'Workspace_VirtualEmployees',
+        VIRTUAL_EMPLOYEES_EDIT: 'Workspace_VirtualEmployees_Edit',
     },
 
     EDIT_REQUEST: {

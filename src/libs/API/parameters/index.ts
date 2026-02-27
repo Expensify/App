@@ -489,3 +489,7 @@ export type {default as ToggleTwoFactorAuthRequiredForDomainParams} from './Togg
 export type {default as DeleteVacationDelegateParams} from './DeleteVacationDelegateParams';
 export type {default as SetTwoFactorAuthExemptEmailForDomainParams} from './SetTwoFactorAuthExemptEmailForDomainParams';
 export type {default as ResetDomainMemberTwoFactorAuthParams} from './ResetDomainMemberTwoFactorAuthParams';
+export type {default as CreateVirtualEmployeeParams} from './CreateVirtualEmployeeParams';
+export type {default as UpdateVirtualEmployeeParams} from './UpdateVirtualEmployeeParams';
+export type {default as DeleteVirtualEmployeeParams} from './DeleteVirtualEmployeeParams';
+export type {default as OpenWorkspaceVirtualEmployeesPageParams} from './OpenWorkspaceVirtualEmployeesPageParams';
