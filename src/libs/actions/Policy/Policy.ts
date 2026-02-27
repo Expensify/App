@@ -194,6 +194,13 @@ type BuildPolicyDataOptions = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;
+    // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
+    isSelfTourViewed?: boolean;
+};
+
+// TODO: Remove this type once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
+type CreateWorkspaceDataOptions = Omit<BuildPolicyDataOptions, 'isSelfTourViewed'> & {
+    isSelfTourViewed: boolean | undefined;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -479,16 +486,15 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: policyCardFeeds,
         },
-        ...(filteredBankAccountList !== bankAccountList
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.SET,
-                      key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                      value: bankAccountList ?? {},
-                  },
-              ]
-            : []),
     ];
+
+    if (filteredBankAccountList !== bankAccountList) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+            value: bankAccountList ?? {},
+        });
+    }
 
     if (policyID === activePolicyID) {
         const mostRecentlyCreatedGroupPolicy = Object.values(policies ?? {})
@@ -1157,7 +1163,7 @@ function setWorkspaceReimbursement({
                 reimbursementChoice: policy?.reimbursementChoice ?? null,
                 achAccount: {
                     reimburser: policy?.achAccount?.reimburser ?? null,
-                    bankAccountID: null,
+                    bankAccountID: policy?.achAccount?.bankAccountID ?? null,
                     accountNumber: policy?.achAccount?.accountNumber ?? null,
                     addressName: policy?.achAccount?.addressName ?? null,
                     bankName: policy?.achAccount?.bankName ?? null,
@@ -2348,6 +2354,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         shouldAddGuideWelcomeMessage = true,
         onboardingPurposeSelected,
         shouldCreateControlPolicy = false,
+        isSelfTourViewed,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2778,6 +2785,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             onboardingPolicyID: policyID,
             onboardingPurposeSelected,
             companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
+            isSelfTourViewed,
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -2822,7 +2830,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     return {successData, optimisticData, failureData, params};
 }
 
-function createWorkspace(options: BuildPolicyDataOptions): CreateWorkspaceParams {
+function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspaceParams {
     // Set default engagement choice if not provided
     const optionsWithDefaults = {
         engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,

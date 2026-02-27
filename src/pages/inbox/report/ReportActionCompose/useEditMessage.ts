@@ -40,6 +40,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
 
     const {email} = useCurrentUserPersonalDetails();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const originalParentReportID = getOriginalReportID(originalReportID, reportAction, reportActions);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
@@ -118,6 +119,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
             isOriginalParentReportArchived,
             email ?? '',
             Object.fromEntries(draftMessageVideoAttributeCache),
+            visibleReportActionsData,
         );
         deleteDraft();
     }
