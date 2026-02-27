@@ -137,21 +137,26 @@ function IOURequestStepOdometerImage({
                     setVideoConstraints(defaultConstraints);
                     return;
                 }
-                navigator.mediaDevices.enumerateDevices().then((devices) => {
-                    let lastBackDeviceId = '';
-                    for (let i = devices.length - 1; i >= 0; i--) {
-                        const device = devices.at(i);
-                        if (device?.kind === 'videoinput') {
-                            lastBackDeviceId = device.deviceId;
-                            break;
+                navigator.mediaDevices
+                    .enumerateDevices()
+                    .then((devices) => {
+                        let lastBackDeviceId = '';
+                        for (let i = devices.length - 1; i >= 0; i--) {
+                            const device = devices.at(i);
+                            if (device?.kind === 'videoinput') {
+                                lastBackDeviceId = device.deviceId;
+                                break;
+                            }
                         }
-                    }
-                    if (!lastBackDeviceId) {
+                        if (!lastBackDeviceId) {
+                            setVideoConstraints(defaultConstraints);
+                            return;
+                        }
+                        setVideoConstraints({deviceId: lastBackDeviceId});
+                    })
+                    .catch(() => {
                         setVideoConstraints(defaultConstraints);
-                        return;
-                    }
-                    setVideoConstraints({deviceId: lastBackDeviceId});
-                });
+                    });
             })
             .catch(() => {
                 setVideoConstraints(defaultConstraints);
