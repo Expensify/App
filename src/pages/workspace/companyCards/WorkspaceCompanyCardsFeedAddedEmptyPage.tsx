@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
@@ -19,6 +20,10 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({shouldShowGBDisclaimer}: Works
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['CompanyCardsEmptyState']);
 
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'WorkspaceCompanyCardsFeedAddedEmptyPage',
+    };
+
     return (
         <ScrollView
             contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
@@ -26,6 +31,7 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({shouldShowGBDisclaimer}: Works
         >
             <EmptyStateComponent
                 SkeletonComponent={CardRowSkeleton}
+                skeletonReasonAttributes={skeletonReasonAttributes}
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                 headerMedia={illustrations.CompanyCardsEmptyState}
                 containerStyles={styles.mt5}
