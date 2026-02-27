@@ -864,7 +864,7 @@ describe('useCompanyCards', () => {
 
             const entries = result.current.companyCardEntries ?? [];
 
-            // Dedup works for assigned cards: only 1 assigned entry.
+            // Deduplication works for assigned cards: only 1 assigned entry.
             // coveredNames tracks the resolved name '553312XXXXXX0487', so the accountList entry '0487' passes through as unassigned.
             expect(entries).toHaveLength(3);
             expect(entries.at(0)).toMatchObject({cardName: '553312XXXXXX0487', encryptedCardNumber: 'v1:ENCRYPTED_0487', isAssigned: true});
