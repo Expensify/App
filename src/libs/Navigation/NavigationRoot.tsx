@@ -1,10 +1,10 @@
-import type { NavigationState } from '@react-navigation/native';
-import { DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer } from '@react-navigation/native';
-import { hasCompletedGuidedSetupFlowSelector } from '@selectors/Onboarding';
+import type {NavigationState} from '@react-navigation/native';
+import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import * as Sentry from '@sentry/react-native';
-import React, { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
-import { ScrollOffsetContext } from '@components/ScrollOffsetContextProvider';
-import { useCurrentReportIDActions } from '@hooks/useCurrentReportID';
+import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import {useCurrentReportIDActions} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -13,59 +13,24 @@ import useThemePreference from '@hooks/useThemePreference';
 import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
-import { getPathFromURL } from '@libs/Url';
-import { updateLastVisitedPath } from '@userActions/App';
-import { updateOnboardingLastVisitedPath } from '@userActions/Welcome';
+import {getPathFromURL} from '@libs/Url';
+import {updateLastVisitedPath} from '@userActions/App';
+import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import { endSpan, getSpan, startSpan } from '@src/libs/telemetry/activeSpans';
-import { navigationIntegration } from '@src/libs/telemetry/integrations';
+import {endSpan, getSpan, startSpan} from '@src/libs/telemetry/activeSpans';
+import {navigationIntegration} from '@src/libs/telemetry/integrations';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Route } from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
-import { cleanPreservedNavigatorStates } from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import getPathFromState from './helpers/getPathFromState';
-import { isSplitNavigatorName, isWorkspacesTabScreenName } from './helpers/isNavigatorName';
-import { saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage } from './helpers/lastVisitedTabPathUtils';
-import { linkingConfig } from './linkingConfig';
-import Navigation, { navigationRef } from './Navigation';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+import {isSplitNavigatorName, isWorkspacesTabScreenName} from './helpers/isNavigatorName';
+import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
+import {linkingConfig} from './linkingConfig';
+import Navigation, {navigationRef} from './Navigation';
 
 type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
@@ -269,14 +234,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         const currentRoute = navigationRef.getCurrentRoute();
         Sentry.addBreadcrumb({message: `[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`, category: 'navigation'});
 
-        console.log('__________________');
-        console.log(state);
-        console.log("__________________")
-
-
         updateCurrentReportID(state);
         parseAndLogRoute(state);
-
 
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);
