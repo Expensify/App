@@ -91,6 +91,7 @@ describe('MoneyRequest', () => {
             files: [fakeReceiptFile],
             participant: {accountID: 222, login: 'test@test.com'},
             quickAction: fakeQuickAction,
+            allTransactionDrafts: {},
             selfDMReport,
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
@@ -254,6 +255,39 @@ describe('MoneyRequest', () => {
             );
         });
 
+        it('should pass existingTransactionDraft and draftTransactionIDs to requestMoney when allTransactionDrafts is provided', () => {
+            const draftTransaction = createRandomTransaction(99);
+            const linkedAction = {
+                reportActionID: 'action1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '',
+                originalMessage: {
+                    IOUTransactionID: draftTransaction.transactionID,
+                    IOUReportID: 'report456',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const transactionWithLinkedAction = {
+                ...fakeTransaction,
+                linkedTrackedExpenseReportAction: linkedAction,
+            };
+
+            createTransaction({
+                ...baseParams,
+                transactions: [transactionWithLinkedAction],
+                allTransactionDrafts: {
+                    [draftTransaction.transactionID]: draftTransaction,
+                },
+            });
+
+            expect(IOU.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    existingTransactionDraft: draftTransaction,
+                    draftTransactionIDs: [draftTransaction.transactionID],
+                }),
+            );
+        });
+
         it('should pass billable and reimbursable flags to trackExpense', () => {
             createTransaction({
                 ...baseParams,
@@ -268,6 +302,39 @@ describe('MoneyRequest', () => {
                         billable: true,
                         reimbursable: false,
                     }),
+                }),
+            );
+        });
+
+        it('should pass undefined existingTransactionDraft when no matching draft exists', () => {
+            createTransaction({
+                ...baseParams,
+                allTransactionDrafts: {},
+            });
+
+            expect(IOU.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    existingTransactionDraft: undefined,
+                    draftTransactionIDs: [],
+                }),
+            );
+        });
+
+        it('should compute draftTransactionIDs from allTransactionDrafts', () => {
+            const draft1 = createRandomTransaction(101);
+            const draft2 = createRandomTransaction(102);
+
+            createTransaction({
+                ...baseParams,
+                allTransactionDrafts: {
+                    [draft1.transactionID]: draft1,
+                    [draft2.transactionID]: draft2,
+                },
+            });
+
+            expect(IOU.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    draftTransactionIDs: expect.arrayContaining([draft1.transactionID, draft2.transactionID]),
                 }),
             );
         });
@@ -344,6 +411,7 @@ describe('MoneyRequest', () => {
             isSelfTourViewed: false,
             betas: [],
             recentWaypoints: [] as RecentWaypoint[],
+            allTransactionDrafts: {},
         };
 
         beforeEach(async () => {

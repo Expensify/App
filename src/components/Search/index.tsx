@@ -279,6 +279,8 @@ function Search({
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
+    const spanExistedOnMount = useRef(!!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE));
+
     const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
     const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {selector: savedSearchSelector});
 
@@ -904,6 +906,10 @@ function Search({
 
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => {
+            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return;
+            }
+
             if (isMobileSelectionModeEnabled) {
                 toggleTransaction(item);
                 return;
@@ -1152,8 +1158,27 @@ function Search({
         span?.setAttributes({[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
         markNavigateAfterExpenseCreateEnd();
+        // Reset the ref after the span is ended so future render-time cancelSpan calls are no longer guarded.
+        spanExistedOnMount.current = false;
         handleSelectionListScroll(sortedData, searchListRef.current);
     }, [handleSelectionListScroll, sortedData]);
+
+    useEffect(() => {
+        const spanExisted = spanExistedOnMount.current;
+        return () => {
+            if (!spanExisted) {
+                return;
+            }
+            cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const cancelNavigationSpans = useCallback(() => {
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        spanExistedOnMount.current = false;
+    }, []);
 
     const onLayoutSkeleton = useCallback(() => {
         hasHadFirstLayout.current = true;
@@ -1173,6 +1198,7 @@ function Search({
             span?.setAttributes({[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState});
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
             markNavigateAfterExpenseCreateEnd();
+            spanExistedOnMount.current = false;
         }, [shouldShowLoadingState]),
     );
 
@@ -1194,15 +1220,13 @@ function Search({
 
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        cancelNavigationSpans();
         return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
     }
 
     if (hasErrors) {
         const isInvalidQuery = searchRequestResponseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
@@ -1218,8 +1242,7 @@ function Search({
 
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
     if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType)) {
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
@@ -1251,6 +1274,7 @@ function Search({
     const shouldShowChartView = (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE || view === CONST.SEARCH.VIEW.PIE) && !!validGroupBy;
 
     if (shouldShowChartView && isGroupedItemArray(sortedData)) {
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
         let chartTitle = translate(`search.chartTitles.${validGroupBy}`);
         if (savedSearch) {
             if (savedSearch.name !== savedSearch.query) {

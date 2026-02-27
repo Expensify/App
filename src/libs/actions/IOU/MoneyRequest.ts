@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -58,6 +58,7 @@ type CreateTransactionParams = {
     policyParams?: {policy: OnyxEntry<Policy>};
     billable?: boolean;
     reimbursable?: boolean;
+    allTransactionDrafts: OnyxCollection<Transaction>;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -105,6 +106,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     shouldGenerateTransactionThreadReport: boolean;
     selfDMReport: OnyxEntry<Report>;
     isSelfTourViewed: boolean;
+    allTransactionDrafts: OnyxCollection<Transaction>;
     betas: OnyxEntry<Beta[]>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
 };
@@ -173,11 +175,14 @@ function createTransaction({
     policyParams,
     billable,
     reimbursable = true,
+    allTransactionDrafts,
     isSelfTourViewed,
     betas,
     personalDetails,
     recentWaypoints,
 }: CreateTransactionParams) {
+    const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
+
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
@@ -214,6 +219,9 @@ function createTransaction({
                 isSelfTourViewed,
             });
         } else {
+            const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+            const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
+
             requestMoney({
                 report,
                 betas,
@@ -243,6 +251,8 @@ function createTransaction({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                existingTransactionDraft,
+                draftTransactionIDs,
                 isSelfTourViewed,
                 personalDetails,
             });
@@ -298,6 +308,7 @@ function handleMoneyRequestStepScanParticipants({
     locationPermissionGranted = false,
     selfDMReport,
     isSelfTourViewed,
+    allTransactionDrafts,
     betas,
     recentWaypoints,
 }: MoneyRequestStepScanParticipantsFlowParams) {
@@ -401,6 +412,7 @@ function handleMoneyRequestStepScanParticipants({
                             billable: false,
                             reimbursable: defaultReimbursable,
                             isSelfTourViewed,
+                            allTransactionDrafts,
                             betas,
                             personalDetails,
                             recentWaypoints,
@@ -427,6 +439,7 @@ function handleMoneyRequestStepScanParticipants({
                             participant,
                             reimbursable: defaultReimbursable,
                             isSelfTourViewed,
+                            allTransactionDrafts,
                             betas,
                             personalDetails,
                             recentWaypoints,
@@ -453,6 +466,7 @@ function handleMoneyRequestStepScanParticipants({
                 participant,
                 reimbursable: defaultReimbursable,
                 isSelfTourViewed,
+                allTransactionDrafts,
                 betas,
                 personalDetails,
                 recentWaypoints,

@@ -41,6 +41,7 @@ import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {
+    getExistingTransactionID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
     shouldShowReceiptEmptyState,
@@ -578,6 +579,8 @@ function IOURequestStepConfirmation({
                     );
                 }
 
+                const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
+                const existingTransactionDraft = transactions.find((tx) => tx.transactionID === existingTransactionID);
                 let merchantToUse = isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant;
                 if (!isTestReceipt && isManualDistanceRequestTransactionUtils(item)) {
                     const distance = item.comment?.customUnit?.quantity;
@@ -657,6 +660,8 @@ function IOURequestStepConfirmation({
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
+                    existingTransactionDraft,
+                    draftTransactionIDs: transactionIDs,
                     isSelfTourViewed,
                     betas,
                     personalDetails,
@@ -665,6 +670,7 @@ function IOURequestStepConfirmation({
             }
         },
         [
+            transactionIDs,
             transactions,
             receiptFiles,
             privateIsArchivedMap,
