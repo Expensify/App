@@ -1,10 +1,10 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {isAuthenticationError} from '@libs/actions/connections';
 import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {NetSuiteConnectionConfig, NetSuiteSubsidiary} from '@src/types/onyx/Policy';
-import {isAuthenticationError} from '@libs/actions/connections';
 import type Policy from '@src/types/onyx/Policy';
-import type {OnyxEntry} from 'react-native-onyx';
 
 function shouldHideReimbursedReportsSection(config?: NetSuiteConnectionConfig) {
     return config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY;

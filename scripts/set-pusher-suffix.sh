@@ -4,9 +4,10 @@
 # config file to be parsed for the suffix (relative to current project root)
 CONFIG_FILE="../Web-Expensify/_config.local.php"
 
-if [ -f '.env' ]; then
+if [[ -f '.env' ]]; then
     while read -r line; do
-        if [[ "$line" == \#* ]]; then
+        # Skip comments and blank lines
+        if [[ "$line" == \#* || "$line" =~ ^\s*$ ]]; then
             continue
         fi
         export "${line?}"
@@ -14,9 +15,9 @@ if [ -f '.env' ]; then
 fi
 
 # use the suffix only when the config file can be found
-if [ -f "$CONFIG_FILE" ]; then
+if [[ -f "$CONFIG_FILE" ]]; then
     # If we are pointing to the staging or production api don't add the suffix
-    if [[ $EXPENSIFY_URL == "https://www.expensify.com/" ]]; then
+    if [[ "$EXPENSIFY_URL" == "https://www.expensify.com/" ]]; then
         echo "Ignoring the PUSHER_DEV_SUFFIX since we are not pointing to the dev API"
         exit 0
     fi
@@ -25,13 +26,14 @@ if [ -f "$CONFIG_FILE" ]; then
 
     PATTERN="PUSHER_DEV_SUFFIX.*'(.+)'"
     while read -r line; do
-      if [[ $line =~ $PATTERN ]]; then
-        PUSHER_DEV_SUFFIX=${BASH_REMATCH[1]}
+      if [[ "$line" =~ $PATTERN ]]; then
+        PUSHER_DEV_SUFFIX="${BASH_REMATCH[1]}"
         echo "Found suffix: $PUSHER_DEV_SUFFIX"
         echo "Updating .env"
 
-        # delete any old suffix value and append the new one
-        sed -i '' '/^PUSHER_DEV_SUFFIX/d' '.env' || true
+        # Delete any old suffix value and append the new one. Use full path to default macOS sed in case user
+        # has gnu sed installed (i.e. through homebrew)
+        /usr/bin/sed -i '' '/^PUSHER_DEV_SUFFIX/d' '.env' || true
         # a dash '-' is prepended to separate the suffix from trailing channel IDs (accountID, reportID, etc).
         echo "PUSHER_DEV_SUFFIX=-${PUSHER_DEV_SUFFIX}" >> .env
       fi
