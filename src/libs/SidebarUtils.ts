@@ -1152,7 +1152,8 @@ function getOptionData({
     // IOU icon trimming (single vs diagonal) is handled at the component level
     // using useReportPreviewSenderID which has access to transaction attendee data.
     if (!result.shouldShowSubscript && report.type !== CONST.REPORT.TYPE.IOU && reportIcons.length > 1) {
-        result.icons = [reportIcons.at(0)].filter(Boolean);
+        const firstIcon = reportIcons.at(0);
+        result.icons = firstIcon ? [firstIcon] : [];
     } else {
         result.icons = reportIcons;
     }

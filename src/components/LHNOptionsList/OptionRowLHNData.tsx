@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -64,7 +65,7 @@ function OptionRowLHNData({
     const isIOUReport = fullReport?.type === CONST.REPORT.TYPE.IOU;
     const [chatReportForIOU] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isIOUReport ? fullReport?.chatReportID : undefined)}`);
     const reportPreviewSenderID = useReportPreviewSenderID({
-        iouReport: isIOUReport ? fullReport : null,
+        iouReport: isIOUReport ? fullReport : undefined,
         action: parentReportAction,
         chatReport: chatReportForIOU,
     });
@@ -144,8 +145,7 @@ function OptionRowLHNData({
         }
         // eslint-disable-next-line rulesdir/prefer-at
         const senderIcon = optionItem.icons.find((icon) => Number(icon.id) === reportPreviewSenderID);
-        const fallbackIcon = optionItem.icons.at(0);
-        return {...optionItem, icons: [senderIcon ?? fallbackIcon].filter(Boolean)};
+        return {...optionItem, icons: [senderIcon ?? optionItem.icons.at(0)].filter((icon): icon is Icon => !!icon)};
     }, [optionItem, isIOUReport, reportPreviewSenderID]);
 
     return (
