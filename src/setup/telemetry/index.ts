@@ -1,6 +1,5 @@
 import * as Sentry from '@sentry/react-native';
 import {Platform} from 'react-native';
-import {PerformanceObserver} from 'react-native-performance';
 import {isDevelopment} from '@libs/Environment/Environment';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
@@ -14,9 +13,9 @@ export default function (): void {
     // With Sentry enabled in dev mode, profiling on iOS and Android does not work
     // If you want to enable Sentry in dev, set ENABLE_SENTRY_ON_DEV=true in .env
     // or comment out the condition below
-    if (isDevelopment() && !CONFIG.ENABLE_SENTRY_ON_DEV) {
-        return;
-    }
+    // if (isDevelopment() && !CONFIG.ENABLE_SENTRY_ON_DEV) {
+    //     return;
+    // }
 
     const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration].filter((integration) => !!integration);
 
@@ -41,34 +40,33 @@ export default function (): void {
         op: CONST.TELEMETRY.SPAN_APP_STARTUP,
     });
 
-    // Collect module init times captured by moduleInitPolyfill.js once the JS bundle finishes loading.
-    // Use a PerformanceObserver with buffered: true so it fires when CONTENT_APPEARED flushes
-    // the native mark buffer to JS (the runJsBundleEnd mark is available by then).
-    const observer = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-            if (entry.name === 'runJsBundleEnd') {
-                observer.disconnect();
-                if (typeof __moduleInitTimes !== 'undefined' && typeof __moduleNames !== 'undefined') {
-                    const top50 = Object.entries(__moduleInitTimes)
-                        .map(([id, ms]) => ({
-                            name: __moduleNames?.[Number(id)] ?? id,
-                            ms: Math.round(ms),
-                        }))
-                        .filter(({name}) => typeof name === 'string' && String(name).startsWith('src/'))
-                        .sort((a, b) => b.ms - a.ms)
-                        .slice(0, 50);
-                    console.debug('[Telemetry] Top 50 slowest module init times (src/ only):');
-                    for (const {name, ms} of top50) {
-                        console.debug(`[Module]  ${ms}ms — ${name}`);
-                    }
-                    Sentry.addBreadcrumb({
-                        category: 'module.init',
-                        level: 'info',
-                        data: {modules: top50},
-                    });
-                }
-            }
+    console.debug('[Telemetry] setup called, scheduling module init times collection');
+
+    // Collect module init times captured by moduleInitPolyfill.ts.
+    // Deferred to after the first render frame so startup modules have been lazily required
+    // and their init times recorded before we snapshot them.
+    requestAnimationFrame(() => {
+        if (typeof __moduleInitTimes === 'undefined' || typeof __moduleNames === 'undefined') {
+            return;
         }
+        const initTimes: Record<string, number> = __moduleInitTimes as Record<string, number>;
+        const names: Record<number, string> = __moduleNames as Record<number, string>;
+        const topModules = Object.entries(initTimes)
+            .map(([id, ms]) => ({
+                name: names[Number(id)] ?? id,
+                ms: Math.round(ms),
+            }))
+            .filter(({ms}) => ms >= 100)
+            .sort((a, b) => b.ms - a.ms)
+            .slice(0, 50);
+        console.debug(`[Telemetry] Modules taking ≥100ms to init (all, incl. 3rd party) — count: ${topModules.length}`);
+        for (const {name, ms} of topModules) {
+            console.debug(`[Module]  ${ms}ms — ${name}`);
+        }
+        Sentry.addBreadcrumb({
+            category: 'module.init',
+            level: 'info',
+            data: {modules: topModules},
+        });
     });
-    observer.observe({type: 'react-native-mark', buffered: true});
 }
