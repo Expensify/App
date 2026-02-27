@@ -101,7 +101,7 @@ function IOURequestStepUpgrade({
                 // /:action/submit/... when shouldSubmitExpense === true as transaction is not selfDM anymore
                 const backToRoute = shouldSubmitExpense ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID) : undefined;
 
-                Navigation.goBack(backToRoute);
+                Navigation.goBack(backToRoute, {compareParams: false});
 
                 setTransactionReport(transactionID, {reportID: expenseReportID}, true);
                 // Let the confirmation step decide the distance rate because policy data is not fully available at this step
