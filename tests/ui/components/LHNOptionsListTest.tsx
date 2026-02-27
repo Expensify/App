@@ -673,6 +673,67 @@ describe('LHNOptionsList', () => {
             });
         });
 
+        it('should render diagonal avatar for IOU report with personal policy and two user avatars', async () => {
+            const policyID = 'avatarIOUPersonalPolicy';
+            const chatReportID = 'avatarIOUPersonalChat';
+            const iouReportID = 'avatarIOUPersonalIOU';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Personal Policy',
+                type: CONST.POLICY.TYPE.PERSONAL,
+            } as Policy;
+            const chatReport: Report = {
+                reportID: chatReportID,
+                reportName: 'Personal Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID,
+                participants: twoParticipants,
+            };
+            const iouReport: Report = {
+                reportID: iouReportID,
+                reportName: 'IOU Report',
+                type: CONST.REPORT.TYPE.IOU,
+                policyID,
+                chatReportID,
+                ownerAccountID: accountID1,
+                managerID: accountID2,
+                participants: twoParticipants,
+                parentReportID: chatReportID,
+                parentReportActionID: 'previewAction3',
+            };
+            const reportPreviewAction: ReportAction = {
+                reportActionID: 'previewAction3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                created: '2024-01-01 00:00:00',
+                childReportID: iouReportID,
+                message: [{type: 'COMMENT', text: 'Report preview'}],
+                originalMessage: {},
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                    [reportPreviewAction.reportActionID]: reportPreviewAction,
+                });
+                await Onyx.merge(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+                    [chatReportID]: {
+                        [reportPreviewAction.reportActionID]: true,
+                    },
+                });
+            });
+
+            render(getLHNOptionsListElement({data: [iouReport]}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
+            });
+        });
+
         // Contrast case
 
         it('should render single avatar for IOU report preview with single sender', async () => {
