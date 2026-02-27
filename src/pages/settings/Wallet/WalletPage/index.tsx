@@ -11,7 +11,7 @@ import Icon from '@components/Icon';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -75,7 +75,8 @@ function WalletPage() {
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const isUserValidated = userAccount?.validated ?? false;
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Table']);
@@ -333,6 +334,7 @@ function WalletPage() {
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
+            shouldDisplayHelpButton
         />
     );
 

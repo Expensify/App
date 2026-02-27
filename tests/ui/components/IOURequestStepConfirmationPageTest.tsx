@@ -25,6 +25,39 @@ jest.mock('@rnmapbox/maps', () => {
         setAccessToken: jest.fn(),
     };
 });
+
+jest.mock('@src/languages/IntlStore', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const en: Record<string, unknown> = require('@src/languages/en').default;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const flatten: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
+    const cache = new Map<string, Record<string, unknown>>();
+    cache.set('en', flatten(en));
+    return {
+        getCurrentLocale: jest.fn(() => 'en'),
+        load: jest.fn(() => Promise.resolve()),
+        get: jest.fn((key: string, locale?: string) => {
+            const translations = cache.get(locale ?? 'en');
+            return translations?.[key] ?? null;
+        }),
+    };
+});
+
+jest.mock('@assets/emojis', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@assets/emojis');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        default: actual.default,
+        importEmojiLocale: jest.fn(() => Promise.resolve()),
+    };
+});
+
+jest.mock('@libs/EmojiTrie', () => ({
+    buildEmojisTrie: jest.fn(),
+}));
 jest.mock('@libs/actions/IOU', () => {
     const actualNav = jest.requireActual<typeof IOU>('@libs/actions/IOU');
     return {
@@ -210,6 +243,12 @@ describe('IOURequestStepConfirmationPageTest', () => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
+    });
+
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
         });
     });
 
@@ -640,6 +679,12 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     policyID: POLICY_ID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_CHAT_REPORT_ID}`, {
+                    reportID: POLICY_CHAT_REPORT_ID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
                     transactionID: TRANSACTION_ID,
                     reportID: REPORT_ID,
@@ -666,7 +711,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     created: '2025-01-15',
                     taxCode: 'taxRate2',
                     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                    participants: [{isPolicyExpenseChat: true, selected: true, reportID: POLICY_CHAT_REPORT_ID}],
                 });
             });
 
