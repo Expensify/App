@@ -1,11 +1,24 @@
 import {InteractionManager} from 'react-native';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {IntroSelected} from './Report';
 
-function startTestDrive(_introSelected: IntroSelected | undefined, _hasUserBeenAddedToNudgeMigration: boolean, _isUserPaidPolicyMember: boolean) {
+function startTestDrive(introSelected: IntroSelected | undefined, hasUserBeenAddedToNudgeMigration: boolean, isUserPaidPolicyMember: boolean) {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
+        const shouldNavigateToDemo =
+            hasUserBeenAddedToNudgeMigration ||
+            isUserPaidPolicyMember ||
+            introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+            introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
+            introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
+            (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE);
+
+        if (shouldNavigateToDemo) {
+            Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+            return;
+        }
         Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
     });
 }
