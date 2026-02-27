@@ -3,6 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WalletStatementModal from '@components/WalletStatementModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -36,6 +37,8 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     const prevIsWalletStatementGenerating = usePrevious(isWalletStatementGenerating);
     const [isDownloading, setIsDownloading] = useState(isWalletStatementGenerating);
     const {translate} = useLocalize();
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const {environment} = useEnvironment();
     const {isOffline} = useNetwork();
 
@@ -62,12 +65,12 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
             const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
                 currentUserLogin,
             )}`;
-            fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', isMobileSafari()).finally(() => setIsDownloading(false));
+            fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '', isMobileSafari()).finally(() => setIsDownloading(false));
             return;
         }
 
         generateStatementPDF(yearMonth);
-    }, [baseURL, currentUserLogin, isWalletStatementGenerating, translate, walletStatement, yearMonth]);
+    }, [baseURL, currentUserLogin, isWalletStatementGenerating, translate, walletStatement, yearMonth, encryptedAuthToken]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
