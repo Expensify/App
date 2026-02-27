@@ -1060,13 +1060,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
-        condensedBadgeWithIcon: {
-            minHeight: 16,
-            height: 16,
-            paddingHorizontal: 6,
-            borderRadius: variables.componentBorderRadiusMedium,
-        },
-
         condensedBadgeText: {
             fontSize: variables.fontSizeExtraSmall,
         },

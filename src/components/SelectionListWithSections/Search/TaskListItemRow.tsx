@@ -90,7 +90,6 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
                     text={translate('task.completed')}
                     badgeStyles={[
                         styles.ml0,
-                        styles.gap1,
                         styles.borderNone,
                         isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd,
                         StyleUtils.getBackgroundColorStyle(theme.reportStatusBadge.paid.backgroundColor),

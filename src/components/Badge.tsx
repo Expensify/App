@@ -83,27 +83,13 @@ function Badge({
     const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
         ({pressed}) => [
             styles.defaultBadge,
-            isCondensed && (icon ? styles.condensedBadgeWithIcon : styles.condensedBadge),
+            isCondensed && styles.condensedBadge,
             styles.alignSelfCenter,
             styles.ml2,
             StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC, isStrong),
             badgeStyles,
         ],
-        [
-            styles.defaultBadge,
-            styles.condensedBadge,
-            styles.condensedBadgeWithIcon,
-            styles.alignSelfCenter,
-            styles.ml2,
-            StyleUtils,
-            success,
-            error,
-            environment,
-            badgeStyles,
-            isCondensed,
-            isStrong,
-            icon,
-        ],
+        [styles.defaultBadge, styles.condensedBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles, isCondensed, isStrong, icon],
     );
 
     return (
