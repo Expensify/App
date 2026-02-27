@@ -75,9 +75,10 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
 
     const corruptionResult = await isFileCorrupted(fileObject, isValidatingReceipts);
     if (!corruptionResult.isValid) {
-        return corruptionResult;
+        return {isValid: false, error: corruptionResult.error, file: fileObject};
     }
-    const corruptionFreeFile = corruptionResult.validatedFile.file;
+
+    const corruptionFreeFile = corruptionResult.file;
     if (corruptionFreeFile instanceof File) {
         /**
          * Cleaning file name, done here so that it covers all cases:
@@ -99,11 +100,13 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
 
         return {isValid: true, validatedFile};
     }
+
     const validatedFile: ValidatedFile = {
         fileType: 'uri',
         source: corruptionFreeFile.uri ?? '',
         file: corruptionFreeFile,
     };
+
     return {isValid: true, validatedFile};
 }
 
@@ -148,39 +151,47 @@ async function validateMultipleAttachmentFiles(files: FileObject[], items?: Data
     };
 }
 
-function isFileCorrupted(fileObject: FileObject, isValidatingReceipts?: boolean): Promise<SingleAttachmentValidationResult> {
-    return normalizeFileObject(fileObject).then((normalizedFile) => {
-        return validateImageForCorruption(normalizedFile)
-            .then(() => {
-                if (normalizedFile.size && normalizedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                    return {
-                        isValid: false,
-                        error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE,
-                    } as SingleAttachmentInvalidResult;
-                }
+type FileCorruptionValidResult = {
+    isValid: true;
+    file: FileObject;
+};
+type FileCorruptionInvalidResult = {
+    isValid: false;
+    error: SingleAttachmentValidationError;
+};
 
-                if (isValidatingReceipts !== false && normalizedFile.size && normalizedFile.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                    return {
-                        isValid: false,
-                        error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL,
-                    } as SingleAttachmentInvalidResult;
-                }
+type FileCorruptionResult = FileCorruptionValidResult | FileCorruptionInvalidResult;
 
-                return {
-                    isValid: true,
-                    validatedFile: {
-                        fileType: 'file',
-                        file: normalizedFile,
-                    },
-                } as SingleAttachmentValidResult;
-            })
-            .catch(() => {
-                return {
-                    isValid: false,
-                    error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_INVALID,
-                } as SingleAttachmentInvalidResult;
-            });
-    });
+async function isFileCorrupted(fileObject: FileObject, isValidatingReceipts?: boolean): Promise<FileCorruptionResult> {
+    const normalizedFile = await normalizeFileObject(fileObject);
+
+    try {
+        await validateImageForCorruption(normalizedFile);
+
+        if (normalizedFile.size && normalizedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+            return {
+                isValid: false,
+                error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_LARGE,
+            } satisfies FileCorruptionInvalidResult;
+        }
+
+        if (isValidatingReceipts !== false && normalizedFile.size && normalizedFile.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+            return {
+                isValid: false,
+                error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_TOO_SMALL,
+            } satisfies FileCorruptionInvalidResult;
+        }
+
+        return {
+            isValid: true,
+            file: normalizedFile,
+        } satisfies FileCorruptionValidResult;
+    } catch (error) {
+        return {
+            isValid: false,
+            error: CONST.FILE_VALIDATION_ERRORS.SINGLE_FILE.FILE_INVALID,
+        } satisfies FileCorruptionInvalidResult;
+    }
 }
 
 function isDirectory(data: FileObject) {

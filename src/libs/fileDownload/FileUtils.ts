@@ -5,8 +5,8 @@ import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import ImageSize from 'react-native-image-size';
 import type {TupleToUnion} from 'type-fest';
-import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentValidation';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentValidation';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -628,9 +628,9 @@ const hasHeicOrHeifExtension = (file: FileObject) => {
  * Otherwise, it attempts to fetch the file via its URI and reconstruct a File
  * with full metadata (name, size, type).
  */
-const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
+const normalizeFileObject = async (file: FileObject): Promise<FileObject> => {
     if (file instanceof File || file instanceof Blob) {
-        return Promise.resolve(file);
+        return file;
     }
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
@@ -638,24 +638,18 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
     const isNativePlatform = isAndroidNative || isIOSNative;
 
     if (!isNativePlatform || 'size' in file) {
-        return Promise.resolve(file);
+        return file;
     }
 
     if (typeof file.uri !== 'string') {
-        return Promise.resolve(file);
+        return file;
     }
 
-    return fetch(file.uri)
-        .then((response) => response.blob())
-        .then((blob) => {
-            const name = file.name ?? 'unknown';
-            const type = file.type ?? blob.type ?? 'application/octet-stream';
-            const normalizedFile = new File([blob], name, {type});
-            return normalizedFile;
-        })
-        .catch((error) => {
-            return Promise.reject(error);
-        });
+    const response = await fetch(file.uri);
+    const blob = await response.blob();
+    const name = file.name ?? 'unknown';
+    const type = file.type ?? blob.type ?? 'application/octet-stream';
+    return new File([blob], name, {type});
 };
 
 type TranslationAdditionalData = {
