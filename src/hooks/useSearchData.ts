@@ -61,6 +61,16 @@ type UseSearchDataResult = {
     accountID: number;
     /** Current user's login email */
     login: string | undefined;
+    /** Bank account list, needed for group-by enrichment */
+    bankAccountList: ReturnType<typeof useOnyx<typeof ONYXKEYS.BANK_ACCOUNT_LIST>>[0];
+    /** Action loading report IDs set, needed for group-by enrichment */
+    isActionLoadingSet: ReadonlySet<string>;
+    /** All report metadata, needed for group-by enrichment */
+    allReportMetadata: ReturnType<typeof useOnyx<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>>[0];
+    /** Card list, needed for group-by enrichment */
+    cardList: ReturnType<typeof useOnyx<typeof ONYXKEYS.CARD_LIST>>[0];
+    /** The resolved search data type (expense_report when using live data) */
+    searchDataType: SearchDataTypes | undefined;
 };
 
 /**
@@ -205,6 +215,11 @@ function useSearchData({queryJSON, searchResults, isDataLoaded, shouldUseLiveDat
         suggestedSearches,
         accountID,
         login,
+        bankAccountList,
+        isActionLoadingSet,
+        allReportMetadata,
+        cardList,
+        searchDataType,
     };
 }
 

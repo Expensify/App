@@ -19,18 +19,15 @@ import type {
 } from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
-import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
-import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchData from '@hooks/useSearchData';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,15 +40,13 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
-    getColumnsToShow,
     getListItem,
     getSections,
     getSortedSections,
-    getSuggestedSearches,
     getWideAmountIndicators,
     isGroupedItemArray,
     isReportActionListItemType,
@@ -75,8 +70,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {OutstandingReportsByPolicyIDDerivedValue, SaveSearch, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -241,48 +235,46 @@ function Search({
     } = useSearchActionsContext();
     const [offset, setOffset] = useState(0);
 
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const previousTransactions = usePrevious(transactions);
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {accountID, email, login} = useCurrentUserPersonalDetails();
-    const isActionLoadingSet = useActionLoadingReportIDs();
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
 
-    const archivedReportsIdSet = useArchivedReportsIdSet();
+    // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
+    // we also need to check that the searchResults matches the type and status of the current search
+    const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
 
-    const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        canEvict: false,
+    const {
+        sections: baseFilteredData,
+        allDataLength,
+        filteredDataLength,
+        columns: currentColumns,
+        customCardNames,
+        violations,
+        cardFeeds,
+        cardFeedsLoading: isCardFeedsLoading,
+        searchKey,
+        savedSearchName,
+        transactions,
+        reportActions,
+        outstandingReportsByPolicyID,
+        introSelected,
+        accountID,
+        login,
+        bankAccountList,
+        isActionLoadingSet,
+        allReportMetadata,
+        cardList,
+        searchDataType,
+    } = useSearchData({queryJSON, searchResults, isDataLoaded, shouldUseLiveData});
 
-        selector: selectFilteredReportActions,
-    });
-
-    const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-
-    const {defaultCardFeed} = useCardFeedsForDisplay();
-    const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
-    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.recentSearchHash === recentSearchHash)?.key, [suggestedSearches, recentSearchHash]);
-    const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
+    const {email} = useCurrentUserPersonalDetails();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, hash, offset === 0);
 
+    const previousTransactions = usePrevious(transactions);
     const previousReportActions = usePrevious(reportActions);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     const spanExistedOnMount = useRef(!!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE));
-
-    const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
-    const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {selector: savedSearchSelector});
 
     const handleDEWModalOpen = useCallback(() => {
         if (onDEWModalOpen) {
@@ -320,9 +312,6 @@ function Search({
     const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
     const prevValidGroupBy = usePrevious(validGroupBy);
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
-
-    // When grouping by card, we need cardFeeds to display feed names
-    const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
 
     useEffect(() => {
         if (prevValidGroupBy === validGroupBy) {
@@ -389,10 +378,6 @@ function Search({
         shouldUseLiveData,
     });
 
-    // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
-    // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
-
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
     // For to-do searches, we never show loading state since the data is always available locally from Onyx
@@ -405,65 +390,6 @@ function Search({
             isCardFeedsLoading);
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
-
-    const [baseFilteredData, filteredDataLength, allDataLength] = useMemo(() => {
-        if (searchResults === undefined || !isDataLoaded) {
-            return [[], 0, 0];
-        }
-
-        // Group-by option cannot be used for chats or tasks
-        const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
-        const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-        if (validGroupBy && (isChat || isTask)) {
-            return [[], 0, 0];
-        }
-
-        const [filteredData1, allLength] = getSections({
-            type,
-            data: searchResults.data,
-            policies,
-            currentAccountID: accountID,
-            currentUserEmail: email ?? '',
-            translate,
-            formatPhoneNumber,
-            bankAccountList,
-            groupBy: validGroupBy,
-            reportActions: exportReportActions,
-            currentSearch: searchKey,
-            archivedReportsIDList: archivedReportsIdSet,
-            queryJSON,
-            isActionLoadingSet,
-            cardFeeds,
-            isOffline,
-            allTransactionViolations: violations,
-            customCardNames,
-            allReportMetadata,
-            cardList,
-        });
-        return [filteredData1, filteredData1.length, allLength];
-    }, [
-        searchKey,
-        isOffline,
-        exportReportActions,
-        validGroupBy,
-        isDataLoaded,
-        searchResults,
-        type,
-        archivedReportsIdSet,
-        translate,
-        formatPhoneNumber,
-        accountID,
-        queryJSON,
-        email,
-        isActionLoadingSet,
-        cardFeeds,
-        policies,
-        bankAccountList,
-        violations,
-        customCardNames,
-        allReportMetadata,
-        cardList,
-    ]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
     // containing its individual transactions. We collect these hashes and fetch their snapshots to enrich the grouped items.
@@ -1015,13 +941,6 @@ function Search({
         ],
     );
 
-    const currentColumns = useMemo(() => {
-        if (!searchResults?.data) {
-            return [];
-        }
-        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchDataType, validGroupBy);
-    }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy]);
-
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({
         opacity: opacity.get(),
@@ -1281,14 +1200,7 @@ function Search({
 
     if (shouldShowChartView && isGroupedItemArray(sortedData)) {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
-        let chartTitle = translate(`search.chartTitles.${validGroupBy}`);
-        if (savedSearch) {
-            if (savedSearch.name !== savedSearch.query) {
-                chartTitle = savedSearch.name;
-            }
-        } else if (searchKey && suggestedSearches[searchKey]) {
-            chartTitle = translate(suggestedSearches[searchKey].translationPath);
-        }
+        const chartTitle = savedSearchName ?? translate(`search.chartTitles.${validGroupBy}`);
 
         return (
             <SearchScopeProvider>
