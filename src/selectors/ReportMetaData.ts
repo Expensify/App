@@ -5,4 +5,7 @@ const isActionLoadingSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => r
 
 const hasOnceLoadedReportActionsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.hasOnceLoadedReportActions;
 
-export {isActionLoadingSelector, hasOnceLoadedReportActionsSelector};
+const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
+    reportMetadata ? {pendingChatMembers: reportMetadata.pendingChatMembers} : undefined;
+
+export {isActionLoadingSelector, hasOnceLoadedReportActionsSelector, pendingChatMembersSelector};
