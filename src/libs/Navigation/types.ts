@@ -1292,6 +1292,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TRAVEL_MISSING_PERSONAL_DETAILS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS]: {
         policyID: string;
     };
@@ -2710,9 +2713,6 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES]: {

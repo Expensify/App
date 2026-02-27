@@ -109,6 +109,7 @@ tests/e2e/results/
 
 # Typescript
 tsconfig.tsbuildinfo
+tsconfig.tsgo.tsbuildinfo
 
 # Mock-github
 /repo/
