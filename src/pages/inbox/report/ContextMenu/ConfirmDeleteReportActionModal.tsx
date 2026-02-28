@@ -22,15 +22,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 type ConfirmDeleteReportActionModalProps = ModalProps & {
     reportID: string;
     reportActionID: string;
+    actionSourceReportID?: string;
 };
 
-function ConfirmDeleteReportActionModal({closeModal, reportID, reportActionID}: ConfirmDeleteReportActionModalProps) {
+function ConfirmDeleteReportActionModal({closeModal, reportID, reportActionID, actionSourceReportID}: ConfirmDeleteReportActionModalProps) {
     const {translate} = useLocalize();
     const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {currentSearchHash} = useSearchStateContext();
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-    const reportAction = reportActions?.[reportActionID];
+    const [sourceReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionSourceReportID}`);
+    const actionReportActions = reportActions?.[reportActionID] ? reportActions : sourceReportActions;
+    const reportAction = actionReportActions?.[reportActionID];
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
@@ -42,8 +45,8 @@ function ConfirmDeleteReportActionModal({closeModal, reportID, reportActionID}: 
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
     const isReportArchived = useReportIsArchived(reportID);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportID, reportAction, reportActions)}`);
-    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportID, reportAction, reportActions));
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportID, reportAction, actionReportActions)}`);
+    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportID, reportAction, actionReportActions));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportAction);
 
     const transactionIDs: string[] = [];

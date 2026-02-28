@@ -297,6 +297,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 props: {
                     reportID: showReportID,
                     reportActionID: showReportAction.reportActionID,
+                    actionSourceReportID: menuState?.reportID,
                 },
             })
             .then((result) => {
