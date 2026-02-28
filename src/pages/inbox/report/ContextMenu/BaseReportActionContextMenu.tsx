@@ -1,11 +1,12 @@
 import type {RefObject} from 'react';
 import React, {useState} from 'react';
-import {InteractionManager} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import {useSession} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -16,7 +17,9 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
@@ -40,7 +43,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ActionId} from './actions/actionConfig';
 import {ORDERED_ACTION_SHOULD_SHOW} from './actions/actionConfig';
 import ContextMenuAction from './actions/ContextMenuAction';
-import ContextMenuLayout from './ContextMenuLayout';
 import {ContextMenuPayloadContext} from './ContextMenuPayloadProvider';
 import type {ContextMenuPayloadContextValue} from './ContextMenuPayloadProvider';
 import {useMiniContextMenuActions} from './MiniContextMenuProvider';
@@ -135,6 +137,9 @@ function BaseReportActionContextMenu({
     disabledActionIds = new Set(),
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
+    const StyleUtils = useStyleUtils();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -437,39 +442,43 @@ function BaseReportActionContextMenu({
         disabledActionIds,
     };
 
+    const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
+
     return (
-        <ContextMenuPayloadContext.Provider value={payloadValue}>
-            <ContextMenuLayout
-                isMini={isMini}
-                isVisible={isVisible}
-                shouldKeepOpen={shouldKeepOpen}
-                contentRef={contentRef}
-            >
-                {visibleSet.has('emojiReaction') && <ContextMenuAction.EmojiReaction />}
-                {visibleSet.has('replyInThread') && renderAction('replyInThread', ContextMenuAction.ReplyInThread)}
-                {visibleSet.has('markAsUnread') && renderAction('markAsUnread', ContextMenuAction.MarkAsUnread)}
-                {visibleSet.has('explain') && renderAction('explain', ContextMenuAction.Explain)}
-                {visibleSet.has('markAsRead') && renderAction('markAsRead', ContextMenuAction.MarkAsRead)}
-                {visibleSet.has('edit') && renderAction('edit', ContextMenuAction.Edit)}
-                {visibleSet.has('unhold') && renderAction('unhold', ContextMenuAction.Unhold)}
-                {visibleSet.has('hold') && renderAction('hold', ContextMenuAction.Hold)}
-                {visibleSet.has('joinThread') && renderAction('joinThread', ContextMenuAction.JoinThread)}
-                {visibleSet.has('leaveThread') && renderAction('leaveThread', ContextMenuAction.LeaveThread)}
-                {visibleSet.has('copyUrl') && renderAction('copyUrl', ContextMenuAction.CopyURL)}
-                {visibleSet.has('copyToClipboard') && renderAction('copyToClipboard', ContextMenuAction.CopyToClipboard)}
-                {visibleSet.has('copyEmail') && renderAction('copyEmail', ContextMenuAction.CopyEmail)}
-                {visibleSet.has('copyMessage') && renderAction('copyMessage', ContextMenuAction.CopyMessage)}
-                {visibleSet.has('copyLink') && renderAction('copyLink', ContextMenuAction.CopyLink)}
-                {visibleSet.has('pin') && renderAction('pin', ContextMenuAction.Pin)}
-                {visibleSet.has('unpin') && renderAction('unpin', ContextMenuAction.Unpin)}
-                {visibleSet.has('flagAsOffensive') && renderAction('flagAsOffensive', ContextMenuAction.FlagAsOffensive)}
-                {visibleSet.has('download') && renderAction('download', ContextMenuAction.Download)}
-                {visibleSet.has('copyOnyxData') && renderAction('copyOnyxData', ContextMenuAction.CopyOnyxData)}
-                {visibleSet.has('debug') && renderAction('debug', ContextMenuAction.Debug)}
-                {visibleSet.has('delete') && renderAction('delete', ContextMenuAction.Delete)}
-                {visibleSet.has('overflowMenu') && renderOverflowMenu()}
-            </ContextMenuLayout>
-        </ContextMenuPayloadContext.Provider>
+        (isVisible || shouldKeepOpen || !isMini) && (
+            <ContextMenuPayloadContext.Provider value={payloadValue}>
+                <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
+                    <View
+                        ref={contentRef}
+                        style={wrapperStyle}
+                    >
+                        {visibleSet.has('emojiReaction') && <ContextMenuAction.EmojiReaction />}
+                        {visibleSet.has('replyInThread') && renderAction('replyInThread', ContextMenuAction.ReplyInThread)}
+                        {visibleSet.has('markAsUnread') && renderAction('markAsUnread', ContextMenuAction.MarkAsUnread)}
+                        {visibleSet.has('explain') && renderAction('explain', ContextMenuAction.Explain)}
+                        {visibleSet.has('markAsRead') && renderAction('markAsRead', ContextMenuAction.MarkAsRead)}
+                        {visibleSet.has('edit') && renderAction('edit', ContextMenuAction.Edit)}
+                        {visibleSet.has('unhold') && renderAction('unhold', ContextMenuAction.Unhold)}
+                        {visibleSet.has('hold') && renderAction('hold', ContextMenuAction.Hold)}
+                        {visibleSet.has('joinThread') && renderAction('joinThread', ContextMenuAction.JoinThread)}
+                        {visibleSet.has('leaveThread') && renderAction('leaveThread', ContextMenuAction.LeaveThread)}
+                        {visibleSet.has('copyUrl') && renderAction('copyUrl', ContextMenuAction.CopyURL)}
+                        {visibleSet.has('copyToClipboard') && renderAction('copyToClipboard', ContextMenuAction.CopyToClipboard)}
+                        {visibleSet.has('copyEmail') && renderAction('copyEmail', ContextMenuAction.CopyEmail)}
+                        {visibleSet.has('copyMessage') && renderAction('copyMessage', ContextMenuAction.CopyMessage)}
+                        {visibleSet.has('copyLink') && renderAction('copyLink', ContextMenuAction.CopyLink)}
+                        {visibleSet.has('pin') && renderAction('pin', ContextMenuAction.Pin)}
+                        {visibleSet.has('unpin') && renderAction('unpin', ContextMenuAction.Unpin)}
+                        {visibleSet.has('flagAsOffensive') && renderAction('flagAsOffensive', ContextMenuAction.FlagAsOffensive)}
+                        {visibleSet.has('download') && renderAction('download', ContextMenuAction.Download)}
+                        {visibleSet.has('copyOnyxData') && renderAction('copyOnyxData', ContextMenuAction.CopyOnyxData)}
+                        {visibleSet.has('debug') && renderAction('debug', ContextMenuAction.Debug)}
+                        {visibleSet.has('delete') && renderAction('delete', ContextMenuAction.Delete)}
+                        {visibleSet.has('overflowMenu') && renderOverflowMenu()}
+                    </View>
+                </FocusTrapForModal>
+            </ContextMenuPayloadContext.Provider>
+        )
     );
 }
 
