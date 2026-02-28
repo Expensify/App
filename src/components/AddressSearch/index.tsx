@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, LogBox, Platform, StyleSheet, View} from 'react-native';
+import {Keyboard, LogBox, StyleSheet, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
@@ -8,6 +8,7 @@ import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useStatusAccessibilityAnnouncement from '@components/utils/useStatusAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -46,6 +47,26 @@ function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean 
 // react-native-google-places-autocomplete repo and replace the
 // VirtualizedList component with a VirtualizedList-backed instead
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+
+type NoResultsStatusMessageProps = {
+    message: string;
+    announcementKey: string;
+    style: React.ComponentProps<typeof Text>['style'];
+};
+
+function NoResultsStatusMessage({message, announcementKey, style}: NoResultsStatusMessageProps) {
+    useStatusAccessibilityAnnouncement(message, true, announcementKey);
+
+    return (
+        <Text
+            style={style}
+            accessibilityLiveRegion="polite"
+            role="status"
+        >
+            {message}
+        </Text>
+    );
+}
 
 function AddressSearch({
     canUseCurrentLocation = false,
@@ -332,15 +353,13 @@ function AddressSearch({
             return undefined;
         }
         return (
-            <Text
+            <NoResultsStatusMessage
                 style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
-                accessibilityLiveRegion={Platform.OS === 'web' ? 'polite' : undefined}
-                role={Platform.OS === 'web' ? 'status' : undefined}
-            >
-                {noResultsFoundText}
-            </Text>
+                announcementKey={searchValue}
+                message={noResultsFoundText}
+            />
         );
-    }, [isTyping, noResultsFoundText, styles]);
+    }, [isTyping, noResultsFoundText, searchValue, styles]);
 
     const listLoader = useMemo(
         () => (

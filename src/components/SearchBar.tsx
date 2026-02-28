@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Text from './Text';
 import TextInput from './TextInput';
+import useStatusAccessibilityAnnouncement from './utils/useStatusAccessibilityAnnouncement';
 
 type SearchBarProps = {
     label: string;
@@ -25,6 +26,10 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
+    const noResultsMessage = translate('common.noResultsFoundMatching', inputValue);
+    const shouldAnnounceNoResults = !!shouldShowEmptyState && inputValue.length !== 0;
+
+    useStatusAccessibilityAnnouncement(noResultsMessage, shouldAnnounceNoResults, inputValue);
 
     return (
         <>
@@ -49,10 +54,10 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
                 <View style={[styles.ph5, styles.pt3, styles.pb5]}>
                     <Text
                         style={[styles.textNormal, styles.colorMuted]}
-                        accessibilityLiveRegion={Platform.OS === 'web' ? 'polite' : undefined}
-                        role={Platform.OS === 'web' ? 'status' : undefined}
+                        accessibilityLiveRegion={shouldAnnounceNoResults ? 'polite' : undefined}
+                        role={shouldAnnounceNoResults ? 'status' : undefined}
                     >
-                        {translate('common.noResultsFoundMatching', inputValue)}
+                        {noResultsMessage}
                     </Text>
                 </View>
             )}

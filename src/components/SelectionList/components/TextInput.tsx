@@ -1,11 +1,12 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import type {TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useStatusAccessibilityAnnouncement from '@components/utils/useStatusAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mergeRefs from '@libs/mergeRefs';
@@ -66,10 +67,13 @@ function TextInput({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {label, value, onChangeText, errorText, headerMessage, hint, disableAutoFocus, placeholder, maxLength, inputMode, ref: optionsRef, style, disableAutoCorrect} = options ?? {};
-    const noResultsFoundText = translate('common.noResultsFound');
-    const resultsFound = headerMessage !== noResultsFoundText;
+    const noResultsFoundMessage = translate('common.noResultsFound');
+    const resultsFound = headerMessage !== noResultsFoundMessage;
     const noData = dataLength === 0 && !showLoadingPlaceholder;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || noData);
+    const shouldAnnounceNoResults = shouldShowHeaderMessage && headerMessage === noResultsFoundMessage;
+
+    useStatusAccessibilityAnnouncement(headerMessage ?? '', shouldAnnounceNoResults, value ?? '');
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -143,8 +147,8 @@ function TextInput({
                 <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
                     <Text
                         style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                        accessibilityLiveRegion={Platform.OS === 'web' && headerMessage === translate('common.noResultsFound') ? 'polite' : undefined}
-                        role={Platform.OS === 'web' && headerMessage === translate('common.noResultsFound') ? 'status' : undefined}
+                        accessibilityLiveRegion={shouldAnnounceNoResults ? 'polite' : undefined}
+                        role={shouldAnnounceNoResults ? 'status' : undefined}
                     >
                         {headerMessage}
                     </Text>

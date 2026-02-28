@@ -3,7 +3,7 @@ import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo, TextInputKeyPressEvent} from 'react-native';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
@@ -12,6 +12,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useStatusAccessibilityAnnouncement from '@components/utils/useStatusAccessibilityAnnouncement';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -1002,15 +1003,19 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
     );
 
-    const noResultsFoundText = translate('common.noResultsFound');
+    const noResultsFoundMessage = translate('common.noResultsFound');
+    const shouldShowHeaderMessageContent =
+        (!isLoadingNewOptions || headerMessage !== noResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) && !!headerMessage;
+    const shouldAnnounceNoResults = shouldShowHeaderMessageContent && headerMessage === noResultsFoundMessage;
+    useStatusAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, textInputValue);
+
     const headerMessageContent = () =>
-        (!isLoadingNewOptions || headerMessage !== noResultsFoundText || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
-        !!headerMessage && (
+        shouldShowHeaderMessageContent && (
             <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                 <Text
                     style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                    accessibilityLiveRegion={Platform.OS === 'web' && headerMessage === translate('common.noResultsFound') ? 'polite' : undefined}
-                    role={Platform.OS === 'web' && headerMessage === translate('common.noResultsFound') ? 'status' : undefined}
+                    accessibilityLiveRegion={shouldAnnounceNoResults ? 'polite' : undefined}
+                    role={shouldAnnounceNoResults ? 'status' : undefined}
                 >
                     {headerMessage}
                 </Text>
