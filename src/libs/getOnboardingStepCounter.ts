@@ -6,10 +6,11 @@ import SCREENS from '@src/SCREENS';
 type OnboardingScreen = ValueOf<typeof SCREENS.ONBOARDING>;
 
 type OnboardingFlowContext = {
-    signupQualifier?: string;
+    signupQualifier?: ValueOf<typeof CONST.ONBOARDING_SIGNUP_QUALIFIERS>;
     isFromPublicDomain?: boolean;
     hasAccessibleDomainPolicies?: boolean;
     purposeSelected?: ValueOf<typeof CONST.ONBOARDING_CHOICES>;
+    isMergeAccountStepSkipped?: boolean;
 };
 
 type OnboardingStepResult = {
@@ -20,14 +21,27 @@ type OnboardingStepResult = {
 const {ONBOARDING} = SCREENS;
 const {ONBOARDING_CHOICES, ONBOARDING_SIGNUP_QUALIFIERS} = CONST;
 
-const subPageMapping: Partial<Record<OnboardingScreen, OnboardingScreen>> = {
+const baseSubPageMapping: Partial<Record<OnboardingScreen, OnboardingScreen>> = {
     [ONBOARDING.WORKSPACE_CONFIRMATION]: ONBOARDING.WORKSPACE_OPTIONAL,
     [ONBOARDING.WORKSPACE_CURRENCY]: ONBOARDING.WORKSPACE_OPTIONAL,
     [ONBOARDING.WORKSPACE_INVITE]: ONBOARDING.WORKSPACE_OPTIONAL,
 };
 
+function getSubPageMapping(context: OnboardingFlowContext): Partial<Record<OnboardingScreen, OnboardingScreen>> {
+    if (context.isFromPublicDomain && context.isMergeAccountStepSkipped === false) {
+        return {
+            ...baseSubPageMapping,
+            [ONBOARDING.PRIVATE_DOMAIN]: ONBOARDING.WORK_EMAIL_VALIDATION,
+        };
+    }
+    return baseSubPageMapping;
+}
+
 function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
     if (context.isFromPublicDomain) {
+        if (context.isMergeAccountStepSkipped === false) {
+            return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.WORKSPACES];
+        }
         return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
     if (context.hasAccessibleDomainPolicies) {
@@ -62,7 +76,7 @@ function getOnboardingFlow(context: OnboardingFlowContext): OnboardingScreen[] |
 }
 
 function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlowContext): OnboardingStepResult | undefined {
-    const resolvedPage = subPageMapping[page] ?? page;
+    const resolvedPage = getSubPageMapping(context)[page] ?? page;
     const flow = getOnboardingFlow(context);
 
     if (!flow) {
@@ -71,9 +85,12 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
         if (index === -1) {
             return undefined;
         }
+        // Use the longest possible flow as denominator so the progress bar
+        // never moves backward when a purpose is selected on the next screen.
+        const maxFlowLength = Math.max(...Object.values(ONBOARDING_CHOICES).map((purpose) => getOnboardingFlow({...context, purposeSelected: purpose})?.length ?? 0));
         return {
             stepCounter: {step: index + 1},
-            progressBarPercentage: Math.round(((index + 1) / (knownScreens.length + 1)) * 100),
+            progressBarPercentage: Math.round(((index + 1) / maxFlowLength) * 100),
         };
     }
 

@@ -13,6 +13,7 @@ function useOnboardingStepCounter(page: OnboardingScreen): OnboardingStepResult 
         isFromPublicDomain: account?.isFromPublicDomain,
         hasAccessibleDomainPolicies: account?.hasAccessibleDomainPolicies,
         purposeSelected: purposeSelected ?? undefined,
+        isMergeAccountStepSkipped: onboarding?.isMergeAccountStepSkipped,
     });
 }
 
