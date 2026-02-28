@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useSession} from '@components/OnyxListItemProvider';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
@@ -36,6 +37,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {ActionId} from './actions/actionConfig';
+import {ORDERED_ACTION_SHOULD_SHOW} from './actions/actionConfig';
 import ContextMenuAction from './actions/ContextMenuAction';
 import ContextMenuLayout from './ContextMenuLayout';
 import {ContextMenuPayloadContext} from './ContextMenuPayloadProvider';
@@ -43,6 +46,12 @@ import type {ContextMenuPayloadContextValue} from './ContextMenuPayloadProvider'
 import {useMiniContextMenuActions} from './MiniContextMenuProvider';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
 import {hideContextMenu, showContextMenu} from './ReportActionContextMenu';
+
+type ContextMenuActionFocusProps = {
+    isFocused: boolean;
+    onFocus: () => void;
+    onBlur: () => void;
+};
 
 type BaseReportActionContextMenuProps = {
     /** The ID of the report this report action is attached to. */
@@ -217,6 +226,94 @@ function BaseReportActionContextMenu({
 
     useRestoreInputFocus(isVisible);
 
+    // Evaluate which actions are visible
+    const shouldShowArgs = {
+        type,
+        reportAction,
+        childReportActions,
+        isArchivedRoom,
+        betas,
+        menuTarget: anchor,
+        isChronosReport,
+        reportID,
+        isPinnedChat,
+        isUnreadChat,
+        isThreadReportParentAction,
+        isOffline: !!isOffline,
+        isMini,
+        isProduction,
+        moneyRequestAction,
+        areHoldRequirementsMet,
+        isDebugModeEnabled,
+        iouTransaction,
+        transactions,
+        moneyRequestReport,
+        moneyRequestPolicy,
+        isHarvestReport,
+    };
+
+    let visibleActionIds = ORDERED_ACTION_SHOULD_SHOW.filter((entry) => !disabledActionIds.has(entry.id) && entry.shouldShow(shouldShowArgs)).map((entry) => entry.id);
+
+    if (isMini) {
+        const overflowMenuId = visibleActionIds.at(-1);
+        const otherIds = visibleActionIds.slice(0, -1);
+        if (otherIds.length > CONST.MINI_CONTEXT_MENU_MAX_ITEMS && overflowMenuId) {
+            visibleActionIds = [...otherIds.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1), overflowMenuId];
+        } else {
+            visibleActionIds = otherIds;
+        }
+    }
+
+    const visibleSet = new Set(visibleActionIds);
+
+    const contentActionIndexes = visibleActionIds
+        .map((id, index) => {
+            const entry = ORDERED_ACTION_SHOULD_SHOW.find((e) => e.id === id);
+            return entry?.isContentAction ? index : undefined;
+        })
+        .filter((index): index is number => index !== undefined);
+
+    const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
+
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: -1,
+        disabledIndexes: contentActionIndexes,
+        maxIndex: visibleActionIds.length - 1,
+        isActive: shouldEnableArrowNavigation,
+    });
+
+    const getFocusProps = (id: ActionId): ContextMenuActionFocusProps => {
+        const index = visibleActionIds.indexOf(id);
+        return {
+            isFocused: focusedIndex === index,
+            onFocus: () => setFocusedIndex(index),
+            onBlur: () => (index === visibleActionIds.length - 1 || index === 1) && setFocusedIndex(-1),
+        };
+    };
+
+    const renderAction = (id: ActionId, Component: React.ComponentType<ContextMenuActionFocusProps>) => {
+        const {isFocused, onFocus, onBlur} = getFocusProps(id);
+        return (
+            <Component
+                isFocused={isFocused}
+                onFocus={onFocus}
+                onBlur={onBlur}
+            />
+        );
+    };
+
+    const renderOverflowMenu = () => {
+        const {isFocused, onFocus, onBlur} = getFocusProps('overflowMenu');
+        return (
+            <ContextMenuAction.OverflowMenu
+                isFocused={isFocused}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                visibleActionIds={visibleActionIds}
+            />
+        );
+    };
+
     /**
      * Checks if user is anonymous. If true and the action doesn't accept for anonymous user, hides the context menu and
      * shows the sign in modal. Else, executes the callback.
@@ -348,33 +445,33 @@ function BaseReportActionContextMenu({
                 shouldKeepOpen={shouldKeepOpen}
                 contentRef={contentRef}
             >
-                <ContextMenuAction.EmojiReaction />
-                <ContextMenuAction.ReplyInThread />
-                <ContextMenuAction.MarkAsUnread />
-                <ContextMenuAction.Explain />
-                <ContextMenuAction.MarkAsRead />
-                <ContextMenuAction.Edit />
-                <ContextMenuAction.Unhold />
-                <ContextMenuAction.Hold />
-                <ContextMenuAction.JoinThread />
-                <ContextMenuAction.LeaveThread />
-                <ContextMenuAction.CopyURL />
-                <ContextMenuAction.CopyToClipboard />
-                <ContextMenuAction.CopyEmail />
-                <ContextMenuAction.CopyMessage />
-                <ContextMenuAction.CopyLink />
-                <ContextMenuAction.Pin />
-                <ContextMenuAction.Unpin />
-                <ContextMenuAction.FlagAsOffensive />
-                <ContextMenuAction.Download />
-                <ContextMenuAction.CopyOnyxData />
-                <ContextMenuAction.Debug />
-                <ContextMenuAction.Delete />
-                <ContextMenuAction.OverflowMenu />
+                {visibleSet.has('emojiReaction') && <ContextMenuAction.EmojiReaction />}
+                {visibleSet.has('replyInThread') && renderAction('replyInThread', ContextMenuAction.ReplyInThread)}
+                {visibleSet.has('markAsUnread') && renderAction('markAsUnread', ContextMenuAction.MarkAsUnread)}
+                {visibleSet.has('explain') && renderAction('explain', ContextMenuAction.Explain)}
+                {visibleSet.has('markAsRead') && renderAction('markAsRead', ContextMenuAction.MarkAsRead)}
+                {visibleSet.has('edit') && renderAction('edit', ContextMenuAction.Edit)}
+                {visibleSet.has('unhold') && renderAction('unhold', ContextMenuAction.Unhold)}
+                {visibleSet.has('hold') && renderAction('hold', ContextMenuAction.Hold)}
+                {visibleSet.has('joinThread') && renderAction('joinThread', ContextMenuAction.JoinThread)}
+                {visibleSet.has('leaveThread') && renderAction('leaveThread', ContextMenuAction.LeaveThread)}
+                {visibleSet.has('copyUrl') && renderAction('copyUrl', ContextMenuAction.CopyURL)}
+                {visibleSet.has('copyToClipboard') && renderAction('copyToClipboard', ContextMenuAction.CopyToClipboard)}
+                {visibleSet.has('copyEmail') && renderAction('copyEmail', ContextMenuAction.CopyEmail)}
+                {visibleSet.has('copyMessage') && renderAction('copyMessage', ContextMenuAction.CopyMessage)}
+                {visibleSet.has('copyLink') && renderAction('copyLink', ContextMenuAction.CopyLink)}
+                {visibleSet.has('pin') && renderAction('pin', ContextMenuAction.Pin)}
+                {visibleSet.has('unpin') && renderAction('unpin', ContextMenuAction.Unpin)}
+                {visibleSet.has('flagAsOffensive') && renderAction('flagAsOffensive', ContextMenuAction.FlagAsOffensive)}
+                {visibleSet.has('download') && renderAction('download', ContextMenuAction.Download)}
+                {visibleSet.has('copyOnyxData') && renderAction('copyOnyxData', ContextMenuAction.CopyOnyxData)}
+                {visibleSet.has('debug') && renderAction('debug', ContextMenuAction.Debug)}
+                {visibleSet.has('delete') && renderAction('delete', ContextMenuAction.Delete)}
+                {visibleSet.has('overflowMenu') && renderOverflowMenu()}
             </ContextMenuLayout>
         </ContextMenuPayloadContext.Provider>
     );
 }
 
 export default BaseReportActionContextMenu;
-export type {BaseReportActionContextMenuProps};
+export type {BaseReportActionContextMenuProps, ContextMenuActionFocusProps};

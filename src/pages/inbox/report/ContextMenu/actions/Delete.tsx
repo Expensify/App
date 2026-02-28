@@ -2,22 +2,15 @@ import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu, showDeleteModal} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import {ACTION_IDS} from './actionConfig';
 
-function Delete() {
+function Delete({isFocused, onFocus, onBlur}: ContextMenuActionFocusProps) {
     const {reportID, reportAction, moneyRequestAction, isMini} = useContextMenuPayload();
-    const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const {translate} = useLocalize();
-
-    const actionIndex = visibleActionIds.indexOf(ACTION_IDS.DELETE);
-    if (actionIndex === -1) {
-        return null;
-    }
 
     const closePopover = !isMini;
 
@@ -38,9 +31,9 @@ function Delete() {
             text={translate('common.delete')}
             isMini={isMini}
             onPress={handlePress}
-            isFocused={focusedIndex === actionIndex}
-            onFocus={() => setFocusedIndex(actionIndex)}
-            onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}
+            isFocused={isFocused}
+            onFocus={onFocus}
+            onBlur={onBlur}
             sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.DELETE}
         />
     );

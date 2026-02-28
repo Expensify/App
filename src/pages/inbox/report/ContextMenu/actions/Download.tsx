@@ -6,23 +6,17 @@ import {isMobileSafari} from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {setDownload} from '@userActions/Download';
 import CONST from '@src/CONST';
-import {ACTION_IDS, getActionHtml} from './actionConfig';
+import {getActionHtml} from './actionConfig';
 
-function Download() {
+function Download({isFocused, onFocus, onBlur}: ContextMenuActionFocusProps) {
     const {reportAction, encryptedAuthToken, isMini, interceptAnonymousUser, download} = useContextMenuPayload();
-    const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const {translate} = useLocalize();
-
-    const actionIndex = visibleActionIds.indexOf(ACTION_IDS.DOWNLOAD);
-    if (actionIndex === -1) {
-        return null;
-    }
 
     const closePopover = !isMini;
     const isDownloading = download?.isDownloading ?? false;
@@ -52,9 +46,9 @@ function Download() {
             shouldShowLoadingSpinnerIcon={isDownloading}
             isAnonymousAction
             onPress={() => interceptAnonymousUser(handlePress, true)}
-            isFocused={focusedIndex === actionIndex}
-            onFocus={() => setFocusedIndex(actionIndex)}
-            onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}
+            isFocused={isFocused}
+            onFocus={onFocus}
+            onBlur={onBlur}
             sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.DOWNLOAD}
         />
     );

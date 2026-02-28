@@ -1,24 +1,18 @@
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {navigateToAndOpenChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
-import {ACTION_IDS} from './actionConfig';
 
-function ReplyInThread() {
+function ReplyInThread({isFocused, onFocus, onBlur}: ContextMenuActionFocusProps) {
     const {childReport, reportAction, originalReport, currentUserAccountID, interceptAnonymousUser, isMini} = useContextMenuPayload();
-    const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubbleReply'] as const);
 
-    const actionIndex = visibleActionIds.indexOf(ACTION_IDS.REPLY_IN_THREAD);
-    if (actionIndex === -1) {
-        return null;
-    }
     const closePopover = !isMini;
 
     const handlePress = () =>
@@ -40,9 +34,9 @@ function ReplyInThread() {
             text={translate('reportActionContextMenu.replyInThread')}
             isMini={isMini}
             onPress={handlePress}
-            isFocused={focusedIndex === actionIndex}
-            onFocus={() => setFocusedIndex(actionIndex)}
-            onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}
+            isFocused={isFocused}
+            onFocus={onFocus}
+            onBlur={onBlur}
             sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.REPLY_IN_THREAD}
         />
     );

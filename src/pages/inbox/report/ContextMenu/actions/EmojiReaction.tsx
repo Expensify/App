@@ -2,20 +2,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
-import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {toggleEmojiReaction} from '@userActions/Report';
 import type {ReportActionReactions} from '@src/types/onyx';
-import {ACTION_IDS} from './actionConfig';
 
 function EmojiReaction() {
     const {reportID, reportAction, currentUserAccountID, close, openContextMenu, setIsEmojiPickerActive, isMini, interceptAnonymousUser} = useContextMenuPayload();
-    const {visibleActionIds} = useContextMenuVisibility();
-
-    if (!visibleActionIds.includes(ACTION_IDS.EMOJI_REACTION)) {
-        return null;
-    }
 
     const closeContextMenu = (onHideCallback?: () => void) => {
         if (isMini) {

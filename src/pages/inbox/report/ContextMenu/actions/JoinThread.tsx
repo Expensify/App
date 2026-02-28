@@ -3,23 +3,17 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getChildReportNotificationPreference} from '@libs/ReportUtils';
-import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {toggleSubscribeToChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
-import {ACTION_IDS} from './actionConfig';
 
-function JoinThread() {
+function JoinThread({isFocused, onFocus, onBlur}: ContextMenuActionFocusProps) {
     const {reportAction, originalReport, currentUserAccountID, isMini, interceptAnonymousUser} = useContextMenuPayload();
-    const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Bell'] as const);
 
-    const actionIndex = visibleActionIds.indexOf(ACTION_IDS.JOIN_THREAD);
-    if (actionIndex === -1) {
-        return null;
-    }
     const closePopover = !isMini;
 
     const handlePress = () => {
@@ -41,9 +35,9 @@ function JoinThread() {
             text={translate('reportActionContextMenu.joinThread')}
             isMini={isMini}
             onPress={() => interceptAnonymousUser(handlePress, false)}
-            isFocused={focusedIndex === actionIndex}
-            onFocus={() => setFocusedIndex(actionIndex)}
-            onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}
+            isFocused={isFocused}
+            onFocus={onFocus}
+            onBlur={onBlur}
             sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD}
         />
     );

@@ -4,22 +4,15 @@ import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import EmailUtils from '@libs/EmailUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import {ACTION_IDS} from './actionConfig';
 
-function CopyEmail() {
+function CopyEmail({isFocused, onFocus, onBlur}: ContextMenuActionFocusProps) {
     const {selection, isMini, interceptAnonymousUser} = useContextMenuPayload();
-    const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
     const {translate} = useLocalize();
-
-    const actionIndex = visibleActionIds.indexOf(ACTION_IDS.COPY_EMAIL);
-    if (actionIndex === -1) {
-        return null;
-    }
 
     const handlePress = () => {
         Clipboard.setString(EmailUtils.trimMailTo(selection));
@@ -36,9 +29,9 @@ function CopyEmail() {
             isMini={isMini}
             isAnonymousAction
             onPress={() => interceptAnonymousUser(handlePress, true)}
-            isFocused={focusedIndex === actionIndex}
-            onFocus={() => setFocusedIndex(actionIndex)}
-            onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}
+            isFocused={isFocused}
+            onFocus={onFocus}
+            onBlur={onBlur}
             sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_EMAIL}
         />
     );

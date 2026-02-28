@@ -2,23 +2,17 @@ import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
-import {ACTION_IDS} from './actionConfig';
 
-function MarkAsRead() {
+function MarkAsRead({isFocused, onFocus, onBlur}: ContextMenuActionFocusProps) {
     const {reportID, isMini, interceptAnonymousUser} = useContextMenuPayload();
-    const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Mail', 'Checkmark'] as const);
 
-    const actionIndex = visibleActionIds.indexOf(ACTION_IDS.MARK_AS_READ);
-    if (actionIndex === -1) {
-        return null;
-    }
     const closePopover = !isMini;
 
     const handlePress = () => {
@@ -35,9 +29,9 @@ function MarkAsRead() {
             successIcon={icons.Checkmark}
             isMini={isMini}
             onPress={() => interceptAnonymousUser(handlePress)}
-            isFocused={focusedIndex === actionIndex}
-            onFocus={() => setFocusedIndex(actionIndex)}
-            onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}
+            isFocused={isFocused}
+            onFocus={onFocus}
+            onBlur={onBlur}
             sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.MARK_AS_READ}
         />
     );

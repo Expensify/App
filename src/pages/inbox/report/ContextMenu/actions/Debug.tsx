@@ -3,23 +3,16 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {ACTION_IDS} from './actionConfig';
 
-function Debug() {
+function Debug({isFocused, onFocus, onBlur}: ContextMenuActionFocusProps) {
     const {reportID, reportAction, isMini, interceptAnonymousUser} = useContextMenuPayload();
-    const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const icons = useMemoizedLazyExpensifyIcons(['Bug'] as const);
     const {translate} = useLocalize();
-
-    const actionIndex = visibleActionIds.indexOf(ACTION_IDS.DEBUG);
-    if (actionIndex === -1) {
-        return null;
-    }
 
     const handlePress = () => {
         if (!reportID) {
@@ -40,9 +33,9 @@ function Debug() {
             isMini={isMini}
             isAnonymousAction
             onPress={() => interceptAnonymousUser(handlePress, true)}
-            isFocused={focusedIndex === actionIndex}
-            onFocus={() => setFocusedIndex(actionIndex)}
-            onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}
+            isFocused={isFocused}
+            onFocus={onFocus}
+            onBlur={onBlur}
             sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.DEBUG}
         />
     );

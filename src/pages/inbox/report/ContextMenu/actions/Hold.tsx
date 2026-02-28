@@ -2,22 +2,16 @@ import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
-import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import {ACTION_IDS} from './actionConfig';
 
-function Hold() {
+function Hold({isFocused, onFocus, onBlur}: ContextMenuActionFocusProps) {
     const {moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal, isMini, interceptAnonymousUser} = useContextMenuPayload();
-    const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch'] as const);
 
-    const actionIndex = visibleActionIds.indexOf(ACTION_IDS.HOLD);
-    if (actionIndex === -1) {
-        return null;
-    }
     const closePopover = !isMini;
 
     const handlePress = () => {
@@ -38,9 +32,9 @@ function Hold() {
             text={translate('iou.hold')}
             isMini={isMini}
             onPress={() => interceptAnonymousUser(handlePress, false)}
-            isFocused={focusedIndex === actionIndex}
-            onFocus={() => setFocusedIndex(actionIndex)}
-            onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}
+            isFocused={isFocused}
+            onFocus={onFocus}
+            onBlur={onBlur}
             sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD}
         />
     );

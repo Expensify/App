@@ -2,24 +2,17 @@ import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import KeyboardUtils from '@src/utils/keyboard';
-import {ACTION_IDS} from './actionConfig';
 
-function FlagAsOffensive() {
+function FlagAsOffensive({isFocused, onFocus, onBlur}: ContextMenuActionFocusProps) {
     const {reportID, reportAction, isMini} = useContextMenuPayload();
-    const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const icons = useMemoizedLazyExpensifyIcons(['Flag'] as const);
     const {translate} = useLocalize();
-
-    const actionIndex = visibleActionIds.indexOf(ACTION_IDS.FLAG_AS_OFFENSIVE);
-    if (actionIndex === -1) {
-        return null;
-    }
 
     const closePopover = !isMini;
 
@@ -45,9 +38,9 @@ function FlagAsOffensive() {
             text={translate('reportActionContextMenu.flagAsOffensive')}
             isMini={isMini}
             onPress={handlePress}
-            isFocused={focusedIndex === actionIndex}
-            onFocus={() => setFocusedIndex(actionIndex)}
-            onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}
+            isFocused={isFocused}
+            onFocus={onFocus}
+            onBlur={onBlur}
             sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.FLAG_AS_OFFENSIVE}
         />
     );

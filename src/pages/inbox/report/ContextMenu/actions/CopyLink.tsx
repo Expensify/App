@@ -4,22 +4,15 @@ import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import {ACTION_IDS} from './actionConfig';
 
-function CopyLink() {
+function CopyLink({isFocused, onFocus, onBlur}: ContextMenuActionFocusProps) {
     const {reportAction, originalReportID, isMini, interceptAnonymousUser} = useContextMenuPayload();
-    const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy', 'Checkmark'] as const);
     const {translate} = useLocalize();
-
-    const actionIndex = visibleActionIds.indexOf(ACTION_IDS.COPY_LINK);
-    if (actionIndex === -1) {
-        return null;
-    }
 
     const handlePress = () => {
         getEnvironmentURL().then((environmentURL) => {
@@ -38,9 +31,9 @@ function CopyLink() {
             isMini={isMini}
             isAnonymousAction
             onPress={() => interceptAnonymousUser(handlePress, true)}
-            isFocused={focusedIndex === actionIndex}
-            onFocus={() => setFocusedIndex(actionIndex)}
-            onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}
+            isFocused={isFocused}
+            onFocus={onFocus}
+            onBlur={onBlur}
             sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_LINK}
         />
     );
