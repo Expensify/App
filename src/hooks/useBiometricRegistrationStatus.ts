@@ -1,8 +1,5 @@
 import {useEffect, useState} from 'react';
-import {PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
-import ONYXKEYS from '@src/ONYXKEYS';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useOnyx from './useOnyx';
+import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
 
 const REGISTRATION_STATUS = {
     NEVER_REGISTERED: 'never',
@@ -14,45 +11,36 @@ const REGISTRATION_STATUS = {
 type RegistrationStatus = (typeof REGISTRATION_STATUS)[keyof typeof REGISTRATION_STATUS];
 
 type BiometricRegistrationStatus = {
-    localPublicKey: string | null;
+    localPublicKey: string | undefined;
     isCurrentDeviceRegistered: boolean;
     otherDeviceCount: number;
     registrationStatus: RegistrationStatus;
-    serverKeyIDs: string[] | undefined;
 };
 
 function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const accountID = currentUserPersonalDetails?.accountID;
-    const serverKeyIDs = account?.multifactorAuthenticationPublicKeyIDs;
-
-    const [localPublicKey, setLocalPublicKey] = useState<string | null>(null);
+    const {getLocalPublicKey, serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useNativeBiometrics();
+    const [localPublicKey, setLocalPublicKey] = useState<string | undefined>();
 
     useEffect(() => {
-        if (!accountID) {
-            return;
-        }
         let cancelled = false;
-        PublicKeyStore.get(accountID).then(({value}) => {
+        getLocalPublicKey().then((key) => {
             if (cancelled) {
                 return;
             }
-            setLocalPublicKey(value ?? null);
+            setLocalPublicKey(key);
         });
         return () => {
             cancelled = true;
         };
-    }, [accountID, serverKeyIDs]);
+    }, [getLocalPublicKey]);
 
-    const isCurrentDeviceRegistered = !!localPublicKey && !!serverKeyIDs && serverKeyIDs.includes(localPublicKey);
-
-    const otherDeviceCount = serverKeyIDs ? serverKeyIDs.filter((key) => key !== localPublicKey).length : 0;
+    const isCurrentDeviceRegistered = !!localPublicKey && serverKnownCredentialIDs.includes(localPublicKey);
+    const otherDeviceCount = serverKnownCredentialIDs.length - (isCurrentDeviceRegistered ? 1 : 0);
 
     let registrationStatus: RegistrationStatus;
-    if (serverKeyIDs === undefined) {
+    if (!haveCredentialsEverBeenConfigured) {
         registrationStatus = REGISTRATION_STATUS.NEVER_REGISTERED;
-    } else if (serverKeyIDs.length === 0) {
+    } else if (serverKnownCredentialIDs.length === 0) {
         registrationStatus = REGISTRATION_STATUS.NOT_REGISTERED;
     } else if (isCurrentDeviceRegistered) {
         registrationStatus = REGISTRATION_STATUS.REGISTERED_THIS_DEVICE;
@@ -65,7 +53,6 @@ function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
         isCurrentDeviceRegistered,
         otherDeviceCount,
         registrationStatus,
-        serverKeyIDs,
     };
 }
 
