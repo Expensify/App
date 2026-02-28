@@ -12,8 +12,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectCircle from '@components/SelectCircle';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
+import NewChatListItem from '@components/SelectionListWithSections/NewChatListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useContactImport from '@hooks/useContactImport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -485,7 +485,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         >
             <SelectionList<Option & ListItem>
                 ref={selectionListRef}
-                ListItem={UserListItem}
+                ListItem={NewChatListItem}
                 sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                 textInputValue={searchTerm}
                 textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}

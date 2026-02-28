@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -80,7 +80,7 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
                 displayName="NetSuiteExportExpensesDestinationSelectPage"
                 title="workspace.accounting.exportAs"
                 data={data}
-                listItem={RadioListItem}
+                listItem={SingleSelectListItem}
                 onSelectRow={(selection: SelectorType) => selectDestination(selection as MenuListItem)}
                 initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 policyID={policyID}

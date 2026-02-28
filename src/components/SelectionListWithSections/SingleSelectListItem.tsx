@@ -25,6 +25,7 @@ function SingleSelectListItem<TItem extends ListItem>({
     wrapperStyle,
     titleStyles,
     shouldHighlightSelectedItem = true,
+    accessibilityState,
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const isSelected = item.isSelected;
@@ -34,12 +35,15 @@ function SingleSelectListItem<TItem extends ListItem>({
             <Checkbox
                 shouldSelectOnPressEnter
                 containerBorderRadius={999}
+                style={styles.ml3}
+                containerStyle={styles.m0}
                 accessibilityLabel="SingleSelectListItem"
                 isChecked={isSelected}
                 onPress={() => onSelectRow(item)}
+                focusable={false}
             />
         );
-    }, [isSelected, item, onSelectRow]);
+    }, [isSelected, item, onSelectRow, styles.ml3, styles.m0]);
 
     return (
         <RadioListItem
@@ -60,6 +64,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
             titleStyles={titleStyles}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+            accessibilityState={accessibilityState}
         />
     );
 }

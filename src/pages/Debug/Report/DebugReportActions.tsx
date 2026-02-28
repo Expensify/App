@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useMappedPersonalDetails, {personalDetailMapper} from '@hooks/useMappedPersonalDetails';
@@ -123,7 +123,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 style={{listItemTitleStyles: styles.fontWeightNormal}}
                 textInputOptions={textInputOptions}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
             />
         </ScrollView>
     );

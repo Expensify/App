@@ -117,7 +117,8 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                 key={currentQuestionIndex}
                 validate={validate}
                 scrollContextEnabled
-                style={[styles.flexGrow1, styles.ph5]}
+                style={[styles.flexGrow1]}
+                submitButtonStyles={styles.mh5}
                 submitButtonText={translate('common.saveAndContinue')}
                 shouldHideFixErrorsAlert
             >
@@ -134,7 +135,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                         onInputChange={() => {}}
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6, styles.mh5]}>
                         <Icon
                             src={icons.QuestionMark}
                             width={12}

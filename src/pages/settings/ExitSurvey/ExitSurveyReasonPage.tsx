@@ -94,8 +94,8 @@ function ExitSurveyReasonPage() {
                 {isOffline && <ExitSurveyOffline />}
                 {!isOffline && (
                     <>
-                        <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.reasonPage.title')}</Text>
-                        <Text style={styles.mt2}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
+                        <Text style={[styles.headerAnonymousFooter, styles.mh5]}>{translate('exitSurvey.reasonPage.title')}</Text>
+                        <Text style={[styles.mt2, styles.mh5]}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.RESPONSE}

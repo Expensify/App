@@ -26,6 +26,7 @@ function MultiSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
+    accessibilityState,
 }: MultiSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
@@ -37,7 +38,7 @@ function MultiSelectListItem<TItem extends ListItem>({
                 onSelectRow={onSelectRow}
             />
         );
-    }, [item, onSelectRow]);
+    }, [item, onSelectRow, styles.m0]);
 
     const {itemWithAvatar, computedWrapperStyle} = useMemo(() => {
         if (!icon) {
@@ -85,6 +86,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             wrapperStyle={computedWrapperStyle}
             titleStyles={titleStyles}
+            accessibilityState={accessibilityState}
         />
     );
 }

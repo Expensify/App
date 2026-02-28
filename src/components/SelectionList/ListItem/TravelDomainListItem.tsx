@@ -8,7 +8,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TravelDomainListItemProps} from './types';
 
-function TravelDomainListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onSelectRow, onCheckboxPress, onFocus, shouldSyncFocus}: TravelDomainListItemProps<TItem>) {
+function TravelDomainListItem<TItem extends ListItem>({
+    item,
+    isFocused,
+    showTooltip,
+    isDisabled,
+    onSelectRow,
+    onCheckboxPress,
+    onFocus,
+    shouldSyncFocus,
+    accessibilityState,
+}: TravelDomainListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const showRecommendedTag = item.isRecommended ?? false;
@@ -25,6 +35,7 @@ function TravelDomainListItem<TItem extends ListItem>({item, isFocused, showTool
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            accessibilityState={accessibilityState}
         >
             <>
                 <View style={[styles.flexRow, styles.alignItemsCenter]}>

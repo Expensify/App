@@ -69,6 +69,9 @@ function UserListItem<TItem extends ListItem>({
     const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
 
+    const shouldShowCheckbox = !!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple;
+    const shouldShowRadio = !shouldUseDefaultRightHandSideCheckmark && !canSelectMultiple;
+
     return (
         <BaseListItem
             item={item}
@@ -83,6 +86,7 @@ function UserListItem<TItem extends ListItem>({
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
+            shouldDisplayRBR={!shouldShowRadio && !shouldShowCheckbox}
             pressableStyle={pressableStyle}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
@@ -92,6 +96,8 @@ function UserListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            shouldUseDefaultRightHandSideCheckmark={false}
+            accessibilityState={accessibilityState}
         >
             {(hovered?: boolean) => (
                 <>
@@ -171,6 +177,10 @@ function UserListItem<TItem extends ListItem>({
                             sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.CHECKBOX_RIGHT}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
+                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            style={[styles.pl3]}
+                            containerStyle={[styles.m0]}
+                            isChecked={item.isSelected}
                             onPress={handleCheckboxPress}
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.ml3]}
                         >

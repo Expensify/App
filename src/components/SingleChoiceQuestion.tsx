@@ -24,7 +24,7 @@ function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuesti
         <>
             <Text
                 ref={ref}
-                style={[styles.mt3]}
+                style={[styles.mt3, styles.ph5]}
             >
                 {prompt}
             </Text>
@@ -33,6 +33,7 @@ function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuesti
                 key={currentQuestionIndex}
                 onPress={onInputChange}
                 errorText={errorText}
+                radioButtonStyle={[styles.optionRowCompact, styles.ph5]}
                 forwardedFSClass={forwardedFSClass}
             />
         </>

@@ -60,32 +60,27 @@ function RadioButtonWithLabel({
     forwardedFSClass,
 }: RadioButtonWithLabelProps) {
     const styles = useThemeStyles();
-    const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
 
     if (!label && !labelElement) {
         throw new Error('Must provide at least label or labelComponent prop');
     }
     return (
         <>
-            <View style={[defaultStyles, style]}>
-                <RadioButton
-                    isChecked={isChecked}
-                    onPress={onPress}
-                    accessibilityLabel={accessibilityLabel ?? label}
-                    hasError={hasError}
-                />
-                <PressableWithFeedback
-                    sentryLabel="RadioButtonWithLabel"
-                    tabIndex={-1}
-                    accessible={false}
-                    onPress={onPress}
-                    style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
-                    wrapperStyle={[styles.flex1, styles.ml3, styles.pr2, wrapperStyle]}
-                    // disable hover style when disabled
-                    hoverDimmingValue={0.8}
-                    pressDimmingValue={0.5}
-                    shouldBlendOpacity={shouldBlendOpacity}
-                >
+            <PressableWithFeedback
+                sentryLabel="RadioButtonWithLabel"
+                tabIndex={-1}
+                accessible={false}
+                style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter, style]}
+                wrapperStyle={[styles.flex1, styles.ml3, styles.pr2, wrapperStyle]}
+                hoverStyle={styles.hoveredComponentBG}
+                shouldBlendOpacity={shouldBlendOpacity}
+                isNested
+                // disable hover style when disabled
+                hoverDimmingValue={0.8}
+                pressDimmingValue={0.5}
+                onPress={onPress}
+            >
+                <View style={[styles.flex1]}>
                     {!!label && (
                         <Text
                             style={[styles.ml1]}
@@ -95,8 +90,15 @@ function RadioButtonWithLabel({
                         </Text>
                     )}
                     {!!labelElement && labelElement}
-                </PressableWithFeedback>
-            </View>
+                </View>
+                <RadioButton
+                    isChecked={isChecked}
+                    onPress={onPress}
+                    accessibilityLabel={accessibilityLabel ?? label}
+                    hasError={hasError}
+                    shouldUseNewStyle
+                />
+            </PressableWithFeedback>
             <FormHelpMessage message={errorText} />
         </>
     );

@@ -6,7 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import {useMouseContext} from '@hooks/useMouseContext';
+import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -42,6 +42,7 @@ function BaseListItem<TItem extends ListItem>({
     testID,
     shouldUseDefaultRightHandSideCheckmark = true,
     forwardedFSClass,
+    accessibilityState,
     shouldShowRightCaret = false,
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
@@ -53,7 +54,8 @@ function BaseListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
-    const {isMouseDownOnInput, setMouseUp} = useMouseContext();
+    const {isMouseDownOnInput} = useMouseState();
+    const {setMouseUp} = useMouseActions();
 
     const pressableRef = useRef<View>(null);
 
@@ -137,7 +139,7 @@ function BaseListItem<TItem extends ListItem>({
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={{selected: !!isFocused}}
+                    accessibilityState={accessibilityState ?? {selected: !!isFocused}}
                     style={[
                         wrapperStyle,
                         isFocused &&
