@@ -677,7 +677,7 @@ const translations: TranslationDeepObject<typeof en> = {
         biometricsTest: {
             biometricsTest: 'Test biométrique',
             authenticationSuccessful: 'Authentification réussie',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Vous avez été authentifié avec succès à l’aide de ${authType}.`,
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Vous vous êtes authentifié avec succès à l’aide de ${authType}.`,
             troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Données biométriques (${status})`,
             yourAttemptWasUnsuccessful: 'Votre tentative d’authentification a échoué.',
             youCouldNotBeAuthenticated: 'Vous n’avez pas pu être authentifié',
@@ -694,7 +694,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
-            statusNeverRegistered: 'Jamais inscrit',
+            statusNeverRegistered: 'Jamais enregistré',
             statusNotRegistered: 'Non enregistré',
             statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Un autre appareil enregistré' : 'Autres appareils enregistrés'),
             statusRegisteredThisDevice: 'Enregistré',
@@ -717,13 +717,13 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Activez une vérification rapide et sécurisée à l’aide de votre visage ou de votre empreinte digitale. Aucun mot de passe ni code requis.',
         },
         revoke: {
-            title: 'Reconnaissance faciale / empreinte digitale et passkeys',
+            title: 'Reconnaissance faciale/emprunte digitale & clés d’accès passkeys',
             explanation:
-                'La vérification par visage/empreinte digitale ou par clé d’accès est activée sur un ou plusieurs appareils. Révoquer l’accès nécessitera un code magique pour la prochaine vérification sur cet appareil.',
-            confirmationPrompt: 'Voulez-vous vraiment continuer ? Vous aurez besoin d’un code magique pour la prochaine vérification sur cet appareil.',
+                'La vérification par reconnaissance faciale/empreinte digitale ou par clé d’accès est activée sur un ou plusieurs appareils. Révoquer l’accès exigera un code magique pour la prochaine vérification sur cet appareil.',
+            confirmationPrompt: 'Êtes-vous sûr ? Vous aurez besoin d’un code magique pour la prochaine vérification sur cet appareil.',
             cta: 'Révoquer l’accès',
             noDevices:
-                'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale/empreinte digitale ou clé d’accès. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
+                'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale/empreinte digitale ou par clé d’accès. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
             dismiss: 'Compris',
             error: 'La requête a échoué. Réessayez plus tard.',
             revoke: 'Révoquer',

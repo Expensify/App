@@ -676,7 +676,7 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsTest: 'Biometrie-Test',
             authenticationSuccessful: 'Authentifizierung erfolgreich',
             successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Sie haben sich erfolgreich mit ${authType} authentifiziert.`,
-            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometrische Daten (${status})`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometrie (${status})`,
             yourAttemptWasUnsuccessful: 'Dein Authentifizierungsversuch war nicht erfolgreich.',
             youCouldNotBeAuthenticated: 'Du konntest nicht authentifiziert werden',
             areYouSureToReject: 'Sind Sie sicher? Der Authentifizierungsversuch wird abgelehnt, wenn Sie diesen Bildschirm schließen.',
@@ -717,11 +717,10 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             title: 'Gesicht/Fingerabdruck & Passkeys',
             explanation:
-                'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Aufheben des Zugriffs erfordert für die nächste Verifizierung auf diesem Gerät einen magischen Code.',
+                'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Entziehen des Zugriffs erfordert für die nächste Verifizierung auf diesem Gerät einen Magic-Code.',
             confirmationPrompt: 'Sind Sie sicher? Sie benötigen einen magischen Code für die nächste Verifizierung auf diesem Gerät.',
             cta: 'Zugriff widerrufen',
-            noDevices:
-                'Sie haben keine Geräte für die Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn Sie welche registrieren, können Sie den Zugriff hier widerrufen.',
+            noDevices: 'Sie haben keine Geräte für Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn Sie welche registrieren, können Sie diesen Zugriff hier widerrufen.',
             dismiss: 'Verstanden',
             error: 'Anfrage fehlgeschlagen. Versuche es später noch einmal.',
             revoke: 'Widerrufen',

@@ -675,7 +675,7 @@ const translations: TranslationDeepObject<typeof en> = {
         biometricsTest: {
             biometricsTest: 'Test biometrico',
             authenticationSuccessful: 'Autenticazione riuscita',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Hai effettuato l’autenticazione con successo utilizzando ${authType}.`,
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Hai eseguito l’autenticazione con successo usando ${authType}.`,
             troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Dati biometrici (${status})`,
             yourAttemptWasUnsuccessful: 'Il tentativo di autenticazione non è andato a buon fine.',
             youCouldNotBeAuthenticated: 'Autenticazione non riuscita',
@@ -720,7 +720,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 'La verifica tramite volto/impronta digitale o passkey è abilitata su uno o più dispositivi. Revocare l’accesso richiederà un codice magico per la prossima verifica su quel dispositivo.',
             confirmationPrompt: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su quel dispositivo.',
             cta: 'Revoca accesso',
-            noDevices: 'Non hai alcun dispositivo registrato per la verifica tramite volto/impronta digitale o passkey. Se ne registri uno, potrai revocare quell’accesso da qui.',
+            noDevices: 'Non hai nessun dispositivo registrato per la verifica con volto/impronta o passkey. Se ne registri uno, potrai revocare qui tale accesso.',
             dismiss: 'Capito',
             error: 'Richiesta non riuscita. Riprova più tardi.',
             revoke: 'Revoca',

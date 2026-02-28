@@ -674,7 +674,7 @@ const translations: TranslationDeepObject<typeof en> = {
         biometricsTest: {
             biometricsTest: 'Test biometrii',
             authenticationSuccessful: 'Uwierzytelnianie zakończone pomyślnie',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Pomyślnie uwierzytelniłeś się za pomocą ${authType}.`,
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Pomyślnie uwierzytelniłeś(-aś) się za pomocą ${authType}.`,
             troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometria (${status})`,
             yourAttemptWasUnsuccessful: 'Twoja próba uwierzytelnienia nie powiodła się.',
             youCouldNotBeAuthenticated: 'Nie udało się uwierzytelnić użytkownika',
@@ -691,7 +691,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
-            statusNeverRegistered: 'Nigdy nie zarejestrowano',
+            statusNeverRegistered: 'Nigdy niezarejestrowany',
             statusNotRegistered: 'Nie zarejestrowano',
             statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Inne urządzenie zarejestrowane' : 'Inne urządzenia zarejestrowane'),
             statusRegisteredThisDevice: 'Zarejestrowano',
@@ -714,18 +714,18 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Włącz szybką i bezpieczną weryfikację za pomocą twarzy lub odcisku palca. Bez haseł i kodów.',
         },
         revoke: {
-            title: 'Twarz/odcisk palca i klucze dostępu',
+            title: 'Rozpoznawanie twarzy/odcisk palca i klucze dostępu',
             explanation:
                 'Weryfikacja twarzą/odciskiem palca lub kluczem dostępu jest włączona na jednym lub kilku urządzeniach. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na tym urządzeniu będzie wymagany magiczny kod.',
-            confirmationPrompt: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnym potwierdzeniu na tym urządzeniu.',
-            cta: 'Odwołaj dostęp',
+            confirmationPrompt: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnej weryfikacji na tym urządzeniu.',
+            cta: 'Cofnij dostęp',
             noDevices:
-                'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą, odciskiem palca ani za pomocą klucza dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp tutaj.',
+                'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą, odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp tutaj.',
             dismiss: 'Jasne',
             error: 'Żądanie nie powiodło się. Spróbuj ponownie później.',
             revoke: 'Unieważnij',
-            confirmationPromptAll: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnym potwierdzeniu na dowolnym urządzeniu.',
-            ctaAll: 'Odwołaj wszystkie',
+            confirmationPromptAll: 'Na pewno? Będziesz potrzebować magicznego kodu przy kolejnym potwierdzeniu na dowolnym urządzeniu.',
+            ctaAll: 'Unieważnij wszystkie',
             thisDevice: 'To urządzenie',
             otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
                 const numberWords = ['Jedno', 'Dwa', 'Trzy', 'Cztery', 'Pięć', 'Sześć', 'Siedem', 'Osiem', 'Dziewięć'];

@@ -673,7 +673,7 @@ const translations: TranslationDeepObject<typeof en> = {
         biometricsTest: {
             biometricsTest: 'Teste de biometria',
             authenticationSuccessful: 'Autenticação bem-sucedida',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Você se autenticou com sucesso usando ${authType}.`,
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Você autenticou com sucesso usando ${authType}.`,
             troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometria (${status})`,
             yourAttemptWasUnsuccessful: 'Sua tentativa de autenticação não foi bem-sucedida.',
             youCouldNotBeAuthenticated: 'Não foi possível autenticar você',
@@ -713,9 +713,9 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Ative uma verificação rápida e segura usando seu rosto ou impressão digital. Nenhuma senha ou código é necessário.',
         },
         revoke: {
-            title: 'Rosto/digital & chaves de acesso',
+            title: 'Face/fingerprint e passkeys',
             explanation:
-                'A verificação por rosto/digital ou chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso vai exigir um código mágico na próxima verificação nesse dispositivo.',
+                'A verificação por rosto/digital ou passkey está ativada em um ou mais dispositivos. Revogar o acesso vai exigir um código mágico na próxima verificação nesse dispositivo.',
             confirmationPrompt: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação nesse dispositivo.',
             cta: 'Revogar acesso',
             noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou chave de acesso. Se você registrar algum, poderá revogar esse acesso aqui.',
