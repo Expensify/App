@@ -1,6 +1,5 @@
 import type {ReactNode, RefObject} from 'react';
 import React, {createContext, useContext, useRef, useState} from 'react';
-import type {ContextMenuAction} from './ContextMenuActions';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 
 const HIDE_DELAY_MS = 120;
@@ -12,16 +11,16 @@ type RowMeasurements = {
 };
 
 type MiniContextMenuParams = {
-    reportID: string;
+    reportID: string | undefined;
     reportActionID: string;
-    originalReportID: string;
+    originalReportID: string | undefined;
     anchor: RefObject<ContextMenuAnchor>;
     displayAsGroup: boolean;
     isArchivedRoom: boolean;
     isThreadReportParentAction: boolean;
     draftMessage: string | undefined;
     isChronosReport: boolean;
-    disabledActions: ContextMenuAction[];
+    disabledActionIds: Set<string>;
     checkIfContextMenuActive: () => void;
     setIsEmojiPickerActive: (state: boolean) => void;
     rowMeasurements: RowMeasurements;

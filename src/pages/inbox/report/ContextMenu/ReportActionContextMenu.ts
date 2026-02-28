@@ -7,7 +7,6 @@ import type {ValueOf} from 'type-fest';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
-import type {ContextMenuAction} from './ContextMenuActions';
 
 type OnConfirm = () => void;
 
@@ -40,7 +39,7 @@ type ShowContextMenuParams = {
         onHide?: () => void;
         setIsEmojiPickerActive?: (state: boolean) => void;
     };
-    disabledOptions?: ContextMenuAction[];
+    disabledActionIds?: Set<string>;
     shouldCloseOnTarget?: boolean;
     isOverflowMenu?: boolean;
     withoutOverlay?: boolean;

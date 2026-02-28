@@ -247,7 +247,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
-import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
+import {RESTRICTED_READONLY_ACTION_IDS} from './ContextMenu/actions/actionConfig';
 import {useMiniContextMenuActions} from './ContextMenu/MiniContextMenuProvider';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
@@ -262,6 +262,8 @@ import ReportActionItemMessageWithExplain from './ReportActionItemMessageWithExp
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import TripSummary from './TripSummary';
+
+const EMPTY_SET = new Set<string>();
 
 type PureReportActionItemProps = {
     /** All the data of the policy collection */
@@ -771,7 +773,7 @@ function PureReportActionItem({
         [transitionActionSheetState],
     );
 
-    const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
+    const disabledActionIds = !canWriteInReport(report) ? RESTRICTED_READONLY_ACTION_IDS : EMPTY_SET;
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -809,7 +811,7 @@ function PureReportActionItem({
                         onHide: toggleContextMenuFromActiveReportAction,
                         setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
                     },
-                    disabledOptions: disabledActions,
+                    disabledActionIds,
                 });
             });
         },
@@ -821,7 +823,7 @@ function PureReportActionItem({
             toggleContextMenuFromActiveReportAction,
             originalReportID,
             shouldDisplayContextMenu,
-            disabledActions,
+            disabledActionIds,
             isArchivedRoom,
             isChronosReport,
             handleShowContextMenu,
@@ -2068,16 +2070,16 @@ function PureReportActionItem({
                         }
                         const rect = node.getBoundingClientRect();
                         showMiniContextMenu({
-                            reportID: reportID ?? '',
+                            reportID,
                             reportActionID: action.reportActionID,
-                            originalReportID: originalReportID ?? '',
+                            originalReportID,
                             anchor: popoverAnchorRef,
                             displayAsGroup: !!displayAsGroup,
                             isArchivedRoom: !!isArchivedRoom,
                             isThreadReportParentAction: !!isThreadReportParentAction,
                             draftMessage,
                             isChronosReport: !!isChronosReport,
-                            disabledActions,
+                            disabledActionIds,
                             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
                             setIsEmojiPickerActive,
                             rowMeasurements: {

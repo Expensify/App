@@ -25,9 +25,9 @@ import {
     shouldDisableThread,
     shouldDisplayThreadReplies,
 } from '@libs/ReportUtils';
+import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {Beta, Policy, ReportAction, Report as ReportType, Transaction} from '@src/types/onyx';
-import type {ContextMenuAnchor} from '../ReportActionContextMenu';
 
 const ACTION_IDS = {
     EMOJI_REACTION: 'emojiReaction',

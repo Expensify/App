@@ -27,11 +27,11 @@ function MiniReportActionContextMenu() {
             const targetRight = window.innerWidth - state.rowMeasurements.right + 4;
 
             if (wasVisibleRef.current) {
-                baseTop.value = withTiming(targetY, {duration: SLIDE_DURATION, easing: OVERSHOOT_EASING});
-                baseRight.value = withTiming(targetRight, {duration: SLIDE_DURATION});
+                baseTop.set(withTiming(targetY, {duration: SLIDE_DURATION, easing: OVERSHOOT_EASING}));
+                baseRight.set(withTiming(targetRight, {duration: SLIDE_DURATION}));
             } else {
-                baseTop.value = targetY;
-                baseRight.value = targetRight;
+                baseTop.set(targetY);
+                baseRight.set(targetRight);
             }
         }
         wasVisibleRef.current = state.isVisible;
@@ -51,8 +51,8 @@ function MiniReportActionContextMenu() {
     }, [isVisible, hideMiniContextMenu]);
 
     const positionStyle = useAnimatedStyle(() => ({
-        top: baseTop.value,
-        right: baseRight.value,
+        top: baseTop.get(),
+        right: baseRight.get(),
     }));
 
     if (!state) {
@@ -88,7 +88,7 @@ function MiniReportActionContextMenu() {
                     isThreadReportParentAction={state.isThreadReportParentAction}
                     draftMessage={state.draftMessage}
                     isChronosReport={state.isChronosReport}
-                    disabledActions={state.disabledActions}
+                    disabledActionIds={state.disabledActionIds}
                     checkIfContextMenuActive={state.checkIfContextMenuActive}
                     setIsEmojiPickerActive={state.setIsEmojiPickerActive}
                     isVisible={state.isVisible}
