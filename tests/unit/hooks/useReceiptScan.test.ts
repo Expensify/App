@@ -53,6 +53,7 @@ jest.mock('@userActions/TransactionEdit', () => ({
 
 jest.mock('@userActions/IOU', () => ({
     setMoneyRequestReceipt: (...args: unknown[]) => mockSetMoneyRequestReceipt(...args),
+    getMoneyRequestParticipantsFromReport: () => [],
 }));
 
 jest.mock('@hooks/useOptimisticDraftTransactions', () => ({
