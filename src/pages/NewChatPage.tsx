@@ -379,7 +379,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         if (option?.reportID) {
             Navigation.dismissModal({
-                afterTransition: () => {
+                callback: () => {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option?.reportID));
                 },
             });
