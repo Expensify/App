@@ -56,7 +56,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     }, [isOffline, reportActionReportID, isLoadingApp, report, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport]);
 
     const fetchReport = useCallback(() => {
-        openReport(reportActionReportID, introSelected, reportActionID);
+        openReport({reportID: reportActionReportID, introSelected, reportActionID});
     }, [reportActionReportID, introSelected, reportActionID]);
 
     useEffect(() => {

@@ -195,13 +195,13 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     callback();
 
                     // We are already on the parent one expense report, so just call the API to fetch report data
-                    openReport(parentReportID, undefined);
+                    openReport({reportID: parentReportID, introSelected: undefined});
                 });
             } else {
                 callback();
 
                 // We are already on the parent one expense report, so just call the API to fetch report data
-                openReport(parentReportID, undefined);
+                openReport({reportID: parentReportID, introSelected: undefined});
             }
             return;
         }

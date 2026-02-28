@@ -620,7 +620,7 @@ function ReportActionsList({
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
             }
-            openReport(report.reportID, introSelected);
+            openReport({reportID: report.reportID, introSelected});
             reportScrollManager.scrollToBottom();
             return;
         }
