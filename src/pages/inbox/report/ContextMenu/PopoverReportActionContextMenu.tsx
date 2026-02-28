@@ -36,11 +36,6 @@ type PopoverContextMenuState = {
     originalReportID: string | undefined;
     selection: string;
     draftMessage: string | undefined;
-    isArchivedRoom: boolean;
-    isChronos: boolean;
-    isPinnedChat: boolean;
-    isUnreadChat: boolean;
-    isThreadReportParentAction: boolean;
     isOverflowMenu: boolean;
     withoutOverlay: boolean;
     position: PopoverPosition;
@@ -148,8 +143,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             setComposerToRefocusOnClose('edit');
         }
 
-        const {reportID: showReportID, originalReportID: showOriginalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = currentReport;
-        const {reportActionID: showReportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportActionParam;
+        const {reportID: showReportID, originalReportID: showOriginalReportID} = currentReport;
+        const {reportActionID: showReportActionID, draftMessage} = reportActionParam;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
 
@@ -200,11 +195,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 originalReportID: showOriginalReportID || undefined,
                 selection,
                 draftMessage,
-                isArchivedRoom,
-                isChronos,
-                isPinnedChat,
-                isUnreadChat,
-                isThreadReportParentAction: isThreadReportParentActionParam,
                 isOverflowMenu,
                 withoutOverlay,
                 position,
@@ -281,11 +271,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION as ContextMenuType,
                 selection: '',
                 draftMessage: undefined,
-                isArchivedRoom: false,
-                isChronos: false,
-                isPinnedChat: false,
-                isUnreadChat: false,
-                isThreadReportParentAction: false,
                 isOverflowMenu: false,
                 withoutOverlay: true,
                 position: {anchorHorizontal: 0, anchorVertical: 0, anchorWidth: 0, anchorHeight: 0},
@@ -361,11 +346,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 reportActionID={menuState?.reportActionID}
                 draftMessage={menuState?.draftMessage}
                 selection={menuState?.selection ?? ''}
-                isArchivedRoom={menuState?.isArchivedRoom ?? false}
-                isChronosReport={menuState?.isChronos ?? false}
-                isPinnedChat={menuState?.isPinnedChat ?? false}
-                isUnreadChat={menuState?.isUnreadChat ?? false}
-                isThreadReportParentAction={menuState?.isThreadReportParentAction ?? false}
                 anchor={{current: menuState?.contextMenuTargetNode ?? null}}
                 contentRef={contentRef}
                 originalReportID={menuState?.originalReportID}

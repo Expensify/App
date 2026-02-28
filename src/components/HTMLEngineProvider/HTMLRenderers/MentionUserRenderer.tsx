@@ -17,7 +17,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getShortMentionIfFound} from '@libs/PersonalDetailsUtils';
-import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -82,9 +81,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                         if (isDisabled || !shouldDisplayContextMenu) {
                             return;
                         }
-                        return onShowContextMenu(() =>
-                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
-                        );
+                        return onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive));
                     }}
                     onPress={(event) => {
                         event.preventDefault();

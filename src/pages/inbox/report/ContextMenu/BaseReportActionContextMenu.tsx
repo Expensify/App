@@ -30,7 +30,9 @@ import {
     getHarvestOriginalReportID,
     getSourceIDFromReportAction,
     isArchivedNonExpenseReport,
+    isChatThread,
     isHarvestCreatedExpenseReport,
+    isUnread,
     isInvoiceReport as ReportUtilsIsInvoiceReport,
     isMoneyRequest as ReportUtilsIsMoneyRequest,
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
@@ -89,24 +91,6 @@ type BaseReportActionContextMenuProps = {
     /** Target node which is the target of ContentMenu */
     anchor?: RefObject<ContextMenuAnchor>;
 
-    /** Flag to check if the chat participant is Chronos */
-    isChronosReport?: boolean;
-
-    /** Whether the provided report is an archived room */
-    isArchivedRoom?: boolean;
-
-    /** Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action */
-    isPinnedChat?: boolean;
-
-    /** Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action */
-    isUnreadChat?: boolean;
-
-    /**
-     * Is the action a thread's parent reportAction viewed from within the thread report?
-     * It will be false if we're viewing the same parent report action from the report it belongs to rather than the thread.
-     */
-    isThreadReportParentAction?: boolean;
-
     /** Content Ref */
     contentRef?: RefObject<ViewType | null>;
 
@@ -121,13 +105,8 @@ function BaseReportActionContextMenu({
     type = CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
     anchor,
     contentRef,
-    isChronosReport = false,
-    isArchivedRoom = false,
     isMini = false,
     isVisible = false,
-    isPinnedChat = false,
-    isUnreadChat = false,
-    isThreadReportParentAction = false,
     selection = '',
     draftMessage = '',
     reportActionID,
@@ -196,6 +175,12 @@ function BaseReportActionContextMenu({
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const isChildReportArchived = useReportIsArchived(childReport?.reportID);
     const isParentReportArchived = useReportIsArchived(childReport?.parentReportID);
+
+    const isChronosReport = chatIncludesChronosWithID(originalReportID);
+    const isArchivedRoom = isArchivedNonExpenseReport(originalReport, isOriginalReportArchived);
+    const isPinnedChat = !!report?.isPinned;
+    const isUnreadChat = isUnread(report, undefined, isOriginalReportArchived);
+    const isThreadReportParentAction = isChatThread(report) && report?.parentReportActionID === reportAction?.reportActionID;
 
     const isMoneyRequestReport = ReportUtilsIsMoneyRequestReport(childReport);
     const isInvoiceReport = ReportUtilsIsInvoiceReport(childReport);
@@ -344,13 +329,10 @@ function BaseReportActionContextMenu({
             report: {
                 reportID,
                 originalReportID,
-                isArchivedRoom: isArchivedNonExpenseReport(originalReport, isOriginalReportArchived),
-                isChronos: chatIncludesChronosWithID(originalReportID),
             },
             reportAction: {
                 reportActionID: reportAction?.reportActionID,
                 draftMessage,
-                isThreadReportParentAction,
             },
             callbacks: {
                 onShow: checkIfContextMenuActive,

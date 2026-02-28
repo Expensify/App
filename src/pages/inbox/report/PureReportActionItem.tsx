@@ -528,6 +528,7 @@ function PureReportActionItem({
     originalReport,
     deleteReportActionDraft = () => {},
     isArchivedRoom,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in memo comparator
     isChronosReport,
     toggleEmojiReaction = () => {},
     createDraftTransactionAndNavigateToParticipantSelector = () => {},
@@ -792,13 +793,10 @@ function PureReportActionItem({
                     report: {
                         reportID,
                         originalReportID,
-                        isArchivedRoom,
-                        isChronos: isChronosReport,
                     },
                     reportAction: {
                         reportActionID: action.reportActionID,
                         draftMessage,
-                        isThreadReportParentAction,
                     },
                     callbacks: {
                         onShow: toggleContextMenuFromActiveReportAction,
@@ -808,19 +806,7 @@ function PureReportActionItem({
                 });
             });
         },
-        [
-            draftMessage,
-            action.errors,
-            action.reportActionID,
-            reportID,
-            toggleContextMenuFromActiveReportAction,
-            originalReportID,
-            shouldDisplayContextMenu,
-            isArchivedRoom,
-            isChronosReport,
-            handleShowContextMenu,
-            isThreadReportParentAction,
-        ],
+        [draftMessage, action.errors, action.reportActionID, reportID, toggleContextMenuFromActiveReportAction, originalReportID, shouldDisplayContextMenu, handleShowContextMenu],
     );
 
     const toggleReaction = useCallback(
@@ -2067,10 +2053,7 @@ function PureReportActionItem({
                             originalReportID,
                             anchor: popoverAnchorRef,
                             displayAsGroup: !!displayAsGroup,
-                            isArchivedRoom: !!isArchivedRoom,
-                            isThreadReportParentAction: !!isThreadReportParentAction,
                             draftMessage,
-                            isChronosReport: !!isChronosReport,
                             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
                             setIsEmojiPickerActive,
                             rowMeasurements: {

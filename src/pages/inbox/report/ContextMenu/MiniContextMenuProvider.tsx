@@ -16,10 +16,7 @@ type MiniContextMenuParams = {
     originalReportID: string | undefined;
     anchor: RefObject<ContextMenuAnchor>;
     displayAsGroup: boolean;
-    isArchivedRoom: boolean;
-    isThreadReportParentAction: boolean;
     draftMessage: string | undefined;
-    isChronosReport: boolean;
     checkIfContextMenuActive: () => void;
     setIsEmojiPickerActive: (state: boolean) => void;
     rowMeasurements: RowMeasurements;

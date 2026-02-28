@@ -10,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
-import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import {setDownload} from '@userActions/Download';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,7 +56,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                         if (isDisabled || !shouldDisplayContextMenu) {
                             return;
                         }
-                        showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived));
+                        showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive);
                     }}
                     shouldUseHapticsOnLongPress
                     accessibilityLabel={displayName}

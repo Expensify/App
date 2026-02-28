@@ -13,7 +13,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFileName, getFileType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -121,9 +120,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
                                 if (isDisabled || !shouldDisplayContextMenu) {
                                     return;
                                 }
-                                return onShowContextMenu(() =>
-                                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
-                                );
+                                return onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive));
                             }}
                             isNested
                             shouldUseHapticsOnLongPress

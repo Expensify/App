@@ -147,8 +147,6 @@ function OptionRowLHN({
             report: {
                 reportID,
                 originalReportID: reportID,
-                isPinnedChat: optionItem.isPinned,
-                isUnreadChat: !!optionItem.isUnread,
             },
             reportAction: {
                 reportActionID: '-1',

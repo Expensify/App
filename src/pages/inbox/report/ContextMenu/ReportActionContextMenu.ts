@@ -24,15 +24,10 @@ type ShowContextMenuParams = {
     report?: {
         reportID?: string;
         originalReportID?: string;
-        isArchivedRoom?: boolean;
-        isChronos?: boolean;
-        isPinnedChat?: boolean;
-        isUnreadChat?: boolean;
     };
     reportAction?: {
         reportActionID?: string;
         draftMessage?: string;
-        isThreadReportParentAction?: boolean;
     };
     callbacks?: {
         onShow?: () => void;
