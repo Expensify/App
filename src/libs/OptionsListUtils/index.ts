@@ -1165,23 +1165,6 @@ function getReportOption(
 }
 
 /**
- * Resolves report + chatReport from a reports collection and delegates to getReportOption.
- */
-function getReportOptionFromCollection(
-    participant: Participant,
-    privateIsArchived: string | undefined,
-    policy: OnyxEntry<Policy>,
-    currentUserAccountID: number,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    reports: OnyxCollection<Report>,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-): OptionData {
-    const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
-    const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-    return getReportOption(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, report, chatReport, reportAttributesDerived);
-}
-
-/**
  * Get the display option for a given report.
  */
 function getReportDisplayOption(
@@ -3413,7 +3396,6 @@ export {
     getPolicyExpenseReportOption,
     getReportDisplayOption,
     getReportOption,
-    getReportOptionFromCollection,
     getSearchOptions,
     getSearchValueForPhoneOrEmail,
     getUserToInviteContactOption,

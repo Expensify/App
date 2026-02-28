@@ -5,6 +5,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useParticipantReport from '@hooks/useParticipantReport';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
@@ -51,7 +52,7 @@ function IOURequestStepDistanceGPS({
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const {participantReport, participantChatReport} = useParticipantReport(report, currentUserPersonalDetails.accountID);
     const reportAttributesDerived = useReportAttributes();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -99,7 +100,8 @@ function IOURequestStepDistanceGPS({
             transactionID,
             reportAttributesDerived,
             personalDetails,
-            reports: reports,
+            participantReport,
+            participantChatReport,
             waypoints,
             customUnitRateID,
             currentUserLogin: currentUserEmailParam,

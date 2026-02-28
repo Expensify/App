@@ -11,6 +11,7 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useParticipantReport from '@hooks/useParticipantReport';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -24,7 +25,7 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateDefaultReimbursable, getExistingTransactionID, isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getParticipantsOption, getReportOptionFromCollection} from '@libs/OptionsListUtils';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
@@ -96,7 +97,7 @@ function IOURequestStepAmount({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const {participantReport, participantChatReport} = useParticipantReport(report, currentUserPersonalDetails.accountID);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
@@ -229,7 +230,7 @@ function IOURequestStepAmount({
                 if (participantAccountID) {
                     return getParticipantsOption(participant, personalDetails);
                 }
-                return getReportOptionFromCollection(participant, privateIsArchived, policy, currentUserAccountIDParam, personalDetails, reports, reportAttributesDerived);
+                return getReportOption(participant, privateIsArchived, policy, currentUserAccountIDParam, personalDetails, participantReport, participantChatReport, reportAttributesDerived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 

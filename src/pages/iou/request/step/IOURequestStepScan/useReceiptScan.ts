@@ -8,6 +8,7 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
+import useParticipantReport from '@hooks/useParticipantReport';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
@@ -68,7 +69,7 @@ function useReceiptScan({
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const {participantReport, participantChatReport} = useParticipantReport(report, currentUserPersonalDetails.accountID);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`);
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
@@ -147,7 +148,8 @@ function useReceiptScan({
                 participants: initialTransaction?.participants,
             },
             personalDetails,
-            reports: reports,
+            participantReport,
+            participantChatReport,
             currentUserLogin: currentUserPersonalDetails.login,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             backTo,

@@ -5,7 +5,7 @@ import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfir
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getManagerMcTestParticipant, getParticipantsOption, getReportOptionFromCollection} from '@libs/OptionsListUtils';
+import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -15,7 +15,6 @@ import {setTransactionReport} from '@userActions/Transaction';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, RecentWaypoint, Report, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -86,7 +85,8 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     initialTransaction: InitialTransactionParams;
     policyForMovingExpenses?: OnyxEntry<Policy>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
-    reports: OnyxCollection<Report>;
+    participantReport: OnyxEntry<Report>;
+    participantChatReport: OnyxEntry<Report>;
     currentUserLogin?: string;
     currentUserAccountID: number;
     backTo?: Route;
@@ -123,7 +123,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     transaction?: Transaction;
     reportAttributesDerived?: Record<string, ReportAttributes>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
-    reports: OnyxCollection<Report>;
+    participantReport: OnyxEntry<Report>;
+    participantChatReport: OnyxEntry<Report>;
     waypoints?: WaypointCollection;
     customUnitRateID: string;
     manualDistance?: number;
@@ -266,7 +267,8 @@ function getMoneyRequestParticipantOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    reports: OnyxCollection<Report>,
+    participantReport: OnyxEntry<Report>,
+    participantChatReport: OnyxEntry<Report>,
     privateIsArchived?: string,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): Array<Participant | OptionData> {
@@ -276,7 +278,7 @@ function getMoneyRequestParticipantOptions(
         if (participantAccountID) {
             return getParticipantsOption(participant, personalDetails);
         }
-        return getReportOptionFromCollection(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, reports, reportAttributesDerived);
+        return getReportOption(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, participantReport, participantChatReport, reportAttributesDerived);
     });
 }
 
@@ -290,7 +292,8 @@ function handleMoneyRequestStepScanParticipants({
     initialTransaction,
     policyForMovingExpenses,
     personalDetails,
-    reports,
+    participantReport,
+    participantChatReport,
     currentUserLogin,
     currentUserAccountID,
     backTo,
@@ -348,7 +351,16 @@ function handleMoneyRequestStepScanParticipants({
     // to the confirmation step.
     // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (!initialTransaction?.isFromGlobalCreate && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, reports, privateIsArchived, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(
+            currentUserAccountID,
+            report,
+            policy,
+            personalDetails,
+            participantReport,
+            participantChatReport,
+            privateIsArchived,
+            reportAttributesDerived,
+        );
 
         if (shouldSkipConfirmation) {
             const firstReceiptFile = files.at(0);
@@ -530,7 +542,8 @@ function handleMoneyRequestStepDistanceNavigation({
     transactionID,
     reportAttributesDerived,
     personalDetails,
-    reports,
+    participantReport,
+    participantChatReport,
     waypoints,
     customUnitRateID,
     manualDistance,
@@ -585,7 +598,16 @@ function handleMoneyRequestStepDistanceNavigation({
     // to the confirm step.
     // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, reports, privateIsArchived, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(
+            currentUserAccountID,
+            report,
+            policy,
+            personalDetails,
+            participantReport,
+            participantChatReport,
+            privateIsArchived,
+            reportAttributesDerived,
+        );
 
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {

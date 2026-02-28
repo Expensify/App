@@ -15,6 +15,7 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useParticipantReport from '@hooks/useParticipantReport';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -95,7 +96,7 @@ function IOURequestStepDistanceOdometer({
     const isArchived = isArchivedReport(reportNameValuePairs);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const {participantReport, participantChatReport} = useParticipantReport(report, currentUserPersonalDetails.accountID);
     const reportAttributesDerived = useReportAttributes();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -427,7 +428,8 @@ function IOURequestStepDistanceOdometer({
             transactionID,
             reportAttributesDerived,
             personalDetails,
-            reports: reports,
+            participantReport,
+            participantChatReport,
             customUnitRateID,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,

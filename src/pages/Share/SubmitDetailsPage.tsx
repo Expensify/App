@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -28,7 +28,7 @@ import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
-import {getParticipantsOption, getReportOptionFromCollection} from '@libs/OptionsListUtils';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
@@ -78,7 +78,12 @@ function SubmitDetailsPage({
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const participantReportID = useMemo(() => {
+        const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
+        return selectedParticipants.find((p) => !p.accountID)?.reportID;
+    }, [unknownUserDetails, report, currentUserPersonalDetails.accountID]);
+    const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${participantReportID}`);
+    const [participantChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${participantReport?.chatReportID}`);
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
 
@@ -126,7 +131,16 @@ function SubmitDetailsPage({
         if (participant?.accountID) {
             return getParticipantsOption(participant, personalDetails);
         }
-        return getReportOptionFromCollection(participant, privateIsArchived, policy, currentUserPersonalDetails.accountID, personalDetails, reports, reportAttributesDerived);
+        return getReportOption(
+            participant,
+            privateIsArchived,
+            policy,
+            currentUserPersonalDetails.accountID,
+            personalDetails,
+            participantReport,
+            participantChatReport,
+            reportAttributesDerived,
+        );
     });
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
