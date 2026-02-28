@@ -23,6 +23,7 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
@@ -196,6 +197,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const pendingScrollIndexRef = useRef<number | null>(null);
     const [suggestionsAnnouncement, setSuggestionsAnnouncement] = useState({id: 0, text: ''});
     const lastAnnouncementKeyRef = useRef('');
+    const isMacOSChromeWeb = Platform.OS === CONST.PLATFORM.WEB && Browser.getBrowser() === CONST.BROWSER.CHROME && /Macintosh|Mac OS X/i.test(navigator.userAgent);
 
     const onItemLayout = (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
         if (!itemKey) {
@@ -851,17 +853,18 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
         lastAnnouncementKeyRef.current = announcementKey;
         const announcementText = translate('search.suggestionsAvailable', {count: flattenedSections.allOptions.length});
-        if (Platform.OS === 'web') {
+        if (Platform.OS === CONST.PLATFORM.WEB) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
-            setSuggestionsAnnouncement((prev) => ({
-                id: prev.id + 1,
-                text: announcementText,
-            }));
+            setSuggestionsAnnouncement((prev) => {
+                const id = prev.id + 1;
+                const marker = isMacOSChromeWeb && id % 2 === 0 ? '\u2060' : '';
+                return {id, text: `${announcementText}${marker}`};
+            });
             return;
         }
 
         AccessibilityInfo.announceForAccessibility(announcementText);
-    }, [flattenedSections.allOptions.length, isLoadingNewOptions, isTextInputFocused, textInputValue, translate]);
+    }, [flattenedSections.allOptions.length, isLoadingNewOptions, isMacOSChromeWeb, isTextInputFocused, textInputValue, translate]);
 
     const updateAndScrollToFocusedIndex = useCallback(
         (newFocusedIndex: number, shouldSkipWhenIndexNonZero = false) => {
@@ -1078,12 +1081,13 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, containerStyle]}>
             {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
-            {Platform.OS === 'web' && !!suggestionsAnnouncement.text && (
+            {Platform.OS === CONST.PLATFORM.WEB && !!suggestionsAnnouncement.text && (
                 <Text
                     // Changing the key ensures the live region re-announces the same text.
                     key={suggestionsAnnouncement.id}
-                    role={CONST.ROLE.STATUS}
-                    style={styles.hiddenElementOutsideOfWindow}
+                    role={isMacOSChromeWeb ? CONST.ROLE.ALERT : CONST.ROLE.STATUS}
+                    accessibilityLiveRegion={isMacOSChromeWeb ? 'assertive' : undefined}
+                    style={isMacOSChromeWeb ? styles.screenReaderOnlyLiveRegion : styles.hiddenElementOutsideOfWindow}
                 >
                     {suggestionsAnnouncement.text}
                 </Text>

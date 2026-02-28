@@ -21,6 +21,7 @@ import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import * as Browser from '@libs/Browser';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -82,6 +83,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const hasKeyBeenPressed = useRef(false);
     const [suggestionsAnnouncement, setSuggestionsAnnouncement] = useState({id: 0, text: ''});
     const lastAnnouncementKeyRef = useRef('');
+    const isMacOSChromeWeb = Platform.OS === CONST.PLATFORM.WEB && Browser.getBrowser() === CONST.BROWSER.CHROME && /Macintosh|Mac OS X/i.test(navigator.userAgent);
     const activeElementRole = useActiveElementRole();
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
@@ -269,17 +271,18 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
         lastAnnouncementKeyRef.current = announcementKey;
         const announcementText = translate('search.suggestionsAvailable', {count: itemsCount});
-        if (Platform.OS === 'web') {
+        if (Platform.OS === CONST.PLATFORM.WEB) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
-            setSuggestionsAnnouncement((prev) => ({
-                id: prev.id + 1,
-                text: announcementText,
-            }));
+            setSuggestionsAnnouncement((prev) => {
+                const id = prev.id + 1;
+                const marker = isMacOSChromeWeb && id % 2 === 0 ? '\u2060' : '';
+                return {id, text: `${announcementText}${marker}`};
+            });
             return;
         }
 
         AccessibilityInfo.announceForAccessibility(announcementText);
-    }, [isLoadingNewOptions, isTextInputFocused, itemsCount, textInputOptions?.value, translate]);
+    }, [isLoadingNewOptions, isMacOSChromeWeb, isTextInputFocused, itemsCount, textInputOptions?.value, translate]);
 
     const textInputComponent = () => {
         if (!shouldShowTextInput) {
@@ -372,12 +375,13 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             onLayout={onLayout}
         >
             {textInputComponent()}
-            {Platform.OS === 'web' && !!suggestionsAnnouncement.text && (
+            {Platform.OS === CONST.PLATFORM.WEB && !!suggestionsAnnouncement.text && (
                 <Text
                     // Changing the key ensures the live region re-announces the same text.
                     key={suggestionsAnnouncement.id}
-                    role={CONST.ROLE.STATUS}
-                    style={styles.hiddenElementOutsideOfWindow}
+                    role={isMacOSChromeWeb ? CONST.ROLE.ALERT : CONST.ROLE.STATUS}
+                    accessibilityLiveRegion={isMacOSChromeWeb ? 'assertive' : undefined}
+                    style={isMacOSChromeWeb ? styles.screenReaderOnlyLiveRegion : styles.hiddenElementOutsideOfWindow}
                 >
                     {suggestionsAnnouncement.text}
                 </Text>

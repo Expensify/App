@@ -14,6 +14,7 @@ import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import * as Browser from '@libs/Browser';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -111,6 +112,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [suggestionsAnnouncement, setSuggestionsAnnouncement] = useState({id: 0, text: ''});
     const lastAnnouncementKeyRef = useRef('');
+    const isMacOSChromeWeb = Platform.OS === CONST.PLATFORM.WEB && Browser.getBrowser() === CONST.BROWSER.CHROME && /Macintosh|Mac OS X/i.test(navigator.userAgent);
 
     const initialFocusedIndex = useMemo(() => data.findIndex((i) => i.keyForList === initiallyFocusedItemKey), [data, initiallyFocusedItemKey]);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
@@ -417,17 +419,18 @@ function BaseSelectionList<TItem extends ListItem>({
 
         lastAnnouncementKeyRef.current = announcementKey;
         const announcementText = translate('search.suggestionsAvailable', {count: data.length});
-        if (Platform.OS === 'web') {
+        if (Platform.OS === CONST.PLATFORM.WEB) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
-            setSuggestionsAnnouncement((prev) => ({
-                id: prev.id + 1,
-                text: announcementText,
-            }));
+            setSuggestionsAnnouncement((prev) => {
+                const id = prev.id + 1;
+                const marker = isMacOSChromeWeb && id % 2 === 0 ? '\u2060' : '';
+                return {id, text: `${announcementText}${marker}`};
+            });
             return;
         }
 
         AccessibilityInfo.announceForAccessibility(announcementText);
-    }, [data.length, isLoadingNewOptions, isTextInputFocused, shouldShowTextInput, textInputOptions?.value, translate]);
+    }, [data.length, isLoadingNewOptions, isMacOSChromeWeb, isTextInputFocused, shouldShowTextInput, textInputOptions?.value, translate]);
 
     // The function scrolls to the focused input to prevent keyboard occlusion.
     // It ensures the entire list item is visible, not just the input field.
@@ -541,12 +544,13 @@ function BaseSelectionList<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
-            {Platform.OS === 'web' && !!suggestionsAnnouncement.text && (
+            {Platform.OS === CONST.PLATFORM.WEB && !!suggestionsAnnouncement.text && (
                 <Text
                     // Changing the key ensures the live region re-announces the same text.
                     key={suggestionsAnnouncement.id}
-                    role={CONST.ROLE.STATUS}
-                    style={styles.hiddenElementOutsideOfWindow}
+                    role={isMacOSChromeWeb ? CONST.ROLE.ALERT : CONST.ROLE.STATUS}
+                    accessibilityLiveRegion={isMacOSChromeWeb ? 'assertive' : undefined}
+                    style={isMacOSChromeWeb ? styles.screenReaderOnlyLiveRegion : styles.hiddenElementOutsideOfWindow}
                 >
                     {suggestionsAnnouncement.text}
                 </Text>

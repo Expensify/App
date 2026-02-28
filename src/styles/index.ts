@@ -3203,6 +3203,15 @@ const staticStyles = (theme: ThemeColors) =>
             opacity: 0,
         },
 
+        screenReaderOnlyLiveRegion: {
+            position: 'absolute',
+            top: -1,
+            left: -1,
+            width: 1,
+            height: 1,
+            overflow: 'hidden',
+        },
+
         growlNotificationWrapper: {
             zIndex: 2,
         },

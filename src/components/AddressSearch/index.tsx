@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import * as Browser from '@libs/Browser';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -98,6 +99,7 @@ function AddressSearch({
     const containerRef = useRef<View>(null);
     const [suggestionsAnnouncement, setSuggestionsAnnouncement] = useState({id: 0, text: ''});
     const lastAnnouncementKeyRef = useRef('');
+    const isMacOSChromeWeb = Platform.OS === CONST.PLATFORM.WEB && Browser.getBrowser() === CONST.BROWSER.CHROME && /Macintosh|Mac OS X/i.test(navigator.userAgent);
     const query = useMemo(
         () => ({
             language: preferredLocale,
@@ -122,17 +124,18 @@ function AddressSearch({
 
         lastAnnouncementKeyRef.current = announcementKey;
         const announcementText = translate('search.suggestionsAvailable');
-        if (Platform.OS === 'web') {
+        if (Platform.OS === CONST.PLATFORM.WEB) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
-            setSuggestionsAnnouncement((prev) => ({
-                id: prev.id + 1,
-                text: announcementText,
-            }));
+            setSuggestionsAnnouncement((prev) => {
+                const id = prev.id + 1;
+                const marker = isMacOSChromeWeb && id % 2 === 0 ? '\u2060' : '';
+                return {id, text: `${announcementText}${marker}`};
+            });
             return;
         }
 
         AccessibilityInfo.announceForAccessibility(announcementText);
-    }, [displayListViewBorder, isFocused, searchValue, translate]);
+    }, [displayListViewBorder, isFocused, isMacOSChromeWeb, searchValue, translate]);
 
     const saveLocationDetails = (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {
         const addressComponents = details?.address_components;
@@ -390,12 +393,13 @@ function AddressSearch({
                     ref={containerRef}
                     fsClass={forwardedFSClass}
                 >
-                    {Platform.OS === 'web' && !!suggestionsAnnouncement.text && (
+                    {Platform.OS === CONST.PLATFORM.WEB && !!suggestionsAnnouncement.text && (
                         <Text
                             // Changing the key ensures the live region re-announces the same text.
                             key={suggestionsAnnouncement.id}
-                            role={CONST.ROLE.STATUS}
-                            style={styles.hiddenElementOutsideOfWindow}
+                            role={isMacOSChromeWeb ? CONST.ROLE.ALERT : CONST.ROLE.STATUS}
+                            accessibilityLiveRegion={isMacOSChromeWeb ? 'assertive' : undefined}
+                            style={isMacOSChromeWeb ? styles.screenReaderOnlyLiveRegion : styles.hiddenElementOutsideOfWindow}
                         >
                             {suggestionsAnnouncement.text}
                         </Text>
