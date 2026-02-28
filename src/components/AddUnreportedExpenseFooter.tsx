@@ -36,7 +36,7 @@ type AddUnreportedExpenseFooterProps = {
 };
 
 function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage}: AddUnreportedExpenseFooterProps) {
-    const {translate} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -98,6 +98,8 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     reportNextStep,
                     policyCategories,
                     allTransactions: selectedTransactions,
+                    translate,
+                    toLocaleDigit,
                 });
             }
         });

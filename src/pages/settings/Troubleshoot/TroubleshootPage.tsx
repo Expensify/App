@@ -172,6 +172,7 @@ function TroubleshootPage() {
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
+                shouldDisplayHelpButton
                 onBackButtonPress={Navigation.goBack}
                 icon={illustrations.Lightbulb}
                 shouldUseHeadlineHeader
