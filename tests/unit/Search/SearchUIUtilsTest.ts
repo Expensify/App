@@ -5741,6 +5741,22 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('Test getSuggestedSearches sort defaults', () => {
+        test('Should default Top Categories to sortBy groupCategory and sortOrder asc', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
+            const topCategories = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES];
+            expect(topCategories.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
+            expect(topCategories.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+
+        test('Should default Top Merchants to sortBy groupMerchant and sortOrder asc', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
+            const topMerchants = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
+            expect(topMerchants.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
+            expect(topMerchants.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+    });
+
     describe('Test getColumnsToShow', () => {
         test('Should show all default columns when no custom columns are saved & viewing expense reports', () => {
             expect(SearchUIUtils.getColumnsToShow(1, [], [], false, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual([
