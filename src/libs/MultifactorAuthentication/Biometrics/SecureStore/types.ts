@@ -9,6 +9,7 @@
 type AuthTypeInfo = {
     CODE: number;
     NAME: string;
+    MARQETA_VALUE: string;
 };
 
 /**

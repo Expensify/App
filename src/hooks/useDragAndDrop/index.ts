@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {PopoverContext} from '@components/PopoverProvider';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {usePopoverActions} from '@components/PopoverProvider';
 import type UseDragAndDrop from './types';
 
 const COPY_DROP_EFFECT = 'copy';
@@ -24,7 +24,7 @@ const useDragAndDrop: UseDragAndDrop = ({
 }) => {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const {close: closePopover} = useContext(PopoverContext);
+    const {close: closePopover} = usePopoverActions();
 
     const dragCounter = useRef(0);
     const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);

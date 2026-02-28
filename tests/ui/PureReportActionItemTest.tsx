@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -9,9 +9,10 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {openLink} from '@libs/actions/Link';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import PureReportActionItem from '@pages/home/report/PureReportActionItem';
+import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
@@ -24,6 +25,16 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@react-navigation/native');
+
+type LinkModuleMock = {openLink: typeof openLink} & Record<string, unknown>;
+
+jest.mock('@libs/actions/Link', () => {
+    const actual = jest.requireActual<LinkModuleMock>('@libs/actions/Link');
+    return {
+        ...actual,
+        openLink: jest.fn(),
+    };
+});
 
 const ACTOR_ACCOUNT_ID = 123456789;
 const actorEmail = 'test@test.com';
@@ -85,11 +96,9 @@ describe('PureReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <PureReportActionItem
-                                allReports={undefined}
                                 policies={undefined}
                                 personalPolicyID={undefined}
                                 report={undefined}
-                                reportActions={[]}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -102,6 +111,7 @@ describe('PureReportActionItem', () => {
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
                                 allTransactionDrafts={undefined}
+                                userBillingGraceEndPeriodCollection={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -197,7 +207,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
         });
 
         it('SUBMITTED action with memo', async () => {
@@ -207,7 +217,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {memo}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted', memo))).toBeOnTheScreen();
         });
 
         it('SUBMITTED_AND_CLOSED action', async () => {
@@ -216,7 +226,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
         });
     });
 
@@ -228,6 +238,33 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(Parser.htmlToText(translateLocal('workspaceActions.forcedCorporateUpgrade')))).toBeOnTheScreen();
+        });
+
+        it('UPDATE_CUSTOM_TAX_NAME action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME, {oldName: 'Sales Tax', newName: 'VAT'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed the custom tax name to "VAT" (previously "Sales Tax")')).toBeOnTheScreen();
+        });
+
+        it('UPDATE_CURRENCY_DEFAULT_TAX action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX, {oldName: 'Standard Rate', newName: 'Reduced Rate'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed the workspace currency default tax rate to "Reduced Rate" (previously "Standard Rate")')).toBeOnTheScreen();
+        });
+
+        it('UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX, {oldName: 'Foreign Tax (15%)', newName: 'Foreign Tax (10%)'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")')).toBeOnTheScreen();
         });
     });
 
@@ -264,12 +301,10 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     personalPolicyID={undefined}
                                     policies={{testPolicy: dewPolicy as Policy}}
                                     policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -283,6 +318,7 @@ describe('PureReportActionItem', () => {
                                     reportMetadata={reportMetadata}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -324,12 +360,10 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     personalPolicyID={undefined}
                                     policies={{testPolicy: basicPolicy as Policy}}
                                     policy={basicPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -342,6 +376,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -352,8 +387,198 @@ describe('PureReportActionItem', () => {
 
             // Then it should display the standard submitted message and not the DEW queued message
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
             expect(screen.queryByText(translateLocal('iou.queuedToSubmitViaDEW'))).not.toBeOnTheScreen();
+        });
+    });
+
+    describe('Followup list buttons', () => {
+        it('should display followup buttons when message contains unresolved followup-list', async () => {
+            const followupQuestion1 = 'How do I set up QuickBooks?';
+            const followupQuestion2 = 'What is the Expensify Card cashback?';
+
+            const action = {
+                reportActionID: '12345',
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                created: '2025-07-12 09:03:17.653',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                automatic: false,
+                shouldShow: true,
+                avatar: '',
+                person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        html: `<p>Here is some helpful information.</p>
+<followup-list>
+  <followup><followup-text>${followupQuestion1}</followup-text></followup>
+  <followup><followup-text>${followupQuestion2}</followup-text></followup>
+</followup-list>`,
+                        text: 'Here is some helpful information.',
+                    },
+                ],
+                originalMessage: {},
+            } as ReportAction;
+
+            const report = {
+                reportID: 'testReport',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    policies={undefined}
+                                    personalPolicyID={undefined}
+                                    report={report}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    isMostRecentIOUReportAction={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Verify followup buttons are displayed
+            expect(screen.getByText(followupQuestion1)).toBeOnTheScreen();
+            expect(screen.getByText(followupQuestion2)).toBeOnTheScreen();
+        });
+
+        it('should not display followup buttons when followup-list is resolved (has selected attribute)', async () => {
+            const followupQuestion = 'How do I set up QuickBooks?';
+
+            const action = {
+                reportActionID: '12345',
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                created: '2025-07-12 09:03:17.653',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                automatic: false,
+                shouldShow: true,
+                avatar: '',
+                person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        html: `<p>Here is some helpful information.</p>
+<followup-list selected>
+  <followup><followup-text>${followupQuestion}</followup-text></followup>
+</followup-list>`,
+                        text: 'Here is some helpful information.',
+                    },
+                ],
+                originalMessage: {},
+            } as ReportAction;
+
+            const report = {
+                reportID: 'testReport',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    policies={undefined}
+                                    personalPolicyID={undefined}
+                                    report={report}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    isMostRecentIOUReportAction={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Verify followup buttons are NOT displayed (resolved state)
+            expect(screen.queryByText(followupQuestion)).not.toBeOnTheScreen();
+        });
+    });
+
+    describe('Modified expense message', () => {
+        it('clicking the workspace rules link opens the workspace rules URL', async () => {
+            const workspaceRulesUrl = 'https://example.com/workspaces/policy123/rules';
+            const modifiedExpenseMessage = `marked the expense as "billable" via <a href="${workspaceRulesUrl}">workspace rules</a>`;
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
+                policyID: 'policy123',
+                policyRulesModifiedFields: {billable: true},
+            });
+
+            const report = {
+                reportID: 'testReport',
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: 'policy123',
+            };
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    policies={undefined}
+                                    personalPolicyID={undefined}
+                                    report={report}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    isMostRecentIOUReportAction={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    allTransactionDrafts={undefined}
+                                    modifiedExpenseMessage={modifiedExpenseMessage}
+                                    userBillingGraceEndPeriodCollection={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            const workspaceRulesLink = screen.getByText('workspace rules');
+            expect(workspaceRulesLink).toBeOnTheScreen();
+
+            fireEvent.press(workspaceRulesLink);
+
+            expect(openLink).toHaveBeenCalledTimes(1);
+            expect(openLink).toHaveBeenCalledWith(workspaceRulesUrl, expect.any(String));
         });
     });
 });

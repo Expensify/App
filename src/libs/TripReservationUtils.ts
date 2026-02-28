@@ -84,7 +84,7 @@ function parseDurationToSeconds(duration: string): number {
 function getSeatByLegAndFlight(travelerInfo: ArrayValues<AirPnr['travelerInfos']>, legIdx: number, flightIdx: number): string | undefined {
     const seats = travelerInfo.booking?.seats?.filter((seat) => seat.legIdx === legIdx && seat.flightIdx === flightIdx);
     if (seats && seats.length > 0) {
-        return seats.map(SafeString).join(', ');
+        return seats.map((seat) => SafeString(seat.number)).join(', ');
     }
     return '';
 }

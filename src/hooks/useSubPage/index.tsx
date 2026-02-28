@@ -1,9 +1,11 @@
 import {useRoute} from '@react-navigation/native';
 import type {ComponentType} from 'react';
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex, findPageIndex} from '@libs/SubPageUtils';
 import type {SubPageProps, UseSubPageProps} from './types';
+
+const AMOUNT_OF_FRAMES_TO_WAIT_FOR = 20;
 
 /**
  * @param pages - array of objects with pageName and component to display in each page
@@ -20,18 +22,28 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
     const isEditing = params?.action === 'edit';
 
     const startPageName = pages.at(startFrom)?.pageName;
-    const hasInitialized = useRef(false);
+    const isRedirecting = !urlPageName && !!startPageName;
 
     useEffect(() => {
-        if (hasInitialized.current) {
+        if (!isRedirecting) {
             return;
         }
-        hasInitialized.current = true;
 
-        if (!urlPageName && startPageName) {
-            Navigation.navigate(buildRoute(startPageName), {forceReplace: true});
-        }
-    }, [urlPageName, startPageName, buildRoute]);
+        let requestID: number;
+        const waitFrames = (framesLeft: number) => {
+            if (framesLeft <= 0) {
+                Navigation.navigate(buildRoute(startPageName), {forceReplace: true});
+                return;
+            }
+            requestID = requestAnimationFrame(() => waitFrames(framesLeft - 1));
+        };
+
+        requestID = requestAnimationFrame(() => waitFrames(AMOUNT_OF_FRAMES_TO_WAIT_FOR));
+
+        return () => {
+            cancelAnimationFrame(requestID);
+        };
+    }, [isRedirecting, startPageName, buildRoute]);
 
     const currentPageName = urlPageName ?? startPageName ?? pages.at(0)?.pageName;
     const pageIndex = findPageIndex(pages, currentPageName);
@@ -114,5 +126,6 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
         lastPageIndex,
         moveTo,
         resetToPage,
+        isRedirecting,
     };
 }

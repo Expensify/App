@@ -6,6 +6,7 @@ import type {
     LayoutChangeEvent,
     NativeScrollEvent,
     NativeSyntheticEvent,
+    Role,
     ScrollViewProps,
     SectionListData,
     StyleProp,
@@ -25,10 +26,24 @@ import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
 import type CONST from '@src/CONST';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {LastPaymentMethod, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchCardGroup, SearchDataTypes, SearchMemberGroup, SearchTask, SearchTransactionAction, SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
+import type {
+    SearchCardGroup,
+    SearchCategoryGroup,
+    SearchDataTypes,
+    SearchMemberGroup,
+    SearchMerchantGroup,
+    SearchMonthGroup,
+    SearchQuarterGroup,
+    SearchTagGroup,
+    SearchTask,
+    SearchTransactionAction,
+    SearchWeekGroup,
+    SearchWithdrawalIDGroup,
+    SearchYearGroup,
+} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -109,6 +124,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
+
+    /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
+    accessibilityRole?: Role;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -283,6 +301,9 @@ type TransactionListItemType = ListItem &
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
 
+        /** Whether the card feed has been deleted */
+        isCardFeedDeleted?: boolean;
+
         /** The original amount of the transaction */
         originalAmount?: number;
 
@@ -438,6 +459,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** The date the report was exported */
         exported?: string;
 
+        /** Whether the status field should be shown in a pending state */
+        shouldShowStatusAsPending?: boolean;
+
         /**
          * Whether we should show the report year.
          * This is true if at least one report in the dataset was created in past years
@@ -475,6 +499,14 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
         formattedFrom?: string;
     };
 
+type TransactionMonthGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MONTH} & SearchMonthGroup & {
+        /** Final and formatted "month" value used for displaying */
+        formattedMonth: string;
+
+        /** Key used for sorting */
+        sortKey: number;
+    };
+
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
     SearchCardGroup & {
         /** Final and formatted "cardName" value used for displaying and sorting */
@@ -487,6 +519,42 @@ type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedB
 type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup & {
         /** Final and formatted "withdrawalID" value used for displaying and sorting */
         formattedWithdrawalID?: string;
+    };
+
+type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CATEGORY} & SearchCategoryGroup & {
+        /** Final and formatted "category" value used for displaying and sorting */
+        formattedCategory?: string;
+    };
+
+type TransactionMerchantGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MERCHANT} & SearchMerchantGroup & {
+        /** Final and formatted "merchant" value used for displaying and sorting */
+        formattedMerchant?: string;
+    };
+
+type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.TAG} & SearchTagGroup & {
+        /** Final and formatted "tag" value used for displaying and sorting */
+        formattedTag?: string;
+    };
+
+type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
+        /** Final and formatted "week" value used for displaying */
+        formattedWeek: string;
+    };
+
+type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {
+        /** Final and formatted "year" value used for displaying */
+        formattedYear: string;
+
+        /** Key used for sorting */
+        sortKey: number;
+    };
+
+type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.QUARTER} & SearchQuarterGroup & {
+        /** Final and formatted "quarter" value used for displaying */
+        formattedQuarter: string;
+
+        /** Sort key for sorting */
+        sortKey: number;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -601,6 +669,10 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     onDEWModalOpen?: () => void;
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -626,6 +698,12 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
 
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
+
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -640,6 +718,10 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     onDEWModalOpen?: () => void;
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
 };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
@@ -664,9 +746,6 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** The policies which the user has access to */
     policies?: OnyxCollection<Policy>;
-
-    /** All the data of the report collection */
-    allReports?: OnyxCollection<Report>;
 
     /** The report data */
     report?: Report;
@@ -1058,6 +1137,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
 
+    /** Styles to apply to the list footer component */
+    ListFooterComponentStyle?: StyleProp<ViewStyle>;
+
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -1128,8 +1210,15 @@ export type {
     TransactionGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionMemberGroupListItemType,
+    TransactionMonthGroupListItemType,
     TransactionCardGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionTagGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionYearGroupListItemType,
+    TransactionQuarterGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,

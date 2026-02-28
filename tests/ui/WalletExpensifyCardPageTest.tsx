@@ -240,4 +240,54 @@ describe('ExpensifyCardPage', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it('should still show physical card details when opening a combo card page via the virtual card ID', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                1234: {
+                    cardID: 1234,
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    domainName: 'combo-domain',
+                    fundID: '12345',
+                    nameValuePairs: {
+                        isVirtual: false,
+                        cardTitle: 'Combo Physical Card',
+                        feedCountry: CONST.COUNTRY.GB,
+                    },
+                    availableSpend: 50000,
+                    fraud: null,
+                    lastFourPAN: '1234',
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                5678: {
+                    cardID: 5678,
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    domainName: 'combo-domain',
+                    fundID: '12345',
+                    nameValuePairs: {
+                        isVirtual: true,
+                        cardTitle: 'Combo Virtual Card',
+                    },
+                    availableSpend: 50000,
+                    fraud: null,
+                    lastFourPAN: '5678',
+                },
+            });
+        });
+
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '5678'});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.virtualCardNumber'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.physicalCardNumber'))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 });

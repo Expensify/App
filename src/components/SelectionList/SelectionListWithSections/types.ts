@@ -1,4 +1,5 @@
-import type {ReactNode} from 'react';
+import type {ReactElement, ReactNode} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {BaseSelectionListProps} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
@@ -7,11 +8,17 @@ type Section<TItem extends ListItem> = {
     /** Title of the section */
     title?: string;
 
+    /** Custom header to display */
+    customHeader?: ReactElement;
+
     /** Array of items in the section */
-    data?: TItem[];
+    data: TItem[];
 
     /** Whether this section is disabled */
     isDisabled?: boolean;
+
+    /** Index of the section, used to create a unique flatListKey */
+    sectionIndex: number;
 };
 
 /**
@@ -20,28 +27,49 @@ type Section<TItem extends ListItem> = {
  */
 type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
     /** Reference to the SelectionList component */
-    ref?: React.Ref<SelectionWithSectionsListHandle>;
+    ref?: React.Ref<SelectionListWithSectionsHandle>;
 
     /** Array of sections to display in the list */
     sections: Array<Section<TItem>>;
 
+    /** Index to scroll to initially (when different from the initially focused item) */
+    initialScrollIndex?: number;
+
     /** Custom content to display in the header */
     customHeaderContent?: ReactNode;
+
+    /** Whether to hide the keyboard when scrolling the list */
+    shouldHideKeyboardOnScroll?: boolean;
+
+    /** Callback to fire when the list is scrolled */
+    onScroll?: () => void;
+
+    /** Callback to fire when the list layout changes */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-type SelectionWithSectionsListHandle = {
+type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
     focusTextInput: () => void;
+    updateAndScrollToFocusedIndex: (index: number, shouldScroll?: boolean) => void;
+    updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
+    getFocusedOption: () => TItem | undefined;
 };
 
 type SectionHeader = {
     type: typeof CONST.SECTION_LIST_ITEM_TYPE.HEADER;
-    title: string;
     keyForList: string;
+    title?: string;
+    customHeader?: ReactElement;
     isDisabled: boolean;
 };
 
-type SectionListItem<TItem extends ListItem> = TItem & {flatIndex: number; type: typeof CONST.SECTION_LIST_ITEM_TYPE.ROW};
+type SectionListItem<TItem extends ListItem> = TItem & {
+    flatIndex: number;
+    type: typeof CONST.SECTION_LIST_ITEM_TYPE.ROW;
+    /** Unique key for FlashList rendering, containing section info  */
+    flatListKey: string;
+};
 
 type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
 
-export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionWithSectionsListHandle, SectionHeader, FlattenedItem};
+export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, SectionHeader, FlattenedItem};

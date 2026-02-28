@@ -4,6 +4,7 @@ import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -56,7 +57,7 @@ const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, o
     }, [inputRef, onChangeText]);
 };
 
-type AutoCompleteVariant = 'sms-otp' | 'one-time-code' | 'off';
+type AutoCompleteVariant = ValueOf<typeof CONST.AUTO_COMPLETE_VARIANTS>;
 
 type MagicCodeInputProps = {
     /** Name attribute for the input */
@@ -522,7 +523,12 @@ function MagicCodeInput({
                                 <View style={styles.magicCodeInputValueContainer}>
                                     <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
                                     {isFocused && !isDisableKeyboard && (
-                                        <View style={[styles.magicCodeInputCursorContainer]}>
+                                        <View
+                                            style={[styles.magicCodeInputCursorContainer]}
+                                            accessibilityElementsHidden
+                                            importantForAccessibility="no-hide-descendants"
+                                            accessible={false}
+                                        >
                                             {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char}</Text>}
                                             <Text style={[styles.magicCodeInput, {width: 1}]}> </Text>
                                             <Animated.Text style={[styles.magicCodeInputCursor, animatedCursorStyle, cursorMargin]}>│</Animated.Text>

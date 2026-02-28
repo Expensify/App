@@ -14,6 +14,7 @@ function useWebSelectionListBehavior(_options: UseWebSelectionListBehaviorOption
         shouldDebounceScrolling: false,
         shouldDisableHoverStyle,
         setShouldDisableHoverStyle,
+        onScroll: () => {},
     };
 }
 

@@ -109,13 +109,22 @@ function createAuthenticatorData(rpId: string): Bytes {
 
 /**
  * Signs a multifactor authentication challenge for the given account identifier and key.
- * Returns a WebAuthn-compatible signed challenge structure.
+ * Returns a WebAuthn-compatible signed challenge structure using ED25519.
+ *
+ * @param credentialRequestOptions Challenge object from server (must be AuthenticationChallenge format)
+ * @param privateKey ED25519 private key in hex format
+ * @param publicKey ED25519 public key in base64url format (used as rawId)
+ * @returns SignedChallenge with ED25519 signature
  */
-function signToken(credentialRequestOptions: MultifactorAuthenticationChallengeObject, privateKey: string): SignedChallenge {
-    const rawId: Base64URLString = Base64URL.encode(VALUES.KEY_ALIASES.PUBLIC_KEY);
-    const type = VALUES.ED25519_TYPE;
+function signToken(credentialRequestOptions: MultifactorAuthenticationChallengeObject, privateKey: string, publicKey: Base64URLString): SignedChallenge {
+    // rawId should be the base64url-encoded public key, serving as credential identifier
+    const rawId: Base64URLString = publicKey;
+    const type = VALUES.ED25519_TYPE; // "biometric"
 
-    const authenticatorDataBytes = createAuthenticatorData(credentialRequestOptions.rpId);
+    // Extract rpId from challenge - handle both authentication and registration formats
+    const rpId = 'rpId' in credentialRequestOptions ? credentialRequestOptions.rpId : credentialRequestOptions.rp.id;
+
+    const authenticatorDataBytes = createAuthenticatorData(rpId);
     const authenticatorData: Base64URLString = Base64URL.encode(authenticatorDataBytes);
 
     const clientDataJSON = JSON.stringify({challenge: credentialRequestOptions.challenge});
