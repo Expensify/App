@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
@@ -46,6 +47,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
 import FrozenCardIndicator from './FrozenCardIndicator';
@@ -93,7 +95,6 @@ const getCardHintText = (validFrom: string | undefined, validThru: string | unde
 function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const {cardID} = route.params;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const cardList = useNonPersonalCardList();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const {currencyList} = useCurrencyListState();
@@ -167,16 +168,18 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const canManageCardFreeze = isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isCardHolder && !!currentCard && !isAccountLocked;
     const canUnfreezeCard = canManageCardFreeze && frozenByAccountID === session?.accountID;
 
-    const policyIDForCurrentCard = useMemo(() => {
-        const workspaceAccountID = Number(currentCard?.fundID);
-        if (!workspaceAccountID || Number.isNaN(workspaceAccountID)) {
-            return undefined;
-        }
+    const policyIDSelector = useCallback(
+        (allPolicies: OnyxCollection<Policy>): string | undefined => {
+            const workspaceAccountID = Number(currentCard?.fundID);
+            if (!workspaceAccountID || Number.isNaN(workspaceAccountID)) {
+                return undefined;
+            }
 
-        return Object.values(policies ?? {}).find((policy) => policy?.workspaceAccountID === workspaceAccountID)?.id;
-    }, [currentCard?.fundID, policies]);
-
-    const cardHolderWorkspaceChatReportID = useMemo(() => getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard)?.reportID, [currentCard?.accountID, policyIDForCurrentCard]);
+            return Object.values(allPolicies ?? {}).find((policy) => policy?.workspaceAccountID === workspaceAccountID)?.id;
+        },
+        [currentCard?.fundID],
+    );
+    const [policyIDForCurrentCard] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyIDSelector}, [policyIDSelector]);
 
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
@@ -202,11 +205,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     }, []);
 
     const handleAskToUnfreezePress = useCallback(() => {
+        const cardHolderWorkspaceChatReportID = getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard)?.reportID;
         if (!cardHolderWorkspaceChatReportID) {
             return;
         }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(cardHolderWorkspaceChatReportID));
-    }, [cardHolderWorkspaceChatReportID]);
+    }, [currentCard?.accountID, policyIDForCurrentCard]);
 
     const handleDismissUnfreezeModal = useCallback(() => {
         setIsUnfreezeModalVisible(false);
