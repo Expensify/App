@@ -44,6 +44,7 @@ import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
 import ContextMenuActions from './ContextMenuActions';
+import {useMiniContextMenuActions} from './MiniContextMenuProvider';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
 import {hideContextMenu, showContextMenu} from './ReportActionContextMenu';
 
@@ -155,7 +156,9 @@ function BaseReportActionContextMenu({
     const {translate, getLocalDateFromDatetime} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
+    const [localShouldKeepOpen, setLocalShouldKeepOpen] = useState(false);
+    const miniActions = useMiniContextMenuActions();
+    const shouldKeepOpen = isMini ? false : localShouldKeepOpen;
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
@@ -342,7 +345,11 @@ function BaseReportActionContextMenu({
                 onShow: checkIfContextMenuActive,
                 onHide: () => {
                     checkIfContextMenuActive?.();
-                    setShouldKeepOpen(false);
+                    if (isMini) {
+                        miniActions.release();
+                    } else {
+                        setLocalShouldKeepOpen(false);
+                    }
                 },
             },
             disabledOptions: filteredContextMenuActions,
@@ -372,9 +379,21 @@ function BaseReportActionContextMenu({
                             report,
                             draftMessage,
                             selection,
-                            close: () => setShouldKeepOpen(false),
+                            close: () => {
+                                if (isMini) {
+                                    miniActions.release();
+                                } else {
+                                    setLocalShouldKeepOpen(false);
+                                }
+                            },
                             transitionActionSheetState,
-                            openContextMenu: () => setShouldKeepOpen(true),
+                            openContextMenu: () => {
+                                if (isMini) {
+                                    miniActions.keepOpen();
+                                } else {
+                                    setLocalShouldKeepOpen(true);
+                                }
+                            },
                             interceptAnonymousUser,
                             openOverflowMenu,
                             setIsEmojiPickerActive,
