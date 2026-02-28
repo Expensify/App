@@ -8,6 +8,8 @@ import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 type MultifactorAuthenticationTranslationParams = {
     authType?: string;
     registered?: boolean;
+    count?: number;
+    status?: string;
 };
 
 type ZipCodeExampleFormatParams = {
