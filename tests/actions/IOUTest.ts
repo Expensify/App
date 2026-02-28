@@ -587,7 +587,6 @@ describe('actions/IOU', () => {
                 CONST.IOU.ACTION.CATEGORIZE,
                 reportActionableTrackExpense?.reportActionID,
                 {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
                 undefined,
                 undefined,
             );
@@ -1147,7 +1146,6 @@ describe('actions/IOU', () => {
                 CONST.IOU.ACTION.CATEGORIZE,
                 actionableWhisper?.reportActionID,
                 {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
                 undefined,
                 undefined,
             );
@@ -1558,7 +1556,6 @@ describe('actions/IOU', () => {
                 CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
                 {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                allTransactionDrafts,
                 undefined,
                 undefined,
             );
@@ -1598,14 +1595,13 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}`, originalTransaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
-            // When createDraftTransactionAndNavigateToParticipantSelector is called with empty allTransactionDrafts
+            // When createDraftTransactionAndNavigateToParticipantSelector is called
             createDraftTransactionAndNavigateToParticipantSelector(
                 originalTransaction.transactionID,
                 selfDMReport.reportID,
                 CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
                 {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
                 undefined,
                 undefined,
             );
@@ -1641,7 +1637,6 @@ describe('actions/IOU', () => {
                 CONST.IOU.ACTION.CATEGORIZE,
                 'some-report-action-id',
                 {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
                 undefined,
                 undefined,
             );
@@ -1672,7 +1667,6 @@ describe('actions/IOU', () => {
                 CONST.IOU.ACTION.CATEGORIZE,
                 'some-report-action-id',
                 {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
                 undefined,
                 undefined,
             );
