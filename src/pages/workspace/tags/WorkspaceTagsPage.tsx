@@ -761,6 +761,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         shouldUseHeadlineHeader={!selectionModeHeader}
                         title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
                         shouldShowBackButton={shouldUseNarrowLayout}
+                        shouldDisplayHelpButton
                         onBackButtonPress={() => {
                             if (isMobileSelectionModeEnabled) {
                                 setSelectedTags([]);
