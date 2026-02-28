@@ -37,6 +37,19 @@ function MiniReportActionContextMenu() {
         wasVisibleRef.current = state.isVisible;
     });
 
+    useEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        const handleScroll = () => {
+            hideMiniContextMenu();
+        };
+        window.addEventListener('scroll', handleScroll, true);
+        return () => {
+            window.removeEventListener('scroll', handleScroll, true);
+        };
+    }, [isVisible, hideMiniContextMenu]);
+
     const positionStyle = useAnimatedStyle(() => ({
         top: baseTop.value,
         right: baseRight.value,
