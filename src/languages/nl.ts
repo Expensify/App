@@ -647,6 +647,30 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Meld je opnieuw aan.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Transactie controleren',
+            pleaseReview: 'Controleer deze transactie alsjeblieft',
+            requiresYourReview: 'Er is een Expensify Card-transactie hieronder die je moet beoordelen.',
+            transactionDetails: 'Transactiegegevens',
+            deny: 'Weigeren',
+            approve: 'Goedkeuren',
+            denyTransaction: 'Transactie weigeren',
+            transactionDenied: 'Transactie geweigerd',
+            transactionApproved: 'Transactie goedgekeurd!',
+            areYouSureToDeny: 'Weet je het zeker? De transactie wordt geweigerd als je dit scherm sluit.',
+            youCanTryAgainAtMerchantOrReachOut:
+                'Je kunt het opnieuw proberen bij de winkelier. Als je deze transactie niet hebt geprobeerd uit te voeren, <concierge-link>neem dan contact op met Concierge</concierge-link> om mogelijke fraude te melden.',
+            youNeedToTryAgainAtMerchant: 'Deze transactie is niet geverifieerd, dus we hebben haar geweigerd. Je moet het opnieuw proberen bij de handelaar.',
+            goBackToTheMerchant: 'Ga terug naar de website van de verkoper om door te gaan met de transactie.',
+            attemptedTransaction: 'Poging tot transactie',
+            transactionFailed: 'Transactie mislukt',
+            transactionCouldNotBeCompleted: 'Je transactie kon niet worden voltooid. Probeer het alsjeblieft opnieuw bij de verkoper.',
+            transactionCouldNotBeCompletedReachOut:
+                'Je transactie kon niet worden voltooid. Als je deze transactie niet hebt geprobeerd uit te voeren, <concierge-link>neem dan contact op met Concierge</concierge-link> om mogelijke fraude te melden.',
+            reviewFailed: 'Beoordeling mislukt',
+            alreadyReviewedSubtitle:
+                'Je hebt deze transactie al gecontroleerd. Controleer je <transaction-history-link>transactiegeschiedenis</transaction-history-link> of neem contact op met <concierge-link>Concierge</concierge-link> om problemen te melden.',
+        },
         biometricsTest: {
             biometricsTest: 'Biometrische test',
             authenticationSuccessful: 'Verificatie geslaagd',
@@ -698,7 +722,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         unsupportedDevice: {
             unsupportedDevice: 'Niet-ondersteund apparaat',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> Deze actie wordt niet ondersteund op jouw apparaat. Download de Expensify-app uit de <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> of de <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> en probeer het opnieuw.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `Deze actie wordt niet ondersteund op jouw apparaat. Download de Expensify-app uit de <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> of de <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> en probeer het opnieuw.`,
         },
         verificationFailed: 'Verificatie mislukt',
     },
@@ -7407,6 +7431,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `zakelijke bankrekening ${maskedBankAccountNumber} is automatisch vergrendeld vanwege een probleem met terugbetalingen of Expensify Kaart-afwikkeling. Los het probleem op in je <a href="${linkURL}">werkruimte-instellingen</a>.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}heeft de chat verlaten`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Open de mobiele Expensify-app om je${amountAndMerchantText ? ` ${amountAndMerchantText}-` : ' '}transactie te bekijken`;
+                },
             },
             error: {
                 invalidCredentials: 'Ongeldige inloggegevens, controleer de configuratie van je verbinding.',
