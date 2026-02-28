@@ -3974,6 +3974,11 @@ const ROUTES = {
         route: 'domain/:domainAccountID/members/:accountID/vacation-delegate',
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/vacation-delegate` as const,
     },
+
+    MULTIFACTOR_AUTHENTICATION_AUTHORIZE_TRANSACTION: {
+        route: 'multifactor-authentication/authorize-transaction/:transactionID',
+        getRoute: (transactionID: string) => `multifactor-authentication/authorize-transaction/${transactionID}` as const,
+    },
 } as const;
 
 /**

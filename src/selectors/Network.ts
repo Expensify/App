@@ -14,5 +14,6 @@ const networkStatusSelector = (networkData: OnyxEntry<Network>) => {
     };
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export {networkStatusSelector};
+const shouldFailAllRequestsSelector = (network: OnyxEntry<Network>) => !!network?.shouldFailAllRequests;
+
+export {networkStatusSelector, shouldFailAllRequestsSelector};
