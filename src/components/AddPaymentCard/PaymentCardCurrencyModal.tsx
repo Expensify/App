@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 type PaymentCardCurrencyModalProps = {
     /** Whether the modal is visible */
@@ -67,11 +68,10 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
                 />
                 <SelectionList
                     data={currencyOptions}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(option) => {
                         onCurrencyChange(option.value);
                     }}
-                    initiallyFocusedItemKey={currentCurrency}
                     showScrollIndicator
                 />
             </ScreenWrapper>

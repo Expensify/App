@@ -1,10 +1,8 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -19,6 +17,7 @@ import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps, ListItem} from './types';
 
@@ -154,18 +153,12 @@ function InviteMemberListItem<TItem extends ListItem>({
                         </View>
                         {!!item.rightElement && item.rightElement}
                         {!!shouldShowCheckBox && (
-                            <PressableWithFeedback
-                                onPress={handleCheckboxPress}
-                                disabled={isDisabled}
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={item.text ?? ''}
+                            <SelectionCheckbox
+                                item={item}
+                                onSelectRow={handleCheckboxPress}
+                                disabled={!!isDisabled}
                                 style={[styles.ml2, styles.optionSelectCircle]}
-                            >
-                                <SelectCircle
-                                    isChecked={item.isSelected ?? false}
-                                    selectCircleStyles={styles.ml0}
-                                />
-                            </PressableWithFeedback>
+                            />
                         )}
                     </View>
                 </EducationalTooltip>

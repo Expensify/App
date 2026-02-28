@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type CalendarPickerListItem from './types';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 type YearPickerModalProps = {
     /** Whether the modal is visible */
@@ -81,7 +82,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                 />
                 <SelectionList
                     data={data}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(option) => {
                         Keyboard.dismiss();
                         onYearChange?.(option.value);

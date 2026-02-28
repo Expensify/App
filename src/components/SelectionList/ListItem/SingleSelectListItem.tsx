@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
-import Checkbox from '@components/Checkbox';
 import useThemeStyles from '@hooks/useThemeStyles';
+import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import RadioListItem from './RadioListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 
@@ -29,12 +29,11 @@ function SingleSelectListItem<TItem extends ListItem>({
 
     const radioCheckboxComponent = useCallback(() => {
         return (
-            <Checkbox
-                shouldSelectOnPressEnter
-                containerBorderRadius={999}
+            <SelectionCheckbox
+                item={item}
+                onSelectRow={onSelectRow}
                 accessibilityLabel="SingleSelectListItem"
-                isChecked={item.isSelected}
-                onPress={() => onSelectRow(item)}
+                isCircular
             />
         );
     }, [item, onSelectRow]);
@@ -55,7 +54,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
+            wrapperStyle={[styles.optionRowCompact, wrapperStyle]}
             titleStyles={titleStyles}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
         />

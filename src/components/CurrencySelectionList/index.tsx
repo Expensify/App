@@ -1,11 +1,12 @@
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import getMatchScore from '@libs/getMatchScore';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
 
 function CurrencySelectionList({
@@ -22,6 +23,7 @@ function CurrencySelectionList({
     const {getCurrencySymbol} = useCurrencyListActions();
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const getUnselectedOptions = (options: CurrencyListItem[]) => options.filter((option) => !option.isSelected);
 
     const currencyOptions: CurrencyListItem[] = Object.entries(currencyList).reduce((acc, [currencyCode, currencyInfo]) => {
@@ -101,8 +103,11 @@ function CurrencySelectionList({
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             sections={sections}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             onSelectRow={onSelect}
+            style={{
+                listItemWrapperStyle: styles.optionRow,
+            }}
             textInputOptions={textInputOptions}
             shouldShowTextInput={!!searchInputLabel}
             shouldSingleExecuteRowSelect

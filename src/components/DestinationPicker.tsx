@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import RadioListItem from './SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsHandle} from './SelectionList/types';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 
 type DestinationPickerProps = {
     policyID: string;
@@ -80,7 +81,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             onSelectRow={onSubmit}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             initiallyFocusedItemKey={selectedOptionKey}
             shouldHideKeyboardOnScroll={false}
             shouldUpdateFocusedIndex

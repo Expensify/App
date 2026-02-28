@@ -2,8 +2,8 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
+import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -48,14 +48,6 @@ function CardListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
-
-    const handleCheckboxPress = () => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    };
 
     const ownersAvatar = {
         source: item.cardOwnerPersonalDetails?.avatar ?? icons.FallbackAvatar,
@@ -166,11 +158,9 @@ function CardListItem<TItem extends ListItem>({
                     </View>
                 </View>
                 {!!canSelectMultiple && !item.isDisabled && (
-                    <Checkbox
-                        shouldSelectOnPressEnter
-                        isChecked={item.isSelected ?? false}
-                        accessibilityLabel={item.text ?? ''}
-                        onPress={handleCheckboxPress}
+                    <SelectionCheckbox
+                        item={item}
+                        onSelectRow={onCheckboxPress ?? onSelectRow}
                         disabled={!!isDisabled}
                         style={styles.ml3}
                     />

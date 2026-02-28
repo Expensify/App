@@ -17,6 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
 import PaymentCardCurrencyHeader from './PaymentCardCurrencyHeader';
 import PaymentCardCurrencyModal from './PaymentCardCurrencyModal';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 type PaymentCardFormProps = {
     initialCurrency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
@@ -132,14 +133,12 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         <View style={[styles.mh5, styles.flexGrow1]}>
             <SelectionList
                 data={currencyOptions}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={(option) => {
                     selectCurrency(option.value);
                 }}
                 style={{containerStyle: styles.mhn5}}
-                initiallyFocusedItemKey={currency}
                 customListHeader={<PaymentCardCurrencyHeader isSectionList />}
-                shouldStopPropagation
             />
         </View>
     );

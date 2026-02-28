@@ -4,6 +4,7 @@ import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseContext} from '@hooks/useMouseContext';
@@ -41,8 +42,8 @@ function BaseListItem<TItem extends ListItem>({
     hoverStyle,
     onLongPressRow,
     testID,
-    shouldUseDefaultRightHandSideCheckmark = true,
-    shouldHighlightSelectedItem = true,
+    shouldUseDefaultRightHandSideCheckmark = false,
+    shouldHighlightSelectedItem = false,
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
     shouldShowRightCaret = false,
@@ -54,7 +55,7 @@ function BaseListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator'] as const);
 
     const pressableRef = useRef<View>(null);
 
@@ -80,11 +81,9 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
-    const shouldShowCheckmark = !canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
+    const shouldShowCheckbox = !canSelectMultiple && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
 
     const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
-
-    const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark && !!item.canShowSeveralIndicators;
 
     const accessibilityState =
         accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
@@ -167,17 +166,16 @@ function BaseListItem<TItem extends ListItem>({
                         </View>
                     )}
 
-                    {(shouldShowCheckmark || shouldShowHiddenCheckmark) && (
+                    {shouldShowCheckbox && (
                         <View
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, shouldShowHiddenCheckmark ? styles.opacity0 : undefined]}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
                         >
-                            <View>
-                                <Icon
-                                    src={icons.Checkmark}
-                                    fill={theme.success}
-                                />
-                            </View>
+                            <SelectionCheckbox
+                                item={item}
+                                onSelectRow={onSelectRow}
+                                isCircular
+                            />
                         </View>
                     )}
 

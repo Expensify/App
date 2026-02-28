@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import Checkbox from '@components/Checkbox';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -42,14 +42,6 @@ function TableListItem<TItem extends ListItem>({
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    const handleCheckboxPress = () => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    };
-
     return (
         <BaseListItem
             item={item}
@@ -85,12 +77,11 @@ function TableListItem<TItem extends ListItem>({
             {(hovered) => (
                 <>
                     {!!canSelectMultiple && (
-                        <Checkbox
-                            accessibilityLabel={item.text ?? ''}
+                        <SelectionCheckbox
+                            item={item}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
-                            isChecked={!!item.isSelected}
-                            onPress={handleCheckboxPress}
+                            onSelectRow={onCheckboxPress ?? onSelectRow}
                             shouldStopMouseDownPropagation
                             style={[item.cursorStyle, styles.p5, styles.mln5, styles.mhv5, styles.mrn2]}
                             containerStyle={[StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), item.cursorStyle]}

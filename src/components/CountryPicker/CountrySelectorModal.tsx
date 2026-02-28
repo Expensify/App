@@ -12,6 +12,7 @@ import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 
 type CountrySelectorModalProps = {
     /** Whether the modal is visible */
@@ -90,7 +91,7 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
                     data={searchResults}
                     textInputOptions={textInputOptions}
                     onSelectRow={onCountrySelected}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     initiallyFocusedItemKey={currentCountry}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation

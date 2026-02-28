@@ -1,9 +1,9 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import Checkbox from '@components/Checkbox';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import RadioListItem from './RadioListItem';
 import type {ListItem, MultiSelectListItemProps} from './types';
 
@@ -32,11 +32,9 @@ function MultiSelectListItem<TItem extends ListItem>({
 
     const checkboxComponent = useCallback(() => {
         return (
-            <Checkbox
-                shouldSelectOnPressEnter
-                isChecked={item.isSelected}
-                accessibilityLabel={item.text ?? ''}
-                onPress={() => onSelectRow(item)}
+            <SelectionCheckbox
+                item={item}
+                onSelectRow={onSelectRow}
             />
         );
     }, [item, onSelectRow]);
