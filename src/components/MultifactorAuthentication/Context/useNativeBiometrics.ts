@@ -57,6 +57,12 @@ type UseNativeBiometricsReturn = {
     /** List of credential IDs known to server (from Onyx) */
     serverKnownCredentialIDs: string[];
 
+    /** Whether biometric credentials have ever been configured for this account */
+    haveCredentialsEverBeenConfigured: boolean;
+
+    /** Retrieve the public key stored locally on this device */
+    getLocalPublicKey: () => Promise<string | undefined>;
+
     /** Check if device supports biometrics */
     doesDeviceSupportBiometrics: () => boolean;
 
@@ -119,6 +125,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     const [multifactorAuthenticationPublicKeyIDs] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getMultifactorAuthenticationPublicKeyIDs});
     const serverKnownCredentialIDs = useMemo(() => multifactorAuthenticationPublicKeyIDs ?? [], [multifactorAuthenticationPublicKeyIDs]);
     const serverHasAnyCredentials = serverKnownCredentialIDs.length > 0;
+    const haveCredentialsEverBeenConfigured = multifactorAuthenticationPublicKeyIDs !== undefined;
 
     /**
      * Checks if the device supports biometric authentication methods.
@@ -129,6 +136,11 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         const {biometrics, credentials} = PublicKeyStore.supportedAuthentication;
         return biometrics || credentials;
     }, []);
+
+    const getLocalPublicKey = useCallback(async () => {
+        const {value} = await PublicKeyStore.get(accountID);
+        return value ?? undefined;
+    }, [accountID]);
 
     const hasLocalCredentials = useCallback(async () => {
         const config = await isBiometryConfigured(accountID);
@@ -258,6 +270,8 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     return {
         serverHasAnyCredentials,
         serverKnownCredentialIDs,
+        haveCredentialsEverBeenConfigured,
+        getLocalPublicKey,
         doesDeviceSupportBiometrics,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
