@@ -70,7 +70,8 @@ beforeAll(() =>
 const mockOnLayout = jest.fn();
 const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
-const mockRef = {current: null, flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}, isReportArchivedByID: () => false};
+const mockReactionListRef = {current: null};
+const mockActionListContext = {flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}, archivedReportsIDSet: new Set<string>()};
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'test@test.com';
@@ -97,8 +98,8 @@ function ReportActionsListWrapper() {
     const reportActions = ReportTestUtils.getMockedSortedReportActions(500);
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
-            <ReactionListContext.Provider value={mockRef}>
-                <ActionListContext.Provider value={mockRef}>
+            <ReactionListContext.Provider value={mockReactionListRef}>
+                <ActionListContext.Provider value={mockActionListContext}>
                     <ReportActionsList
                         parentReportAction={parentReportAction}
                         parentReportActionForTransactionThread={undefined}
