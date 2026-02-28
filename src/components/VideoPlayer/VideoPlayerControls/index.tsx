@@ -50,6 +50,12 @@ type VideoPlayerControlsProps = {
     controlsStatus: ValueOf<typeof CONST.VIDEO_PLAYER.CONTROLS_STATUS>;
 
     reportID: string | undefined;
+
+    /** Callback when user starts dragging the progress bar. */
+    onSeekStart?: () => void;
+
+    /** Callback when user finishes dragging the progress bar. */
+    onSeekEnd?: () => void;
 };
 
 function VideoPlayerControls({
@@ -65,6 +71,8 @@ function VideoPlayerControls({
     togglePlayCurrentVideo,
     controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
     reportID,
+    onSeekStart,
+    onSeekEnd,
 }: VideoPlayerControlsProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots', 'Pause', 'Play', 'Fullscreen']);
     const styles = useThemeStyles();
@@ -150,6 +158,8 @@ function VideoPlayerControls({
                         duration={duration}
                         position={position}
                         seekPosition={seekPosition}
+                        onSeekStart={onSeekStart}
+                        onSeekEnd={onSeekEnd}
                     />
                 </View>
                 {controlsStatus === CONST.VIDEO_PLAYER.CONTROLS_STATUS.VOLUME_ONLY && <VolumeButton style={styles.ml3} />}

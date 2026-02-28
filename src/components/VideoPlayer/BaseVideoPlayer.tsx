@@ -6,7 +6,7 @@ import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
-import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {cancelAnimation, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import Hoverable from '@components/Hoverable';
@@ -69,6 +69,8 @@ function BaseVideoPlayer({
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
+    const [isSeeking, setIsSeeking] = useState(false);
+    const isSeekingRef = useRef(false);
     const controlsOpacity = useSharedValue(1);
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
         opacity: controlsOpacity.get(),
@@ -171,13 +173,24 @@ function BaseVideoPlayer({
     }, [isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, reportID, pauseVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
-        if (isEnded) {
+        if (isEnded || isSeekingRef.current) {
             return;
         }
 
-        controlsOpacity.set(withTiming(0, {duration: 500}, () => scheduleOnRN(setControlStatusState, CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE)));
+        controlsOpacity.set(
+            withTiming(0, {duration: 500}, (finished) => {
+                if (!finished || isSeekingRef.current) {
+                    return;
+                }
+                scheduleOnRN(setControlStatusState, CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE);
+            }),
+        );
     }, [controlsOpacity, isEnded]);
     const debouncedHideControl = useMemo(() => debounce(hideControl, 1500), [hideControl]);
+
+    useEffect(() => {
+        isSeekingRef.current = isSeeking;
+    }, [isSeeking]);
 
     useEffect(() => {
         if (canUseTouchScreen) {
@@ -196,7 +209,7 @@ function BaseVideoPlayer({
         if (controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
             return;
         }
-        if (!isPlaying || isPopoverVisible) {
+        if (!isPlaying || isPopoverVisible || isSeeking) {
             debouncedHideControl.cancel();
             return;
         }
@@ -520,7 +533,6 @@ function BaseVideoPlayer({
                             {shouldShowLoadingIndicator && <LoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                             {shouldShowOfflineIndicator && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE &&
-                                !shouldShowLoadingIndicator &&
                                 !shouldShowOfflineIndicator &&
                                 !shouldShowErrorIndicator &&
                                 (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
@@ -537,6 +549,21 @@ function BaseVideoPlayer({
                                         controlsStatus={controlStatusState}
                                         showPopoverMenu={showPopoverMenu}
                                         reportID={reportID}
+                                        onSeekStart={() => {
+                                            isSeekingRef.current = true;
+                                            debouncedHideControl.cancel();
+                                            cancelAnimation(controlsOpacity);
+                                            controlsOpacity.set(1);
+                                            setIsSeeking(true);
+                                            setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
+                                        }}
+                                        onSeekEnd={() => {
+                                            isSeekingRef.current = false;
+                                            setIsSeeking(false);
+                                            if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW && isPlaying && canUseTouchScreen && !isPopoverVisible) {
+                                                debouncedHideControl();
+                                            }
+                                        }}
                                     />
                                 )}
                         </View>
