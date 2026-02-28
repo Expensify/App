@@ -1,8 +1,6 @@
 import {Keyboard} from 'react-native';
 import {isMobile, isMobileSafari} from '@libs/Browser';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
-import type {DismissKeyboardOptions} from './types';
 
 let isVisible = false;
 const initialViewportHeight = window?.visualViewport?.height;
@@ -36,13 +34,13 @@ const handleResize = () => {
 
 window.visualViewport?.addEventListener('resize', handleResize);
 
-const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
+const dismiss = (shouldSkipSafari = false): Promise<void> => {
     return new Promise((resolve) => {
-        const shouldSkipSafari = options?.shouldSkipSafari && isMobileSafari();
-        const shouldDismiss = !isVisible || !isMobile();
-
-        if (shouldDismiss || shouldSkipSafari) {
-            options?.afterTransition?.();
+        if (shouldSkipSafari && isMobileSafari()) {
+            resolve();
+            return;
+        }
+        if (!isVisible || !isMobile()) {
             resolve();
             return;
         }
@@ -60,16 +58,11 @@ const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
             }
 
             window.visualViewport?.removeEventListener('resize', handleDismissResize);
-            TransitionTracker.endTransition();
             return resolve();
         };
 
         window.visualViewport?.addEventListener('resize', handleDismissResize);
         Keyboard.dismiss();
-        TransitionTracker.startTransition();
-        if (options?.afterTransition) {
-            TransitionTracker.runAfterTransitions({callback: options.afterTransition});
-        }
     });
 };
 
