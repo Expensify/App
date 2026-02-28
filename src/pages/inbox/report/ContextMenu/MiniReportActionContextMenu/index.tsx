@@ -35,7 +35,7 @@ function MiniReportActionContextMenu() {
             }
         }
         wasVisibleRef.current = state.isVisible;
-    });
+    }, [state, baseTop, baseRight]);
 
     useEffect(() => {
         if (!isVisible) {
