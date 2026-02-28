@@ -10,7 +10,7 @@ import type {ReportActionReactions} from '@src/types/onyx';
 import {ACTION_IDS} from './actionConfig';
 
 function EmojiReaction() {
-    const {reportID, reportAction, currentUserAccountID, close, openContextMenu, setIsEmojiPickerActive, isMini} = useContextMenuPayload();
+    const {reportID, reportAction, currentUserAccountID, close, openContextMenu, setIsEmojiPickerActive, isMini, interceptAnonymousUser} = useContextMenuPayload();
     const {visibleActionIds} = useContextMenuVisibility();
 
     if (!visibleActionIds.includes(ACTION_IDS.EMOJI_REACTION)) {
@@ -37,7 +37,7 @@ function EmojiReaction() {
     if (isMini) {
         return (
             <MiniQuickEmojiReactions
-                onEmojiSelected={toggleEmojiAndCloseMenu}
+                onEmojiSelected={(emoji, existingReactions, preferredSkinTone) => interceptAnonymousUser(() => toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))}
                 onPressOpenPicker={() => {
                     openContextMenu();
                     setIsEmojiPickerActive?.(true);
@@ -55,7 +55,7 @@ function EmojiReaction() {
     return (
         <QuickEmojiReactions
             closeContextMenu={closeContextMenu}
-            onEmojiSelected={toggleEmojiAndCloseMenu}
+            onEmojiSelected={(emoji, existingReactions, preferredSkinTone) => interceptAnonymousUser(() => toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))}
             reportActionID={reportAction?.reportActionID}
             reportAction={reportAction}
             setIsEmojiPickerActive={setIsEmojiPickerActive}

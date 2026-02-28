@@ -10,7 +10,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 import {ACTION_IDS} from './actionConfig';
 
 function Explain() {
-    const {childReport, originalReport, reportAction, currentUserPersonalDetails, isMini} = useContextMenuPayload();
+    const {childReport, originalReport, reportAction, currentUserPersonalDetails, isMini, interceptAnonymousUser} = useContextMenuPayload();
     const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Concierge'] as const);
@@ -41,7 +41,7 @@ function Explain() {
             icon={icons.Concierge}
             text={translate('reportActionContextMenu.explain')}
             isMini={isMini}
-            onPress={handlePress}
+            onPress={() => interceptAnonymousUser(handlePress)}
             isFocused={focusedIndex === actionIndex}
             onFocus={() => setFocusedIndex(actionIndex)}
             onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}

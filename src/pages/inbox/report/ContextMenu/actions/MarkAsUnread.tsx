@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import {ACTION_IDS} from './actionConfig';
 
 function MarkAsUnread() {
-    const {reportID, reportActions, reportAction, currentUserAccountID, isMini} = useContextMenuPayload();
+    const {reportID, reportActions, reportAction, currentUserAccountID, isMini, interceptAnonymousUser} = useContextMenuPayload();
     const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubbleUnread', 'Checkmark'] as const);
@@ -21,18 +21,20 @@ function MarkAsUnread() {
     }
     const closePopover = !isMini;
 
+    const handlePress = () => {
+        markCommentAsUnread(reportID, reportActions, reportAction, currentUserAccountID);
+        if (closePopover) {
+            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+        }
+    };
+
     return (
         <ContextMenuItem
             icon={icons.ChatBubbleUnread}
             text={translate('reportActionContextMenu.markAsUnread')}
             successIcon={icons.Checkmark}
             isMini={isMini}
-            onPress={() => {
-                markCommentAsUnread(reportID, reportActions, reportAction, currentUserAccountID);
-                if (closePopover) {
-                    hideContextMenu(true, ReportActionComposeFocusManager.focus);
-                }
-            }}
+            onPress={() => interceptAnonymousUser(handlePress)}
             isFocused={focusedIndex === actionIndex}
             onFocus={() => setFocusedIndex(actionIndex)}
             onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}

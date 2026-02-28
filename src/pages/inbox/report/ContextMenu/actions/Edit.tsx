@@ -13,7 +13,7 @@ import ROUTES from '@src/ROUTES';
 import {ACTION_IDS, getActionHtml} from './actionConfig';
 
 function Edit() {
-    const {reportID, reportAction, moneyRequestAction, draftMessage, introSelected, isMini} = useContextMenuPayload();
+    const {reportID, reportAction, moneyRequestAction, draftMessage, introSelected, isMini, interceptAnonymousUser} = useContextMenuPayload();
     const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
@@ -57,7 +57,7 @@ function Edit() {
             icon={icons.Pencil}
             text={translate('reportActionContextMenu.editAction', {action: moneyRequestAction ?? reportAction})}
             isMini={isMini}
-            onPress={handlePress}
+            onPress={() => interceptAnonymousUser(handlePress)}
             isFocused={focusedIndex === actionIndex}
             onFocus={() => setFocusedIndex(actionIndex)}
             onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}

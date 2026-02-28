@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import {ACTION_IDS} from './actionConfig';
 
 function MarkAsRead() {
-    const {reportID, isMini} = useContextMenuPayload();
+    const {reportID, isMini, interceptAnonymousUser} = useContextMenuPayload();
     const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Mail', 'Checkmark'] as const);
@@ -21,18 +21,20 @@ function MarkAsRead() {
     }
     const closePopover = !isMini;
 
+    const handlePress = () => {
+        readNewestAction(reportID, true, true);
+        if (closePopover) {
+            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+        }
+    };
+
     return (
         <ContextMenuItem
             icon={icons.Mail}
             text={translate('reportActionContextMenu.markAsRead')}
             successIcon={icons.Checkmark}
             isMini={isMini}
-            onPress={() => {
-                readNewestAction(reportID, true, true);
-                if (closePopover) {
-                    hideContextMenu(true, ReportActionComposeFocusManager.focus);
-                }
-            }}
+            onPress={() => interceptAnonymousUser(handlePress)}
             isFocused={focusedIndex === actionIndex}
             onFocus={() => setFocusedIndex(actionIndex)}
             onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}

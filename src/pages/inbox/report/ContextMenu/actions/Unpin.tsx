@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import {ACTION_IDS} from './actionConfig';
 
 function Unpin() {
-    const {reportID, isMini} = useContextMenuPayload();
+    const {reportID, isMini, interceptAnonymousUser} = useContextMenuPayload();
     const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
     const icons = useMemoizedLazyExpensifyIcons(['Pin'] as const);
     const {translate} = useLocalize();
@@ -34,7 +34,7 @@ function Unpin() {
             icon={icons.Pin}
             text={translate('common.unPin')}
             isMini={isMini}
-            onPress={handlePress}
+            onPress={() => interceptAnonymousUser(handlePress)}
             isFocused={focusedIndex === actionIndex}
             onFocus={() => setFocusedIndex(actionIndex)}
             onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}
