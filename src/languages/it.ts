@@ -675,8 +675,8 @@ const translations: TranslationDeepObject<typeof en> = {
         biometricsTest: {
             biometricsTest: 'Test biometrico',
             authenticationSuccessful: 'Autenticazione riuscita',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Autenticazione completata correttamente tramite ${authType}.`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Dati biometrici (${registered ? 'Registrato' : 'Non registrato'})`,
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Hai effettuato l’autenticazione con successo utilizzando ${authType}.`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Dati biometrici (${status})`,
             yourAttemptWasUnsuccessful: 'Il tentativo di autenticazione non è andato a buon fine.',
             youCouldNotBeAuthenticated: 'Autenticazione non riuscita',
             areYouSureToReject: 'Sei sicuro? Il tentativo di autenticazione verrà rifiutato se chiudi questa schermata.',
@@ -692,6 +692,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
+            statusNeverRegistered: 'Mai registrato',
         },
         pleaseEnableInSystemSettings: {
             start: 'Abilita la verifica tramite volto/impronta digitale oppure imposta un codice di sblocco del dispositivo nel tuo',
@@ -711,16 +712,17 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Attiva una verifica rapida e sicura utilizzando il volto o l’impronta digitale. Nessuna password o codice richiesto.',
         },
         revoke: {
-            title: 'Volto/impronta digitale e passkey',
+            title: 'Riconoscimento facciale/impronta digitale e passkey',
             explanation:
-                'La verifica con volto/impronta digitale o passkey è abilitata su uno o più dispositivi. La revoca dell’accesso richiederà un codice magico per la prossima verifica su qualsiasi dispositivo.',
-            confirmationPrompt: 'Sei sicuro? Avrai bisogno di un codice magico per la prossima verifica su qualsiasi dispositivo.',
+                'La verifica tramite volto/impronta digitale o passkey è abilitata su uno o più dispositivi. Revocare l’accesso richiederà un codice magico per la prossima verifica su quel dispositivo.',
+            confirmationPrompt: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su quel dispositivo.',
             cta: 'Revoca accesso',
-            noDevices:
-                'Non hai alcun dispositivo registrato per il riconoscimento facciale/impronta digitale o la verifica con passkey. Se ne registri uno, potrai revocare tale accesso qui.',
-            dismiss: 'Ho capito',
+            noDevices: 'Non hai alcun dispositivo registrato per la verifica tramite volto/impronta digitale o passkey. Se ne registri uno, potrai revocare quell’accesso da qui.',
+            dismiss: 'Capito',
             error: 'Richiesta non riuscita. Riprova più tardi.',
             revoke: 'Revoca',
+            confirmationPromptAll: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su qualsiasi dispositivo.',
+            ctaAll: 'Revoca tutto',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo non supportato',

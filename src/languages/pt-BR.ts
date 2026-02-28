@@ -674,7 +674,7 @@ const translations: TranslationDeepObject<typeof en> = {
             biometricsTest: 'Teste de biometria',
             authenticationSuccessful: 'Autenticação bem-sucedida',
             successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Você se autenticou com sucesso usando ${authType}.`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Biometria (${registered ? 'Registrado' : 'Não registrado'})`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometria (${status})`,
             yourAttemptWasUnsuccessful: 'Sua tentativa de autenticação não foi bem-sucedida.',
             youCouldNotBeAuthenticated: 'Não foi possível autenticar você',
             areYouSureToReject: 'Tem certeza? A tentativa de autenticação será rejeitada se você fechar esta tela.',
@@ -690,6 +690,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
+            statusNeverRegistered: 'Nunca registrado',
         },
         pleaseEnableInSystemSettings: {
             start: 'Ative a verificação por rosto/digital ou defina um código de acesso do dispositivo no seu',
@@ -709,15 +710,17 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Ative uma verificação rápida e segura usando seu rosto ou impressão digital. Nenhuma senha ou código é necessário.',
         },
         revoke: {
-            title: 'Face/digital & passkeys',
+            title: 'Rosto/digital & chaves de acesso',
             explanation:
-                'A verificação por rosto/digital ou por chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo.',
-            confirmationPrompt: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação em qualquer dispositivo.',
+                'A verificação por rosto/digital ou chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso vai exigir um código mágico na próxima verificação nesse dispositivo.',
+            confirmationPrompt: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação nesse dispositivo.',
             cta: 'Revogar acesso',
-            noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
+            noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou chave de acesso. Se você registrar algum, poderá revogar esse acesso aqui.',
             dismiss: 'Entendi',
             error: 'Falha na solicitação. Tente novamente mais tarde.',
             revoke: 'Revogar',
+            confirmationPromptAll: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação em qualquer dispositivo.',
+            ctaAll: 'Revogar tudo',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo não compatível',

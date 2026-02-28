@@ -673,9 +673,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         biometricsTest: {
             biometricsTest: 'Test biometrii',
-            authenticationSuccessful: 'Uwierzytelnianie powiodło się',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Pomyślnie uwierzytelniono przy użyciu ${authType}.`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Dane biometryczne (${registered ? 'Zarejestrowano' : 'Nie zarejestrowano'})`,
+            authenticationSuccessful: 'Uwierzytelnianie zakończone pomyślnie',
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Pomyślnie uwierzytelniłeś się za pomocą ${authType}.`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometria (${status})`,
             yourAttemptWasUnsuccessful: 'Twoja próba uwierzytelnienia nie powiodła się.',
             youCouldNotBeAuthenticated: 'Nie udało się uwierzytelnić użytkownika',
             areYouSureToReject: 'Na pewno? Próba uwierzytelnienia zostanie odrzucona, jeśli zamkniesz ten ekran.',
@@ -691,6 +691,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
+            statusNeverRegistered: 'Nigdy nie zarejestrowano',
         },
         pleaseEnableInSystemSettings: {
             start: 'Włącz weryfikację twarzą/odciskiem palca lub ustaw kod blokady urządzenia w swoim',
@@ -712,14 +713,16 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             title: 'Twarz/odcisk palca i klucze dostępu',
             explanation:
-                'Weryfikacja twarzy/odciskiem palca lub kluczem dostępu jest włączona na jednym lub kilku urządzeniach. Cofnięcie dostępu spowoduje konieczność użycia magicznego kodu przy następnej weryfikacji na dowolnym urządzeniu.',
-            confirmationPrompt: 'Na pewno? Do kolejnej weryfikacji na dowolnym urządzeniu będziesz potrzebować magicznego kodu.',
-            cta: 'Cofnij dostęp',
+                'Weryfikacja twarzą/odciskiem palca lub kluczem dostępu jest włączona na jednym lub kilku urządzeniach. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na tym urządzeniu będzie wymagany magiczny kod.',
+            confirmationPrompt: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnym potwierdzeniu na tym urządzeniu.',
+            cta: 'Odwołaj dostęp',
             noDevices:
-                'Nie masz zarejestrowanych żadnych urządzeń do weryfikacji twarzą/odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp tutaj.',
-            dismiss: 'Rozumiem',
+                'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą, odciskiem palca ani za pomocą klucza dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp tutaj.',
+            dismiss: 'Jasne',
             error: 'Żądanie nie powiodło się. Spróbuj ponownie później.',
-            revoke: 'Odwołaj',
+            revoke: 'Unieważnij',
+            confirmationPromptAll: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnym potwierdzeniu na dowolnym urządzeniu.',
+            ctaAll: 'Odwołaj wszystkie',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nieobsługiwane urządzenie',

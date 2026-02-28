@@ -673,9 +673,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         biometricsTest: {
             biometricsTest: 'Biometrische test',
-            authenticationSuccessful: 'Verificatie geslaagd',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Je bent succesvol geauthenticeerd met ${authType}.`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Biometrie (${registered ? 'Geregistreerd' : 'Niet geregistreerd'})`,
+            authenticationSuccessful: 'Authenticatie geslaagd',
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Je bent succesvol geverifieerd met ${authType}.`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometrie (${status})`,
             yourAttemptWasUnsuccessful: 'Je verificatiepoging is niet gelukt.',
             youCouldNotBeAuthenticated: 'Je kon niet worden geverifieerd',
             areYouSureToReject: 'Weet je het zeker? De authenticatiepoging wordt geweigerd als je dit scherm sluit.',
@@ -691,6 +691,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
+            statusNeverRegistered: 'Nooit geregistreerd',
         },
         pleaseEnableInSystemSettings: {
             start: 'Schakel gezichts-/vingerafdrukverificatie in of stel een toesteltoegangscode in op uw',
@@ -710,15 +711,17 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk. Geen wachtwoorden of codes nodig.',
         },
         revoke: {
-            title: 'Gezicht/vingerafdruk & passkeys',
+            title: 'Gezichtsherkenning/vingerafdruk & passkeys',
             explanation:
-                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op een of meer apparaten. Toegang intrekken betekent dat er een magische code nodig is voor de volgende verificatie op elk apparaat.',
-            confirmationPrompt: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op elk apparaat.',
+                'Gezichts-/vingerafdruk- of toegangssleutelverificatie is ingeschakeld op een of meer apparaten. Toegang intrekken betekent dat er een magische code nodig is voor de volgende verificatie op dat apparaat.',
+            confirmationPrompt: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op dat apparaat.',
             cta: 'Toegang intrekken',
             noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkey-verificatie. Als je er een registreert, kun je die toegang hier intrekken.',
             dismiss: 'Begrepen',
             error: 'Aanvraag mislukt. Probeer het later opnieuw.',
             revoke: 'Intrekken',
+            confirmationPromptAll: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op elk apparaat.',
+            ctaAll: 'Alles intrekken',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Niet-ondersteund apparaat',
