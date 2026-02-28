@@ -32,7 +32,7 @@ type MiniContextMenuState = MiniContextMenuParams & {
 
 type MiniContextMenuActions = {
     showMiniContextMenu: (params: MiniContextMenuParams) => void;
-    hideMiniContextMenu: () => void;
+    hideMiniContextMenu: (options?: {immediate?: boolean}) => void;
     cancelHide: () => void;
     keepOpen: () => void;
     release: () => void;
@@ -78,13 +78,17 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
                 pendingHideRef.current = false;
                 setState({...params, isVisible: true});
             },
-            hideMiniContextMenu: () => {
+            hideMiniContextMenu: (options) => {
                 if (shouldKeepOpenRef.current) {
                     pendingHideRef.current = true;
                     return;
                 }
                 clearHideTimer();
-                hideTimerRef.current = setTimeout(performHide, HIDE_DELAY_MS);
+                if (options?.immediate) {
+                    performHide();
+                } else {
+                    hideTimerRef.current = setTimeout(performHide, HIDE_DELAY_MS);
+                }
             },
             cancelHide: () => {
                 clearHideTimer();

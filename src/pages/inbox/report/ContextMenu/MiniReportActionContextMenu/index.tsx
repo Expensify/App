@@ -42,7 +42,7 @@ function MiniReportActionContextMenu() {
             return;
         }
         const handleScroll = () => {
-            hideMiniContextMenu();
+            hideMiniContextMenu({immediate: true});
         };
         window.addEventListener('scroll', handleScroll, true);
         return () => {
@@ -63,7 +63,7 @@ function MiniReportActionContextMenu() {
         // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events
         <div
             onMouseEnter={cancelHide}
-            onMouseLeave={hideMiniContextMenu}
+            onMouseLeave={() => hideMiniContextMenu()}
             data-selection-scraper-hidden-element={isVisible}
             style={{
                 position: 'fixed',
