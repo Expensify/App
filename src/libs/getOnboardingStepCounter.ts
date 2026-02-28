@@ -21,8 +21,6 @@ const {ONBOARDING} = SCREENS;
 const {ONBOARDING_CHOICES, ONBOARDING_SIGNUP_QUALIFIERS} = CONST;
 
 const subPageMapping: Partial<Record<OnboardingScreen, OnboardingScreen>> = {
-    [ONBOARDING.WORK_EMAIL_VALIDATION]: ONBOARDING.WORK_EMAIL,
-    [ONBOARDING.PRIVATE_DOMAIN]: ONBOARDING.PERSONAL_DETAILS,
     [ONBOARDING.WORKSPACE_CONFIRMATION]: ONBOARDING.WORKSPACE_OPTIONAL,
     [ONBOARDING.WORKSPACE_CURRENCY]: ONBOARDING.WORKSPACE_OPTIONAL,
     [ONBOARDING.WORKSPACE_INVITE]: ONBOARDING.WORKSPACE_OPTIONAL,
@@ -30,10 +28,10 @@ const subPageMapping: Partial<Record<OnboardingScreen, OnboardingScreen>> = {
 
 function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
     if (context.isFromPublicDomain) {
-        return [ONBOARDING.WORK_EMAIL];
+        return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
     if (context.hasAccessibleDomainPolicies) {
-        return [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACES];
+        return [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.PRIVATE_DOMAIN, ONBOARDING.WORKSPACES];
     }
     return [];
 }
