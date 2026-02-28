@@ -4,9 +4,9 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
-import {makeRequestWithSideEffects, read} from '@libs/API';
+import {makeRequestWithSideEffects} from '@libs/API';
 import type {DenyTransactionParams} from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import {parseHttpRequest} from '@libs/MultifactorAuthentication/Biometrics/helpers';
@@ -304,10 +304,6 @@ function markHasAcceptedSoftPrompt() {
     });
 }
 
-function openMultifactorAuthenticationRevokePage() {
-    read(READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE, null);
-}
-
 function clearLocalMFAPublicKeyList() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {
         multifactorAuthenticationPublicKeyIDs: CONST.MULTIFACTOR_AUTHENTICATION.PUBLIC_KEYS_PREVIOUSLY_BUT_NOT_CURRENTLY_REGISTERED,
@@ -320,7 +316,6 @@ export {
     requestAuthorizationChallenge,
     troubleshootMultifactorAuthentication,
     revokeMultifactorAuthenticationCredentials,
-    openMultifactorAuthenticationRevokePage,
     markHasAcceptedSoftPrompt,
     clearLocalMFAPublicKeyList,
     isTransactionStillPending3DSReview,

@@ -1832,6 +1832,10 @@ function openTroubleshootSettingsPage() {
     API.read(READ_COMMANDS.OPEN_TROUBLESHOOT_SETTINGS_PAGE, null);
 }
 
+function openMultifactorAuthenticationRevokePage() {
+    API.read(READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE, null);
+}
+
 function updateDraftRule(ruleData: Partial<ExpenseRuleForm>) {
     Onyx.merge(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
 }
@@ -1904,4 +1908,5 @@ export {
     updateDraftMerchantRule,
     clearDraftMerchantRule,
     openTroubleshootSettingsPage,
+    openMultifactorAuthenticationRevokePage,
 };

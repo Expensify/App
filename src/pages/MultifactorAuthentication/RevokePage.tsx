@@ -11,8 +11,9 @@ import Text from '@components/Text';
 import useBiometricRegistrationStatus from '@hooks/useBiometricRegistrationStatus';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openMultifactorAuthenticationRevokePage, revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
+import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
+import {openMultifactorAuthenticationRevokePage} from '@userActions/User';
 
 function MultifactorAuthenticationRevokePage() {
     const {translate} = useLocalize();
