@@ -13,7 +13,7 @@ const {BUSINESS_REGISTRATION_INCORPORATION_NUMBER} = INPUT_IDS;
 const STEP_FIELDS = [BUSINESS_REGISTRATION_INCORPORATION_NUMBER];
 
 function RegistrationNumber({onNext, onMove, isEditing, country}: RegistrationNumberProps) {
-    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
+    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const handleSubmit = useEnableGlobalReimbursementsStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,

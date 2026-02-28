@@ -15,12 +15,14 @@ function TagCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: Tr
             showTooltip={shouldShowTooltip}
             text={getTagForDisplay(transactionItem)}
             textStyle={[styles.textMicro, styles.mnh0]}
+            numberOfLines={2}
         />
     ) : (
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={getTagForDisplay(transactionItem)}
-            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
+            numberOfLines={2}
+            style={[styles.lineHeightLarge, styles.preWrap, styles.justifyContentCenter]}
         />
     );
 }

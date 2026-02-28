@@ -23,7 +23,7 @@ function DelegateNoAccessModalProvider({children}: PropsWithChildren) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const delegatorEmail = currentUserDetails?.login ?? '';
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const isDelegateAccessRestricted = isActingAsDelegate && AccountUtils.isDelegateOnlySubmitter(account);
 
