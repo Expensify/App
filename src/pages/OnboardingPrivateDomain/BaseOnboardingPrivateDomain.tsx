@@ -6,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingPrivateDomainProps} from './types';
 
 function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboardingPrivateDomainProps) {
@@ -32,6 +34,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PRIVATE_DOMAIN);
 
     const email = session?.email ?? '';
     const domain = email.split('@').at(1) ?? '';
@@ -83,8 +86,8 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         >
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={40}
-                stepCounter={{step: CONST.ONBOARDING_STEP.PRIVATE_DOMAIN, total: CONST.ONBOARDING_STEP.TOTAL}}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={handleBackButtonPress}
                 shouldDisplayHelpButton={false}
             />

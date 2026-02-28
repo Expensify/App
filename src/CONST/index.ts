@@ -6247,18 +6247,6 @@ const CONST = {
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
-    ONBOARDING_STEP: {
-        TOTAL: 5,
-        WORK_EMAIL: 1,
-        PURPOSE: 2,
-        PRIVATE_DOMAIN: 2,
-        PERSONAL_DETAILS_EARLY: 1,
-        PERSONAL_DETAILS_LATE: 3,
-        WORKSPACES: 3,
-        EMPLOYEES: 3,
-        ACCOUNTING: 4,
-        FINAL: 5,
-    },
     ONBOARDING_RHP_VARIANT: {
         RHP_CONCIERGE_DM: 'rhpConciergeDm',
         RHP_ADMINS_ROOM: 'rhpAdminsRoom',

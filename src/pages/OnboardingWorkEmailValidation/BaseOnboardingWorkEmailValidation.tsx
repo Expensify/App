@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,6 +20,7 @@ import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingWorkEmailValidationProps} from './types';
 
 function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardingWorkEmailValidationProps) {
@@ -37,6 +39,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const isFocused = useIsFocused();
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION);
 
     useEffect(() => {
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
@@ -87,8 +90,8 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         >
             <HeaderWithBackButton
                 shouldShowBackButton={!onboardingValues?.isMergingAccountBlocked}
-                progressBarPercentage={15}
-                stepCounter={{step: CONST.ONBOARDING_STEP.WORK_EMAIL, total: CONST.ONBOARDING_STEP.TOTAL}}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => {
                     updateOnboardingValuesAndNavigation(onboardingValues);
                 }}

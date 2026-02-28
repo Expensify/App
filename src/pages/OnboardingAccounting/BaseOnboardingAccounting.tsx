@@ -13,6 +13,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -27,6 +28,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseOnboardingAccountingProps} from './types';
 
@@ -107,6 +109,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.ACCOUNTING);
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(onboardingUserReportedIntegration ?? undefined);
     const [error, setError] = useState('');
@@ -243,8 +246,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         >
             <HeaderWithBackButton
                 shouldShowBackButton={!isVsb}
-                progressBarPercentage={80}
-                stepCounter={{step: CONST.ONBOARDING_STEP.ACCOUNTING, total: CONST.ONBOARDING_STEP.TOTAL}}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute())}
                 shouldDisplayHelpButton={false}
             />
