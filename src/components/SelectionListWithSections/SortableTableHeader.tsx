@@ -66,7 +66,7 @@ function SortableTableHeader({
                         return null;
                     }
 
-                    const isSortable = shouldShowSorting && isColumnSortable !== false;
+                    const isSortable = shouldShowSorting && isColumnSortable;
                     const isActive = sortBy === columnName;
                     const textStyle = columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null;
 
