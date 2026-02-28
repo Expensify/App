@@ -309,6 +309,7 @@ function MoneyRequestReportPreviewContent({
             activePolicy,
             policy,
             betas,
+            isSelfTourViewed,
         ],
     );
 

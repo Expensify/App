@@ -214,6 +214,7 @@ function KYCWall({
             introSelected,
             formatPhoneNumber,
             lastPaymentMethod,
+            isSelfTourViewed,
         ],
     );
 
