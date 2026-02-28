@@ -1,4 +1,4 @@
-import {useCallback} from 'react';
+import {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {isArchivedReport, isReportArchivedByID} from '@libs/ReportUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
@@ -32,7 +32,7 @@ const archivedReportIDsSelector = (reportNameValuePairs: OnyxCollection<ReportNa
 function useArchivedReportsIDSet(): ArchivedReportsIDSet {
     const [archivedReportIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: archivedReportIDsSelector});
 
-    return new Set(archivedReportIDs);
+    return useMemo(() => new Set(archivedReportIDs), [archivedReportIDs]);
 }
 
 function useIsReportArchivedByID() {
