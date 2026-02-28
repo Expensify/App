@@ -33,7 +33,7 @@ function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
         return () => {
             cancelled = true;
         };
-    }, [getLocalPublicKey]);
+    }, [getLocalPublicKey, serverKnownCredentialIDs]);
 
     const isCurrentDeviceRegistered = !!localPublicKey && serverKnownCredentialIDs.includes(localPublicKey);
     const totalDeviceCount = serverKnownCredentialIDs.length;
