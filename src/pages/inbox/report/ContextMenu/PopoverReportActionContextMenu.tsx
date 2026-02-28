@@ -260,7 +260,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         });
     };
 
-    const hideDeleteModal = () => {};
+    const hideDeleteModal = () => {
+        modalContext.closeModal();
+    };
 
     const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (showReportID, showReportAction, _shouldSetModalVisibility, onConfirm = () => {}, onCancel = () => {}) => {
         if (!showReportID || !showReportAction?.reportActionID) {
