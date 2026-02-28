@@ -685,6 +685,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 opticId: 'Optic ID',
             },
             statusNeverRegistered: '从未注册',
+            statusNotRegistered: '未注册',
+            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? '另一台设备已注册' : '其他设备已注册'),
+            statusRegisteredThisDevice: '已注册',
         },
         pleaseEnableInSystemSettings: {
             start: '请在您的设备中启用面部/指纹验证或设置设备密码',
@@ -714,6 +717,8 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: '撤销',
             confirmationPromptAll: '你确定吗？在任何设备上进行下一次验证时，你都需要输入魔法验证码。',
             ctaAll: '全部撤销',
+            thisDevice: '此设备',
+            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => `其他${count}台设备`,
         },
         unsupportedDevice: {
             unsupportedDevice: '不支持的设备',

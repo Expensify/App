@@ -692,6 +692,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 opticId: 'Optic ID',
             },
             statusNeverRegistered: 'Nooit geregistreerd',
+            statusNotRegistered: 'Niet geregistreerd',
+            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Een ander apparaat geregistreerd' : 'Andere apparaten geregistreerd'),
+            statusRegisteredThisDevice: 'Geregistreerd',
         },
         pleaseEnableInSystemSettings: {
             start: 'Schakel gezichts-/vingerafdrukverificatie in of stel een toesteltoegangscode in op uw',
@@ -722,6 +725,12 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Intrekken',
             confirmationPromptAll: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op elk apparaat.',
             ctaAll: 'Alles intrekken',
+            thisDevice: 'Dit apparaat',
+            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['Eén', 'Twee', 'Drie', 'Vier', 'Vijf', 'Zes', 'Zeven', 'Acht', 'Negen'];
+                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
+                return `${displayCount} ${count === 1 ? 'ander apparaat' : 'andere apparaten'}`;
+            },
         },
         unsupportedDevice: {
             unsupportedDevice: 'Niet-ondersteund apparaat',

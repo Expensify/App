@@ -748,7 +748,7 @@ const translations = {
             thisDevice: 'This device',
             otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
                 const numberWords = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords[count - 1] : `${count}`;
+                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
                 return `${displayCount} other ${count === 1 ? 'device' : 'devices'}`;
             },
         },

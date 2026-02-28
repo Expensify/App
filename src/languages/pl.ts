@@ -692,6 +692,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 opticId: 'Optic ID',
             },
             statusNeverRegistered: 'Nigdy nie zarejestrowano',
+            statusNotRegistered: 'Nie zarejestrowano',
+            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Inne urządzenie zarejestrowane' : 'Inne urządzenia zarejestrowane'),
+            statusRegisteredThisDevice: 'Zarejestrowano',
         },
         pleaseEnableInSystemSettings: {
             start: 'Włącz weryfikację twarzą/odciskiem palca lub ustaw kod blokady urządzenia w swoim',
@@ -723,6 +726,12 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Unieważnij',
             confirmationPromptAll: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnym potwierdzeniu na dowolnym urządzeniu.',
             ctaAll: 'Odwołaj wszystkie',
+            thisDevice: 'To urządzenie',
+            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['Jedno', 'Dwa', 'Trzy', 'Cztery', 'Pięć', 'Sześć', 'Siedem', 'Osiem', 'Dziewięć'];
+                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
+                return `${displayCount} ${count === 1 ? 'inne urządzenie' : 'innych urządzeń'}`;
+            },
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nieobsługiwane urządzenie',

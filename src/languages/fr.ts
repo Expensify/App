@@ -695,6 +695,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 opticId: 'Optic ID',
             },
             statusNeverRegistered: 'Jamais inscrit',
+            statusNotRegistered: 'Non enregistré',
+            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Un autre appareil enregistré' : 'Autres appareils enregistrés'),
+            statusRegisteredThisDevice: 'Enregistré',
         },
         pleaseEnableInSystemSettings: {
             start: 'Veuillez activer la vérification par reconnaissance faciale/empreinte digitale ou définir un code d’accès à l’appareil dans vos',
@@ -724,8 +727,14 @@ const translations: TranslationDeepObject<typeof en> = {
             dismiss: 'Compris',
             error: 'La requête a échoué. Réessayez plus tard.',
             revoke: 'Révoquer',
-            confirmationPromptAll: 'Êtes-vous sûr(e) ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil.',
-            ctaAll: 'Tout révoquer',
+            confirmationPromptAll: ‘Êtes-vous sûr(e) ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil.’,
+            ctaAll: ‘Tout révoquer’,
+            thisDevice: ‘Cet appareil’,
+            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = [‘Un’, ‘Deux’, ‘Trois’, ‘Quatre’, ‘Cinq’, ‘Six’, ‘Sept’, ‘Huit’, ‘Neuf’];
+                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
+                return `${displayCount} ${count === 1 ? ‘autre appareil’ : ‘autres appareils’}`;
+            },
         },
         unsupportedDevice: {
             unsupportedDevice: 'Appareil non pris en charge',

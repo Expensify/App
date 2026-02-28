@@ -692,6 +692,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 opticId: 'Optic ID',
             },
             statusNeverRegistered: '未登録',
+            statusNotRegistered: '未登録',
+            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? '他のデバイスが登録済み' : '他のデバイスが登録済み'),
+            statusRegisteredThisDevice: '登録済み',
         },
         pleaseEnableInSystemSettings: {
             start: '顔認証/指紋認証を有効にするか、デバイスのパスコードを設定してください',
@@ -721,6 +724,8 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: '取り消す',
             confirmationPromptAll: 'よろしいですか？今後どのデバイスで認証するときも、マジックコードが必要になります。',
             ctaAll: 'すべて取り消す',
+            thisDevice: 'このデバイス',
+            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => `他${count}台のデバイス`,
         },
         unsupportedDevice: {
             unsupportedDevice: '未対応のデバイス',
