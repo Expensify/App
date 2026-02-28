@@ -5718,6 +5718,43 @@ describe('SearchUIUtils', () => {
             expect(searchQuery).toContain(`sortBy:${CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH}`);
             expect(searchQuery).toContain(`sortOrder:${CONST.SEARCH.SORT_ORDER.ASC}`);
         });
+
+        test('Should return Top Merchants search query with pie view', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const topMerchantsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
+
+            expect(topMerchantsSearch).toBeDefined();
+            const searchQueryJSON = topMerchantsSearch.searchQueryJSON;
+
+            expect(searchQueryJSON).toBeDefined();
+            expect(searchQueryJSON?.view).toBe(CONST.SEARCH.VIEW.PIE);
+        });
+
+        test('Should return Top Merchants search query string with pie view', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const topMerchantsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
+
+            expect(topMerchantsSearch).toBeDefined();
+            const searchQuery = topMerchantsSearch.searchQuery;
+
+            expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.PIE}`);
+        });
+    });
+
+    describe('Test getSuggestedSearches sort defaults', () => {
+        test('Should default Top Categories to sortBy groupCategory and sortOrder asc', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
+            const topCategories = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES];
+            expect(topCategories.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
+            expect(topCategories.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+
+        test('Should default Top Merchants to sortBy groupMerchant and sortOrder asc', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
+            const topMerchants = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
+            expect(topMerchants.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
+            expect(topMerchants.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
     });
 
     describe('Test getColumnsToShow', () => {
