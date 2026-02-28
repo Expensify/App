@@ -37,14 +37,14 @@ function MultifactorAuthenticationRevokePage() {
         Navigation.goBack();
     };
 
-    const hideConfirmModal = () => {
-        setConfirmModalVisibility(false);
-    };
-
-    const showRevokeConfirm = (revokeAction: () => Promise<void>, isAll: boolean) => {
+    const showConfirmModal = (revokeAction: () => Promise<void>, isAll: boolean) => {
         setConfirmAction(() => revokeAction);
         setIsRevokeAll(isAll);
         setConfirmModalVisibility(true);
+    };
+
+    const hideConfirmModal = () => {
+        setConfirmModalVisibility(false);
     };
 
     const handleRevokeConfirm = async () => {
@@ -113,7 +113,7 @@ function MultifactorAuthenticationRevokePage() {
                                                 small
                                                 isLoading={isThisDeviceLoading}
                                                 text={translate('multifactorAuthentication.revoke.revoke')}
-                                                onPress={() => showRevokeConfirm(revokeThisDevice, false)}
+                                                onPress={() => showConfirmModal(revokeThisDevice, false)}
                                             />
                                         </View>
                                     }
@@ -131,7 +131,7 @@ function MultifactorAuthenticationRevokePage() {
                                                 small
                                                 isLoading={isOtherDevicesLoading}
                                                 text={translate('multifactorAuthentication.revoke.revoke')}
-                                                onPress={() => showRevokeConfirm(revokeOtherDevices, false)}
+                                                onPress={() => showConfirmModal(revokeOtherDevices, false)}
                                             />
                                         </View>
                                     }
@@ -153,7 +153,7 @@ function MultifactorAuthenticationRevokePage() {
                             danger
                             style={styles.flex1}
                             isLoading={isThisDeviceLoading && isOtherDevicesLoading}
-                            onPress={() => showRevokeConfirm(revokeAll, hasMultipleKeys)}
+                            onPress={() => showConfirmModal(revokeAll, hasMultipleKeys)}
                             text={translate(hasMultipleKeys ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta')}
                         />
                     ) : (
