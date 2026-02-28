@@ -22,17 +22,18 @@ import {setPlaidEvent} from '@userActions/BankAccounts';
 import {importPlaidAccounts, openPlaidCompanyCardLogin} from '@userActions/Plaid';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; policyID?: string; onExit?: () => void}) {
+function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWithDomainID; policyID?: string; onExit?: () => void}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
-    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {canBeMissing: true});
-    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
+    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const plaidErrors = plaidData?.errors;
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>(undefined);
@@ -41,7 +42,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
     const {isOffline} = useNetwork();
     const domain = getDomainNameForPolicy(policyID);
 
-    const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData]);
+    const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData?.bankAccounts?.length, plaidData?.errors]);
 
     /**
      * Blocks the keyboard shortcuts that can navigate
@@ -65,7 +66,9 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
      * Unblocks the keyboard shortcuts that can navigate
      */
     const unsubscribeToNavigationShortcuts = () => {
-        subscribedKeyboardShortcuts.current.forEach((unsubscribe) => unsubscribe());
+        for (const unsubscribe of subscribedKeyboardShortcuts.current) {
+            unsubscribe();
+        }
         subscribedKeyboardShortcuts.current = [];
     };
 
@@ -82,7 +85,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
         }
 
         // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -114,8 +117,8 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
                         // on success we need to move to bank connection screen with token, bank name = plaid
                         Log.info('[PlaidLink] Success!');
 
-                        const plaidConnectedFeed =
-                            (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
+                        const plaidConnectedFeed = ((metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ??
+                            (metadata?.institution as LinkSuccessMetadata['institution'])?.id) as CardFeedWithNumber;
                         const plaidConnectedFeedName =
                             (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
 
@@ -135,7 +138,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
                                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     setAssignCardStepAndData({
-                                        data: {
+                                        cardToAssign: {
                                             plaidAccessToken: publicToken,
                                             institutionId: plaidConnectedFeed,
                                             plaidConnectedFeedName,
@@ -147,7 +150,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
                                 return;
                             }
                             setAssignCardStepAndData({
-                                data: {
+                                cardToAssign: {
                                     plaidAccessToken: publicToken,
                                     institutionId: plaidConnectedFeed,
                                     plaidConnectedFeedName,
@@ -201,7 +204,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
 
     return (
         <ScreenWrapper
-            testID={PlaidConnectionStep.displayName}
+            testID="PlaidConnectionStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -218,7 +221,5 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; 
         </ScreenWrapper>
     );
 }
-
-PlaidConnectionStep.displayName = 'PlaidConnectionStep';
 
 export default PlaidConnectionStep;

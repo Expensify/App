@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
+import useAbsentPageSpan from '@libs/telemetry/useAbsentPageSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type NotFoundPageProps = {
@@ -21,9 +22,11 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
     const topmostReportId = Navigation.getTopmostReportId();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${topmostReportId}`);
 
+    useAbsentPageSpan();
+
     return (
         <ScreenWrapper
-            testID={NotFoundPage.displayName}
+            testID="NotFoundPage"
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
         >
             <FullPageNotFoundView
@@ -47,7 +50,5 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
         </ScreenWrapper>
     );
 }
-
-NotFoundPage.displayName = 'NotFoundPage';
 
 export default NotFoundPage;

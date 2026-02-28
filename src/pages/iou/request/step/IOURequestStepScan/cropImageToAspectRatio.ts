@@ -1,5 +1,7 @@
 import ImageSize from 'react-native-image-size';
+import type {Orientation} from 'react-native-vision-camera';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
+import getDeviceOrientationAwareImageSize from '@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 type ImageObject = {
@@ -32,7 +34,7 @@ function calculateCropRect(imageWidth: number, imageHeight: number, aspectRatioW
     return {width, height, originX, originY};
 }
 
-const IMAGE_TYPE = 'png';
+const IMAGE_TYPE = 'image/jpeg';
 
 function cropImageToAspectRatio(
     /** Source image */
@@ -46,19 +48,25 @@ function cropImageToAspectRatio(
 
     /** Vertically align the crop to the top (true) or center (false) */
     shouldAlignTop?: boolean,
+
+    /** Image orientation determined by react-native-image-size that depends on device orientation */
+    orientation?: Orientation,
 ): Promise<ImageObject> {
     return ImageSize.getSize(image.source)
         .then((imageSize) => {
-            const isRotated = imageSize?.rotation === 90 || imageSize?.rotation === 270;
-            const imageWidth = isRotated ? imageSize?.height : imageSize?.width;
-            const imageHeight = isRotated ? imageSize?.width : imageSize?.height;
+            const {
+                imageWidth,
+                imageHeight,
+                aspectRatioWidth: ratioWidth,
+                aspectRatioHeight: ratioHeight,
+            } = getDeviceOrientationAwareImageSize({imageSize, orientation, aspectRatioWidth, aspectRatioHeight});
 
-            if (!imageWidth || !imageHeight || !aspectRatioWidth || !aspectRatioHeight) {
+            if (!imageWidth || !imageHeight || !ratioWidth || !ratioHeight) {
                 return image;
             }
 
-            const crop = calculateCropRect(imageWidth, imageHeight, aspectRatioWidth, aspectRatioHeight, shouldAlignTop);
-            const croppedFilename = `receipt_cropped_${Date.now()}.${IMAGE_TYPE}`;
+            const crop = calculateCropRect(imageWidth, imageHeight, ratioWidth, ratioHeight, shouldAlignTop);
+            const croppedFilename = `receipt_cropped_${Date.now()}.jpeg`;
 
             return cropOrRotateImage(image.source, [{crop}], {compress: 1, name: croppedFilename, type: IMAGE_TYPE}).then((croppedImage) => {
                 if (!croppedImage?.uri || !croppedImage?.name) {

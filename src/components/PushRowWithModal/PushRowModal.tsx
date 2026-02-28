@@ -2,8 +2,8 @@ import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import searchOptions from '@libs/searchOptions';
@@ -68,7 +68,16 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
     };
 
     const searchResults = searchOptions(debouncedSearchValue, options);
-    const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
+
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+            label: searchInputTitle,
+            value: searchValue,
+            onChangeText: setSearchValue,
+        }),
+        [debouncedSearchValue, searchInputTitle, searchResults.length, searchValue, setSearchValue, translate],
+    );
 
     return (
         <Modal
@@ -82,29 +91,25 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
             <ScreenWrapper
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={PushRowModal.displayName}
+                testID="PushRowModal"
             >
                 <HeaderWithBackButton
                     title={headerTitle}
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    headerMessage={headerMessage}
-                    textInputLabel={searchInputTitle}
-                    textInputValue={searchValue}
-                    onChangeText={setSearchValue}
-                    onSelectRow={handleSelectRow}
-                    sections={[{data: searchResults}]}
-                    initiallyFocusedOptionKey={selectedOption}
-                    showScrollIndicator
-                    shouldShowTooltips={false}
+                    data={searchResults}
                     ListItem={RadioListItem}
+                    onSelectRow={handleSelectRow}
+                    textInputOptions={textInputOptions}
+                    initiallyFocusedItemKey={selectedOption}
+                    disableMaintainingScrollPosition
+                    shouldShowTooltips={false}
+                    showScrollIndicator
                 />
             </ScreenWrapper>
         </Modal>
     );
 }
-
-PushRowModal.displayName = 'PushRowModal';
 
 export default PushRowModal;

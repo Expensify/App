@@ -1,5 +1,5 @@
 import React from 'react';
-import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import BaseQuickEmojiReactions from './BaseQuickEmojiReactions';
 import type {OpenPickerCallback, QuickEmojiReactionsProps} from './types';
@@ -21,7 +21,5 @@ function QuickEmojiReactions({closeContextMenu, ...rest}: QuickEmojiReactionsPro
         />
     );
 }
-
-QuickEmojiReactions.displayName = 'QuickEmojiReactions';
 
 export default QuickEmojiReactions;

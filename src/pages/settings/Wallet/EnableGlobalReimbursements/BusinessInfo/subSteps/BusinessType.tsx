@@ -13,11 +13,14 @@ const STEP_FIELDS = [APPLICANT_TYPE_ID, BUSINESS_CATEGORY];
 
 function BusinessType({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
-    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
-    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: true});
+    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
 
-    const incorporationTypeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.ApplicantType), [corpayOnboardingFields]);
-    const natureOfBusinessListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.NatureOfBusiness), [corpayOnboardingFields]);
+    const incorporationTypeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.ApplicantType), [corpayOnboardingFields?.picklists.ApplicantType]);
+    const natureOfBusinessListOptions = useMemo(
+        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.NatureOfBusiness),
+        [corpayOnboardingFields?.picklists.NatureOfBusiness],
+    );
 
     const pushRowFields = useMemo(
         () => [
@@ -63,7 +66,5 @@ function BusinessType({onNext, onMove, isEditing}: SubStepProps) {
         />
     );
 }
-
-BusinessType.displayName = 'BusinessType';
 
 export default BusinessType;

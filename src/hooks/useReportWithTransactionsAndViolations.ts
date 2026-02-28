@@ -12,7 +12,7 @@ const DEFAULT_FILTERED_TRANSACTIONS: Transaction[] = [];
 const DEFAULT_VIOLATIONS: Record<string, TransactionViolation[]> = {};
 
 function useReportWithTransactionsAndViolations(reportID?: string): [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     // It connects to single Onyx instance held in OnyxListItemProvider, so it can be safely used in list items without affecting performance.
     const allReportTransactionsAndViolations = useAllReportsTransactionsAndViolations();

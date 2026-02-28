@@ -23,7 +23,7 @@ function Name({onNext, onMove, isEditing}: NameProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [inputID]);
+            const errors = getFieldRequiredErrors(values, [inputID], translate);
 
             if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
                 errors[inputID] = translate('bankAccount.error.fullName');
@@ -57,7 +57,5 @@ function Name({onNext, onMove, isEditing}: NameProps) {
         />
     );
 }
-
-Name.displayName = 'Name';
 
 export default Name;

@@ -34,15 +34,9 @@ function DebugTransactionPage({
     },
 }: DebugTransactionPageProps) {
     const {translate} = useLocalize();
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
-        canBeMissing: true,
-    });
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {
-        canBeMissing: true,
-    });
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {
-        canBeMissing: true,
-    });
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
     const styles = useThemeStyles();
@@ -103,7 +97,7 @@ function DebugTransactionPage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugTransactionPage.displayName}
+            testID="DebugTransactionPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -120,7 +114,5 @@ function DebugTransactionPage({
         </ScreenWrapper>
     );
 }
-
-DebugTransactionPage.displayName = 'DebugTransactionPage';
 
 export default DebugTransactionPage;

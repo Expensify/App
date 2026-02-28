@@ -3,9 +3,26 @@ import type {PhotoIdentifier} from '@react-native-camera-roll/camera-roll';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import {appendTimeToFileName, getFileName, getFileType, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
 import type {FileDownload} from './types';
+
+const isUserCancelled = (err: unknown) => {
+    let msg = '';
+    if (typeof err === 'string') {
+        msg = err.toLowerCase();
+    } else if (err && typeof err === 'object') {
+        const errorMessage = (err as {message?: unknown}).message;
+        const errorError = (err as {error?: unknown}).error;
+        if (typeof errorMessage === 'string') {
+            msg = errorMessage.toLowerCase();
+        } else if (typeof errorError === 'string') {
+            msg = errorError.toLowerCase();
+        }
+    }
+    return /cancel|did not share/.test(msg);
+};
 
 /**
  * Downloads the file to Documents section in iOS
@@ -28,7 +45,7 @@ function downloadFile(fileUrl: string, fileName: string) {
     }).fetch('GET', fileUrl);
 }
 
-const postDownloadFile = (url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void) => {
+const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void) => {
     const fetchOptions: RequestInit = {
         method: 'POST',
         body: formData,
@@ -55,9 +72,13 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
                     .then(() => RNFS.unlink(localPath));
             });
         })
-        .catch(() => {
+        .catch((error) => {
+            // If the user cancels the iOS share/save dialog, we exit silently without showing an error
+            if (isUserCancelled(error)) {
+                return;
+            }
             if (!onDownloadFailed) {
-                showGeneralErrorAlert();
+                showGeneralErrorAlert(translate);
             }
             onDownloadFailed?.();
         });
@@ -104,7 +125,7 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifi
 /**
  * Download the file based on type(image, video, other file types)for iOS
  */
-const fileDownload: FileDownload = (fileUrl, fileName, successMessage, _, formData, requestType, onDownloadFailed) =>
+const fileDownload: FileDownload = (translate, fileUrl, fileName, successMessage, _, formData, requestType, onDownloadFailed) =>
     new Promise((resolve) => {
         let fileDownloadPromise;
         const fileType = getFileType(fileUrl);
@@ -120,7 +141,7 @@ const fileDownload: FileDownload = (fileUrl, fileName, successMessage, _, formDa
                 break;
             default:
                 if (requestType === CONST.NETWORK.METHOD.POST) {
-                    fileDownloadPromise = postDownloadFile(fileUrl, fileName, formData, onDownloadFailed);
+                    fileDownloadPromise = postDownloadFile(translate, fileUrl, fileName, formData, onDownloadFailed);
                     break;
                 }
 
@@ -134,15 +155,15 @@ const fileDownload: FileDownload = (fileUrl, fileName, successMessage, _, formDa
                     return;
                 }
 
-                showSuccessAlert(successMessage);
+                showSuccessAlert(translate, successMessage);
             })
             .catch((err: Error) => {
                 // iOS shows permission popup only once. Subsequent request will only throw an error.
                 // We catch the error and show a redirection link to the settings screen
                 if (err.message === CONST.IOS_CAMERA_ROLL_ACCESS_ERROR) {
-                    showPermissionErrorAlert();
+                    showPermissionErrorAlert(translate);
                 } else {
-                    showGeneralErrorAlert();
+                    showGeneralErrorAlert(translate);
                 }
             })
             .finally(() => resolve());

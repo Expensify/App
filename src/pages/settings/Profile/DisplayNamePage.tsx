@@ -40,7 +40,7 @@ const updateDisplayName = (
 function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const currentUserDetails = currentUserPersonalDetails ?? {};
 
@@ -51,7 +51,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
         if (!isValidDisplayName(values.firstName)) {
             addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}));
+            addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
         } else if (values.firstName.length === 0) {
             addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
         }
@@ -63,7 +63,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
         if (!isValidDisplayName(values.lastName)) {
             addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}));
+            addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
         }
         if (doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
@@ -74,7 +74,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={DisplayNamePage.displayName}
+            testID="DisplayNamePage"
         >
             <HeaderWithBackButton
                 title={translate('displayNamePage.headerTitle')}
@@ -105,6 +105,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             defaultValue={currentUserDetails.firstName ?? ''}
                             spellCheck={false}
                             autoCapitalize="words"
+                            autoComplete="given-name"
                         />
                     </View>
                     <View>
@@ -118,6 +119,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             defaultValue={currentUserDetails.lastName ?? ''}
                             spellCheck={false}
                             autoCapitalize="words"
+                            autoComplete="family-name"
                         />
                     </View>
                 </FormProvider>
@@ -125,7 +127,5 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
         </ScreenWrapper>
     );
 }
-
-DisplayNamePage.displayName = 'DisplayNamePage';
 
 export default withCurrentUserPersonalDetails(DisplayNamePage);

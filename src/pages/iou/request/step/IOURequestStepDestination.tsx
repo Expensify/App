@@ -1,26 +1,28 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPerDiemCustomUnit, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
+import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
+import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
 import {
     clearSubrates,
@@ -35,6 +37,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -43,10 +46,15 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
+type IOURequestStepDestinationRef = {
+    focus?: () => void;
+};
+
 type IOURequestStepDestinationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         openedFromStartPage?: boolean;
         explicitPolicyID?: string;
+        ref: ForwardedRef<IOURequestStepDestinationRef>;
     };
 
 function IOURequestStepDestination({
@@ -57,24 +65,36 @@ function IOURequestStepDestination({
     transaction,
     openedFromStartPage = false,
     explicitPolicyID,
+    ref,
 }: IOURequestStepDestinationProps) {
-    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
-    const personalPolicy = usePersonalPolicy();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const reportPolicyID = getIOURequestPolicyID(transaction, report);
+    const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
+    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
     const {accountID} = useCurrentUserPersonalDetails();
     const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
     const {top} = useSafeAreaInsets();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {translate} = useLocalize();
+
+    const destinationSelectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
+
+    useImperativeHandle(ref, () => ({
+        focus: destinationSelectionListRef.current?.focusTextInput,
+    }));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEmptyObject(policy);
 
     const {isOffline} = useNetwork();
-    const isLoading = !isOffline && isLoadingOnyxValue(policyMetadata);
-    const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline;
+    const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
+    const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline && !isLoading;
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
 
     const navigateBack = () => {
@@ -82,38 +102,43 @@ function IOURequestStepDestination({
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
+        if (openedFromStartPage && policy?.id && shouldRestrictUserBillableActions(policy.id)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            return;
+        }
+
         if (isEmptyObject(customUnit)) {
             return;
         }
+        const targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
-                // If we are not coming from the global create menu then this is always reported
-                const shouldAutoReport = !!policy?.autoReporting || !!personalPolicy?.autoReporting || action !== CONST.IOU.ACTION.CREATE || !transaction?.isFromGlobalCreate;
-                const transactionReportID = shouldAutoReport ? policyExpenseReport?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
-                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
+                setTransactionReport(transactionID, {reportID: targetReport?.reportID}, true);
+                if (iouType === CONST.IOU.TYPE.TRACK) {
+                    setMoneyRequestParticipantsFromReport(transactionID, selfDMReport, currentUserPersonalDetails.accountID, false);
+                } else {
+                    setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID);
+                }
                 setCustomUnitID(transactionID, customUnit.customUnitID);
-                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '');
+                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
-            setCustomUnitRateID(transactionID, destination.keyForList ?? '');
+            setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy);
             setMoneyRequestCurrency(transactionID, destination.currency);
             clearSubrates(transactionID);
         }
 
         if (backTo) {
             navigateBack();
-        } else if (explicitPolicyID && transaction?.isFromGlobalCreate) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, policyExpenseReport?.reportID ?? reportID));
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, targetReport?.reportID ?? reportID));
         }
     };
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ''}),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ''}),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', ''),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', ''),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
@@ -126,7 +151,7 @@ function IOURequestStepDestination({
             return;
         }
         fetchPerDiemRates(policy?.id);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
 
     useEffect(() => {
@@ -137,8 +162,8 @@ function IOURequestStepDestination({
             return;
         }
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '');
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policy?.customUnits]);
 
     const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
@@ -147,7 +172,7 @@ function IOURequestStepDestination({
         <ScreenWrapper
             includePaddingTop={false}
             keyboardVerticalOffset={keyboardVerticalOffset}
-            testID={`${IOURequestStepDestination.displayName}-container`}
+            testID="IOURequestStepDestination-container"
             shouldShowOfflineIndicator={false}
         >
             <StepScreenWrapper
@@ -155,7 +180,7 @@ function IOURequestStepDestination({
                 onBackButtonPress={navigateBack}
                 shouldShowWrapper={!openedFromStartPage}
                 shouldShowNotFoundPage={shouldShowNotFoundPage}
-                testID={IOURequestStepDestination.displayName}
+                testID="IOURequestStepDestination"
             >
                 {isLoading && (
                     <ActivityIndicator
@@ -168,7 +193,7 @@ function IOURequestStepDestination({
                     <View style={[styles.flex1]}>
                         <WorkspaceEmptyStateSection
                             shouldStyleAsCard={false}
-                            icon={Illustrations.EmptyStateExpenses}
+                            icon={illustrations.EmptyStateExpenses}
                             title={translate('workspace.perDiem.emptyList.title')}
                             subtitle={translate('workspace.perDiem.emptyList.subtitle')}
                             containerStyle={[styles.flex1, styles.justifyContentCenter]}
@@ -187,6 +212,7 @@ function IOURequestStepDestination({
                                     }}
                                     text={translate('workspace.perDiem.editPerDiemRates')}
                                     pressOnEnter
+                                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_PER_DIEM_RATES_BUTTON}
                                 />
                             </FixedFooter>
                         )}
@@ -194,6 +220,7 @@ function IOURequestStepDestination({
                 )}
                 {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && !!policy?.id && (
                     <DestinationPicker
+                        ref={destinationSelectionListRef}
                         selectedDestination={selectedDestination}
                         policyID={policy.id}
                         onSubmit={updateDestination}
@@ -203,8 +230,6 @@ function IOURequestStepDestination({
         </ScreenWrapper>
     );
 }
-
-IOURequestStepDestination.displayName = 'IOURequestStepDestination';
 
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepDestinationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDestination);

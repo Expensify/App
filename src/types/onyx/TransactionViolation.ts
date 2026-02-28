@@ -99,10 +99,13 @@ type TransactionViolationData = {
     tooltip?: string;
 
     /** What prohibitive expense rule did they break? */
-    prohibitedExpenseRule?: string;
+    prohibitedExpenseRule?: string | string[];
 
     /** Comment that triggered the violation */
     comment?: string;
+
+    /** Card ID associated with the violation (used to determine if it's a personal or company card) */
+    cardID?: number;
 };
 
 /** Model of a transaction violation */

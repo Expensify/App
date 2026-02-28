@@ -38,7 +38,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const reportID = report?.reportID;
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const goBack = useCallback(() => {
@@ -62,17 +62,17 @@ function RoomNamePage({report}: RoomNamePageProps) {
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
             } else if (isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', values.roomName));
             } else if (isExistingRoomName(values.roomName, reports, report?.policyID)) {
                 // The room name can't be set to one that already exists on the policy
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', values.roomName.length, CONST.TITLE_CHARACTER_LIMIT));
             }
 
             return errors;
         },
-        [report, reports, translate],
+        [report?.reportName, report?.policyID, reports, translate],
     );
 
     const updatePolicyRoomName = useCallback(
@@ -87,7 +87,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
         <ScreenWrapper
             onEntryTransitionEnd={() => roomNameInputRef.current?.focus()}
             includeSafeAreaPaddingBottom
-            testID={RoomNamePage.displayName}
+            testID="RoomNamePage"
         >
             <FullPageNotFoundView shouldShow={shouldDisableRename(report, isReportArchived)}>
                 <HeaderWithBackButton
@@ -117,7 +117,5 @@ function RoomNamePage({report}: RoomNamePageProps) {
         </ScreenWrapper>
     );
 }
-
-RoomNamePage.displayName = 'RoomNamePage';
 
 export default RoomNamePage;

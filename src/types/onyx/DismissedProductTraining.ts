@@ -10,6 +10,7 @@ const {
     ACCOUNT_SWITCHER,
     SCAN_TEST_DRIVE_CONFIRMATION,
     MULTI_SCAN_EDUCATIONAL_MODAL,
+    GPS_TOOLTIP,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 /**
@@ -82,6 +83,11 @@ type DismissedProductTraining = {
      * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.
      */
     [CONST.CHANGE_POLICY_TRAINING_MODAL]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the GPS tooltip, we store the timestamp here.
+     */
+    [GPS_TOOLTIP]: DismissedProductTrainingElement;
 };
 
 export default DismissedProductTraining;

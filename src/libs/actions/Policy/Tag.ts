@@ -1,6 +1,8 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
     EnablePolicyTagsParams,
@@ -24,28 +26,23 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
+import {completeTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-
-        allPolicyTags = value;
-    },
-});
+/**
+ * Checks if a task report is incomplete (not approved)
+ */
+function isTaskIncomplete(taskReport: OnyxEntry<Report>): boolean {
+    return !!taskReport && (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED);
+}
 
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
@@ -62,7 +59,7 @@ function openPolicyTagsPage(policyID: string) {
 
 type BuildOptimisticPolicyRecentlyUsedTagsProps = {
     policyTags: PolicyTagLists;
-    policyRecentlyUsedTags: RecentlyUsedTags;
+    policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     transactionTags?: string;
 };
 
@@ -74,20 +71,20 @@ function buildOptimisticPolicyRecentlyUsedTags({policyTags, policyRecentlyUsedTa
     const policyTagKeys = PolicyUtils.getSortedTagKeys(policyTags);
     const newOptimisticPolicyRecentlyUsedTags: RecentlyUsedTags = {};
 
-    getTagArrayFromName(transactionTags).forEach((tag, index) => {
+    for (const [index, tag] of getTagArrayFromName(transactionTags).entries()) {
         if (!tag) {
-            return;
+            continue;
         }
 
         const tagListKey = policyTagKeys.at(index) ?? '';
-        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(policyRecentlyUsedTags[tagListKey] ?? [])])];
-    });
+        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(policyRecentlyUsedTags?.[tagListKey] ?? [])])];
+    }
 
     return newOptimisticPolicyRecentlyUsedTags;
 }
 
-function updateImportSpreadsheetData(tagsLength: number): OnyxData {
-    const onyxData: OnyxData = {
+function updateImportSpreadsheetData(tagsLength: number): OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> {
+    const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -123,27 +120,36 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
     return onyxData;
 }
 
-function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTagLists = {}) {
+function createPolicyTag(
+    policyData: PolicyData,
+    tagName: string,
+    setupTagsTaskReport?: OnyxEntry<Report>,
+    setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>,
+    policyHasCustomCategories?: boolean,
+) {
+    const {policy, tags: policyTags} = policyData;
+    const policyID = policy?.id;
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
+    const tagListsOptimisticData = {
+        [policyTag.name]: {
+            tags: {
+                [newTagName]: {
+                    name: newTagName,
+                    enabled: true,
+                    errors: null,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+    };
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-                value: {
-                    [policyTag.name]: {
-                        tags: {
-                            [newTagName]: {
-                                name: newTagName,
-                                enabled: true,
-                                errors: null,
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                            },
-                        },
-                    },
-                },
+                value: tagListsOptimisticData,
             },
         ],
         successData: [
@@ -179,41 +185,47 @@ function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTa
         ],
     };
 
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, tagListsOptimisticData);
+
     const parameters = {
         policyID,
         tags: JSON.stringify([{name: newTagName}]),
     };
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
+
+    if (isTaskIncomplete(setupTagsTaskReport)) {
+        completeTask(setupTagsTaskReport, false, false, undefined);
+    }
+
+    if (isTaskIncomplete(setupCategoriesAndTagsTaskReport) && policyHasCustomCategories) {
+        completeTask(setupCategoriesAndTagsTaskReport, false, false, undefined);
+    }
 }
 
 function importPolicyTags(policyID: string, tags: PolicyTag[]) {
     const onyxData = updateImportSpreadsheetData(tags.length);
 
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const optimisticTags = tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}));
+
     const parameters = {
         policyID,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        tags: JSON.stringify(tags.map((tag) => ({name: tag.name, enabled: tag.enabled, 'GL Code': tag['GL Code']}))),
+        tags: JSON.stringify(optimisticTags),
     };
 
     API.write(WRITE_COMMANDS.IMPORT_TAGS_SPREADSHEET, parameters, onyxData);
 }
 
-type SetWorkspaceTagEnabledProps = {
-    policyID: string;
-    tagsToUpdate: Record<string, {name: string; enabled: boolean}>;
-    tagListIndex: number;
-    policyTags: OnyxEntry<PolicyTagLists>;
-};
+function setWorkspaceTagEnabled(policyData: PolicyData, tagsToUpdate: Record<string, {name: string; enabled: boolean}>, tagListIndex: number) {
+    const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
 
-function setWorkspaceTagEnabled({policyID, tagsToUpdate, tagListIndex, policyTags}: SetWorkspaceTagEnabledProps) {
-    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(tagListIndex);
-
-    if (!policyTag || tagListIndex === -1) {
+    if (!policyTag || tagListIndex === -1 || !policyData.policy) {
         return;
     }
 
-    const optimisticPolicyTagsData = {
+    const policyID = policyData.policy?.id;
+    const policyTagsOptimisticData = {
         ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
             acc[key] = {
                 ...policyTag.tags[key],
@@ -229,14 +241,14 @@ function setWorkspaceTagEnabled({policyID, tagsToUpdate, tagListIndex, policyTag
             return acc;
         }, {}),
     };
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
                     [policyTag.name]: {
-                        tags: optimisticPolicyTagsData,
+                        tags: policyTagsOptimisticData,
                     },
                 },
             },
@@ -295,6 +307,18 @@ function setWorkspaceTagEnabled({policyID, tagsToUpdate, tagListIndex, policyTag
         ],
     };
 
+    pushTransactionViolationsOnyxData(
+        onyxData,
+        policyData,
+        {},
+        {},
+        {
+            [policyTag.name]: {
+                tags: policyTagsOptimisticData,
+            },
+        },
+    );
+
     const parameters: SetPolicyTagsEnabled = {
         policyID,
         tags: JSON.stringify(Object.keys(tagsToUpdate).map((key) => tagsToUpdate[key])),
@@ -304,35 +328,38 @@ function setWorkspaceTagEnabled({policyID, tagsToUpdate, tagListIndex, policyTag
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
 }
 
-function setWorkspaceTagRequired(policyID: string, tagListIndexes: number[], isRequired: boolean, policyTags: OnyxEntry<PolicyTagLists>) {
-    if (!policyTags) {
+function setWorkspaceTagRequired(policyData: PolicyData, tagListIndexes: number[], isRequired: boolean) {
+    if (!policyData.tags || !policyData.policy) {
         return;
     }
 
-    const onyxData: OnyxData = {
+    const policyID = policyData.policy?.id;
+    const policyTagsOptimisticData = {
+        ...Object.keys(policyData.tags).reduce<PolicyTagLists>((acc, key) => {
+            if (tagListIndexes.includes(policyData.tags[key].orderWeight)) {
+                acc[key] = {
+                    ...acc[key],
+                    required: isRequired,
+                    errors: undefined,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    pendingFields: {
+                        required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                };
+
+                return acc;
+            }
+
+            return acc;
+        }, {}),
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-                value: {
-                    ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
-                        if (tagListIndexes.includes(policyTags[key].orderWeight)) {
-                            acc[key] = {
-                                ...acc[key],
-                                required: isRequired,
-                                errors: undefined,
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                pendingFields: {
-                                    required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                },
-                            };
-
-                            return acc;
-                        }
-
-                        return acc;
-                    }, {}),
-                },
+                value: policyTagsOptimisticData,
             },
         ],
         successData: [
@@ -340,8 +367,8 @@ function setWorkspaceTagRequired(policyID: string, tagListIndexes: number[], isR
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
-                        if (tagListIndexes.includes(policyTags[key].orderWeight)) {
+                    ...Object.keys(policyData.tags).reduce<PolicyTagLists>((acc, key) => {
+                        if (tagListIndexes.includes(policyData.tags[key].orderWeight)) {
                             acc[key] = {
                                 ...acc[key],
                                 errors: undefined,
@@ -363,7 +390,7 @@ function setWorkspaceTagRequired(policyID: string, tagListIndexes: number[], isR
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
+                    ...Object.keys(policyData.tags).reduce<PolicyTagLists>((acc, key) => {
                         acc[key] = {
                             ...acc[key],
                             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
@@ -379,6 +406,8 @@ function setWorkspaceTagRequired(policyID: string, tagListIndexes: number[], isR
         ],
     };
 
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
+
     const parameters: SetPolicyTagListsRequired = {
         policyID,
         tagListIndexes,
@@ -388,28 +417,31 @@ function setWorkspaceTagRequired(policyID: string, tagListIndexes: number[], isR
     API.write(WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED, parameters, onyxData);
 }
 
-function deletePolicyTags(policyID: string, tagsToDelete: string[], policyTags: OnyxEntry<PolicyTagLists>) {
-    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(0);
+function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
+    const policyID = policyData.policy?.id;
+    const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(0);
 
     if (!policyTag) {
         return;
     }
 
-    const onyxData: OnyxData = {
+    const policyTagsOptimisticData: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
+        [policyTag.name]: {
+            tags: {
+                ...tagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, tagName) => {
+                    acc[tagName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
+                    return acc;
+                }, {}),
+            },
+        },
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-                value: {
-                    [policyTag.name]: {
-                        tags: {
-                            ...tagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, tagName) => {
-                                acc[tagName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
-                                return acc;
-                            }, {}),
-                        },
-                    },
-                },
+                value: policyTagsOptimisticData,
             },
         ],
         successData: [
@@ -449,6 +481,8 @@ function deletePolicyTags(policyID: string, tagsToDelete: string[], policyTags: 
             },
         ],
     };
+
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
 
     const parameters = {
         policyID,
@@ -522,8 +556,14 @@ function clearPolicyTagListErrorField({policyID, tagListIndex, errorField, polic
     });
 }
 
-function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
-    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
+type ClearPolicyTagListErrorsProps = {
+    policyID: string;
+    tagListIndex: number;
+    policyTags: OnyxEntry<PolicyTagLists>;
+};
+
+function clearPolicyTagListErrors({policyID, tagListIndex, policyTags}: ClearPolicyTagListErrorsProps) {
+    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(tagListIndex);
 
     if (!policyTag) {
         return;
@@ -540,11 +580,9 @@ function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
     });
 }
 
-function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = PolicyUtils.getPolicy(policyID);
-    const tagList = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.at(tagListIndex);
+function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
+    const policyID = policyData.policy?.id;
+    const tagList = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
     if (!tagList) {
         return;
     }
@@ -552,8 +590,8 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
     const oldTagName = policyTag.oldName;
     const newTagName = PolicyUtils.escapeTagName(policyTag.newName);
 
-    const policyTagRule = PolicyUtils.getTagApproverRule(policyID, oldTagName);
-    const approvalRules = policy?.rules?.approvalRules ?? [];
+    const policyTagRule = PolicyUtils.getTagApproverRule(policyData.policy, oldTagName);
+    const approvalRules = policyData.policy?.rules?.approvalRules ?? [];
     const updatedApprovalRules: ApprovalRule[] = lodashCloneDeep(approvalRules);
 
     // Its related by name, so the corresponding rule has to be updated to handle offline scenario
@@ -571,38 +609,42 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
         updatedApprovalRules[indexToUpdate] = policyTagRule;
     }
 
-    const onyxData: OnyxData = {
+    const policyOptimisticData: Partial<Policy> = {
+        rules: {
+            approvalRules: updatedApprovalRules,
+        },
+    };
+
+    const policyTagsOptimisticData: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
+        [tagList?.name]: {
+            tags: {
+                [oldTagName]: null,
+                [newTagName]: {
+                    ...tag,
+                    name: newTagName,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    pendingFields: {
+                        ...tag.pendingFields,
+                        name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    previousTagName: oldTagName,
+                    errors: null,
+                },
+            },
+        },
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS | typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-                value: {
-                    [tagList?.name]: {
-                        tags: {
-                            [oldTagName]: null,
-                            [newTagName]: {
-                                ...tag,
-                                name: newTagName,
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                pendingFields: {
-                                    ...tag.pendingFields,
-                                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                },
-                                previousTagName: oldTagName,
-                                errors: null,
-                            },
-                        },
-                    },
-                },
+                value: policyTagsOptimisticData,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    rules: {
-                        approvalRules: updatedApprovalRules,
-                    },
-                },
+                value: policyOptimisticData,
             },
         ],
         successData: [
@@ -640,6 +682,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                     name: null,
                                 },
                                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
+                                previousTagName: newTagName,
                             },
                         },
                     },
@@ -647,6 +690,8 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
             },
         ],
     };
+
+    pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, policyTagsOptimisticData);
 
     const parameters: RenamePolicyTagsParams = {
         policyID,
@@ -658,24 +703,21 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
 }
 
-type EnablePolicyTagsProps = {
-    policyID: string;
-    enabled: boolean;
-    policyTags?: PolicyTagLists;
-};
+function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
+    const policyID = policyData.policy?.id;
+    const policyOptimisticData = {
+        areTagsEnabled: enabled,
+        pendingFields: {
+            areTagsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        },
+    };
 
-function enablePolicyTags({policyID, enabled, policyTags}: EnablePolicyTagsProps) {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    areTagsEnabled: enabled,
-                    pendingFields: {
-                        areTagsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
-                },
+                value: policyOptimisticData,
             },
         ],
         successData: [
@@ -703,7 +745,7 @@ function enablePolicyTags({policyID, enabled, policyTags}: EnablePolicyTagsProps
         ],
     };
 
-    if (!policyTags) {
+    if (Object.keys(policyData.tags).length === 0) {
         const defaultTagList: PolicyTagLists = {
             Tag: {
                 name: 'Tag',
@@ -715,36 +757,39 @@ function enablePolicyTags({policyID, enabled, policyTags}: EnablePolicyTagsProps
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-            value: defaultTagList,
+            value: CONST.POLICY.DEFAULT_TAG_LIST,
         });
         onyxData.failureData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
             value: null,
         });
+        pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, defaultTagList);
     } else if (!enabled) {
-        const policyTag = PolicyUtils.getTagLists(policyTags).at(0);
+        const policyTag = PolicyUtils.getTagLists(policyData.tags).at(0);
 
         if (!policyTag) {
             return;
         }
 
+        const policyTagsOptimisticData: Record<string, Partial<PolicyTagList>> = {
+            [policyTag.name]: {
+                tags: Object.fromEntries(
+                    Object.keys(policyTag.tags).map((tagName) => [
+                        tagName,
+                        {
+                            enabled: false,
+                        },
+                    ]),
+                ),
+            } as Partial<PolicyTagList>,
+        };
+
         onyxData.optimisticData?.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-                value: {
-                    [policyTag.name]: {
-                        tags: Object.fromEntries(
-                            Object.keys(policyTag.tags).map((tagName) => [
-                                tagName,
-                                {
-                                    enabled: false,
-                                },
-                            ]),
-                        ),
-                    },
-                },
+                value: policyTagsOptimisticData,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -754,6 +799,10 @@ function enablePolicyTags({policyID, enabled, policyTags}: EnablePolicyTagsProps
                 },
             },
         );
+
+        pushTransactionViolationsOnyxData(onyxData, policyData, {...policyOptimisticData, requiresTag: false}, {}, policyTagsOptimisticData);
+    } else {
+        pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
     }
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
@@ -796,7 +845,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
         return;
     }
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -862,7 +911,7 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
     const oldPolicyTags = policyTags?.[oldName] ?? {};
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -898,6 +947,7 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
             },
         ],
     };
+
     const parameters: RenamePolicyTagListParams = {
         policyID,
         oldName,
@@ -908,21 +958,22 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
 }
 
-function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
-    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
+    const policyID = policyData.policy?.id;
+    const policyOptimisticData: Partial<Policy> = {
+        requiresTag,
+        errors: {requiresTag: null},
+        pendingFields: {
+            requiresTag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        },
+    };
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    requiresTag,
-                    errors: {requiresTag: null},
-                    pendingFields: {
-                        requiresTag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
-                },
+                value: policyOptimisticData,
             },
         ],
         successData: [
@@ -954,23 +1005,27 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
         ],
     };
 
-    const getUpdatedTagsData = (required: boolean): OnyxUpdate => ({
-        key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-        onyxMethod: Onyx.METHOD.MERGE,
-        value: {
-            ...Object.keys(policyTags).reduce<PolicyTagLists>((acc, key) => {
-                acc[key] = {
-                    ...acc[key],
-                    required,
-                };
-                return acc;
-            }, {}),
-        },
+    const getUpdatedTagsData = (required: boolean): PolicyTagLists => ({
+        ...Object.keys(policyData.tags).reduce<PolicyTagLists>((acc, key) => {
+            acc[key] = {
+                ...acc[key],
+                required,
+            };
+            return acc;
+        }, {}),
     });
 
-    onyxData.optimisticData?.push(getUpdatedTagsData(requiresTag));
-    onyxData.failureData?.push(getUpdatedTagsData(!requiresTag));
-    onyxData.successData?.push(getUpdatedTagsData(requiresTag));
+    const getUpdatedTagsOnyxData = (required: boolean): OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> => ({
+        key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+        onyxMethod: Onyx.METHOD.MERGE,
+        value: {...getUpdatedTagsData(required)},
+    });
+
+    onyxData.optimisticData?.push(getUpdatedTagsOnyxData(requiresTag));
+    onyxData.failureData?.push(getUpdatedTagsOnyxData(!requiresTag));
+    onyxData.successData?.push(getUpdatedTagsOnyxData(requiresTag));
+
+    pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, getUpdatedTagsData(requiresTag));
 
     const parameters = {
         policyID,
@@ -980,31 +1035,27 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
 }
 
-type SetPolicyTagsRequiredProps = {
-    policyID: string;
-    requiresTag: boolean;
-    tagListIndex: number;
-    policyTags: OnyxEntry<PolicyTagLists>;
-};
-
-function setPolicyTagsRequired({policyID, requiresTag, tagListIndex, policyTags}: SetPolicyTagsRequiredProps) {
-    const policyTag = PolicyUtils.getTagLists(policyTags ?? {})?.at(tagListIndex);
-    if (!policyTag?.name) {
+function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tagListIndex: number) {
+    const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
+    if (!policyTag || !policyTag.name) {
         return;
     }
 
-    const onyxData: OnyxData = {
+    const policyID = policyData.policy?.id;
+    const policyTagsOptimisticData = {
+        [policyTag.name]: {
+            required: requiresTag,
+            pendingFields: {required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            errorFields: {required: null},
+        },
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-                value: {
-                    [policyTag.name]: {
-                        required: requiresTag,
-                        pendingFields: {required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                        errorFields: {required: null},
-                    },
-                },
+                value: policyTagsOptimisticData,
             },
         ],
         successData: [
@@ -1035,6 +1086,8 @@ function setPolicyTagsRequired({policyID, requiresTag, tagListIndex, policyTags}
         ],
     };
 
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
+
     const parameters: SetPolicyTagsRequired = {
         policyID,
         tagListIndex,
@@ -1056,7 +1109,7 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
     const tagListName = PolicyUtils.getTagListName(policyTags, tagListIndex);
     const policyTagToUpdate = policyTags?.[tagListName]?.tags?.[tagName] ?? {};
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1128,12 +1181,13 @@ function setPolicyTagGLCode({policyID, tagName, tagListIndex, glCode, policyTags
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
 }
 
-function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = PolicyUtils.getPolicy(policyID);
+function setPolicyTagApprover(policy: OnyxEntry<Policy>, tag: string, approver: string) {
+    if (!policy?.id) {
+        return;
+    }
+    const policyID = policy.id;
     const prevApprovalRules = policy?.rules?.approvalRules ?? [];
-    const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);
+    const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policy, tag);
     const filteredApprovalRules = approverRuleToUpdate ? prevApprovalRules.filter((rule) => rule.id !== approverRuleToUpdate.id) : prevApprovalRules;
     const toBeUnselected = approverRuleToUpdate?.approver === approver;
 
@@ -1153,7 +1207,7 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
 
     const updatedApprovalRules = toBeUnselected ? filteredApprovalRules : [...filteredApprovalRules, updatedApproverRule];
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1198,36 +1252,34 @@ function setPolicyTagApprover(policyID: string, tag: string, approver: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_TAG_APPROVER, parameters, onyxData);
 }
 
-function downloadTagsCSV(policyID: string, onDownloadFailed: () => void) {
+function downloadTagsCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_TAGS_CSV, {
         policyID,
     });
     const fileName = 'Tags.csv';
 
     const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(finalParameters)) {
         formData.append(key, String(value));
-    });
+    }
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function downloadMultiLevelIndependentTagsCSV(policyID: string, onDownloadFailed: () => void) {
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV, {
+function downloadMultiLevelTagsCSV(policyID: string, onDownloadFailed: () => void, hasDependentTags: boolean, translate: LocalizedTranslate) {
+    const command = hasDependentTags ? WRITE_COMMANDS.EXPORT_MULTI_LEVEL_DEPENDENT_TAGS_CSV : WRITE_COMMANDS.EXPORT_MULTI_LEVEL_INDEPENDENT_TAGS_CSV;
+
+    const finalParameters = enhanceParameters(command, {
         policyID,
     });
     const fileName = 'MultiLevelTags.csv';
 
     const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(finalParameters)) {
         formData.append(key, String(value));
-    });
+    }
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
-}
-
-function getPolicyTagsData(policyID: string | undefined) {
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+    fileDownload(translate, ApiUtils.getCommandURL({command}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 export {
@@ -1249,8 +1301,7 @@ export {
     setPolicyTagApprover,
     importPolicyTags,
     downloadTagsCSV,
-    getPolicyTagsData,
-    downloadMultiLevelIndependentTagsCSV,
+    downloadMultiLevelTagsCSV,
     cleanPolicyTags,
     setImportedSpreadsheetIsImportingMultiLevelTags,
     setImportedSpreadsheetIsImportingIndependentMultiLevelTags,

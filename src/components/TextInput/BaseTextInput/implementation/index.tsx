@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -8,7 +8,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -22,12 +21,13 @@ import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
 import useHtmlPaste from '@hooks/useHtmlPaste';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileChrome} from '@libs/Browser';
+import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
@@ -45,6 +45,7 @@ function BaseTextInput({
     errorText = '',
     icon = null,
     iconLeft = null,
+    includeIconPadding = true,
     textInputContainerStyles,
     shouldApplyPaddingToContainer = true,
     touchableInputWrapperStyle,
@@ -82,11 +83,15 @@ function BaseTextInput({
     iconContainerStyle,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
+    sentryLabel,
+
+    role,
     ...inputProps
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
+    const helpMessageId = useId();
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -94,6 +99,7 @@ function BaseTextInput({
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled'] as const);
 
     // Disabling this line for safeness as nullish coalescing works only if value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -115,7 +121,7 @@ function BaseTextInput({
     const isLabelActive = useRef(initialActiveLabel);
     const didScrollToEndRef = useRef(false);
 
-    useHtmlPaste(input as RefObject<TextInput | null>, undefined, isMarkdownEnabled);
+    useHtmlPaste(input as RefObject<TextInput | null>, undefined, isMarkdownEnabled, maxLength);
 
     // AutoFocus which only works on mount:
     useEffect(() => {
@@ -126,7 +132,7 @@ function BaseTextInput({
 
         input.current.focus();
         // We only want this to run on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animateLabel = useCallback(
@@ -254,6 +260,32 @@ function BaseTextInput({
         }
     };
 
+    /**
+     * Forces Safari to recalculate text layout when input height changes.
+     * Safari's Shadow DOM doesn't reflow text automatically when container height
+     * changes, causing text to remain stuck on the previous number of lines.
+     * @see https://github.com/Expensify/App/issues/76785
+     */
+    useEffect(() => {
+        if (!input.current || !(isSafari() || isMobileSafari()) || textInputHeight === 0) {
+            return;
+        }
+
+        const {style} = input.current;
+        const original = style.whiteSpace || '';
+
+        style.whiteSpace = 'nowrap';
+        const id = requestAnimationFrame(() => {
+            style.whiteSpace = original;
+        });
+
+        // Prevent whiteSpace from getting stuck on 'nowrap' if component unmounts or re-renders
+        return () => {
+            cancelAnimationFrame(id);
+            style.whiteSpace = original;
+        };
+    }, [textInputHeight]);
+
     const togglePasswordVisibility = useCallback(() => {
         setPasswordHidden((prevPasswordHidden: boolean | undefined) => !prevPasswordHidden);
     }, []);
@@ -266,12 +298,15 @@ function BaseTextInput({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
     const newPlaceholder = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
+    // autoGrow uses autoGrowMeasurementStyles (includes padding), contentWidth doesn't - add padding manually
+    const containerPadding = !autoGrow && shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0;
+
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         !shouldApplyPaddingToContainer && styles.p0,
         !hasLabel && styles.pt0,
         textInputContainerStyles,
-        (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth + (shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0)),
+        (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth + containerPadding),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
@@ -280,12 +315,18 @@ function BaseTextInput({
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
+    // TextInputMeasurement is absolutely positioned, so it doesn’t inherit padding/border.
+    // We extract the horizontal padding/border from the input container to get an accurate width.
+    // This is used by the TextInputMeasurement for autoGrow height calculation.
+    const autoGrowMeasurementStyles = StyleUtils.getTextInputMeasurementStyles(newTextInputContainerStyles);
+
     const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
+    const accessibilityLabel = [label, hint, errorText ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join(', ');
     return (
         <>
             <View
@@ -297,7 +338,7 @@ function BaseTextInput({
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
-                    accessibilityLabel={label}
+                    accessibilityLabel={accessibilityLabel}
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
@@ -313,6 +354,7 @@ function BaseTextInput({
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
+                    sentryLabel={sentryLabel}
                 >
                     <View
                         style={[
@@ -373,7 +415,13 @@ function BaseTextInput({
                                             setIsPrefixCharacterPaddingCalculated(true);
                                         }}
                                         tabIndex={-1}
-                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
+                                        style={[
+                                            styles.textInputPrefix,
+                                            !hasLabel && styles.pv0,
+                                            styles.pointerEventsNone,
+                                            inputProps.disabled && shouldUseDisabledStyles && styles.textSupporting,
+                                            prefixStyle,
+                                        ]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                         shouldUseDefaultLineHeight={shouldUseDefaultLineHeightForPrefix}
                                     >
@@ -395,6 +443,9 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
+                                // Filter out role="presentation" so it doesn't strip the native
+                                // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
+                                role={role === CONST.ROLE.PRESENTATION ? undefined : role}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={newPlaceholder}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
@@ -437,6 +488,8 @@ function BaseTextInput({
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
+                                accessibilityLabel={inputProps.accessibilityLabel}
+                                aria-describedby={inputHelpText ? helpMessageId : undefined}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -465,18 +518,14 @@ function BaseTextInput({
                                             onClearInput?.();
                                         }}
                                         style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
+                                        sentryLabel={sentryLabel ? `${sentryLabel}-ClearButton` : undefined}
                                     />
                                 </View>
                             )}
-                            {inputProps.isLoading !== undefined && !shouldShowClearButton && (
+                            {!!inputProps.isLoading && !shouldShowClearButton && (
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
-                                    style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
-                                        styles.ml1,
-                                        loadingSpinnerStyle,
-                                        StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
-                                    ]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (
@@ -489,7 +538,7 @@ function BaseTextInput({
                                     accessibilityLabel={translate('common.visible')}
                                 >
                                     <Icon
-                                        src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
+                                        src={passwordHidden ? expensifyIcons.Eye : expensifyIcons.EyeDisabled}
                                         fill={theme.icon}
                                     />
                                 </Checkbox>
@@ -497,7 +546,7 @@ function BaseTextInput({
                             {!inputProps.secureTextEntry && !!icon && (
                                 <View
                                     style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff),
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, includeIconPadding, verticalPaddingDiff),
                                         !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone,
                                         iconContainerStyle,
                                     ]}
@@ -513,6 +562,7 @@ function BaseTextInput({
                 </PressableWithoutFeedback>
                 {!!inputHelpText && (
                     <FormHelpMessage
+                        nativeID={helpMessageId}
                         isError={!!errorText}
                         message={inputHelpText}
                     />
@@ -532,11 +582,10 @@ function BaseTextInput({
                 onSetTextInputWidth={setTextInputWidth}
                 onSetTextInputHeight={setTextInputHeight}
                 isPrefixCharacterPaddingCalculated={isPrefixCharacterPaddingCalculated}
+                autoGrowMeasurementStyles={autoGrowMeasurementStyles}
             />
         </>
     );
 }
-
-BaseTextInput.displayName = 'BaseTextInput';
 
 export default BaseTextInput;

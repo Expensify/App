@@ -42,10 +42,6 @@ jest.mock('@rnmapbox/maps', () => {
     };
 });
 
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
-
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
@@ -101,7 +97,7 @@ const navigate = jest.spyOn(Navigation, 'navigate');
 function MergeIntoAccountAndLoginBlockMerge() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        const mockedResponse: OnyxResponse = {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
             jsonCode: 501,
             onyxData: [
                 {
@@ -126,7 +122,7 @@ function MergeIntoAccountAndLoginBlockMerge() {
 function MergeIntoAccountAndLoginSuccessful() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        const mockedResponse: OnyxResponse = {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
             jsonCode: 401,
             onyxData: [
                 {
@@ -149,7 +145,7 @@ function MergeIntoAccountAndLoginSuccessful() {
 function MergeIntoAccountAndLoginRedirectToClassic() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        const mockedResponse: OnyxResponse = {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
             jsonCode: 200,
             onyxData: [
                 {
@@ -173,7 +169,7 @@ function MergeIntoAccountAndLoginRedirectToClassic() {
 function AddWorkEmailShouldValidateFailure() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        const mockedResponse: OnyxResponse = {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
             jsonCode: 200,
             onyxData: [
                 {
@@ -196,7 +192,7 @@ function AddWorkEmailShouldValidateFailure() {
 function AddWorkEmailShouldValidate() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        const mockedResponse: OnyxResponse = {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
             jsonCode: 200,
             onyxData: [
                 {

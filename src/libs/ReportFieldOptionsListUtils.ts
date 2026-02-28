@@ -1,15 +1,16 @@
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Option} from './OptionsListUtils';
 import type {OptionData} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
+
+type ReportFieldOption = Option & {keyForList: string};
 
 /**
  * Transforms the provided report field options into option objects.
  *
  * @param reportFieldOptions - an initial report field options array
  */
-function getReportFieldOptions(reportFieldOptions: string[]): Option[] {
+function getReportFieldOptions(reportFieldOptions: string[]): ReportFieldOption[] {
     return reportFieldOptions.map((name) => ({
         text: name,
         keyForList: name,
@@ -27,15 +28,16 @@ function getReportFieldOptionsSection({
     recentlyUsedOptions,
     selectedOptions,
     searchValue,
+    translate,
 }: {
     options: string[];
     recentlyUsedOptions: string[];
     selectedOptions: Array<Partial<OptionData>>;
     searchValue: string;
+    translate: LocalizedTranslate;
 }) {
     const reportFieldOptionsSections = [];
     const selectedOptionKeys = selectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o);
-    let indexOffset = 0;
 
     if (searchValue) {
         const searchOptions = tokenizedSearch(options, searchValue, (option) => [option]);
@@ -43,8 +45,7 @@ function getReportFieldOptionsSection({
         reportFieldOptionsSections.push({
             // "Search" section
             title: '',
-            shouldShow: true,
-            indexOffset,
+            sectionIndex: 0,
             data: getReportFieldOptions(searchOptions),
         });
 
@@ -58,33 +59,24 @@ function getReportFieldOptionsSection({
         reportFieldOptionsSections.push({
             // "Selected" section
             title: '',
-            shouldShow: true,
-            indexOffset,
+            sectionIndex: 1,
             data: getReportFieldOptions(selectedOptionKeys),
         });
-
-        indexOffset += selectedOptionKeys.length;
     }
 
     if (filteredRecentlyUsedOptions.length > 0) {
         reportFieldOptionsSections.push({
             // "Recent" section
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            title: translateLocal('common.recent'),
-            shouldShow: true,
-            indexOffset,
+            title: translate('common.recent'),
+            sectionIndex: 2,
             data: getReportFieldOptions(filteredRecentlyUsedOptions),
         });
-
-        indexOffset += filteredRecentlyUsedOptions.length;
     }
 
     reportFieldOptionsSections.push({
         // "All" section when items amount more than the threshold
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        title: translateLocal('common.all'),
-        shouldShow: true,
-        indexOffset,
+        title: translate('common.all'),
+        sectionIndex: 3,
         data: getReportFieldOptions(filteredOptions),
     });
 

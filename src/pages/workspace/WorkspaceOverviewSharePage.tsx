@@ -4,7 +4,6 @@ import type {ImageSourcePropType} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useSession} from '@components/OnyxListItemProvider';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
@@ -14,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -30,6 +30,7 @@ import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
 function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'Download', 'FallbackAvatar'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -48,7 +49,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const hasAvatar = !!policy?.avatarURL;
     const logo = hasAvatar ? (policy?.avatarURL as ImageSourcePropType) : undefined;
 
-    const defaultWorkspaceAvatar = getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
+    const defaultWorkspaceAvatar = getDefaultWorkspaceAvatar(policyName) || icons.FallbackAvatar;
     const defaultWorkspaceAvatarColors = policyID ? StyleUtils.getDefaultWorkspaceAvatarColor(policyID) : StyleUtils.getDefaultWorkspaceAvatarColor('');
 
     const svgLogo = !hasAvatar ? defaultWorkspaceAvatar : undefined;
@@ -70,7 +71,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                testID={WorkspaceOverviewSharePage.displayName}
+                testID="WorkspaceOverviewSharePage"
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -107,8 +108,8 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                             <ContextMenuItem
                                 isAnonymousAction
                                 text={translate('qrCodes.copy')}
-                                icon={Expensicons.Copy}
-                                successIcon={Expensicons.Checkmark}
+                                icon={icons.Copy}
+                                successIcon={icons.Checkmark}
                                 successText={translate('qrCodes.copied')}
                                 onPress={() => Clipboard.setString(url)}
                                 shouldLimitWidth={false}
@@ -121,7 +122,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                                 <MenuItem
                                     isAnonymousAction
                                     title={translate('common.download')}
-                                    icon={Expensicons.Download}
+                                    icon={icons.Download}
                                     onPress={() => qrCodeRef.current?.download?.()}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                 />
@@ -133,7 +134,5 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceOverviewSharePage.displayName = 'WorkspaceOverviewSharePage';
 
 export default withPolicy(WorkspaceOverviewSharePage);

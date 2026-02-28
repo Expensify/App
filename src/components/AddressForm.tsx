@@ -99,41 +99,29 @@ function AddressForm({
             }
 
             // Add "Field required" errors if any required field is empty
-            requiredFields.forEach((fieldKey) => {
+            for (const fieldKey of requiredFields) {
                 const fieldValue = values[fieldKey] ?? '';
                 if (isRequiredFulfilled(fieldValue)) {
-                    return;
+                    continue;
                 }
 
                 errors[fieldKey] = translate('common.error.fieldRequired');
-            });
+            }
 
             if (values.addressLine1.length > CONST.FORM_CHARACTER_LIMIT) {
-                errors.addressLine1 = translate('common.error.characterLimitExceedCounter', {
-                    length: values.addressLine1.length,
-                    limit: CONST.FORM_CHARACTER_LIMIT,
-                });
+                errors.addressLine1 = translate('common.error.characterLimitExceedCounter', values.addressLine1.length, CONST.FORM_CHARACTER_LIMIT);
             }
 
             if (values.addressLine2.length > CONST.FORM_CHARACTER_LIMIT) {
-                errors.addressLine2 = translate('common.error.characterLimitExceedCounter', {
-                    length: values.addressLine2.length,
-                    limit: CONST.FORM_CHARACTER_LIMIT,
-                });
+                errors.addressLine2 = translate('common.error.characterLimitExceedCounter', values.addressLine2.length, CONST.FORM_CHARACTER_LIMIT);
             }
 
             if (values.city.length > CONST.FORM_CHARACTER_LIMIT) {
-                errors.city = translate('common.error.characterLimitExceedCounter', {
-                    length: values.city.length,
-                    limit: CONST.FORM_CHARACTER_LIMIT,
-                });
+                errors.city = translate('common.error.characterLimitExceedCounter', values.city.length, CONST.FORM_CHARACTER_LIMIT);
             }
 
             if (values.country !== CONST.COUNTRY.US && values.state.length > CONST.STATE_CHARACTER_LIMIT) {
-                errors.state = translate('common.error.characterLimitExceedCounter', {
-                    length: values.state.length,
-                    limit: CONST.STATE_CHARACTER_LIMIT,
-                });
+                errors.state = translate('common.error.characterLimitExceedCounter', values.state.length, CONST.STATE_CHARACTER_LIMIT);
             }
 
             // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
@@ -146,7 +134,7 @@ function AddressForm({
             if (countrySpecificZipRegex) {
                 if (!countrySpecificZipRegex.test(values.zipPostCode?.trim().toUpperCase())) {
                     if (isRequiredFulfilled(values.zipPostCode?.trim())) {
-                        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
+                        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', countryZipFormat);
                     } else {
                         errors.zipPostCode = translate('common.error.fieldRequired');
                     }
@@ -174,7 +162,7 @@ function AddressForm({
                 <InputWrapper
                     InputComponent={AddressSearch}
                     inputID={INPUT_IDS.ADDRESS_LINE_1}
-                    label={translate('common.addressLine', {lineNumber: 1})}
+                    label={translate('common.addressLine', 1)}
                     onValueChange={(data: unknown, key: unknown) => {
                         onAddressChanged(data, key);
                     }}
@@ -188,18 +176,20 @@ function AddressForm({
                         country: INPUT_IDS.COUNTRY as Country,
                     }}
                     shouldSaveDraft={shouldSaveDraft}
+                    autoComplete="address-line1"
                 />
             </View>
             <View style={styles.formSpaceVertical} />
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={INPUT_IDS.ADDRESS_LINE_2}
-                label={translate('common.addressLine', {lineNumber: 2})}
-                aria-label={translate('common.addressLine', {lineNumber: 2})}
+                label={translate('common.addressLine', 2)}
+                aria-label={translate('common.addressLine', 2)}
                 role={CONST.ROLE.PRESENTATION}
                 defaultValue={street2}
                 spellCheck={false}
                 shouldSaveDraft={shouldSaveDraft}
+                autoComplete="address-line2"
             />
             <View style={styles.formSpaceVertical} />
             <View style={styles.mhn5}>
@@ -259,11 +249,10 @@ function AddressForm({
                 hint={zipFormat}
                 onValueChange={onAddressChanged}
                 shouldSaveDraft={shouldSaveDraft}
+                autoComplete="postal-code"
             />
         </FormProvider>
     );
 }
-
-AddressForm.displayName = 'AddressForm';
 
 export default AddressForm;

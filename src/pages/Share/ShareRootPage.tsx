@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
+import {close as closeModal} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,15 +30,15 @@ function showErrorAlert(title: string, message: string) {
     Alert.alert(title, message, [
         {
             onPress: () => {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             },
         },
     ]);
-    Navigation.navigate(ROUTES.HOME);
+    Navigation.navigate(ROUTES.INBOX);
 }
 
 function ShareRootPage() {
-    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
 
     const {validateFiles} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';
@@ -147,7 +148,11 @@ function ShareRootPage() {
     useEffect(() => {
         clearShareData();
         handleProcessFiles();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        closeModal();
     }, []);
 
     const shareTabInputRef = useRef<AnimatedTextInputRef | null>(null);
@@ -171,16 +176,15 @@ function ShareRootPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={ShareRootPage.displayName}
+            testID="ShareRootPage"
         >
             <View style={[styles.flex1]}>
                 <HeaderWithBackButton
                     title={translate('share.shareToExpensify')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.INBOX)}
                 />
                 {isFileReady ? (
                     <OnyxTabNavigator
@@ -199,8 +203,6 @@ function ShareRootPage() {
         </ScreenWrapper>
     );
 }
-
-ShareRootPage.displayName = 'ShareRootPage';
 
 export default ShareRootPage;
 

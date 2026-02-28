@@ -1,13 +1,14 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useImperativeHandle, useState} from 'react';
+import React, {useImperativeHandle, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';
 
@@ -20,6 +21,9 @@ type InteractiveStepSubHeaderProps = {
 
     /** The index of the step to start with */
     startStepIndex?: number;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<InteractiveStepSubHeaderHandle>;
 };
 
 type InteractiveStepSubHeaderHandle = {
@@ -36,8 +40,9 @@ type InteractiveStepSubHeaderHandle = {
 const MIN_AMOUNT_FOR_EXPANDING = 3;
 const MIN_AMOUNT_OF_STEPS = 2;
 
-function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected}: InteractiveStepSubHeaderProps, ref: ForwardedRef<InteractiveStepSubHeaderHandle>) {
+function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected, ref}: InteractiveStepSubHeaderProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
 
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
@@ -60,11 +65,16 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
         }),
         [],
     );
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
 
     const amountOfUnions = stepNames.length - 1;
 
     return (
-        <View style={[styles.interactiveStepHeaderContainer, containerWidthStyle]}>
+        <View
+            style={[styles.interactiveStepHeaderContainer, containerWidthStyle]}
+            focusable
+            accessibilityLabel={translate('stepCounter', {step: currentStep + 1, total: stepNames.length})}
+        >
             {stepNames.map((stepName, index) => {
                 const isCompletedStep = currentStep > index;
                 const isLockedStep = currentStep < index;
@@ -96,13 +106,14 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                             ]}
                             disabled={isLockedStep || !onStepSelected}
                             onPress={moveToStep}
-                            accessible
-                            accessibilityLabel={stepName[index]}
+                            accessible={false}
+                            aria-hidden
                             role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.INTERACTIVE_STEP_SUB_HEADER.STEP_BUTTON}
                         >
                             {isCompletedStep ? (
                                 <Icon
-                                    src={Expensicons.Checkmark}
+                                    src={icons.Checkmark}
                                     width={variables.iconSizeNormal}
                                     height={variables.iconSizeNormal}
                                     fill={colors.white}
@@ -119,8 +130,6 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
     );
 }
 
-InteractiveStepSubHeader.displayName = 'InteractiveStepSubHeader';
-
 export type {InteractiveStepSubHeaderProps, InteractiveStepSubHeaderHandle};
 
-export default forwardRef(InteractiveStepSubHeader);
+export default InteractiveStepSubHeader;

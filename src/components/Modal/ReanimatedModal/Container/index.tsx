@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Animated, {Keyframe, runOnJS} from 'react-native-reanimated';
+import Animated, {Keyframe} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
@@ -30,7 +31,7 @@ function Container({
         return AnimationIn.duration(animationInTiming).withCallback(() => {
             'worklet';
 
-            runOnJS(onOpenCallBack)();
+            scheduleOnRN(onOpenCallBack);
         });
     }, [animationIn, animationInTiming, onOpenCallBack]);
 
@@ -40,7 +41,7 @@ function Container({
         return AnimationOut.duration(animationOutTiming).withCallback(() => {
             'worklet';
 
-            runOnJS(onCloseCallBack)();
+            scheduleOnRN(onCloseCallBack);
         });
     }, [animationOutTiming, onCloseCallBack, animationOut]);
 
@@ -66,7 +67,5 @@ function Container({
         </View>
     );
 }
-
-Container.displayName = 'ModalContainer';
 
 export default Container;

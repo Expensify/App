@@ -20,10 +20,10 @@ function DebitCardPage() {
     return <NotFoundPage />;
 
     const {translate} = useLocalize();
-    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {canBeMissing: false});
+    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
     const nameOnCardRef = useRef<AnimatedTextInputRef>(null);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const kycWallRef = useContext(KYCWallContext);
     /**
      * Reset the form values on the mount and unmount so that old errors don't show when this form is displayed again.
@@ -55,7 +55,7 @@ function DebitCardPage() {
         <ScreenWrapper
             onEntryTransitionEnd={() => nameOnCardRef.current?.focus()}
             includeSafeAreaPaddingBottom={false}
-            testID={DebitCardPage.displayName}
+            testID="DebitCardPage"
         >
             <HeaderWithBackButton
                 title={translate('addDebitCardPage.addADebitCard')}
@@ -73,7 +73,5 @@ function DebitCardPage() {
         </ScreenWrapper>
     );
 }
-
-DebitCardPage.displayName = 'DebitCardPage';
 
 export default DebitCardPage;

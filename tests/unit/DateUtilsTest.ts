@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {addDays, addMinutes, format, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
-import {toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startOfDay, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
+import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
+import {translate} from '@libs/Localize';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Log');
@@ -49,11 +53,11 @@ describe('DateUtils', () => {
     });
 
     const datetime = '2022-11-07 00:00:00';
-    const timezone = 'America/Los_Angeles';
+    const timezone = 'Atlantic/Reykjavik';
 
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
         const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone);
-        expect(zoneAbbreviation).toBe('GMT-8');
+        expect(zoneAbbreviation).toBe('GMT+0');
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
@@ -72,7 +76,7 @@ describe('DateUtils', () => {
 
     it('should return a date object with the formatted datetime when calling getLocalDateFromDatetime', () => {
         const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, timezone, datetime);
-        expect(tzFormat(localDate, CONST.DATE.FNS_TIMEZONE_FORMAT_STRING, {timeZone: timezone})).toEqual('2022-11-06T16:00:00-08:00');
+        expect(tzFormat(localDate, CONST.DATE.FNS_TIMEZONE_FORMAT_STRING, {timeZone: timezone})).toEqual('2022-11-07T00:00:00Z');
     });
 
     it('should fallback to current date when getLocalDateFromDatetime is failing', () => {
@@ -295,43 +299,298 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('isCurrentTimeWithinRange', () => {
-        beforeAll(() => {
+    describe('getStatusUntilDate', () => {
+        const currentTimeZone = 'America/Los_Angeles' as SelectedTimezone;
+        const inputTimeZoneNY = 'America/New_York' as SelectedTimezone;
+        const inputTimeZoneParis = 'Europe/Paris' as SelectedTimezone;
+        const inputTimeZoneTokyo = 'Asia/Tokyo' as SelectedTimezone;
+
+        beforeEach(() => {
             jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-10-19T17:00:00Z'));
         });
 
-        afterAll(() => {
+        afterEach(() => {
             jest.useRealTimers();
         });
 
-        it('should return true when current time is within the range', () => {
-            const currentTime = new Date(datetime);
-            jest.setSystemTime(currentTime);
-
-            const startTime = '2022-11-06T10:00:00Z';
-            const endTime = '2022-11-07T14:00:00Z';
-
-            expect(DateUtils.isCurrentTimeWithinRange(startTime, endTime)).toBe(true);
+        it('returns empty string when input date is empty', () => {
+            expect(DateUtils.getStatusUntilDate(translateLocal, '', inputTimeZoneNY, currentTimeZone)).toBe('');
         });
 
-        it('should return false when current time is before the range', () => {
-            const currentTime = new Date(datetime);
-            jest.setSystemTime(currentTime);
+        it('returns "Until h:mm a" when input and current timezone are same', () => {
+            const nowInTZ = toZonedTime(new Date(), currentTimeZone);
+            const targetTime = set(nowInTZ, {hours: 15, minutes: 34, seconds: 0, milliseconds: 0});
+            const inputDateStr = tzFormat(targetTime, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
 
-            const startTime = '2022-11-07T10:00:00Z';
-            const endTime = '2022-11-07T14:00:00Z';
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStr, currentTimeZone, currentTimeZone);
+            const expectedLabel = tzFormat(targetTime, CONST.DATE.LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
 
-            expect(DateUtils.isCurrentTimeWithinRange(startTime, endTime)).toBe(false);
+            expect(result).toBe(`Until ${expectedLabel}`);
         });
 
-        it('should return false when current time is after the range', () => {
-            const currentTime = new Date(datetime);
-            jest.setSystemTime(currentTime);
+        it('returns "Until tomorrow" when end of day is in the same timezone', () => {
+            const nowInCurrent = toZonedTime(new Date(), currentTimeZone);
+            const endOfTodayCurrent = endOfDay(nowInCurrent);
 
-            const startTime = '2022-11-06T10:00:00Z';
-            const endTime = '2022-11-06T14:00:00Z';
+            const inputDateStrNY = tzFormat(endOfTodayCurrent, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneNY});
 
-            expect(DateUtils.isCurrentTimeWithinRange(startTime, endTime)).toBe(false);
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrNY, inputTimeZoneNY, inputTimeZoneNY);
+            expect(result).toBe('Until tomorrow');
+        });
+
+        it('returns "Until h:mm a" for later today in a different timezone', () => {
+            const targetTimeLA = set(toZonedTime(new Date(), currentTimeZone), {hours: 15, minutes: 34, seconds: 0, milliseconds: 0});
+            const inputDateStrNY = tzFormat(targetTimeLA, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneNY});
+
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrNY, inputTimeZoneNY, currentTimeZone);
+
+            const date = fromZonedTime(inputDateStrNY, inputTimeZoneNY);
+            const converted = toZonedTime(date, currentTimeZone);
+            const expectedLabel = tzFormat(converted, CONST.DATE.LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
+
+            expect(result).toBe(`Until ${expectedLabel}`);
+        });
+
+        it('returns "Until MM-dd h:mm a" for future date within the same year in a different timezone', () => {
+            const twoDaysLaterLA = addDays(set(toZonedTime(new Date(), currentTimeZone), {hours: 15, minutes: 0, seconds: 0, milliseconds: 0}), 2);
+            const inputDateStrParis = tzFormat(twoDaysLaterLA, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneParis});
+
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrParis, inputTimeZoneParis, currentTimeZone);
+
+            const date = fromZonedTime(inputDateStrParis, inputTimeZoneParis);
+            const converted = toZonedTime(date, currentTimeZone);
+            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+
+            expect(result).toBe(`Until ${expectedLabel}`);
+        });
+
+        it('returns "Until MM-dd h:mm a" when "until today" crosses into next day in current timezone', () => {
+            const endOfTodayTokyo = endOfDay(toZonedTime(new Date(), inputTimeZoneTokyo));
+            const inputDateStrTokyo = tzFormat(endOfTodayTokyo, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneTokyo});
+
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrTokyo, inputTimeZoneTokyo, currentTimeZone);
+
+            const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
+            const converted = toZonedTime(date, currentTimeZone);
+
+            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+
+            expect(result).toBe(`Until ${expectedLabel}`);
+        });
+
+        it('returns "Until yyyy-MM-dd h:mm a" for a date in a different year across timezones', () => {
+            const laFutureDateStr = '2026-01-02 09:15:00';
+            const inputDateStrTokyo = tzFormat(fromZonedTime(laFutureDateStr, currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneTokyo});
+
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrTokyo, inputTimeZoneTokyo, currentTimeZone);
+
+            const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
+            const converted = toZonedTime(date, currentTimeZone);
+            const expectedLabel = tzFormat(converted, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+
+            expect(result).toBe(`Until ${expectedLabel}`);
+        });
+    });
+
+    describe('getFormattedSplitDateRange', () => {
+        const translateEN = <TPath extends TranslationPaths>(path: TPath, ...params: TranslationParameters<TPath>) => translate(LOCALE, path, ...params);
+
+        it('should return empty string when startDate is undefined', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, '2024-01-15');
+            expect(result).toBe('');
+        });
+
+        it('should return empty string when endDate is undefined', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', undefined);
+            expect(result).toBe('');
+        });
+
+        it('should return empty string when both dates are undefined', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, undefined);
+            expect(result).toBe('');
+        });
+
+        it('should return plural form for multiple days', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-15');
+            expect(result).toContain('2024-01-10');
+            expect(result).toContain('to');
+            expect(result).toContain('2024-01-15');
+            expect(result).toContain('6 days');
+        });
+
+        it('should return correct format for 2 days', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-11');
+            expect(result).toContain('2024-01-10');
+            expect(result).toContain('to');
+            expect(result).toContain('2024-01-11');
+            expect(result).toContain('2 days');
+        });
+
+        it('should handle cross-month date ranges', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-25', '2024-02-05');
+            expect(result).toContain('2024-01-25');
+            expect(result).toContain('to');
+            expect(result).toContain('2024-02-05');
+            expect(result).toContain('12 days');
+        });
+
+        it('should handle cross-year date ranges', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2023-12-25', '2024-01-05');
+            expect(result).toContain('2023-12-25');
+            expect(result).toContain('to');
+            expect(result).toContain('2024-01-05');
+            expect(result).toContain('12 days');
+        });
+    });
+
+    describe('formatCountdownTimer', () => {
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(LOCALE, path, ...params);
+
+        it('should format hours, minutes, and seconds correctly', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 5, 30, 45);
+            expect(result).toBe('5h 30m 45s');
+        });
+
+        it('should pad single digit minutes with leading zero', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 2, 5, 30);
+            expect(result).toBe('2h 05m 30s');
+        });
+
+        it('should pad single digit seconds with leading zero', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 1, 15, 8);
+            expect(result).toBe('1h 15m 08s');
+        });
+
+        it('should pad both minutes and seconds with leading zeros', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 0, 3, 7);
+            expect(result).toBe('0h 03m 07s');
+        });
+
+        it('should handle zero values for all parameters', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 0, 0, 0);
+            expect(result).toBe('0h 00m 00s');
+        });
+
+        it('should handle large hour values', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 23, 59, 59);
+            expect(result).toBe('23h 59m 59s');
+        });
+    });
+
+    describe('formatUTCDateTimeToDateInTimezone', () => {
+        const originalTZ = process.env.TZ;
+
+        beforeEach(() => {
+            process.env.TZ = 'UTC';
+        });
+
+        afterEach(() => {
+            process.env.TZ = originalTZ;
+        });
+
+        it('should return empty string when utcDateTime is empty', () => {
+            expect(DateUtils.formatUTCDateTimeToDateInTimezone('', UTC as SelectedTimezone)).toBe('');
+        });
+
+        it('should return empty string when timeZone is empty', () => {
+            expect(DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00', '' as SelectedTimezone)).toBe('');
+        });
+
+        it('should return date in yyyy-MM-dd format when timeZone is UTC', () => {
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00', UTC as SelectedTimezone);
+            expect(result).toBe('2024-01-15');
+        });
+
+        it('should convert UTC datetime to target timezone date', () => {
+            // America/New_York is UTC-5 in January (EST), so 2024-01-15 08:00:00 UTC = 2024-01-15 03:00:00 EST
+            const americaNewYork = 'America/New_York' as SelectedTimezone;
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00', americaNewYork);
+            expect(result).toBe('2024-01-15');
+        });
+
+        it('should handle UTC datetime that falls on previous day in target timezone', () => {
+            // America/New_York is UTC-5, so 2024-01-15 02:00:00 UTC = 2024-01-14 21:00:00 EST
+            const americaNewYork = 'America/New_York' as SelectedTimezone;
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 02:00:00', americaNewYork);
+            expect(result).toBe('2024-01-14');
+        });
+
+        it('should handle UTC datetime with milliseconds', () => {
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15 08:00:00.000', UTC as SelectedTimezone);
+            expect(result).toBe('2024-01-15');
+        });
+
+        it('should handle date-only format (parses as midnight UTC)', () => {
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('2024-01-15', UTC as SelectedTimezone);
+            expect(result).toBe('2024-01-15');
+        });
+
+        it('should return empty string for invalid date', () => {
+            const result = DateUtils.formatUTCDateTimeToDateInTimezone('invalid-date', UTC as SelectedTimezone);
+            expect(result).toBe('');
+        });
+    });
+
+    describe('normalizeDateToStartOfDay', () => {
+        const originalTZ = process.env.TZ;
+
+        beforeEach(() => {
+            process.env.TZ = 'UTC';
+        });
+
+        afterEach(() => {
+            process.env.TZ = originalTZ;
+        });
+
+        it('should return midnight local time as UTC in DB format when timeZone is UTC', () => {
+            const result = DateUtils.normalizeDateToStartOfDay('2024-01-15', UTC as SelectedTimezone);
+            expect(result).toBe('2024-01-15 00:00:00');
+        });
+
+        it('should match getDBTime of startOfDay for the parsed date (without milliseconds)', () => {
+            const dateStr = '2022-11-07';
+            const result = DateUtils.normalizeDateToStartOfDay(dateStr, UTC as SelectedTimezone);
+            const expected = DateUtils.getDBTime(fromZonedTime(startOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf()).replace(/\.\d{3}$/, '');
+            expect(result).toBe(expected);
+        });
+
+        it('should return midnight in target timezone as UTC in DB format when timeZone is not UTC', () => {
+            // America/New_York is UTC-5 in January (EST), so 2024-01-15 00:00:00 EST = 2024-01-15 05:00:00 UTC
+            const americaNewYork = 'America/New_York' as SelectedTimezone;
+            const result = DateUtils.normalizeDateToStartOfDay('2024-01-15', americaNewYork);
+            expect(result).toBe('2024-01-15 05:00:00');
+        });
+    });
+
+    describe('normalizeDateToEndOfDay', () => {
+        const originalTZ = process.env.TZ;
+
+        beforeEach(() => {
+            process.env.TZ = 'UTC';
+        });
+
+        afterEach(() => {
+            process.env.TZ = originalTZ;
+        });
+
+        it('should return end of day local time as UTC in DB format when timeZone is UTC', () => {
+            const result = DateUtils.normalizeDateToEndOfDay('2024-01-15', UTC as SelectedTimezone);
+            expect(result).toBe('2024-01-15 23:59:59');
+        });
+
+        it('should match getDBTime of endOfDay for the parsed date (without milliseconds)', () => {
+            const dateStr = '2022-11-07';
+            const result = DateUtils.normalizeDateToEndOfDay(dateStr, UTC as SelectedTimezone);
+            const expected = DateUtils.getDBTime(fromZonedTime(endOfDay(new Date(`${dateStr}T00:00:00.000Z`)), UTC).valueOf()).replace(/\.\d{3}$/, '');
+            expect(result).toBe(expected);
+        });
+
+        it('should return end of day in target timezone as UTC in DB format when timeZone is not UTC', () => {
+            // America/New_York is UTC-5 in January (EST), so 2024-01-15 23:59:59 EST = 2024-01-16 04:59:59 UTC
+            const americaNewYork = 'America/New_York' as SelectedTimezone;
+            const result = DateUtils.normalizeDateToEndOfDay('2024-01-15', americaNewYork);
+            expect(result).toBe('2024-01-16 04:59:59');
         });
     });
 });

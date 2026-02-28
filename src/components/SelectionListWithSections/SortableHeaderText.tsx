@@ -2,16 +2,19 @@ import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type SearchTableHeaderColumnProps = {
+type SearchTableHeaderColumnProps = WithSentryLabel & {
     text: string;
+    icon?: IconAsset;
     isActive: boolean;
     sortOrder: SortOrder;
     isSortable?: boolean;
@@ -20,7 +23,8 @@ type SearchTableHeaderColumnProps = {
     onPress: (order: SortOrder) => void;
 };
 
-export default function SortableHeaderText({text, sortOrder, isActive, textStyle, containerStyle, isSortable = true, onPress}: SearchTableHeaderColumnProps) {
+export default function SortableHeaderText({text, icon, sortOrder, isActive, textStyle, containerStyle, isSortable = true, onPress, sentryLabel}: SearchTableHeaderColumnProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowDownLong', 'ArrowUpLong']);
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -28,18 +32,28 @@ export default function SortableHeaderText({text, sortOrder, isActive, textStyle
         return (
             <View style={containerStyle}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textMicroSupporting, textStyle]}
-                    >
-                        {text}
-                    </Text>
+                    {!!icon && (
+                        <Icon
+                            src={icon}
+                            fill={theme.icon}
+                            height={16}
+                            width={16}
+                        />
+                    )}
+                    {!!text && (
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textMicroSupporting, textStyle]}
+                        >
+                            {text}
+                        </Text>
+                    )}
                 </View>
             </View>
         );
     }
 
-    const icon = sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? Expensicons.ArrowUpLong : Expensicons.ArrowDownLong;
+    const sortArrowIcon = sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? icons.ArrowUpLong : icons.ArrowDownLong;
     const displayIcon = isActive;
     const activeColumnStyle = isSortable && isActive && styles.searchTableHeaderActive;
 
@@ -53,17 +67,28 @@ export default function SortableHeaderText({text, sortOrder, isActive, textStyle
                 accessibilityLabel={CONST.ROLE.BUTTON}
                 accessible
                 disabled={!isSortable}
+                sentryLabel={sentryLabel}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.textMicroSupporting, activeColumnStyle, textStyle]}
-                    >
-                        {text}
-                    </Text>
-                    {displayIcon && (
+                    {!!icon && (
                         <Icon
                             src={icon}
+                            fill={theme.icon}
+                            height={16}
+                            width={16}
+                        />
+                    )}
+                    {!!text && (
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textMicroSupporting, activeColumnStyle, textStyle]}
+                        >
+                            {text}
+                        </Text>
+                    )}
+                    {displayIcon && (
+                        <Icon
+                            src={sortArrowIcon}
                             fill={theme.icon}
                             height={12}
                             width={12}

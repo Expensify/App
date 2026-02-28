@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
+import type {Domain, Policy} from '@src/types/onyx';
 import {isFullScreenName, isWorkspacesTabScreenName} from './isNavigatorName';
 import {getLastVisitedWorkspaceTabScreen, getWorkspacesTabStateFromSessionStorage} from './lastVisitedTabPathUtils';
 
@@ -16,6 +16,7 @@ type Params = {
     currentUserLogin?: string;
     shouldUseNarrowLayout: boolean;
     policy?: Policy;
+    domain?: Domain;
 };
 
 // Gets the latest workspace navigation state, restoring from session or preserved state if needed.
@@ -48,7 +49,7 @@ const getWorkspaceNavigationRouteState = () => {
 };
 
 // Navigates to the appropriate workspace tab or workspace list page.
-const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy}: Params) => {
+const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domain}: Params) => {
     const {lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute} = getWorkspaceNavigationRouteState();
 
     if (!topmostFullScreenRoute || topmostFullScreenRoute.name === SCREENS.WORKSPACES_LIST) {
@@ -89,6 +90,19 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, poli
                 });
             }
             return;
+        }
+
+        // Domain route found: try to restore last domain screen.
+        if (lastWorkspacesTabNavigatorRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR) {
+            // Restore to last-visited domain tab or show initial tab
+            if (domain?.accountID !== undefined) {
+                const domainScreenName = !shouldUseNarrowLayout ? getLastVisitedWorkspaceTabScreen() : SCREENS.DOMAIN.INITIAL;
+
+                return navigationRef.dispatch({
+                    type: CONST.NAVIGATION.ACTION_TYPE.OPEN_DOMAIN_SPLIT,
+                    payload: {domainAccountID: domain.accountID, screenName: domainScreenName},
+                });
+            }
         }
 
         // Fallback: any other state, go to the list.

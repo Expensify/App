@@ -11,7 +11,7 @@ jobs:
   # (the specialized JS that React Native is written in).
   # Therefore, adding an import in the wrong place could break the script, even if you didn't modify the script.
   dryRun:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       # v4
       - name: Checkout

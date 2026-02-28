@@ -71,7 +71,7 @@ function init(): Promise<void> {
 
 function setAuthenticationData(identity: string, sessionID: string): void {
     fpInstancePromise.then((fp) => {
-        fp.setAttributeTitle('user_id', identity, FPAttributeFormat.ClearText, (e: string) => {
+        fp.setAttributeTitle('user_id', identity, FPAttributeFormat.ClearText, false, (e: string) => {
             Log.warn(`[Fraud Protection] setAttributeTitle('user_id', [REDACTED], FPAttributeFormat.ClearText) error: ${e}`);
         });
         fp.setSessionId(sessionID, (e: string) => {
@@ -80,10 +80,11 @@ function setAuthenticationData(identity: string, sessionID: string): void {
     });
 }
 
-function setAttribute(key: string, value: string, shouldHash?: boolean): void {
+function setAttribute(key: string, value: string, shouldHash?: boolean, persist?: boolean): void {
     fpInstancePromise.then((fp) => {
         const format = shouldHash ? FPAttributeFormat.Hashed : FPAttributeFormat.ClearText;
-        fp.setAttributeTitle(key, value, format, (e: string) => {
+        const sendOnceOnly = persist !== true;
+        fp.setAttributeTitle(key, value, format, sendOnceOnly, (e: string) => {
             const formatName = shouldHash ? 'FPAttributeFormat.Hashed' : 'FPAttributeFormat.ClearText';
             Log.warn(`[Fraud Protection] setAttributeTitle(${key}, [REDACTED], ${formatName}) error: ${e}`);
         });

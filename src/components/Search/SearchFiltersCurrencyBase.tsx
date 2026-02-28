@@ -2,11 +2,11 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,17 +26,18 @@ type SearchFiltersCurrencyBaseProps = {
 function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: SearchFiltersCurrencyBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
+    const {currencyList} = useCurrencyListState();
+    const {getCurrencySymbol} = useCurrencyListActions();
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const selectedCurrencyData = searchAdvancedFiltersForm?.[filterKey];
 
     const {selectedCurrenciesItems, currencyItems} = useMemo(() => {
         const currencies: SearchSingleSelectionPickerItem[] = [];
         const selectedCurrencies: SearchSingleSelectionPickerItem[] = [];
 
-        Object.keys(currencyList ?? {}).forEach((currencyCode) => {
-            if (currencyList?.[currencyCode]?.retired) {
-                return;
+        for (const currencyCode of Object.keys(currencyList)) {
+            if (currencyList[currencyCode]?.retired) {
+                continue;
             }
 
             if (Array.isArray(selectedCurrencyData) && selectedCurrencyData?.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
@@ -50,10 +51,10 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
             if (!currencies.some((item) => item.value === currencyCode)) {
                 currencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
             }
-        });
+        }
 
         return {selectedCurrenciesItems: selectedCurrencies, currencyItems: currencies};
-    }, [currencyList, selectedCurrencyData]);
+    }, [currencyList, selectedCurrencyData, getCurrencySymbol]);
 
     const handleOnSubmit = (values: string[] | string | undefined) => {
         updateAdvancedFilters({[filterKey]: values ?? null} as Partial<SearchAdvancedFiltersForm>);
@@ -61,7 +62,7 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersCurrencyBase.displayName}
+            testID="SearchFiltersCurrencyBase"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -92,7 +93,5 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
         </ScreenWrapper>
     );
 }
-
-SearchFiltersCurrencyBase.displayName = 'SearchFiltersCurrencyBase';
 
 export default SearchFiltersCurrencyBase;

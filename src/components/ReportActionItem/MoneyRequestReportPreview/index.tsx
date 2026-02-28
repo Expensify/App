@@ -1,29 +1,31 @@
+import {useIsFocused} from '@react-navigation/native';
+import type {ListRenderItem} from '@shopify/flash-list';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+import useNewTransactions from '@hooks/useNewTransactions';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import FS from '@libs/Fullstory';
-import Performance from '@libs/Performance';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
-import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import Timing from '@userActions/Timing';
+import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasOnceLoadedReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewProps} from './types';
 
 function MoneyRequestReportPreview({
-    allReports,
     policies,
     iouReportID,
     policyID,
@@ -36,18 +38,18 @@ function MoneyRequestReportPreview({
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     shouldDisplayContextMenu = true,
-    isInvoice = false,
     shouldShowBorder,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const personalDetailsList = usePersonalDetails();
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const invoiceReceiverPolicy =
         policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`];
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
-    const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
+    const [iouReport, transactions] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -96,7 +98,7 @@ function MoneyRequestReportPreview({
         }
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
+        return transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
     }, [transactions, action.childType, iouReport]);
 
     const openReportFromPreview = useCallback(() => {
@@ -104,14 +106,28 @@ function MoneyRequestReportPreview({
             return;
         }
 
-        Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
-    }, [iouReportID]);
+        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
+            name: 'MoneyRequestReportPreview',
+            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        });
+        // Small screens navigate to full report view since super wide RHP
+        // is not available on narrow layouts and would break the navigation logic.
+        if (isSmallScreenWidth) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+        } else {
+            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
+        }
+    }, [iouReportID, isSmallScreenWidth]);
+    const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {
+        selector: hasOnceLoadedReportActionsSelector,
+    });
+    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions);
+    const isFocused = useIsFocused();
+    // We only want to highlight the new expenses if the screen is focused.
+    const newTransactionIDs = isFocused ? new Set(newTransactions.map((transaction) => transaction.transactionID)) : undefined;
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
-            allReports={allReports}
             chatReportID={chatReportID}
             action={getIOUActionForReportID(item.reportID, item.transactionID)}
             contextAction={action}
@@ -129,13 +145,13 @@ function MoneyRequestReportPreview({
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
+            shouldHighlight={newTransactionIDs?.has(item.transactionID)}
         />
     );
 
-    const fsClass = FS.getChatFSClass(personalDetailsList, iouReport);
-
     return (
         <MoneyRequestReportPreviewContent
+            newTransactionIDs={newTransactionIDs}
             iouReportID={iouReportID}
             chatReportID={chatReportID}
             iouReport={iouReport}
@@ -149,7 +165,6 @@ function MoneyRequestReportPreview({
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             transactions={transactions}
-            violations={violations}
             policy={policy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             invoiceReceiverPolicy={invoiceReceiverPolicy}
@@ -160,14 +175,11 @@ function MoneyRequestReportPreview({
             currentWidth={widths.currentWidth}
             reportPreviewStyles={reportPreviewStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
-            isInvoice={isInvoice}
             onPress={openReportFromPreview}
             shouldShowBorder={shouldShowBorder}
-            forwardedFSClass={fsClass}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
         />
     );
 }
-
-MoneyRequestReportPreview.displayName = 'MoneyRequestReportPreview';
 
 export default MoneyRequestReportPreview;

@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {AttachmentViewProps} from '..';
 
-type AttachmentViewImageProps = Pick<AttachmentViewProps, 'isAuthTokenRequired' | 'file' | 'onPress'> & {
+type AttachmentViewImageProps = Pick<AttachmentViewProps, 'attachmentID' | 'isAuthTokenRequired' | 'file' | 'onPress'> & {
     url: string;
 
     loadComplete: boolean;
@@ -17,11 +17,12 @@ type AttachmentViewImageProps = Pick<AttachmentViewProps, 'isAuthTokenRequired' 
     onError?: () => void;
 };
 
-function AttachmentViewImage({url, file, isAuthTokenRequired, loadComplete, onPress, onError, isImage}: AttachmentViewImageProps) {
+function AttachmentViewImage({attachmentID, url, file, isAuthTokenRequired, loadComplete, onPress, onError, isImage}: AttachmentViewImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const children = (
         <ImageView
+            attachmentID={attachmentID}
             onError={onError}
             url={url}
             fileName={file?.name ?? ''}
@@ -37,6 +38,7 @@ function AttachmentViewImage({url, file, isAuthTokenRequired, loadComplete, onPr
             accessibilityRole={CONST.ROLE.BUTTON}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={file?.name || translate('attachmentView.unknownFilename')}
+            sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.ITEM}
         >
             {children}
         </PressableWithoutFeedback>
@@ -44,7 +46,5 @@ function AttachmentViewImage({url, file, isAuthTokenRequired, loadComplete, onPr
         children
     );
 }
-
-AttachmentViewImage.displayName = 'AttachmentViewImage';
 
 export default memo(AttachmentViewImage);

@@ -20,9 +20,12 @@ function LanguagePage() {
     const isOptionSelected = useRef(false);
 
     const locales = useMemo(() => {
-        return SORTED_LOCALES.map((locale) => ({
+        const sortedLocales = preferredLocale ? [preferredLocale, ...SORTED_LOCALES.filter((locale) => locale !== preferredLocale)] : SORTED_LOCALES;
+
+        return sortedLocales.map((locale) => ({
             value: locale,
             text: LOCALE_TO_LANGUAGE_STRING[locale],
+            accessibilityLabel: LOCALE_TO_LANGUAGE_STRING[locale],
             keyForList: locale,
             isSelected: preferredLocale === locale,
         }));
@@ -41,7 +44,7 @@ function LanguagePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={LanguagePage.displayName}
+            testID="LanguagePage"
         >
             <HeaderWithBackButton
                 title={translate('languagePage.language')}
@@ -59,7 +62,5 @@ function LanguagePage() {
         </ScreenWrapper>
     );
 }
-
-LanguagePage.displayName = 'LanguagePage';
 
 export default LanguagePage;

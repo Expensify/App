@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import type {FlatListProps, ListRenderItemInfo, ScrollViewProps} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import FlatList from '@components/FlatList';
+import FlatList from '@components/FlatList/FlatList';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,6 +10,7 @@ import DuplicateTransactionItem from './DuplicateTransactionItem';
 
 type DuplicateTransactionsListProps = {
     transactions: Array<OnyxEntry<Transaction>>;
+    onPreviewPressed: (reportID: string) => void;
 };
 
 const keyExtractor: FlatListProps<OnyxEntry<Transaction>>['keyExtractor'] = (item, index) => `${item?.transactionID}+${index}`;
@@ -18,22 +19,21 @@ const maintainVisibleContentPosition: ScrollViewProps['maintainVisibleContentPos
     minIndexForVisible: 1,
 };
 
-function DuplicateTransactionsList({transactions}: DuplicateTransactionsListProps) {
+function DuplicateTransactionsList({transactions, onPreviewPressed}: DuplicateTransactionsListProps) {
     const styles = useThemeStyles();
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<OnyxEntry<Transaction>>) => (
             <DuplicateTransactionItem
                 transaction={item}
                 index={index}
-                allReports={allReports}
                 policies={policies}
+                onPreviewPressed={onPreviewPressed}
             />
         ),
-        [allReports, policies],
+        [onPreviewPressed, policies],
     );
 
     return (
@@ -47,5 +47,4 @@ function DuplicateTransactionsList({transactions}: DuplicateTransactionsListProp
     );
 }
 
-DuplicateTransactionsList.displayName = 'DuplicateTransactionsList';
 export default DuplicateTransactionsList;

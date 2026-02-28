@@ -6,34 +6,37 @@ import Log from './Log';
 
 const accountIDToNameMap: Record<string, string> = {};
 
-const reportIDToNameMap: Record<string, string> = {};
+let reportIDToNameMap: Record<string, string> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
+        // Clear the map so removed reports don’t linger
+        reportIDToNameMap = {};
+
         if (!value) {
             return;
         }
 
-        Object.values(value).forEach((report) => {
+        for (const report of Object.values(value)) {
             if (!report) {
-                return;
+                continue;
             }
             reportIDToNameMap[report.reportID] = report.reportName ?? report.reportID;
-        });
+        }
     },
 });
 
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (personalDetailsList) => {
-        Object.values(personalDetailsList ?? {}).forEach((personalDetails) => {
+        for (const personalDetails of Object.values(personalDetailsList ?? {})) {
             if (!personalDetails) {
-                return;
+                continue;
             }
 
             accountIDToNameMap[personalDetails.accountID] = personalDetails.login ?? personalDetails.displayName ?? '';
-        });
+        }
     },
 });
 
@@ -59,6 +62,10 @@ class ExpensiMarkWithContext extends ExpensiMark {
             accountIDToName: extras?.accountIDToName ?? accountIDToNameMap,
             cacheVideoAttributes: extras?.cacheVideoAttributes,
         });
+    }
+
+    isHTML(text: string): boolean {
+        return /<[^>]+>/.test(text) || /&[#\w]+;/.test(text);
     }
 
     truncateHTML(htmlString: string, limit: number, extras?: {ellipsis: string | undefined}): string {

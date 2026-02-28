@@ -135,9 +135,9 @@ function renameReportFieldsListValue({valueIndex, newValueName, listValues}: Ren
 function setReportFieldsListValueEnabled({valueIndexes, enabled, disabledListValues}: SetReportFieldsListValueEnabledParams) {
     const disabledListValuesCopy = [...disabledListValues];
 
-    valueIndexes.forEach((valueIndex) => {
+    for (const valueIndex of valueIndexes) {
         disabledListValuesCopy[valueIndex] = !enabled;
-    });
+    }
 
     Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
         [INPUT_IDS.DISABLED_LIST_VALUES]: disabledListValuesCopy,
@@ -151,12 +151,10 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
     const listValuesCopy = [...listValues];
     const disabledListValuesCopy = [...disabledListValues];
 
-    valueIndexes
-        .sort((a, b) => b - a)
-        .forEach((valueIndex) => {
-            listValuesCopy.splice(valueIndex, 1);
-            disabledListValuesCopy.splice(valueIndex, 1);
-        });
+    for (const valueIndex of valueIndexes.sort((a, b) => b - a)) {
+        listValuesCopy.splice(valueIndex, 1);
+        disabledListValuesCopy.splice(valueIndex, 1);
+    }
 
     Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
         [INPUT_IDS.LIST_VALUES]: listValuesCopy,
@@ -176,9 +174,14 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
     const previousFieldList = policy?.fieldList ?? {};
     const fieldID = WorkspaceReportFieldUtils.generateFieldID(name);
     const fieldKey = ReportUtils.getReportFieldKey(fieldID);
+
+    // User selected type Text but entered a formula Initial value, treat it as a Formula type for optimistic UI
+    const shouldTreatTextAsFormula = type === CONST.REPORT_FIELD_TYPES.TEXT && WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue(initialValue);
+    const optimisticType = shouldTreatTextAsFormula ? CONST.REPORT_FIELD_TYPES.FORMULA : type;
+
     const optimisticReportFieldDataForPolicy: Omit<OnyxValueWithOfflineFeedback<PolicyReportField>, 'value'> = {
         name,
-        type,
+        type: optimisticType,
         target: 'expense',
         defaultValue: initialValue,
         values: listValues,
@@ -191,7 +194,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
         isTax: false,
     };
 
-    const optimisticData = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
             onyxMethod: Onyx.METHOD.MERGE,
@@ -202,18 +205,20 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 errorFields: null,
             },
         },
-        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                fieldList: {
-                    [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        ...(policyExpenseReportIDs ?? []).map(
+            (reportID): OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> => ({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: {...optimisticReportFieldDataForPolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    },
                 },
-            },
-        })),
-    ] as OnyxUpdate[];
+            }),
+        ),
+    ];
 
-    const failureData = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
             onyxMethod: Onyx.METHOD.MERGE,
@@ -226,18 +231,20 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 },
             },
         },
-        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            onyxMethod: Onyx.METHOD.MERGE,
-            value: {
-                fieldList: {
-                    [fieldKey]: null,
+        ...(policyExpenseReportIDs ?? []).map(
+            (reportID): OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> => ({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: null,
+                    },
                 },
-            },
-        })),
-    ] as OnyxUpdate[];
+            }),
+        ),
+    ];
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT> = {
         optimisticData,
         successData: [
             {
@@ -286,7 +293,7 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
         return acc;
     }, {});
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -339,11 +346,21 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue}:
 
     const previousFieldList = policy?.fieldList ?? {};
     const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+    const existingField = previousFieldList[fieldKey];
+
+    // Dynamically adjust type for text/formula fields based on the new initial value for optimistic UI
+    let nextType = existingField?.type;
+    const isTextOrFormula = existingField?.type === CONST.REPORT_FIELD_TYPES.TEXT || existingField?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
+    if (isTextOrFormula || !existingField) {
+        nextType = WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue(newInitialValue) ? CONST.REPORT_FIELD_TYPES.FORMULA : CONST.REPORT_FIELD_TYPES.TEXT;
+    }
+
     const updatedReportField: PolicyReportField = {
-        ...previousFieldList[fieldKey],
+        ...existingField,
+        type: nextType,
         defaultValue: newInitialValue,
     };
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
@@ -403,17 +420,17 @@ function updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes,
 
     const updatedReportField = cloneDeep(reportField);
 
-    valueIndexes.forEach((valueIndex) => {
+    for (const valueIndex of valueIndexes) {
         updatedReportField.disabledOptions[valueIndex] = !enabled;
         const shouldResetDefaultValue = !enabled && reportField.defaultValue === reportField.values.at(valueIndex);
 
         if (shouldResetDefaultValue) {
             updatedReportField.defaultValue = '';
         }
-    });
+    }
 
     // We are using the offline pattern A (optimistic without feedback)
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
@@ -453,7 +470,7 @@ function addReportFieldListValue({policy, reportFieldID, valueName}: AddReportFi
     updatedReportField.disabledOptions.push(false);
 
     // We are using the offline pattern A (optimistic without feedback)
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
@@ -489,21 +506,19 @@ function removeReportFieldListValue({policy, reportFieldID, valueIndexes}: Remov
     const reportField = previousFieldList[reportFieldKey];
     const updatedReportField = cloneDeep(reportField);
 
-    valueIndexes
-        .sort((a, b) => b - a)
-        .forEach((valueIndex) => {
-            const shouldResetDefaultValue = reportField.defaultValue === reportField.values.at(valueIndex);
+    for (const valueIndex of valueIndexes.sort((a, b) => b - a)) {
+        const shouldResetDefaultValue = reportField.defaultValue === reportField.values.at(valueIndex);
 
-            if (shouldResetDefaultValue) {
-                updatedReportField.defaultValue = '';
-            }
+        if (shouldResetDefaultValue) {
+            updatedReportField.defaultValue = '';
+        }
 
-            updatedReportField.values.splice(valueIndex, 1);
-            updatedReportField.disabledOptions.splice(valueIndex, 1);
-        });
+        updatedReportField.values.splice(valueIndex, 1);
+        updatedReportField.disabledOptions.splice(valueIndex, 1);
+    }
 
     // We are using the offline pattern A (optimistic without feedback)
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,

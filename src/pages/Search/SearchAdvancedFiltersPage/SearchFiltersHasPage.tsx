@@ -5,9 +5,9 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
-import SelectionList from '@components/SelectionListWithSections';
-import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersHasPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const currentType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     const [selectedItems, setSelectedItems] = useState<string[]>(() => {
         if (!searchAdvancedFiltersForm?.has) {
@@ -30,7 +30,7 @@ function SearchFiltersHasPage() {
         return searchAdvancedFiltersForm.has;
     });
 
-    const items = useMemo(() => getHasOptions(currentType), [currentType]);
+    const items = useMemo(() => getHasOptions(translate, currentType), [translate, currentType]);
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((hasOption) => ({
@@ -71,7 +71,7 @@ function SearchFiltersHasPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersHasPage.displayName}
+            testID="SearchFiltersHasPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -84,10 +84,10 @@ function SearchFiltersHasPage() {
             />
             <View style={[styles.flex1]}>
                 <SelectionList
-                    shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
+                    data={listData}
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
+                    shouldSingleExecuteRowSelect
                 />
             </View>
             <FixedFooter style={styles.mtAuto}>
@@ -99,7 +99,5 @@ function SearchFiltersHasPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersHasPage.displayName = 'SearchFiltersHasPage';
 
 export default SearchFiltersHasPage;

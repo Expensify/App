@@ -10,19 +10,19 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
-import useHandleBackButton from '@hooks/useHandleBackButton';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
+import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
-import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -89,6 +89,12 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
          */
         addBottomSafeAreaPadding?: boolean;
+
+        /** Content to be added as modal */
+        modals?: ReactNode;
+
+        /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
+        shouldEnableMaxHeight?: boolean;
     };
 
 function fetchData(policyID: string | undefined, skipVBBACal?: boolean) {
@@ -115,6 +121,7 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
+    shouldEnableMaxHeight = true,
     headerContent,
     testID,
     shouldShowNotFoundPage = false,
@@ -124,16 +131,16 @@ function WorkspacePageWithSections({
     threeDotsMenuItems,
     shouldUseHeadlineHeader = true,
     addBottomSafeAreaPadding = false,
+    modals,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
     const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {
         selector: emailSelector,
-        canBeMissing: true,
     });
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -154,7 +161,6 @@ function WorkspacePageWithSections({
 
     useEffect(() => {
         fetchData(policyID, shouldSkipVBBACall);
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
@@ -167,11 +173,16 @@ function WorkspacePageWithSections({
         }
 
         // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
-        return (!isEmptyObject(policy) && !isPolicyAdmin(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && (!isPendingDelete || prevIsPendingDelete));
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        return (!isEmptyObject(policy) && !isPolicyAdmin(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
+        if (shouldShow) {
+            goBackFromWorkspaceSettingPages();
+            return true;
+        }
+
         if (onBackButtonPress) {
             onBackButtonPress();
             return true;
@@ -182,24 +193,24 @@ function WorkspacePageWithSections({
             return true;
         }
 
-        Navigation.popToSidebar();
+        Navigation.goBack();
         return true;
     };
 
-    useHandleBackButton(handleOnBackButtonPress);
+    useAndroidBackButtonHandler(handleOnBackButtonPress);
 
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
-            testID={testID ?? WorkspacePageWithSections.displayName}
+            shouldEnableMaxHeight={shouldEnableMaxHeight}
+            testID={testID ?? 'WorkspacePageWithSections'}
             shouldShowOfflineIndicator={!shouldShow}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.route)}
-                onLinkPress={goBackFromInvalidPolicy}
+                onBackButtonPress={handleOnBackButtonPress}
+                onLinkPress={() => Navigation.goBackToHome()}
                 shouldShow={shouldShow}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
                 shouldForceFullScreen
@@ -213,6 +224,7 @@ function WorkspacePageWithSections({
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldUseHeadlineHeader={shouldUseHeadlineHeader}
+                    shouldDisplayHelpButton
                 >
                     {headerContent}
                 </HeaderWithBackButton>
@@ -235,10 +247,9 @@ function WorkspacePageWithSections({
                     </>
                 )}
             </FullPageNotFoundView>
+            {modals}
         </ScreenWrapper>
     );
 }
-
-WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
 
 export default withPolicyAndFullscreenLoading(WorkspacePageWithSections);

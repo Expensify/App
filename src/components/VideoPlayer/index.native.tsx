@@ -2,7 +2,7 @@ import React from 'react';
 import uniqueIDForVideoWithoutReport from '@components/VideoPlayerContexts/PlaybackContext/uniqueID';
 import CONST from '@src/CONST';
 import BaseVideoPlayer from './BaseVideoPlayer';
-import type {VideoPlayerProps} from './types';
+import type VideoPlayerProps from './types';
 
 function VideoPlayer({videoControlsStyle, shouldUseControlsBottomMargin = true, ...props}: VideoPlayerProps) {
     const {fakeReportID} = uniqueIDForVideoWithoutReport();
@@ -19,7 +19,5 @@ function VideoPlayer({videoControlsStyle, shouldUseControlsBottomMargin = true, 
         />
     );
 }
-
-VideoPlayer.displayName = 'VideoPlayer';
 
 export default VideoPlayer;

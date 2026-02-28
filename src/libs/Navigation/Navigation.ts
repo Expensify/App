@@ -1,24 +1,31 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
-import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
+import {CommonActions, StackActions} from '@react-navigation/native';
+import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
-import {InteractionManager} from 'react-native';
+import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
+import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
+import SidePanelActions from '@libs/actions/SidePanel';
+import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
+import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import type {Account} from '@src/types/onyx';
+import type {Account, SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
+import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
 import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
@@ -32,15 +39,28 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
+import type {
+    NavigationPartialRoute,
+    NavigationRef,
+    NavigationRoute,
+    NavigationStateRoute,
+    ReportsSplitNavigatorParamList,
+    RightModalNavigatorParamList,
+    RootNavigatorParamList,
+    State,
+} from './types';
 
-// Routes which are part of the flow to set up 2FA
-const SET_UP_2FA_ROUTES: Route[] = [
-    ROUTES.REQUIRE_TWO_FACTOR_AUTH,
-    ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
-    ROUTES.SETTINGS_2FA_VERIFY.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
-    ROUTES.SETTINGS_2FA_SUCCESS.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
-];
+// Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
+const SET_UP_2FA_SCREENS = new Set<string>([
+    SCREENS.TWO_FACTOR_AUTH.ROOT,
+    SCREENS.TWO_FACTOR_AUTH.VERIFY,
+    SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT,
+    SCREENS.TWO_FACTOR_AUTH.SUCCESS,
+    SCREENS.TWO_FACTOR_AUTH.DISABLED,
+    SCREENS.TWO_FACTOR_AUTH.DISABLE,
+]);
+
+const MFA_FLOW_SCREENS = new Set<string>(Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION));
 
 let account: OnyxEntry<Account>;
 // We have used `connectWithoutView` here because it is not connected to any UI
@@ -50,6 +70,24 @@ Onyx.connectWithoutView({
         account = value;
     },
 });
+
+let sidePanelNVP: OnyxEntry<SidePanel>;
+// `connectWithoutView` is used here because we want to avoid unnecessary re-renders when the side panel NVP changes
+// Also it is not directly connected to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_SIDE_PANEL,
+    callback: (value) => {
+        sidePanelNVP = value;
+    },
+});
+
+function isTwoFactorSetupScreen(screen: string | undefined): boolean {
+    return screen ? SET_UP_2FA_SCREENS.has(screen) : false;
+}
+
+function isMFAFlowScreen(screen: string | undefined): boolean {
+    return screen ? MFA_FLOW_SCREENS.has(screen) : false;
+}
 
 function shouldShowRequire2FAPage() {
     return !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth;
@@ -79,21 +117,56 @@ function getShouldPopToSidebar() {
     return shouldPopToSidebar;
 }
 
+/**
+ * Recursively get the deepest focused screen name from the navigation state.
+ * Unlike findFocusedRoute, this also handles the case where the nested navigator
+ * hasn't been mounted yet and the target screen is in params instead of state.
+ */
+function getDeepestFocusedScreenName(route: NavigationRoute | NavigationState | PartialState<NavigationState> | undefined): string | undefined {
+    if (!route) {
+        return undefined;
+    }
+
+    // NavigationState case - has routes array
+    if ('routes' in route && Array.isArray(route.routes)) {
+        // When routes array is just one item, the index key is omitted
+        let focusedRoute = route.routes[0];
+        if ('index' in route && typeof route.index === 'number') {
+            focusedRoute = route.routes[route.index];
+        }
+        return getDeepestFocusedScreenName(focusedRoute);
+    }
+
+    // Route with nested state case
+    if ('state' in route && route.state) {
+        return getDeepestFocusedScreenName(route.state);
+    }
+
+    // Route with params.screen case (initial navigation before sidebar navigator mounts)
+    if ('params' in route && route.params && typeof route.params === 'object' && 'screen' in route.params) {
+        const params = route.params as {screen?: string; params?: Record<string, unknown>};
+        if (params.screen) {
+            return getDeepestFocusedScreenName({name: params.screen, params: params.params});
+        }
+    }
+
+    // Leaf route - return the name
+    if ('name' in route) {
+        return route.name;
+    }
+
+    return undefined;
+}
+
 type CanNavigateParams = {
     route?: Route;
     backToRoute?: Route;
 };
 
 /**
- * Checks if the route can be navigated to based on whether the navigation ref is ready and if 2FA is required to be set up.
+ * Checks if navigation is ready.
  */
 function canNavigate(methodName: string, params: CanNavigateParams = {}): boolean {
-    // Block navigation if 2FA is required and the targetRoute is not part of the flow to enable 2FA
-    const targetRoute = params.route ?? params.backToRoute;
-    if (shouldShowRequire2FAPage() && targetRoute && !SET_UP_2FA_ROUTES.includes(targetRoute)) {
-        Log.info(`[Navigation] Blocked navigation because 2FA is required to be set up to access route: ${targetRoute}`);
-        return false;
-    }
     if (navigationRef.isReady()) {
         return true;
     }
@@ -117,15 +190,44 @@ const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmos
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 
 /**
+ * Close the side panel on narrow layout when navigating to a different screen.
+ */
+function closeSidePanelOnNarrowScreen(route: Route) {
+    const isExtraLargeScreenWidth = Dimensions.get('window').width > variables.sidePanelResponsiveWidthBreakpoint;
+
+    if (!sidePanelNVP?.openNarrowScreen || isExtraLargeScreenWidth) {
+        return;
+    }
+
+    // Split "r/:reportID/attachment/add" by ":reportID" to get the prefix "r/" and suffix "/attachment/add"
+    const addAttachmentPrefix = ROUTES.REPORT_ADD_ATTACHMENT.route.split(':reportID').at(0) ?? '';
+    const addAttachmentSuffix = ROUTES.REPORT_ADD_ATTACHMENT.route.split(':reportID').at(1) ?? '';
+    const attachmentPreviewRoute = ROUTES.REPORT_ATTACHMENTS.route;
+    const isAddingAttachment = typeof route === 'string' && route.startsWith(addAttachmentPrefix) && route.includes(addAttachmentSuffix);
+    const isPreviewingAttachment = typeof route === 'string' && route.startsWith(attachmentPreviewRoute);
+    // If the user is navigating to an attachment route (previewing or adding), keep the side panel open
+    // so they still have access to the chat.
+    if (isAddingAttachment || isPreviewingAttachment) {
+        return;
+    }
+
+    SidePanelActions.closeSidePanel(true);
+}
+
+/**
  * Returns the current active route.
  */
 function getActiveRoute(): string {
+    if (!navigationRef.isReady()) {
+        return '';
+    }
+
     const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
     if (!currentRoute?.name) {
         return '';
     }
 
-    const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
+    const routeFromState = getPathFromState(navigationRef.getRootState());
 
     if (routeFromState) {
         return routeFromState;
@@ -154,7 +256,7 @@ function getReportRHPActiveRoute(): string {
  * @returns The cleaned route path.
  */
 function cleanRoutePath(routePath: string): string {
-    return routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replace(/\?.*/, '');
+    return routePath.replaceAll(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replaceAll(/\?.*/g, '');
 }
 
 /**
@@ -185,6 +287,7 @@ function isActiveRoute(routePath: Route): boolean {
  * @param options.forceReplace - If true, the navigation action will replace the current route instead of pushing a new one.
  */
 function navigate(route: Route, options?: LinkToOptions) {
+    clearSelectedText();
     if (!canNavigate('navigate', {route})) {
         if (!navigationRef.isReady()) {
             // Store intended route if the navigator is not yet available,
@@ -195,9 +298,38 @@ function navigate(route: Route, options?: LinkToOptions) {
         return;
     }
 
-    linkTo(navigationRef.current, route, options);
-}
+    // Start a Sentry span for report navigation
+    if (route.startsWith('r/') || route.startsWith('search/r/') || route.startsWith('e/')) {
+        const routePath = Str.cutAfter(route, '?');
+        const reportIDMatch = route.match(/^(?:search\/)?(?:r|e)\/(\w+)/);
+        const reportID = reportIDMatch?.at(1);
+        if (reportID) {
+            const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
+            let span = getSpan(spanId);
+            if (!span) {
+                let spanName = '/r/*';
+                if (route.startsWith('search/r/')) {
+                    spanName = '/search/r/*';
+                } else if (route.startsWith('e/')) {
+                    spanName = '/e/*';
+                }
+                span = startSpan(spanId, {
+                    name: spanName,
+                    op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+                });
+            }
+            span.setAttributes({
+                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
+                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(routePath, '?'),
+            });
+        }
+    }
 
+    const targetRoute = route.startsWith(CONST.SAML_REDIRECT_URL) ? ROUTES.HOME : route;
+    linkTo(navigationRef.current, targetRoute, options);
+    closeSidePanelOnNarrowScreen(route);
+}
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
  * these parameters shouldn't be included in the comparison.
@@ -331,12 +463,19 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
  * @param options - Optional configuration that affects navigation logic
  */
 function goBack(backToRoute?: Route, options?: GoBackOptions) {
+    clearSelectedText();
+
     if (!canNavigate('goBack', {backToRoute})) {
         return;
     }
 
     if (backToRoute) {
         goUp(backToRoute, options);
+        return;
+    }
+
+    if (shouldPopToSidebar) {
+        popToSidebar();
         return;
     }
 
@@ -374,7 +513,7 @@ function popToSidebar() {
 
     const currentRouteName = currentRoute?.name as keyof typeof SPLIT_TO_SIDEBAR;
     if (topRoute?.name !== SPLIT_TO_SIDEBAR[currentRouteName]) {
-        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
+        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || currentRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
 
         const sidebarName = SPLIT_TO_SIDEBAR[currentRouteName];
 
@@ -397,7 +536,7 @@ function resetToHome() {
               name: SCREENS.REPORT,
           }
         : undefined;
-    const payload = getInitialSplitNavigatorState({name: SCREENS.HOME}, splitNavigatorMainScreen);
+    const payload = getInitialSplitNavigatorState({name: SCREENS.INBOX}, splitNavigatorMainScreen);
     navigationRef.dispatch({payload, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE, target: rootState.key});
 }
 
@@ -411,7 +550,7 @@ function goBackToHome() {
     const isNarrowLayout = getIsNarrowLayout();
 
     // This set the right split navigator.
-    goBack(ROUTES.HOME);
+    goBack(ROUTES.INBOX);
 
     // We want to keep the report screen in the split navigator on wide layout.
     if (!isNarrowLayout) {
@@ -419,7 +558,7 @@ function goBackToHome() {
     }
 
     // This set the right route in this split navigator.
-    goBack(ROUTES.HOME);
+    goBack(ROUTES.INBOX);
 }
 
 /**
@@ -436,7 +575,7 @@ function setParams(params: Record<string, unknown>, routeKey = '') {
  * Returns the current active route without the URL params.
  */
 function getActiveRouteWithoutParams(): string {
-    return getActiveRoute().replace(/\?.*/, '');
+    return getActiveRoute().replaceAll(/\?.*/g, '');
 }
 
 /**
@@ -541,19 +680,60 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
     return null;
 }
 
+function getTopmostSuperWideRHPReportParams(
+    state: NavigationState = navigationRef.getRootState(),
+): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT] | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT] | undefined {
+    if (!state) {
+        return;
+    }
+    const topmostRightModalNavigator = state.routes?.at(-1);
+
+    if (!topmostRightModalNavigator || topmostRightModalNavigator.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return;
+    }
+
+    const topmostSuperWideRHP = topmostRightModalNavigator.state?.routes.findLast((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name));
+
+    if (!topmostSuperWideRHP) {
+        return;
+    }
+
+    return topmostSuperWideRHP?.params as
+        | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]
+        | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT]
+        | undefined;
+}
+
+/**
+ * Get the report ID from the topmost Super Wide RHP modal in the navigation stack.
+ */
+function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.getRootState()): string | undefined {
+    const topmostReportParams = getTopmostSuperWideRHPReportParams(state);
+    return topmostReportParams?.reportID;
+}
+
 /**
  * Closes the modal navigator (RHP, onboarding).
+ *
+ * @param options - Configuration object
+ * @param options.ref - Navigation ref to use (defaults to navigationRef)
+ * @param options.callback - Optional callback to execute after the modal has finished closing.
+ *                           The callback fires when RightModalNavigator unmounts.
+ *
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  */
-const dismissModal = (ref = navigationRef) => {
+const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; callback?: () => void} = {}) => {
+    clearSelectedText();
     isNavigationReady().then(() => {
+        if (callback) {
+            const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.CLOSED, () => {
+                subscription.remove();
+                callback();
+            });
+        }
+
         ref.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL});
-        // Let React Navigation finish modal transition
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            fireModalDismissed();
-        });
     });
 };
 
@@ -564,8 +744,16 @@ const dismissModal = (ref = navigationRef) => {
  */
 const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT], ref = navigationRef) => {
     isNavigationReady().then(() => {
+        const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
+        let areReportsIDsDefined = !!topmostSuperWideRHPReportID && !!reportID;
+
+        if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
+            dismissToSuperWideRHP();
+            return;
+        }
+
         const topmostReportID = getTopmostReportId();
-        const areReportsIDsDefined = !!topmostReportID && !!reportID;
+        areReportsIDsDefined = !!topmostReportID && !!reportID;
         const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             dismissModal();
@@ -583,19 +771,6 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
         });
     });
 };
-
-/**
- * Returns to the first screen in the stack, dismissing all the others, only if the global variable shouldPopToSidebar is set to true.
- */
-function popToTop() {
-    if (!shouldPopToSidebar) {
-        goBack();
-        return;
-    }
-
-    shouldPopToSidebar = false;
-    navigationRef.current?.dispatch(StackActions.popToTop());
-}
 
 function popRootToTop() {
     const rootState = navigationRef.getRootState();
@@ -672,18 +847,74 @@ function clearPreloadedRoutes() {
     navigationRef.reset(rootStateWithoutPreloadedRoutes);
 }
 
-const modalDismissedListeners: Array<() => void> = [];
+/**
+ * When multiple screens are open in RHP, returns to the last modal stack specified in the parameter. If none are found, it dismisses the entire modal.
+ *
+ * @param modalStackNames - names of the modal stacks we want to dismiss to
+ */
+function dismissToModalStack(modalStackNames: Set<string>) {
+    const rootState = navigationRef.getRootState();
+    if (!rootState) {
+        return;
+    }
 
-function onModalDismissedOnce(callback: () => void) {
-    modalDismissedListeners.push(callback);
+    const rhpState = rootState.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
+
+    if (!rhpState) {
+        return;
+    }
+
+    const lastFoundModalStackIndex = rhpState.routes.slice(0, -1).findLastIndex((route) => modalStackNames.has(route.name));
+    const routesToPop = rhpState.routes.length - lastFoundModalStackIndex - 1;
+
+    if (routesToPop <= 0 || lastFoundModalStackIndex === -1) {
+        dismissModal();
+        return;
+    }
+
+    navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
 }
 
-// Wrap modal dismissal so listeners get called
-function fireModalDismissed() {
-    while (modalDismissedListeners.length) {
-        const cb = modalDismissedListeners.pop();
-        cb?.();
+/**
+ * Dismiss top layer modal and go back to the Wide/Super Wide RHP.
+ */
+function dismissToPreviousRHP() {
+    return dismissToModalStack(ALL_WIDE_RIGHT_MODALS);
+}
+
+function navigateBackToLastSuperWideRHPScreen() {
+    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
+}
+
+function dismissToSuperWideRHP() {
+    // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
+    if (getIsNarrowLayout()) {
+        dismissModal();
+        return;
     }
+    // On wide layouts, dismiss back to the Super Wide RHP modal stack
+    navigateBackToLastSuperWideRHPScreen();
+}
+
+function getTopmostSearchReportRouteParams(state = navigationRef.getRootState()): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined {
+    if (!state) {
+        return undefined;
+    }
+
+    const lastRoute = state.routes?.at(-1);
+    if (lastRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return undefined;
+    }
+
+    const nestedRoutes = lastRoute.state?.routes ?? [];
+    const lastSearchReport = [...nestedRoutes].reverse().find((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
+
+    return lastSearchReport?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
+}
+
+function getTopmostSearchReportID(state = navigationRef.getRootState()): string | undefined {
+    const params = getTopmostSearchReportRouteParams(state);
+    return params?.reportID;
 }
 
 export default {
@@ -709,7 +940,6 @@ export default {
     goBackToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
-    popToTop,
     popRootToTop,
     pop,
     removeScreenFromNavigationState,
@@ -720,9 +950,14 @@ export default {
     isTopmostRouteModalScreen,
     isOnboardingFlow,
     clearPreloadedRoutes,
-    onModalDismissedOnce,
-    fireModalDismissed,
     isValidateLoginFlow,
+    dismissToPreviousRHP,
+    dismissToSuperWideRHP,
+    getTopmostSearchReportID,
+    getTopmostSuperWideRHPReportParams,
+    getTopmostSuperWideRHPReportID,
+    getTopmostSearchReportRouteParams,
+    navigateBackToLastSuperWideRHPScreen,
 };
 
-export {navigationRef};
+export {navigationRef, getDeepestFocusedScreenName, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage};

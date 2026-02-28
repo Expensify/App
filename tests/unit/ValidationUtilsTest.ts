@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {
     getAgeRequirementError,
+    isInvalidMerchantValue,
     isRequiredFulfilled,
     isValidAccountRoute,
     isValidDate,
@@ -16,6 +17,7 @@ import {
     isValidRegistrationNumber,
     isValidRoomName,
     isValidTwoFactorCode,
+    isValidUSPhone,
     isValidWebsite,
     meetsMaximumAgeRequirement,
     meetsMinimumAgeRequirement,
@@ -25,6 +27,15 @@ import {translateLocal} from '../utils/TestHelper';
 global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 
 describe('ValidationUtils', () => {
+    beforeAll(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2024-01-15'));
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
+    });
+
     describe('isValidDate', () => {
         test('Should return true for a valid date within the range', () => {
             const validDate = '2023-07-18';
@@ -207,29 +218,25 @@ describe('ValidationUtils', () => {
     describe('getAgeRequirementError', () => {
         test('Should return an empty string for a date within the specified range', () => {
             const validDate: string = format(subYears(new Date(), 30), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 30 years ago
-            const error = getAgeRequirementError(validDate, 18, 150);
+            const error = getAgeRequirementError(translateLocal, validDate, 18, 150);
             expect(error).toBe('');
         });
 
         test('Should return an error message for a date before the minimum age requirement', () => {
             const invalidDate: string = format(subYears(new Date(), 17), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 17 years ago
-            const error = getAgeRequirementError(invalidDate, 18, 150);
-            expect(error).toEqual(
-                translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)}),
-            );
+            const error = getAgeRequirementError(translateLocal, invalidDate, 18, 150);
+            expect(error).toEqual(translateLocal('privatePersonalDetails.error.dateShouldBeBefore', format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)));
         });
 
         test('Should return an error message for a date after the maximum age requirement', () => {
             const invalidDate: string = format(subYears(new Date(), 160), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 160 years ago
-            const error = getAgeRequirementError(invalidDate, 18, 150);
-            expect(error).toEqual(
-                translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)}),
-            );
+            const error = getAgeRequirementError(translateLocal, invalidDate, 18, 150);
+            expect(error).toEqual(translateLocal('privatePersonalDetails.error.dateShouldBeAfter', format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)));
         });
 
         test('Should return an error message for an invalid date', () => {
             const invalidDate = '2023-07-32'; // Invalid date
-            const error = getAgeRequirementError(invalidDate, 18, 150);
+            const error = getAgeRequirementError(translateLocal, invalidDate, 18, 150);
             expect(error).toBe(translateLocal('common.error.dateInvalid'));
         });
     });
@@ -543,6 +550,56 @@ describe('ValidationUtils', () => {
             ])('validates Non-EU country registration number', (country, value, expected) => {
                 expect(isValidRegistrationNumber(value, country as Country)).toBe(expected);
             });
+        });
+    });
+
+    describe('isValidUSPhone', () => {
+        test('Should return true for a standard US phone number', () => {
+            expect(isValidUSPhone('+12018675309')).toBe(true);
+        });
+
+        test('Should return true for a Puerto Rico phone number', () => {
+            expect(isValidUSPhone('+17873464732')).toBe(true);
+        });
+
+        test('Should return true for a US Virgin Islands phone number', () => {
+            expect(isValidUSPhone('+13405551234')).toBe(true);
+        });
+
+        test('Should return true for a Guam phone number', () => {
+            expect(isValidUSPhone('+16715551234')).toBe(true);
+        });
+
+        test('Should return true for a Northern Mariana Islands phone number', () => {
+            expect(isValidUSPhone('+16705551234')).toBe(true);
+        });
+
+        test('Should return false for a Canadian phone number', () => {
+            expect(isValidUSPhone('+14165551234')).toBe(false);
+        });
+
+        test('Should return false for a UK phone number', () => {
+            expect(isValidUSPhone('+442071234567')).toBe(false);
+        });
+
+        test('Should return false for an empty string', () => {
+            expect(isValidUSPhone('')).toBe(false);
+        });
+    });
+
+    describe('isInvalidMerchantValue', () => {
+        test('Valid merchnt name', () => {
+            expect(isInvalidMerchantValue('test name')).toBe(false);
+            expect(isInvalidMerchantValue('none')).toBe(false);
+            expect(isInvalidMerchantValue('Unknown Merchant')).toBe(false);
+            expect(isInvalidMerchantValue('X Æ A test')).toBe(false);
+            expect(isInvalidMerchantValue(undefined)).toBe(false);
+        });
+
+        test('Invalid merchant name', () => {
+            expect(isInvalidMerchantValue('')).toBe(true);
+            expect(isInvalidMerchantValue('Expense')).toBe(true);
+            expect(isInvalidMerchantValue('(none)')).toBe(true);
         });
     });
 });

@@ -2,15 +2,14 @@ import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSizeName} from '@styles/utils';
 import variables from '@styles/variables';
 import type {PersonalDetails} from '@src/types/onyx';
-import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import UserInfoCell from './UserInfoCell';
 
 function UserInfoCellsWithArrow({
@@ -27,9 +26,9 @@ function UserInfoCellsWithArrow({
     shouldUseArrowIcon = true,
 }: {
     shouldShowToRecipient: boolean;
-    participantFrom: SearchPersonalDetails | PersonalDetails;
+    participantFrom: PersonalDetails;
     participantFromDisplayName: string;
-    participantTo: SearchPersonalDetails | PersonalDetails;
+    participantTo: PersonalDetails;
     participantToDisplayName: string;
     style?: StyleProp<ViewStyle>;
     avatarSize?: AvatarSizeName;
@@ -38,6 +37,7 @@ function UserInfoCellsWithArrow({
     fromRecipientStyle?: ViewStyle;
     shouldUseArrowIcon?: boolean;
 }) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRightLong']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -61,7 +61,7 @@ function UserInfoCellsWithArrow({
                 <>
                     {shouldUseArrowIcon ? (
                         <Icon
-                            src={Expensicons.ArrowRightLong}
+                            src={icons.ArrowRightLong}
                             width={variables.iconSizeXXSmall}
                             height={variables.iconSizeXXSmall}
                             fill={theme.icon}
@@ -89,7 +89,5 @@ function UserInfoCellsWithArrow({
         </View>
     );
 }
-
-UserInfoCellsWithArrow.displayName = 'UserInfoCellsWithArrow';
 
 export default UserInfoCellsWithArrow;

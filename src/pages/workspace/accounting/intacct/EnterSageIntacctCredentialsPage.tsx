@@ -41,20 +41,19 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM> = {};
 
-            formItems.forEach((formItem) => {
+            for (const formItem of formItems) {
                 if (values[formItem]) {
-                    return;
+                    continue;
                 }
                 addErrorMessage(errors, formItem, translate('common.error.fieldRequired'));
-            });
+            }
             return errors;
         },
         [formItems, translate],
     );
     return (
         <ScreenWrapper
-            shouldEnableMaxHeight
-            testID={EnterSageIntacctCredentialsPage.displayName}
+            testID="EnterSageIntacctCredentialsPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -69,6 +68,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
                 submitButtonText={translate('common.confirm')}
                 enabledWhenOffline
                 shouldValidateOnBlur
+                shouldUseScrollView
                 shouldValidateOnChange
                 addBottomSafeAreaPadding
             >
@@ -95,7 +95,5 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
         </ScreenWrapper>
     );
 }
-
-EnterSageIntacctCredentialsPage.displayName = 'EnterSageIntacctCredentialsPage';
 
 export default EnterSageIntacctCredentialsPage;

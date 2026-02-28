@@ -9,7 +9,6 @@ source scripts/shellUtils.sh
 
 declare -r DIRECTORIES_TO_IGNORE=(
   './node_modules'
-  './desktop/node_modules'
   './vendor'
   './ios/Pods'
   './.husky'

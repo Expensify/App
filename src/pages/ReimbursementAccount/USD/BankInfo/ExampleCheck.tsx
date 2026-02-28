@@ -20,5 +20,4 @@ function ExampleCheckImage() {
     );
 }
 
-ExampleCheckImage.displayName = 'ExampleCheckImage';
 export default ExampleCheckImage;

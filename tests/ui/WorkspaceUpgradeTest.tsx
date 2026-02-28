@@ -6,6 +6,7 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -26,7 +27,7 @@ jest.mock('@components/RenderHTML', () => {
     const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
 
     return ({html}: {html: string}) => {
-        const plainText = html.replace(/<[^>]*>/g, '');
+        const plainText = html.replaceAll(/<[^>]*>/g, '');
         return ReactMock.createElement(Text, null, plainText);
     };
 });
@@ -37,7 +38,7 @@ const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.UPGRADE, initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.UPGRADE]) => {
     return render(
-        <ComposeProviders components={[LocaleContextProvider, HTMLEngineProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={initialRouteName}>
                     <Stack.Screen

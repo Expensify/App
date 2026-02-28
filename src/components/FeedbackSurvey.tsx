@@ -51,7 +51,7 @@ type FeedbackSurveyProps = {
 function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading, formID, enabledWhenOffline = true}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [draft, draftResults] = useOnyx(`${formID}Draft`, {canBeMissing: true});
+    const [draft, draftResults] = useOnyx(`${formID}Draft`);
     const [reason, setReason] = useState<string | undefined>(draft?.reason);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
 
@@ -73,7 +73,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         }
 
         setReason(draft.reason);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- only sync with draft data when it is loaded
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only sync with draft data when it is loaded
     }, [isLoadingDraft]);
 
     const handleOptionSelect = (value: string) => {
@@ -149,7 +149,5 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
         </FormProvider>
     );
 }
-
-FeedbackSurvey.displayName = 'FeedbackSurvey';
 
 export default FeedbackSurvey;

@@ -11,14 +11,12 @@ function NoDropZone({children}: NoDropZoneProps) {
     const noDropZone = useRef<View | HTMLDivElement>(null);
 
     useDragAndDrop({
-        // eslint-disable-next-line react-compiler/react-compiler
         dropZone: htmlDivElementRef(noDropZone),
         shouldAllowDrop: false,
     });
 
     return (
         <View
-            // eslint-disable-next-line react-compiler/react-compiler
             ref={viewRef(noDropZone)}
             style={[styles.fullScreen]}
         >
@@ -26,7 +24,5 @@ function NoDropZone({children}: NoDropZoneProps) {
         </View>
     );
 }
-
-NoDropZone.displayName = 'NoDropZone';
 
 export default NoDropZone;

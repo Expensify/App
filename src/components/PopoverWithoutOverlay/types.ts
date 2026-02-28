@@ -25,6 +25,9 @@ type PopoverWithoutOverlayProps = ChildrenProps &
 
         /** The ref of the popover */
         withoutOverlayRef: RefObject<View | HTMLDivElement | null>;
+
+        /** Whether we should display the popover below other modals (e.g. SidePanel, RHP) */
+        shouldDisplayBelowModals?: boolean;
     };
 
 export default PopoverWithoutOverlayProps;

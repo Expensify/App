@@ -27,7 +27,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
 
     const shouldShowMonthlyOption = cardSettings?.isMonthlySettlementAllowed ?? false;
     const selectedFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
@@ -67,7 +67,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceSettlementFrequencyPage.displayName}
+                testID="WorkspaceSettlementFrequencyPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >
@@ -89,7 +89,5 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceSettlementFrequencyPage.displayName = 'WorkspaceSettlementFrequencyPage';
 
 export default WorkspaceSettlementFrequencyPage;

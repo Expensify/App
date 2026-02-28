@@ -1,0 +1,38 @@
+import {useMemo} from 'react';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import type {SearchQueryJSON} from '@components/Search/types';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getAllTaxRates} from '@libs/PolicyUtils';
+import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import {useCurrencyListState} from './useCurrencyList';
+import useExportedToFilterOptions from './useExportedToFilterOptions';
+import useOnyx from './useOnyx';
+
+const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
+    const personalDetails = usePersonalDetails();
+    const {currencyList} = useCurrencyListState();
+
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+
+    // Helps to avoid unnecessary recalculations when user open report details screen. React Compiler does not provide same result.
+    const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [workspaceCardFeeds, userCardList]);
+    const {exportedToFilterOptions} = useExportedToFilterOptions();
+
+    const formValues = queryJSON
+        ? buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, allReports, taxRates, exportedToFilterOptions)
+        : getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
+
+    return formValues;
+};
+
+export default useFilterFormValues;

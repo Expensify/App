@@ -20,8 +20,9 @@ import ROUTES from '@src/ROUTES';
 function ConciergePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     useFocusEffect(
         useCallback(() => {
@@ -32,12 +33,12 @@ function ConciergePage() {
                         return;
                     }
 
-                    navigateToConciergeChat(true, () => !isUnmounted.current);
+                    navigateToConciergeChat(conciergeReportID, true, () => !isUnmounted.current);
                 });
             } else {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             }
-        }, [session, isLoadingReportData]),
+        }, [session, isLoadingReportData, conciergeReportID]),
     );
 
     useEffect(() => {
@@ -48,7 +49,7 @@ function ConciergePage() {
     }, []);
 
     return (
-        <ScreenWrapper testID={ConciergePage.displayName}>
+        <ScreenWrapper testID="ConciergePage">
             <View style={[styles.borderBottom, styles.appContentHeader]}>
                 <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
             </View>
@@ -56,7 +57,5 @@ function ConciergePage() {
         </ScreenWrapper>
     );
 }
-
-ConciergePage.displayName = 'ConciergePage';
 
 export default ConciergePage;

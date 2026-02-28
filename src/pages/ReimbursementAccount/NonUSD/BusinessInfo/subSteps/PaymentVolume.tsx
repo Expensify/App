@@ -15,13 +15,16 @@ const STEP_FIELDS = [ANNUAL_VOLUME];
 
 function PaymentVolume({onNext, onMove, isEditing}: PaymentVolumeProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
 
-    const annualVolumeRangeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange), [corpayOnboardingFields]);
+    const annualVolumeRangeListOptions = useMemo(
+        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange),
+        [corpayOnboardingFields?.picklists.AnnualVolumeRange],
+    );
 
     const annualVolumeDefaultValue = reimbursementAccount?.achData?.corpay?.[ANNUAL_VOLUME] ?? '';
 
@@ -31,7 +34,7 @@ function PaymentVolume({onNext, onMove, isEditing}: PaymentVolumeProps) {
                 inputID: ANNUAL_VOLUME,
                 defaultValue: annualVolumeDefaultValue,
                 options: annualVolumeRangeListOptions,
-                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', {currencyCode: currency}),
+                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', currency),
                 modalHeaderTitle: translate('businessInfoStep.selectAnnualPaymentVolume'),
                 searchInputTitle: translate('businessInfoStep.findAnnualPaymentVolume'),
             },
@@ -61,7 +64,5 @@ function PaymentVolume({onNext, onMove, isEditing}: PaymentVolumeProps) {
         />
     );
 }
-
-PaymentVolume.displayName = 'PaymentVolume';
 
 export default PaymentVolume;

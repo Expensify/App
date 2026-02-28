@@ -1,5 +1,4 @@
 type OpenCardDetailsPageParams = {
-    authToken: string;
     cardID: number;
 };
 

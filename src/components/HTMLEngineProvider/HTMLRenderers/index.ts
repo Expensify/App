@@ -1,7 +1,9 @@
 import type {CustomTagRendererRecord} from 'react-native-render-html';
+import AccountManagerLinkRenderer from './AccountManagerLinkRenderer';
 import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
 import ConciergeLinkRenderer from './ConciergeLinkRenderer';
+import CopyTextRenderer from './CopyTextRenderer';
 import DeletedActionRenderer from './DeletedActionRenderer';
 import EditedRenderer from './EditedRenderer';
 import EmojiRenderer from './EmojiRenderer';
@@ -14,6 +16,8 @@ import PreRenderer from './PreRenderer';
 import RBRRenderer from './RBRRenderer';
 import ShortMentionRenderer from './ShortMentionRenderer';
 import TaskTitleRenderer from './TaskTitleRenderer';
+import TransactionHistoryLinkRenderer from './TransactionHistoryLinkRenderer';
+import UserDetailsRenderer from './UserDetailsRenderer';
 import VideoRenderer from './VideoRenderer';
 
 /**
@@ -36,10 +40,14 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     'mention-report': MentionReportRenderer,
     'mention-here': MentionHereRenderer,
     'mention-short': ShortMentionRenderer,
+    'user-details': UserDetailsRenderer,
+    'copy-text': CopyTextRenderer,
     emoji: EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,
     'deleted-action': DeletedActionRenderer,
     'concierge-link': ConciergeLinkRenderer,
+    'transaction-history-link': TransactionHistoryLinkRenderer,
+    'account-manager-link': AccountManagerLinkRenderer,
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

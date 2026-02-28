@@ -1,8 +1,8 @@
 import type {DragEndEvent} from '@dnd-kit/core';
-import {closestCenter, DndContext, PointerSensor, useSensor} from '@dnd-kit/core';
+import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
-import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React from 'react';
+import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
+import React, {Fragment, useEffect, useId, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
@@ -23,13 +23,34 @@ function DraggableList<T>({
     onDragEnd: onDragEndCallback,
     // eslint-disable-next-line @typescript-eslint/naming-convention
     ListFooterComponent,
+    disableScroll,
     ref,
 }: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
     const styles = useThemeStyles();
 
+    // Unique ID per mount to ensure DndContext state resets when component remounts
+    const instanceId = useId();
+
+    // Track if a drag is currently active to avoid dispatching global Escape when not needed
+    const isDraggingRef = useRef(false);
+
+    // Cancel any active keyboard drag when the component unmounts to prevent ghost drag state
+    useEffect(() => {
+        return () => {
+            if (typeof document === 'undefined' || !isDraggingRef.current) {
+                return;
+            }
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', code: 'Escape', bubbles: true, cancelable: true}));
+        };
+    }, []);
+
     const items = data.map((item, index) => {
         return keyExtractor(item, index);
     });
+
+    const onDragStart = () => {
+        isDraggingRef.current = true;
+    };
 
     /**
      * Function to be called when the user finishes dragging an item
@@ -37,6 +58,7 @@ function DraggableList<T>({
      * to notify the parent component about the change
      */
     const onDragEnd = (event: DragEndEvent) => {
+        isDraggingRef.current = false;
         const {active, over} = event;
 
         if (over !== null && active.id !== over.id) {
@@ -48,12 +70,19 @@ function DraggableList<T>({
         }
     };
 
+    const onDragCancel = () => {
+        isDraggingRef.current = false;
+    };
+
     const sortableItems = data.map((item, index) => {
         const key = keyExtractor(item, index);
+        // Check if item has a disabled property for dragging
+        const isDisabled = typeof item === 'object' && item !== null && 'isDragDisabled' in item ? !!(item as {isDragDisabled?: boolean}).isDragDisabled : false;
         return (
             <SortableItem
                 id={key}
                 key={key}
+                disabled={isDisabled}
             >
                 {renderItem({
                     item,
@@ -65,23 +94,36 @@ function DraggableList<T>({
         );
     });
 
-    const sensors = [
+    const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
                 distance: minimumActivationDistance,
             },
         }),
-    ];
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+            keyboardCodes: {
+                start: ['Space'],
+                cancel: ['Escape'],
+                end: ['Space'],
+            },
+        }),
+    );
+
+    const Container = disableScroll ? Fragment : ScrollView;
 
     return (
-        <ScrollView
+        <Container
             ref={ref}
             style={styles.flex1}
             contentContainerStyle={styles.flex1}
         >
             <div>
                 <DndContext
+                    key={instanceId}
+                    onDragStart={onDragStart}
                     onDragEnd={onDragEnd}
+                    onDragCancel={onDragCancel}
                     sensors={sensors}
                     collisionDetection={closestCenter}
                     modifiers={[restrictToParentElement, restrictToVerticalAxis]}
@@ -95,10 +137,8 @@ function DraggableList<T>({
                 </DndContext>
             </div>
             {ListFooterComponent}
-        </ScrollView>
+        </Container>
     );
 }
-
-DraggableList.displayName = 'DraggableList';
 
 export default DraggableList;

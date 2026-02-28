@@ -1,6 +1,8 @@
 import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import ItemListSkeletonView from './Skeletons/ItemListSkeletonView';
 
 function getLinedWidth(index: number): string {
@@ -22,10 +24,12 @@ type OptionsListSkeletonViewProps = {
     shouldStyleAsTable?: boolean;
     fixedNumItems?: number;
     speed?: number;
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
-function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = false, gradientOpacityEnabled = false, fixedNumItems, speed}: OptionsListSkeletonViewProps) {
+function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = false, gradientOpacityEnabled = false, fixedNumItems, speed, reasonAttributes}: OptionsListSkeletonViewProps) {
     const styles = useThemeStyles();
+    useSkeletonSpan('OptionsListSkeletonView', reasonAttributes);
 
     return (
         <ItemListSkeletonView
@@ -37,6 +41,7 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
             gradientOpacityEnabled={gradientOpacityEnabled}
             renderSkeletonItem={({itemIndex}) => {
                 const lineWidth = getLinedWidth(itemIndex);
+                const textStartX = shouldStyleAsTable ? 68 : 72;
 
                 return (
                     <>
@@ -46,14 +51,12 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
                             r="20"
                         />
                         <Rect
-                            x={shouldStyleAsTable ? '68' : '72'}
-                            y="18"
+                            transform={[{translateX: textStartX}, {translateY: 18}]}
                             width="20%"
                             height="8"
                         />
                         <Rect
-                            x={shouldStyleAsTable ? '68' : '72'}
-                            y="38"
+                            transform={[{translateX: textStartX}, {translateY: 38}]}
                             width={shouldStyleAsTable ? '10%' : lineWidth}
                             height="8"
                         />
@@ -63,7 +66,5 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
         />
     );
 }
-
-OptionsListSkeletonView.displayName = 'OptionsListSkeletonView';
 
 export default OptionsListSkeletonView;

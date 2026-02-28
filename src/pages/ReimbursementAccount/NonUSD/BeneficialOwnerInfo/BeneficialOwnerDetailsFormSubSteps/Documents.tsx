@@ -21,24 +21,24 @@ import SafeString from '@src/utils/SafeString';
 
 type DocumentsProps = SubStepProps & {ownerBeingModifiedID: string};
 
-const {PROOF_OF_OWNERSHIP, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, COUNTRY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {PROOF_OF_OWNERSHIP, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, NATIONALITY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
 function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
     const proofOfOwnershipInputID = `${PREFIX}_${ownerBeingModifiedID}_${PROOF_OF_OWNERSHIP}` as const;
     const copyOfIDInputID = `${PREFIX}_${ownerBeingModifiedID}_${COPY_OF_ID}` as const;
     const addressProofInputID = `${PREFIX}_${ownerBeingModifiedID}_${ADDRESS_PROOF}` as const;
     const codiceFiscaleInputID = `${PREFIX}_${ownerBeingModifiedID}_${CODICE_FISCALE}` as const;
-    const beneficialOwnerCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
-    const beneficialOwnerCountry = SafeString(reimbursementAccountDraft?.[beneficialOwnerCountryInputID]);
-    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, countryStepCountryValue, beneficialOwnerCountry);
+    const beneficialOwnerNationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
+    const beneficialOwnerNationality = SafeString(reimbursementAccountDraft?.[beneficialOwnerNationalityInputID]);
+    const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, countryStepCountryValue, beneficialOwnerNationality);
     const defaultValues: Record<string, FileObject[]> = {
         [proofOfOwnershipInputID]: Array.isArray(reimbursementAccountDraft?.[proofOfOwnershipInputID]) ? (reimbursementAccountDraft?.[proofOfOwnershipInputID] ?? []) : [],
         [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? (reimbursementAccountDraft?.[copyOfIDInputID] ?? []) : [],
@@ -58,8 +58,8 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> =>
-            getFieldRequiredErrors(values, STEP_FIELDS),
-        [STEP_FIELDS],
+            getFieldRequiredErrors(values, STEP_FIELDS, translate),
+        [STEP_FIELDS, translate],
     );
 
     const handleSelectFile = (files: FileObject[], uploadedFiles: FileObject[], inputID: string, setFiles: React.Dispatch<React.SetStateAction<FileObject[]>>) => {
@@ -216,7 +216,5 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
         </FormProvider>
     );
 }
-
-Documents.displayName = 'Documents';
 
 export default Documents;

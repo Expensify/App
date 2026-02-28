@@ -31,6 +31,4 @@ function PressableWithoutFocus({children, onPress, onLongPress, ...rest}: Pressa
     );
 }
 
-PressableWithoutFocus.displayName = 'PressableWithoutFocus';
-
 export default PressableWithoutFocus;

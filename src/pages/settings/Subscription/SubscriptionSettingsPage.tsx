@@ -27,11 +27,11 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const subscriptionPlan = useSubscriptionPlan();
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew']);
     useEffect(() => {
         openSubscriptionPage();
     }, []);
-    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     useEffect(() => {
         if (subscriptionPlan ?? isAppLoading) {
@@ -50,20 +50,21 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
 
     return (
         <ScreenWrapper
-            testID={SubscriptionSettingsPage.displayName}
+            testID="SubscriptionSettingsPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
                 onBackButtonPress={() => {
-                    if (Navigation.getShouldPopToSidebar()) {
-                        Navigation.popToSidebar();
+                    if (backTo) {
+                        Navigation.goBack(backTo);
                         return;
                     }
-                    Navigation.goBack(backTo);
+                    Navigation.goBack();
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
+                shouldDisplayHelpButton
                 icon={illustrations.CreditCardsNew}
                 shouldUseHeadlineHeader
             />
@@ -76,7 +77,5 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
         </ScreenWrapper>
     );
 }
-
-SubscriptionSettingsPage.displayName = 'SubscriptionSettingsPage';
 
 export default SubscriptionSettingsPage;

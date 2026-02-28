@@ -1,12 +1,13 @@
 import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SpendCategorySelectorListItemProps} from './types';
 
 function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRow, isFocused}: SpendCategorySelectorListItemProps<TItem>) {
     const styles = useThemeStyles();
-    const {groupID, categoryID} = item;
+    const {groupID, categoryID: category} = item;
 
     if (!groupID) {
         return;
@@ -24,7 +25,7 @@ function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRo
         >
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={categoryID}
+                title={getDecodedCategoryName(category ?? '')}
                 description={groupID[0].toUpperCase() + groupID.slice(1)}
                 descriptionTextStyle={[styles.textNormal]}
                 wrapperStyle={[styles.ph5]}
@@ -34,7 +35,5 @@ function SpendCategorySelectorListItem<TItem extends ListItem>({item, onSelectRo
         </BaseListItem>
     );
 }
-
-SpendCategorySelectorListItem.displayName = 'SpendCategorySelectorListItem';
 
 export default SpendCategorySelectorListItem;

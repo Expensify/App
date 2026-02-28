@@ -20,6 +20,7 @@ function TextInputMeasurement({
     onSetTextInputWidth,
     onSetTextInputHeight,
     isPrefixCharacterPaddingCalculated,
+    autoGrowMeasurementStyles,
 }: TextInputMeasurementProps) {
     const styles = useThemeStyles();
 
@@ -62,6 +63,7 @@ function TextInputMeasurement({
                 <Text
                     style={[
                         inputStyle,
+                        autoGrowMeasurementStyles,
                         autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
                         styles.hiddenElementOutsideOfWindow,
                         styles.visibilityHidden,
@@ -85,7 +87,5 @@ function TextInputMeasurement({
         </>
     );
 }
-
-TextInputMeasurement.displayName = 'TextInputMeasurement';
 
 export default TextInputMeasurement;

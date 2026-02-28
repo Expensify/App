@@ -5,18 +5,21 @@ import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {navigateToConciergeChat} from '@libs/actions/Report';
+import Navigation from '@navigation/Navigation';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import {clearAddNewCardFlow, openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AmexCustomFeed from './AmexCustomFeed';
 import CardInstructionsStep from './CardInstructionsStep';
@@ -34,15 +37,25 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
+    const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const {currentStep} = addNewCardFeed ?? {};
-    const {isBetaEnabled} = usePermissions();
+    const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: false});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
 
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
+
+    useEffect(() => {
+        if (!policyID || !isBlockedToAddNewFeeds) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
+            forceReplace: true,
+        });
+    }, [isBlockedToAddNewFeeds, policyID]);
 
     useEffect(() => {
         return () => {
@@ -51,23 +64,20 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     }, []);
 
     useEffect(() => {
-        // If the user only has a domain feed, a workspace account may not have been created yet.
-        // However, adding a workspace feed requires a workspace account.
-        // Calling openPolicyAddCardFeedPage will trigger the creation of a workspace account.
-        if (workspaceAccountID) {
-            return;
-        }
+        // If the user only has a domain feed, then the workspace account may not have been created yet, or the "Company cards" workspace-level feature may not have been enabled yet
+        // However, adding a workspace feed requires a workspace account with "Company cards" feature enabled.
+        // Calling openPolicyAddCardFeedPage will trigger the creation of the workspace account (if necessary) and enable the "Company cards" feature (if not enabled).
         openPolicyAddCardFeedPage(policyID);
-    }, [workspaceAccountID, policyID]);
+    }, [policyID]);
 
-    if (isAddCardFeedLoading) {
+    if (isAddCardFeedLoading || isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
         return <FullScreenLoadingIndicator />;
     }
 
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
-                testID={AddNewCardPage.displayName}
+                testID="AddNewCardPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
             >
@@ -106,24 +116,28 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = <PlaidConnectionStep onExit={() => setIsModalVisible(true)} />;
             break;
         case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
-            CurrentStep = <StatementCloseDateStep policyID={policyID} />;
+            CurrentStep = (
+                <StatementCloseDateStep
+                    policyID={policyID}
+                    workspaceAccountID={workspaceAccountID}
+                />
+            );
             break;
         case CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE:
             CurrentStep = <DirectStatementCloseDateStep policyID={policyID} />;
             break;
         default:
-            CurrentStep = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
+            CurrentStep = <SelectCountryStep policyID={policyID} />;
             break;
     }
 
     return (
-        <>
-            <View
-                style={styles.flex1}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
-            >
-                {CurrentStep}
-            </View>
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+        >
+            <View style={styles.flex1}>{CurrentStep}</View>
             <ConfirmModal
                 isVisible={isModalVisible}
                 title={translate('workspace.companyCards.addNewCard.exitModal.title')}
@@ -134,12 +148,11 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
-                    navigateToConciergeChat();
+                    navigateToConciergeChat(conciergeReportID, false);
                 }}
             />
-        </>
+        </AccessOrNotFoundWrapper>
     );
 }
 
-AddNewCardPage.displayName = 'AddNewCardPage';
 export default withPolicyAndFullscreenLoading(AddNewCardPage);

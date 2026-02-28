@@ -3,8 +3,8 @@ import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +38,7 @@ type StateSelectorModalProps = {
 function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, label, onBackdropPress}: StateSelectorModalProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const styles = useThemeStyles();
 
     const countryStates = useMemo(
         () =>
@@ -57,9 +58,16 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     );
 
     const searchResults = searchOptions(debouncedSearchValue, countryStates);
-    const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
-    const styles = useThemeStyles();
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+            value: searchValue,
+            label: translate('common.search'),
+            onChangeText: setSearchValue,
+        }),
+        [debouncedSearchValue, searchResults.length, searchValue, setSearchValue, translate],
+    );
 
     return (
         <Modal
@@ -73,7 +81,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={StateSelectorModal.displayName}
+                testID="StateSelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}
@@ -81,23 +89,18 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    headerMessage={headerMessage}
-                    sections={[{data: searchResults}]}
-                    textInputValue={searchValue}
-                    textInputLabel={translate('common.search')}
-                    onChangeText={setSearchValue}
-                    onSelectRow={onStateSelected}
+                    data={searchResults}
                     ListItem={RadioListItem}
-                    initiallyFocusedOptionKey={currentState}
+                    onSelectRow={onStateSelected}
+                    textInputOptions={textInputOptions}
+                    initiallyFocusedItemKey={currentState}
+                    disableMaintainingScrollPosition
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
-                    shouldUseDynamicMaxToRenderPerBatch
                 />
             </ScreenWrapper>
         </Modal>
     );
 }
-
-StateSelectorModal.displayName = 'StateSelectorModal';
 
 export default StateSelectorModal;

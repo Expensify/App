@@ -1,15 +1,15 @@
 ---
 title: Managing Expenses in a Report
 description: Learn how to add, remove, and move expenses in a report in New Expensify, including how comments and system messages interact with them.
-keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval]
+keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions]
 ---
 
 Easily add, delete, or move expenses within reports in New Expensify. This guide covers how to manage expenses using the expense table on both web and mobile.
 
-# Managing Expenses in a Report
+# Managing Expenses in a Report in New Expensify
 
 ## Who can edit or modify expenses in a report
-- **Edit expenses on a report**: The member who created the report, and Workspace Admins.
+- **Edit expenses on a report**: The member who created the report, the current approver, and Workspace Admins.
 - **Add expenses to a report**: Only the member who created the report.
 - **Remove expenses from a report**: Only the member who created the report.
 - **Delete an expense**: Only the member who created that specific expense.
@@ -40,14 +40,14 @@ You can move expenses to a different report or remove them entirely.
 
 1. Open the draft report. 
 2. Click the checkbox next to the expense(s) you want to move. 
-3. Choose the green **selected** button > **Move expense(s)**.
+3. Choose the green **selected** button > **Move to report**.
 4. Choose a destination report or select **Remove from report**.
 
 **To move or remove all expenses from a report**
 
 1. In the left side tabs, choose **Reports** > **Reports**
-2. Click the report with the expense(s) you want to move. 
-3. Choose the green **selected** button > **Move expense(s)**.
+2. Click the report with the expense(s) you want to move.
+3. Choose the green **selected** button > **Move to report**.
 4. Choose a destination report or select **Remove from report**.
 
 ## How to Delete Expenses on a Report

@@ -1,9 +1,10 @@
 import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -11,65 +12,79 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import {RocketDude} from './Icon/Illustrations';
 import RenderHTML from './RenderHTML';
 
-type BookTravelButtonProps = {
+type BookTravelButtonProps = WithSentryLabel & {
     text: string;
+    activePolicyID?: string;
 
     /** Whether to render the error message below the button */
     shouldRenderErrorMessageBelowButton?: boolean;
 
     /** Function to set the shouldScrollToBottom state */
     setShouldScrollToBottom?: (shouldScrollToBottom: boolean) => void;
+
+    shouldShowVerifyAccountModal?: boolean;
 };
 
-const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
+const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean, policyID?: string) => {
     // Remove the previous provision session information if any is cached.
     cleanupTravelProvisioningSession();
     if (isUserValidated) {
-        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain, policyID, Navigation.getActiveRoute()));
         return;
     }
-    Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
+    Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID, Navigation.getActiveRoute()));
 };
 
-function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, setShouldScrollToBottom}: BookTravelButtonProps) {
+function BookTravelButton({
+    text,
+    shouldRenderErrorMessageBelowButton = false,
+    activePolicyID,
+    setShouldScrollToBottom,
+    shouldShowVerifyAccountModal = true,
+    sentryLabel,
+}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const phoneErrorMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`;
-    const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isUserValidated = account?.validated ?? false;
     const primaryLogin = account?.primaryLogin ?? '';
-    const isLoading = isLoadingOnyxValue(activePolicyIDMetadata);
 
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
-    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {isBetaEnabled} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
     const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
+
+    // Ref to track if we should auto-resume the booking flow after returning from TravelLegalNamePage
+    const shouldResumeBookingRef = useRef(false);
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
     const hideVerificationModal = () => setVerificationModalVisibility(false);
@@ -81,7 +96,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         setShouldScrollToBottom?.(true);
     }, [errorMessage, setShouldScrollToBottom]);
 
-    const bookATrip = useCallback(() => {
+    const bookATrip = () => {
         setErrorMessage('');
 
         if (isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)) {
@@ -89,9 +104,21 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
             return;
         }
 
+        if (isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING) && areTravelPersonalDetailsMissing(privatePersonalDetails)) {
+            shouldResumeBookingRef.current = true;
+            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
+            return;
+        }
+
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
-            setErrorMessage(<RenderHTML html={translate('travel.phoneError', {phoneErrorMethodsRoute})} />);
+            setErrorMessage(<RenderHTML html={translate('travel.phoneError', phoneErrorMethodsRoute)} />);
+            return;
+        }
+
+        // Spotnana requires a private domain email for travel booking
+        if (isEmailPublicDomain(primaryContactMethod)) {
+            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(Navigation.getActiveRoute()));
             return;
         }
 
@@ -115,9 +142,15 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
             openTravelDotLink(policy?.id);
         } else if (isPolicyProvisioned) {
-            navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
+            navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN, undefined, activePolicyID ?? undefined);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
-            setVerificationModalVisibility(true);
+            if (!isUserValidated) {
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
+                return;
+            }
+            if (shouldShowVerifyAccountModal) {
+                setVerificationModalVisibility(true);
+            }
             if (!travelSettings?.lastTravelSignupRequestTime) {
                 requestTravelAccess();
             }
@@ -131,31 +164,36 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
             // Always validate OTP first before proceeding to address details or terms acceptance
             if (!isUserValidated) {
                 // Determine where to redirect after OTP validation
-                const nextStep = isEmptyObject(policy?.address) ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()) : ROUTES.TRAVEL_TCS.getRoute(domain);
+                const nextStep = isEmptyObject(policy?.address)
+                    ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute())
+                    : ROUTES.TRAVEL_TCS.getRoute(domain, activePolicyID);
                 setTravelProvisioningNextStep(nextStep);
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
                 return;
             }
             if (isEmptyObject(policy?.address)) {
                 // Spotnana requires an address anytime an entity is created for a policy
-                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()));
+                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
             } else {
-                navigateToAcceptTerms(domain, !!isUserValidated);
+                navigateToAcceptTerms(domain, !!isUserValidated, activePolicyID ?? undefined);
             }
         } else {
-            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(activePolicyID, Navigation.getActiveRoute()));
         }
-    }, [
-        primaryContactMethod,
-        policy,
-        groupPaidPolicies.length,
-        travelSettings?.hasAcceptedTerms,
-        travelSettings?.lastTravelSignupRequestTime,
-        isBetaEnabled,
-        translate,
-        isUserValidated,
-        phoneErrorMethodsRoute,
-    ]);
+    };
+
+    // Auto-resume the booking flow after returning from TravelLegalNamePage
+    // When the user saves their legal name and navigates back, privatePersonalDetails updates
+    // and this effect re-triggers bookATrip() to continue the booking flow
+    useEffect(() => {
+        if (!shouldResumeBookingRef.current || areTravelPersonalDetailsMissing(privatePersonalDetails)) {
+            return;
+        }
+
+        shouldResumeBookingRef.current = false;
+        bookATrip();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to trigger this effect when privatePersonalDetails changes
+    }, [privatePersonalDetails]);
 
     return (
         <>
@@ -171,10 +209,10 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
                 onPress={bookATrip}
                 accessibilityLabel={translate('travel.bookTravel')}
                 style={styles.w100}
-                isLoading={isLoading}
-                isDisabled={!isLoading && !activePolicyID}
+                isDisabled={!activePolicyID}
                 success
                 large
+                sentryLabel={sentryLabel}
             />
             {shouldRenderErrorMessageBelowButton && !!errorMessage && (
                 <DotIndicatorMessage
@@ -189,7 +227,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
                 titleContainerStyles={styles.mb2}
                 onConfirm={hidePreventionModal}
                 onCancel={hidePreventionModal}
-                image={RocketDude}
+                image={illustrations.RocketDude}
                 imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
                 isVisible={isPreventionModalVisible}
                 prompt={translate('travel.blockedFeatureModal.message')}
@@ -203,7 +241,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
                 titleContainerStyles={styles.mb2}
                 onConfirm={hideVerificationModal}
                 onCancel={hideVerificationModal}
-                image={RocketDude}
+                image={illustrations.RocketDude}
                 imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
                 isVisible={isVerificationModalVisible}
                 prompt={translate('travel.verifyCompany.message')}
@@ -214,7 +252,5 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         </>
     );
 }
-
-BookTravelButton.displayName = 'BookTravelButton';
 
 export default BookTravelButton;

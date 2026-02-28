@@ -84,6 +84,7 @@ function HeaderPageLayout({
             offlineIndicatorStyle={[appBGColor]}
             testID={testID}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
+            shouldEnableMaxHeight
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
@@ -118,8 +119,6 @@ function HeaderPageLayout({
         </ScreenWrapper>
     );
 }
-
-HeaderPageLayout.displayName = 'HeaderPageLayout';
 
 export type {HeaderPageLayoutProps};
 export default HeaderPageLayout;

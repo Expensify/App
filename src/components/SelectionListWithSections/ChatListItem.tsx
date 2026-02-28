@@ -1,9 +1,10 @@
 import React from 'react';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
-import ReportActionItem from '@pages/home/report/ReportActionItem';
+import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
@@ -21,14 +22,13 @@ function ChatListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     policies,
-    allReports,
     userWalletTierName,
     isUserValidated,
     personalDetails,
     userBillingFundID,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`];
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`);
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -49,7 +49,7 @@ function ChatListItem<TItem extends ListItem>({
         item.cursorStyle,
     ];
 
-    const fsClass = FS.getChatFSClass(personalDetails, report);
+    const fsClass = FS.getChatFSClass(report);
 
     return (
         <BaseListItem
@@ -73,10 +73,8 @@ function ChatListItem<TItem extends ListItem>({
             forwardedFSClass={fsClass}
         >
             <ReportActionItem
-                allReports={allReports}
                 action={reportActionItem}
                 report={report}
-                reportActions={[]}
                 onPress={() => onSelectRow(item)}
                 parentReportAction={undefined}
                 displayAsGroup={false}
@@ -96,7 +94,5 @@ function ChatListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-ChatListItem.displayName = 'ChatListItem';
 
 export default ChatListItem;

@@ -15,13 +15,16 @@ const STEP_FIELDS = [TRADE_VOLUME];
 
 function AverageReimbursement({onNext, onMove, isEditing}: AverageReimbursementProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
 
-    const tradeVolumeRangeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange), [corpayOnboardingFields]);
+    const tradeVolumeRangeListOptions = useMemo(
+        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange),
+        [corpayOnboardingFields?.picklists.TradeVolumeRange],
+    );
 
     const pushRowFields = useMemo(
         () => [
@@ -29,7 +32,7 @@ function AverageReimbursement({onNext, onMove, isEditing}: AverageReimbursementP
                 inputID: TRADE_VOLUME,
                 defaultValue: reimbursementAccount?.achData?.corpay?.[TRADE_VOLUME] ?? '',
                 options: tradeVolumeRangeListOptions,
-                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', {currencyCode: currency}),
+                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', currency),
                 modalHeaderTitle: translate('businessInfoStep.selectAverageReimbursement'),
                 searchInputTitle: translate('businessInfoStep.findAverageReimbursement'),
             },
@@ -59,7 +62,5 @@ function AverageReimbursement({onNext, onMove, isEditing}: AverageReimbursementP
         />
     );
 }
-
-AverageReimbursement.displayName = 'AverageReimbursement';
 
 export default AverageReimbursement;

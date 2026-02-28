@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 import AvatarSelector from '@components/AvatarSelector';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {ALL_CUSTOM_AVATARS} from '@libs/Avatars/CustomAvatarCatalog';
+import {PRESET_AVATAR_CATALOG} from '@libs/Avatars/PresetAvatarCatalog';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
+import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLetterAvatars', () => ({
@@ -38,6 +40,10 @@ const mockName = 'Alice';
 
 describe('AvatarSelector', () => {
     const onSelectMock = jest.fn();
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -73,23 +79,23 @@ describe('AvatarSelector', () => {
         });
     });
 
-    describe('CUSTOM_AVATAR_CATALOG avatars', () => {
+    describe('PRESET_AVATAR_CATALOG_ORDERED avatars', () => {
         it('renders all avatars from custom catalog', async () => {
             renderAvatarSelector();
             await waitForBatchedUpdates();
 
             // Check that all custom avatars are rendered
-            const avatars = Object.keys(ALL_CUSTOM_AVATARS);
-            avatars.forEach((id) => {
+            const avatars = Object.keys(PRESET_AVATAR_CATALOG);
+            for (const id of avatars) {
                 expect(screen.getByTestId(`AvatarSelector_${id}`)).toBeOnTheScreen();
-            });
+            }
         });
 
         it('calls onSelect when custom avatar is pressed', async () => {
             renderAvatarSelector();
             await waitForBatchedUpdates();
 
-            const avatars = Object.keys(ALL_CUSTOM_AVATARS);
+            const avatars = Object.keys(PRESET_AVATAR_CATALOG);
             const firstAvatarId = avatars.at(0);
             const firstAvatar = screen.getByTestId(`AvatarSelector_${firstAvatarId}`);
 
@@ -102,8 +108,8 @@ describe('AvatarSelector', () => {
         });
 
         it('shows selected custom avatar with border styling', async () => {
-            const avatars = Object.keys(ALL_CUSTOM_AVATARS);
-            const selectedId = avatars.at(1) as keyof typeof ALL_CUSTOM_AVATARS;
+            const avatars = Object.keys(PRESET_AVATAR_CATALOG);
+            const selectedId = avatars.at(1) as keyof typeof PRESET_AVATAR_CATALOG;
 
             renderAvatarSelector({selectedID: selectedId});
             await waitForBatchedUpdates();
@@ -184,8 +190,8 @@ describe('AvatarSelector', () => {
             renderAvatarSelector({name: mockName});
             await waitForBatchedUpdates();
 
-            const customAvatars = Object.keys(ALL_CUSTOM_AVATARS);
-            expect(screen.getByTestId(`AvatarSelector_${customAvatars.at(0)}`)).toBeOnTheScreen();
+            const presetAvatars = Object.keys(PRESET_AVATAR_CATALOG);
+            expect(screen.getByTestId(`AvatarSelector_${presetAvatars.at(0)}`)).toBeOnTheScreen();
 
             const allAvatars = screen.queryAllByTestId(/^AvatarSelector_/);
             const letterAvatars = allAvatars.filter((node) => (node.props.testID as string)?.includes('letter-avatar'));

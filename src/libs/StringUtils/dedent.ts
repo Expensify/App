@@ -36,10 +36,10 @@
  */
 export default function dedent(str: string): string {
     // Remove at most one leading newline
-    const stringWithoutLeadingNewlines = str.replace(/^\r?\n/, '');
+    const stringWithoutLeadingNewlines = str.replaceAll(/^\r?\n/g, '');
 
     // Split string by remaining newlines
-    const lines = stringWithoutLeadingNewlines.replace(/\r\n/g, '\n').split('\n');
+    const lines = stringWithoutLeadingNewlines.replaceAll('\r\n', '\n').split('\n');
 
     // Find the minimum indentation of non-empty lines
     let minIndent = Number.MAX_SAFE_INTEGER;

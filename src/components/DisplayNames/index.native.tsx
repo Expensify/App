@@ -4,34 +4,37 @@ import useLocalize from '@hooks/useLocalize';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
-import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
+import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import type DisplayNamesProps from './types';
 
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
-function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfLines = 1, renderAdditionalText, forwardedFSClass, testID}: DisplayNamesProps) {
+function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfLines = 1, renderAdditionalText, forwardedFSClass, testID, shouldParseFullTitle = true}: DisplayNamesProps) {
     const {translate} = useLocalize();
     const titleContainsTextAndCustomEmoji = useMemo(() => containsCustomEmoji(fullTitle) && !containsOnlyCustomEmoji(fullTitle), [fullTitle]);
+    const title = useMemo(() => {
+        const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle;
+        return StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
+    }, [fullTitle, shouldParseFullTitle, translate]);
+
     return (
         <Text
             accessibilityLabel={accessibilityLabel}
             style={textStyles}
             numberOfLines={numberOfLines}
-            testID={`${DisplayNames.displayName}${testID !== undefined ? `-${testID}` : ''}`}
+            testID={`DisplayNames${testID !== undefined ? `-${testID}` : ''}`}
             fsClass={forwardedFSClass}
         >
             {titleContainsTextAndCustomEmoji ? (
                 <TextWithEmojiFragment
-                    message={StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden')}
+                    message={title}
                     style={textStyles}
                 />
             ) : (
-                StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden')
+                title
             )}
             {renderAdditionalText?.()}
         </Text>
     );
 }
-
-DisplayNames.displayName = 'DisplayNames';
 
 export default DisplayNames;

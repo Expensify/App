@@ -7,8 +7,8 @@ import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackgrou
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
-import ThemeStylesProvider from '@components/ThemeStylesProvider';
-import useHandleBackButton from '@hooks/useHandleBackButton';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -18,7 +18,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import Performance from '@libs/Performance';
 import Visibility from '@libs/Visibility';
 import {clearSignInData} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -151,9 +150,9 @@ function SignInPage({ref}: SignInPageProps) {
     const loginFormRef = useRef<InputHandle>(null);
     const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isAccountValidated = account?.validated;
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     /**
       This variable is only added to make sure the component is re-rendered
       whenever the activeClients change, so that we call the
@@ -161,7 +160,7 @@ function SignInPage({ref}: SignInPageProps) {
       every time the leader client changes.
       We use that function to prevent repeating code that checks which client is the leader.
     */
-    const [activeClients = getEmptyArray<string>()] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS, {canBeMissing: true});
+    const [activeClients = getEmptyArray<string>()] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS);
 
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
@@ -179,8 +178,6 @@ function SignInPage({ref}: SignInPageProps) {
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
-
-    useEffect(() => Performance.measureTTI(), []);
 
     useEffect(() => {
         if (credentials?.login) {
@@ -261,8 +258,8 @@ function SignInPage({ref}: SignInPageProps) {
     } else if (shouldShouldSignUpWelcomeForm) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
         welcomeText = shouldUseNarrowLayout
-            ? `${translate('welcomeText.welcomeWithoutExclamation')} ${translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay})}`
-            : translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay});
+            ? `${translate('welcomeText.welcomeWithoutExclamation')} ${translate('welcomeText.welcomeNewFace', userLoginToDisplay)}`
+            : translate('welcomeText.welcomeNewFace', userLoginToDisplay);
     } else if (!shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin) {
         Log.warn('SignInPage in unexpected state!');
     }
@@ -293,7 +290,7 @@ function SignInPage({ref}: SignInPageProps) {
     useImperativeHandle(ref, () => ({
         navigateBack,
     }));
-    useHandleBackButton(navigateBack);
+    useAndroidBackButtonHandler(navigateBack);
 
     return (
         <ColorSchemeWrapper>
@@ -312,8 +309,7 @@ function SignInPage({ref}: SignInPageProps) {
                     <LoginForm
                         ref={loginFormRef}
                         isVisible={shouldShowLoginForm}
-                        blurOnSubmit={isAccountValidated === false}
-                        // eslint-disable-next-line react-compiler/react-compiler
+                        submitBehavior={isAccountValidated === false ? 'blurAndSubmit' : 'submit'}
                         scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
                     />
                     {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
@@ -352,14 +348,12 @@ function SignInPageWrapper({ref}: SignInPageProps) {
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight
             style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
-            testID={SignInPageWrapper.displayName}
+            testID="SignInPageWrapper"
         >
             <SignInPage ref={ref} />
         </ScreenWrapper>
     );
 }
-
-SignInPageWrapper.displayName = 'SignInPageWrapper';
 
 // WithTheme is a HOC that provides theme-related contexts (e.g. to the SignInPageWrapper component since these contexts are required for variable declarations).
 function WithTheme(Component: React.ComponentType<SignInPageProps>) {

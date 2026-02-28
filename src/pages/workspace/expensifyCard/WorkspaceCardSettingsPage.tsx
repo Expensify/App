@@ -28,8 +28,8 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: false});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: false});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
     const paymentBankAccountNumber = cardSettings?.paymentBankAccountNumber;
@@ -45,7 +45,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceCardSettingsPage.displayName}
+                testID="WorkspaceCardSettingsPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >
@@ -92,7 +92,5 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCardSettingsPage.displayName = 'WorkspaceCardSettingsPage';
 
 export default WorkspaceCardSettingsPage;

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
@@ -18,13 +18,14 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {openExternalLink} from '@libs/actions/Link';
 import {clearImportedSpreadsheetMemberData, importPolicyMembers} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
@@ -38,7 +39,7 @@ type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<SettingsNav
 function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(CONST.POLICY.ROLE.USER);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
 
@@ -56,7 +57,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         };
     }, []);
 
-    const [importedSpreadsheetMemberData] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, {canBeMissing: true});
+    const [importedSpreadsheetMemberData] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA);
     const newMembers = useMemo(() => {
         return importedSpreadsheetMemberData?.filter((member) => !isPolicyMemberWithoutPendingDelete(member.email, policy) && !member.role) ?? [];
     }, [importedSpreadsheetMemberData, policy]);
@@ -70,7 +71,6 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             {} as Record<string, number>,
         );
         // getAccountIDsByLogins function uses the personalDetails data from the connection, so we need to re-run this logic when the personal detail is changed.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newMembers, personalDetails]);
 
@@ -86,13 +86,13 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         }
         setIsImporting(true);
         const membersWithRole = (importedSpreadsheetMemberData ?? []).map((member) => ({...member, role: member.role || role}));
-        importPolicyMembers(policyID, membersWithRole);
-    }, [importedSpreadsheetMemberData, newMembers, policyID, role]);
+        importPolicyMembers(policy, membersWithRole);
+    }, [importedSpreadsheetMemberData, newMembers, policy, role]);
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        closeImportPage();
     };
 
     const onRoleChange = (item: ListItemType) => {
@@ -100,29 +100,36 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         setIsRoleSelectionModalVisible(false);
     };
 
-    const roleItems: ListItemType[] = [
-        {
-            value: CONST.POLICY.ROLE.ADMIN,
-            text: translate('common.admin'),
-            alternateText: translate('workspace.common.adminAlternateText'),
-            isSelected: role === CONST.POLICY.ROLE.ADMIN,
-            keyForList: CONST.POLICY.ROLE.ADMIN,
-        },
-        {
-            value: CONST.POLICY.ROLE.AUDITOR,
-            text: translate('common.auditor'),
-            alternateText: translate('workspace.common.auditorAlternateText'),
-            isSelected: role === CONST.POLICY.ROLE.AUDITOR,
-            keyForList: CONST.POLICY.ROLE.AUDITOR,
-        },
-        {
-            value: CONST.POLICY.ROLE.USER,
-            text: translate('common.member'),
-            alternateText: translate('workspace.common.memberAlternateText'),
-            isSelected: role === CONST.POLICY.ROLE.USER,
-            keyForList: CONST.POLICY.ROLE.USER,
-        },
-    ];
+    const roleItems: ListItemType[] = useMemo(() => {
+        const items: ListItemType[] = [
+            {
+                value: CONST.POLICY.ROLE.ADMIN,
+                text: translate('common.admin'),
+                alternateText: translate('workspace.common.adminAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.ADMIN,
+                keyForList: CONST.POLICY.ROLE.ADMIN,
+            },
+            {
+                value: CONST.POLICY.ROLE.AUDITOR,
+                text: translate('common.auditor'),
+                alternateText: translate('workspace.common.auditorAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.AUDITOR,
+                keyForList: CONST.POLICY.ROLE.AUDITOR,
+            },
+            {
+                value: CONST.POLICY.ROLE.USER,
+                text: translate('common.member'),
+                alternateText: translate('workspace.common.memberAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.USER,
+                keyForList: CONST.POLICY.ROLE.USER,
+            },
+        ];
+
+        if (!isControlPolicy(policy)) {
+            return items.filter((item) => item.value !== CONST.POLICY.ROLE.AUDITOR);
+        }
+        return items;
+    }, [role, translate, policy]);
 
     if (!spreadsheet || !importedSpreadsheetMemberData) {
         return <NotFoundPage />;
@@ -132,7 +139,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         <ScreenWrapper
             shouldEnableMaxHeight
             shouldUseCachedViewportHeight
-            testID={ImportedMembersConfirmationPage.displayName}
+            testID="ImportedMembersConfirmationPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -161,7 +168,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 <View style={[styles.mb3]}>
                     <View style={[styles.mhn5, styles.mb3]}>
                         <MenuItemWithTopDescription
-                            title={translate(`workspace.common.roleName`, {role})}
+                            title={translate(`workspace.common.roleName`, role)}
                             description={translate('common.role')}
                             shouldShowRightIcon
                             onPress={() => {
@@ -197,6 +204,11 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 closeImportPageAndModal={closeImportPageAndModal}
+                shouldHandleNavigationBack={false}
+                onModalHide={() => {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
+                }}
             />
             <WorkspaceMemberDetailsRoleSelectionModal
                 isVisible={isRoleSelectionModalVisible}
@@ -207,7 +219,5 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         </ScreenWrapper>
     );
 }
-
-ImportedMembersConfirmationPage.displayName = 'ImportedMembersConfirmationPage';
 
 export default ImportedMembersConfirmationPage;

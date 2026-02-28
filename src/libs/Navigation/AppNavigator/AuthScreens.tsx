@@ -1,19 +1,25 @@
 import type {RouteProp} from '@react-navigation/native';
+import {useNavigationState} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {memo, useContext, useEffect, useRef, useState} from 'react';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {memo, useEffect, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
+import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
+import GPSInProgressModal from '@components/GPSInProgressModal';
+import GPSTripStateChecker from '@components/GPSTripStateChecker';
+import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
-import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
+import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -24,6 +30,7 @@ import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedRepo
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {connect} from '@libs/actions/Delegate';
+import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -32,20 +39,20 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {getDeepestFocusedScreenName, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
-import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
+import useNavigateTo3DSAuthorizationChallenge from '@libs/Navigation/useNavigateTo3DSAuthorizationChallenge';
 import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
-import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
@@ -63,7 +70,7 @@ import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import createRootStackNavigator from './createRootStackNavigator';
-import {screensWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
+import {screensWithEnteringAnimation, workspaceOrDomainSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
@@ -83,21 +90,22 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
-const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
+const loadHomePage = () => require<ReactComponentModule>('../../../pages/home/HomePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
 const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
 const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
+const loadDomainSplitNavigator = () => require<ReactComponentModule>('./Navigators/DomainSplitNavigator').default;
 const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
 
-function initializePusher() {
+function initializePusher(currentUserAccountID?: number) {
     return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents();
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
     });
 }
 
@@ -144,36 +152,44 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {toggleSearch} = useSearchRouterContext();
+    const {toggleSearch} = useSearchRouterActions();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
-        canBeMissing: true,
-    });
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {isOnboardingCompleted, shouldShowRequire2FAPage} = useOnboardingFlowRouter();
-    const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
+    const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
+    const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    const {shouldRenderSecondaryOverlay, dismissToWideReport} = useContext(WideRHPContext);
+    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
+        useWideRHPState();
+
+    // Check if the user is currently on a 2FA setup screen
+    // We can't rely on useRoute in this component because we're not a child of a Navigator, so we must sift through nav state by hand
+    const isIn2FASetupFlow = useNavigationState((state) => {
+        const focusedScreenName = getDeepestFocusedScreenName(state);
+        return isTwoFactorSetupScreen(focusedScreenName);
+    });
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
-    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
     const isLoadingAppRef = useRef(isLoadingApp);
-    // eslint-disable-next-line react-compiler/react-compiler
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
-    // eslint-disable-next-line react-compiler/react-compiler
     isLoadingAppRef.current = isLoadingApp;
+
+    useNavigateTo3DSAuthorizationChallenge();
 
     const handleNetworkReconnect = () => {
         if (isLoadingAppRef.current) {
@@ -189,9 +205,9 @@ function AuthScreens() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [session]);
+        initializePusher(session?.accountID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session?.accountID]);
 
     useAutoUpdateTimezone();
 
@@ -219,8 +235,18 @@ function AuthScreens() {
 
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(() => handleNetworkReconnect());
+
+        // Pusher initialization span
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
+        });
         PusherConnectionManager.init();
-        initializePusher();
+        initializePusher(session?.accountID).finally(() => {
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
+        });
+
         // Sometimes when we transition from old dot to new dot, the client is not the leader
         // so we need to initialize the client again
         if (!isClientTheLeader() && isTransitioning) {
@@ -231,7 +257,14 @@ function AuthScreens() {
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
         if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
             if (delegatorEmail) {
-                connect({email: delegatorEmail, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID, isFromOldDot: true})
+                connect({
+                    email: delegatorEmail,
+                    delegatedAccess: account?.delegatedAccess,
+                    credentials,
+                    session,
+                    activePolicyID,
+                    isFromOldDot: true,
+                })
                     ?.then((success) => {
                         App.setAppLoading(!!success);
                     })
@@ -241,7 +274,7 @@ function AuthScreens() {
             } else {
                 const reportID = getReportIDFromLink(initialURL ?? null);
                 if (reportID && !isAuthenticatedAtStartup) {
-                    Report.openReport(reportID);
+                    Report.openReport(reportID, introSelected);
                     // Don't want to call `openReport` again when logging out and then logging in
                     setIsAuthenticatedAtStartup(true);
                 }
@@ -252,9 +285,7 @@ function AuthScreens() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected);
-
-        App.redirectThirdPartyDesktopSignIn();
+        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed);
 
         Download.clearDownloads();
 
@@ -263,7 +294,7 @@ function AuthScreens() {
             shortcutsOverviewShortcutConfig.shortcutKey,
             () => {
                 Modal.close(() => {
-                    if (Navigation.isOnboardingFlow()) {
+                    if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
                         return;
                     }
 
@@ -285,7 +316,7 @@ function AuthScreens() {
             searchShortcutConfig.shortcutKey,
             () => {
                 Session.callFunctionIfActionIsAllowed(() => {
-                    if (Navigation.isOnboardingFlow()) {
+                    if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
                         return;
                     }
                     toggleSearch();
@@ -299,10 +330,10 @@ function AuthScreens() {
         const unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
-                if (Navigation.isOnboardingFlow()) {
+                if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
                     return;
                 }
-                Modal.close(Session.callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
+                Session.callFunctionIfActionIsAllowed(() => Modal.close(() => Navigation.navigate(ROUTES.NEW)))();
             },
             chatShortcutConfig.descriptionKey,
             chatShortcutConfig.modifiers,
@@ -311,7 +342,7 @@ function AuthScreens() {
 
         const unsubscribeMarkAllMessagesAsReadShortcut = KeyboardShortcut.subscribe(
             markAllMessagesAsReadShortcutConfig.shortcutKey,
-            () => Report.markAllMessagesAsRead(archivedReportsIdSet),
+            () => markAllMessagesAsRead(archivedReportsIdSet),
             markAllMessagesAsReadShortcutConfig.descriptionKey,
             markAllMessagesAsReadShortcutConfig.modifiers,
             true,
@@ -326,7 +357,7 @@ function AuthScreens() {
         };
 
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -342,8 +373,18 @@ function AuthScreens() {
                     return;
                 }
 
-                if (shouldRenderSecondaryOverlay) {
-                    dismissToWideReport();
+                if (shouldRenderSecondaryOverlayForWideRHP) {
+                    Navigation.closeRHPFlow();
+                    return;
+                }
+
+                if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
+                    Navigation.dismissToSuperWideRHP();
+                    return;
+                }
+
+                if (shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderTertiaryOverlay) {
+                    Navigation.dismissToPreviousRHP();
                     return;
                 }
 
@@ -355,10 +396,17 @@ function AuthScreens() {
             true,
         );
         return () => unsubscribeEscapeKey();
-    }, [dismissToWideReport, modal?.disableDismissOnEscape, modal?.willAlertModalBecomeVisible, shouldRenderSecondaryOverlay]);
+    }, [
+        modal?.disableDismissOnEscape,
+        modal?.willAlertModalBecomeVisible,
+        shouldRenderSecondaryOverlayForWideRHP,
+        shouldRenderSecondaryOverlayForRHPOnWideRHP,
+        shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
+        shouldRenderTertiaryOverlay,
+    ]);
 
     // Animation is disabled when navigating to the sidebar screen
-    const getWorkspaceSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
+    const getWorkspaceOrDomainSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
         // We don't need to do anything special for the wide screen.
         if (!shouldUseNarrowLayout) {
             return rootNavigatorScreenOptions.splitNavigator;
@@ -368,11 +416,12 @@ function AuthScreens() {
         // If it is opened from other tab, we don't want to animate it on the entry.
         // There is a hook inside the workspace navigator that changes animation to SLIDE_FROM_RIGHT after entering.
         // This way it can be animated properly when going back to the settings split.
-        const animationEnabled = !workspaceSplitsWithoutEnteringAnimation.has(route.key);
+        const animationEnabled = !workspaceOrDomainSplitsWithoutEnteringAnimation.has(route.key);
 
         return {
             ...rootNavigatorScreenOptions.splitNavigator,
             animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            gestureEnabled: true,
             web: {
                 ...rootNavigatorScreenOptions.splitNavigator.web,
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
@@ -463,6 +512,7 @@ function AuthScreens() {
     return (
         <ComposeProviders
             components={[
+                CurrencyListContextProvider,
                 OptionsListContextProvider,
                 SidebarOrderedReportsContextProvider,
                 SearchContextProvider,
@@ -476,13 +526,20 @@ function AuthScreens() {
                     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
                     NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                    NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
                     NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
                     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
                     SCREENS.WORKSPACES_LIST,
+                    SCREENS.HOME,
                     SCREENS.SEARCH.ROOT,
                 ]}
             >
-                {/* This has to be the first navigator in auth screens. */}
+                {/* SCREENS.HOME has to be the first navigator in auth screens. */}
+                <RootStack.Screen
+                    name={SCREENS.HOME}
+                    options={rootNavigatorScreenOptions.fullScreenTabPage}
+                    getComponent={loadHomePage}
+                />
                 <RootStack.Screen
                     name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                     options={getFullscreenNavigatorOptions}
@@ -500,8 +557,13 @@ function AuthScreens() {
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                    options={getWorkspaceSplitNavigatorOptions}
+                    options={getWorkspaceOrDomainSplitNavigatorOptions}
                     getComponent={loadWorkspaceSplitNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR}
+                    options={getWorkspaceOrDomainSplitNavigatorOptions}
+                    getComponent={loadDomainSplitNavigator}
                 />
                 <RootStack.Screen
                     name={SCREENS.VALIDATE_LOGIN}
@@ -515,7 +577,7 @@ function AuthScreens() {
                 />
                 <RootStack.Screen
                     name={SCREENS.WORKSPACES_LIST}
-                    options={rootNavigatorScreenOptions.workspacesListPage}
+                    options={rootNavigatorScreenOptions.fullScreenTabPage}
                     component={WorkspacesListPage}
                 />
                 <RootStack.Screen
@@ -569,6 +631,18 @@ function AuthScreens() {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name={SCREENS.TRANSACTION_RECEIPT}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name={SCREENS.NOT_FOUND}
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={NotFoundPage}
@@ -578,11 +652,6 @@ function AuthScreens() {
                     options={rootNavigatorScreenOptions.rightModalNavigator}
                     component={RightModalNavigator}
                     listeners={modalScreenListenersWithCancelSearch}
-                />
-                <RootStack.Screen
-                    name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
-                    options={rootNavigatorScreenOptions.fullScreen}
-                    component={DesktopSignInRedirectPage}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SHARE_MODAL_NAVIGATOR}
@@ -628,13 +697,6 @@ function AuthScreens() {
                         }}
                     />
                 )}
-                {shouldShowRequire2FAPage && (
-                    <RootStack.Screen
-                        name={SCREENS.REQUIRE_TWO_FACTOR_AUTH}
-                        options={{...rootNavigatorScreenOptions.fullScreen, gestureEnabled: false}}
-                        component={RequireTwoFactorAuthenticationPage}
-                    />
-                )}
                 <RootStack.Screen
                     name={SCREENS.WORKSPACE_JOIN_USER}
                     options={{
@@ -642,24 +704,6 @@ function AuthScreens() {
                     }}
                     listeners={modalScreenListeners}
                     getComponent={loadWorkspaceJoinUser}
-                />
-                <RootStack.Screen
-                    name={SCREENS.TRANSACTION_RECEIPT}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                    }}
-                    getComponent={loadReceiptView}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                    }}
-                    getComponent={loadReceiptView}
-                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name={SCREENS.CONNECTION_COMPLETE}
@@ -692,14 +736,17 @@ function AuthScreens() {
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
+            {/* Full-screen 2FA enforcement overlay - blocks all interaction until 2FA is set up */}
+            {shouldShowRequire2FAPage && !isIn2FASetupFlow && <RequireTwoFactorAuthenticationPage />}
             <SearchRouterModal />
+            <GPSTripStateChecker />
+            <GPSInProgressModal />
             <OpenAppFailureModal />
             <PriorityModeController />
+            <OpenConfirmNavigateExpensifyClassicModal />
         </ComposeProviders>
     );
 }
-
-AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 

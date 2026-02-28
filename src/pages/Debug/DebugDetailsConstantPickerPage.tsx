@@ -90,13 +90,11 @@ function DebugDetailsConstantPickerPage({
     }, [fieldName, fieldValue, formType, onSubmit, policyID, translate]);
 
     return (
-        <ScreenWrapper testID={DebugDetailsConstantPickerPage.displayName}>
+        <ScreenWrapper testID="DebugDetailsConstantPickerPage">
             <HeaderWithBackButton title={fieldName} />
             <View style={styles.containerWithSpaceBetween}>{renderPicker()}</View>
         </ScreenWrapper>
     );
 }
-
-DebugDetailsConstantPickerPage.displayName = 'DebugDetailsConstantPickerPage';
 
 export default DebugDetailsConstantPickerPage;

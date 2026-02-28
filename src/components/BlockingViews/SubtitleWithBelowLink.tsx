@@ -59,6 +59,4 @@ function SubtitleWithBelowLink({
     );
 }
 
-SubtitleWithBelowLink.displayName = 'SubtitleWithBelowLink';
-
 export default SubtitleWithBelowLink;

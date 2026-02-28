@@ -1,5 +1,7 @@
+import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
 import TextInput from './TextInput';
@@ -41,7 +43,10 @@ type AmountTextInputProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur'>;
+
+    /** A unique identifier for this text input for testing purposes */
+    testID?: string;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur' | 'disabled' | 'accessibilityLabel'>;
 
 function AmountTextInput({
     formattedAmount,
@@ -57,8 +62,13 @@ function AmountTextInput({
     hideFocusedState = true,
     shouldApplyPaddingToContainer = false,
     ref,
+    disabled,
+    accessibilityLabel,
     ...rest
 }: AmountTextInputProps) {
+    const navigation = useNavigation();
+    const {translate} = useLocalize();
+
     return (
         <TextInput
             autoGrow
@@ -69,6 +79,7 @@ function AmountTextInput({
             textInputContainerStyles={containerStyle}
             onChangeText={onChangeAmount}
             ref={ref}
+            disabled={disabled}
             value={formattedAmount}
             placeholder={placeholder}
             inputMode={CONST.INPUT_MODE.DECIMAL}
@@ -78,7 +89,7 @@ function AmountTextInput({
             submitBehavior="submit"
             selection={selection}
             onSelectionChange={onSelectionChange}
-            role={CONST.ROLE.PRESENTATION}
+            accessibilityLabel={accessibilityLabel ?? translate('iou.amount')}
             onKeyPress={onKeyPress as (event: TextInputKeyPressEvent) => void}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
             // On iPad, even if the soft keyboard is hidden, the keyboard suggestion is still shown.
@@ -88,12 +99,11 @@ function AmountTextInput({
             disableKeyboardShortcuts
             shouldUseFullInputHeight
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
+            navigation={navigation}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );
 }
-
-AmountTextInput.displayName = 'AmountTextInput';
 
 export default AmountTextInput;

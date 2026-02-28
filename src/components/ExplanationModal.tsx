@@ -19,5 +19,4 @@ function ExplanationModal() {
     );
 }
 
-ExplanationModal.displayName = 'ExplanationModal';
 export default ExplanationModal;

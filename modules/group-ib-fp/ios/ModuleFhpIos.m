@@ -19,7 +19,7 @@ RCT_EXTERN_METHOD(setHeaderValue:(NSString *)value forKey:(NSString *)key errorH
 RCT_EXTERN_METHOD(setLogin:(NSString *)login errorHandler:(RCTResponseSenderBlock)errorHandler)
 RCT_EXTERN_METHOD(setSessionId:(NSString *)sessionId errorHandler:(RCTResponseSenderBlock)errorHandler)
 RCT_EXTERN_METHOD(setCustomEvent:(NSString *)event errorHandler:(RCTResponseSenderBlock)errorHandler)
-RCT_EXTERN_METHOD(setAttributeTitle:(NSString *)title withValue:(NSString *)value andFormat:(NSInteger)format errorHandler:(RCTResponseSenderBlock)errorHandler)
+RCT_EXTERN_METHOD(setAttributeTitle:(NSString *)title withValue:(NSString *)value andFormat:(NSInteger)format isSendOnce:(BOOL)isSendOnce errorHandler:(RCTResponseSenderBlock)errorHandler)
 RCT_EXTERN_METHOD(getCookies:(RCTResponseSenderBlock)cookiesHandler)
 RCT_EXTERN_METHOD(changeBehaviorExtendedData:(BOOL)isExtendedData)
 RCT_EXTERN_METHOD(setPubKey:(NSString *)publicKey errorHandler:(RCTResponseSenderBlock)errorHandler)

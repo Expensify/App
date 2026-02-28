@@ -1,4 +1,4 @@
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';

@@ -20,8 +20,8 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
     const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
 
@@ -47,6 +47,7 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
                             }
                         }}
                         key={field.id}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                 );
             }),
@@ -76,7 +77,5 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
         </FormProvider>
     );
 }
-
-Confirmation.displayName = 'Confirmation';
 
 export default Confirmation;

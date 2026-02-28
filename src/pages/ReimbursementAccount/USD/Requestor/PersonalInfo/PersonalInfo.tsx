@@ -32,8 +32,8 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfB
 function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const policyID = reimbursementAccount?.achData?.policyID;
     const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
@@ -73,7 +73,7 @@ function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
     return (
         <InteractiveStepWrapper
             ref={ref}
-            wrapperID={PersonalInfo.displayName}
+            wrapperID="PersonalInfo"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('personalInfoStep.personalInfo')}
@@ -89,7 +89,5 @@ function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
         </InteractiveStepWrapper>
     );
 }
-
-PersonalInfo.displayName = 'PersonalInfo';
 
 export default PersonalInfo;

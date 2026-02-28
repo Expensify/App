@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CancelBillingSubscriptionParams, UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,7 +17,7 @@ function openSubscriptionPage() {
 }
 
 function updateSubscriptionType(type: SubscriptionType) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -30,7 +31,7 @@ function updateSubscriptionType(type: SubscriptionType) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -44,7 +45,7 @@ function updateSubscriptionType(type: SubscriptionType) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -69,7 +70,7 @@ function updateSubscriptionType(type: SubscriptionType) {
 }
 
 function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?: FeedbackSurveyOptionID, disableAutoRenewAdditionalNote?: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -83,7 +84,7 @@ function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -96,7 +97,7 @@ function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -123,7 +124,7 @@ function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?
 }
 
 function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: boolean) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -137,7 +138,7 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -150,7 +151,7 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -175,7 +176,7 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
 }
 
 function updateSubscriptionSize(newSubscriptionSize: number, currentSubscriptionSize: number) {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -232,7 +233,9 @@ function clearUpdateSubscriptionSizeError() {
 }
 
 function clearOutstandingBalance() {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<
+        typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -292,6 +295,63 @@ function requestTaxExempt() {
     API.write(WRITE_COMMANDS.REQUEST_TAX_EXEMPTION, null);
 }
 
+function applyExpensifyCode(expensifyCode: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM,
+            value: {
+                isLoading: true,
+                errors: null,
+                errorFields: {
+                    expensifyCode: null,
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM | typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM,
+            value: {
+                isLoading: false,
+                expensifyCode: '',
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
+            value: {
+                expensifyCode,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM,
+            value: {
+                isLoading: false,
+                errorFields: {
+                    expensifyCode: getMicroSecondOnyxErrorWithTranslationKey('subscription.expensifyCode.error.invalid'),
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        expensifyCode,
+    };
+
+    API.write(WRITE_COMMANDS.SET_PROMO_CODE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 export {
     openSubscriptionPage,
     updateSubscriptionAutoRenew,
@@ -302,4 +362,5 @@ export {
     clearOutstandingBalance,
     cancelBillingSubscription,
     requestTaxExempt,
+    applyExpensifyCode,
 };

@@ -16,6 +16,4 @@ function ThemeIllustrationsProvider({children}: ThemeIllustrationsProviderProps)
     return <ThemeIllustrationsContext.Provider value={themeIllustrations}>{children}</ThemeIllustrationsContext.Provider>;
 }
 
-ThemeIllustrationsProvider.displayName = 'ThemeIllustrationsProvider';
-
 export default ThemeIllustrationsProvider;

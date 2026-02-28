@@ -4,7 +4,6 @@ import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCurrentUserAccountID} from '@libs/actions/Report';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {getPolicyName} from '@libs/ReportUtils';
@@ -17,14 +16,16 @@ import Banner from './Banner';
 type ArchivedReportFooterProps = {
     /** The archived report */
     report: Report;
+    /** Current user's account id */
+    currentUserAccountID: number;
 };
 
-function ArchivedReportFooter({report}: ArchivedReportFooterProps) {
+function ArchivedReportFooter({report, currentUserAccountID}: ArchivedReportFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [personalDetails = getEmptyObject<PersonalDetailsList>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [reportClosedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, selector: getLastClosedReportAction, canBeMissing: true});
+    const [personalDetails = getEmptyObject<PersonalDetailsList>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [reportClosedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, selector: getLastClosedReportAction});
     const originalMessage = isClosedAction(reportClosedAction) ? getOriginalMessage(reportClosedAction) : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
     const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID];
@@ -57,7 +58,7 @@ function ArchivedReportFooter({report}: ArchivedReportFooterProps) {
               displayName: `<strong>${displayName}</strong>`,
               oldDisplayName: `<strong>${oldDisplayName}</strong>`,
               policyName: `<strong>${policyName}</strong>`,
-              shouldUseYou: actorPersonalDetails?.accountID === getCurrentUserAccountID(),
+              shouldUseYou: actorPersonalDetails?.accountID === currentUserAccountID,
           })
         : translate(`reportArchiveReasons.${archiveReason}`);
 
@@ -70,7 +71,5 @@ function ArchivedReportFooter({report}: ArchivedReportFooterProps) {
         />
     );
 }
-
-ArchivedReportFooter.displayName = 'ArchivedReportFooter';
 
 export default ArchivedReportFooter;

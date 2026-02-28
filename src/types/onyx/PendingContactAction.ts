@@ -14,6 +14,15 @@ type ContactAction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the action is validated */
         actionVerified?: boolean;
+
+        /** Validation action code for adding secondary login */
+        validateActionCode?: string;
+
+        /** Whether the action is verified */
+        isVerifiedValidateActionCode?: boolean;
+
+        /** Whether the action is loading */
+        isLoading?: boolean;
     },
     'actionVerified'
 >;

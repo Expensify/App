@@ -24,6 +24,4 @@ function ExplanationModalNavigator() {
     );
 }
 
-ExplanationModalNavigator.displayName = 'ExplanationModalNavigator';
-
 export default ExplanationModalNavigator;

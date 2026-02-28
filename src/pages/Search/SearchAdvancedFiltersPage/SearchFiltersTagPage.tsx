@@ -20,7 +20,7 @@ function SearchFiltersTagPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const selectedTagsItems = searchAdvancedFiltersForm?.tag?.map((tag) => {
         if (tag === CONST.SEARCH.TAG_EMPTY_VALUE) {
             return {name: translate('search.noTag'), value: tag};
@@ -28,7 +28,7 @@ function SearchFiltersTagPage() {
         return {name: getCleanedTagName(tag), value: tag};
     });
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
-    const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
+    const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})
         .filter((key) => policyIDs?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)?.includes(key))
         ?.map((key) => getTagNamesFromTagsLists(allPolicyTagLists?.[key] ?? {}))
@@ -40,12 +40,13 @@ function SearchFiltersTagPage() {
 
         if (!selectedPoliciesTagLists || selectedPoliciesTagLists.length === 0) {
             const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item);
-            tagListsUnpacked
-                .map(getTagNamesFromTagsLists)
-                .flat()
-                .forEach((tag) => uniqueTagNames.add(tag));
+            for (const tag of tagListsUnpacked.map(getTagNamesFromTagsLists).flat()) {
+                uniqueTagNames.add(tag);
+            }
         } else {
-            selectedPoliciesTagLists.forEach((tag) => uniqueTagNames.add(tag));
+            for (const tag of selectedPoliciesTagLists) {
+                uniqueTagNames.add(tag);
+            }
         }
         items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName})));
 
@@ -56,7 +57,7 @@ function SearchFiltersTagPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersTagPage.displayName}
+            testID="SearchFiltersTagPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -77,7 +78,5 @@ function SearchFiltersTagPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersTagPage.displayName = 'SearchFiltersTagPage';
 
 export default SearchFiltersTagPage;

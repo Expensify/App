@@ -13,8 +13,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canEditWriteCapability} from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
-import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
+import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -49,7 +49,7 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={WriteCapabilityPage.displayName}
+            testID="WriteCapabilityPage"
         >
             <FullPageNotFoundView shouldShow={!isAbleToEdit}>
                 <HeaderWithBackButton
@@ -68,7 +68,5 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
         </ScreenWrapper>
     );
 }
-
-WriteCapabilityPage.displayName = 'WriteCapabilityPage';
 
 export default withReportOrNotFound()(WriteCapabilityPage);

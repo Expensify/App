@@ -2,11 +2,11 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
-import {useMouseContext} from '@hooks/useMouseContext';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -29,6 +29,7 @@ function BaseListItem<TItem extends ListItem>({
     rightHandSideComponent,
     keyForList,
     errors,
+    errorRowStyles,
     pendingAction,
     FooterComponent,
     children,
@@ -41,12 +42,20 @@ function BaseListItem<TItem extends ListItem>({
     onLongPressRow,
     testID,
     shouldUseDefaultRightHandSideCheckmark = true,
+    shouldHighlightSelectedItem = true,
+    shouldDisableHoverStyle,
+    shouldStopMouseLeavePropagation = true,
+    shouldShowRightCaret = false,
+    accessible,
+    accessibilityRole = getButtonRole(true),
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
-    const {isMouseDownOnInput, setMouseUp} = useMouseContext();
+    const {isMouseDownOnInput} = useMouseState();
+    const {setMouseUp} = useMouseActions();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator'] as const);
 
     const pressableRef = useRef<View>(null);
 
@@ -54,7 +63,9 @@ function BaseListItem<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
-        e.stopPropagation();
+        if (shouldStopMouseLeavePropagation) {
+            e.stopPropagation();
+        }
         setMouseUp();
     };
 
@@ -70,15 +81,25 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
+    const shouldShowCheckmark = !canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
+
+    const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
+
+    const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark && !!item.canShowSeveralIndicators;
+
+    const accessibilityState =
+        accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
+
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
             pendingAction={pendingAction}
             errors={errors}
-            errorRowStyles={styles.ph5}
+            errorRowStyles={[styles.mh5, errorRowStyles]}
             contentContainerStyle={containerStyle}
         >
             <PressableWithFeedback
+                sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.BASE_LIST_ITEM}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
@@ -97,66 +118,87 @@ function BaseListItem<TItem extends ListItem>({
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
-                accessibilityLabel={item.text ?? ''}
-                role={getButtonRole(true)}
+                accessibilityLabel={item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
+                accessibilityState={accessibilityState}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
-                hoverStyle={[!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle]}
+                hoverStyle={!shouldDisableHoverStyle ? [!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => {
+                    if ((e?.target as HTMLElement)?.tagName === CONST.ELEMENT_NAME.INPUT) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
                 id={keyForList ?? ''}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused &&
+                        shouldHighlightSelectedItem &&
+                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
-                tabIndex={item.tabIndex}
+                tabIndex={accessible === false ? -1 : item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
                 testID={testID}
+                accessible={accessible}
+                role={accessible === false ? CONST.ROLE.PRESENTATION : accessibilityRole}
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                     accessibilityState={{selected: !!isFocused}}
                     style={[
                         wrapperStyle,
-                        isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                        isFocused &&
+                            shouldHighlightSelectedItem &&
+                            StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     ]}
                 >
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {!canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark && (
-                        <View
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
-                            accessible={false}
-                        >
-                            <View>
-                                <Icon
-                                    src={Expensicons.Checkmark}
-                                    fill={theme.success}
-                                />
-                            </View>
-                        </View>
-                    )}
-                    {(!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    {shouldShowRBRIndicator && (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml3]}>
                             <Icon
                                 testID={CONST.DOT_INDICATOR_TEST_ID}
-                                src={Expensicons.DotIndicator}
+                                src={icons.DotIndicator}
                                 fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger}
                             />
                         </View>
                     )}
 
+                    {(shouldShowCheckmark || shouldShowHiddenCheckmark) && (
+                        <View
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, shouldShowHiddenCheckmark ? styles.opacity0 : undefined]}
+                            accessible={false}
+                        >
+                            <View>
+                                <Icon
+                                    src={icons.Checkmark}
+                                    fill={theme.success}
+                                />
+                            </View>
+                        </View>
+                    )}
+
                     {rightHandSideComponentRender()}
+                    {shouldShowRightCaret && (
+                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
+                            <Icon
+                                src={icons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                isButtonIcon
+                                medium
+                            />
+                        </View>
+                    )}
                 </View>
                 {FooterComponent}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
 }
-
-BaseListItem.displayName = 'BaseListItem';
 
 export default BaseListItem;

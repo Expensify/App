@@ -3,10 +3,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import {useSession} from './OnyxListItemProvider';
-
-type CurrentUserPersonalDetails = PersonalDetails & {email?: string};
 
 const defaultCurrentUserPersonalDetails: CurrentUserPersonalDetails = {
     accountID: CONST.DEFAULT_NUMBER_ID,
@@ -26,10 +25,9 @@ function CurrentUserPersonalDetailsProvider({children}: {children: React.ReactNo
         },
         [session?.email, userAccountID],
     );
-    const [currentUserPersonalDetails = defaultCurrentUserPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: userAccountSelector, canBeMissing: true});
+    const [currentUserPersonalDetails = defaultCurrentUserPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: userAccountSelector});
 
     return <CurrentUserPersonalDetailsContext.Provider value={currentUserPersonalDetails}>{children}</CurrentUserPersonalDetailsContext.Provider>;
 }
 
 export {CurrentUserPersonalDetailsContext, CurrentUserPersonalDetailsProvider};
-export type {CurrentUserPersonalDetails};

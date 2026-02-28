@@ -16,7 +16,6 @@ import OnfidoPrivacy from './OnfidoPrivacy';
 function OnfidoStep() {
     const {translate} = useLocalize();
     const [walletOnfidoData] = useOnyx(ONYXKEYS.WALLET_ONFIDO, {
-        canBeMissing: true,
         // Let's get a new onfido token each time the user hits this flow (as it should only be once)
         initWithStoredValues: false,
     });
@@ -68,7 +67,5 @@ function OnfidoStep() {
         </>
     );
 }
-
-OnfidoStep.displayName = 'OnfidoStep';
 
 export default OnfidoStep;

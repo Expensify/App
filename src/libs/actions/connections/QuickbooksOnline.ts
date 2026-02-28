@@ -9,6 +9,7 @@ import type UpdateQuickbooksOnlineGenericTypeParams from '@libs/API/parameters/U
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +35,7 @@ function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends 
     configUpdate: TConfigUpdate,
     configCurrentData: TConfigUpdate,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -52,7 +53,7 @@ function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends 
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -72,7 +73,7 @@ function buildOnyxDataForMultipleQuickbooksConfigurations<TConfigUpdate extends 
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -104,7 +105,8 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
     const exporterOptimisticData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORT ? {exporter: settingValue} : {};
     const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORT ? {exporter: oldSettingValue} : {};
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -127,7 +129,8 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -150,7 +153,7 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -253,10 +256,13 @@ function updateQuickbooksOnlineReimbursableExpensesAccount<TSettingValue extends
 }
 
 function updateQuickbooksOnlineSyncLocations<TSettingValue extends Connections['quickbooksOnline']['config']['syncLocations']>(
-    policyID: string,
+    policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
@@ -268,10 +274,13 @@ function updateQuickbooksOnlineSyncLocations<TSettingValue extends Connections['
 }
 
 function updateQuickbooksOnlineSyncCustomers<TSettingValue extends Connections['quickbooksOnline']['config']['syncCustomers']>(
-    policyID: string,
+    policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
@@ -283,10 +292,13 @@ function updateQuickbooksOnlineSyncCustomers<TSettingValue extends Connections['
 }
 
 function updateQuickbooksOnlineSyncClasses<TSettingValue extends Connections['quickbooksOnline']['config']['syncClasses']>(
-    policyID: string,
+    policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES, settingValue, oldSettingValue);
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
@@ -379,6 +391,36 @@ function updateQuickbooksOnlineCollectionAccountID<TSettingValue extends QBOConn
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
+function updateQuickbooksOnlineSyncReimbursedReports(
+    policyID: string | undefined,
+    settingValue: QBOConnectionConfig['collectionAccountID'],
+    oldCollectionAccountID?: QBOConnectionConfig['collectionAccountID'],
+    oldReimbursementAccountID?: QBOConnectionConfig['reimbursementAccountID'],
+) {
+    const shouldSkipUpdate = !policyID || (settingValue === oldCollectionAccountID && settingValue === oldReimbursementAccountID);
+    if (shouldSkipUpdate) {
+        Log.warn('Skipping updateQuickbooksOnlineSyncReimbursedReports because the values are the same', {policyID, settingValue, oldCollectionAccountID, oldReimbursementAccountID});
+        return;
+    }
+
+    const sharedAccountConfigUpdate: Partial<QBOConnectionConfig> = {
+        [CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]: settingValue,
+        [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]: settingValue,
+    };
+    const sharedAccountConfigCurrentData: Partial<QBOConnectionConfig> = {
+        [CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]: oldCollectionAccountID,
+        [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]: oldReimbursementAccountID,
+    };
+    const onyxData = buildOnyxDataForMultipleQuickbooksConfigurations(policyID, sharedAccountConfigUpdate, sharedAccountConfigCurrentData);
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_REIMBURSED_REPORTS, parameters, onyxData);
+}
+
 function updateQuickbooksOnlineAccountingMethod(
     policyID: string | undefined,
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
@@ -438,7 +480,7 @@ function updateQuickbooksOnlinePreferredExporter<TSettingValue extends Connectio
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
         policyID,
-        settingValue: settingValue.exporter,
+        settingValue: settingValue?.exporter ?? '',
         idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.EXPORT),
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT, parameters, onyxData);
@@ -458,6 +500,7 @@ export {
     updateQuickbooksOnlineExportDate,
     updateQuickbooksOnlineNonReimbursableExpensesAccount,
     updateQuickbooksOnlineCollectionAccountID,
+    updateQuickbooksOnlineSyncReimbursedReports,
     updateQuickbooksOnlineNonReimbursableBillDefaultVendor,
     updateQuickbooksOnlineSyncTax,
     updateQuickbooksOnlineSyncClasses,

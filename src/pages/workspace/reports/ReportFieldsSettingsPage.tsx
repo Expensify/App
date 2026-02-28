@@ -3,10 +3,10 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,6 +35,7 @@ function ReportFieldsSettingsPage({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const reportFieldKey = getReportFieldKey(reportFieldID);
@@ -64,7 +65,7 @@ function ReportFieldsSettingsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={ReportFieldsSettingsPage.displayName}
+                testID="ReportFieldsSettingsPage"
             >
                 <HeaderWithBackButton
                     title={reportField.name}
@@ -111,17 +112,17 @@ function ReportFieldsSettingsPage({
                         <MenuItemWithTopDescription
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            title={getReportFieldInitialValue(reportField)}
+                            title={getReportFieldInitialValue(reportField, translate)}
                             description={translate('common.initialValue')}
-                            shouldShowRightIcon={!isDateFieldType && !hasAccountingConnections}
-                            interactive={!isDateFieldType && !hasAccountingConnections}
+                            shouldShowRightIcon={!isDateFieldType}
+                            interactive={!isDateFieldType}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
                         />
                     )}
                     {!hasAccountingConnections && (
                         <View style={styles.flexGrow1}>
                             <MenuItem
-                                icon={Expensicons.Trashcan}
+                                icon={icons.Trashcan}
                                 title={translate('common.delete')}
                                 onPress={() => setIsDeleteModalVisible(true)}
                             />
@@ -132,7 +133,5 @@ function ReportFieldsSettingsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportFieldsSettingsPage.displayName = 'ReportFieldsSettingsPage';
 
 export default withPolicyAndFullscreenLoading(ReportFieldsSettingsPage);

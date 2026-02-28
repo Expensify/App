@@ -2,12 +2,12 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -37,7 +37,7 @@ function ReportFieldsValueSettingsPage({
 }: ReportFieldsValueSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
 
@@ -60,8 +60,9 @@ function ReportFieldsValueSettingsPage({
 
     const hasAccountingConnections = hasAccountingConnectionsUtil(policy);
     const oldValueName = usePrevious(currentValueName);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
 
-    if ((!currentValueName && !oldValueName) || hasAccountingConnections) {
+    if (!currentValueName && !oldValueName) {
         return <NotFoundPage />;
     }
     const deleteListValueAndHideModal = () => {
@@ -104,7 +105,7 @@ function ReportFieldsValueSettingsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={ReportFieldsValueSettingsPage.displayName}
+                testID="ReportFieldsValueSettingsPage"
             >
                 <HeaderWithBackButton
                     title={currentValueName ?? oldValueName}
@@ -112,7 +113,7 @@ function ReportFieldsValueSettingsPage({
                 />
                 <ConfirmModal
                     title={translate('workspace.reportFields.deleteValue')}
-                    isVisible={isDeleteTagModalOpen}
+                    isVisible={isDeleteTagModalOpen && !hasAccountingConnections}
                     onConfirm={deleteListValueAndHideModal}
                     onCancel={() => setIsDeleteTagModalOpen(false)}
                     shouldSetModalVisibility={false}
@@ -124,7 +125,12 @@ function ReportFieldsValueSettingsPage({
                 <View style={styles.flexGrow1}>
                     <View style={[styles.mt2, styles.mh5]}>
                         <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <Text>{translate('workspace.reportFields.enableValue')}</Text>
+                            <Text
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('workspace.reportFields.enableValue')}
+                            </Text>
                             <Switch
                                 isOn={!currentValueDisabled}
                                 accessibilityLabel={translate('workspace.reportFields.enableValue')}
@@ -139,17 +145,17 @@ function ReportFieldsValueSettingsPage({
                         interactive={!reportFieldID}
                         onPress={navigateToEditValue}
                     />
-                    <MenuItem
-                        icon={Expensicons.Trashcan}
-                        title={translate('common.delete')}
-                        onPress={() => setIsDeleteTagModalOpen(true)}
-                    />
+                    {!hasAccountingConnections && (
+                        <MenuItem
+                            icon={icons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={() => setIsDeleteTagModalOpen(true)}
+                        />
+                    )}
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportFieldsValueSettingsPage.displayName = 'ReportFieldsValueSettingsPage';
 
 export default withPolicyAndFullscreenLoading(ReportFieldsValueSettingsPage);

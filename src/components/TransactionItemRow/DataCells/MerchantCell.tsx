@@ -20,17 +20,17 @@ function MerchantOrDescriptionCell({
         if (!isDescription) {
             return merchantOrDescription;
         }
-        return Parser.htmlToText(merchantOrDescription).replace(/\n/g, ' ');
+        return Parser.htmlToText(merchantOrDescription).replaceAll('\n', ' ');
     }, [merchantOrDescription, isDescription]);
 
     return (
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={text}
-            style={[!shouldUseNarrowLayout ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1]}
+            numberOfLines={2}
+            style={[!shouldUseNarrowLayout ? styles.lineHeightLarge : styles.lh20, styles.preWrap, styles.justifyContentCenter, styles.flex1]}
         />
     );
 }
 
-MerchantOrDescriptionCell.displayName = 'MerchantOrDescriptionCell';
 export default MerchantOrDescriptionCell;

@@ -44,6 +44,4 @@ function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value,
     );
 }
 
-ReportFieldsInitialListValuePicker.displayName = 'ReportFieldsInitialListValuePicker';
-
 export default ReportFieldsInitialListValuePicker;

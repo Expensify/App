@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type AttachmentOfflineIndicatorProps = {
@@ -16,6 +16,7 @@ type AttachmentOfflineIndicatorProps = {
 
 function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndicatorProps) {
     const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -38,7 +39,7 @@ function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndica
         <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter, styles.pAbsolute, styles.h100, styles.w100, isPreview && styles.hoveredComponentBG]}>
             <Icon
                 fill={theme.icon}
-                src={Expensicons.OfflineCloud}
+                src={icons.OfflineCloud}
                 width={variables.iconSizeSuperLarge}
                 height={variables.iconSizeSuperLarge}
             />
@@ -51,7 +52,5 @@ function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndica
         </View>
     );
 }
-
-AttachmentOfflineIndicator.displayName = 'AttachmentOfflineIndicator';
 
 export default AttachmentOfflineIndicator;

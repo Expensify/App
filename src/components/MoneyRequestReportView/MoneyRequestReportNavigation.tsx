@@ -2,18 +2,12 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import useSearchSections from '@hooks/useSearchSections';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {selectFilteredReportActions} from '@libs/ReportUtils';
-import {getSections, getSortedSections} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
@@ -21,44 +15,17 @@ type MoneyRequestReportNavigationProps = {
 };
 
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
-    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
-    const currentUserDetails = useCurrentUserPersonalDetails();
-    const {localeCompare, formatPhoneNumber} = useLocalize();
+    const {allReports, isSearchLoading, lastSearchQuery} = useSearchSections();
 
-    const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        canEvict: false,
-        canBeMissing: true,
-        selector: selectFilteredReportActions,
-    });
-
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-
-    const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
-    let results: Array<string | undefined> = [];
-    if (!!type && !!currentSearchResults?.data && !!currentSearchResults?.search) {
-        const searchData = getSections(
-            type,
-            currentSearchResults.data,
-            currentUserDetails.accountID,
-            currentUserDetails.email ?? '',
-            formatPhoneNumber,
-            groupBy,
-            exportReportActions,
-            lastSearchQuery?.searchKey,
-            archivedReportsIdSet,
-        );
-        results = getSortedSections(type, status ?? '', searchData, localeCompare, sortBy, sortOrder, groupBy).map((value) => value.reportID);
-    }
-    const allReports = results;
-
+    const type = lastSearchQuery?.queryJSON?.type;
     const currentIndex = allReports.indexOf(reportID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
 
     const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
     const hidePrevButton = currentIndex === 0;
     const styles = useThemeStyles();
-    const shouldDisplayNavigationArrows = allReports && allReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
+    const isExpenseReportSearch = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const shouldDisplayNavigationArrows = isExpenseReportSearch && allReports && allReports.length > 1 && currentIndex !== -1 && !!lastSearchQuery?.queryJSON;
 
     useEffect(() => {
         if (!lastSearchQuery?.queryJSON) {
@@ -107,6 +74,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
                 prevReportsLength: allReports.length,
                 shouldCalculateTotals: false,
                 searchKey: lastSearchQuery.searchKey,
+                isLoading: isSearchLoading,
             });
         }
 
@@ -137,7 +105,5 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
         )
     );
 }
-
-MoneyRequestReportNavigation.displayName = 'MoneyRequestReportNavigation';
 
 export default MoneyRequestReportNavigation;

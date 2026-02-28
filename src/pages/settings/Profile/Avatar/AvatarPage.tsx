@@ -9,22 +9,22 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useAvatarMenu from '@hooks/useAvatarMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAvatarLocal, getAvatarURL, isCustomAvatarID} from '@libs/Avatars/CustomAvatarCatalog';
+import {getAvatarLocal, getAvatarURL, isPresetAvatarID} from '@libs/Avatars/PresetAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AvatarSource} from '@libs/UserUtils';
-import {isDefaultAvatar} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getDefaultAvatarName, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import DiscardChangesConfirmation from '@pages/iou/request/step/DiscardChangesConfirmation';
-import {deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
+import {updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -53,6 +53,7 @@ function ProfileAvatar() {
     const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
     const isSavingRef = useRef(false);
 
+    const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [cropImageData, setCropImageData] = useState<ImageData>({...EMPTY_FILE});
@@ -68,7 +69,7 @@ function ProfileAvatar() {
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     // eslint-disable-next-line no-nested-ternary
     let avatarURL: AvatarSource = '';
-    if (selected && isCustomAvatarID(selected)) {
+    if (selected && isPresetAvatarID(selected)) {
         avatarURL = getAvatarLocal(selected);
     } else if (selected) {
         avatarURL = avatars[selected];
@@ -77,7 +78,8 @@ function ProfileAvatar() {
     } else {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
-    const isUsingDefaultAvatar = isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '');
+    // Weather avatar view & edit options should be hidden. False if user uploaded their own avatar.
+    const shouldHideAvatarEdit = (!imageData.uri && (isPresetAvatar(currentUserPersonalDetails?.avatar) || isLetterAvatar(currentUserPersonalDetails?.originalFileName))) || !!selected;
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -123,33 +125,27 @@ function ProfileAvatar() {
     }, []);
 
     const onImageRemoved = useCallback(() => {
-        if (isDirty) {
-            setSelected(undefined);
-            setImageData({...EMPTY_FILE});
-            return;
-        }
-        deleteAvatar({
-            avatar: currentUserPersonalDetails?.avatar,
-            fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
-            accountID: currentUserPersonalDetails?.accountID,
-            email: currentUserPersonalDetails?.email,
-        });
-        setSelected(undefined);
+        setSelected(
+            getDefaultAvatarName({
+                accountID: currentUserPersonalDetails?.accountID,
+                accountEmail: currentUserPersonalDetails?.email,
+            }),
+        );
         setImageData({...EMPTY_FILE});
-        Navigation.dismissModal();
-    }, [currentUserPersonalDetails, isDirty]);
+    }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.email]);
 
     const clearError = useCallback(() => {
         setError(null, {});
     }, []);
 
     const {createMenuItems} = useAvatarMenu({
-        isAvatarSelected: isDirty,
-        isUsingDefaultAvatar,
+        shouldHideAvatarEdit,
         accountID,
         onImageRemoved,
         showAvatarCropModal,
         clearError,
+        source: imageData.uri,
+        originalFileName: imageData.name,
     });
 
     const onPress = useCallback(() => {
@@ -163,11 +159,10 @@ function ProfileAvatar() {
             });
             setImageData({...EMPTY_FILE});
             Navigation.dismissModal();
-            isSavingRef.current = false;
             return;
         }
 
-        if (selected && isCustomAvatarID(selected)) {
+        if (selected && isPresetAvatarID(selected)) {
             updateAvatar(
                 {
                     uri: getAvatarURL(selected),
@@ -182,7 +177,6 @@ function ProfileAvatar() {
             );
             setSelected(undefined);
             Navigation.dismissModal();
-            isSavingRef.current = false;
             return;
         }
         if (!selected || !avatarCaptureRef.current) {
@@ -190,16 +184,21 @@ function ProfileAvatar() {
             return;
         }
         // User selected a letter avatar
-        avatarCaptureRef.current.capture()?.then((file) => {
-            updateAvatar(file, {
-                avatar: currentUserPersonalDetails?.avatar,
-                avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
-                accountID: currentUserPersonalDetails?.accountID,
+        avatarCaptureRef.current
+            .capture()
+            ?.then((file) => {
+                updateAvatar(file, {
+                    avatar: currentUserPersonalDetails?.avatar,
+                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail,
+                    accountID: currentUserPersonalDetails?.accountID,
+                });
+                setSelected(undefined);
+                setImageData({...EMPTY_FILE});
+                Navigation.dismissModal();
+            })
+            .catch(() => {
+                isSavingRef.current = false;
             });
-            setSelected(undefined);
-            Navigation.dismissModal();
-            isSavingRef.current = false;
-        });
     }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.avatarThumbnail, imageData.file, selected]);
 
     return (
@@ -207,7 +206,7 @@ function ProfileAvatar() {
             includeSafeAreaPaddingBottom
             includePaddingTop
             shouldEnableMaxHeight
-            testID={ProfileAvatar.displayName}
+            testID="ProfileAvatar"
             offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -237,7 +236,7 @@ function ProfileAvatar() {
                         if (menuItems?.length <= 1) {
                             return (
                                 <Button
-                                    icon={Expensicons.Upload}
+                                    icon={icons.Upload}
                                     text={translate('avatarPage.uploadPhoto')}
                                     accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                     isDisabled={isAvatarCropModalOpen}
@@ -273,7 +272,7 @@ function ProfileAvatar() {
             >
                 <View style={[styles.ph5, styles.pb5, styles.flexColumn, styles.flex1, styles.gap3]}>
                     <AvatarSelector
-                        label={translate('avatarPage.chooseCustomAvatar')}
+                        label={translate('avatarPage.choosePresetAvatar')}
                         name={currentUserPersonalDetails?.displayName}
                         selectedID={selected}
                         onSelect={(id) => {
@@ -281,17 +280,17 @@ function ProfileAvatar() {
                             setSelected(id);
                         }}
                     />
-                    {!!errorData.validationError && (
-                        <DotIndicatorMessage
-                            style={styles.mt6}
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
-                            type="error"
-                        />
-                    )}
                 </View>
             </ScrollView>
             <FixedFooter style={styles.mtAuto}>
+                {!!errorData.validationError && (
+                    <DotIndicatorMessage
+                        style={styles.mv5}
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
+                        type="error"
+                    />
+                )}
                 <Button
                     large
                     success
@@ -320,7 +319,5 @@ function ProfileAvatar() {
         </ScreenWrapper>
     );
 }
-
-ProfileAvatar.displayName = 'ProfileAvatar';
 
 export default ProfileAvatar;

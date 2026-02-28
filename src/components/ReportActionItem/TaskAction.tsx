@@ -3,8 +3,9 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as TaskUtils from '@libs/TaskUtils';
+import {getTaskReportActionMessage} from '@libs/TaskUtils';
 import type {ReportAction} from '@src/types/onyx';
 
 type TaskActionProps = {
@@ -14,7 +15,8 @@ type TaskActionProps = {
 
 function TaskAction({action}: TaskActionProps) {
     const styles = useThemeStyles();
-    const message = TaskUtils.getTaskReportActionMessage(action);
+    const {translate} = useLocalize();
+    const message = getTaskReportActionMessage(translate, action);
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.breakWord, styles.preWrap]}>
@@ -26,7 +28,5 @@ function TaskAction({action}: TaskActionProps) {
         </View>
     );
 }
-
-TaskAction.displayName = 'TaskAction';
 
 export default TaskAction;

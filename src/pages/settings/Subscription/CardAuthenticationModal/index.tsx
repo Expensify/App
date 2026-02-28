@@ -27,8 +27,8 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to be consistent with BaseModal component
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [isLoading, setIsLoading] = useState(true);
     const [isVisible, setIsVisible] = useState(false);
 
@@ -79,7 +79,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                 style={styles.pb0}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={CardAuthenticationModal.displayName}
+                testID="CardAuthenticationModal"
             >
                 <HeaderWithBackButton
                     title={headerTitle}
@@ -108,7 +108,5 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
         </Modal>
     );
 }
-
-CardAuthenticationModal.displayName = 'CardAuthenticationModal';
 
 export default CardAuthenticationModal;

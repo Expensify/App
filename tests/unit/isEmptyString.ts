@@ -49,9 +49,9 @@ describe('libs/StringUtils.isEmptyString', () => {
         expect(StringUtils.isEmptyString('😀')).toBe(false);
     });
     it('all emojis not removed', () => {
-        Object.keys(enEmojis).forEach((key) => {
+        for (const key of Object.keys(enEmojis)) {
             expect(StringUtils.isEmptyString(key)).toBe(false);
-        });
+        }
     });
     it('remove invisible characters (edit pad)', () => {
         expect(StringUtils.isEmptyString('\u0020')).toBe(true);

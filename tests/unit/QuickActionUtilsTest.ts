@@ -5,7 +5,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {isQuickActionAllowed} from '@libs/QuickActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -41,7 +41,7 @@ describe('QuickActionUtils', () => {
                 mockedPolicyUtils.shouldShowPolicy.mockReturnValue(false);
 
                 // When the report contains Manager McTest
-                const result = isQuickActionAllowed(requestScanAction, reportWithManagerMcTest, undefined, undefined);
+                const result = isQuickActionAllowed(requestScanAction, reportWithManagerMcTest, undefined, undefined, [CONST.BETAS.ALL]);
 
                 // Then it should return false
                 expect(result).toBe(false);
@@ -93,24 +93,24 @@ describe('QuickActionUtils', () => {
             };
 
             it('should restrict REQUEST action on DMs', () => {
-                const withoutRestrictionsResult = isQuickActionAllowed(requestManualAction, DMReport, undefined, false, false);
-                const withRestrictionsResult = isQuickActionAllowed(requestManualAction, DMReport, undefined, false, true);
+                const withoutRestrictionsResult = isQuickActionAllowed(requestManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], false);
+                const withRestrictionsResult = isQuickActionAllowed(requestManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
             });
 
             it('should restrict SPLIT action on DMs', () => {
-                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, DMReport, undefined, false, false);
-                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, DMReport, undefined, false, true);
+                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], false);
+                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
             });
 
             it('should restrict SEND_MONEY action on DMs', () => {
-                const withoutRestrictionsResult = isQuickActionAllowed(sendMoneyAction, DMReport, undefined, false, false);
-                const withRestrictionsResult = isQuickActionAllowed(sendMoneyAction, DMReport, undefined, false, true);
+                const withoutRestrictionsResult = isQuickActionAllowed(sendMoneyAction, DMReport, undefined, false, [CONST.BETAS.ALL], false);
+                const withRestrictionsResult = isQuickActionAllowed(sendMoneyAction, DMReport, undefined, false, [CONST.BETAS.ALL], true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -119,8 +119,8 @@ describe('QuickActionUtils', () => {
             it('should restrict SPLIT action on Group chats', () => {
                 const groupChatReport: Report = LHNTestUtils.getFakeReport([1, 2, 3, 4]);
 
-                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, groupChatReport, undefined, false, false);
-                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, groupChatReport, undefined, false, true);
+                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, groupChatReport, undefined, false, [CONST.BETAS.ALL], false);
+                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, groupChatReport, undefined, false, [CONST.BETAS.ALL], true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -132,11 +132,124 @@ describe('QuickActionUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
 
-                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, policyRoomReport, undefined, false, false);
-                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, policyRoomReport, undefined, false, true);
+                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, policyRoomReport, undefined, false, [CONST.BETAS.ALL], false);
+                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, policyRoomReport, undefined, false, [CONST.BETAS.ALL], true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
+            });
+        });
+
+        describe('Policy with per diem', () => {
+            const perDiemAction = {
+                action: CONST.QUICK_ACTIONS.PER_DIEM,
+            };
+            const ownerAccountID = 1;
+            const report: Report = {
+                reportID: '1',
+                isOwnPolicyExpenseChat: true,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                ownerAccountID,
+            };
+            beforeAll(() => {
+                Onyx.init({
+                    keys: ONYXKEYS,
+                    initialKeyStates: {
+                        [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
+                    },
+                });
+
+                return waitForBatchedUpdates();
+            });
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
+            it('should allow per diem action when policy has per diem rates', () => {
+                const perDiemCustomUnit = {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    customUnitID: 'ABCDEF',
+                    enabled: true,
+                    rates: {
+                        London: {
+                            customUnitRateID: 'London',
+                            name: 'London',
+                        },
+                    },
+                };
+                mockedPolicyUtils.getPerDiemCustomUnit.mockReturnValue(perDiemCustomUnit);
+                const policy = {
+                    id: '1',
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                } as unknown as Policy;
+                mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(true);
+            });
+            it("should not allow per diem action when policy doesn't have per diem rates", () => {
+                mockedPolicyUtils.getPerDiemCustomUnit.mockReturnValue(undefined);
+                const policy = {
+                    id: '1',
+                    arePerDiemRatesEnabled: true,
+                } as unknown as Policy;
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
+            });
+            it("should not allow per diem action when policy doesn't have per diem enabled", () => {
+                const policy = {
+                    id: '1',
+                    arePerDiemRatesEnabled: false,
+                } as unknown as Policy;
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
+            });
+        });
+
+        describe('Policy with time tracking', () => {
+            it('should allow requestTime action when policy has time tracking enabled', () => {
+                mockedPolicyUtils.isTimeTrackingEnabled.mockReturnValue(true);
+                expect(
+                    isQuickActionAllowed(
+                        {action: CONST.QUICK_ACTIONS.REQUEST_TIME},
+                        {
+                            reportID: '1',
+                            isOwnPolicyExpenseChat: true,
+                            type: CONST.REPORT.TYPE.EXPENSE,
+                            policyID: '1',
+                            ownerAccountID: 1,
+                        },
+                        {
+                            id: '1',
+                            units: {time: {enabled: true, rate: 1}},
+                        } as Policy,
+                        false,
+                        [CONST.BETAS.ALL],
+                        false,
+                    ),
+                ).toBe(true);
+            });
+
+            it('should not allow requestTime action when policy has time tracking disabled', () => {
+                mockedPolicyUtils.isTimeTrackingEnabled.mockReturnValue(false);
+                expect(
+                    isQuickActionAllowed(
+                        {action: CONST.QUICK_ACTIONS.REQUEST_TIME},
+                        {
+                            reportID: '1',
+                            isOwnPolicyExpenseChat: true,
+                            type: CONST.REPORT.TYPE.EXPENSE,
+                            policyID: '1',
+                            ownerAccountID: 1,
+                        },
+                        {
+                            id: '1',
+                        } as Policy,
+                        false,
+                        [CONST.BETAS.ALL],
+                        false,
+                    ),
+                ).toBe(false);
             });
         });
     });

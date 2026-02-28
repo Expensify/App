@@ -21,6 +21,4 @@ function CurrentWalletBalance({balanceStyles}: CurrentWalletBalanceProps) {
     );
 }
 
-CurrentWalletBalance.displayName = 'CurrentWalletBalance';
-
 export default CurrentWalletBalance;

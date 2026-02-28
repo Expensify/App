@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
@@ -10,7 +10,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -19,7 +19,10 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getTitleFieldWithFallback} from '@libs/ReportUtils';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 import {clearPolicyTitleFieldError, setPolicyDefaultReportTitle} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +37,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const isInputInitializedRef = useRef(false);
     const RULE_EXAMPLE_BULLET_POINTS = [
         translate('workspace.reports.customNameEmailPhoneExample'),
         translate('workspace.reports.customNameStartDateExample'),
@@ -43,8 +46,8 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
         translate('workspace.reports.customNameTotalExample'),
     ] as const satisfies string[];
 
-    const fieldListItem = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
-    const customNameDefaultValue = Str.htmlDecode(fieldListItem?.defaultValue ?? '');
+    const titleField = getTitleFieldWithFallback(policy);
+    const customNameDefaultValue = Str.htmlDecode(titleField?.defaultValue ?? '');
 
     const validateCustomName = useCallback(
         ({defaultTitle}: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
@@ -52,10 +55,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
             if (!defaultTitle) {
                 errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.fieldRequired');
             } else if (defaultTitle.length > CONST.REPORT_TITLE_FORMULA_LIMIT) {
-                errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.characterLimitExceedCounter', {
-                    length: defaultTitle.length,
-                    limit: CONST.REPORT_TITLE_FORMULA_LIMIT,
-                });
+                errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.characterLimitExceedCounter', defaultTitle.length, CONST.REPORT_TITLE_FORMULA_LIMIT);
             }
             return errors;
         },
@@ -87,7 +87,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={ReportsDefaultTitlePage.displayName}
+                testID="ReportsDefaultTitlePage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.reports.customNameTitle')}
@@ -114,11 +114,21 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                     >
                         <InputWrapper
                             InputComponent={TextInput}
+                            role={CONST.ROLE.PRESENTATION}
                             inputID={INPUT_IDS.DEFAULT_TITLE}
                             defaultValue={customNameDefaultValue}
                             label={translate('workspace.reports.customNameInputLabel')}
                             aria-label={translate('workspace.reports.customNameInputLabel')}
-                            ref={inputCallbackRef}
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                            spellCheck={false}
+                            autoFocus
+                            autoGrowHeight
+                            ref={(el: BaseTextInputRef | null): void => {
+                                if (!isInputInitializedRef.current) {
+                                    updateMultilineInputRange(el);
+                                }
+                                isInputInitializedRef.current = true;
+                            }}
                         />
                     </OfflineWithFeedback>
                     <BulletList
@@ -130,7 +140,5 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportsDefaultTitlePage.displayName = 'ReportsDefaultTitlePage';
 
 export default ReportsDefaultTitlePage;

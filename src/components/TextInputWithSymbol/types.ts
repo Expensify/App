@@ -101,7 +101,9 @@ type BaseTextInputWithSymbolProps = {
     | 'shouldUseDefaultLineHeightForPrefix'
     | 'onFocus'
     | 'onBlur'
+    | 'disabled'
     | 'ref'
+    | 'accessibilityLabel'
 >;
 
 type TextInputWithSymbolProps = Omit<BaseTextInputWithSymbolProps, 'onSelectionChange'> & {

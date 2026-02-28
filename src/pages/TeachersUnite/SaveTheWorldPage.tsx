@@ -1,21 +1,22 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import useSaveTheWorldSectionIllustration from './useSaveTheWorldSectionIllustration';
 
 function SaveTheWorldPage() {
     const styles = useThemeStyles();
@@ -23,16 +24,19 @@ function SaveTheWorldPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-
+    const illustrations = useMemoizedLazyIllustrations(['TeachersUnite']);
+    const saveTheWorldIllustration = useSaveTheWorldSectionIllustration();
     const menuItems = useMemo(() => {
         const baseMenuItems = [
             {
                 translationKey: 'teachersUnitePage.iKnowATeacher',
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.I_KNOW_A_TEACHER)),
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_KNOW_A_TEACHER,
             },
             {
                 translationKey: 'teachersUnitePage.iAmATeacher',
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.I_AM_A_TEACHER)),
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_AM_A_TEACHER,
             },
         ];
 
@@ -43,12 +47,13 @@ function SaveTheWorldPage() {
             shouldShowRightIcon: true,
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
+            sentryLabel: item.sentryLabel,
         }));
     }, [translate, waitForNavigate, styles]);
 
     return (
         <ScreenWrapper
-            testID={SaveTheWorldPage.displayName}
+            testID="SaveTheWorldPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
@@ -57,8 +62,9 @@ function SaveTheWorldPage() {
                 title={translate('sidebarScreen.saveTheWorld')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={Navigation.popToSidebar}
-                icon={Illustrations.TeachersUnite}
+                shouldDisplayHelpButton
+                onBackButtonPress={Navigation.goBack}
+                icon={illustrations.TeachersUnite}
                 shouldUseHeadlineHeader
             />
             <ScrollView contentContainerStyle={styles.pt3}>
@@ -68,10 +74,12 @@ function SaveTheWorldPage() {
                         subtitle={translate('teachersUnitePage.joinExpensifyOrg')}
                         isCentralPane
                         subtitleMuted
-                        illustration={LottieAnimations.SaveTheWorld}
+                        illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                         illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...saveTheWorldIllustration}
                     >
                         <MenuItemList
                             menuItems={menuItems}
@@ -83,7 +91,5 @@ function SaveTheWorldPage() {
         </ScreenWrapper>
     );
 }
-
-SaveTheWorldPage.displayName = 'SettingSecurityPage';
 
 export default SaveTheWorldPage;

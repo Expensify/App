@@ -47,16 +47,13 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                         >
                             <Text style={styles.flexShrink1}>
                                 {event.lengthInDays > 0
-                                    ? translate('chronos.oooEventSummaryFullDay', {
-                                          summary: event.summary,
-                                          dayCount: event.lengthInDays,
-                                          date: DateUtils.formatToLongDateWithWeekday(end),
-                                      })
-                                    : translate('chronos.oooEventSummaryPartialDay', {
-                                          summary: event.summary,
-                                          timePeriod: `${DateUtils.formatToLocalTime(start)} - ${DateUtils.formatToLocalTime(end)}`,
-                                          date: DateUtils.formatToLongDateWithWeekday(end),
-                                      })}
+                                    ? translate('chronos.oooEventSummaryFullDay', event.summary, event.lengthInDays, DateUtils.formatToLongDateWithWeekday(end))
+                                    : translate(
+                                          'chronos.oooEventSummaryPartialDay',
+                                          event.summary,
+                                          `${DateUtils.formatToLocalTime(start)} - ${DateUtils.formatToLocalTime(end)}`,
+                                          DateUtils.formatToLongDateWithWeekday(end),
+                                      )}
                             </Text>
                             <Button
                                 small
@@ -72,7 +69,5 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
         </OfflineWithFeedback>
     );
 }
-
-ChronosOOOListActions.displayName = 'ChronosOOOListActions';
 
 export default ChronosOOOListActions;

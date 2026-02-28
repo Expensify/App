@@ -40,13 +40,11 @@ function BaseSearchList({
             onViewableItemsChanged={onViewableItemsChanged}
             onLayout={onLayout}
             removeClippedSubviews
-            drawDistance={1000}
+            drawDistance={250}
             contentContainerStyle={contentContainerStyle}
             maintainVisibleContentPosition={{disabled: true}}
         />
     );
 }
-
-BaseSearchList.displayName = 'BaseSearchList';
 
 export default BaseSearchList;

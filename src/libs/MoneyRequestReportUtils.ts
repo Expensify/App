@@ -4,6 +4,7 @@ import type {TransactionListItemType} from '@components/SelectionListWithSection
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
+import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
@@ -13,15 +14,24 @@ import {
     hasUpdatedTotal,
     isInvoiceReport,
     isMoneyRequestReport,
+    isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
-import {isTransactionPendingDelete} from './TransactionUtils';
+import {getReimbursable, isTransactionPendingDelete} from './TransactionUtils';
+
+function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
+    return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
+}
+
+function hasNonReimbursableTransactions(transactions: Transaction[]): boolean {
+    return transactions.some((transaction) => !getReimbursable(transaction));
+}
 
 /**
  * In MoneyRequestReport we filter out some IOU action types, because expense/transaction data is displayed in a separate list
  * at the top
  */
-const IOU_ACTIONS_TO_FILTER_OUT: Array<OriginalMessageIOU['type']> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.TRACK];
+const IOU_ACTIONS_TO_FILTER_OUT = new Set<OriginalMessageIOU['type']>([CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.TRACK]);
 
 /**
  * Returns whether a specific action should be displayed in the feed/message list on MoneyRequestReportView.
@@ -30,13 +40,16 @@ const IOU_ACTIONS_TO_FILTER_OUT: Array<OriginalMessageIOU['type']> = [CONST.IOU.
  * at the top the report, instead of in-between the rest of messages like in normal chat.
  * Because of that several action types are not relevant to this ReportView and should not be shown.
  */
-function isActionVisibleOnMoneyRequestReport(action: ReportAction) {
+function isActionVisibleOnMoneyRequestReport(action: ReportAction, shouldShowCreatedActions = false) {
     if (isMoneyRequestAction(action)) {
         const originalMessage = getOriginalMessage(action);
-        return originalMessage ? !IOU_ACTIONS_TO_FILTER_OUT.includes(originalMessage.type) : false;
+        return originalMessage ? !IOU_ACTIONS_TO_FILTER_OUT.has(originalMessage.type) : false;
+    }
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        return shouldShowCreatedActions;
     }
 
-    return action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED;
+    return true;
 }
 
 /**
@@ -60,18 +73,17 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
 /**
  * Returns a correct reportID for a given TransactionListItemType for navigation/displaying purposes.
  */
-function getReportIDForTransaction(transactionItem: TransactionListItemType) {
+function getReportIDForTransaction(transactionItem: TransactionListItemType, IOUTransactionID?: string) {
     const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isFromOneTransactionReport = isOneTransactionReport(transactionItem.report);
 
-    return (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-        ? transactionItem.transactionThreadReportID
-        : transactionItem.reportID;
+    return (!isFromOneTransactionReport || isFromSelfDM) && IOUTransactionID ? IOUTransactionID : transactionItem.reportID;
 }
 
 /**
  * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
-function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false) {
+function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false, includeOrphanedTransactions = false) {
     return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {
             return false;
@@ -82,6 +94,9 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         }
 
         const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        if (!action && includeOrphanedTransactions) {
+            return true;
+        }
         if (action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline) {
             return true;
         }
@@ -113,7 +128,11 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
     return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
 }
 
-function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportMetadata: OnyxEntry<ReportMetadata>) {
+function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportMetadata: OnyxEntry<ReportMetadata>, isOffline = false) {
+    if (isOffline) {
+        return false;
+    }
+
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
     const isStillLoadingData = transactions?.length === 0 && ((!!reportMetadata?.isLoadingInitialReportActions && !reportMetadata.hasOnceLoadedReportActions) || report?.total !== 0);
@@ -170,4 +189,6 @@ export {
     isSingleTransactionReport,
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
+    isBillableEnabledOnPolicy,
+    hasNonReimbursableTransactions,
 };

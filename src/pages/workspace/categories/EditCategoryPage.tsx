@@ -3,7 +3,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -11,7 +11,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {renamePolicyCategory} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import CategoryForm from './CategoryForm';
@@ -21,12 +21,11 @@ type EditCategoryPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT>;
 
 function EditCategoryPage({route}: EditCategoryPageProps) {
-    const policyID = route.params.policyID;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const {backTo, policyID, categoryName: currentCategoryName} = route.params;
+    const policyData = usePolicyData(policyID);
+    const {categories: policyCategories} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const currentCategoryName = route.params.categoryName;
-    const backTo = route.params?.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT;
 
     const validate = useCallback(
@@ -40,9 +39,8 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                 errors.categoryName = translate('workspace.categories.existingCategoryError');
             } else if ([...newCategoryName].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                errors.categoryName = translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH});
+                errors.categoryName = translate('common.error.characterLimitExceedCounter', [...newCategoryName].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH);
             }
-
             return errors;
         },
         [policyCategories, currentCategoryName, translate],
@@ -53,7 +51,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             const newCategoryName = values.categoryName.trim();
             // Do not call the API if the edited category name is the same as the current category name
             if (currentCategoryName !== newCategoryName) {
-                renamePolicyCategory(policyID, {oldName: currentCategoryName, newName: values.categoryName}, policyCategories);
+                renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: values.categoryName});
             }
 
             // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
@@ -66,7 +64,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                 );
             });
         },
-        [currentCategoryName, policyID, policyCategories, isQuickSettingsFlow, backTo],
+        [isQuickSettingsFlow, currentCategoryName, policyData, policyID, backTo],
     );
 
     return (
@@ -78,7 +76,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={EditCategoryPage.displayName}
+                testID="EditCategoryPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -101,7 +99,5 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-EditCategoryPage.displayName = 'EditCategoryPage';
 
 export default EditCategoryPage;

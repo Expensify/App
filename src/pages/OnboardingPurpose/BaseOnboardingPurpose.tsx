@@ -1,14 +1,14 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useImperativeHandle, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useCallback, useImperativeHandle, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
@@ -39,32 +39,37 @@ function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
     return selectableOnboardingChoices.filter((choice) => customChoices.includes(choice));
 }
 
-const menuIcons = {
-    [CONST.ONBOARDING_CHOICES.EMPLOYER]: Illustrations.ReceiptUpload,
-    [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: Illustrations.Abacus,
-    [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: Illustrations.PiggyBank,
-    [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: Illustrations.SplitBill,
-    [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
-};
-
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars', 'ReceiptUpload', 'PiggyBank', 'SplitBill']);
+
+    const menuIcons = useMemo(
+        () => ({
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: illustrations.ReceiptUpload,
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: illustrations.Abacus,
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: illustrations.PiggyBank,
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: illustrations.SplitBill,
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: illustrations.Binoculars,
+        }),
+        [illustrations.Abacus, illustrations.Binoculars, illustrations.ReceiptUpload, illustrations.PiggyBank, illustrations.SplitBill],
+    );
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {onboardingMessages} = useOnboardingMessages();
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
     const theme = useTheme();
-    const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, {canBeMissing: true});
-    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
-    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
-    const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {canBeMissing: true});
-
+    const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
-    const [customChoices = getEmptyArray<OnboardingPurpose>()] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, {canBeMissing: true});
+    const [customChoices = getEmptyArray<OnboardingPurpose>()] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
 
     const onboardingChoices = getOnboardingChoices(customChoices);
 
@@ -80,6 +85,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             iconStyles: [styles.mh3],
             wrapperStyle: [styles.purposeMenuItem],
             numberOfLinesTitle: 0,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM,
             onPress: () => {
                 setOnboardingPurposeSelected(choice);
                 setOnboardingErrorMessage(null);
@@ -100,11 +106,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         lastName: personalDetailsForm.lastName,
                         adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
                         onboardingPolicyID,
-                    });
-
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => {
-                        Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
+                        companySize: onboardingCompanySize,
+                        introSelected,
                     });
 
                     return;
@@ -138,12 +141,18 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     shouldShowBackButton={false}
                     iconFill={theme.iconColorfulBackground}
                     progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 60 : 20}
+                    shouldDisplayHelpButton={false}
                 />
             </View>
             <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
                 <View style={styles.flex1}>
                     <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={styles.textHeadlineH1}>{translate('onboarding.purpose.title')} </Text>
+                        <Text
+                            style={styles.textHeadlineH1}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {translate('onboarding.purpose.title')}
+                        </Text>
                     </View>
                     <MenuItemList
                         menuItems={menuItems}
@@ -157,7 +166,5 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
 
 export default BaseOnboardingPurpose;

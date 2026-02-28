@@ -29,6 +29,9 @@ type WorkspaceResetBankAccountModalProps = {
 
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
+
+    /** Method to set the state of isResettingBankAccount */
+    setIsResettingBankAccount?: (isResetting: boolean) => void;
 };
 
 function WorkspaceResetBankAccountModal({
@@ -38,12 +41,13 @@ function WorkspaceResetBankAccountModal({
     setNonUSDBankAccountStep,
     isNonUSDWorkspace,
     setShouldShowContinueSetupButton,
+    setIsResettingBankAccount,
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const achData = reimbursementAccount?.achData;
     const isInOpenState = achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
     const bankAccountID = achData?.bankAccountID;
@@ -56,7 +60,6 @@ function WorkspaceResetBankAccountModal({
     const [lastPaymentMethod] = useOnyx(
         ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
         {
-            canBeMissing: true,
             selector: lastPaymentMethodSelector,
         },
         [lastPaymentMethodSelector],
@@ -64,7 +67,11 @@ function WorkspaceResetBankAccountModal({
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
-            resetNonUSDBankAccount(policyID, policy?.achAccount, !achData?.bankAccountID);
+            if (setIsResettingBankAccount) {
+                setIsResettingBankAccount(true);
+            }
+
+            resetNonUSDBankAccount(policyID, policy?.achAccount, achData?.bankAccountID, lastPaymentMethod);
 
             if (setShouldShowConnectedVerifiedBankAccount) {
                 setShouldShowConnectedVerifiedBankAccount(false);
@@ -75,8 +82,12 @@ function WorkspaceResetBankAccountModal({
             }
 
             if (setNonUSDBankAccountStep) {
-                setNonUSDBankAccountStep(null);
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
             }
+
+            requestAnimationFrame(() => {
+                setIsResettingBankAccount?.(false);
+            });
         } else {
             resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod);
 
@@ -102,7 +113,7 @@ function WorkspaceResetBankAccountModal({
             prompt={
                 isInOpenState ? (
                     <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('workspace.bankAccount.disconnectYourBankAccount', {bankName: bankShortName})} />
+                        <RenderHTML html={translate('workspace.bankAccount.disconnectYourBankAccount', bankShortName)} />
                     </View>
                 ) : (
                     translate('workspace.bankAccount.clearProgress')
@@ -116,7 +127,5 @@ function WorkspaceResetBankAccountModal({
         />
     );
 }
-
-WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';
 
 export default WorkspaceResetBankAccountModal;

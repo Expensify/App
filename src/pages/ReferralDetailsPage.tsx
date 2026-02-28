@@ -2,10 +2,9 @@ import React, {useRef} from 'react';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {PaymentHands} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -20,13 +19,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {showContextMenu} from './home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from './inbox/report/ContextMenu/ReportActionContextMenu';
 
 type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 
 function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'NewWindow', 'QuestionMark'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['PaymentHands']);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const popoverAnchor = useRef(null);
@@ -49,14 +50,14 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
             title={translate('common.referral')}
             headerContent={
                 <Icon
-                    src={PaymentHands}
+                    src={illustrations.PaymentHands}
                     width={589}
                     height={232}
                 />
             }
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.REFERRAL_DETAILS].backgroundColor}
-            testID={ReferralDetailsPage.displayName}
+            testID="ReferralDetailsPage"
             onBackButtonPress={() => {
                 if (backTo) {
                     Navigation.goBack(backTo as Route);
@@ -72,8 +73,8 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
                 <ContextMenuItem
                     isAnonymousAction
                     text={translate('referralProgram.copyReferralLink')}
-                    icon={Expensicons.Copy}
-                    successIcon={Expensicons.Checkmark}
+                    icon={icons.Copy}
+                    successIcon={icons.Checkmark}
                     successText={translate('qrCodes.copied')}
                     onPress={() => Clipboard.setString(referralLink)}
                 />
@@ -83,9 +84,9 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
                 wrapperStyle={styles.mb4}
                 ref={popoverAnchor}
                 title={translate('requestorStep.learnMore')}
-                icon={Expensicons.QuestionMark}
+                icon={icons.QuestionMark}
                 shouldShowRightIcon
-                iconRight={Expensicons.NewWindow}
+                iconRight={icons.NewWindow}
                 disabled={isExecuting}
                 shouldBlockSelection
                 onPress={singleExecution(() => openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}
@@ -101,7 +102,5 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
         </HeaderPageLayout>
     );
 }
-
-ReferralDetailsPage.displayName = 'ReferralDetailsPage';
 
 export default ReferralDetailsPage;

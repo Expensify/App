@@ -31,6 +31,4 @@ function ShortMentionRenderer(props: CustomRendererProps<TText | TPhrasing>) {
     );
 }
 
-ShortMentionRenderer.displayName = 'ShortMentionRenderer';
-
 export default ShortMentionRenderer;

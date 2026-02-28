@@ -48,7 +48,7 @@ function PlaidStep({onNext}: SubStepProps) {
             return;
         }
         clearPersonalBankAccountSetupType();
-    }, [isFocused, plaidData]);
+    }, [isFocused, plaidData?.bankAccounts]);
 
     return (
         <FormProvider
@@ -76,7 +76,5 @@ function PlaidStep({onNext}: SubStepProps) {
         </FormProvider>
     );
 }
-
-PlaidStep.displayName = 'PlaidStep';
 
 export default PlaidStep;

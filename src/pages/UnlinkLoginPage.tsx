@@ -15,13 +15,13 @@ type UnlinkLoginPageProps = PlatformStackScreenProps<PublicScreensParamList, typ
 function UnlinkLoginPage({route}: UnlinkLoginPageProps) {
     const accountID = route.params.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const validateCode = route.params.validateCode ?? '';
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const prevIsLoading = usePrevious(!!account?.isLoading);
 
     useEffect(() => {
         unlinkLogin(Number(accountID), validateCode);
         // We only want this to run on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -35,7 +35,5 @@ function UnlinkLoginPage({route}: UnlinkLoginPageProps) {
 
     return <FullScreenLoadingIndicator />;
 }
-
-UnlinkLoginPage.displayName = 'UnlinkLoginPage';
 
 export default UnlinkLoginPage;

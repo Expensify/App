@@ -140,7 +140,6 @@ function ScreenWrapperOfflineIndicators({
         </>
     );
 }
-ScreenWrapperOfflineIndicators.displayName = 'ScreenWrapperOfflineIndicators';
 
 export default ScreenWrapperOfflineIndicators;
 export type {ScreenWrapperOfflineIndicatorsProps};

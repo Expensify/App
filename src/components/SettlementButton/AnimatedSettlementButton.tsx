@@ -1,7 +1,9 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import Animated, {Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import type {View} from 'react-native';
+import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -25,11 +27,12 @@ function AnimatedSettlementButton({
     isDisabled,
     canIOUBePaid,
     wrapperStyle,
+    sentryLabel,
     ...settlementButtonProps
 }: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'Checkmark']);
     const isAnimationRunning = isPaidAnimationRunning || isApprovedAnimationRunning;
     const buttonDuration = isPaidAnimationRunning ? CONST.ANIMATION_PAID_DURATION : CONST.ANIMATION_THUMBS_UP_DURATION;
     const buttonDelay = CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
@@ -54,10 +57,10 @@ function AnimatedSettlementButton({
             buttonMarginTop.set(withTiming(willShowPaymentButton ? gap : 0, {duration: buttonDuration}));
         }
         if (willShowPaymentButton) {
-            runOnJS(onAnimationFinish)();
+            scheduleOnRN(onAnimationFinish);
             return;
         }
-        height.set(withTiming(0, {duration: buttonDuration}, () => runOnJS(onAnimationFinish)()));
+        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(onAnimationFinish)));
     }, [buttonDuration, buttonMarginTop, gap, height, onAnimationFinish, shouldAddTopMargin, willShowPaymentButton]);
 
     const buttonAnimation = useMemo(
@@ -80,9 +83,9 @@ function AnimatedSettlementButton({
 
     let icon;
     if (isApprovedAnimationRunning) {
-        icon = Expensicons.ThumbsUp;
+        icon = expensifyIcons.ThumbsUp;
     } else if (isPaidAnimationRunning) {
-        icon = Expensicons.Checkmark;
+        icon = expensifyIcons.Checkmark;
     }
 
     useEffect(() => {
@@ -102,7 +105,7 @@ function AnimatedSettlementButton({
         <Animated.View style={[containerStyles, wrapperStyle, {minWidth}]}>
             {isAnimationRunning && canShow && (
                 <Animated.View
-                    ref={(el) => {
+                    ref={(el: View | null) => {
                         viewRef.current = el as HTMLElement | null;
                     }}
                     exiting={buttonAnimation}
@@ -120,12 +123,11 @@ function AnimatedSettlementButton({
                     {...settlementButtonProps}
                     wrapperStyle={wrapperStyle}
                     isDisabled={isAnimationRunning || isDisabled}
+                    sentryLabel={sentryLabel}
                 />
             )}
         </Animated.View>
     );
 }
-
-AnimatedSettlementButton.displayName = 'AnimatedSettlementButton';
 
 export default AnimatedSettlementButton;

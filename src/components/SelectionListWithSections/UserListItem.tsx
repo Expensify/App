@@ -2,11 +2,11 @@ import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -38,6 +38,7 @@ function UserListItem<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     forwardedFSClass,
 }: UserListItemProps<TItem>) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -57,7 +58,6 @@ function UserListItem<TItem extends ListItem>({
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
-        canBeMissing: true,
         selector: reportExistsSelector,
     });
 
@@ -86,9 +86,7 @@ function UserListItem<TItem extends ListItem>({
             pressableStyle={pressableStyle}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
-                    <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
-                        {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
-                    </Text>
+                    <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>{translate('workspace.people.invitedBySecondaryLogin', item.invitedSecondaryLogin)}</Text>
                 ) : undefined
             }
             keyForList={item.keyForList}
@@ -101,6 +99,7 @@ function UserListItem<TItem extends ListItem>({
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.CHECKBOX}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
                             onPress={handleCheckboxPress}
@@ -109,7 +108,7 @@ function UserListItem<TItem extends ListItem>({
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
                                 {!!item.isSelected && (
                                     <Icon
-                                        src={Expensicons.Checkmark}
+                                        src={icons.Checkmark}
                                         fill={theme.textLight}
                                         height={14}
                                         width={14}
@@ -160,7 +159,7 @@ function UserListItem<TItem extends ListItem>({
                     {!!item.shouldShowRightIcon && (
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
                             <Icon
-                                src={Expensicons.ArrowRight}
+                                src={icons.ArrowRight}
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, false, false, !!isDisabled, item.isInteractive !== false))}
                             />
                         </View>
@@ -169,6 +168,7 @@ function UserListItem<TItem extends ListItem>({
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM_WITH_SECTIONS.CHECKBOX_RIGHT}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
                             onPress={handleCheckboxPress}
@@ -177,7 +177,7 @@ function UserListItem<TItem extends ListItem>({
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
                                 {!!item.isSelected && (
                                     <Icon
-                                        src={Expensicons.Checkmark}
+                                        src={icons.Checkmark}
                                         fill={theme.textLight}
                                         height={14}
                                         width={14}
@@ -191,7 +191,5 @@ function UserListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-UserListItem.displayName = 'UserListItem';
 
 export default UserListItem;

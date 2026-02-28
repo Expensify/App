@@ -1,13 +1,15 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import type {ColorValue} from 'react-native';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -16,7 +18,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
+import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
+import type {LastPaymentMethod, Policy, Report} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -57,6 +60,15 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
+
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
 };
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
@@ -103,26 +115,22 @@ function HeaderFirstRow<TItem extends ListItem>({
     onDownArrowClick,
     isExpanded,
 }: FirstRowReportHeaderProps<TItem>) {
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {selector: isActionLoadingSelector});
 
-    const {total, currency} = useMemo(() => {
-        let reportTotal = reportItem.total ?? 0;
-
-        if (reportTotal) {
-            if (reportItem.type === CONST.REPORT.TYPE.IOU) {
-                reportTotal = Math.abs(reportTotal ?? 0);
-            } else {
-                reportTotal *= reportItem.type === CONST.REPORT.TYPE.EXPENSE || reportItem.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
-            }
+    let total = reportItem.total ?? 0;
+    if (total) {
+        if (reportItem.type === CONST.REPORT.TYPE.IOU) {
+            total = Math.abs(total);
+        } else {
+            total *= reportItem.type === CONST.REPORT.TYPE.EXPENSE || reportItem.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
         }
-
-        const reportCurrency = reportItem.currency ?? CONST.CURRENCY.USD;
-
-        return {total: reportTotal, currency: reportCurrency};
-    }, [reportItem.type, reportItem.total, reportItem.currency]);
+    }
+    const currency = reportItem.currency ?? CONST.CURRENCY.USD;
 
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pl3]}>
@@ -160,10 +168,11 @@ function HeaderFirstRow<TItem extends ListItem>({
                             style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.REPORT_EXPAND_COLLAPSE}
                         >
                             {({hovered}) => (
                                 <Icon
-                                    src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                    src={isExpanded ? icons.UpArrow : icons.DownArrow}
                                     fill={theme.icon}
                                     additionalStyles={!hovered && styles.opacitySemiTransparent}
                                     small
@@ -179,7 +188,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         action={reportItem.action}
                         goToItem={handleOnButtonPress}
                         isSelected={reportItem.isSelected}
-                        isLoading={reportItem.isActionLoading}
+                        isLoading={isActionLoading}
                         policyID={reportItem.policyID}
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}
@@ -205,38 +214,44 @@ function ReportListItemHeader<TItem extends ListItem>({
     isExpanded,
     isHovered,
     onDEWModalOpen,
+    isDEWBetaEnabled,
+    lastPaymentMethod,
+    personalPolicyID,
 }: ReportListItemHeaderProps<TItem>) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {currentSearchHash, currentSearchKey} = useSearchContext();
+    const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = useSearchStateContext();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
-    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const snapshotReport = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
     }, [snapshot, reportItem.reportID]);
     const snapshotPolicy = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as SearchPolicy;
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, reportItem.policyID]);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const avatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
         theme.highlightBG;
 
     const handleOnButtonPress = () => {
-        handleActionButtonPress(
-            currentSearchHash,
-            reportItem,
-            () => onSelectRow(reportItem as unknown as TItem),
-            shouldUseNarrowLayout && !!canSelectMultiple,
+        handleActionButtonPress({
+            hash: currentSearchHash,
+            item: reportItem,
+            goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
-        );
+            isDEWBetaEnabled,
+            isDelegateAccessRestricted,
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+            personalPolicyID,
+        });
     };
     return !isLargeScreenWidth ? (
         <View style={[styles.pv1Half]}>
@@ -245,6 +260,7 @@ function ReportListItemHeader<TItem extends ListItem>({
                 handleActionButtonPress={handleOnButtonPress}
                 shouldShowUserInfo={showUserInfo}
                 containerStyles={[styles.pr3, styles.mb2]}
+                isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
             />
             <HeaderFirstRow
                 report={reportItem}
@@ -275,7 +291,5 @@ function ReportListItemHeader<TItem extends ListItem>({
         </View>
     );
 }
-
-ReportListItemHeader.displayName = 'ReportListItemHeader';
 
 export default ReportListItemHeader;

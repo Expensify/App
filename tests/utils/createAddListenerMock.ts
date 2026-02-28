@@ -10,7 +10,9 @@ type Listener = () => void;
 const createAddListenerMock = () => {
     const transitionEndListeners: Listener[] = [];
     const triggerTransitionEnd = () => {
-        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
+        for (const transitionEndListener of transitionEndListeners) {
+            transitionEndListener();
+        }
     };
 
     const addListener = jest.fn().mockImplementation((listener, callback: Listener) => {

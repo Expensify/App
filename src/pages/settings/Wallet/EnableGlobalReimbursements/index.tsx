@@ -19,9 +19,9 @@ type EnableGlobalReimbursementsProps = PlatformStackScreenProps<SettingsNavigato
 
 function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
     const bankAccountID = route.params?.bankAccountID;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: false});
-    const [enableGlobalReimbursements] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS, {canBeMissing: true});
-    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [enableGlobalReimbursements] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
+    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const currency = bankAccountList?.[bankAccountID]?.bankCurrency ?? '';
     const country = bankAccountList?.[bankAccountID]?.bankCountry;
 
@@ -133,7 +133,5 @@ function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
             return null;
     }
 }
-
-EnableGlobalReimbursements.displayName = 'EnableGlobalReimbursements';
 
 export default EnableGlobalReimbursements;

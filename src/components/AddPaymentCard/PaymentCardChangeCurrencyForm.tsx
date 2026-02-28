@@ -5,8 +5,8 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -35,7 +35,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
     const [currency, setCurrency] = useState<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>(initialCurrency ?? CONST.PAYMENT_CARD_CURRENCY.USD);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM> => {
-        const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS);
+        const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
 
         if (values.securityCode && !isValidSecurityCode(values.securityCode)) {
             errors.securityCode = translate('addPaymentCardPage.error.securityCode');
@@ -56,19 +56,14 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         });
     }, [isBetaEnabled]);
 
-    const {sections} = useMemo(
-        () => ({
-            sections: [
-                {
-                    data: availableCurrencies.map((currencyItem) => ({
-                        text: currencyItem,
-                        value: currencyItem,
-                        keyForList: currencyItem,
-                        isSelected: currencyItem === currency,
-                    })),
-                },
-            ],
-        }),
+    const currencyOptions = useMemo(
+        () =>
+            availableCurrencies.map((currencyItem) => ({
+                text: currencyItem,
+                value: currencyItem,
+                keyForList: currencyItem,
+                isSelected: currencyItem === currency,
+            })),
         [availableCurrencies, currency],
     );
 
@@ -119,6 +114,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt5]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
+                        autoComplete="cc-csc"
                     />
                 </>
                 <PaymentCardCurrencyModal
@@ -135,22 +131,18 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
     return (
         <View style={[styles.mh5, styles.flexGrow1]}>
             <SelectionList
-                headerContent={<PaymentCardCurrencyHeader isSectionList />}
-                initiallyFocusedOptionKey={currency}
-                containerStyle={[styles.mhn5]}
-                sections={sections}
+                data={currencyOptions}
+                ListItem={RadioListItem}
                 onSelectRow={(option) => {
                     selectCurrency(option.value);
                 }}
-                showScrollIndicator
+                style={{containerStyle: styles.mhn5}}
+                initiallyFocusedItemKey={currency}
+                customListHeader={<PaymentCardCurrencyHeader isSectionList />}
                 shouldStopPropagation
-                shouldUseDynamicMaxToRenderPerBatch
-                ListItem={RadioListItem}
             />
         </View>
     );
 }
-
-PaymentCardChangeCurrencyForm.displayName = 'PaymentCardChangeCurrencyForm';
 
 export default PaymentCardChangeCurrencyForm;

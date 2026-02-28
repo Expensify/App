@@ -5,7 +5,19 @@ import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const queuedOnyxUpdates: OnyxUpdate[] = [
+const queuedOnyxUpdates: Array<
+    OnyxUpdate<
+        | typeof ONYXKEYS.NVP_TRY_FOCUS_MODE
+        | typeof ONYXKEYS.PREFERRED_THEME
+        | typeof ONYXKEYS.NVP_PREFERRED_LOCALE
+        | typeof ONYXKEYS.SESSION
+        | typeof ONYXKEYS.IS_LOADING_APP
+        | typeof ONYXKEYS.CREDENTIALS
+        | typeof ONYXKEYS.IS_SIDEBAR_LOADED
+        | typeof ONYXKEYS.COLLECTION.REPORT
+        | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+    >
+> = [
     {key: ONYXKEYS.NVP_TRY_FOCUS_MODE, value: true, onyxMethod: 'merge'},
     {key: ONYXKEYS.PREFERRED_THEME, value: 'system', onyxMethod: 'merge'},
     {key: ONYXKEYS.NVP_PREFERRED_LOCALE, value: 'en', onyxMethod: 'merge'},

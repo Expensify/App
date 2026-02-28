@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
 import Checkbox from '@components/Checkbox';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 
@@ -23,6 +24,7 @@ function SingleSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
+    shouldHighlightSelectedItem = true,
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const isSelected = item.isSelected;
@@ -47,6 +49,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             isDisabled={isDisabled}
             rightHandSideComponent={radioCheckboxComponent}
             onSelectRow={onSelectRow}
+            accessibilityRole={CONST.ROLE.RADIO}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             isMultilineSupported={isMultilineSupported}
@@ -56,10 +59,9 @@ function SingleSelectListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
             titleStyles={titleStyles}
+            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
         />
     );
 }
-
-SingleSelectListItem.displayName = 'SingleSelectListItem';
 
 export default SingleSelectListItem;

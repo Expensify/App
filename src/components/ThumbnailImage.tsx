@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -13,7 +14,6 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import type {ImageObjectPosition} from './Image/types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
@@ -76,6 +76,9 @@ type ThumbnailImageProps = {
 
     /** Callback to be called when the image loads */
     onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
+
+    /** The resize mode of the image */
+    resizeMode?: ImageResizeMode;
 };
 
 function ThumbnailImage({
@@ -87,7 +90,7 @@ function ThumbnailImage({
     imageHeight = 200,
     shouldDynamicallyResize = true,
     loadingIconSize,
-    fallbackIcon = Expensicons.Gallery,
+    fallbackIcon,
     fallbackIconSize = variables.iconSizeSuperLarge,
     fallbackIconColor,
     fallbackIconBackground,
@@ -97,7 +100,9 @@ function ThumbnailImage({
     onMeasure,
     loadingIndicatorStyles,
     onLoad,
+    resizeMode,
 }: ThumbnailImageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'OfflineCloud']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -131,7 +136,7 @@ function ThumbnailImage({
 
             setImageDimensions({width, height});
         },
-        [previewSourceURL, imageDimensions, shouldDynamicallyResize],
+        [previewSourceURL, imageDimensions.width, imageDimensions.height, shouldDynamicallyResize],
     );
 
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
@@ -143,7 +148,7 @@ function ThumbnailImage({
             <View style={[style, styles.overflowHidden, fallbackColor]}>
                 <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
-                        src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
+                        src={isOffline ? icons.OfflineCloud : (fallbackIcon ?? icons.Gallery)}
                         height={fallbackIconSize}
                         width={fallbackIconSize}
                         fill={fallbackIconColor ?? theme.border}
@@ -173,6 +178,7 @@ function ThumbnailImage({
                     loadingIconSize={loadingIconSize}
                     loadingIndicatorStyles={loadingIndicatorStyles}
                     onLoad={onLoad}
+                    resizeMode={resizeMode}
                 />
             </View>
         </View>
@@ -180,4 +186,5 @@ function ThumbnailImage({
 }
 
 ThumbnailImage.displayName = 'ThumbnailImage';
+
 export default React.memo(ThumbnailImage);

@@ -27,10 +27,19 @@ const createDownloadLink = (href: string, fileName: string) => {
 };
 
 /**
- * The function downloads an attachment on web/desktop platforms.
+ * The function downloads an attachment on web platforms.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', shouldOpenExternalLink = false, formData = undefined, requestType = 'get', onDownloadFailed?: () => void) => {
+const fetchFileDownload: FileDownload = (
+    translate,
+    url,
+    fileName,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    successMessage = '',
+    shouldOpenExternalLink = false,
+    formData = undefined,
+    requestType = 'get',
+    onDownloadFailed?: () => void,
+) => {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
 
     const isApiUrl = resolvedUrl.startsWith(ApiUtils.getApiRoot());

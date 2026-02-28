@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
-import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/CustomAvatarCatalog';
+import {LETTER_AVATAR_COLOR_OPTIONS} from '@libs/Avatars/PresetAvatarCatalog';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {hashText} from '@libs/UserUtils';
@@ -37,6 +37,7 @@ import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
 import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
+import splitPercentageInputStyles from './splitPercentageInputStyles';
 import type {
     AllStyles,
     AvatarSize,
@@ -699,9 +700,9 @@ function parseStyleFromFunction(style: ParsableStyle, state: PressableStateCallb
  */
 function combineStyles<T extends AllStyles>(...allStyles: Array<T | T[]>): T[] {
     let finalStyles: T[] = [];
-    allStyles.forEach((style) => {
+    for (const style of allStyles) {
         finalStyles = finalStyles.concat(parseStyleAsArray(style));
-    });
+    }
     return finalStyles;
 }
 
@@ -720,6 +721,24 @@ function getPaddingLeft(paddingLeft: number): ViewStyle {
 function getPaddingRight(paddingRight: number): ViewStyle {
     return {
         paddingRight,
+    };
+}
+
+/**
+ * Extract horizontal padding and border widths from a flattened style object,
+ * respecting RN precedence (specific → horizontal → all).
+ */
+function getTextInputMeasurementStyles(style: ViewStyle): TextStyle {
+    const paddingLeft = style.paddingLeft ?? style.paddingHorizontal ?? style.padding;
+    const paddingRight = style.paddingRight ?? style.paddingHorizontal ?? style.padding;
+    const borderLeftWidth = style.borderLeftWidth ?? style.borderWidth;
+    const borderRightWidth = style.borderRightWidth ?? style.borderWidth;
+
+    return {
+        ...(paddingLeft && {paddingLeft}),
+        ...(paddingRight && {paddingRight}),
+        ...(borderLeftWidth && {borderLeftWidth}),
+        ...(borderRightWidth && {borderRightWidth}),
     };
 }
 
@@ -752,8 +771,8 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
  * Checks to see if the iOS device has safe areas or not
  */
 function hasSafeAreas(windowWidth: number, windowHeight: number): boolean {
-    const heightsIPhonesWithNotches = [812, 896, 844, 926];
-    return heightsIPhonesWithNotches.includes(windowHeight) || heightsIPhonesWithNotches.includes(windowWidth);
+    const heightsIPhonesWithNotches = new Set([812, 896, 844, 926]);
+    return heightsIPhonesWithNotches.has(windowHeight) || heightsIPhonesWithNotches.has(windowWidth);
 }
 
 /**
@@ -1333,6 +1352,7 @@ const staticStyleUtils = {
     getNavigationModalCardStyle,
     getCardStyles,
     getSearchPageNarrowHeaderStyles,
+    splitPercentageInputStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getIconWidthAndHeightStyle,
@@ -1340,6 +1360,7 @@ const staticStyleUtils = {
     getCharacterWidth,
     getAmountWidth,
     getBorderRadiusStyle,
+    getTextInputMeasurementStyles,
     getHighResolutionInfoWrapperStyle,
     getItemBackgroundColorStyle,
     getNavigationBarType,
@@ -1718,20 +1739,104 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false, isAmountColumnWide = false, isTaxAmountColumnWide = false, isDateColumnFullWidth = false): ViewStyle => {
+    getReportTableColumnStyles: (
+        columnName: string,
+        isDateColumnWide = false,
+        isAmountColumnWide = false,
+        isTaxAmountColumnWide = false,
+        isSubmittedColumnWide = false,
+        isApprovedColumnWide = false,
+        isPostedColumnWide = false,
+        isExportedColumnWide = false,
+        shouldRemoveTotalColumnFlex = false,
+    ): ViewStyle => {
         let columnWidth;
         switch (columnName) {
-            case CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS:
+            case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
             case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
+                columnWidth = {...getWidthStyle(variables.w40), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.STATUS:
+                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
+                columnWidth = {...getWidthStyle(variables.w130), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
+                columnWidth = {...getWidthStyle(isSubmittedColumnWide ? variables.w92 : variables.w72)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
+                columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w92 : variables.w72)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.POSTED:
+                columnWidth = {...getWidthStyle(isPostedColumnWide ? variables.w92 : variables.w72)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
+                columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w92 : variables.w72)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                if (isDateColumnFullWidth) {
-                    columnWidth = styles.flex1;
-                    break;
-                }
                 columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52)};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
+                columnWidth = {...getWidthStyle(variables.w96)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER:
+            case CONST.SEARCH.TABLE_COLUMNS.TAG:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG:
+                columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
+                columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXPENSES:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
+                columnWidth = {...getWidthStyle(variables.w130)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
+            case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
+            case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
+                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...(!shouldRemoveTotalColumnFlex && styles.flex1), ...styles.alignItemsEnd};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.TYPE:
+                columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
+            case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+                columnWidth = {...getWidthStyle(variables.w92)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
+                columnWidth = {...getWidthStyle(variables.w92), ...styles.flex1};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.ACTION:
+                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
+                columnWidth = {...getWidthStyle(variables.w72), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM:
+            case CONST.SEARCH.TABLE_COLUMNS.FEED:
+            case CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
+            case CONST.SEARCH.TABLE_COLUMNS.CARD:
+            case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
@@ -1739,24 +1844,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             case CONST.SEARCH.TABLE_COLUMNS.IN:
-                columnWidth = styles.flex1;
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
-            case CONST.SEARCH.TABLE_COLUMNS.TAG:
-                columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
-                columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
-                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.TYPE:
-                columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
-                break;
-            case CONST.SEARCH.TABLE_COLUMNS.ACTION:
-                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
-                break;
+            case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
             default:
                 columnWidth = styles.flex1;
         }
@@ -1813,7 +1901,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             return {};
         }
 
-        const composerLineHeight = styles.textInputCompose.lineHeight ?? 0;
+        const composerLineHeight = variables.lineHeightXLarge ?? 0;
 
         return {
             maxHeight: maxLines * composerLineHeight,
@@ -1844,13 +1932,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getCharacterPadding: (prefix: string): number => {
         let padding = 0;
-        prefix.split('').forEach((char) => {
+        for (const char of prefix.split('')) {
             if (char.match(/[a-z]/i) && char === char.toUpperCase()) {
                 padding += 11;
             } else {
                 padding += 8;
             }
-        });
+        }
 
         return padding;
     },
@@ -1905,6 +1993,195 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 : {},
             containerStyle: {paddingBottom},
         };
+    },
+
+    /**
+     * Returns a single crop view style by key. Use this from useAnimatedStyle to avoid building all 14 styles per frame.
+     * @param params - Object containing dynamic crop values (same as getCropViewStyles)
+     * @param key - Which style to return
+     */
+    getCropViewStyle: (
+        key:
+            | 'cornerVisual'
+            | 'border'
+            | 'cornerTopLeft'
+            | 'cornerTopRight'
+            | 'cornerBottomLeft'
+            | 'cornerBottomRight'
+            | 'edgeTop'
+            | 'edgeBottom'
+            | 'edgeLeft'
+            | 'edgeRight'
+            | 'overlayTop'
+            | 'overlayBottom'
+            | 'overlayLeft'
+            | 'overlayRight',
+        params?: {
+            cropX?: number;
+            cropY?: number;
+            cropWidth?: number;
+            cropHeight?: number;
+            imageLeft?: number;
+            imageTop?: number;
+            imgDisplayWidth?: number;
+            cropLeft?: number;
+            cropRight?: number;
+            cropTop?: number;
+            cropBottom?: number;
+            imageRight?: number;
+            imageBottom?: number;
+        },
+    ) => {
+        'worklet';
+
+        const {
+            cropX = 0,
+            cropY = 0,
+            cropWidth = 0,
+            cropHeight = 0,
+            imageLeft = 0,
+            imageTop = 0,
+            imgDisplayWidth = 0,
+            cropLeft = 0,
+            cropRight = 0,
+            cropTop = 0,
+            cropBottom = 0,
+            imageRight = 0,
+            imageBottom = 0,
+        } = params ?? {};
+
+        switch (key) {
+            case 'cornerVisual':
+                return {
+                    position: 'absolute' as const,
+                    left: (variables.cornerTapTargetSize - variables.cornerHandleSize) / 2,
+                    top: (variables.cornerTapTargetSize - variables.cornerHandleSize) / 2,
+                    width: variables.cornerHandleSize,
+                    height: variables.cornerHandleSize,
+                    borderRadius: variables.cornerHandleSize / 2,
+                    backgroundColor: theme.success,
+                };
+            case 'border':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX,
+                    top: cropY,
+                    width: cropWidth,
+                    height: cropHeight,
+                    borderWidth: variables.cropBorderWidth,
+                    borderColor: theme.success,
+                };
+            case 'cornerTopLeft':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX - variables.cornerTapTargetSize / 2,
+                    top: cropY - variables.cornerTapTargetSize / 2,
+                    width: variables.cornerTapTargetSize,
+                    height: variables.cornerTapTargetSize,
+                    ...styles.cursorNwseResize,
+                };
+            case 'cornerTopRight':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX + cropWidth - variables.cornerTapTargetSize / 2,
+                    top: cropY - variables.cornerTapTargetSize / 2,
+                    width: variables.cornerTapTargetSize,
+                    height: variables.cornerTapTargetSize,
+                    ...styles.cursorNeswResize,
+                };
+            case 'cornerBottomLeft':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX - variables.cornerTapTargetSize / 2,
+                    top: cropY + cropHeight - variables.cornerTapTargetSize / 2,
+                    width: variables.cornerTapTargetSize,
+                    height: variables.cornerTapTargetSize,
+                    ...styles.cursorNeswResize,
+                };
+            case 'cornerBottomRight':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX + cropWidth - variables.cornerTapTargetSize / 2,
+                    top: cropY + cropHeight - variables.cornerTapTargetSize / 2,
+                    width: variables.cornerTapTargetSize,
+                    height: variables.cornerTapTargetSize,
+                    ...styles.cursorNwseResize,
+                };
+            case 'edgeTop':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX,
+                    top: cropY - variables.edgeHandleTapTargetThickness / 2,
+                    width: cropWidth,
+                    height: variables.edgeHandleTapTargetThickness,
+                    ...styles.cursorNsResize,
+                };
+            case 'edgeBottom':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX,
+                    top: cropY + cropHeight - variables.edgeHandleTapTargetThickness / 2,
+                    width: cropWidth,
+                    height: variables.edgeHandleTapTargetThickness,
+                    ...styles.cursorNsResize,
+                };
+            case 'edgeLeft':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX - variables.edgeHandleTapTargetThickness / 2,
+                    top: cropY,
+                    width: variables.edgeHandleTapTargetThickness,
+                    height: cropHeight,
+                    ...styles.cursorEwResize,
+                };
+            case 'edgeRight':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropX + cropWidth - variables.edgeHandleTapTargetThickness / 2,
+                    top: cropY,
+                    width: variables.edgeHandleTapTargetThickness,
+                    height: cropHeight,
+                    ...styles.cursorEwResize,
+                };
+            case 'overlayTop':
+                return {
+                    ...styles.pAbsolute,
+                    left: imageLeft,
+                    top: imageTop,
+                    width: imgDisplayWidth,
+                    height: Math.max(0, cropTop - imageTop),
+                    backgroundColor: theme.transparentWhite,
+                };
+            case 'overlayBottom':
+                return {
+                    ...styles.pAbsolute,
+                    left: imageLeft,
+                    top: cropBottom,
+                    width: imgDisplayWidth,
+                    height: Math.max(0, imageBottom - cropBottom),
+                    backgroundColor: theme.transparentWhite,
+                };
+            case 'overlayLeft':
+                return {
+                    ...styles.pAbsolute,
+                    left: imageLeft,
+                    top: cropTop,
+                    width: Math.max(0, cropLeft - imageLeft),
+                    height: cropHeight,
+                    backgroundColor: theme.transparentWhite,
+                };
+            case 'overlayRight':
+                return {
+                    ...styles.pAbsolute,
+                    left: cropRight,
+                    top: cropTop,
+                    width: Math.max(0, imageRight - cropRight),
+                    height: cropHeight,
+                    backgroundColor: theme.transparentWhite,
+                };
+            default:
+                return {};
+        }
     },
 });
 

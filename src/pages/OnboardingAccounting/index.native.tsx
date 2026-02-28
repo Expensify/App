@@ -12,6 +12,4 @@ function OnboardingAccounting(props: OnboardingAccountingProps) {
     );
 }
 
-OnboardingAccounting.displayName = 'OnboardingAccounting';
-
 export default OnboardingAccounting;

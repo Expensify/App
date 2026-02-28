@@ -43,7 +43,7 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableKeyboardAvoidingView={false}
-                testID={CategorySelectorModal.displayName}
+                testID="CategorySelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}
@@ -60,7 +60,5 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
         </Modal>
     );
 }
-
-CategorySelectorModal.displayName = 'CategorySelectorModal';
 
 export default CategorySelectorModal;

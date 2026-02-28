@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -30,7 +30,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT>>();
     const backTo = route.params.backTo;
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID)));
@@ -66,8 +66,8 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
         <SelectionScreen
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctNonReimbursableCreditCardAccountPage.displayName}
-            sections={creditCardSelectorOptions.length ? [{data: creditCardSelectorOptions}] : []}
+            displayName="SageIntacctNonReimbursableCreditCardAccountPage"
+            data={creditCardSelectorOptions ?? []}
             listItem={RadioListItem}
             onSelectRow={updateCreditCardAccount}
             initiallyFocusedOptionKey={creditCardSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
@@ -83,7 +83,5 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
         />
     );
 }
-
-SageIntacctNonReimbursableCreditCardAccountPage.displayName = 'SageIntacctNonReimbursableCreditCardAccountPage';
 
 export default withPolicyConnections(SageIntacctNonReimbursableCreditCardAccountPage);

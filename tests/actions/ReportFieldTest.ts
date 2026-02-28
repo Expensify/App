@@ -7,6 +7,9 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportField from '@src/libs/actions/Policy/ReportField';
 import type {CreateReportFieldParams} from '@src/libs/actions/Policy/ReportField';
+import HttpUtils from '@src/libs/HttpUtils';
+import * as NetworkStore from '@src/libs/Network/NetworkStore';
+import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
@@ -44,10 +47,19 @@ describe('actions/ReportField', () => {
     beforeEach(() => {
         global.fetch = TestHelper.getGlobalFetchMock();
         mockFetch = fetch as MockFetch;
+
+        // Ensure clean queues and no pending requests between tests
+        SequentialQueue.resetQueue();
+        HttpUtils.cancelPendingRequests();
+        NetworkStore.checkRequiredData();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('createReportField', () => {
+        afterEach(() => {
+            // Make sure paused fetches don’t leak between tests
+            mockFetch?.resume?.();
+        });
         it('creates a new text report field of a workspace', async () => {
             mockFetch.pause();
             Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {});
@@ -212,6 +224,51 @@ describe('actions/ReportField', () => {
 
             // Check if the policy pending action was cleared
             expect(policy?.fieldList?.[reportFieldKey].pendingAction).toBeFalsy();
+        });
+    });
+
+    it('optimistically treats Text type with formula-like initial value as Formula', async () => {
+        mockFetch.pause();
+        Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {});
+        await waitForBatchedUpdates();
+
+        const fakePolicy = createRandomPolicy(0);
+        const reportFieldName = 'Formula-ish Text Field';
+        const reportFieldID = generateFieldID(reportFieldName);
+        const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+        const formulaInitialValue = '{report:id}';
+        const expectedReportField: OnyxValueWithOfflineFeedback<PolicyReportField> = {
+            name: reportFieldName,
+            type: CONST.REPORT_FIELD_TYPES.FORMULA,
+            target: 'expense',
+            defaultValue: formulaInitialValue,
+            values: [],
+            disabledOptions: [],
+            fieldID: reportFieldID,
+            orderWeight: 1,
+            deletable: false,
+            keys: [],
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            externalIDs: [],
+            isTax: false,
+        };
+        const createReportFieldArguments: CreateReportFieldParams = {
+            policy: fakePolicy,
+            name: reportFieldName,
+            type: CONST.REPORT_FIELD_TYPES.TEXT,
+            initialValue: formulaInitialValue,
+            listValues: [],
+            disabledListValues: [],
+            policyExpenseReportIDs: [],
+        };
+
+        ReportField.createReportField(createReportFieldArguments);
+        await waitForBatchedUpdates();
+
+        const policy = await connectToFetchPolicy(fakePolicy.id);
+
+        expect(policy?.fieldList).toStrictEqual<PolicyReportFieldWithOfflineFeedback>({
+            [reportFieldKey]: {...expectedReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         });
     });
 
@@ -419,6 +476,76 @@ describe('actions/ReportField', () => {
             });
             // Check if the policy errors was set
             expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
+        });
+
+        it('reverts optimistic type to text when new initial value is non-formula', async () => {
+            mockFetch.pause();
+            Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {});
+            await waitForBatchedUpdates();
+
+            const fakePolicy = createRandomPolicy(0);
+            const reportFieldName = 'Auto Formula From Text';
+            const reportFieldID = generateFieldID(reportFieldName);
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+
+            // Create from TEXT with formula-like initial value -> optimistically becomes FORMULA
+            ReportField.createReportField({
+                policy: fakePolicy,
+                name: reportFieldName,
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                initialValue: '{report:id}',
+                listValues: [],
+                disabledListValues: [],
+                policyExpenseReportIDs: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Now update initial value to non-formula -> should optimistically switch back to TEXT
+            ReportField.updateReportFieldInitialValue({policy: fakePolicy, reportFieldID, newInitialValue: 'plain text'});
+            await waitForBatchedUpdates();
+
+            const policy = await connectToFetchPolicy(fakePolicy.id);
+            expect(policy?.fieldList?.[reportFieldKey]?.type).toBe(CONST.REPORT_FIELD_TYPES.TEXT);
+            expect(policy?.fieldList?.[reportFieldKey]?.defaultValue).toBe('plain text');
+        });
+
+        it('upgrades optimistic type to formula when text field gets a formula initial value', async () => {
+            mockFetch.pause();
+
+            const fakePolicy = createRandomPolicy(0);
+            const reportFieldName = 'TextThenFormula';
+            const reportFieldID = generateFieldID(reportFieldName);
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+
+            // Start with normal TEXT field
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy?.id}`, {
+                ...fakePolicy,
+                fieldList: {
+                    [reportFieldKey]: {
+                        name: reportFieldName,
+                        type: CONST.REPORT_FIELD_TYPES.TEXT,
+                        target: 'expense',
+                        defaultValue: 'hello',
+                        values: [],
+                        disabledOptions: [],
+                        fieldID: reportFieldID,
+                        orderWeight: 1,
+                        deletable: false,
+                        keys: [],
+                        externalIDs: [],
+                        isTax: false,
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Update to a formula-like value -> should become FORMULA optimistically
+            ReportField.updateReportFieldInitialValue({policy: fakePolicy, reportFieldID, newInitialValue: '{report:type}'});
+            await waitForBatchedUpdates();
+
+            const policy = await connectToFetchPolicy(fakePolicy.id);
+            expect(policy?.fieldList?.[reportFieldKey]?.type).toBe(CONST.REPORT_FIELD_TYPES.FORMULA);
+            expect(policy?.fieldList?.[reportFieldKey]?.defaultValue).toBe('{report:type}');
         });
     });
 

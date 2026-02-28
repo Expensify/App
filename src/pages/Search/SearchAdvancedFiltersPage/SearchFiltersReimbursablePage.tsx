@@ -11,6 +11,4 @@ function SearchFiltersReimbursablePage() {
     );
 }
 
-SearchFiltersReimbursablePage.displayName = 'SearchFiltersReimbursablePage';
-
 export default SearchFiltersReimbursablePage;

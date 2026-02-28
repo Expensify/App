@@ -4,7 +4,6 @@ import {StyleSheet, View} from 'react-native';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
@@ -13,7 +12,10 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -21,16 +23,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+import FS from '@libs/Fullstory';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
-import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isAdminRoom, isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isConciergeChatReport, isGroupChat, isOneOnOneChat, isSystemChat} from '@libs/ReportUtils';
-import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {startSpan} from '@libs/telemetry/activeSpans';
+import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
-import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
@@ -42,6 +45,7 @@ function OptionRowLHN({
     optionItem,
     viewMode = 'default',
     onboardingPurpose,
+    onboarding,
     isFullscreenVisible,
     isReportsSplitNavigatorLast,
     style,
@@ -56,10 +60,12 @@ function OptionRowLHN({
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil', 'DotIndicator', 'Pin']);
 
     const session = useSession();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
-    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurpose);
+    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurpose);
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
 
     const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
@@ -79,6 +85,7 @@ function OptionRowLHN({
 
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
@@ -156,16 +163,23 @@ function OptionRowLHN({
     const emojiCode = optionItem.status?.emojiCode ?? '';
     const statusText = optionItem.status?.text ?? '';
     const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
-    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
+    const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
+    const formattedDate = DateUtils.getStatusUntilDate(translate, statusClearAfterDate, optionItem?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
     const isStatusVisible = !!emojiCode && isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
     const subscriptAvatarBorderColor = isOptionFocused ? focusedBackgroundColor : theme.sidebar;
     const firstIcon = optionItem.icons?.at(0);
 
+    // This is used to ensure that we display the text exactly as the user entered it when displaying LHN title, instead of parsing their text to HTML.
+    const shouldParseFullTitle = optionItem?.parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat(report);
+    const alternateTextFSClass = FS.getChatFSClass(report);
+
     const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
-        Performance.markStart(CONST.TIMING.OPEN_REPORT);
-        Timing.start(CONST.TIMING.OPEN_REPORT);
+        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
+            name: 'OptionRowLHN',
+            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        });
 
         event?.preventDefault();
         // Enable Composer to focus on clicking the same chat after opening the context menu.
@@ -231,11 +245,10 @@ function OptionRowLHN({
                                     (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
                                 ]}
                                 role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${
-                                    optionItem.alternateText
-                                }`}
+                                accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${optionItem.alternateText}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                                 onLayout={onLayout}
                                 needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
+                                sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
                             >
                                 <View style={sidebarInnerRowStyle}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -259,6 +272,7 @@ function OptionRowLHN({
                                                 <DisplayNames
                                                     accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
                                                     fullTitle={optionItem.text ?? ''}
+                                                    shouldParseFullTitle={shouldParseFullTitle}
                                                     displayNamesWithTooltips={optionItem.displayNamesWithTooltips ?? []}
                                                     tooltipEnabled
                                                     numberOfLines={1}
@@ -291,7 +305,7 @@ function OptionRowLHN({
                                                     style={alternateTextStyle}
                                                     numberOfLines={1}
                                                     accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
-                                                    fsClass={CONST.FULLSTORY.CLASS.MASK}
+                                                    fsClass={alternateTextFSClass}
                                                 >
                                                     {alternateTextContainsCustomEmojiWithText ? (
                                                         <TextWithEmojiFragment
@@ -308,7 +322,7 @@ function OptionRowLHN({
                                         {optionItem?.descriptiveText ? (
                                             <View
                                                 style={[styles.flexWrap]}
-                                                fsClass={CONST.FULLSTORY.CLASS.MASK}
+                                                fsClass={alternateTextFSClass}
                                             >
                                                 <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                             </View>
@@ -317,22 +331,19 @@ function OptionRowLHN({
                                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                                 <Icon
                                                     testID="RBR Icon"
-                                                    src={Expensicons.DotIndicator}
+                                                    src={expensifyIcons.DotIndicator}
                                                     fill={theme.danger}
                                                 />
                                             </View>
                                         )}
                                     </View>
                                 </View>
-                                <View
-                                    style={[styles.flexRow, styles.alignItemsCenter]}
-                                    accessible={false}
-                                >
+                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                     {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
                                         <View style={styles.ml2}>
                                             <Icon
                                                 testID="GBR Icon"
-                                                src={Expensicons.DotIndicator}
+                                                src={expensifyIcons.DotIndicator}
                                                 fill={theme.success}
                                             />
                                         </View>
@@ -345,7 +356,7 @@ function OptionRowLHN({
                                             <Icon
                                                 testID="Pencil Icon"
                                                 fill={theme.icon}
-                                                src={Expensicons.Pencil}
+                                                src={expensifyIcons.Pencil}
                                             />
                                         </View>
                                     )}
@@ -357,7 +368,7 @@ function OptionRowLHN({
                                             <Icon
                                                 testID="Pin Icon"
                                                 fill={theme.icon}
-                                                src={Expensicons.Pin}
+                                                src={expensifyIcons.Pin}
                                             />
                                         </View>
                                     )}

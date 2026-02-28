@@ -1,12 +1,12 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import {useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
-import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {TextInput, TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
+import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 import {DeviceEventEmitter, StyleSheet} from 'react-native';
 import type {ComposerProps} from '@components/Composer/types';
+import {useSession} from '@components/OnyxListItemProvider';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useHtmlPaste from '@hooks/useHtmlPaste';
@@ -29,35 +29,39 @@ const imagePreviewAuthRequiredURLs = [CONST.EXPENSIFY_URL, CONST.STAGING_EXPENSI
 
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
-function Composer(
-    {
-        value,
-        defaultValue,
-        maxLines = -1,
-        onKeyPress = () => {},
-        style,
-        autoFocus = false,
-        shouldCalculateCaretPosition = false,
-        isDisabled = false,
-        onClear = () => {},
-        onPasteFile = () => {},
-        onSelectionChange = () => {},
-        checkComposerVisibility = () => false,
-        selection: selectionProp = {
-            start: 0,
-            end: 0,
-        },
-        isComposerFullSize = false,
-        onContentSizeChange,
-        shouldContainScroll = true,
-        isGroupPolicyReport = false,
-        ...props
-    }: ComposerProps,
-    ref: ForwardedRef<TextInput | HTMLInputElement>,
-) {
+function Composer({
+    value,
+    defaultValue,
+    maxLines = -1,
+    onKeyPress = () => {},
+    style,
+    autoFocus = false,
+    shouldCalculateCaretPosition = false,
+    isDisabled = false,
+    onClear = () => {},
+    onPasteFile = () => {},
+    onSelectionChange = () => {},
+    checkComposerVisibility = () => false,
+    selection: selectionProp = {
+        start: 0,
+        end: 0,
+    },
+    isComposerFullSize = false,
+    onContentSizeChange,
+    shouldContainScroll = true,
+    isGroupPolicyReport = false,
+    ref,
+    ...props
+}: ComposerProps) {
     const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+    // The addAuthTokenToImageURL is created on every render without memoization.
+    // This causes the RNMarkdownTextInput component to receive a new function reference on every render, potentially causing unnecessary re-renders
+    // So we need to use useCallback to manual memoize the function. Without this, we hit the issue https://github.com/Expensify/App/issues/82465
+    const addAuthTokenToImageURL = useCallback((url: string) => addEncryptedAuthTokenToURL(url, encryptedAuthToken), [encryptedAuthToken]);
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const StyleUtils = useStyleUtils();
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
@@ -85,7 +89,7 @@ function Composer(
             return;
         }
         setSelection(selectionProp);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectionProp]);
 
     /**
@@ -254,9 +258,8 @@ function Composer(
         if (!textInput.current || prevScroll === undefined || prevHeight === undefined) {
             return;
         }
-        // eslint-disable-next-line react-compiler/react-compiler
         textInput.current.scrollTop = prevScroll + prevHeight - textInput.current.clientHeight;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
     const isActive = useIsFocused();
@@ -365,12 +368,10 @@ function Composer(
             }}
             disabled={isDisabled}
             onKeyPress={handleKeyPress}
-            addAuthTokenToImageURLCallback={addEncryptedAuthTokenToURL}
+            addAuthTokenToImageURLCallback={addAuthTokenToImageURL}
             imagePreviewAuthRequiredURLs={imagePreviewAuthRequiredURLs}
         />
     );
 }
 
-Composer.displayName = 'Composer';
-
-export default React.forwardRef(Composer);
+export default Composer;

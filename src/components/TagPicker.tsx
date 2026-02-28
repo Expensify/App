@@ -11,8 +11,8 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
-import SelectionList from './SelectionListWithSections';
-import RadioListItem from './SelectionListWithSections/RadioListItem';
+import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -43,6 +43,19 @@ type TagPickerProps = {
     tagListIndex: number;
 };
 
+const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
+    if (!selectedTag) {
+        return [];
+    }
+    return [
+        {
+            name: selectedTag,
+            enabled: true,
+            accountID: undefined,
+        },
+    ];
+};
+
 function TagPicker({
     selectedTag,
     transactionTag,
@@ -54,30 +67,17 @@ function TagPicker({
     shouldOrderListByTagName = false,
     onSubmit,
 }: TagPickerProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
     const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
     const policyTagList = getTagList(policyTags, tagListIndex);
+    const selectedOptions = getSelectedOptions(selectedTag);
 
-    const selectedOptions: SelectedTagOption[] = useMemo(() => {
-        if (!selectedTag) {
-            return [];
-        }
-
-        return [
-            {
-                name: selectedTag,
-                enabled: true,
-                accountID: undefined,
-            },
-        ];
-    }, [selectedTag]);
-
-    const enabledTags: PolicyTags | Array<PolicyTag | SelectedTagOption> = useMemo(() => {
+    const getEnabledTags = (): PolicyTags | Array<PolicyTag | SelectedTagOption> => {
         if (!shouldShowDisabledAndSelectedOption && !hasDependentTags) {
             return policyTagList.tags;
         }
@@ -99,54 +99,56 @@ function TagPicker({
             });
         }
 
-        const selectedNames = selectedOptions.map((s) => s.name);
+        const selectedNames = new Set(selectedOptions.map((s) => s.name));
 
-        return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
-    }, [shouldShowDisabledAndSelectedOption, hasDependentTags, selectedOptions, policyTagList.tags, transactionTag, tagListIndex]);
+        return [...selectedOptions, ...Object.values(policyTagList.tags).filter((policyTag) => policyTag.enabled && !selectedNames.has(policyTag.name))];
+    };
 
-    const availableTagsCount = Array.isArray(enabledTags) ? enabledTags.length : Object.keys(enabledTags).length;
-    const isTagsCountBelowThreshold = availableTagsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
+    const enabledTags = getEnabledTags();
+    const enabledTagsList = Array.isArray(enabledTags) ? enabledTags : Object.values(enabledTags ?? {});
+    const availableTagsCount = enabledTagsList.filter((tag) => tag.enabled).length;
 
-    const shouldShowTextInput = !isTagsCountBelowThreshold;
+    const tagSections = getTagListSections({
+        searchValue,
+        selectedOptions,
+        tags: enabledTags,
+        recentlyUsedTags: policyRecentlyUsedTagsList,
+        localeCompare,
+        translate,
+    });
+    const sections = shouldOrderListByTagName
+        ? tagSections.map((option) => ({
+              ...option,
+              data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
+          }))
+        : tagSections;
 
-    const sections = useMemo(() => {
-        const tagSections = getTagListSections({
-            searchValue,
-            selectedOptions,
-            tags: enabledTags,
-            recentlyUsedTags: policyRecentlyUsedTagsList,
-            localeCompare,
-        });
-        return shouldOrderListByTagName
-            ? tagSections.map((option) => ({
-                  ...option,
-                  data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
-              }))
-            : tagSections;
-    }, [searchValue, selectedOptions, enabledTags, policyRecentlyUsedTagsList, shouldOrderListByTagName, localeCompare]);
+    const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
 
-    const headerMessage = getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue);
+    const textInputOptions = {
+        value: searchValue,
+        onChangeText: setSearchValue,
+        headerMessage: getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue),
+        label: translate('common.search'),
+    };
 
-    const selectedOptionKey = sections.at(0)?.data?.filter((policyTag) => policyTag.searchText === selectedTag)?.[0]?.keyForList;
+    const listItemTitleStyles = [styles.breakAll, styles.w100];
 
     return (
-        <SelectionList
-            ListItem={RadioListItem}
-            sectionTitleStyles={styles.mt5}
-            listItemTitleStyles={styles.breakAll}
+        <SelectionListWithSections
             sections={sections}
-            textInputValue={searchValue}
-            headerMessage={headerMessage}
-            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-            isRowMultilineSupported
-            initiallyFocusedOptionKey={selectedOptionKey}
-            onChangeText={setSearchValue}
+            ListItem={RadioListItem}
+            style={{
+                sectionTitleStyles: styles.mt5,
+                listItemTitleStyles,
+            }}
+            textInputOptions={textInputOptions}
+            shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
         />
     );
 }
-
-TagPicker.displayName = 'TagPicker';
 
 export default TagPicker;
 

@@ -1,5 +1,6 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -7,8 +8,6 @@ import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -18,13 +17,14 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -90,23 +90,13 @@ type BrickRoadIndicatorIconProps = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
-const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
-    switch (workspaceType) {
-        case CONST.POLICY.TYPE.CORPORATE:
-            return Illustrations.ShieldYellow;
-        case CONST.POLICY.TYPE.TEAM:
-            return Illustrations.Mailbox;
-        default:
-            return Illustrations.Mailbox;
-    }
-};
-
 function BrickRoadIndicatorIcon({brickRoadIndicator}: BrickRoadIndicatorIconProps) {
     const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
 
     return brickRoadIndicator ? (
         <Icon
-            src={Expensicons.DotIndicator}
+            src={icons.DotIndicator}
             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
         />
     ) : null;
@@ -137,7 +127,24 @@ function WorkspacesListRow({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
+    const isFocused = useIsFocused();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
+
+    const workspaceTypeIcon = useCallback(
+        (type: WorkspacesListRowProps['workspaceType']): IconAsset => {
+            switch (type) {
+                case CONST.POLICY.TYPE.CORPORATE:
+                    return illustrations.ShieldYellow;
+                case CONST.POLICY.TYPE.TEAM:
+                    return illustrations.Mailbox;
+                default:
+                    return illustrations.Mailbox;
+            }
+        },
+        [illustrations.Mailbox, illustrations.ShieldYellow],
+    );
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
@@ -178,7 +185,7 @@ function WorkspacesListRow({
                         text={translate('workspace.common.requested')}
                         textStyles={styles.textStrong}
                         badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
-                        icon={Expensicons.Hourglass}
+                        icon={icons.Hourglass}
                     />
                 </View>
             )}
@@ -203,6 +210,7 @@ function WorkspacesListRow({
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
                     <ThreeDotsMenu
+                        isContainerFocused={isFocused}
                         shouldSelfPosition
                         menuItems={menuItems}
                         anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
@@ -210,6 +218,7 @@ function WorkspacesListRow({
                         disabled={shouldDisableThreeDotsMenu}
                         isNested
                         threeDotsMenuRef={threeDotsMenuRef}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
                     />
                 </View>
             )}
@@ -218,9 +227,12 @@ function WorkspacesListRow({
 
     return (
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, styles.br3]}>
-            <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide && styles.gap5, styles.p5, animatedHighlightStyle]}>
+            <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide && styles.gap5, styles.p5, styles.pr3, animatedHighlightStyle]}>
                 <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
+                    <View
+                        role={isWide ? CONST.ROLE.CELL : undefined}
+                        style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}
+                    >
                         <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
                             <Avatar
                                 imageStyles={[styles.alignSelfCenter]}
@@ -239,7 +251,10 @@ function WorkspacesListRow({
                         </View>
                         {isNarrow && ThreeDotMenuOrPendingIcon}
                     </View>
-                    <View style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}>
+                    <View
+                        role={isWide ? CONST.ROLE.CELL : undefined}
+                        style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}
+                    >
                         {!!ownerDetails && (
                             <>
                                 <Avatar
@@ -264,7 +279,10 @@ function WorkspacesListRow({
                             </>
                         )}
                     </View>
-                    <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
+                    <View
+                        role={isWide ? CONST.ROLE.CELL : undefined}
+                        style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}
+                    >
                         <Icon
                             src={workspaceTypeIcon(workspaceType)}
                             width={variables.workspaceTypeIconWidth}
@@ -277,7 +295,7 @@ function WorkspacesListRow({
                                     numberOfLines={1}
                                     style={[styles.labelStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                                 >
-                                    {getUserFriendlyWorkspaceType(workspaceType)}
+                                    {getUserFriendlyWorkspaceType(workspaceType, translate)}
                                 </Text>
                             )}
                             <Text
@@ -290,23 +308,26 @@ function WorkspacesListRow({
                     </View>
                 </View>
 
-                {!isNarrow && ThreeDotMenuOrPendingIcon}
-                {!isNarrow && (
-                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mln4]}>
-                        <Icon
-                            src={Expensicons.ArrowRight}
-                            fill={theme.icon}
-                            additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
-                            isButtonIcon
-                            medium
-                        />
-                    </View>
-                )}
+                <View
+                    role={isWide ? CONST.ROLE.CELL : undefined}
+                    style={[styles.flexRow, styles.alignItemsCenter]}
+                >
+                    {!isNarrow && ThreeDotMenuOrPendingIcon}
+                    {!isNarrow && (
+                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.touchableButtonImage]}>
+                            <Icon
+                                src={icons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
+                                isButtonIcon
+                                medium
+                            />
+                        </View>
+                    )}
+                </View>
             </Animated.View>
         </View>
     );
 }
-
-WorkspacesListRow.displayName = 'WorkspacesListRow';
 
 export default withCurrentUserPersonalDetails(WorkspacesListRow);

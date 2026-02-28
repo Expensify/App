@@ -1,8 +1,8 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderGap from '@components/HeaderGap';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ScrollView from '@components/ScrollView';
 import getHelpContent from '@components/SidePanel/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
@@ -52,16 +52,16 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         };
     });
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`, {canBeMissing: true});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: true});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`);
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
 
     const getParentIOUReportActionSelector = useCallback(
         (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> => {
             return Object.values(actions ?? {})
                 .filter((action) => action.reportActionID === report?.parentReportActionID)
-                .filter(isMoneyRequestAction)
-                .at(0);
+                .find(isMoneyRequestAction);
         },
         [report?.parentReportActionID],
     );
@@ -69,7 +69,6 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const [parentIOUReportAction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`,
         {
-            canBeMissing: true,
             selector: getParentIOUReportActionSelector,
         },
         [getParentIOUReportActionSelector],
@@ -79,7 +78,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
         return getOriginalMessage(parentIOUReportAction ?? transactionThreadReportAction)?.IOUTransactionID;
     }, [report, chatReport, reportActions, parentIOUReportAction]);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const route = useMemo(() => {
         const path = normalizedConfigs[routeName]?.path;
@@ -90,7 +89,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
         const cleanedPath = path.replaceAll('?', '');
         const expenseType = getExpenseType(transaction);
-        const reportType = getHelpPaneReportType(report);
+        const reportType = getHelpPaneReportType(report, conciergeReportID);
 
         if (expenseType && reportType !== CONST.REPORT.HELP_TYPE.EXPENSE_REPORT) {
             return cleanedPath.replaceAll(':reportID', `:${CONST.REPORT.HELP_TYPE.EXPENSE}/:${expenseType}`);
@@ -101,7 +100,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         }
 
         return cleanedPath;
-    }, [routeName, transaction, report]);
+    }, [routeName, transaction, report, conciergeReportID]);
 
     const wasPreviousNarrowScreen = useRef(!isExtraLargeScreenWidth);
     useEffect(() => {
@@ -119,7 +118,6 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
     return (
         <>
-            <HeaderGap />
             <HelpHeader
                 title={translate('common.help')}
                 onBackButtonPress={() => closeSidePanel(false)}
@@ -128,7 +126,9 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
                 shouldShowCloseButton={isExtraLargeScreenWidth}
             />
             {currentState === undefined ? (
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
             ) : (
                 <ScrollView
                     style={[styles.ph5, styles.pb5]}
@@ -140,7 +140,5 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         </>
     );
 }
-
-HelpContent.displayName = 'HelpContent';
 
 export default HelpContent;

@@ -1,13 +1,14 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canAddTransaction, isArchivedReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
 import {openUnreportedExpense} from '@userActions/Report';
@@ -19,23 +20,26 @@ import type * as OnyxTypes from '@src/types/onyx';
 const minModalHeight = 380;
 
 function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes.Report; policy?: OnyxTypes.Policy}) {
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {canBeMissing: true});
+    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'Plus'] as const);
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
     const canAddTransactionToReport = canAddTransaction(report, isReportArchived);
     const addExpenseDropdownOptions = [
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
             text: translate('iou.createExpense'),
-            icon: Expensicons.Plus,
+            icon: expensifyIcons.Plus,
             onSelected: () => {
                 if (!reportId) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -45,12 +49,12 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
             text: translate('iou.trackDistance'),
-            icon: Expensicons.Location,
+            icon: expensifyIcons.Location,
             onSelected: () => {
                 if (!reportId) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -60,9 +64,9 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
             text: translate('iou.addUnreportedExpense'),
-            icon: Expensicons.ReceiptPlus,
+            icon: icons.ReceiptPlus,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -70,6 +74,10 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
             },
         },
     ];
+
+    useEffect(() => {
+        cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${report.reportID}`);
+    }, [report.reportID]);
 
     return (
         <View style={styles.flex1}>
@@ -92,7 +100,5 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
         </View>
     );
 }
-
-SearchMoneyRequestReportEmptyState.displayName = 'SearchMoneyRequestReportEmptyState';
 
 export default SearchMoneyRequestReportEmptyState;

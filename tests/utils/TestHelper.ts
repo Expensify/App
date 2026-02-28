@@ -4,6 +4,8 @@ import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
+import {toLocaleDigit as toLocaleDigitUtil} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
@@ -17,7 +19,7 @@ import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
-import type {Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
+import type {DismissedProductTraining, Response as OnyxResponse, PersonalDetails, Report, StripeCustomerID} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
@@ -26,7 +28,7 @@ type MockFetch = jest.MockedFn<typeof fetch> & {
     fail: () => void;
     succeed: () => void;
     resume: () => Promise<void>;
-    mockAPICommand: <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse) => void;
+    mockAPICommand: <TCommand extends ApiCommand, TKey extends OnyxKey>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<TKey>) => void;
 };
 
 type ConnectionCallback<TKey extends OnyxKey> = NonNullable<ConnectOptions<TKey>['callback']>;
@@ -68,6 +70,59 @@ function setupApp() {
     });
 }
 
+function getNvpDismissedProductTraining(): OnyxEntry<DismissedProductTraining> {
+    return {
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER]: {
+            timestamp: DateUtils.getDBTime(new Date().valueOf()),
+            dismissedMethod: 'click',
+        },
+        [CONST.MIGRATED_USER_WELCOME_MODAL]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.OUTSTANDING_FILTER]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.CHANGE_POLICY_TRAINING_MODAL]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
+    };
+}
+
 function buildPersonalDetails(login: string, accountID: number, firstName = 'Test'): PersonalDetails {
     return {
         accountID,
@@ -105,7 +160,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     const originalXhr = HttpUtils.xhr;
 
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        const mockedResponse: OnyxResponse = {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.PERSONAL_DETAILS_LIST> = {
             onyxData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -141,7 +196,9 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     return waitForBatchedUpdates()
         .then(() => {
             HttpUtils.xhr = jest.fn().mockImplementation(() => {
-                const mockedResponse: OnyxResponse = {
+                const mockedResponse: OnyxResponse<
+                    typeof ONYXKEYS.SESSION | typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.BETAS | typeof ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID
+                > = {
                     onyxData: [
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
@@ -196,7 +253,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
 function signOutTestUser() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        const mockedResponse: OnyxResponse = {
+        const mockedResponse: OnyxResponse<never> = {
             jsonCode: 200,
         };
 
@@ -218,7 +275,7 @@ function signOutTestUser() {
 function getGlobalFetchMock(): typeof fetch {
     let queue: QueueItem[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let responses = new Map<string, (params: any) => OnyxResponse>();
+    let responses = new Map<string, (params: any) => OnyxResponse<any>>();
     let isPaused = false;
     let shouldFail = false;
 
@@ -266,12 +323,15 @@ function getGlobalFetchMock(): typeof fetch {
     mockFetch.pause = () => (isPaused = true);
     mockFetch.resume = () => {
         isPaused = false;
-        queue.forEach(({resolve, input}) => resolve(getResponse(input)));
+        for (const {resolve, input} of queue) {
+            resolve(getResponse(input));
+        }
         return waitForBatchedUpdates();
     };
     mockFetch.fail = () => (shouldFail = true);
     mockFetch.succeed = () => (shouldFail = false);
-    mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse): void => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<any>): void => {
         responses.set(command, responseHandler);
     };
     return mockFetch as typeof fetch;
@@ -380,6 +440,11 @@ function localeCompare(a: string, b: string): number {
     return customCollator.compare(a, b);
 }
 
+function toLocaleDigit(digit: string): string {
+    const currentLocale = IntlStore.getCurrentLocale();
+    return toLocaleDigitUtil(currentLocale, digit);
+}
+
 export type {MockFetch, FormData};
 export {
     translateLocal,
@@ -401,4 +466,6 @@ export {
     formatPhoneNumber,
     localeCompare,
     STRIPE_CUSTOMER_ID,
+    getNvpDismissedProductTraining,
+    toLocaleDigit,
 };

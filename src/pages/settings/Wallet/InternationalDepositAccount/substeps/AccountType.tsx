@@ -82,6 +82,4 @@ function AccountType({isEditing, onNext, fieldsMap}: CustomSubStepProps) {
     );
 }
 
-AccountType.displayName = 'AccountType';
-
 export default AccountType;

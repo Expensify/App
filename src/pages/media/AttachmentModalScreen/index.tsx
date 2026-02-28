@@ -1,10 +1,12 @@
 import React, {useContext, useMemo} from 'react';
+import Log from '@libs/Log';
 import SCREENS from '@src/SCREENS';
 import AttachmentModalContext from './AttachmentModalContext';
 import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
 import ReportAddAttachmentModalContent from './routes/report/ReportAddAttachmentModalContent';
 import ReportAttachmentModalContent from './routes/report/ReportAttachmentModalContent';
 import ReportAvatarModalContent from './routes/report/ReportAvatarModalContent';
+import ShareDetailsAttachmentModalContent from './routes/ShareDetailsAttachmentModalContent';
 import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
 import type {AttachmentModalScreenProps, AttachmentModalScreenType} from './types';
@@ -81,9 +83,18 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
         );
     }
 
+    if (route.name === SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT) {
+        return (
+            <ShareDetailsAttachmentModalContent
+                route={routeWithContext as RouteType<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>}
+                navigation={navigation as NavigationType<typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT>}
+            />
+        );
+    }
+
+    Log.warn('Unknown attachment modal screen. Make sure to add the new screen as a route to the AttachmentModalScreen component.', {route});
+
     return null;
 }
-
-AttachmentModalScreen.displayName = 'AttachmentModalScreen';
 
 export default AttachmentModalScreen;

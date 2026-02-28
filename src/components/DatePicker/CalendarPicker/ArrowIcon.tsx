@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,6 +17,7 @@ type ArrowIconProps = {
 };
 
 function ArrowIcon({disabled = false, direction = CONST.DIRECTION.RIGHT}: ArrowIconProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -24,12 +25,10 @@ function ArrowIcon({disabled = false, direction = CONST.DIRECTION.RIGHT}: ArrowI
         <View style={[styles.p1, StyleUtils.getDirectionStyle(direction), disabled ? styles.buttonOpacityDisabled : {}]}>
             <Icon
                 fill={theme.icon}
-                src={Expensicons.ArrowRight}
+                src={icons.ArrowRight}
             />
         </View>
     );
 }
-
-ArrowIcon.displayName = 'ArrowIcon';
 
 export default ArrowIcon;

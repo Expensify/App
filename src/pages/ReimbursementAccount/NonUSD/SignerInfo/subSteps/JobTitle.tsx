@@ -23,9 +23,9 @@ function JobTitle({onNext, onMove, isEditing}: JobTitleProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            return getFieldRequiredErrors(values, [inputID]);
+            return getFieldRequiredErrors(values, [inputID], translate);
         },
-        [inputID],
+        [inputID, translate],
     );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -51,7 +51,5 @@ function JobTitle({onNext, onMove, isEditing}: JobTitleProps) {
         />
     );
 }
-
-JobTitle.displayName = 'JobTitle';
 
 export default JobTitle;

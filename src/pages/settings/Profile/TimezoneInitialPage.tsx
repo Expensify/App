@@ -27,7 +27,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
     const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
 
     return (
-        <ScreenWrapper testID={TimezoneInitialPage.displayName}>
+        <ScreenWrapper testID="TimezoneInitialPage">
             <HeaderWithBackButton
                 title={translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack()}
@@ -36,7 +36,13 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
                 <View style={[styles.ph5]}>
                     <Text style={[styles.mb5]}>{translate('timezonePage.isShownOnProfile')}</Text>
                     <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('timezonePage.getLocationAutomatically')}</Text>
+                        <Text
+                            style={[styles.flexShrink1, styles.mr2]}
+                            accessible={false}
+                            aria-hidden
+                        >
+                            {translate('timezonePage.getLocationAutomatically')}
+                        </Text>
                         <Switch
                             accessibilityLabel={translate('timezonePage.getLocationAutomatically')}
                             isOn={!!timezone.automatic}
@@ -65,7 +71,5 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
         </ScreenWrapper>
     );
 }
-
-TimezoneInitialPage.displayName = 'TimezoneInitialPage';
 
 export default withCurrentUserPersonalDetails(TimezoneInitialPage);

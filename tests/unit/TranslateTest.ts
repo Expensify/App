@@ -72,7 +72,7 @@ describe('TranslateTest', () => {
         const mainLanguage = originalTranslations.en;
         const mainLanguageKeys = traverseKeyPath(mainLanguage);
 
-        languages.forEach((ln) => {
+        for (const ln of languages) {
             const languageKeys = traverseKeyPath(originalTranslations[ln as keyof typeof originalTranslations]);
 
             it(`Does ${ln} locale have all the keys`, () => {
@@ -92,7 +92,7 @@ describe('TranslateTest', () => {
                 }
                 expect(hasAllKeys).toEqual([]);
             });
-        });
+        }
     });
 
     type ReportContentArgs = {content: string};

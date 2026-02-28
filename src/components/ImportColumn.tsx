@@ -154,7 +154,7 @@ type ImportColumnProps = {
 function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowDropdownMenu = true}: ImportColumnProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const {containsHeader = true} = spreadsheet ?? {};
 
     const options: Array<DropdownOption<string>> = (columnRoles ?? []).map((item) => ({
@@ -175,10 +175,10 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
             return;
         }
         setColumnName(columnIndex, colName);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
-    const columnHeader = containsHeader ? column.at(0) : translate('spreadsheet.column', {name: columnName});
+    const columnHeader = containsHeader ? column.at(0) : translate('spreadsheet.column', columnName);
 
     return (
         <View style={[styles.importColumnCard, styles.mt4]}>
@@ -218,8 +218,6 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
         </View>
     );
 }
-
-ImportColumn.displayName = 'ImportColumn';
 
 export type {ColumnRole};
 export default ImportColumn;

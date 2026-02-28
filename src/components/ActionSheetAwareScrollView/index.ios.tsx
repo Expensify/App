@@ -1,44 +1,32 @@
-import React, {forwardRef, useCallback} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView} from 'react-native';
-import Reanimated, {useAnimatedRef, useAnimatedStyle} from 'react-native-reanimated';
-import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
+import React from 'react';
+import Reanimated, {useAnimatedStyle} from 'react-native-reanimated';
+import {Actions, ActionSheetAwareScrollViewProvider, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
+import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
+import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
 
-const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>(({style, children, ...props}, ref) => {
-    const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
+function ActionSheetAwareScrollView({style, children, ref, ...restProps}: ActionSheetAwareScrollViewProps) {
+    const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(ref);
 
-    const onRef = useCallback(
-        (assignedRef: Reanimated.ScrollView) => {
-            if (typeof ref === 'function') {
-                ref(assignedRef);
-            } else if (ref) {
-                // eslint-disable-next-line no-param-reassign
-                ref.current = assignedRef;
-            }
-
-            scrollViewAnimatedRef(assignedRef);
-        },
-        [ref, scrollViewAnimatedRef],
-    );
-
-    const spacing = useActionSheetKeyboardSpacing(scrollViewAnimatedRef);
+    const spacing = useActionSheetKeyboardSpacing(animatedRef);
     const animatedStyle = useAnimatedStyle(() => ({
         paddingTop: spacing.get(),
     }));
 
+    usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
+
     return (
         <Reanimated.ScrollView
-            ref={onRef}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...restProps}
+            ref={onRef}
             style={[style, animatedStyle]}
         >
             {children}
         </Reanimated.ScrollView>
     );
-});
+}
 
 export default ActionSheetAwareScrollView;
 
@@ -52,4 +40,4 @@ const renderScrollComponent: RenderActionSheetAwareScrollViewComponent = (props)
     return <ActionSheetAwareScrollView {...props} />;
 };
 
-export {renderScrollComponent, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions};
+export {renderScrollComponent, ActionSheetAwareScrollViewProvider, Actions, useActionSheetAwareScrollViewState, useActionSheetAwareScrollViewActions};

@@ -128,4 +128,24 @@ describe('useHtmlPaste - handlePastePlainText', () => {
             expect(textInputRef.current?.textContent).toBe(plainText);
         }
     });
+
+    it('should not trim trailing whitespace when pasting', async () => {
+        const textWithTrailingWhitespace = 'Hello World   ';
+        mockWindowSelection('');
+        const event = createMockClipboardEvent(textWithTrailingWhitespace);
+
+        const {result} = renderHook<UseHtmlPasteReturn | void, void>(() => useHtmlPaste(textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(result?.current).toBeDefined();
+
+        if (result?.current) {
+            const handlePastePlainText = result.current.handlePastePlainText;
+
+            act(() => handlePastePlainText?.(event));
+
+            expect(textInputRef.current?.textContent).toBe(textWithTrailingWhitespace);
+            expect(textInputRef.current?.textContent?.endsWith('   ')).toBe(true);
+        }
+    });
 });

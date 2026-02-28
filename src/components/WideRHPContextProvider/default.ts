@@ -1,19 +1,30 @@
-// We use Animated for all functionality related to wide RHP to make it easier
-// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
-// eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
-import type {WideRHPContextType} from './types';
+import type {WideRHPActionsContextType, WideRHPStateContextType} from './types';
 
-const defaultWideRHPContextValue: WideRHPContextType = {
+const defaultWideRHPStateContextValue: WideRHPStateContextType = {
     wideRHPRouteKeys: [],
-    expandedRHPProgress: new Animated.Value(0),
-    secondOverlayProgress: new Animated.Value(0),
-    shouldRenderSecondaryOverlay: false,
-    showWideRHPVersion: () => {},
-    cleanWideRHPRouteKey: () => {},
-    markReportIDAsExpense: () => {},
-    isReportIDMarkedAsExpense: () => false,
-    dismissToWideReport: () => {},
+    superWideRHPRouteKeys: [],
+    shouldRenderSecondaryOverlayForWideRHP: false,
+    shouldRenderSecondaryOverlayForRHPOnWideRHP: false,
+    shouldRenderSecondaryOverlayForRHPOnSuperWideRHP: false,
+    shouldRenderTertiaryOverlay: false,
+    isWideRHPFocused: false,
+    isSuperWideRHPFocused: false,
 };
 
-export default defaultWideRHPContextValue;
+const defaultWideRHPActionsContextValue: WideRHPActionsContextType = {
+    showWideRHPVersion: () => {},
+    showSuperWideRHPVersion: () => {},
+    removeWideRHPRouteKey: () => {},
+    removeSuperWideRHPRouteKey: () => {},
+    markReportIDAsExpense: () => {},
+    markReportIDAsMultiTransactionExpense: () => {},
+    unmarkReportIDAsMultiTransactionExpense: () => {},
+    isReportIDMarkedAsExpense: () => false,
+    isReportIDMarkedAsMultiTransactionExpense: () => false,
+    syncRHPKeys: () => {},
+    clearWideRHPKeys: () => {},
+    setIsWideRHPClosing: () => {},
+    setIsSuperWideRHPClosing: () => {},
+};
+
+export {defaultWideRHPStateContextValue, defaultWideRHPActionsContextValue};

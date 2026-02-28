@@ -24,9 +24,9 @@ function EnablePaymentsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const paymentCardList = fundList ?? {};
 
     useEffect(() => {
@@ -46,7 +46,7 @@ function EnablePaymentsPage() {
     if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {
         return (
             <ScreenWrapper
-                testID={EnablePaymentsPage.displayName}
+                testID="EnablePaymentsPage"
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
@@ -84,19 +84,10 @@ function EnablePaymentsPage() {
     }
 
     if (CurrentStep) {
-        return (
-            <View
-                style={styles.flex1}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
-            >
-                {CurrentStep}
-            </View>
-        );
+        return <View style={styles.flex1}>{CurrentStep}</View>;
     }
 
     return null;
 }
-
-EnablePaymentsPage.displayName = 'EnablePaymentsPage';
 
 export default EnablePaymentsPage;

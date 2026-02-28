@@ -1,12 +1,12 @@
-import type {InputType} from '@storybook/csf';
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
 import {View} from 'react-native';
+import type {InputType} from 'storybook/internal/csf';
 import type {ValueOf} from 'type-fest';
 import TransactionPreviewContent from '@components/ReportActionItem/TransactionPreview/TransactionPreviewContent';
 import type {TransactionPreviewContentProps} from '@components/ReportActionItem/TransactionPreview/types';
 import ThemeProvider from '@components/ThemeProvider';
-import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';

@@ -44,7 +44,6 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
             shouldEnableMaxHeight={canUseTouchScreen()}
-            headerGapStyles={isDraggingOver ? styles.dropWrapper : []}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
@@ -60,7 +59,5 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
         </ScreenWrapper>
     );
 }
-
-StepScreenDragAndDropWrapper.displayName = 'StepScreenDragAndDropWrapper';
 
 export default StepScreenDragAndDropWrapper;

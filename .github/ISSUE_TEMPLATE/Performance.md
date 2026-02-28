@@ -32,7 +32,6 @@ Select the officially supported platforms where the issue was reproduced:
 - [ ] iOS: mWeb Chrome
 - [ ] Windows: Chrome
 - [ ] MacOS: Chrome / Safari
-- [ ] MacOS: Desktop
 
 <details>
   <summary>Platforms Tested:</summary>
@@ -45,7 +44,6 @@ On which of our officially supported platforms was this issue tested:
 - [ ] iOS: mWeb Chrome
 - [ ] Windows: Chrome
 - [ ] MacOS: Chrome / Safari
-- [ ] MacOS: Desktop
 
 </details>
 

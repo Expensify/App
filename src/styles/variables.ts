@@ -34,6 +34,7 @@ export default {
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
+    avatarSizeXXLarge: 720,
     avatarSizeXLarge: 100,
     avatarSizeLarge: 80,
     avatarSizeMediumLarge: 60,
@@ -62,7 +63,7 @@ export default {
     fontSizeHeroXL: 72,
     fontSizeH1: 19,
     fontSizeH2: 19,
-    fontSizeXLarge: 22,
+    fontSizeXLarge: getValueUsingPixelRatio(22, 28),
     fontSizeXXLarge: 28,
     fontSizeXXXLarge: getValueUsingPixelRatio(32, 37),
     fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
@@ -101,12 +102,18 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
+    receiptPreviewMaxWidth: 440,
+    receiptPreviewMaxHeight: 440,
+    homePageLeftColumnMaxWidth: 680,
+    homePageRightColumnMaxWidth: 488,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
+    popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
     gutterWidth: 12,
@@ -140,8 +147,12 @@ export default {
     checkboxLabelActiveOpacity: 0.7,
     checkboxLabelHoverOpacity: 1,
     avatarChatSpacing: 12,
+    cornerHandleSize: 12,
+    cornerTapTargetSize: 40,
+    edgeHandleTapTargetThickness: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    cropBorderWidth: 1,
     emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
     emptyLHNIconHeight: 16,
     emptySelectionListIconWidth: 120,
@@ -177,6 +188,7 @@ export default {
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
+    tabSelectorScrollMarginInline: 20,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
@@ -216,11 +228,16 @@ export default {
     receiptPlaceholderIconWidth: 80,
     receiptPlaceholderIconHeight: 80,
     reportPreviewMaxWidth: 335,
+    previewEReceiptHeight: 186,
     reportActionImagesSingleImageHeight: 160,
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
     reportActionItemImagesMoreCornerTriangleWidth: 40,
     popoverZIndex: 10000,
+    modalBaseZIndex: 9999,
+    sidePanelZIndex: 9998,
+    modalRightDockedZIndex: 9997,
+    modalLowestZIndex: 9996,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
@@ -233,6 +250,7 @@ export default {
     changePolicyEducationModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
     changePolicyEducationModalIconHeight: 180,
+    transactionReceiptButtonWidth: 100,
 
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
 
@@ -259,6 +277,9 @@ export default {
 
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
+    cardScarfOverlayWidth: 264,
+    cardScarfOverlayHeight: 172,
+    cardScarfOverlayZIndex: 2,
     cardIconWidth: 40,
     cardIconHeight: 26,
     cardBorderRadius: 4,
@@ -316,6 +337,9 @@ export default {
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
 
+    companyCardsPageNotFoundIconWidth: 97,
+    companyCardsPageNotFoundIconHeight: 140,
+
     h20: 20,
     h28: 28,
     h36: 36,
@@ -339,6 +363,7 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
+    w200: 200,
     // Transaction item row heights based on layout types
     // Wide screen (desktop) layout
     optionRowWideItemHeight: 64,
@@ -380,4 +405,28 @@ export default {
     uberEmployeeInviteButtonWidth: 62,
     uberEmptyListIconWidth: 190,
     uberEmptyListIconHeight: 136,
+
+    // Report search header max width
+    reportSearchHeaderMaxWidth: 700,
+
+    // Split expense tabs
+    splitExpensePercentageWidth: 66,
+
+    // Multifactor Authentication illustrations size
+    openPadlockWidth: 140,
+    openPadlockHeight: 140,
+    transactionHandWidth: 118,
+    transactionHandHeight: 191,
+    runOutOfTimeWidth: 218,
+    runOutOfTimeHeight: 200,
+    humptyDumptyWidth: 245,
+    humptyDumptyHeight: 165,
+    magnifyingGlassSpyMouthClosedWidth: 161,
+    magnifyingGlassSpyMouthClosedHeight: 169,
+
+    // Odometer photo information container
+    leftPositionOdometerPhotoInformationContainer: 20,
+    rightPositionOdometerPhotoInformationContainer: 20,
+    bottomPositionOdometerPhotoInformationContainer: 20,
+    paddingOdometerPhotoInformationContainer: 13.5,
 } as const;

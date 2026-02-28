@@ -4,12 +4,12 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ['.github/**', 'package.json', 'package-lock.json', 'tsconfig.json']
+    paths: ['.github/**', 'scripts/**', 'package.json', 'package-lock.json', 'tsconfig.json']
 
 jobs:
   verify:
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
         # v4

@@ -109,14 +109,14 @@ function getOrderFromArticleFrontMatter(path: string): number | undefined {
  * @param routeHubs - The hubs insude docs/data/_routes.yml for a platform
  */
 function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof platformNames>, routeHubs: Hub[]) {
-    hubs.forEach((hub) => {
+    for (const hub of hubs) {
         // Iterate through each directory in articles
-        fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}`).forEach((fileOrFolder) => {
+        for (const fileOrFolder of fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}`)) {
             // If the directory content is a markdown file, then it is an article
             if (fileOrFolder.endsWith('.md')) {
                 const articleObj = getArticleObj(fileOrFolder);
                 pushOrCreateEntry(routeHubs, hub, 'articles', articleObj);
-                return;
+                continue;
             }
 
             // For readability, we will use the term section to refer to subfolders
@@ -124,18 +124,18 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
             const articles: Article[] = [];
 
             // Each subfolder will be a section containing articles
-            fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}/${section}`).forEach((subArticle) => {
+            for (const subArticle of fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}/${section}`)) {
                 const order = getOrderFromArticleFrontMatter(`${docsDir}/articles/${platformName}/${hub}/${section}/${subArticle}`);
                 articles.push(getArticleObj(subArticle, order));
-            });
+            }
 
             pushOrCreateEntry(routeHubs, hub, 'sections', {
                 href: section,
                 title: toTitleCase(section.replaceAll('-', ' ')),
                 articles,
             });
-        });
-    });
+        }
+    }
 }
 
 function run() {

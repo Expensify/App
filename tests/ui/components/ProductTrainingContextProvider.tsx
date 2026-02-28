@@ -1,5 +1,5 @@
 import {render, renderHook} from '@testing-library/react-native';
-import {createRef, forwardRef, useImperativeHandle} from 'react';
+import {createRef, useImperativeHandle} from 'react';
 import type {Ref} from 'react';
 import Onyx from 'react-native-onyx';
 import {ProductTrainingContextProvider, useProductTrainingContext} from '@components/ProductTrainingContext';
@@ -40,13 +40,13 @@ type ProductTrainingRef = ReturnType<typeof useProductTrainingContext>;
 
 // A simple component that calls useProductTrainingContext and sets its result into the ref.
 // Used in cases where using renderHook is not possible, for example, when we need to share the same instance of the context.
-const ProductTraining = forwardRef(({tooltipName, shouldShow}: {tooltipName: ProductTrainingTooltipName; shouldShow?: boolean}, ref: Ref<ProductTrainingRef>) => {
+function ProductTraining({tooltipName, shouldShow, ref}: {tooltipName: ProductTrainingTooltipName; shouldShow?: boolean; ref?: Ref<ProductTrainingRef>}) {
     const result = useProductTrainingContext(tooltipName, shouldShow);
 
     useImperativeHandle(ref, () => result);
 
     return null;
-});
+}
 
 const signUpWithTestUser = () => {
     TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);

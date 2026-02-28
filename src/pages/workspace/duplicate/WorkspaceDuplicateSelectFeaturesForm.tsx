@@ -4,10 +4,11 @@ import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {PressableWithFeedback} from '@components/Pressable';
-import SelectionList from '@components/SelectionListWithSections';
-import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -33,21 +34,23 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const isCollect = isCollectPolicy(policy);
-    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
+    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
     const [duplicatedWorkspaceAvatar, setDuplicatedWorkspaceAvatar] = useState<File | undefined>();
     const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
     const allIds = getMemberAccountIDsForWorkspace(policy?.employeeList);
     const totalMembers = Object.keys(allIds).length;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const taxesLength = Object.keys(policy?.taxRates?.taxes ?? {}).length ?? 0;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const categoriesCount = Object.keys(policyCategories ?? {}).length;
+    const codingRulesCount = Object.keys(policy?.rules?.codingRules ?? {}).length;
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
     const reportFields = Object.keys(getReportFieldsByPolicyID(policyID)).length ?? 0;
     const customUnits = getPerDiemCustomUnit(policy);
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.length;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
@@ -140,7 +143,14 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                           : undefined,
                   }
                 : undefined,
-            ratesCount > 0
+            codingRulesCount > 0 && !isCollect
+                ? {
+                      translation: translate('workspace.duplicateWorkspace.merchantRules'),
+                      value: 'codingRules',
+                      alternateText: translate('workspace.duplicateWorkspace.merchantRulesCount', {count: codingRulesCount}),
+                  }
+                : undefined,
+            ratesCount > 0 && policy?.areDistanceRatesEnabled
                 ? {
                       translation: translate('workspace.common.distanceRates'),
                       value: 'distanceRates',
@@ -155,11 +165,17 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                   }
                 : undefined,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany
+            policy?.areInvoicesEnabled && ((bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany)
                 ? {
                       translation: translate('workspace.common.invoices'),
                       value: 'invoices',
                       alternateText: bankAccountList ? `${Object.keys(bankAccountList).length} ${translate('common.bankAccounts').toLowerCase()}, ${invoiceCompany}` : invoiceCompany,
+                  }
+                : undefined,
+            policy?.isTravelEnabled
+                ? {
+                      translation: translate('workspace.common.travel'),
+                      value: 'travel',
                   }
                 : undefined,
         ];
@@ -180,11 +196,12 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         allRates,
         bankAccountList,
         invoiceCompany,
+        codingRulesCount,
     ]);
 
-    const listData: ListItem[] = useMemo(() => {
+    const featuresToCopy: ListItem[] = useMemo(() => {
         return items.map((option) => {
-            const alternateText = option?.alternateText ? option.alternateText.trim().replace(/,$/, '') : undefined;
+            const alternateText = option?.alternateText ? option.alternateText.trim().replaceAll(/,$/g, '') : undefined;
             return {
                 text: option.translation,
                 keyForList: option.value,
@@ -222,14 +239,27 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 perDiem: selectedItems.includes('perDiem'),
                 reimbursements: selectedItems.includes('invoices'),
                 expenses: selectedItems.includes('rules'),
-                customUnits: selectedItems.includes('distanceRates'),
+                distance: selectedItems.includes('distanceRates'),
                 invoices: selectedItems.includes('invoices'),
                 exportLayouts: selectedItems.includes('workflows'),
+                overview: selectedItems.includes('overview'),
+                travel: selectedItems.includes('travel'),
+                codingRules: selectedItems.includes('codingRules'),
             },
             file: duplicatedWorkspaceAvatar,
+            localCurrency: currentUserPersonalDetails?.localCurrencyCode ?? '',
         });
         Navigation.closeRHPFlow();
-    }, [duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, policyCategories, selectedItems, translate, duplicatedWorkspaceAvatar]);
+    }, [
+        duplicateWorkspace?.name,
+        duplicateWorkspace?.policyID,
+        policy,
+        policyCategories,
+        selectedItems,
+        translate,
+        duplicatedWorkspaceAvatar,
+        currentUserPersonalDetails?.localCurrencyCode,
+    ]);
 
     const confirmDuplicateAndHideModal = useCallback(() => {
         setIsDuplicateModalOpen(false);
@@ -295,17 +325,24 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             return;
         }
         setSelectedItems(items.map((i) => i.value));
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [items.length]);
 
     useEffect(() => {
         fetchWorkspaceRelatedData();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const isSelectAllChecked = selectedItems.length > 0 && selectedItems.length === items.length;
+
+    const confirmButtonOptions: ConfirmButtonOptions<ListItem> = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.continue'),
+            onConfirm: onConfirmSelectList,
+        }),
+        [translate, onConfirmSelectList],
+    );
 
     return (
         <>
@@ -319,35 +356,36 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                     <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.duplicateWorkspace.whichFeatures')}</Text>
                 </View>
                 <View style={[styles.flex1]}>
-                    <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5]}>
+                    <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5, styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
-                            accessibilityLabel={translate('workspace.common.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={selectedItems.length > 0 && selectedItems.length !== items.length}
                             onPress={toggleAllItems}
                             disabled={items.length === 0}
+                            shouldSelectOnPressEnter
                         />
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={toggleAllItems}
-                            accessibilityLabel={translate('workspace.common.selectAll')}
-                            role="button"
-                            accessibilityState={{checked: isSelectAllChecked}}
+                            accessible={false}
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
+                            tabIndex={-1}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DUPLICATE_SELECT_FEATURES_SELECT_ALL}
                         >
                             <Text style={[styles.textLabelSupporting, styles.ph3]}>{translate('workspace.common.selectAll')}</Text>
                         </PressableWithFeedback>
                     </View>
                     <SelectionList
+                        data={featuresToCopy}
                         shouldSingleExecuteRowSelect
-                        sections={[{data: listData}]}
                         ListItem={MultiSelectListItem}
                         onSelectRow={updateSelectedItems}
-                        isAlternateTextMultilineSupported
+                        alternateNumberOfSupportedLines={2}
                         addBottomSafeAreaPadding
-                        showConfirmButton
-                        confirmButtonText={translate('common.continue')}
-                        onConfirm={onConfirmSelectList}
+                        confirmButtonOptions={confirmButtonOptions}
                     />
                 </View>
             </>
@@ -374,7 +412,5 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         </>
     );
 }
-
-WorkspaceDuplicateSelectFeaturesForm.displayName = 'WorkspaceDuplicateSelectFeaturesForm';
 
 export default WorkspaceDuplicateSelectFeaturesForm;

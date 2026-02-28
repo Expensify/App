@@ -1,6 +1,7 @@
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import type {ReactNode} from 'react';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
@@ -13,14 +14,16 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type PopoverComponentProps = {
     closeOverlay: () => void;
 };
 
-type DropdownButtonProps = {
+type DropdownButtonProps = WithSentryLabel & {
     /** The label to display on the select */
     label: string;
 
@@ -32,6 +35,21 @@ type DropdownButtonProps = {
 
     /** The component to render in the popover */
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
+
+    /** Whether to use medium size button instead of small */
+    medium?: boolean;
+
+    /** Button inner styles */
+    innerStyles?: StyleProp<ViewStyle>;
+
+    /** Button label style */
+    labelStyle?: StyleProp<TextStyle>;
+
+    /** Caret wrapper style */
+    caretWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Wrapper style for the outer view */
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 const PADDING_MODAL = 8;
@@ -41,7 +59,7 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: DropdownButtonProps) {
+function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medium = false, labelStyle, innerStyles, caretWrapperStyle, wrapperStyle, sentryLabel}: DropdownButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -59,7 +77,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
         vertical: 0,
     });
 
-    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector, canBeMissing: true});
+    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
 
     /**
      * Toggle the overlay between open & closed
@@ -105,23 +123,31 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
 
     const popoverContent = useMemo(() => {
         return PopoverComponent({closeOverlay: toggleOverlay});
-        // PopoverComponent is stable so we don't need it here as a dep.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [toggleOverlay]);
+    }, [PopoverComponent, toggleOverlay]);
 
     return (
-        <View ref={anchorRef}>
+        <View
+            ref={anchorRef}
+            style={wrapperStyle}
+        >
             {/* Dropdown Trigger */}
             <Button
-                small
                 ref={triggerRef}
-                innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}]}
+                innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}, innerStyles]}
                 onPress={calculatePopoverPositionAndToggleOverlay}
+                sentryLabel={sentryLabel}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(medium ? {medium: true} : {small: true})}
             >
-                <CaretWrapper style={[styles.flex1, styles.mw100]}>
+                <CaretWrapper
+                    style={[styles.flex1, styles.mw100, caretWrapperStyle]}
+                    caretWidth={variables.iconSizeSmall}
+                    caretHeight={variables.iconSizeSmall}
+                    isActive={isOverlayVisible}
+                >
                     <Text
                         numberOfLines={1}
-                        style={[styles.textMicroBold, styles.flexShrink1]}
+                        style={[styles.textMicroBold, styles.flexShrink1, labelStyle]}
                     >
                         {buttonText}
                     </Text>
@@ -149,6 +175,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
                 shouldSkipRemeasurement
+                shouldDisplayBelowModals
             >
                 {popoverContent}
             </PopoverWithMeasuredContent>
@@ -156,6 +183,5 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
     );
 }
 
-DropdownButton.displayName = 'DropdownButton';
 export type {PopoverComponentProps};
 export default withViewportOffsetTop(DropdownButton);

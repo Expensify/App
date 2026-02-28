@@ -48,6 +48,7 @@ type GetModalStylesStyleUtil = {
             shouldDisableBottomSafeAreaPadding?: boolean;
             modalOverlapsWithTopSafeArea?: boolean;
         },
+        shouldDisplayBelowModals?: boolean,
     ) => GetModalStyles;
 };
 
@@ -60,12 +61,14 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         outerStyle = {},
         shouldUseModalPaddingStyle = true,
         safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
+        shouldDisplayBelowModals = false,
     ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {
             margin: 0,
             ...outerStyle,
+            zIndex: variables.modalBaseZIndex,
         };
 
         let modalContainerStyle: GetModalStyles['modalContainerStyle'];
@@ -221,6 +224,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     alignItems: 'center',
                     justifyContent: 'flex-end',
                     height: '100%',
+                    zIndex: shouldDisplayBelowModals ? variables.modalLowestZIndex : variables.modalBaseZIndex,
                 };
                 modalContainerStyle = {
                     width: '100%',
@@ -253,6 +257,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     position: 'absolute',
                     alignItems: 'center',
                     justifyContent: 'flex-end',
+                    zIndex: shouldDisplayBelowModals ? variables.modalLowestZIndex : variables.popoverZIndex,
                 };
                 modalContainerStyle = {
                     borderRadius: variables.componentBorderRadiusLarge,
@@ -276,6 +281,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     flexDirection: 'row',
                     justifyContent: 'flex-end',
                     height: '100%',
+                    zIndex: variables.modalRightDockedZIndex,
                 };
                 modalContainerStyle = {
                     width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,

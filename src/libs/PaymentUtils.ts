@@ -5,12 +5,13 @@ import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {ContinueActionParams, PaymentMethod as KYCPaymentMethod} from '@components/KYCWall/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Beta, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -18,8 +19,6 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './actions/BankAccounts';
 import {approveMoneyRequest} from './actions/IOU';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import BankAccountModel from './models/BankAccount';
 import Navigation from './Navigation/Navigation';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
@@ -41,6 +40,8 @@ type SelectPaymentTypeParams = {
     isUserValidated?: boolean;
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
+    iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    betas: OnyxEntry<Beta[]>;
 };
 
 /**
@@ -64,19 +65,21 @@ function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountLi
     return validBankAccount || (shouldIncludeDebitCard && validDebitCard);
 }
 
-function getPaymentMethodDescription(accountType: AccountType, account: BankAccount['accountData'] | Fund['accountData'] | ACHAccount, bankCurrency?: string): string {
+function getPaymentMethodDescription(
+    accountType: AccountType,
+    account: BankAccount['accountData'] | Fund['accountData'] | ACHAccount,
+    translate: LocalizedTranslate,
+    bankCurrency?: string,
+): string {
     if (account) {
         if (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && 'accountNumber' in account) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return `${bankCurrency ? `${bankCurrency} ${CONST.DOT_SEPARATOR} ` : ''}${translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
+            return `${bankCurrency ? `${bankCurrency} ${CONST.DOT_SEPARATOR} ` : ''}${translate('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
         }
         if (accountType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT && 'accountNumber' in account) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return `${translateLocal('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
+            return `${translate('paymentMethodList.accountLastFour')} ${account.accountNumber?.slice(-4)}`;
         }
         if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD && 'cardNumber' in account) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return `${translateLocal('paymentMethodList.cardLastFour')} ${account.cardNumber?.slice(-4)}`;
+            return `${translate('paymentMethodList.cardLastFour')} ${account.cardNumber?.slice(-4)}`;
         }
     }
     return '';
@@ -85,13 +88,13 @@ function getPaymentMethodDescription(accountType: AccountType, account: BankAcco
 /**
  * Get the PaymentMethods list
  */
-function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fundList: Record<string, Fund> | Fund[], styles: ThemeStyles): PaymentMethod[] {
+function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fundList: Record<string, Fund> | Fund[], styles: ThemeStyles, translate: LocalizedTranslate): PaymentMethod[] {
     const combinedPaymentMethods: PaymentMethod[] = [];
 
-    Object.values(bankAccountList).forEach((bankAccount) => {
+    for (const bankAccount of Object.values(bankAccountList)) {
         // Add all bank accounts besides the wallet
         if (bankAccount?.accountData?.type === CONST.BANK_ACCOUNT_TYPES.WALLET) {
-            return;
+            continue;
         }
 
         const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({
@@ -101,27 +104,27 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
         });
         combinedPaymentMethods.push({
             ...bankAccount,
-            description: getPaymentMethodDescription(bankAccount?.accountType, bankAccount.accountData, bankAccount.bankCurrency),
+            description: getPaymentMethodDescription(bankAccount?.accountType, bankAccount.accountData, translate, bankAccount.bankCurrency),
             icon,
             iconSize,
             iconHeight,
             iconWidth,
             iconStyles,
         });
-    });
+    }
 
-    Object.values(fundList).forEach((card) => {
+    for (const card of Object.values(fundList)) {
         const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({bankName: card?.accountData?.bank, isCard: true, styles});
         combinedPaymentMethods.push({
             ...card,
-            description: getPaymentMethodDescription(card?.accountType, card.accountData),
+            description: getPaymentMethodDescription(card?.accountType, card.accountData, translate),
             icon,
             iconSize,
             iconHeight,
             iconWidth,
             iconStyles,
         });
-    });
+    }
 
     return combinedPaymentMethods;
 }
@@ -134,13 +137,48 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
 }
 
 /**
+ * Navigates the user to the appropriate account verification page based on the current route context.
+ */
+const handleUnvalidatedAccount = (iouReport: OnyxEntry<Report>) => {
+    const activeRoute = Navigation.getActiveRoute();
+    const reportID = iouReport?.reportID;
+    if (!reportID) {
+        // Technically possible but should never happen in real life
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+        return;
+    }
+
+    if (activeRoute.includes(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}))) {
+        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+    } else if (activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID}))) {
+        Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+    } else {
+        Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+    }
+};
+
+/**
  * Determines the appropriate payment action based on user validation and policy restrictions.
  * It navigates users to verification pages if necessary, triggers KYC flows for specific payment methods,
  * handles direct approvals, or proceeds with basic payment processing.
  */
 const selectPaymentType = (params: SelectPaymentTypeParams) => {
-    const {event, iouPaymentType, triggerKYCFlow, policy, onPress, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, isUserValidated, confirmApproval, iouReport} =
-        params;
+    const {
+        event,
+        iouPaymentType,
+        triggerKYCFlow,
+        policy,
+        onPress,
+        currentAccountID,
+        currentEmail,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        isUserValidated,
+        confirmApproval,
+        iouReport,
+        iouReportNextStep,
+        betas,
+    } = params;
     if (policy && shouldRestrictUserBillableActions(policy.id)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
@@ -148,8 +186,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
 
     if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
-            return;
+            return handleUnvalidatedAccount(iouReport);
         }
         triggerKYCFlow({event, iouPaymentType});
         setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
@@ -160,7 +197,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, true);
+            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, betas, true);
         }
         return;
     }
@@ -183,13 +220,11 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
 };
 
 /**
- * Get the appropriate payment type, selected policy, and whether a payment method should be selected
+ * Get the appropriate payment type, policy from context (policy related to payment type), policy from payment method, and whether a payment method should be selected
  * based on the provided payment method, active admin policies, and latest bank items.
  */
-function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined) {
+function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined, policyID?: string | undefined) {
     const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(paymentMethod as ValueOf<typeof CONST.PAYMENT_METHODS>);
-    const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
-    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
 
     let paymentType;
     switch (paymentMethod) {
@@ -204,9 +239,19 @@ function getActivePaymentType(paymentMethod: string | undefined, activeAdminPoli
             break;
     }
 
+    // Policy related to the context ie: Policy related to opened chat
+    const policyFromContext = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyID);
+
+    // Policy that is part of payment method ie: Policy when user presses on 'Pay via workspace' option
+    const policyFromPaymentMethod = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
+
+    // When user explicitly selects "Pay Elsewhere" / "Mark as Paid", don't require payment method selection since payment happens outside of Expensify
+    const shouldSelectPaymentMethod = paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && (isPaymentMethod || !isEmpty(latestBankItems));
+
     return {
         paymentType,
-        selectedPolicy,
+        policyFromContext,
+        policyFromPaymentMethod,
         shouldSelectPaymentMethod,
     };
 }
@@ -216,6 +261,7 @@ export {
     getPaymentMethodDescription,
     formatPaymentMethods,
     calculateWalletTransferBalanceFee,
+    handleUnvalidatedAccount,
     selectPaymentType,
     isSecondaryActionAPaymentOption,
     getActivePaymentType,

@@ -13,7 +13,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars, sanitizePhoneOrEmail} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
@@ -24,10 +24,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
 
 function CloseAccountPage() {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {
-        canBeMissing: false,
-    });
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -57,15 +55,8 @@ function CloseAccountPage() {
 
     const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
 
-    /**
-     * Removes spaces and transform the input string to lowercase.
-     * @param phoneOrEmail - The input string to be sanitized.
-     * @returns The sanitized string
-     */
-    const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
-
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM> => {
-        const errors = getFieldRequiredErrors(values, ['phoneOrEmail']);
+        const errors = getFieldRequiredErrors(values, ['phoneOrEmail'], translate);
 
         if (values.phoneOrEmail && userEmailOrPhone) {
             let isValid = false;
@@ -95,7 +86,7 @@ function CloseAccountPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={CloseAccountPage.displayName}
+            testID="CloseAccountPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}>
                 <HeaderWithBackButton
@@ -159,7 +150,5 @@ function CloseAccountPage() {
         </ScreenWrapper>
     );
 }
-
-CloseAccountPage.displayName = 'CloseAccountPage';
 
 export default CloseAccountPage;

@@ -71,5 +71,4 @@ function CustomListMappingStep({importCustomField, customSegmentType, onNext, is
     );
 }
 
-CustomListMappingStep.displayName = 'CustomListMappingStep';
 export default CustomListMappingStep;

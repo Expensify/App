@@ -4,15 +4,16 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {upgradeToCorporate} from '@libs/actions/Policy/Policy';
-import {canModifyPlan, getOwnedPaidPolicies} from '@libs/PolicyUtils';
+import {getOwnedPaidPolicies, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
-import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,9 +41,9 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
-    const currentUserAccountID = getCurrentUserAccountID();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
@@ -52,7 +53,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         if (!firstPolicy || ownerPolicies.length > 1) {
             return [false, undefined];
         }
-        return [canModifyPlan(firstPolicy.id), firstPolicy];
+        return [isPolicyAdmin(firstPolicy), firstPolicy];
     }, [ownerPolicies]);
 
     const handlePlanPress = (planType: PersonalPolicyTypeExcludedProps) => {
@@ -62,7 +63,10 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         if (!ownerPolicies.length) {
             return;
         }
-        if (planType === CONST.POLICY.TYPE.TEAM && privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && !account?.canDowngrade) {
+        if (
+            (planType === CONST.POLICY.TYPE.TEAM && privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && !account?.canDowngrade) ||
+            isSubscriptionTypeOfInvoicing(privateSubscription?.type)
+        ) {
             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
             return;
         }
@@ -124,10 +128,15 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         }
     }
 
+    if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
+        return undefined;
+    }
+
     const autoIncrease = privateSubscription?.addNewUsersAutomatically ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
     const subscriptionType = isAnnual ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
     const subscriptionSize = `${privateSubscription?.userCount ?? translate('subscription.subscriptionSettings.none')}`;
     const autoRenew = privateSubscription?.autoRenew ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
+    const expensifyCode = privateSubscription?.isSecretPromoCode ? '' : (privateSubscription?.expensifyCode ?? '');
 
     return (
         <MenuItemWithTopDescription
@@ -136,7 +145,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             shouldShowRightIcon
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
             numberOfLinesTitle={3}
-            title={translate('subscription.subscriptionSettings.summary', {subscriptionType, subscriptionSize, autoRenew, autoIncrease})}
+            title={translate('subscription.subscriptionSettings.summary', subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease)}
         />
     );
 }

@@ -15,7 +15,5 @@ function CustomStylesForChildrenProvider({children, style}: CustomStylesForChild
     return <CustomStylesForChildrenContext.Provider value={value}>{children}</CustomStylesForChildrenContext.Provider>;
 }
 
-CustomStylesForChildrenProvider.displayName = 'CustomStylesForChildrenProvider';
-
 export default CustomStylesForChildrenProvider;
 export {CustomStylesForChildrenContext};

@@ -2,8 +2,8 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -67,10 +67,10 @@ function NetSuiteAccountingMethodPage({policy, route}: WithPolicyConnectionsProp
 
     return (
         <SelectionScreen
-            displayName={NetSuiteAccountingMethodPage.displayName}
+            displayName="NetSuiteAccountingMethodPage"
             title="workspace.netsuite.advancedConfig.accountingMethods.label"
             headerContent={headerContent}
-            sections={[{data}]}
+            data={data}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectExpenseReportApprovalLevel(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
@@ -83,7 +83,5 @@ function NetSuiteAccountingMethodPage({policy, route}: WithPolicyConnectionsProp
         />
     );
 }
-
-NetSuiteAccountingMethodPage.displayName = 'NetSuiteExpenseReportApprovalLevelSelectPage';
 
 export default withPolicyConnections(NetSuiteAccountingMethodPage);

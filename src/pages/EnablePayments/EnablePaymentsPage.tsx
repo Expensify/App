@@ -22,7 +22,6 @@ function EnablePaymentsPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {
-        canBeMissing: true,
         // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
         // stored values here.
         initWithStoredValues: false,
@@ -52,8 +51,7 @@ function EnablePaymentsPage() {
         <ScreenWrapper
             shouldShowOfflineIndicator={userWallet?.currentStep !== CONST.WALLET.STEP.ONFIDO}
             includeSafeAreaPaddingBottom
-            testID={EnablePaymentsPage.displayName}
-            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+            testID="EnablePaymentsPage"
         >
             {() => {
                 if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {
@@ -87,7 +85,5 @@ function EnablePaymentsPage() {
         </ScreenWrapper>
     );
 }
-
-EnablePaymentsPage.displayName = 'EnablePaymentsPage';
 
 export default EnablePaymentsPage;

@@ -19,6 +19,4 @@ function ZeroWidthView({text = '', displayAsGroup = false}: ZeroWidthViewProps) 
     return null;
 }
 
-ZeroWidthView.displayName = 'ZeroWidthView';
-
 export default ZeroWidthView;

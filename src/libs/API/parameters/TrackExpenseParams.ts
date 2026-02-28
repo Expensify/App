@@ -1,9 +1,11 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 type TrackExpenseParams = {
     amount: number;
+    attendees?: Attendee[] | string;
     currency: string;
     comment: string;
     created: string;
@@ -17,6 +19,7 @@ type TrackExpenseParams = {
     reportPreviewReportActionID?: string;
     optimisticReportID?: string;
     optimisticReportActionID?: string;
+    policyID?: string;
     receipt?: Receipt;
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     category?: string;
@@ -24,6 +27,7 @@ type TrackExpenseParams = {
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
+    reimbursable?: boolean;
     receiptGpsPoints?: string;
     transactionThreadReportID: string | undefined;
     createdReportActionIDForThread: string | undefined;
@@ -32,6 +36,8 @@ type TrackExpenseParams = {
     customUnitRateID?: string;
     description?: string;
     distance?: number;
+    gpsCoordinates?: string;
+    isDistance?: boolean;
 };
 
 export default TrackExpenseParams;

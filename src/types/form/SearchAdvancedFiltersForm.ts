@@ -5,8 +5,10 @@ import type {
     ReportFieldNegatedKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
+    SearchCustomColumnIds,
     SearchDateFilterKeys,
     SearchGroupBy,
+    SearchView,
     SearchWithdrawalType,
 } from '@components/Search/types';
 import CONST from '@src/CONST';
@@ -28,6 +30,7 @@ const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [CONST.SEARCH.SYNTAX_FILTER
 const FILTER_KEYS = {
     POLICY_ID: 'policyID',
     GROUP_BY: 'groupBy',
+    VIEW: 'view',
     TYPE: 'type',
     STATUS: 'status',
 
@@ -125,6 +128,9 @@ const FILTER_KEYS = {
     EXPORTER_NOT: 'exporterNot',
     EXPORTER: 'exporter',
 
+    EXPORTED_TO_NOT: 'exportedToNot',
+    EXPORTED_TO: 'exportedTo',
+
     IN_NOT: 'inNot',
     IN: 'in',
 
@@ -164,10 +170,13 @@ const FILTER_KEYS = {
     ATTENDEE_NOT: 'attendeeNot',
     ATTENDEE: 'attendee',
     REPORT_FIELD: 'reportField',
+
+    COLUMNS: 'columns',
+    LIMIT: 'limit',
 } as const;
 
-const ALLOWED_TYPE_FILTERS = {
-    [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
+const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
         FILTER_KEYS.FROM,
@@ -243,7 +252,10 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.EXPORTER_NOT,
+        FILTER_KEYS.EXPORTED_TO,
+        FILTER_KEYS.EXPORTED_TO_NOT,
         FILTER_KEYS.GROUP_BY,
+        FILTER_KEYS.VIEW,
         FILTER_KEYS.ACTION,
         FILTER_KEYS.ACTION_NOT,
         FILTER_KEYS.HAS,
@@ -261,8 +273,10 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.ATTENDEE,
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.ATTENDEE_NOT,
-    ],
-    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: [
+        FILTER_KEYS.COLUMNS,
+        FILTER_KEYS.LIMIT,
+    ]),
+    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
         FILTER_KEYS.FROM,
@@ -309,6 +323,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_ON,
         FILTER_KEYS.EXPORTED_NOT,
         FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.EXPORTED_TO,
+        FILTER_KEYS.EXPORTED_TO_NOT,
         FILTER_KEYS.ACTION,
         FILTER_KEYS.ACTION_NOT,
         FILTER_KEYS.WITHDRAWAL_ID,
@@ -316,8 +332,9 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TITLE,
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.REPORT_FIELD,
-    ],
-    [CONST.SEARCH.DATA_TYPES.INVOICE]: [
+        FILTER_KEYS.COLUMNS,
+    ]),
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
         FILTER_KEYS.FROM,
@@ -399,9 +416,10 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TITLE,
         FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.TITLE_NOT,
-    ],
+        FILTER_KEYS.COLUMNS,
+    ]),
 
-    [CONST.SEARCH.DATA_TYPES.TRIP]: [
+    [CONST.SEARCH.DATA_TYPES.TRIP]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
         FILTER_KEYS.FROM,
@@ -465,6 +483,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.EXPORTER_NOT,
+        FILTER_KEYS.EXPORTED_TO,
+        FILTER_KEYS.EXPORTED_TO_NOT,
         FILTER_KEYS.ACTION,
         FILTER_KEYS.ACTION_NOT,
         FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO,
@@ -476,9 +496,10 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TITLE,
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.REPORT_FIELD,
-    ],
+        FILTER_KEYS.COLUMNS,
+    ]),
 
-    [CONST.SEARCH.DATA_TYPES.CHAT]: [
+    [CONST.SEARCH.DATA_TYPES.CHAT]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.FROM,
         FILTER_KEYS.FROM_NOT,
@@ -496,9 +517,9 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.IS_NOT,
         FILTER_KEYS.HAS,
         FILTER_KEYS.HAS_NOT,
-    ],
+    ]),
 
-    [CONST.SEARCH.DATA_TYPES.TASK]: [
+    [CONST.SEARCH.DATA_TYPES.TASK]: new Set([
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
         FILTER_KEYS.TITLE,
@@ -515,7 +536,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.DATE_NOT,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
-    ],
+    ]),
 };
 
 type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS> | ReportFieldKey;
@@ -524,8 +545,9 @@ type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
     {
         [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
-
+        [FILTER_KEYS.VIEW]: SearchView;
         [FILTER_KEYS.TYPE]: SearchDataTypes;
+        [FILTER_KEYS.COLUMNS]: SearchCustomColumnIds[];
 
         [FILTER_KEYS.STATUS]: string[] | string;
 
@@ -623,6 +645,9 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.EXPORTER]: string[];
         [FILTER_KEYS.EXPORTER_NOT]: string[];
 
+        [FILTER_KEYS.EXPORTED_TO]: string[];
+        [FILTER_KEYS.EXPORTED_TO_NOT]: string[];
+
         [FILTER_KEYS.TO]: string[];
         [FILTER_KEYS.TO_NOT]: string[];
 
@@ -664,9 +689,8 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.ATTENDEE]: string[];
         [FILTER_KEYS.ATTENDEE_NOT]: string[];
-        [FILTER_KEYS.IS]: string[];
-        [FILTER_KEYS.HAS]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
+        [FILTER_KEYS.LIMIT]: string;
     } & Record<ReportFieldTextKey, string> &
         Record<ReportFieldDateKey, string> &
         Record<ReportFieldNegatedKey, string>

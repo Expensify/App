@@ -22,9 +22,10 @@ import Plaid from './substeps/PlaidStep';
 
 const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
 function AddBankAccount() {
-    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
-    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
-    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const kycWallRef = useContext(KYCWallContext);
@@ -40,9 +41,9 @@ function AddBankAccount() {
                       ...selectedPlaidBankAccount,
                       plaidAccessToken: plaidData?.plaidAccessToken ?? '',
                   };
-            addPersonalBankAccount(bankAccountWithToken);
+            addPersonalBankAccount(bankAccountWithToken, personalPolicyID);
         }
-    }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts, plaidData?.plaidAccessToken]);
+    }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts, plaidData?.plaidAccessToken, personalPolicyID]);
 
     const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
@@ -79,7 +80,7 @@ function AddBankAccount() {
 
     return (
         <ScreenWrapper
-            testID={AddBankAccount.displayName}
+            testID="AddBankAccount"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator
@@ -112,7 +113,5 @@ function AddBankAccount() {
         </ScreenWrapper>
     );
 }
-
-AddBankAccount.displayName = 'AddBankAccountPage';
 
 export default AddBankAccount;

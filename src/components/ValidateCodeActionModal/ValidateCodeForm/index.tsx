@@ -1,14 +1,16 @@
-import React, {forwardRef} from 'react';
+import React from 'react';
+import CONST from '@src/CONST';
 import BaseValidateCodeForm from './BaseValidateCodeForm';
-import type {ValidateCodeFormHandle, ValidateCodeFormProps} from './BaseValidateCodeForm';
+import type {ValidateCodeFormProps} from './BaseValidateCodeForm';
 
-const ValidateCodeForm = forwardRef<ValidateCodeFormHandle, ValidateCodeFormProps>((props, ref) => (
-    <BaseValidateCodeForm
-        autoComplete="one-time-code"
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+function ValidateCodeForm(props: ValidateCodeFormProps) {
+    return (
+        <BaseValidateCodeForm
+            autoComplete={CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        />
+    );
+}
 
 export default ValidateCodeForm;

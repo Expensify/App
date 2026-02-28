@@ -11,6 +11,4 @@ function SearchFiltersDatePage() {
     );
 }
 
-SearchFiltersDatePage.displayName = 'SearchFiltersDatePage';
-
 export default SearchFiltersDatePage;

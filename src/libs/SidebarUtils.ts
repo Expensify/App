@@ -1,11 +1,22 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Card,
+    PersonalDetails,
+    PersonalDetailsList,
+    PolicyTagLists,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    ReportNameValuePairs,
+    Transaction,
+    TransactionViolation,
+    VisibleReportActionsDerivedValue,
+} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -13,8 +24,8 @@ import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
+import {formatList} from './Localize';
 import {
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
@@ -23,53 +34,91 @@ import {
     shouldShowLastActorDisplayName,
 } from './OptionsListUtils';
 import Parser from './Parser';
-import Performance from './Performance';
-import {getCleanedTagName, getPolicy} from './PolicyUtils';
+import {getCleanedTagName} from './PolicyUtils';
 import {
     getActionableCardFraudAlertResolutionMessage,
     getAddedApprovalRuleMessage,
+    getAddedBudgetMessage,
     getAddedConnectionMessage,
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoReimbursementMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getCompanyAddressUpdateMessage,
+    getCompanyCardConnectionBrokenMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
+    getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
+    getDeletedBudgetMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
+    getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
+    getInvoiceCompanyNameUpdateMessage,
+    getInvoiceCompanyWebsiteUpdateMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
-    getOneTransactionThreadReportID,
     getOriginalMessage,
+    getPlaidBalanceFailureMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogEmployeeLeftMessage,
+    getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
+    getReimburserUpdateMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
-    getReopenedMessage,
     getReportAction,
+    getReportActionActorAccountID,
     getReportActionMessageText,
-    getRetractedMessage,
+    getRoomAvatarUpdatedMessage,
+    getSetAutoJoinMessage,
+    getSettlementAccountLockedMessage,
+    getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
+    getTagListUpdatedMessage,
+    getTagListUpdatedRequiredMessage,
     getTravelUpdateMessage,
+    getUpdateACHAccountMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
+    getUpdatedAutoHarvestingMessage,
+    getUpdatedBudgetMessage,
+    getUpdatedDefaultTitleMessage,
+    getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedManualApprovalThresholdMessage,
+    getUpdatedOwnershipMessage,
+    getUpdatedProhibitedExpensesMessage,
+    getUpdatedReimbursementChoiceMessage,
+    getUpdatedSharedBudgetNotificationMessage,
+    getUpdatedTimeEnabledMessage,
+    getUpdatedTimeRateMessage,
     getUpdateRoomDescriptionMessage,
+    getWorkspaceAttendeeTrackingUpdateMessage,
+    getWorkspaceCategoriesUpdatedMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
+    getWorkspaceCustomUnitRateImportedMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
+    getWorkspaceCustomUnitSubRateDeletedMessage,
+    getWorkspaceCustomUnitSubRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceDescriptionUpdatedMessage,
+    getWorkspaceFeatureEnabledMessage,
     getWorkspaceFrequencyUpdateMessage,
+    getWorkspaceReimbursementUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceTagUpdateMessage,
+    getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     isActionOfType,
     isCardIssuedAction,
@@ -78,7 +127,6 @@ import {
     isRenamedAction,
     isTagModificationAction,
     isTaskAction,
-    isTransactionThread,
 } from './ReportActionsUtils';
 import type {OptionData} from './ReportUtils';
 import {
@@ -90,18 +138,19 @@ import {
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getIcons,
+    getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
-    getReportActionActorAccountID,
+    getReceiptUploadErrorReason,
     getReportDescription,
     getReportMetadata,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
-    hasReceiptError,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
     isAnnounceRoom,
@@ -121,6 +170,7 @@ import {
     isIOUOwnedByCurrentUser,
     isJoinRequestInAdminRoom,
     isMoneyRequestReport,
+    isOneOnOneChat,
     isOneTransactionThread,
     isPolicyExpenseChat,
     isSelfDM,
@@ -134,7 +184,6 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
-import {getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
 
@@ -158,10 +207,6 @@ type MiniReport = {
     lastVisibleActionCreated?: string;
 };
 
-function ensureSingleSpacing(text: string) {
-    return text.replace(CONST.REGEX.WHITESPACE, ' ').trim();
-}
-
 function shouldDisplayReportInLHN(
     report: Report,
     reports: OnyxCollection<Report>,
@@ -170,6 +215,7 @@ function shouldDisplayReportInLHN(
     betas: OnyxEntry<Beta[]>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     draftComment: OnyxEntry<string>,
+    transactions: OnyxCollection<Transaction>,
     isReportArchived?: boolean,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -188,7 +234,7 @@ function shouldDisplayReportInLHN(
     const isFocused = report.reportID === currentReportId;
     const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
-    const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, chatReport, doesReportHaveViolations, transactionViolations, reportAttributes);
+    const hasErrorsOtherThanFailedReceipt = hasReportErrorsOtherThanFailedReceipt(report, chatReport, doesReportHaveViolations, transactionViolations, transactions, reportAttributes);
     const isReportInAccessible = report?.errorFields?.notFound;
     if (isOneTransactionThread(report, parentReport, parentReportAction)) {
         return {shouldDisplay: false};
@@ -209,7 +255,7 @@ function shouldDisplayReportInLHN(
         !!report.isPinned ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportAttributes?.[report?.reportID]?.requiresAttention ||
-        report.isOwnPolicyExpenseChat;
+        (report.isOwnPolicyExpenseChat && !isReportArchived);
 
     if (isHidden && !shouldOverrideHidden) {
         return {shouldDisplay: false};
@@ -240,6 +286,7 @@ function getReportsToDisplayInLHN(
     priorityMode: OnyxEntry<PriorityMode>,
     draftComments: OnyxCollection<string>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    transactions: OnyxCollection<Transaction>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -247,9 +294,9 @@ function getReportsToDisplayInLHN(
     const allReportsDictValues = reports ?? {};
     const reportsToDisplay: ReportsToDisplayInLHN = {};
 
-    Object.entries(allReportsDictValues).forEach(([reportID, report]) => {
+    for (const [reportID, report] of Object.entries(allReportsDictValues)) {
         if (!report) {
-            return;
+            continue;
         }
 
         const reportDraftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
@@ -262,14 +309,17 @@ function getReportsToDisplayInLHN(
             betas,
             transactionViolations,
             reportDraftComment,
+            transactions,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
         );
 
         if (shouldDisplay) {
-            reportsToDisplay[reportID] = hasErrorsOtherThanFailedReceipt ? {...report, hasErrorsOtherThanFailedReceipt: true} : report;
+            const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
+            const hasAttentionOrError = requiresAttention || hasErrorsOtherThanFailedReceipt;
+            reportsToDisplay[reportID] = hasAttentionOrError ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt} : report;
         }
-    });
+    }
 
     return reportsToDisplay;
 }
@@ -285,6 +335,7 @@ type UpdateReportsToDisplayInLHNProps = {
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     draftComments: OnyxCollection<string>;
+    transactions: OnyxCollection<Transaction>;
 };
 
 function updateReportsToDisplayInLHN({
@@ -298,12 +349,14 @@ function updateReportsToDisplayInLHN({
     reportNameValuePairs,
     reportAttributes,
     draftComments,
+    transactions,
 }: UpdateReportsToDisplayInLHNProps) {
     const displayedReportsCopy = {...displayedReports};
-    updatedReportsKeys.forEach((reportID) => {
+    for (const reportID of updatedReportsKeys) {
         const report = reports?.[reportID];
         if (!report) {
-            return;
+            delete displayedReportsCopy[reportID];
+            continue;
         }
 
         // Get the specific draft comment for this report instead of using a single draft comment for all reports
@@ -318,16 +371,19 @@ function updateReportsToDisplayInLHN({
             betas,
             transactionViolations,
             reportDraftComment,
+            transactions,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] ?? {}),
             reportAttributes,
         );
 
         if (shouldDisplay) {
-            displayedReportsCopy[reportID] = hasErrorsOtherThanFailedReceipt ? {...report, hasErrorsOtherThanFailedReceipt: true} : report;
+            const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
+            const hasAttentionOrError = requiresAttention || hasErrorsOtherThanFailedReceipt;
+            displayedReportsCopy[reportID] = hasAttentionOrError ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt} : report;
         } else {
             delete displayedReportsCopy[reportID];
         }
-    });
+    }
 
     return displayedReportsCopy;
 }
@@ -337,8 +393,8 @@ function updateReportsToDisplayInLHN({
 function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     reportsDrafts: OnyxCollection<string> | undefined,
+    conciergeReportID: string | undefined,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     const pinnedAndGBRReports: MiniReport[] = [];
     const errorReports: MiniReport[] = [];
@@ -364,7 +420,8 @@ function categorizeReportsForLHN(
         }
 
         const reportID = report.reportID;
-        const displayName = getReportName(report);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const displayName = getReportName({report, conciergeReportID});
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -372,7 +429,7 @@ function categorizeReportsForLHN(
         };
 
         const isPinned = !!report.isPinned;
-        const requiresAttention = !!reportAttributes?.[reportID]?.requiresAttention;
+        const requiresAttention = !!report?.requiresAttention;
         const draftComment = reportsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
         const hasDraft = !!draftComment;
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
@@ -499,11 +556,9 @@ function sortReportsToDisplayInLHN(
     priorityMode: OnyxEntry<PriorityMode>,
     localeCompare: LocaleContextProps['localeCompare'],
     reportsDrafts: OnyxCollection<string> | undefined,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
+    conciergeReportID: string | undefined,
 ): string[] {
-    Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
-
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInFocusMode;
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -518,7 +573,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportNameValuePairs, reportAttributes);
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, conciergeReportID, reportNameValuePairs);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
@@ -532,7 +587,6 @@ function sortReportsToDisplayInLHN(
         sortedCategories.archivedReports,
     );
 
-    Performance.markEnd(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     return result;
 }
 
@@ -577,26 +631,8 @@ function getReasonAndReportActionThatHasRedBrickRoad(
             reason: CONST.RBR_REASONS.HAS_VIOLATIONS,
         };
     }
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? []);
-    if (transactionThreadReportID) {
-        const transactionID = getTransactionID(transactionThreadReportID);
-        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (hasReceiptError(transaction)) {
-            return {
-                reason: CONST.RBR_REASONS.HAS_ERRORS,
-            };
-        }
-    }
-    const transactionID = getTransactionID(report.reportID);
-    const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
-        return {
-            reason: CONST.RBR_REASONS.HAS_ERRORS,
-        };
-    }
 
-    return null;
+    return getReceiptUploadErrorReason(report, chatReport, reportActions, transactions);
 }
 
 function shouldShowRedBrickRoad(
@@ -623,32 +659,46 @@ function getOptionData({
     personalDetails,
     policy,
     parentReportAction,
-    lastMessageTextFromReport: lastMessageTextFromReportProp,
+    conciergeReportID,
     invoiceReceiverPolicy,
+    lastMessageTextFromReport: lastMessageTextFromReportProp,
     card,
     lastAction,
+    translate,
     localeCompare,
     isReportArchived,
     lastActionReport,
     movedFromReport,
     movedToReport,
+    currentUserAccountID,
+    visibleReportActionsData,
+    reportAttributesDerived,
+    policyTags,
+    currentUserLogin,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
-    policy: OnyxEntry<Policy> | undefined;
+    policy: OnyxEntry<Policy>;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
+    conciergeReportID: string | undefined;
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
     lastMessageTextFromReport?: string;
-    invoiceReceiverPolicy?: OnyxEntry<Policy>;
     reportAttributes: OnyxEntry<ReportAttributes>;
     card: Card | undefined;
     lastAction: ReportAction | undefined;
+    translate: LocalizedTranslate;
     localeCompare: LocaleContextProps['localeCompare'];
     isReportArchived: boolean | undefined;
-    lastActionReport: OnyxEntry<Report> | undefined;
+    lastActionReport: OnyxEntry<Report>;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    policyTags?: OnyxEntry<PolicyTagLists>;
+    currentUserLogin?: string;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -671,7 +721,7 @@ function getOptionData({
         isUnread: null,
         isUnreadWithMention: null,
         hasDraftComment: false,
-        keyForList: undefined,
+        keyForList: '',
         searchText: undefined,
         isPinned: false,
         hasOutstandingChildRequest: false,
@@ -735,7 +785,7 @@ function getOptionData({
     result.tooltipText = getReportParticipantsTitle(visibleParticipantAccountIDs);
     result.hasOutstandingChildTask = report.hasOutstandingChildTask;
     result.hasParentAccess = report.hasParentAccess;
-    result.isConciergeChat = isConciergeChatReport(report);
+    result.isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     result.participants = report.participants;
 
     const isExpense = isExpenseReport(report);
@@ -744,8 +794,21 @@ function getOptionData({
 
     const status = personalDetail?.status ?? '';
 
+    // For 1:1 DMs, add the other participant's selected timezone
+    if (isOneOnOneChat(report)) {
+        const recipientPersonalDetail = participantPersonalDetailListExcludeCurrentUser.at(0);
+        result.timezone = recipientPersonalDetail?.timezone;
+    }
+
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, localeCompare, undefined, isSelfDM(report));
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
+        (participantPersonalDetailList || []).slice(0, 10),
+        hasMultipleParticipants,
+        localeCompare,
+        formatPhoneNumberPhoneUtils,
+        undefined,
+        isSelfDM(report),
+    );
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
@@ -763,19 +826,23 @@ function getOptionData({
             : null;
     }
 
-    // Assign the actor account ID from the last action when it’s a REPORT_PREVIEW action.
-    // to ensures that lastActorDetails.accountID is correctly set in case it's empty string
-    if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDetails) {
-        lastActorDetails = {
-            ...lastActorDetails,
-            accountID: lastAction.actorAccountID,
-        };
-    }
-
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport({report, lastActorDetails, movedFromReport, movedToReport, policy, isReportArchived});
+        lastMessageTextFromReport = getLastMessageTextForReport({
+            translate,
+            report,
+            lastActorDetails,
+            movedFromReport,
+            movedToReport,
+            policy,
+            isReportArchived,
+            reportMetadata,
+            reportAttributesDerived,
+            policyTags,
+            currentUserLogin,
+            lastAction,
+        });
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
@@ -789,12 +856,14 @@ function getOptionData({
         const prefix = getReportSubtitlePrefix(report);
 
         if (isRenamedAction(lastAction)) {
-            result.alternateText = getRenamedAction(lastAction, isExpense, lastActorDisplayName);
+            result.alternateText = getRenamedAction(translate, lastAction, isExpense, lastActorDisplayName);
         } else if (isTaskAction(lastAction)) {
-            result.alternateText = formatReportLastMessageText(getTaskReportActionMessage(lastAction).text);
+            result.alternateText = formatReportLastMessageText(getTaskReportActionMessage(translate, lastAction).text);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM) {
             const actionMessage = getReportActionMessageText(lastAction);
             result.alternateText = actionMessage ? `${lastActorDisplayName}: ${actionMessage}` : '';
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
+            result.alternateText = translate('report.actions.type.leftTheChatWithName', lastActorDisplayName);
         } else if (isInviteOrRemovedAction(lastAction)) {
             let actorDetails;
             if (lastAction.actorAccountID) {
@@ -807,137 +876,228 @@ function getOptionData({
                     accountID: lastAction.actorAccountID,
                 };
             }
-            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails) : undefined;
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID) : undefined;
             const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : (report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0);
             const verb =
                 lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
-                    ? // eslint-disable-next-line @typescript-eslint/no-deprecated
-                      translateLocal('workspace.invite.invited')
-                    : // eslint-disable-next-line @typescript-eslint/no-deprecated
-                      translateLocal('workspace.invite.removed');
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const users = translateLocal(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
+                    ? translate('workspace.invite.invited')
+                    : translate('workspace.invite.removed');
+            const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            const roomName = getReportName(lastActionReport) || lastActionOriginalMessage?.roomName;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const roomName = getReportName({report: lastActionReport}) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
-                        ? // eslint-disable-next-line @typescript-eslint/no-deprecated
-                          ` ${translateLocal('workspace.invite.to')}`
-                        : // eslint-disable-next-line @typescript-eslint/no-deprecated
-                          ` ${translateLocal('workspace.invite.from')}`;
+                        ? ` ${translate('workspace.invite.to')}`
+                        : ` ${translate('workspace.invite.from')}`;
                 result.alternateText += `${preposition} ${roomName}`;
             }
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME)) {
-            result.alternateText = getWorkspaceNameUpdatedMessage(lastAction);
+            result.alternateText = getWorkspaceNameUpdatedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(lastAction)?.resolution) {
-            result.alternateText = getActionableCardFraudAlertResolutionMessage(lastAction);
+            result.alternateText = getActionableCardFraudAlertResolutionMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION)) {
-            result.alternateText = getWorkspaceDescriptionUpdatedMessage(lastAction);
+            result.alternateText = getWorkspaceDescriptionUpdatedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY)) {
-            result.alternateText = getWorkspaceCurrencyUpdateMessage(lastAction);
+            result.alternateText = getWorkspaceCurrencyUpdateMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY)) {
-            result.alternateText = getWorkspaceFrequencyUpdateMessage(lastAction);
+            result.alternateText = getWorkspaceFrequencyUpdateMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE)) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            result.alternateText = translateLocal('workspaceActions.upgradedWorkspace');
+            result.alternateText = translate('workspaceActions.upgradedWorkspace');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE)) {
+            result.alternateText = Parser.htmlToText(translate('workspaceActions.forcedCorporateUpgrade'));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE)) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            result.alternateText = translateLocal('workspaceActions.downgradedWorkspace');
+            result.alternateText = translate('workspaceActions.downgradedWorkspace');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
-            result.alternateText = Parser.htmlToText(getIntegrationSyncFailedMessage(lastAction, report?.policyID));
+            result.alternateText = Parser.htmlToText(getIntegrationSyncFailedMessage(translate, lastAction, report?.policyID));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
+            result.alternateText = Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
+            result.alternateText = Parser.htmlToText(getPlaidBalanceFailureMessage(translate, lastAction));
         } else if (
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) ||
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY) ||
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME)
         ) {
-            result.alternateText = getWorkspaceCategoryUpdateMessage(lastAction);
+            result.alternateText = getWorkspaceCategoryUpdateMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES)) {
+            result.alternateText = getWorkspaceCategoriesUpdatedMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS)) {
+            result.alternateText = translate('workspaceActions.importTags');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_ALL_TAGS)) {
+            result.alternateText = translate('workspaceActions.deletedAllTags');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST)) {
+            result.alternateText = getTagListUpdatedMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED)) {
+            result.alternateText = getTagListUpdatedRequiredMessage(translate, lastAction);
+        } else if (
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX) ||
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX) ||
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX)
+        ) {
+            result.alternateText = getWorkspaceTaxUpdateMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME)) {
+            result.alternateText = getCustomTaxNameUpdateMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX)) {
+            result.alternateText = getCurrencyDefaultTaxUpdateMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX)) {
+            result.alternateText = getForeignCurrencyDefaultTaxUpdateMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME)) {
-            result.alternateText = getCleanedTagName(getTagListNameUpdatedMessage(lastAction) ?? '');
+            result.alternateText = getCleanedTagName(getTagListNameUpdatedMessage(translate, lastAction) ?? '');
         } else if (isTagModificationAction(lastAction?.actionName ?? '')) {
-            result.alternateText = getCleanedTagName(getWorkspaceTagUpdateMessage(lastAction) ?? '');
+            result.alternateText = getCleanedTagName(getWorkspaceTagUpdateMessage(translate, lastAction) ?? '');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT)) {
-            result.alternateText = getWorkspaceCustomUnitUpdatedMessage(lastAction);
+            result.alternateText = getWorkspaceCustomUnitUpdatedMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES)) {
+            result.alternateText = getWorkspaceCustomUnitRateImportedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitRateAddedMessage(lastAction);
+            result.alternateText = getWorkspaceCustomUnitRateAddedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitRateUpdatedMessage(lastAction);
+            result.alternateText = getWorkspaceCustomUnitRateUpdatedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitRateDeletedMessage(lastAction);
+            result.alternateText = getWorkspaceCustomUnitRateDeletedMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE)) {
+            result.alternateText = getWorkspaceCustomUnitSubRateUpdatedMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_SUB_RATE)) {
+            result.alternateText = getWorkspaceCustomUnitSubRateDeletedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD)) {
-            result.alternateText = getWorkspaceReportFieldAddMessage(lastAction);
+            result.alternateText = getWorkspaceReportFieldAddMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD)) {
-            result.alternateText = getWorkspaceReportFieldUpdateMessage(lastAction);
+            result.alternateText = getWorkspaceReportFieldUpdateMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_REPORT_FIELD)) {
-            result.alternateText = getWorkspaceReportFieldDeleteMessage(lastAction);
+            result.alternateText = getWorkspaceReportFieldDeleteMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
-            result.alternateText = getWorkspaceUpdateFieldMessage(lastAction);
+            result.alternateText = getWorkspaceUpdateFieldMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED) {
+            result.alternateText = getWorkspaceFeatureEnabledMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {
+            result.alternateText = getWorkspaceAttendeeTrackingUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
+            result.alternateText = getAutoPayApprovedReportsEnabledMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
+            result.alternateText = getAutoReimbursementMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER) {
+            result.alternateText = getDefaultApproverUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO) {
+            result.alternateText = getSubmitsToUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
+            result.alternateText = getForwardsToUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
+            result.alternateText = getInvoiceCompanyNameUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {
+            result.alternateText = getInvoiceCompanyWebsiteUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER) {
+            result.alternateText = getReimburserUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
+            result.alternateText = getWorkspaceReimbursementUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT) {
+            result.alternateText = getUpdateACHAccountMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS) {
+            result.alternateText = getCompanyAddressUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
-            result.alternateText = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(lastAction);
+            result.alternateText = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
-            result.alternateText = getPolicyChangeLogMaxExpenseAmountMessage(lastAction);
+            result.alternateText = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE) {
+            result.alternateText = getPolicyChangeLogMaxExpenseAgeMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {
-            result.alternateText = getPolicyChangeLogDefaultBillableMessage(lastAction);
+            result.alternateText = getPolicyChangeLogDefaultBillableMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE) {
-            result.alternateText = getPolicyChangeLogDefaultReimbursableMessage(lastAction);
+            result.alternateText = getPolicyChangeLogDefaultReimbursableMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
-            result.alternateText = getPolicyChangeLogDefaultTitleEnforcedMessage(lastAction);
+            result.alternateText = getPolicyChangeLogDefaultTitleEnforcedMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
-            result.alternateText = getPolicyChangeLogEmployeeLeftMessage(lastAction, true);
+            result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
-            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card});
+            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
-            const displayName = (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails)) || lastActorDisplayName;
+            const displayName =
+                (lastMessageTextFromReport.length > 0 &&
+                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
+                lastActorDisplayName;
             result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else if (lastAction && isOldDotReportAction(lastAction)) {
-            result.alternateText = getMessageOfOldDotReportAction(lastAction);
+            result.alternateText = getMessageOfOldDotReportAction(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
-            result.alternateText = getUpdateRoomDescriptionMessage(lastAction);
+            result.alternateText = Parser.htmlToText(getUpdateRoomDescriptionMessage(translate, lastAction));
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_AVATAR) {
+            result.alternateText = getRoomAvatarUpdatedMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
-            result.alternateText = getPolicyChangeLogAddEmployeeMessage(lastAction);
+            result.alternateText = getPolicyChangeLogAddEmployeeMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
-            result.alternateText = getPolicyChangeLogUpdateEmployee(lastAction);
+            result.alternateText = getPolicyChangeLogUpdateEmployee(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
-            result.alternateText = getPolicyChangeLogDeleteMemberMessage(lastAction);
+            result.alternateText = getPolicyChangeLogDeleteMemberMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-            result.alternateText = Parser.htmlToText(getUnreportedTransactionMessage());
+            result.alternateText = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastAction));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {
-            result.alternateText = getAddedConnectionMessage(lastAction);
+            result.alternateText = getAddedConnectionMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
-            result.alternateText = getRemovedConnectionMessage(lastAction);
+            result.alternateText = getRemovedConnectionMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE) {
-            result.alternateText = getUpdatedAuditRateMessage(lastAction);
+            result.alternateText = getUpdatedAuditRateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE) {
-            result.alternateText = getAddedApprovalRuleMessage(lastAction);
+            result.alternateText = getAddedApprovalRuleMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE) {
-            result.alternateText = getDeletedApprovalRuleMessage(lastAction);
+            result.alternateText = getDeletedApprovalRuleMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE) {
-            result.alternateText = getUpdatedApprovalRuleMessage(lastAction);
+            result.alternateText = getUpdatedApprovalRuleMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD) {
-            result.alternateText = getUpdatedManualApprovalThresholdMessage(lastAction);
+            result.alternateText = getUpdatedManualApprovalThresholdMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET) {
+            result.alternateText = getAddedBudgetMessage(translate, lastAction, policy);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET) {
+            result.alternateText = getUpdatedBudgetMessage(translate, lastAction, policy);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET) {
+            result.alternateText = getDeletedBudgetMessage(translate, lastAction, policy);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED) {
+            result.alternateText = getUpdatedTimeEnabledMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE) {
+            result.alternateText = getUpdatedTimeRateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES) {
+            result.alternateText = getUpdatedProhibitedExpensesMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE) {
+            result.alternateText = getUpdatedReimbursementChoiceMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN) {
+            result.alternateText = getSetAutoJoinMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE) {
+            result.alternateText = getUpdatedDefaultTitleMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING) {
+            result.alternateText = getUpdatedAutoHarvestingMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION) {
+            result.alternateText = getUpdatedIndividualBudgetNotificationMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SHARED_BUDGET_NOTIFICATION) {
+            result.alternateText = getUpdatedSharedBudgetNotificationMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
-            result.alternateText = getRetractedMessage();
+            result.alternateText = translate('iou.retracted');
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
-            result.alternateText = getReopenedMessage();
+            result.alternateText = translate('iou.reopened');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
-            result.alternateText = getTravelUpdateMessage(lastAction);
+            result.alternateText = getTravelUpdateMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
-            result.alternateText = Parser.htmlToText(getChangedApproverActionMessage(lastAction));
+            result.alternateText = Parser.htmlToText(getChangedApproverActionMessage(translate, lastAction));
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
+            result.alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(translate, lastAction, policy));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
+            result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
+            result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
                     ? formatReportLastMessageText(Parser.htmlToText(lastMessageText))
-                    : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
+                    : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction, visibleReportActionsData)?.lastMessageText;
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived).messageText ?? translateLocal('report.noActivityYet'),
+                    getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ??
+                        translate('report.noActivityYet'),
                 );
             }
         }
@@ -945,12 +1105,16 @@ function getOptionData({
     } else {
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
-                // eslint-disable-next-line @typescript-eslint/no-deprecated, @typescript-eslint/prefer-nullish-coalescing
-                getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived).messageText || translateLocal('report.noActivityYet'),
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ||
+                    translate('report.noActivityYet'),
             );
         }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isReportArchived) {
-            const displayName = (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails)) || lastActorDisplayName;
+        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
+            const displayName =
+                (lastMessageTextFromReport.length > 0 &&
+                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
+                lastActorDisplayName;
             result.alternateText = `${displayName}: ${formatReportLastMessageText(lastMessageText)}`;
         } else {
             result.alternateText = formatReportLastMessageText(lastMessageText);
@@ -969,7 +1133,8 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const reportName = getReportName({report, policy, invoiceReceiverPolicy, isReportArchived, conciergeReportID});
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -977,6 +1142,7 @@ function getOptionData({
 
     result.icons = getIcons(
         report,
+        formatPhoneNumberPhoneUtils,
         personalDetails,
         personalDetail?.avatar,
         personalDetail?.login,
@@ -998,10 +1164,14 @@ function getOptionData({
 function getWelcomeMessage(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    invoiceReceiverPolicy: OnyxEntry<Policy>,
     participantPersonalDetailList: PersonalDetails[],
+    translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
     isReportArchived = false,
     reportDetailsLink = '',
+    shouldShowUsePlusButtonText = false,
+    additionalText = '',
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     if (isChatThread(report) || isTaskReport(report)) {
@@ -1009,7 +1179,7 @@ function getWelcomeMessage(
     }
 
     if (isChatRoom(report)) {
-        return getRoomWelcomeMessage(report, isReportArchived, reportDetailsLink);
+        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, isReportArchived, reportDetailsLink);
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -1017,62 +1187,64 @@ function getWelcomeMessage(
             welcomeMessage.messageHtml = policy.description;
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         } else {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChat', {
-                submitterDisplayName: getDisplayNameForParticipant({accountID: report?.ownerAccountID}),
-                workspaceName: getPolicyName({report}),
-            });
+            welcomeMessage.messageHtml = translate(
+                'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
+                getPolicyName({report}),
+                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
+            );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         }
         return welcomeMessage;
     }
 
     if (isSelfDM(report)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageText = translateLocal('reportActionsView.beginningOfChatHistorySelfDM');
+        welcomeMessage.messageText = translate('reportActionsView.beginningOfChatHistorySelfDM');
         return welcomeMessage;
     }
 
     if (isSystemChatUtil(report)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageText = translateLocal('reportActionsView.beginningOfChatHistorySystemDM');
+        welcomeMessage.messageText = translate('reportActionsView.beginningOfChatHistorySystemDM');
         return welcomeMessage;
     }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistory');
     const isMultipleParticipant = participantPersonalDetailList.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare);
-    const displayNamesWithTooltipsText = displayNamesWithTooltips
-        .map(({displayName}, index) => {
-            if (index === displayNamesWithTooltips.length - 1) {
-                return `${displayName}.`;
-            }
-            if (index === displayNamesWithTooltips.length - 2) {
-                if (displayNamesWithTooltips.length > 2) {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    return `${displayName}, ${translateLocal('common.and')}`;
-                }
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return `${displayName} ${translateLocal('common.and')}`;
-            }
-            if (index < displayNamesWithTooltips.length - 2) {
-                return `${displayName},`;
-            }
-            return '';
-        })
-        .join(' ');
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare, formatPhoneNumberPhoneUtils);
 
-    welcomeMessage.messageText = displayNamesWithTooltips.length ? ensureSingleSpacing(`${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`) : '';
+    if (!displayNamesWithTooltips.length) {
+        return welcomeMessage;
+    }
+
+    const userTags = displayNamesWithTooltips.map(({displayName, accountID}) => `<user-details accountid="${accountID}">${displayName ?? ''}</user-details>`);
+    const usersHtml = formatList(userTags);
+
+    let messageHtml = translate('reportActionsView.beginningOfChatHistory', usersHtml);
+
+    // Append additional text for plus button or Concierge
+    if (shouldShowUsePlusButtonText) {
+        messageHtml += translate('reportActionsView.usePlusButton', {additionalText});
+    }
+    if (isConciergeChatReport(report)) {
+        messageHtml = translate('reportActionsView.askConcierge');
+    }
+
+    welcomeMessage.messageHtml = messageHtml;
+    welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
     return welcomeMessage;
 }
 
 /**
  * Get welcome message based on room type
  */
-function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
+function getRoomWelcomeMessage(
+    translate: LocalizedTranslate,
+    report: OnyxEntry<Report>,
+    invoiceReceiverPolicy: OnyxEntry<Policy>,
+    isReportArchived = false,
+    reportDetailsLink = '',
+): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    const reportName = getReportName(report);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const reportName = getReportName({report});
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
@@ -1081,34 +1253,23 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
     }
 
     if (isReportArchived) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfArchivedRoom', {reportName, reportDetailsLink});
+        welcomeMessage.messageHtml = translate('reportActionsView.beginningOfArchivedRoom', reportName, reportDetailsLink);
     } else if (isDomainRoom(report)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryDomainRoom', {domainRoom: report?.reportName ?? ''});
+        welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryDomainRoom', report?.reportName ?? '');
     } else if (isAdminRoom(report)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoom', {workspaceName});
+        welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryAdminRoom', workspaceName);
     } else if (isAnnounceRoom(report)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoom', {workspaceName});
+        welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryAnnounceRoom', workspaceName);
     } else if (isInvoiceRoom(report)) {
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})
-                : // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                  // eslint-disable-next-line @typescript-eslint/no-deprecated
-                  getPolicy(report?.invoiceReceiver?.policyID)?.name;
+                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils})
+                : invoiceReceiverPolicy?.name;
         const receiver = getPolicyName({report});
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoom', {
-            invoicePayer: payer ?? '',
-            invoiceReceiver: receiver,
-        });
+        welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
     } else {
         // Message for user created rooms or other room types.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryUserRoom', {reportName, reportDetailsLink});
+        welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryUserRoom', reportName, reportDetailsLink);
     }
     welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
 
@@ -1126,4 +1287,5 @@ export default {
     shouldShowRedBrickRoad,
     getReportsToDisplayInLHN,
     updateReportsToDisplayInLHN,
+    shouldDisplayReportInLHN,
 };

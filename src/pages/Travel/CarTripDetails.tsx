@@ -1,9 +1,9 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -17,6 +17,7 @@ type CarTripDetailsProps = {
 };
 
 function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -78,14 +79,16 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                 <MenuItemWithTopDescription
                     description={translate('travel.carDetails.confirmation')}
                     title={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
+                    interactive={false}
                     copyValue={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
+                    copyable
                 />
             )}
             {!!displayName && (
                 <MenuItem
                     label={translate('travel.carDetails.driver')}
                     title={displayName}
-                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                    icon={personalDetails?.avatar ?? icons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
                     interactive={false}
@@ -95,7 +98,5 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
         </>
     );
 }
-
-CarTripDetails.displayName = 'CarTripDetails';
 
 export default CarTripDetails;

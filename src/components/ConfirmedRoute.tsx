@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -14,7 +15,6 @@ import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 import DistanceMapView from './DistanceMapView';
-import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import type {WayPoint} from './MapView/MapViewTypes';
 import PendingMapView from './MapView/PendingMapView';
@@ -45,8 +45,9 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'DotIndicatorUnfilled', 'Location'] as const);
 
-    const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN, {canBeMissing: true});
+    const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
 
     const getMarkerComponent = useCallback(
         (icon: IconAsset): ReactNode => (
@@ -74,11 +75,11 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
                     const index = getWaypointIndex(key);
                     let MarkerComponent: IconAsset;
                     if (index === 0) {
-                        MarkerComponent = Expensicons.DotIndicatorUnfilled;
+                        MarkerComponent = expensifyIcons.DotIndicatorUnfilled;
                     } else if (index === lastWaypointIndex) {
-                        MarkerComponent = Expensicons.Location;
+                        MarkerComponent = expensifyIcons.Location;
                     } else {
-                        MarkerComponent = Expensicons.DotIndicator;
+                        MarkerComponent = expensifyIcons.DotIndicator;
                     }
 
                     return {
@@ -89,7 +90,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
                 })
                 .filter((waypoint): waypoint is WayPoint => !!waypoint);
         },
-        [getMarkerComponent],
+        [getMarkerComponent, expensifyIcons.DotIndicator, expensifyIcons.DotIndicatorUnfilled, expensifyIcons.Location],
     );
 
     const waypointMarkers = getWaypointMarkers(waypoints);
@@ -124,7 +125,5 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
         />
     );
 }
-
-ConfirmedRoute.displayName = 'ConfirmedRoute';
 
 export default ConfirmedRoute;

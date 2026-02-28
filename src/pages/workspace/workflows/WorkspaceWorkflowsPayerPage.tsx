@@ -1,14 +1,14 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import type {SectionListData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem, Section} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -39,14 +39,14 @@ type WorkspaceWorkflowsPayerPageProps = WorkspaceWorkflowsPayerPageOnyxProps &
     WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER>;
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
-type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
+type MembersSection = Section<MemberOption>;
 
 function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name ?? '';
     const {isOffline} = useNetwork();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const [searchTerm, setSearchTerm] = useState('');
 
     const isDeletedPolicyEmployee = useCallback(
@@ -60,12 +60,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
 
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
 
-        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+        for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
             const accountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
             const details = personalDetails?.[accountID];
             if (!details) {
                 Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
-                return;
+                continue;
             }
 
             const isOwner = policy?.owner === details?.login;
@@ -73,7 +73,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
 
             if (shouldSkipMember) {
-                return;
+                continue;
             }
 
             const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
@@ -90,7 +90,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 rightElement: roleBadge,
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: details.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -105,9 +105,19 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             } else {
                 policyAdminDetails.push(formattedMember);
             }
-        });
+        }
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [personalDetails, policy?.employeeList, translate, policy?.achAccount?.reimburser, isDeletedPolicyEmployee, policy?.owner, policy?.pendingFields?.reimburser, formatPhoneNumber]);
+    }, [
+        policy?.employeeList,
+        policy?.owner,
+        policy?.achAccount?.reimburser,
+        policy?.pendingFields?.reimburser,
+        personalDetails,
+        isDeletedPolicyEmployee,
+        translate,
+        formatPhoneNumber,
+        icons.FallbackAvatar,
+    ]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
@@ -120,20 +130,20 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 {
                     title: undefined,
                     data: filteredOptions,
-                    shouldShow: true,
+                    sectionIndex: 0,
                 },
             ];
         }
 
         sectionsArray.push({
             data: formattedAuthorizedPayer,
-            shouldShow: true,
+            sectionIndex: 1,
         });
 
         sectionsArray.push({
             title: translate('workflowsPayerPage.admins'),
             data: formattedPolicyAdmins,
-            shouldShow: true,
+            sectionIndex: 2,
         });
         return sectionsArray;
     }, [searchTerm, formattedAuthorizedPayer, translate, formattedPolicyAdmins, countryCode]);
@@ -141,7 +151,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const headerMessage = useMemo(
         () => (searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : ''),
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [translate, sections],
     );
 
@@ -172,12 +182,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     }, [isDeletedPolicyEmployee, policy?.employeeList, policy?.owner]);
 
     const shouldShowSearchInput = totalNumberOfEmployeesEitherOwnerOrAdmin.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const textInputLabel = shouldShowSearchInput ? translate('selectionList.findMember') : undefined;
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowNotFoundPage}
@@ -187,23 +197,26 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             >
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding
-                    testID={WorkspaceWorkflowsPayerPage.displayName}
+                    testID="WorkspaceWorkflowsPayerPage"
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsPayerPage.title')}
                         subtitle={policyName}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <SelectionList
+                    <SelectionListWithSections
                         sections={sections}
-                        textInputLabel={textInputLabel}
-                        textInputValue={searchTerm}
-                        onChangeText={setSearchTerm}
-                        headerMessage={headerMessage}
                         ListItem={UserListItem}
                         onSelectRow={setPolicyAuthorizedPayer}
+                        shouldShowTextInput={shouldShowSearchInput}
+                        textInputOptions={{
+                            label: translate('selectionList.findMember'),
+                            value: searchTerm,
+                            onChangeText: setSearchTerm,
+                            headerMessage,
+                        }}
+                        initiallyFocusedItemKey={formattedAuthorizedPayer.at(0)?.keyForList}
                         shouldSingleExecuteRowSelect
-                        showScrollIndicator
                         addBottomSafeAreaPadding
                     />
                 </ScreenWrapper>
@@ -211,7 +224,5 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceWorkflowsPayerPage.displayName = 'WorkspaceWorkflowsPayerPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsPayerPage);

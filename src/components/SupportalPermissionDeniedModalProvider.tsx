@@ -7,7 +7,7 @@ import ConfirmModal from './ConfirmModal';
 
 function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChildren) {
     const {translate} = useLocalize();
-    const [payload] = useOnyx(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, {canBeMissing: true});
+    const [payload] = useOnyx(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED);
     const isVisible = !!payload;
 
     const title = useMemo(() => translate('supportalNoAccess.title'), [translate]);
@@ -33,7 +33,5 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
         </>
     );
 }
-
-SupportalPermissionDeniedModalProvider.displayName = 'SupportalPermissionDeniedModalProvider';
 
 export default SupportalPermissionDeniedModalProvider;
