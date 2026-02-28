@@ -24,11 +24,12 @@ function Delete() {
     const handlePress = () => {
         const iouReportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : undefined;
         const effectiveReportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportID;
+        const actionSourceID = effectiveReportID !== reportID ? reportID : undefined;
         if (closePopover) {
-            hideContextMenu(false, () => showDeleteModal(effectiveReportID, moneyRequestAction ?? reportAction));
+            hideContextMenu(false, () => showDeleteModal(effectiveReportID, moneyRequestAction ?? reportAction, undefined, undefined, undefined, actionSourceID));
             return;
         }
-        showDeleteModal(effectiveReportID, moneyRequestAction ?? reportAction);
+        showDeleteModal(effectiveReportID, moneyRequestAction ?? reportAction, undefined, undefined, undefined, actionSourceID);
     };
 
     return (

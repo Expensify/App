@@ -260,11 +260,23 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         });
     };
 
+    const isDeleteModalActiveRef = useRef(false);
+
     const hideDeleteModal = () => {
+        if (!isDeleteModalActiveRef.current) {
+            return;
+        }
         modalContext.closeModal();
     };
 
-    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (showReportID, showReportAction, _shouldSetModalVisibility, onConfirm = () => {}, onCancel = () => {}) => {
+    const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (
+        showReportID,
+        showReportAction,
+        _shouldSetModalVisibility,
+        onConfirm = () => {},
+        onCancel = () => {},
+        actionSourceReportID = undefined,
+    ) => {
         if (!showReportID || !showReportAction?.reportActionID) {
             return;
         }
@@ -291,16 +303,18 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             originalReportID: prev?.originalReportID,
         }));
 
+        isDeleteModalActiveRef.current = true;
         modalContext
             .showModal({
                 component: ConfirmDeleteReportActionModal,
                 props: {
                     reportID: showReportID,
                     reportActionID: showReportAction.reportActionID,
-                    actionSourceReportID: menuState?.reportID,
+                    actionSourceReportID,
                 },
             })
             .then((result) => {
+                isDeleteModalActiveRef.current = false;
                 if (result.action === ModalActions.CONFIRM) {
                     onConfirm();
                 } else {
