@@ -1,6 +1,5 @@
-import {deepEqual} from 'fast-equals';
 import type {RefObject} from 'react';
-import React, {memo, useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
@@ -161,6 +160,7 @@ function BaseReportActionContextMenu({
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
     const threeDotRef = useRef<View>(null);
+    const nullRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
@@ -171,12 +171,8 @@ function BaseReportActionContextMenu({
         selector: withDEWRoutedActionsObject,
     });
 
-    const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
-        if (isEmptyObject(originalReportActions) || reportActionID === '0' || reportActionID === '-1' || !reportActionID) {
-            return;
-        }
-        return originalReportActions[reportActionID];
-    }, [originalReportActions, reportActionID]);
+    const reportAction: OnyxEntry<ReportAction> =
+        isEmptyObject(originalReportActions) || reportActionID === '0' || reportActionID === '-1' || !reportActionID ? undefined : originalReportActions[reportActionID];
     const transactionID = getLinkedTransactionID(reportAction);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
@@ -205,28 +201,23 @@ function BaseReportActionContextMenu({
     const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const transactionThreadReportID = useMemo(
-        () => getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
-        [paginatedReportActions, isOffline, childReport, childChatReport],
-    );
+    const transactionThreadReportID = getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline);
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
 
-    const isMoneyRequestReport = useMemo(() => ReportUtilsIsMoneyRequestReport(childReport), [childReport]);
-    const isInvoiceReport = useMemo(() => ReportUtilsIsInvoiceReport(childReport), [childReport]);
+    const isMoneyRequestReport = ReportUtilsIsMoneyRequestReport(childReport);
+    const isInvoiceReport = ReportUtilsIsInvoiceReport(childReport);
 
-    const requestParentReportAction = useMemo(() => {
-        if (isMoneyRequestReport || isInvoiceReport) {
-            if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
-                return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isDeletedAction(action));
-            }
-            if (!paginatedReportActions || !transactionThreadReport?.parentReportActionID) {
-                return undefined;
-            }
-            return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
+    let requestParentReportAction;
+    if (isMoneyRequestReport || isInvoiceReport) {
+        if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
+            requestParentReportAction = Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isDeletedAction(action));
+        } else if (paginatedReportActions && transactionThreadReport?.parentReportActionID) {
+            requestParentReportAction = paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
         }
-        return parentReportAction;
-    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID, transactionThreadReportID, childReportActions]);
+    } else {
+        requestParentReportAction = parentReportAction;
+    }
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
     const isChildReportArchived = useReportIsArchived(childReport?.reportID);
@@ -245,7 +236,7 @@ function BaseReportActionContextMenu({
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
-    const isMoneyRequest = useMemo(() => ReportUtilsIsMoneyRequest(childReport), [childReport]);
+    const isMoneyRequest = ReportUtilsIsMoneyRequest(childReport);
     const isTrackExpenseReport = ReportUtilsIsTrackExpenseReport(childReport);
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
     const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
@@ -422,7 +413,7 @@ function BaseReportActionContextMenu({
 
                         return (
                             <ContextMenuItem
-                                buttonRef={isMenuAction ? threeDotRef : {current: null}}
+                                buttonRef={isMenuAction ? threeDotRef : nullRef}
                                 icon={icon}
                                 text={text ?? ''}
                                 successIcon={successIcon}
@@ -453,7 +444,6 @@ function BaseReportActionContextMenu({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-deep-equal-in-memo
-export default memo(BaseReportActionContextMenu, deepEqual);
+export default BaseReportActionContextMenu;
 
 export type {BaseReportActionContextMenuProps};
