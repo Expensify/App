@@ -131,7 +131,7 @@ function MultifactorAuthenticationRevokePage() {
                                                 small
                                                 isLoading={isOtherDevicesLoading}
                                                 text={translate('multifactorAuthentication.revoke.revoke')}
-                                                onPress={() => showConfirmModal(revokeOtherDevices, false)}
+                                                onPress={() => showConfirmModal(revokeOtherDevices, otherDeviceCount > 1)}
                                             />
                                         </View>
                                     }
