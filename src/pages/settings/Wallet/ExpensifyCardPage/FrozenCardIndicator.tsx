@@ -21,33 +21,32 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 type FrozenCardIndicatorProps = {
     cardID: string;
+    canUnfreezeCard: boolean;
+    onAskToUnfreezePress: () => void;
     onUnfreezePress: () => void;
 };
 
-function FrozenCardIndicator({cardID, onUnfreezePress}: FrozenCardIndicatorProps) {
+function FrozenCardIndicator({cardID, canUnfreezeCard, onAskToUnfreezePress, onUnfreezePress}: FrozenCardIndicatorProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FreezeCard'] as const);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
 
     const frozenData = card?.nameValuePairs?.frozen;
     const frozenByAccountID = frozenData?.byAccountID;
     const frozenDate = frozenData?.date;
-    const isCurrentUser = frozenByAccountID === session?.accountID;
-
     const frozenByName = frozenByAccountID ? getDisplayNameOrDefault(personalDetails?.[frozenByAccountID]) : '';
     const formattedDate = frozenDate ? DateUtils.formatWithUTCTimeZone(frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
 
     const statusText = useMemo(() => {
-        if (isCurrentUser) {
+        if (canUnfreezeCard) {
             return translate('cardPage.youFroze', {date: formattedDate});
         }
-        return translate('cardPage.frozenBy', {date: formattedDate, person: frozenByName});
-    }, [formattedDate, frozenByName, isCurrentUser, translate]);
+        return translate('cardPage.frozenByAdminNeedsUnfreeze', {person: frozenByName || translate('common.someone')});
+    }, [canUnfreezeCard, formattedDate, frozenByName, translate]);
 
     const scarfOverlayStyle = useMemo<ViewStyle>(
         () => ({
@@ -76,9 +75,9 @@ function FrozenCardIndicator({cardID, onUnfreezePress}: FrozenCardIndicatorProps
             </View>
             <Button
                 medium
-                text={translate('cardPage.unfreeze')}
-                onPress={onUnfreezePress}
-                isDisabled={isOffline}
+                text={translate(canUnfreezeCard ? 'cardPage.unfreeze' : 'cardPage.askToUnfreeze')}
+                onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
+                isDisabled={canUnfreezeCard && isOffline}
                 style={[styles.mt4]}
             />
         </View>

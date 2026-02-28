@@ -35,6 +35,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {shouldShowMissingDetailsPage} from '@libs/PersonalDetailsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
@@ -92,6 +93,7 @@ const getCardHintText = (validFrom: string | undefined, validThru: string | unde
 function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const {cardID} = route.params;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const cardList = useNonPersonalCardList();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const {currencyList} = useCurrencyListState();
@@ -159,9 +161,25 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const session = useSession();
     const isCardHolder = currentCard?.accountID === session?.accountID;
+    const frozenByAccountID = currentCard?.nameValuePairs?.frozen?.byAccountID;
 
     const {isBetaEnabled} = usePermissions();
     const canManageCardFreeze = isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isCardHolder && !!currentCard && !isAccountLocked;
+    const canUnfreezeCard = canManageCardFreeze && frozenByAccountID === session?.accountID;
+
+    const policyIDForCurrentCard = useMemo(() => {
+        const workspaceAccountID = Number(currentCard?.fundID);
+        if (!workspaceAccountID || Number.isNaN(workspaceAccountID)) {
+            return undefined;
+        }
+
+        return Object.values(policies ?? {}).find((policy) => policy?.workspaceAccountID === workspaceAccountID)?.id;
+    }, [currentCard?.fundID, policies]);
+
+    const cardHolderWorkspaceChatReportID = useMemo(
+        () => ReportUtils.getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard)?.reportID,
+        [currentCard?.accountID, policyIDForCurrentCard],
+    );
 
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
@@ -185,6 +203,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const handleUnfreezePress = useCallback(() => {
         setIsUnfreezeModalVisible(true);
     }, []);
+
+    const handleAskToUnfreezePress = useCallback(() => {
+        if (!cardHolderWorkspaceChatReportID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(cardHolderWorkspaceChatReportID));
+    }, [cardHolderWorkspaceChatReportID]);
 
     const handleDismissUnfreezeModal = useCallback(() => {
         setIsUnfreezeModalVisible(false);
@@ -212,6 +237,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 {canManageCardFreeze && isCardFrozen(currentCard) ? (
                     <FrozenCardIndicator
                         cardID={cardID}
+                        canUnfreezeCard={canUnfreezeCard}
+                        onAskToUnfreezePress={handleAskToUnfreezePress}
                         onUnfreezePress={handleUnfreezePress}
                     />
                 ) : (
