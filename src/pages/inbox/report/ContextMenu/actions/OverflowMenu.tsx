@@ -21,7 +21,7 @@ function OverflowMenu() {
     }
 
     const handlePress = (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => {
-        openOverflowMenu(event as GestureResponderEvent | MouseEvent, threeDotRef);
+        openOverflowMenu(event as GestureResponderEvent | MouseEvent, threeDotRef, new Set(visibleActionIds));
         openContextMenu();
     };
 

@@ -63,7 +63,7 @@ type ContextMenuPayloadContextValue = {
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
-    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => void;
+    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>, miniVisibleActionIds?: Set<string>) => void;
     setIsEmojiPickerActive: ((state: boolean) => void) | undefined;
     showDelegateNoAccessModal: (() => void) | undefined;
 

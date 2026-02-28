@@ -188,7 +188,7 @@ function BaseReportActionContextMenu({
         }
     };
 
-    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<ViewType | null>) => {
+    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<ViewType | null>, miniVisibleActionIds?: Set<string>) => {
         showContextMenu({
             type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -216,7 +216,7 @@ function BaseReportActionContextMenu({
                     }
                 },
             },
-            disabledActionIds: new Set(),
+            disabledActionIds: miniVisibleActionIds,
             shouldCloseOnTarget: true,
             isOverflowMenu: true,
         });
