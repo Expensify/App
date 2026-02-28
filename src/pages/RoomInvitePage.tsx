@@ -72,6 +72,7 @@ function RoomInvitePage({
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const isReportArchived = useReportIsArchived(report.reportID);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const {options, areOptionsInitialized} = useOptionsList();
     const allPersonalDetails = usePersonalDetails();
@@ -100,6 +101,7 @@ function RoomInvitePage({
             currentUserAccountID,
             currentUserEmail,
             allPersonalDetails,
+            reports,
             betas ?? [],
             excludedUsers,
             false,

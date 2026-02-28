@@ -73,7 +73,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             createOptionFromReport({...reportData, reportID: id}, personalDetails, currentUserAccountID, chatReport, privateIsArchived, reportAttributesDerived),
         );
         const isReportArchived = !!privateIsArchived;
-        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {}, undefined, undefined, reportAttributesDerived);
+        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, reportData, chatReport, {}, undefined, undefined, reportAttributesDerived);
         return {...report, alternateText};
     });
 
@@ -84,6 +84,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
                   options,
                   draftComments,
                   nvpDismissedProductTraining,
+                  reports,
                   betas: undefined,
                   isUsedInChatFinder: false,
                   countryCode,
@@ -109,6 +110,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             chatOptions.personalDetails,
             currentUserAccountID,
             personalDetails,
+            reports,
             false,
             undefined,
             reportAttributesDerived,

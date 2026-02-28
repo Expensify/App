@@ -68,6 +68,7 @@ function useReceiptScan({
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`);
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
@@ -146,6 +147,7 @@ function useReceiptScan({
                 participants: initialTransaction?.participants,
             },
             personalDetails,
+            reports: reports,
             currentUserLogin: currentUserPersonalDetails.login,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             backTo,

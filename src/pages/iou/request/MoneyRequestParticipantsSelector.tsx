@@ -126,6 +126,7 @@ function MoneyRequestParticipantsSelector({
     const reportAttributesDerived = useReportAttributes();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -294,6 +295,7 @@ function MoneyRequestParticipantsSelector({
             [],
             currentUserAccountID,
             personalDetails,
+            reports,
             true,
             undefined,
             reportAttributesDerived,
@@ -366,6 +368,7 @@ function MoneyRequestParticipantsSelector({
         searchTerm,
         participants,
         personalDetails,
+        reports,
         reportAttributesDerived,
         translate,
         availableOptions.workspaceChats,

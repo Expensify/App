@@ -51,6 +51,7 @@ function IOURequestStepDistanceGPS({
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const reportAttributesDerived = useReportAttributes();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -98,6 +99,7 @@ function IOURequestStepDistanceGPS({
             transactionID,
             reportAttributesDerived,
             personalDetails,
+            reports: reports,
             waypoints,
             customUnitRateID,
             currentUserLogin: currentUserEmailParam,

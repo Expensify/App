@@ -73,6 +73,7 @@ function SubmitDetailsPage({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
@@ -122,9 +123,12 @@ function SubmitDetailsPage({
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const participants = selectedParticipants.map((participant) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
-        return participant?.accountID
-            ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, currentUserPersonalDetails.accountID, personalDetails, reportAttributesDerived);
+        if (participant?.accountID) {
+            return getParticipantsOption(participant, personalDetails);
+        }
+        const participantReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+        const participantChatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participantReport?.chatReportID}`];
+        return getReportOption(participant, privateIsArchived, policy, currentUserPersonalDetails.accountID, personalDetails, participantReport, participantChatReport, reportAttributesDerived);
     });
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;

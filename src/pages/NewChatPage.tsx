@@ -90,13 +90,14 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
 
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
-    const reports = listOptions?.reports ?? [];
+    const reportOptions = listOptions?.reports ?? [];
     const personalDetails = listOptions?.personalDetails ?? [];
 
     const defaultOptions = getValidOptions(
         {
-            reports,
+            reports: reportOptions,
             personalDetails: personalDetails.concat(contacts),
         },
         allPolicies,
@@ -105,6 +106,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         loginList,
         currentUserAccountID,
         currentUserEmail,
+        reports,
         {
             betas: betas ?? [],
             includeSelfDM: true,
@@ -219,6 +221,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         headerMessage,
         handleEndReached,
         isLoadingMore,
+        reports,
     };
 }
 
@@ -264,6 +267,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         personalDetails,
         userToInvite,
         areOptionsInitialized,
+        reports,
     } = useOptions(reportAttributesDerived);
 
     const sections: Section[] = [];
@@ -276,6 +280,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         personalDetails,
         currentUserAccountID,
         allPersonalDetails,
+        reports,
         undefined,
         undefined,
         reportAttributesDerived,

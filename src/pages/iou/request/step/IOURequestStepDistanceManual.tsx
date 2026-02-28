@@ -78,6 +78,7 @@ function IOURequestStepDistanceManual({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
@@ -210,6 +211,7 @@ function IOURequestStepDistanceManual({
                 transactionID,
                 reportAttributesDerived,
                 personalDetails,
+                reports: reports,
                 customUnitRateID,
                 manualDistance: distanceAsFloat,
                 currentUserLogin: currentUserEmailParam,
@@ -248,6 +250,7 @@ function IOURequestStepDistanceManual({
             reportID,
             reportAttributesDerived,
             personalDetails,
+            reports,
             customUnitRateID,
             currentUserEmailParam,
             currentUserAccountIDParam,
