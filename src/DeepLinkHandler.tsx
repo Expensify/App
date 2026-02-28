@@ -32,12 +32,27 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const archivedReportsIDSet = useArchivedReportsIDSet();
+    const allReportsRef = useRef(allReports);
+    const onInitialURLRef = useRef(onInitialUrl);
     const archivedReportsIDSetRef = useRef(archivedReportsIDSet);
     const isAuthenticated = useIsAuthenticated();
+    const isAuthenticatedRef = useRef(isAuthenticated);
+
+    useEffect(() => {
+        allReportsRef.current = allReports;
+    }, [allReports]);
+
+    useEffect(() => {
+        onInitialURLRef.current = onInitialUrl;
+    }, [onInitialUrl]);
 
     useEffect(() => {
         archivedReportsIDSetRef.current = archivedReportsIDSet;
     }, [archivedReportsIDSet]);
+
+    useEffect(() => {
+        isAuthenticatedRef.current = isAuthenticated;
+    }, [isAuthenticated]);
 
     useEffect(() => {
         if (isLoadingOnyxValue(sessionMetadata)) {
@@ -45,7 +60,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         }
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
-            onInitialUrl(url as Route);
+            onInitialURLRef.current(url as Route);
 
             if (url) {
                 if (conciergeReportID === undefined) {
@@ -54,7 +69,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 if (introSelected === undefined) {
                     Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                 }
-                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected, archivedReportsIDSetRef.current);
+                openReportFromDeepLink(url, allReportsRef.current, isAuthenticatedRef.current, conciergeReportID, introSelected, archivedReportsIDSetRef.current);
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -71,14 +86,14 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, archivedReportsIDSetRef.current);
+            openReportFromDeepLink(state.url, allReportsRef.current, isCurrentlyAuthenticated, conciergeReportID, introSelected, archivedReportsIDSetRef.current);
         });
 
         return () => {
             linkingChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
-    }, [sessionMetadata?.status, conciergeReportID, introSelected, allReports, isAuthenticated, onInitialUrl]);
+    }, [sessionMetadata?.status, conciergeReportID, introSelected]);
 
     return null;
 }
