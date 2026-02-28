@@ -13,6 +13,7 @@ type RegistrationStatus = (typeof REGISTRATION_STATUS)[keyof typeof REGISTRATION
 type BiometricRegistrationStatus = {
     localPublicKey: string | undefined;
     isCurrentDeviceRegistered: boolean;
+    totalDeviceCount: number;
     otherDeviceCount: number;
     registrationStatus: RegistrationStatus;
 };
@@ -35,7 +36,8 @@ function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
     }, [getLocalPublicKey]);
 
     const isCurrentDeviceRegistered = !!localPublicKey && serverKnownCredentialIDs.includes(localPublicKey);
-    const otherDeviceCount = serverKnownCredentialIDs.length - (isCurrentDeviceRegistered ? 1 : 0);
+    const totalDeviceCount = serverKnownCredentialIDs.length;
+    const otherDeviceCount = totalDeviceCount - (isCurrentDeviceRegistered ? 1 : 0);
 
     let registrationStatus: RegistrationStatus;
     if (!haveCredentialsEverBeenConfigured) {
@@ -51,6 +53,7 @@ function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
     return {
         localPublicKey,
         isCurrentDeviceRegistered,
+        totalDeviceCount,
         otherDeviceCount,
         registrationStatus,
     };

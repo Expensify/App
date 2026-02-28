@@ -25,9 +25,9 @@ function MultifactorAuthenticationRevokePage() {
     const [isThisDeviceLoading, setIsThisDeviceLoading] = useState(false);
     const [isOtherDevicesLoading, setIsOtherDevicesLoading] = useState(false);
 
-    const {localPublicKey, isCurrentDeviceRegistered, otherDeviceCount, serverKeyIDs} = useBiometricRegistrationStatus();
-    const hasDevices = !!serverKeyIDs && serverKeyIDs.length > 0;
-    const hasMultipleKeys = !!serverKeyIDs && serverKeyIDs.length > 1;
+    const {localPublicKey, isCurrentDeviceRegistered, otherDeviceCount, totalDeviceCount} = useBiometricRegistrationStatus();
+    const hasDevices = totalDeviceCount > 0;
+    const hasMultipleKeys = totalDeviceCount > 1;
 
     useEffect(() => {
         openSecuritySettingsPage();
