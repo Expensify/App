@@ -708,6 +708,7 @@ function IOURequestStepConfirmation({
             betas,
             personalDetails,
             isGPSDistanceRequest,
+            draftTransactionIDs,
         ],
     );
 

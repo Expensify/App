@@ -953,6 +953,9 @@ describe('MoneyRequest', () => {
                     validWaypoints: undefined,
                     customUnitRateID: baseParams.customUnitRateID,
                     attendees: fakeTransaction?.comment?.attendees,
+                    gpsCoordinates: undefined,
+                    odometerEnd: undefined,
+                    odometerStart: undefined,
                 },
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
@@ -962,6 +965,7 @@ describe('MoneyRequest', () => {
                 introSelected: undefined,
                 recentWaypoints: baseParams.recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                draftTransactionIDs: [baseParams.transactionID],
             });
 
             // The function must return after trackExpense and not call createDistanceRequest
