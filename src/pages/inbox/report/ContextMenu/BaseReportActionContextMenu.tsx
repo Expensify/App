@@ -45,23 +45,64 @@ import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu
 import {hideContextMenu, showContextMenu} from './ReportActionContextMenu';
 
 type BaseReportActionContextMenuProps = {
+    /** The ID of the report this report action is attached to. */
     reportID: string | undefined;
+
+    /** The ID of the report action this context menu is attached to. */
     reportActionID: string | undefined;
+
+    /** The ID of the original report from which the given reportAction is first created. */
     originalReportID: string | undefined;
+
+    /**
+     * If true, this component will be a small, row-oriented menu that displays icons but not text.
+     * If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row.
+     */
     isMini?: boolean;
+
+    /** Controls the visibility of this component. */
     isVisible?: boolean;
+
+    /** The copy selection. */
     selection?: string;
+
+    /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage?: string;
+
+    /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices */
     type?: ContextMenuType;
+
+    /** Target node which is the target of ContentMenu */
     anchor?: RefObject<ContextMenuAnchor>;
+
+    /** Flag to check if the chat participant is Chronos */
     isChronosReport?: boolean;
+
+    /** Whether the provided report is an archived room */
     isArchivedRoom?: boolean;
+
+    /** Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action */
     isPinnedChat?: boolean;
+
+    /** Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action */
     isUnreadChat?: boolean;
+
+    /**
+     * Is the action a thread's parent reportAction viewed from within the thread report?
+     * It will be false if we're viewing the same parent report action from the report it belongs to rather than the thread.
+     */
     isThreadReportParentAction?: boolean;
+
+    /** Content Ref */
     contentRef?: RefObject<ViewType | null>;
+
+    /** Function to check if context menu is active */
     checkIfContextMenuActive?: () => void;
+
+    /** List of disabled action IDs */
     disabledActionIds?: Set<string>;
+
+    /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
@@ -176,6 +217,10 @@ function BaseReportActionContextMenu({
 
     useRestoreInputFocus(isVisible);
 
+    /**
+     * Checks if user is anonymous. If true and the action doesn't accept for anonymous user, hides the context menu and
+     * shows the sign in modal. Else, executes the callback.
+     */
     const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
         if (isAnonymousUser() && !isAnonymousAction) {
             hideContextMenu(false);
