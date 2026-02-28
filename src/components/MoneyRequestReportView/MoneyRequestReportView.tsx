@@ -25,7 +25,7 @@ import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
-import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
+import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportArchivedByID as isReportArchivedByIDUtil, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
@@ -99,7 +99,8 @@ function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
 
 function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
-    const {isReportArchivedByID} = useContext(ActionListContext);
+    const {archivedReportsIDSet} = useContext(ActionListContext);
+    const isReportArchivedByID = useCallback((id?: string) => isReportArchivedByIDUtil(archivedReportsIDSet, id), [archivedReportsIDSet]);
     const {isOffline} = useNetwork();
 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth

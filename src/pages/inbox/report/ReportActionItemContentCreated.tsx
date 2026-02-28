@@ -1,4 +1,4 @@
-import React, {memo, useContext, useMemo} from 'react';
+import React, {memo, useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -16,7 +16,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMessageDeleted, isReversedTransaction as isReversedTransactionReportActionsUtils, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isCanceledTaskReport, isExpenseReport, isInvoiceReport, isIOUReport, isTaskReport} from '@libs/ReportUtils';
+import {isCanceledTaskReport, isExpenseReport, isInvoiceReport, isIOUReport, isReportArchivedByID, isTaskReport} from '@libs/ReportUtils';
 import {getCurrency} from '@libs/TransactionUtils';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import CONST from '@src/CONST';
@@ -51,7 +51,8 @@ type ReportActionItemContentCreatedProps = {
 function ReportActionItemContentCreated({contextValue, parentReport, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isReportArchivedByID} = useContext(ActionListContext);
+    const {archivedReportsIDSet} = useContext(ActionListContext);
+    const isReportArchivedByIDCallback = useCallback((id?: string) => isReportArchivedByID(archivedReportsIDSet, id), [archivedReportsIDSet]);
     const {report, action, transactionThreadReport} = contextValue;
     const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report?.policyID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -114,7 +115,7 @@ function ReportActionItemContentCreated({contextValue, parentReport, parentRepor
                             parentReportID={report?.parentReportID}
                             expensePolicy={policy}
                             shouldShowAnimatedBackground
-                            isReportArchivedByID={isReportArchivedByID}
+                            isReportArchivedByID={isReportArchivedByIDCallback}
                         />
                         {renderThreadDivider}
                     </View>
@@ -177,7 +178,7 @@ function ReportActionItemContentCreated({contextValue, parentReport, parentRepor
                                     parentReportID={transactionThreadReport?.parentReportID}
                                     expensePolicy={policy}
                                     shouldShowAnimatedBackground={false}
-                                    isReportArchivedByID={isReportArchivedByID}
+                                    isReportArchivedByID={isReportArchivedByIDCallback}
                                 />
                                 {renderThreadDivider}
                             </View>

@@ -161,6 +161,7 @@ describe('MoneyRequestReceiptView', () => {
                         report={testReport}
                         fillSpace
                         isDisplayedInWideRHP
+                        isReportArchivedByID={() => false}
                     />
                 </Wrapper>,
             );
