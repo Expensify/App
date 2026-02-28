@@ -727,13 +727,13 @@ const translations: TranslationDeepObject<typeof en> = {
             dismiss: 'Compris',
             error: 'La requête a échoué. Réessayez plus tard.',
             revoke: 'Révoquer',
-            confirmationPromptAll: ‘Êtes-vous sûr(e) ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil.’,
-            ctaAll: ‘Tout révoquer’,
-            thisDevice: ‘Cet appareil’,
+            confirmationPromptAll: 'Êtes-vous sûr(e) ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil.',
+            ctaAll: 'Tout révoquer',
+            thisDevice: 'Cet appareil',
             otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
-                const numberWords = [‘Un’, ‘Deux’, ‘Trois’, ‘Quatre’, ‘Cinq’, ‘Six’, ‘Sept’, ‘Huit’, ‘Neuf’];
+                const numberWords = ['Un', 'Deux', 'Trois', 'Quatre', 'Cinq', 'Six', 'Sept', 'Huit', 'Neuf'];
                 const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
-                return `${displayCount} ${count === 1 ? ‘autre appareil’ : ‘autres appareils’}`;
+                return `${displayCount} ${count === 1 ? 'autre appareil' : 'autres appareils'}`;
             },
         },
         unsupportedDevice: {
