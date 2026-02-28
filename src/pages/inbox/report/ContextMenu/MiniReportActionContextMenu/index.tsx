@@ -88,7 +88,6 @@ function MiniReportActionContextMenu() {
                     isThreadReportParentAction={state.isThreadReportParentAction}
                     draftMessage={state.draftMessage}
                     isChronosReport={state.isChronosReport}
-                    disabledActionIds={state.disabledActionIds}
                     checkIfContextMenuActive={state.checkIfContextMenuActive}
                     setIsEmojiPickerActive={state.setIsEmojiPickerActive}
                     isVisible={state.isVisible}

@@ -20,7 +20,6 @@ type MiniContextMenuParams = {
     isThreadReportParentAction: boolean;
     draftMessage: string | undefined;
     isChronosReport: boolean;
-    disabledActionIds: Set<string>;
     checkIfContextMenuActive: () => void;
     setIsEmojiPickerActive: (state: boolean) => void;
     rowMeasurements: RowMeasurements;

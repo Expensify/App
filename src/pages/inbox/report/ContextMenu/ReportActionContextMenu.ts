@@ -39,7 +39,6 @@ type ShowContextMenuParams = {
         onHide?: () => void;
         setIsEmojiPickerActive?: (state: boolean) => void;
     };
-    disabledActionIds?: Set<string>;
     shouldCloseOnTarget?: boolean;
     isOverflowMenu?: boolean;
     withoutOverlay?: boolean;

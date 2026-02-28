@@ -15,8 +15,6 @@ import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import ConfirmDeleteReportActionModal from './ConfirmDeleteReportActionModal';
 import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
 
-const EMPTY_DISABLED_ACTION_IDS = new Set<string>();
-
 function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
     if ('nativeEvent' in event) {
         return event.nativeEvent;
@@ -43,7 +41,6 @@ type PopoverContextMenuState = {
     isPinnedChat: boolean;
     isUnreadChat: boolean;
     isThreadReportParentAction: boolean;
-    disabledActionIds: Set<string>;
     isOverflowMenu: boolean;
     withoutOverlay: boolean;
     position: PopoverPosition;
@@ -141,7 +138,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             report: currentReport = {},
             reportAction: reportActionParam = {},
             callbacks = {},
-            disabledActionIds = new Set<string>(),
             shouldCloseOnTarget = false,
             isOverflowMenu = false,
             withoutOverlay = true,
@@ -209,7 +205,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 isPinnedChat,
                 isUnreadChat,
                 isThreadReportParentAction: isThreadReportParentActionParam,
-                disabledActionIds,
                 isOverflowMenu,
                 withoutOverlay,
                 position,
@@ -291,7 +286,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 isPinnedChat: false,
                 isUnreadChat: false,
                 isThreadReportParentAction: false,
-                disabledActionIds: EMPTY_DISABLED_ACTION_IDS,
                 isOverflowMenu: false,
                 withoutOverlay: true,
                 position: {anchorHorizontal: 0, anchorVertical: 0, anchorWidth: 0, anchorHeight: 0},
@@ -375,7 +369,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 anchor={{current: menuState?.contextMenuTargetNode ?? null}}
                 contentRef={contentRef}
                 originalReportID={menuState?.originalReportID}
-                disabledActionIds={menuState?.disabledActionIds ?? EMPTY_DISABLED_ACTION_IDS}
                 setIsEmojiPickerActive={menuState?.onEmojiPickerToggle}
             />
         </PopoverWithMeasuredContent>

@@ -6,20 +6,17 @@ import useLocalize from '@hooks/useLocalize';
 import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import CONST from '@src/CONST';
-import type {ActionId} from './actionConfig';
 
-type OverflowMenuProps = ContextMenuActionFocusProps & {
-    visibleActionIds: ActionId[];
-};
+type OverflowMenuProps = ContextMenuActionFocusProps;
 
-function OverflowMenu({isFocused, onFocus, onBlur, visibleActionIds}: OverflowMenuProps) {
+function OverflowMenu({isFocused, onFocus, onBlur}: OverflowMenuProps) {
     const {openOverflowMenu, openContextMenu, isMini, interceptAnonymousUser} = useContextMenuPayload();
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
     const {translate} = useLocalize();
     const threeDotRef = useRef<View>(null);
 
     const handlePress = (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => {
-        openOverflowMenu(event as GestureResponderEvent | MouseEvent, threeDotRef, new Set(visibleActionIds));
+        openOverflowMenu(event as GestureResponderEvent | MouseEvent, threeDotRef);
         openContextMenu();
     };
 

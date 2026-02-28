@@ -25,6 +25,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isDeletedAction, withDEWRoutedActionsObject} from '@libs/ReportActionsUtils';
 import {
+    canWriteInReport,
     chatIncludesChronosWithID,
     getHarvestOriginalReportID,
     getSourceIDFromReportAction,
@@ -41,13 +42,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ActionId} from './actions/actionConfig';
-import {ORDERED_ACTION_SHOULD_SHOW} from './actions/actionConfig';
+import {ORDERED_ACTION_SHOULD_SHOW, RESTRICTED_READONLY_ACTION_IDS} from './actions/actionConfig';
 import ContextMenuAction from './actions/ContextMenuAction';
 import {ContextMenuPayloadContext} from './ContextMenuPayloadProvider';
 import type {ContextMenuPayloadContextValue} from './ContextMenuPayloadProvider';
 import {useMiniContextMenuActions} from './MiniContextMenuProvider';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
 import {hideContextMenu, showContextMenu} from './ReportActionContextMenu';
+
+const EMPTY_SET = new Set<string>();
 
 type ContextMenuActionFocusProps = {
     isFocused: boolean;
@@ -110,9 +113,6 @@ type BaseReportActionContextMenuProps = {
     /** Function to check if context menu is active */
     checkIfContextMenuActive?: () => void;
 
-    /** List of disabled action IDs */
-    disabledActionIds?: Set<string>;
-
     /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
@@ -134,7 +134,6 @@ function BaseReportActionContextMenu({
     reportID,
     originalReportID,
     checkIfContextMenuActive,
-    disabledActionIds = new Set(),
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
     const StyleUtils = useStyleUtils();
@@ -162,6 +161,8 @@ function BaseReportActionContextMenu({
     });
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
+
+    const disabledActionIDs = !canWriteInReport(report) ? RESTRICTED_READONLY_ACTION_IDS : EMPTY_SET;
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
@@ -257,7 +258,7 @@ function BaseReportActionContextMenu({
         isHarvestReport,
     };
 
-    let visibleActionIds = ORDERED_ACTION_SHOULD_SHOW.filter((entry) => !disabledActionIds.has(entry.id) && entry.shouldShow(shouldShowArgs)).map((entry) => entry.id);
+    let visibleActionIds = ORDERED_ACTION_SHOULD_SHOW.filter((entry) => !disabledActionIDs.has(entry.id) && entry.shouldShow(shouldShowArgs)).map((entry) => entry.id);
 
     if (isMini) {
         const overflowMenuId = visibleActionIds.at(-1);
@@ -314,7 +315,6 @@ function BaseReportActionContextMenu({
                 isFocused={isFocused}
                 onFocus={onFocus}
                 onBlur={onBlur}
-                visibleActionIds={visibleActionIds}
             />
         );
     };
@@ -335,7 +335,7 @@ function BaseReportActionContextMenu({
         }
     };
 
-    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<ViewType | null>, miniVisibleActionIds?: Set<string>) => {
+    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<ViewType | null>) => {
         showContextMenu({
             type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -363,7 +363,6 @@ function BaseReportActionContextMenu({
                     }
                 },
             },
-            disabledActionIds: miniVisibleActionIds,
             shouldCloseOnTarget: true,
             isOverflowMenu: true,
         });
@@ -439,7 +438,7 @@ function BaseReportActionContextMenu({
         translate,
         getLocalDateFromDatetime,
         anchor,
-        disabledActionIds,
+        disabledActionIDs,
     };
 
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
