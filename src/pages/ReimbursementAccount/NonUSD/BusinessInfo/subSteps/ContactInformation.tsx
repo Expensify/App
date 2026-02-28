@@ -24,8 +24,8 @@ const STEP_FIELDS = [BUSINESS_CONTACT_NUMBER, BUSINESS_CONFIRMATION_EMAIL];
 function ContactInformation({onNext, isEditing}: ContactInformationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const primaryLogin = account?.primaryLogin ?? '';
 
     const phoneNumberDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CONTACT_NUMBER] ?? '';
@@ -33,7 +33,7 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values[BUSINESS_CONTACT_NUMBER] && !isValidPhoneInternational(values[BUSINESS_CONTACT_NUMBER])) {
                 errors[BUSINESS_CONTACT_NUMBER] = translate('common.error.phoneNumber');
@@ -79,6 +79,7 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
                 containerStyles={[styles.mt5, styles.mh5]}
                 defaultValue={phoneNumberDefaultValue}
                 shouldSaveDraft={!isEditing}
+                autoComplete="tel"
             />
             <InputWrapper
                 InputComponent={TextInput}
@@ -90,6 +91,7 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
                 containerStyles={[styles.mt5, styles.mh5]}
                 defaultValue={confirmationEmailDefaultValue}
                 shouldSaveDraft={!isEditing}
+                autoComplete="email"
             />
         </FormProvider>
     );

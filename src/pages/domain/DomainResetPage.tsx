@@ -33,7 +33,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${route.params.domainAccountID}`, {canBeMissing: true});
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${route.params.domainAccountID}`);
 
     // Selectors used this way bc when useOnyx with it the metadata is wrong + we're already have domain data here
     const domainName = domainNameSelector(domain);
@@ -62,7 +62,7 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RESET_DOMAIN_FORM>) => {
-        const errors = getFieldRequiredErrors(values, ['domainName']);
+        const errors = getFieldRequiredErrors(values, ['domainName'], translate);
 
         if (values.domainName && domainName) {
             const isValid = sanitizePhoneOrEmail(domainName) === sanitizePhoneOrEmail(values.domainName);

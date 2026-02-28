@@ -54,23 +54,22 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const reportTransactions = useReportTransactions(reportID);
 
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
-    const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true, selector: changePolicyTrainingModalDismissedSelector});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
+    const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const reportOwnerAccountID = report?.ownerAccountID;
     const submitterEmailSelector = useCallback(
         (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[reportOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login,
         [reportOwnerAccountID],
     );
-    const [submitterEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false, selector: submitterEmailSelector}, [submitterEmailSelector]);
+    const [submitterEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: submitterEmailSelector}, [submitterEmailSelector]);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isCustomReportNamesBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES);
     const session = useSession();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
@@ -87,9 +86,9 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, reportTransactions);
                 if (!invite?.policyExpenseChatReportID) {
-                    moveIOUReportToPolicy(report, policy, false, reportTransactions, isCustomReportNamesBetaEnabled);
+                    moveIOUReportToPolicy(report, policy, false, reportTransactions);
                 }
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -136,7 +135,6 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             session?.email,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            isCustomReportNamesBetaEnabled,
             reportNextStep,
             isChangePolicyTrainingModalDismissed,
         ],

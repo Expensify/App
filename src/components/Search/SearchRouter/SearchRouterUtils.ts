@@ -34,7 +34,7 @@ function getContextualReportData(state: NavigationState | undefined): Contextual
         return {contextualReportID: undefined, isSearchRouterScreen: false};
     }
     let maybeReportRoute = findFocusedRoute(state);
-    const isSearchRouterScreen = maybeReportRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_ROUTER;
+    const isSearchRouterScreen = maybeReportRoute?.name === SCREENS.SEARCH_ROUTER.ROOT;
     if (isSearchRouterScreen) {
         const stateWithoutLastRoute = {
             ...state,

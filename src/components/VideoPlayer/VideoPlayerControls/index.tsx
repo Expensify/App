@@ -8,7 +8,7 @@ import type {ValueOf} from 'type-fest';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {convertSecondsToTime} from '@components/VideoPlayer/utils';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -69,7 +69,7 @@ function VideoPlayerControls({
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots', 'Pause', 'Play', 'Fullscreen']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {updateCurrentURLAndReportID} = usePlaybackContext();
+    const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
     const [shouldShowTime, setShouldShowTime] = useState(false);
     const iconSpacing = small ? styles.mr3 : styles.mr4;
 

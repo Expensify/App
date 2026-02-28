@@ -11,6 +11,7 @@ import {hasReceipt, hasReceiptSource, isFetchingWaypointsFromServer} from './Tra
 type ThumbnailAndImageURI = {
     image?: ReceiptSource;
     thumbnail?: string;
+    thumbnail320?: string;
     transaction?: OnyxEntry<Transaction>;
     isLocalFile?: boolean;
     isThumbnail?: boolean;
@@ -53,11 +54,21 @@ function getThumbnailAndImageURIs(transaction: OnyxEntry<Transaction>, receiptPa
     }
 
     if (isReceiptImage) {
-        return {thumbnail: `${path}.1024.jpg`, image: path, filename};
+        return {
+            thumbnail: `${path}.1024.jpg`,
+            thumbnail320: `${path}.320.jpg`,
+            image: path,
+            filename,
+        };
     }
 
     if (isReceiptPDF && typeof path === 'string') {
-        return {thumbnail: `${path.substring(0, path.length - 4)}.jpg.1024.jpg`, image: path, filename};
+        return {
+            thumbnail: `${path.substring(0, path.length - 4)}.jpg.1024.jpg`,
+            thumbnail320: `${path.substring(0, path.length - 4)}.jpg.320.jpg`,
+            image: path,
+            filename,
+        };
     }
 
     const isLocalFile = isLocalFileUtils(path);

@@ -11,7 +11,7 @@ import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import RadioListItem from './SelectionList/ListItem/RadioListItem';
-import SelectionList from './SelectionList/SelectionListWithSections';
+import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsHandle} from './SelectionList/types';
 
 type DestinationPickerProps = {
@@ -24,7 +24,7 @@ type DestinationPickerProps = {
 function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: DestinationPickerProps) {
     const policy = usePolicy(policyID);
     const customUnit = getPerDiemCustomUnit(policy);
-    const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -74,7 +74,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
     };
 
     return (
-        <SelectionList
+        <SelectionListWithSections
             ref={ref}
             sections={sections}
             shouldShowTextInput={shouldShowTextInput}
