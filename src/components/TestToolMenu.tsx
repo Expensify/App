@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useBiometricRegistrationStatus, {REGISTRATION_STATUS} from '@hooks/useBiometricRegistrationStatus';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,7 +17,7 @@ import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/Use
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasBiometricsRegisteredSelector, isAccountLoadingSelector} from '@src/selectors/Account';
+import {isAccountLoadingSelector} from '@src/selectors/Account';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -32,8 +33,8 @@ function TestToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReportsActions();
-    const [hasBiometricsRegistered = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: hasBiometricsRegisteredSelector});
     const [isAccountLoading = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isAccountLoadingSelector});
+    const {localPublicKey, isCurrentDeviceRegistered, otherDeviceCount, registrationStatus} = useBiometricRegistrationStatus();
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
@@ -51,8 +52,13 @@ function TestToolMenu() {
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
 
-    // Temporary hardcoded false, expected behavior: status fetched from the MultifactorAuthenticationContext
-    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: hasBiometricsRegistered});
+    const statusTextMap = {
+        [REGISTRATION_STATUS.NEVER_REGISTERED]: translate('multifactorAuthentication.biometricsTest.statusNeverRegistered'),
+        [REGISTRATION_STATUS.NOT_REGISTERED]: translate('multifactorAuthentication.biometricsTest.statusNotRegistered'),
+        [REGISTRATION_STATUS.REGISTERED_OTHER_DEVICE]: translate('multifactorAuthentication.biometricsTest.statusRegisteredOtherDevice', {count: otherDeviceCount}),
+        [REGISTRATION_STATUS.REGISTERED_THIS_DEVICE]: translate('multifactorAuthentication.biometricsTest.statusRegisteredThisDevice'),
+    };
+    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {status: statusTextMap[registrationStatus]});
 
     return (
         <>
@@ -120,14 +126,14 @@ function TestToolMenu() {
                                 text={translate('multifactorAuthentication.biometricsTest.test')}
                                 onPress={() => navigateToBiometricsTestPage()}
                             />
-                            {hasBiometricsRegistered && (
+                            {isCurrentDeviceRegistered && !!localPublicKey && (
                                 <Button
                                     danger
                                     isLoading={isAccountLoading}
                                     small
                                     text={translate('multifactorAuthentication.revoke.revoke')}
                                     onPress={() => {
-                                        revokeMultifactorAuthenticationCredentials();
+                                        revokeMultifactorAuthenticationCredentials({onlyKeyID: localPublicKey});
                                     }}
                                 />
                             )}

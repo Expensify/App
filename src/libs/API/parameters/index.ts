@@ -481,6 +481,7 @@ export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplica
 export type {default as UpdateTravelInvoicingSettlementFrequencyParams} from './UpdateTravelInvoicingSettlementFrequencyParams';
 export type {default as SetPolicyCodingRuleParams} from './SetPolicyCodingRuleParams';
 export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
+export type {default as RevokeMultifactorAuthenticationCredentialsParams} from './RevokeMultifactorAuthenticationCredentialsParams';
 export type {default as TroubleshootMultifactorAuthenticationParams} from './TroubleshootMultifactorAuthenticationParams';
 export type {default as RequestAuthenticationChallengeParams} from './RequestAuthenticationChallengeParams';
 export type {default as GetTransactionsMatchingCodingRuleParams} from './GetTransactionsMatchingCodingRuleParams';

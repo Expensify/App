@@ -1,45 +1,87 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useBiometricRegistrationStatus from '@hooks/useBiometricRegistrationStatus';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openSecuritySettingsPage} from '@libs/actions/Delegate';
 import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {hasBiometricsRegisteredSelector, isAccountLoadingSelector} from '@src/selectors/Account';
 
 function MultifactorAuthenticationRevokePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<(() => Promise<void>) | undefined>();
+    const [isRevokeAll, setIsRevokeAll] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | undefined>();
+    const [isThisDeviceLoading, setIsThisDeviceLoading] = useState(false);
+    const [isOtherDevicesLoading, setIsOtherDevicesLoading] = useState(false);
 
-    const [hasDevices] = useOnyx(ONYXKEYS.ACCOUNT, {selector: hasBiometricsRegisteredSelector});
-    const [isLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isAccountLoadingSelector});
+    const {localPublicKey, isCurrentDeviceRegistered, otherDeviceCount, serverKeyIDs} = useBiometricRegistrationStatus();
+    const hasDevices = !!serverKeyIDs && serverKeyIDs.length > 0;
+    const hasMultipleKeys = !!serverKeyIDs && serverKeyIDs.length > 1;
+
+    useEffect(() => {
+        openSecuritySettingsPage();
+    }, []);
 
     const onGoBackPress = () => {
         Navigation.goBack();
-    };
-
-    const showConfirmModal = () => {
-        setConfirmModalVisibility(true);
     };
 
     const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
     };
 
-    const handleRevokeConfirm = async () => {
-        const result = await revokeMultifactorAuthenticationCredentials();
+    const showRevokeConfirm = (revokeAction: () => Promise<void>, isAll: boolean) => {
+        setConfirmAction(() => revokeAction);
+        setIsRevokeAll(isAll);
+        setConfirmModalVisibility(true);
+    };
 
+    const handleRevokeConfirm = async () => {
+        if (confirmAction) {
+            await confirmAction();
+        }
         hideConfirmModal();
+    };
+
+    const revokeThisDevice = async () => {
+        if (!localPublicKey) {
+            return;
+        }
+        setIsThisDeviceLoading(true);
+        const result = await revokeMultifactorAuthenticationCredentials({onlyKeyID: localPublicKey});
+        setIsThisDeviceLoading(false);
+        if (result.httpStatusCode !== 200) {
+            setErrorMessage(translate('multifactorAuthentication.revoke.error'));
+        }
+    };
+
+    const revokeOtherDevices = async () => {
+        setIsOtherDevicesLoading(true);
+        const params = isCurrentDeviceRegistered && localPublicKey ? {exceptKeyID: localPublicKey} : {};
+        const result = await revokeMultifactorAuthenticationCredentials(params);
+        setIsOtherDevicesLoading(false);
+        if (result.httpStatusCode !== 200) {
+            setErrorMessage(translate('multifactorAuthentication.revoke.error'));
+        }
+    };
+
+    const revokeAll = async () => {
+        setIsThisDeviceLoading(true);
+        setIsOtherDevicesLoading(true);
+        const result = await revokeMultifactorAuthenticationCredentials();
+        setIsThisDeviceLoading(false);
+        setIsOtherDevicesLoading(false);
         if (result.httpStatusCode !== 200) {
             setErrorMessage(translate('multifactorAuthentication.revoke.error'));
         }
@@ -57,6 +99,46 @@ function MultifactorAuthenticationRevokePage() {
                     <Text style={[styles.m5, styles.mt3, styles.textNormal]}>
                         {translate(hasDevices ? 'multifactorAuthentication.revoke.explanation' : 'multifactorAuthentication.revoke.noDevices')}
                     </Text>
+                    {hasDevices && (
+                        <View>
+                            {isCurrentDeviceRegistered && (
+                                <MenuItem
+                                    title={translate('multifactorAuthentication.revoke.thisDevice')}
+                                    interactive={false}
+                                    shouldShowRightComponent
+                                    rightComponent={
+                                        <View style={styles.justifyContentCenter}>
+                                            <Button
+                                                danger
+                                                small
+                                                isLoading={isThisDeviceLoading}
+                                                text={translate('multifactorAuthentication.revoke.revoke')}
+                                                onPress={() => showRevokeConfirm(revokeThisDevice, false)}
+                                            />
+                                        </View>
+                                    }
+                                />
+                            )}
+                            {otherDeviceCount > 0 && (
+                                <MenuItem
+                                    title={translate('multifactorAuthentication.revoke.otherDevices', {count: otherDeviceCount})}
+                                    interactive={false}
+                                    shouldShowRightComponent
+                                    rightComponent={
+                                        <View style={styles.justifyContentCenter}>
+                                            <Button
+                                                danger
+                                                small
+                                                isLoading={isOtherDevicesLoading}
+                                                text={translate('multifactorAuthentication.revoke.revoke')}
+                                                onPress={() => showRevokeConfirm(revokeOtherDevices, false)}
+                                            />
+                                        </View>
+                                    }
+                                />
+                            )}
+                        </View>
+                    )}
                 </View>
                 {!!errorMessage && (
                     <FormHelpMessage
@@ -70,8 +152,9 @@ function MultifactorAuthenticationRevokePage() {
                             large
                             danger
                             style={styles.flex1}
-                            onPress={showConfirmModal}
-                            text={translate('multifactorAuthentication.revoke.cta')}
+                            isLoading={isThisDeviceLoading && isOtherDevicesLoading}
+                            onPress={() => showRevokeConfirm(revokeAll, hasMultipleKeys)}
+                            text={translate(hasMultipleKeys ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta')}
                         />
                     ) : (
                         <Button
@@ -86,9 +169,9 @@ function MultifactorAuthenticationRevokePage() {
             </FullPageOfflineBlockingView>
             <ConfirmModal
                 danger
-                title={translate('multifactorAuthentication.revoke.cta')}
-                prompt={translate('multifactorAuthentication.revoke.confirmationPrompt')}
-                confirmText={translate('multifactorAuthentication.revoke.cta')}
+                title={translate(isRevokeAll ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta')}
+                prompt={translate(isRevokeAll ? 'multifactorAuthentication.revoke.confirmationPromptAll' : 'multifactorAuthentication.revoke.confirmationPrompt')}
+                confirmText={translate(isRevokeAll ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta')}
                 cancelText={translate('common.cancel')}
                 isVisible={isConfirmModalVisible}
                 onConfirm={() => {
@@ -96,7 +179,6 @@ function MultifactorAuthenticationRevokePage() {
                 }}
                 onCancel={hideConfirmModal}
                 shouldShowCancelButton
-                isConfirmLoading={isLoading}
             />
         </ScreenWrapper>
     );

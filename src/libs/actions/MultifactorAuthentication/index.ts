@@ -189,7 +189,7 @@ async function troubleshootMultifactorAuthentication({signedChallenge, authentic
     }
 }
 
-async function revokeMultifactorAuthenticationCredentials() {
+async function revokeMultifactorAuthenticationCredentials(params?: {onlyKeyID?: string; exceptKeyID?: string}) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -218,7 +218,11 @@ async function revokeMultifactorAuthenticationCredentials() {
         },
     ];
     try {
-        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, {}, {optimisticData, successData, failureData});
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, params ?? {}, {
+            optimisticData,
+            successData,
+            failureData,
+        });
 
         const {jsonCode, message} = response ?? {};
 

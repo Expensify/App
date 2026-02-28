@@ -695,7 +695,11 @@ const translations = {
             biometricsTest: 'Biometrics test',
             authenticationSuccessful: 'Authentication successful',
             successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `You’ve successfully authenticated using ${authType}.`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Biometrics (${registered ? 'Registered' : 'Not registered'})`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometrics (${status})`,
+            statusNeverRegistered: 'Never registered',
+            statusNotRegistered: 'Not registered',
+            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Another device registered' : 'Other devices registered'),
+            statusRegisteredThisDevice: 'Registered',
             yourAttemptWasUnsuccessful: 'Your authentication attempt was unsuccessful.',
             youCouldNotBeAuthenticated: 'You couldn’t be authenticated',
             areYouSureToReject: 'Are you sure? The authentication attempt will be rejected if you close this screen.',
@@ -733,12 +737,20 @@ const translations = {
         revoke: {
             revoke: 'Revoke',
             title: 'Face/fingerprint & passkeys',
-            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device.',
-            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on any device.",
+            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on that device.',
+            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on that device.",
+            confirmationPromptAll: "Are you sure? You'll need a magic code for the next verification on any device.",
             cta: 'Revoke access',
+            ctaAll: 'Revoke all',
             noDevices: "You don't have any devices registered for face/fingerprint or passkey verification. If you register any, you will be able to revoke that access here.",
             dismiss: 'Got it',
             error: 'Request failed. Try again later.',
+            thisDevice: 'This device',
+            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords[count - 1] : `${count}`;
+                return `${displayCount} other ${count === 1 ? 'device' : 'devices'}`;
+            },
         },
     },
     validateCodeModal: {
