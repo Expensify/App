@@ -6185,7 +6185,7 @@ describe('OptionsListUtils', () => {
                 selected: false,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, archivedTimestamp, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+            const option = getPolicyExpenseReportOption(participant, archivedTimestamp, CURRENT_USER_ACCOUNT_ID, testPersonalDetails, report, undefined);
 
             expect(option).toBeDefined();
             expect(option.private_isArchived).toBe(archivedTimestamp);
@@ -6229,7 +6229,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, undefined, undefined, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getPolicyExpenseReportOption(participant, undefined, CURRENT_USER_ACCOUNT_ID, {}, report, undefined);
 
             expect(option).toBeDefined();
             expect(option.private_isArchived).toBeUndefined();
@@ -6317,7 +6317,6 @@ describe('OptionsListUtils', () => {
 
             const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, true);
 
-            expect(result.section.shouldShow).toBe(true);
             expect(result.section.data).toHaveLength(1);
 
             const option = result.section.data.at(0) as SearchOptionData;
@@ -6340,7 +6339,6 @@ describe('OptionsListUtils', () => {
 
             const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, true);
 
-            expect(result.section.shouldShow).toBe(true);
             expect(result.section.data).toHaveLength(1);
 
             const option = result.section.data.at(0) as SearchOptionData;
@@ -6374,7 +6372,6 @@ describe('OptionsListUtils', () => {
 
             const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, true);
 
-            expect(result.section.shouldShow).toBe(true);
             expect(result.section.data).toHaveLength(2);
 
             const archivedOption = result.section.data.at(0) as SearchOptionData;
@@ -6402,7 +6399,6 @@ describe('OptionsListUtils', () => {
 
             const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, false);
 
-            expect(result.section.shouldShow).toBe(true);
             expect(result.section.data).toHaveLength(1);
             // When shouldGetOptionDetails is false, the original selectedOptions are returned unchanged
             expect(result.section.data.at(0)).toBe(selectedOptions.at(0));
@@ -6431,7 +6427,6 @@ describe('OptionsListUtils', () => {
             // Pass empty filtered lists so the selected option is not deduplicated
             const result = formatSectionsFromSearchTerm('format', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, true);
 
-            expect(result.section.shouldShow).toBe(true);
             expect(result.section.data).toHaveLength(1);
 
             const option = result.section.data.at(0) as SearchOptionData;
@@ -6460,7 +6455,6 @@ describe('OptionsListUtils', () => {
 
             const result = formatSectionsFromSearchTerm('', selectedOptions, [], [], privateIsArchivedMap, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, true);
 
-            expect(result.section.shouldShow).toBe(true);
             expect(result.section.data).toHaveLength(1);
 
             // Non-policy expense chats go through getParticipantsOption, not getPolicyExpenseReportOption
@@ -6473,7 +6467,6 @@ describe('OptionsListUtils', () => {
         it('should return empty section when no selectedOptions are provided', () => {
             const result = formatSectionsFromSearchTerm('', [], [], [], {}, CURRENT_USER_ACCOUNT_ID, formatPersonalDetails, true);
 
-            expect(result.section.shouldShow).toBe(false);
             expect(result.section.data).toHaveLength(0);
         });
     });
@@ -6780,7 +6773,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getPolicyExpenseReportOption with report passed directly
-            const option = getPolicyExpenseReportOption(participant, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, report, undefined);
+            const option = getPolicyExpenseReportOption(participant, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, report, undefined);
 
             // Then the option should be created successfully
             expect(option).toBeDefined();
