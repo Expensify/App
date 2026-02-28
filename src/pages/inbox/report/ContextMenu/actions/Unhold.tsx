@@ -11,14 +11,13 @@ import {ACTION_IDS} from './actionConfig';
 function Unhold() {
     const {moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal, isMini, interceptAnonymousUser} = useContextMenuPayload();
     const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
-    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch'] as const);
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch'] as const);
 
     const actionIndex = visibleActionIds.indexOf(ACTION_IDS.UNHOLD);
     if (actionIndex === -1) {
         return null;
     }
-
     const closePopover = !isMini;
 
     const handlePress = () => {

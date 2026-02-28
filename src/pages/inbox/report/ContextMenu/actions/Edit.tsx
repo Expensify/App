@@ -24,38 +24,40 @@ function Edit() {
     }
     const closePopover = !isMini;
 
+    const handlePress = () => {
+        if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
+            const editExpense = () => {
+                const childReportID = reportAction?.childReportID;
+                openReport(childReportID, introSelected);
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
+            };
+            if (closePopover) {
+                hideContextMenu(false, editExpense);
+                return;
+            }
+            editExpense();
+            return;
+        }
+        const editAction = () => {
+            if (!draftMessage) {
+                saveReportActionDraft(reportID, reportAction, Parser.htmlToMarkdown(getActionHtml(reportAction)));
+            } else {
+                deleteReportActionDraft(reportID, reportAction);
+            }
+        };
+        if (closePopover) {
+            hideContextMenu(false, editAction);
+            return;
+        }
+        editAction();
+    };
+
     return (
         <ContextMenuItem
             icon={icons.Pencil}
             text={translate('reportActionContextMenu.editAction', {action: moneyRequestAction ?? reportAction})}
             isMini={isMini}
-            onPress={() => {
-                if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
-                    const editExpense = () => {
-                        const childReportID = reportAction?.childReportID;
-                        openReport(childReportID, introSelected);
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
-                    };
-                    if (closePopover) {
-                        hideContextMenu(false, editExpense);
-                        return;
-                    }
-                    editExpense();
-                    return;
-                }
-                const editAction = () => {
-                    if (!draftMessage) {
-                        saveReportActionDraft(reportID, reportAction, Parser.htmlToMarkdown(getActionHtml(reportAction)));
-                    } else {
-                        deleteReportActionDraft(reportID, reportAction);
-                    }
-                };
-                if (closePopover) {
-                    hideContextMenu(false, editAction);
-                    return;
-                }
-                editAction();
-            }}
+            onPress={handlePress}
             isFocused={focusedIndex === actionIndex}
             onFocus={() => setFocusedIndex(actionIndex)}
             onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}

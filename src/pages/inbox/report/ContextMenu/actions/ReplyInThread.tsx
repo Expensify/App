@@ -21,24 +21,25 @@ function ReplyInThread() {
     }
     const closePopover = !isMini;
 
+    const handlePress = () =>
+        interceptAnonymousUser(() => {
+            if (closePopover) {
+                hideContextMenu(false, () => {
+                    KeyboardUtils.dismiss().then(() => {
+                        navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID);
+                    });
+                });
+                return;
+            }
+            navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID);
+        }, false);
+
     return (
         <ContextMenuItem
             icon={icons.ChatBubbleReply}
             text={translate('reportActionContextMenu.replyInThread')}
             isMini={isMini}
-            onPress={() =>
-                interceptAnonymousUser(() => {
-                    if (closePopover) {
-                        hideContextMenu(false, () => {
-                            KeyboardUtils.dismiss().then(() => {
-                                navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID);
-                            });
-                        });
-                        return;
-                    }
-                    navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID);
-                }, false)
-            }
+            onPress={handlePress}
             isFocused={focusedIndex === actionIndex}
             onFocus={() => setFocusedIndex(actionIndex)}
             onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}

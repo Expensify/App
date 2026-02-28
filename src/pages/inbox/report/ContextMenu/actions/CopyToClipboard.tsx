@@ -12,8 +12,8 @@ import {ACTION_IDS} from './actionConfig';
 function CopyToClipboard() {
     const {selection, isMini, interceptAnonymousUser} = useContextMenuPayload();
     const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
 
     const actionIndex = visibleActionIds.indexOf(ACTION_IDS.COPY_TO_CLIPBOARD);
     if (actionIndex === -1) {

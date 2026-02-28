@@ -21,24 +21,27 @@ function Explain() {
     }
     const closePopover = !isMini;
 
+    const handlePress = () => {
+        if (!originalReport?.reportID) {
+            return;
+        }
+        const doExplain = () =>
+            explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails?.timezone);
+        if (closePopover) {
+            hideContextMenu(false, () => {
+                KeyboardUtils.dismiss().then(doExplain);
+            });
+            return;
+        }
+        doExplain();
+    };
+
     return (
         <ContextMenuItem
             icon={icons.Concierge}
             text={translate('reportActionContextMenu.explain')}
             isMini={isMini}
-            onPress={() => {
-                if (!originalReport?.reportID) {
-                    return;
-                }
-                const doExplain = () => explain(childReport, originalReport, reportAction, translate, currentUserPersonalDetails?.accountID ?? 0, currentUserPersonalDetails?.timezone);
-                if (closePopover) {
-                    hideContextMenu(false, () => {
-                        KeyboardUtils.dismiss().then(doExplain);
-                    });
-                    return;
-                }
-                doExplain();
-            }}
+            onPress={handlePress}
             isFocused={focusedIndex === actionIndex}
             onFocus={() => setFocusedIndex(actionIndex)}
             onBlur={() => (actionIndex === visibleActionIds.length - 1 || actionIndex === 1) && setFocusedIndex(-1)}

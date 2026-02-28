@@ -1,5 +1,4 @@
 import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -139,12 +138,12 @@ import {
     isExpenseReport,
 } from '@libs/ReportUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
+import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
+import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
+import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
-import {useContextMenuVisibility} from '../ContextMenuLayout';
-import type {ContextMenuPayloadContextValue} from '../ContextMenuPayloadProvider';
-import {useContextMenuPayload} from '../ContextMenuPayloadProvider';
-import {hideContextMenu} from '../ReportActionContextMenu';
 import {ACTION_IDS, getActionHtml} from './actionConfig';
 
 function setClipboardMessage(content: string | undefined) {
@@ -220,6 +219,7 @@ function copyMessageToClipboard(payload: ContextMenuPayloadContextValue) {
             const taskPreviewMessage = getTaskCreatedMessage(translate, reportAction, childReport, true);
             Clipboard.setString(taskPreviewMessage);
         } else if (isMemberChangeAction(reportAction)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const logMessage = getMemberChangeMessageFragment(translate, reportAction, getReportNameDeprecated).html ?? '';
             setClipboardMessage(logMessage);
         } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {

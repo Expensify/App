@@ -3,9 +3,9 @@ import type {GestureResponderEvent, View} from 'react-native';
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import CONST from '@src/CONST';
-import {useContextMenuVisibility} from '../ContextMenuLayout';
-import {useContextMenuPayload} from '../ContextMenuPayloadProvider';
 import {ACTION_IDS} from './actionConfig';
 
 function OverflowMenu() {

@@ -60,7 +60,7 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
 
     const [actions] = useState<MiniContextMenuActions>(() => {
         const clearHideTimer = () => {
-            if (hideTimerRef.current === null) {
+            if (hideTimerRef.current == null) {
                 return;
             }
             clearTimeout(hideTimerRef.current);
@@ -69,12 +69,7 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
 
         const performHide = () => {
             clearHideTimer();
-            setState((prev) => {
-                if (!prev) {
-                    return null;
-                }
-                return {...prev, isVisible: false};
-            });
+            setState((prev) => (prev ? {...prev, isVisible: false} : null));
         };
 
         return {

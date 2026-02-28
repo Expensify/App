@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import type {ReactNode, RefObject} from 'react';
 import {createContext, useContext} from 'react';
 import {View} from 'react-native';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -30,7 +30,7 @@ type ContextMenuLayoutProps = {
     isMini: boolean;
     isVisible: boolean;
     shouldKeepOpen: boolean;
-    contentRef?: React.RefObject<View | null>;
+    contentRef?: RefObject<View | null>;
     children: ReactNode;
 };
 

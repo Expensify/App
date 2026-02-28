@@ -79,7 +79,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const onPopoverHide = useRef(() => {});
     const onPopoverHideActionCallback = useRef(() => {});
 
-    /** Get the Context menu anchor position. We calculate the anchor coordinates from measureInWindow async method */
     const getContextMenuMeasuredLocation = () =>
         new Promise<{x: number; y: number}>((resolve) => {
             if (contextMenuAnchorRef.current && 'measureInWindow' in contextMenuAnchorRef.current && typeof contextMenuAnchorRef.current.measureInWindow === 'function') {
@@ -89,7 +88,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             }
         });
 
-    /** This gets called on Dimensions change to find the anchor coordinates for the action context menu. */
     const measureContextMenuAnchorPosition = () => {
         if (!isPopoverVisible) {
             return;
@@ -128,16 +126,12 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPopoverVisible]);
 
-    /** Whether Context Menu is active for the Report Action. */
     const isActiveReportAction: ReportActionContextMenu['isActiveReportAction'] = (actionID) => !!actionID && reportActionID === String(actionID);
 
     const clearActiveReportAction = () => {
         setMenuState(null);
     };
 
-    /**
-     * Show the ReportActionContextMenu modal popover.
-     */
     const showContextMenu: ReportActionContextMenu['showContextMenu'] = (showContextMenuParams) => {
         const {
             type,
@@ -176,12 +170,14 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         onPopoverHide.current = onHide;
 
         new Promise<PopoverPosition>((resolve) => {
-            if (!!(!pageX && !pageY && contextMenuAnchorRef.current) || isOverflowMenu) {
-                calculateAnchorPosition(contextMenuAnchorRef.current).then((position) => {
+            const anchor = contextMenuAnchorRef.current;
+            const useAnchorPosition = isOverflowMenu || (anchor != null && !pageX && !pageY);
+            if (useAnchorPosition && anchor) {
+                calculateAnchorPosition(anchor).then((position) => {
                     resolve({
                         anchorHorizontal: position.horizontal,
                         anchorVertical: position.vertical,
-                        anchorWidth: position.vertical,
+                        anchorWidth: position.width,
                         anchorHeight: position.height,
                     });
                 });
@@ -224,26 +220,20 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         });
     };
 
-    /** After Popover shows, call the registered onPopoverShow callback and reset it */
     const runAndResetOnPopoverShow = () => {
         instanceIDRef.current = Math.random().toString(36).slice(2, 7);
         onPopoverShow.current();
-
         onPopoverShow.current = () => {};
-
-        // After the context menu opening animation ends reset isContextMenuOpening.
         setTimeout(() => {
             setIsContextMenuOpening(false);
         }, CONST.ANIMATED_TRANSITION);
     };
 
-    /** Run the callback and return a noop function to reset it */
     const runAndResetCallback = (callback: () => void) => {
         callback();
         return () => {};
     };
 
-    /** After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it */
     const runAndResetOnPopoverHide = () => {
         setMenuState(null);
         instanceIDRef.current = '';
@@ -252,9 +242,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         onPopoverHideActionCallback.current = runAndResetCallback(onPopoverHideActionCallback.current);
     };
 
-    /**
-     * Hide the ReportActionContextMenu modal popover.
-     */
     const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (hideContextMenuParams) => {
         const {callbacks = {}} = hideContextMenuParams ?? {};
 
@@ -273,11 +260,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         });
     };
 
-    const hideDeleteModal = () => {
-        // No-op: delete modal lifecycle is managed by the global modal system
-    };
+    const hideDeleteModal = () => {};
 
-    /** Opens the Confirm delete action modal via the global modal system */
     const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (showReportID, showReportAction, _shouldSetModalVisibility, onConfirm = () => {}, onCancel = () => {}) => {
         if (!showReportID || !showReportAction?.reportActionID) {
             return;

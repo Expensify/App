@@ -90,10 +90,11 @@ function BaseReportActionContextMenu({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [localShouldKeepOpen, setLocalShouldKeepOpen] = useState(false);
     const miniActions = useMiniContextMenuActions();
-    const shouldKeepOpen = isMini ? false : localShouldKeepOpen;
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const encryptedAuthToken = useSession()?.encryptedAuthToken ?? '';
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
@@ -104,44 +105,44 @@ function BaseReportActionContextMenu({
         canEvict: false,
         selector: withDEWRoutedActionsObject,
     });
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
-    const reportAction: OnyxEntry<ReportAction> =
-        isEmptyObject(originalReportActions) || reportActionID === '0' || reportActionID === '-1' || !reportActionID ? undefined : originalReportActions[reportActionID];
+    const hasValidReportAction = !isEmptyObject(originalReportActions) && reportActionID && reportActionID !== '0' && reportActionID !== '-1';
+    const reportAction: OnyxEntry<ReportAction> = hasValidReportAction ? originalReportActions[reportActionID] : undefined;
+
     const transactionID = getLinkedTransactionID(reportAction);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const [harvestReport] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID))}`,
         {},
     );
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
-    const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`);
-
-    const sourceID = getSourceIDFromReportAction(reportAction);
-
-    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${getSourceIDFromReportAction(reportAction)}`);
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
     const [childReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction?.childReportID}`);
     const [childChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.chatReportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
     const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const transactionThreadReportID = getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline);
-
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const isChildReportArchived = useReportIsArchived(childReport?.reportID);
+    const isParentReportArchived = useReportIsArchived(childReport?.parentReportID);
 
     const isMoneyRequestReport = ReportUtilsIsMoneyRequestReport(childReport);
     const isInvoiceReport = ReportUtilsIsInvoiceReport(childReport);
-
     let requestParentReportAction;
     if (isMoneyRequestReport || isInvoiceReport) {
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
@@ -152,35 +153,28 @@ function BaseReportActionContextMenu({
     } else {
         requestParentReportAction = parentReportAction;
     }
-
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
-    const isChildReportArchived = useReportIsArchived(childReport?.reportID);
-    const isParentReportArchived = useReportIsArchived(childReport?.parentReportID);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
+
     const iouTransactionID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU)?.IOUTransactionID;
-    const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const iouReportID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU)?.IOUReportID;
+    const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-
-    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
-    const session = useSession();
-    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
     const isMoneyRequest = ReportUtilsIsMoneyRequest(childReport);
     const isTrackExpenseReport = ReportUtilsIsTrackExpenseReport(childReport);
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
     const isMoneyRequestOrReport = isMoneyRequestReport || isSingleTransactionView;
-
-    const areHoldRequirementsMet =
-        !isInvoiceReport &&
-        isMoneyRequestOrReport &&
-        !isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, transactionThreadReportID ? isChildReportArchived : isParentReportArchived);
+    const archivedReportForHold = transactionThreadReportID ? childReport : parentReport;
+    const isArchivedForHold = transactionThreadReportID ? isChildReportArchived : isParentReportArchived;
+    const areHoldRequirementsMet = !isInvoiceReport && isMoneyRequestOrReport && !isArchivedNonExpenseReport(archivedReportForHold, isArchivedForHold);
 
     const isHarvestReport = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
+    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
+    const shouldKeepOpen = isMini ? false : localShouldKeepOpen;
+
+    useRestoreInputFocus(isVisible);
 
     const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
         if (isAnonymousUser() && !isAnonymousAction) {
@@ -193,8 +187,6 @@ function BaseReportActionContextMenu({
             callback();
         }
     };
-
-    useRestoreInputFocus(isVisible);
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<ViewType | null>) => {
         showContextMenu({

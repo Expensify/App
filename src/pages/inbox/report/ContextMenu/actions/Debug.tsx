@@ -3,11 +3,11 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
+import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {useContextMenuVisibility} from '../ContextMenuLayout';
-import {useContextMenuPayload} from '../ContextMenuPayloadProvider';
-import {hideContextMenu} from '../ReportActionContextMenu';
 import {ACTION_IDS} from './actionConfig';
 
 function Debug() {
@@ -22,10 +22,13 @@ function Debug() {
     }
 
     const handlePress = () => {
+        if (!reportID) {
+            return;
+        }
         if (reportAction) {
-            Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID ?? '', reportAction.reportActionID));
+            Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, reportAction.reportActionID));
         } else {
-            Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(reportID ?? ''));
+            Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(reportID));
         }
         hideContextMenu(false, ReportActionComposeFocusManager.focus);
     };

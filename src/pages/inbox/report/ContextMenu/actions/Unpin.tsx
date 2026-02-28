@@ -2,11 +2,11 @@ import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
+import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {togglePinnedState} from '@userActions/Report';
 import CONST from '@src/CONST';
-import {useContextMenuVisibility} from '../ContextMenuLayout';
-import {useContextMenuPayload} from '../ContextMenuPayloadProvider';
-import {hideContextMenu} from '../ReportActionContextMenu';
 import {ACTION_IDS} from './actionConfig';
 
 function Unpin() {

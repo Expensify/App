@@ -2,10 +2,10 @@ import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
+import {hideContextMenu, showDeleteModal} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import {useContextMenuVisibility} from '../ContextMenuLayout';
-import {useContextMenuPayload} from '../ContextMenuPayloadProvider';
-import {hideContextMenu, showDeleteModal} from '../ReportActionContextMenu';
 import {ACTION_IDS} from './actionConfig';
 
 function Delete() {
@@ -23,7 +23,7 @@ function Delete() {
 
     const handlePress = () => {
         const iouReportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : undefined;
-        const effectiveReportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : (reportID ?? '');
+        const effectiveReportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportID;
         if (closePopover) {
             hideContextMenu(false, () => showDeleteModal(effectiveReportID, moneyRequestAction ?? reportAction));
             return;

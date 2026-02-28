@@ -13,14 +13,13 @@ import {ACTION_IDS} from './actionConfig';
 function JoinThread() {
     const {reportAction, originalReport, currentUserAccountID, isMini, interceptAnonymousUser} = useContextMenuPayload();
     const {visibleActionIds, focusedIndex, setFocusedIndex} = useContextMenuVisibility();
-    const icons = useMemoizedLazyExpensifyIcons(['Bell'] as const);
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Bell'] as const);
 
     const actionIndex = visibleActionIds.indexOf(ACTION_IDS.JOIN_THREAD);
     if (actionIndex === -1) {
         return null;
     }
-
     const closePopover = !isMini;
 
     const handlePress = () => {

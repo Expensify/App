@@ -2,12 +2,12 @@ import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import {useContextMenuVisibility} from '@pages/inbox/report/ContextMenu/ContextMenuLayout';
+import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
+import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import KeyboardUtils from '@src/utils/keyboard';
-import {useContextMenuVisibility} from '../ContextMenuLayout';
-import {useContextMenuPayload} from '../ContextMenuPayloadProvider';
-import {hideContextMenu} from '../ReportActionContextMenu';
 import {ACTION_IDS} from './actionConfig';
 
 function FlagAsOffensive() {
