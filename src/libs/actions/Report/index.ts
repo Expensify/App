@@ -4748,6 +4748,7 @@ type CompleteOnboardingProps = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldWaitForRHPVariantInitialization?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean;
 };
 
 async function completeOnboarding({
@@ -4767,6 +4768,7 @@ async function completeOnboarding({
     onboardingPurposeSelected,
     shouldWaitForRHPVariantInitialization = false,
     introSelected,
+    isSelfTourViewed,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -4780,6 +4782,7 @@ async function completeOnboarding({
         selectedInterestedFeatures,
         isInvitedAccountant,
         onboardingPurposeSelected,
+        isSelfTourViewed,
     });
     if (!onboardingData) {
         return;

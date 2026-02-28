@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useCallback, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
@@ -180,6 +181,7 @@ function MoneyRequestReportPreviewContent({
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -275,6 +277,7 @@ function MoneyRequestReportPreviewContent({
                         paymentMethod,
                         activePolicy,
                         betas,
+                        isSelfTourViewed,
                     });
                 } else {
                     payMoneyRequest({
@@ -287,6 +290,7 @@ function MoneyRequestReportPreviewContent({
                         activePolicy,
                         policy,
                         betas,
+                        isSelfTourViewed,
                     });
                 }
             }
