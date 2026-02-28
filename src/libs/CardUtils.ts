@@ -1026,9 +1026,9 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCou
     }
 
     if (feedCountry) {
-        const nested = cardSettings[feedCountry as keyof typeof cardSettings];
-        if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
-            return nested as ExpensifyCardSettingsBase;
+        const feedCountryCardSettings = cardSettings[feedCountry as keyof typeof cardSettings];
+        if (feedCountryCardSettings && typeof feedCountryCardSettings === 'object' && !Array.isArray(feedCountryCardSettings)) {
+            return feedCountryCardSettings as ExpensifyCardSettingsBase;
         }
     }
 
