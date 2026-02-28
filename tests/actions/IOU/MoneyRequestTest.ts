@@ -381,7 +381,7 @@ describe('MoneyRequest', () => {
             iouType: CONST.IOU.TYPE.CREATE,
             policy: fakePolicy,
             report: fakeReport,
-            participantReport: undefined,
+            participantReport: fakeReport,
             participantChatReport: undefined,
             reportID: '1',
             reportAttributesDerived: {},
@@ -826,7 +826,7 @@ describe('MoneyRequest', () => {
         const baseParams = {
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
-            participantReport: undefined,
+            participantReport: fakeReport,
             participantChatReport: undefined,
             policy: fakePolicy,
             transaction: fakeTransaction,
