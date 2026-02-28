@@ -8862,7 +8862,6 @@ const CONST = {
             SUBMIT_BUTTON: 'Form-SubmitButton',
         },
         ONBOARDING: {
-            ACCOUNTING_ITEM: 'Onboarding-AccountingItem',
             INTERESTED_FEATURES_ITEM: 'Onboarding-InterestedFeaturesItem',
             ACCOUNTING_SELECT_INTEGRATION: 'OnboardingAccounting-SelectIntegration',
             PURPOSE_ITEM: 'Onboarding-PurposeItem',

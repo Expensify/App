@@ -201,7 +201,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 accessibilityLabel={item.text}
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_SELECT_INTEGRATION}
                 accessible={false}
-                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_ITEM}
                 hoverStyle={!item.isSelected ? styles.hoveredComponentBG : undefined}
                 style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100, item.isSelected && styles.activeComponentBG]}
             >
