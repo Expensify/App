@@ -134,6 +134,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         prevScreen,
         moveTo,
         goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep<SignerDetailsFormProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleNextSubStep = useCallback(

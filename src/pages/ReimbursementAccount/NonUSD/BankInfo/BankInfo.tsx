@@ -106,6 +106,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoPr
         prevScreen,
         moveTo,
         goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep<BankInfoSubStepProps>({bodyContent, startFrom, onFinished: submit});
 
     const handleBackButtonPress = () => {

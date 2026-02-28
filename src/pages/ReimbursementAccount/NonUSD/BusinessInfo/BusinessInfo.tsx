@@ -129,6 +129,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
         };
     }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingCompanyFields, reimbursementAccount?.isSuccess, onSubmit]);
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
     const handleBackButtonPress = () => {
