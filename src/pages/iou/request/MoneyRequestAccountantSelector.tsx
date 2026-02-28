@@ -71,6 +71,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm.trim());
@@ -92,6 +93,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            reports,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -162,6 +164,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             chatOptions.personalDetails,
             currentUserAccountID,
             personalDetails,
+            reports,
             true,
             undefined,
             reportAttributesDerived,
@@ -216,6 +219,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         chatOptions.userToInvite,
         debouncedSearchTerm,
         personalDetails,
+        reports,
         userToInviteExpenseReport,
         userToInviteChatReport,
         reportAttributesDerived,

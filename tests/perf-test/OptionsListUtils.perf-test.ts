@@ -135,6 +135,7 @@ describe('OptionsListUtils', () => {
                 options,
                 betas: mockedBetas,
                 draftComments: {},
+                reports: {},
                 nvpDismissedProductTraining,
                 loginList,
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
@@ -156,6 +157,7 @@ describe('OptionsListUtils', () => {
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
+            {},
             ValidOptionsConfig,
         );
         await measureFunction(() => {
@@ -172,6 +174,7 @@ describe('OptionsListUtils', () => {
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
+            {},
             ValidOptionsConfig,
         );
         await measureFunction(() => {
@@ -191,6 +194,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 MOCK_CURRENT_USER_EMAIL,
+                {},
                 {
                     betas: mockedBetas,
                     includeMultipleParticipantReports: true,
@@ -220,6 +224,7 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 MOCK_CURRENT_USER_EMAIL,
                 personalDetails,
+                {},
                 mockedBetas,
                 {},
                 false,
@@ -272,6 +277,7 @@ describe('OptionsListUtils', () => {
                 Object.values(filteredPersonalDetails),
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 mockedPersonalDetails,
+                {},
                 true,
             ),
         );
@@ -283,6 +289,6 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true));
+        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, {}, true));
     });
 });
