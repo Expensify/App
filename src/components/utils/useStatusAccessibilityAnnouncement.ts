@@ -1,5 +1,6 @@
 import {useEffect, useRef} from 'react';
 import {AccessibilityInfo, Platform} from 'react-native';
+import {announceStatusForWeb} from '@libs/StatusAccessibilityAnnouncement';
 
 const IOS_ANNOUNCEMENT_DELAY = 100;
 
@@ -7,11 +8,6 @@ function useStatusAccessibilityAnnouncement(message: string, shouldAnnounce: boo
     const previousAnnouncementRef = useRef('');
 
     useEffect(() => {
-        if (Platform.OS === 'web') {
-            previousAnnouncementRef.current = '';
-            return;
-        }
-
         const trimmedMessage = message.trim();
         if (!shouldAnnounce || !trimmedMessage) {
             previousAnnouncementRef.current = '';
@@ -24,6 +20,12 @@ function useStatusAccessibilityAnnouncement(message: string, shouldAnnounce: boo
         }
 
         previousAnnouncementRef.current = composedAnnouncementKey;
+
+        if (Platform.OS === 'web') {
+            announceStatusForWeb(trimmedMessage);
+            return;
+        }
+
         const timeout = setTimeout(() => AccessibilityInfo.announceForAccessibility(trimmedMessage), Platform.OS === 'ios' ? IOS_ANNOUNCEMENT_DELAY : 0);
 
         return () => clearTimeout(timeout);

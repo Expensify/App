@@ -33,6 +33,7 @@ import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import {SearchRouterContextProvider} from './components/Search/SearchRouter/SearchRouterContext';
 import SidePanelContextProvider from './components/SidePanel/SidePanelContextProvider';
+import StatusAccessibilityAnnouncer from './components/StatusAccessibilityAnnouncer';
 import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
@@ -143,6 +144,7 @@ function App() {
                                             <Expensify />
                                         </ColorSchemeWrapper>
                                     </ErrorBoundary>
+                                    <StatusAccessibilityAnnouncer />
                                     <NavigationBar />
                                 </ComposeProviders>
                             </View>
