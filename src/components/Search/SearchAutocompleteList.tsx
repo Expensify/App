@@ -188,6 +188,7 @@ function SearchAutocompleteList({
             currentUserEmail,
             policyCollection: policies,
             personalDetails,
+            reports,
         });
     })();
 

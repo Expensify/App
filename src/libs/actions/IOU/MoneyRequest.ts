@@ -5,7 +5,7 @@ import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfir
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {getManagerMcTestParticipant, getParticipantsOption, getReportOptionFromCollection} from '@libs/OptionsListUtils';
 import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -276,9 +276,7 @@ function getMoneyRequestParticipantOptions(
         if (participantAccountID) {
             return getParticipantsOption(participant, personalDetails);
         }
-        const participantReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
-        const participantChatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participantReport?.chatReportID}`];
-        return getReportOption(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, participantReport, participantChatReport, reportAttributesDerived);
+        return getReportOptionFromCollection(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, reports, reportAttributesDerived);
     });
 }
 

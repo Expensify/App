@@ -24,7 +24,7 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateDefaultReimbursable, getExistingTransactionID, isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {getParticipantsOption, getReportOptionFromCollection} from '@libs/OptionsListUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
@@ -229,9 +229,7 @@ function IOURequestStepAmount({
                 if (participantAccountID) {
                     return getParticipantsOption(participant, personalDetails);
                 }
-                const participantReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
-                const participantChatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participantReport?.chatReportID}`];
-                return getReportOption(participant, privateIsArchived, policy, currentUserAccountIDParam, personalDetails, participantReport, participantChatReport, reportAttributesDerived);
+                return getReportOptionFromCollection(participant, privateIsArchived, policy, currentUserAccountIDParam, personalDetails, reports, reportAttributesDerived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 

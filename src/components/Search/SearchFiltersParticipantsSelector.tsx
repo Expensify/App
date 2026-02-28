@@ -120,6 +120,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            reports,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
@@ -145,6 +146,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         personalDetails,
         currentUserAccountID,
         currentUserEmail,
+        reports,
     ]);
 
     const unselectedOptions = useMemo(() => {
