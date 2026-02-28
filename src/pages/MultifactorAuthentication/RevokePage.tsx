@@ -11,8 +11,7 @@ import Text from '@components/Text';
 import useBiometricRegistrationStatus from '@hooks/useBiometricRegistrationStatus';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openSecuritySettingsPage} from '@libs/actions/Delegate';
-import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
+import {openMultifactorAuthenticationRevokePage, revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
 
 function MultifactorAuthenticationRevokePage() {
@@ -30,7 +29,7 @@ function MultifactorAuthenticationRevokePage() {
     const hasMultipleKeys = totalDeviceCount > 1;
 
     useEffect(() => {
-        openSecuritySettingsPage();
+        openMultifactorAuthenticationRevokePage();
     }, []);
 
     const onGoBackPress = () => {
