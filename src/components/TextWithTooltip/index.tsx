@@ -24,7 +24,7 @@ function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines 
                     if (!shouldShowTooltip) {
                         return;
                     }
-                    if (target.scrollWidth > target.offsetWidth) {
+                    if (target.scrollWidth > target.offsetWidth || target.scrollHeight > target.offsetHeight) {
                         setShowTooltip(true);
                         return;
                     }

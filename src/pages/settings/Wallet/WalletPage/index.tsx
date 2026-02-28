@@ -334,6 +334,7 @@ function WalletPage() {
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
+            shouldDisplayHelpButton
         />
     );
 
