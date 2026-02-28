@@ -7,6 +7,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
+import type {ButtonProps} from './Button';
 import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
@@ -34,9 +35,12 @@ type BaseWidgetItemProps = {
 
     /** Optional: fill color for the icon (defaults to white) */
     iconFill?: string;
+
+    /** Additional props to pass to the Button component for styling control */
+    buttonProps?: Partial<ButtonProps>;
 };
 
-function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, onCtaPress, iconFill}: BaseWidgetItemProps) {
+function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, onCtaPress, iconFill, buttonProps}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -65,9 +69,11 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
                     <Button
                         text={ctaText}
                         onPress={onCtaPress}
-                        success
                         small
                         style={styles.widgetItemButton}
+                        // Prop spreading allows parent components to pass additional button styling props (e.g., danger: true, success: true)
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...buttonProps}
                     />
                 </View>
             )}

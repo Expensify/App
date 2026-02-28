@@ -6,10 +6,10 @@ import useOnyx from './useOnyx';
  * along with a flag indicating if the login data has finished loading.
  */
 const useHasLoggedIntoMobileApp = () => {
-    const [lastECashIOSLogin, lastECashIOSLoginResult] = useOnyx(ONYXKEYS.NVP_LAST_ECASH_IOS_LOGIN, {canBeMissing: true});
-    const [lastECashAndroidLogin, lastECashAndroidLoginResult] = useOnyx(ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN, {canBeMissing: true});
-    const [lastiPhoneLogin, lastiPhoneLoginResult] = useOnyx(ONYXKEYS.NVP_LAST_IPHONE_LOGIN, {canBeMissing: true});
-    const [lastAndroidLogin, lastAndroidLoginResult] = useOnyx(ONYXKEYS.NVP_LAST_ANDROID_LOGIN, {canBeMissing: true});
+    const [lastECashIOSLogin, lastECashIOSLoginResult] = useOnyx(ONYXKEYS.NVP_LAST_ECASH_IOS_LOGIN);
+    const [lastECashAndroidLogin, lastECashAndroidLoginResult] = useOnyx(ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN);
+    const [lastiPhoneLogin, lastiPhoneLoginResult] = useOnyx(ONYXKEYS.NVP_LAST_IPHONE_LOGIN);
+    const [lastAndroidLogin, lastAndroidLoginResult] = useOnyx(ONYXKEYS.NVP_LAST_ANDROID_LOGIN);
 
     const hasLoggedIntoMobileApp = !!lastECashIOSLogin || !!lastECashAndroidLogin || !!lastiPhoneLogin || !!lastAndroidLogin;
 

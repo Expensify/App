@@ -6,6 +6,7 @@ import type {
     LayoutChangeEvent,
     NativeScrollEvent,
     NativeSyntheticEvent,
+    Role,
     ScrollViewProps,
     SectionListData,
     StyleProp,
@@ -25,7 +26,7 @@ import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
 import type CONST from '@src/CONST';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {LastPaymentMethod, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -123,6 +124,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
+
+    /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
+    accessibilityRole?: Role;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -296,6 +300,9 @@ type TransactionListItemType = ListItem &
 
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
+
+        /** Whether the card feed has been deleted */
+        isCardFeedDeleted?: boolean;
 
         /** The original amount of the transaction */
         originalAmount?: number;
@@ -662,6 +669,10 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     onDEWModalOpen?: () => void;
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -687,6 +698,12 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
 
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
+
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -701,6 +718,10 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     onDEWModalOpen?: () => void;
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
 };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
@@ -725,9 +746,6 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** The policies which the user has access to */
     policies?: OnyxCollection<Policy>;
-
-    /** All the data of the report collection */
-    allReports?: OnyxCollection<Report>;
 
     /** The report data */
     report?: Report;
@@ -1118,6 +1136,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Styles to apply to the list footer component */
+    ListFooterComponentStyle?: StyleProp<ViewStyle>;
 
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;

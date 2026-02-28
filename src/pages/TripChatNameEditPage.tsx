@@ -32,7 +32,8 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const reportID = report?.reportID;
-    const currentChatName = getReportName(report);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const currentChatName = getReportName({report});
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
         const errors: Errors = {};

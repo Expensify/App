@@ -24,7 +24,7 @@ function Last4SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBei
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [last4SSNInputID]);
+            const errors = getFieldRequiredErrors(values, [last4SSNInputID], translate);
 
             if (values[last4SSNInputID] && !isValidSSNLastFour(SafeString(values[last4SSNInputID]))) {
                 errors[last4SSNInputID] = translate('bankAccount.error.ssnLast4');

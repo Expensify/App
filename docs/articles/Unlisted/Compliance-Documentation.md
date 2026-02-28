@@ -1,39 +1,91 @@
 ---
 title: How to access Expensify’s SOC 1, SOC 2, and compliance documentation
-description: Learn how to access Expensify’s SOC 1 and SOC 2 reports, bridge letter, and key legal policies.
-keywords: SOC 1, SOC 2, security report, compliance, bridge letter, Expensify privacy policy, Expensify subprocessors, Expensify terms of service
+description: Learn how to request compliance documents through the Expensify Trust Center.
+keywords: SOC, SOC 1 Type 2, SOC 2 Type 2, bridge letter, W-9, COI, Certificate of Insurance, compliance documentation, security report, vendor security review
+internalScope: Audience is security reviewers, procurement teams, and customers evaluating Expensify. Covers how to obtain SOC reports and compliance documentation from the Trust Center. Does not cover technical security architecture details or audit control explanations.
 ---
 
-Expensify is committed to keeping your data secure and transparent. You can access our latest SOC reports and compliance documentation below.
+Expensify is committed to protecting your data and maintaining transparency around our security practices.
 
-# Expensify SOC 1 and SOC 2 reports
-
-You can view or download the following audit documents to verify our security and operational controls:
-
-- [Bridge Letter for SOC 1 and SOC 2 – June 2025](https://drive.google.com/file/d/1kxttniCMLFah4uPNjhknxs0Zor6tWGWE/view?usp=drive_link)
-- [SOC 1 Type 2 Report – September 30, 2024](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1733950182002-SOC+1+Type+2+Report+09-30-24+-+Expensify.pdf)
-- [SOC 2 Type 2 Report – September 30, 2024](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1733950193162-SOC+2+Type+2+Report+09-30-24+-+Expensify.pdf)
-
-**Note:** If you need additional details for vendor security reviews or procurement, reach out to your Account Manager or [Concierge](mailto:concierge@expensify.com). 
+All compliance documentation, including SOC reports and insurance certificates — is available through our Trust Center.
 
 ---
 
-# Additional Expensify legal resources
+# How to access Expensify compliance documentation
 
-You can find more information about our legal and compliance commitments here:
+You can request and download the latest compliance documents directly from the Expensify Trust Center:
 
-- [Expensify Terms of Service](https://www.expensify.com/terms)
-- [Expensify Privacy Policy](https://www.expensify.com/privacy)
-- [List of Subprocessors](https://use.expensify.com/subprocessors)
+https://trust.expensify.com/
+
+The Trust Center includes:
+
+- SOC 1 Type 2 Report
+- SOC 2 Type 2 Report
+- SOC 1 and SOC 2 Bridge Letter
+- Certificate of Insurance
+- W-9
+- Additional security and compliance resources
+
+You may be asked to submit a short access request form before downloading certain documents. 
+
+---
+
+# How to request Expensify’s SOC 1 Type 2 Report or SOC 2 Type 2 Report
+
+If you need a SOC report for a vendor security review or procurement process:
+
+1. Go to https://trust.expensify.com/
+2. Select the SOC 1 Type 2 Report or SOC 2 Type 2 Report
+3. Click Request access
+4. Complete the request form
+5. Submit the form to receive access instructions
+
+---
+
+# How to get Expensify’s SOC 1 and SOC 2 Bridge Letter
+
+The SOC bridge letter provides coverage between the end of the last audit period and the current date.
+
+To access the bridge letter:
+
+1. Visit https://trust.expensify.com/
+2. Select SOC 1 and SOC 2 Bridge Letter
+3. Click Request access (if prompted)
+4. Download the document once approved
+
+---
+
+# How to get Expensify’s W-9 or Certificate of Insurance
+
+For accounting, tax setup, or vendor onboarding:
+
+1. Go to https://trust.expensify.com/
+2. Select W-9 or Certificate of Insurance
+3. Request or download the document
+
+---
+
+# When to contact Expensify about compliance documentation
+
+If you’re unable to access a document in the Trust Center, or if your organization requires additional documentation for a vendor security review, reach out to your Account Manager or Concierge.
+
+Include details about:
+
+- The document you need
+- Your company name
+- Any required deadline
+
+This helps us respond as quickly as possible.
 
 ---
 
 # FAQ
 
-## Who can access Expensify’s SOC 1 and SOC 2 reports?
+## Who can access Expensify’s SOC 1 Type 2 and SOC 2 Type 2 reports?
 
-Anyone evaluating Expensify for security and compliance purposes can access these reports using the links above. If you're a current customer, you can also request them from your Account Manager.
+Anyone conducting a vendor security review or procurement evaluation can request access through the Trust Center. Approval may be required before downloading.
 
-## What is the bridge letter for?
+## What is the SOC bridge letter used for?
 
-The bridge letter explains the period between the last audit date and the current date to maintain coverage while a new audit is underway.
+The bridge letter provides coverage between the end date of the most recent SOC audit and the present date. It confirms there have been no material changes affecting control effectiveness.
+

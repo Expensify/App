@@ -15,7 +15,7 @@ type UnlinkLoginPageProps = PlatformStackScreenProps<PublicScreensParamList, typ
 function UnlinkLoginPage({route}: UnlinkLoginPageProps) {
     const accountID = route.params.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const validateCode = route.params.validateCode ?? '';
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const prevIsLoading = usePrevious(!!account?.isLoading);
 
     useEffect(() => {

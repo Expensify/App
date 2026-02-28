@@ -611,7 +611,7 @@ describe('Check valid amount for IOU/Expense request', () => {
     });
 
     test('Expense amount should be negative', () => {
-        const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+        const expenseReport = ReportUtils.buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', betas: [CONST.BETAS.ALL]});
         const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
             transactionParams: {
                 amount: 100,
@@ -787,5 +787,37 @@ describe('canApproveIOU', () => {
 
         // Then canApproveIOU should return false
         expect(canApproveIOU(report, policy, reportMetadata)).toBe(false);
+    });
+});
+
+describe('getExistingTransactionID', () => {
+    test('should return undefined when linkedTrackedExpenseReportAction is undefined', () => {
+        expect(IOUUtils.getExistingTransactionID(undefined)).toBeUndefined();
+    });
+
+    test('should return undefined when reportAction is not a money request action', () => {
+        const nonMoneyRequestAction = {
+            reportActionID: 'action1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '',
+            message: [],
+        } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
+
+        expect(IOUUtils.getExistingTransactionID(nonMoneyRequestAction)).toBeUndefined();
+    });
+
+    test('should return IOUTransactionID from a valid money request action', () => {
+        const moneyRequestAction = {
+            reportActionID: 'action1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            created: '',
+            originalMessage: {
+                IOUTransactionID: 'txn123',
+                IOUReportID: 'report456',
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            },
+        } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
+
+        expect(IOUUtils.getExistingTransactionID(moneyRequestAction)).toBe('txn123');
     });
 });

@@ -19,7 +19,7 @@ import {
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type * as OnyxTypes from '@src/types/onyx';
-import {localeCompare} from '../../utils/TestHelper';
+import {localeCompare, translateLocal} from '../../utils/TestHelper';
 
 const personalDetailsFakeData = {
     'johndoe@example.com': {
@@ -29,6 +29,14 @@ const personalDetailsFakeData = {
         accountID: 78901,
     },
 } as Record<string, {accountID: number}>;
+
+jest.mock('@libs/SearchParser/searchParser', () => {
+    const actual = jest.requireActual<{parse: (...args: unknown[]) => unknown}>('@libs/SearchParser/searchParser');
+    return {
+        ...actual,
+        parse: jest.fn(actual.parse),
+    };
+});
 
 jest.mock('@libs/PersonalDetailsUtils', () => {
     const actual = jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils');
@@ -108,7 +116,8 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} view:line groupBy:category category:travel`);
+            // LINE view defaults to sortOrder:asc (chronological) and groupBy:month
+            expect(result).toEqual('type:expense sortBy:date sortOrder:asc view:line groupBy:month category:travel');
         });
 
         test('returns query with view:pie', () => {
@@ -337,6 +346,38 @@ describe('SearchQueryUtils', () => {
 
                 expect(result).not.toContain('limit:');
             });
+
+            test('quotes limit value containing spaces to prevent keyword contamination', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    keyword: 'hi',
+                    limit: '10 90',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toContain('limit:"10 90"');
+                expect(result).toEqual('sortBy:date sortOrder:desc type:expense hi limit:"10 90"');
+            });
+
+            test('limit value with spaces does not leak into keyword when round-tripped through parser', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    keyword: 'hi',
+                    limit: '10 90',
+                };
+
+                const queryString = buildQueryStringFromFilterFormValues(filterValues);
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                // "10 90" is not a valid integer, so limit is normalized to undefined
+                expect(queryJSON?.limit).toBeUndefined();
+
+                // The keyword must NOT be contaminated with "90" from the limit value
+                const keywordFilter = queryJSON?.flatFilters.find((filter) => filter.key === 'keyword');
+                expect(keywordFilter?.filters).toHaveLength(1);
+                expect(keywordFilter?.filters.at(0)?.value).toBe('hi');
+            });
         });
 
         describe('view parameter', () => {
@@ -426,7 +467,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
         });
@@ -445,7 +497,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toBe('type:expense status:all merchant:Uber');
         });
@@ -469,7 +532,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, policies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
         });
@@ -496,7 +570,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toContain('limit:25');
         });
@@ -508,7 +593,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).not.toContain('limit:');
         });
@@ -520,7 +616,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toContain('limit:50');
             expect(result).toContain('group-by:category');
@@ -981,6 +1088,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe('+15551234567');
@@ -1005,6 +1113,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe('Jane Doe');
@@ -1028,6 +1137,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe(CONST.SEARCH.ME);
@@ -1045,6 +1155,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe('88888');
@@ -1068,6 +1179,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe('Custom Name');
@@ -1083,7 +1195,17 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, '66666', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID);
+            const result = getFilterDisplayValue(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                '66666',
+                personalDetails,
+                mockReports,
+                mockCardList,
+                mockCardFeeds,
+                mockPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
 
             expect(result).toBe('+15551112222');
             expect(result).not.toContain('@expensify.sms');
@@ -1106,7 +1228,7 @@ describe('SearchQueryUtils', () => {
             ];
 
             for (const filterKey of filterKeys) {
-                const result = getFilterDisplayValue(filterKey, '55555', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID);
+                const result = getFilterDisplayValue(filterKey, '55555', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID, translateLocal);
 
                 expect(result).toBe('+15553334444');
                 expect(result).not.toContain('@expensify.sms');
@@ -1171,6 +1293,82 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toContain('view:pie');
             expect(result).toContain('merchant:Amazon');
+        });
+    });
+
+    describe('buildSearchQueryJSON cache', () => {
+        test('mutating the returned object does not affect subsequent calls for the same query', () => {
+            const query = `type:expense groupBy:category view:bar date:last-month merchant:test${Date.now()}`;
+
+            const first = buildSearchQueryJSON(query);
+            if (first) {
+                first.groupBy = undefined;
+                first.view = CONST.SEARCH.VIEW.TABLE;
+            }
+
+            const second = buildSearchQueryJSON(query);
+
+            expect(second?.groupBy).toBe('category');
+            expect(second?.view).toBe('bar');
+        });
+
+        test('returns equal result on repeated calls with the same query', () => {
+            const query = 'type:expense status:outstanding';
+
+            const first = buildSearchQueryJSON(query);
+            const second = buildSearchQueryJSON(query);
+
+            expect(first).toEqual(second);
+        });
+
+        test('returns independent results for the same query with different rawQuery values', () => {
+            const query = 'type:expense';
+            const rawQueryA = 'type:expense status:drafts';
+            const rawQueryB = 'type:expense status:paid';
+
+            const resultA = buildSearchQueryJSON(query, rawQueryA);
+            const resultB = buildSearchQueryJSON(query, rawQueryB);
+
+            expect(resultA?.rawFilterList).not.toEqual(resultB?.rawFilterList);
+        });
+
+        test('does not cache a failed parse result so subsequent calls retry the parser', () => {
+            // Force the parser to throw on the first call only, then succeed on the second.
+            // Verifies that a failed parse is not stored in the cache.
+            const searchParserModule: {parse: jest.Mock} = jest.requireMock('@libs/SearchParser/searchParser');
+            const originalImpl = jest.requireActual<{parse: (...args: unknown[]) => unknown}>('@libs/SearchParser/searchParser').parse;
+
+            const query = `type:expense merchant:cache-err-test${Date.now()}`;
+            let callCount = 0;
+            searchParserModule.parse.mockImplementation((...args: unknown[]) => {
+                callCount++;
+                if (callCount === 1) {
+                    throw new Error('Simulated parser failure');
+                }
+                return originalImpl(...args);
+            });
+
+            const firstResult = buildSearchQueryJSON(query);
+            const secondResult = buildSearchQueryJSON(query);
+
+            expect(firstResult).toBeUndefined();
+            expect(secondResult?.type).toBe('expense');
+
+            searchParserModule.parse.mockImplementation(originalImpl);
+        });
+
+        test('evicts the oldest entry when the cache exceeds max size', () => {
+            // Insert 51 entries (max is 50) to trigger eviction, then verify
+            // the evicted entry can still be re-parsed correctly.
+            const uniquePrefix = `type:expense merchant:evict${Date.now()}x`;
+            for (let i = 0; i < 51; i++) {
+                buildSearchQueryJSON(`${uniquePrefix}${i}`);
+            }
+
+            const afterEviction = buildSearchQueryJSON(`${uniquePrefix}0`);
+
+            expect(afterEviction).toBeDefined();
+            expect(afterEviction?.type).toBe('expense');
         });
     });
 });

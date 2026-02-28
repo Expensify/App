@@ -24,6 +24,7 @@ function AddShippingAddress({card}: AddShippingAddressProps) {
             subtitle={translate('homePage.timeSensitiveSection.addShippingAddress.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.addShippingAddress.cta')}
             onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID)))}
+            buttonProps={{success: true}}
         />
     );
 }

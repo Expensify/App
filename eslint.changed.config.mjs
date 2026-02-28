@@ -27,6 +27,14 @@ const restrictedIconImportPatterns = [
     },
 ];
 
+const restrictedReportNameImportPatterns = [
+    {
+        group: ['**/ReportNameUtils', '**/libs/ReportNameUtils'],
+        importNames: ['computeReportName'],
+        message: 'Do not import computeReportName. Use getReportName instead, which properly uses derived report attributes.',
+    },
+];
+
 const config = defineConfig([
     ...mainConfig,
 
@@ -35,7 +43,6 @@ const config = defineConfig([
         rules: {
             '@typescript-eslint/no-deprecated': 'error',
             'rulesdir/no-default-id-values': 'error',
-            'rulesdir/provide-canBeMissing-in-useOnyx': 'error',
             'rulesdir/no-unstable-hook-defaults': 'error',
             'no-restricted-syntax': [
                 'error',
@@ -65,6 +72,19 @@ const config = defineConfig([
                 {
                     paths: restrictedIconImportPaths,
                     patterns: restrictedIconImportPatterns,
+                },
+            ],
+        },
+    },
+
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        ignores: ['src/libs/actions/OnyxDerived/configs/reportAttributes.ts'],
+        rules: {
+            'no-restricted-imports': [
+                'error',
+                {
+                    patterns: restrictedReportNameImportPatterns,
                 },
             ],
         },
