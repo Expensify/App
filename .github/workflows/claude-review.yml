@@ -48,7 +48,12 @@ jobs:
             "$GITHUB_WORKSPACE/.claude/skills/coding-standards/rules" \
             "$GITHUB_WORKSPACE/.claude/allowed-rules.txt"
 
+      - name: Load code review JSON schema
+        id: schema
+        run: echo "json=$(jq -c . "$GITHUB_WORKSPACE/.claude/schemas/code-review-output.json")" >> "$GITHUB_OUTPUT"
+
       - name: Run Claude Code (code)
+        id: code-review
         if: steps.filter.outputs.code == 'true'
         uses: anthropics/claude-code-action@ea36d6abdedc17fc2a671b36060770b208a6f8f1 # v1.0.51
         with:
@@ -58,7 +63,29 @@ jobs:
           prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
           claude_args: |
             --model claude-opus-4-6
-            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(addPrReaction.sh:*),Bash(createInlineComment.sh:*)"
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*)" --json-schema '${{ steps.schema.outputs.json }}'
+
+      - name: Post code review results
+        if: steps.code-review.outcome == 'success' && steps.filter.outputs.code == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STRUCTURED_OUTPUT: ${{ steps.code-review.outputs.structured_output }}
+        run: |
+          if [ -z "$STRUCTURED_OUTPUT" ]; then
+            echo "::error::Claude Code Action returned empty structured output"
+            exit 1
+          fi
+          COUNT=$(echo "$STRUCTURED_OUTPUT" | jq '.violations | length')
+          if [ "$COUNT" -eq 0 ]; then
+            addPrReaction.sh "$PR_NUMBER"
+          else
+            echo "$STRUCTURED_OUTPUT" | jq -c '.violations[]' | while IFS= read -r v; do
+              PATH_ARG=$(echo "$v" | jq -r '.path')
+              BODY_ARG=$(echo "$v" | jq -r '.body')
+              LINE_ARG=$(echo "$v" | jq -r '.line')
+              createInlineComment.sh "$PATH_ARG" "$BODY_ARG" "$LINE_ARG" || true
+            done
+          fi
 
       - name: Run Claude Code (docs)
         if: steps.filter.outputs.docs == 'true'

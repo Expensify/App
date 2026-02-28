@@ -44,7 +44,7 @@ function ReceiptView({route}: ReceiptViewProps) {
     const currentReceipt = page >= 0 ? receipts.at(page) : undefined;
 
     const secondTransactionID = receipts.at(1)?.transactionID;
-    const [secondTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`, {canBeMissing: true});
+    const [secondTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`);
 
     // Set initial page based on route transactionID
     useEffect(() => {

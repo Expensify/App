@@ -134,7 +134,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyIDKey = policyID || CONST.DEFAULT_MISSING_ID;
 
-    const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyIDKey}`, {canBeMissing: true});
+    const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyIDKey}`);
     const [allCardFeeds, allCardFeedsMetadata, , workspaceCardFeedsStatus] = useCardFeeds(policyID);
 
     const feedName = feedNameProp ?? getSelectedFeed(lastSelectedFeed, allCardFeeds);

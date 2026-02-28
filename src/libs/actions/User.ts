@@ -444,6 +444,7 @@ function requestValidateCodeAction() {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {
+                validateCodeSent: false,
                 isLoading: true,
                 pendingFields: {
                     actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -696,7 +697,8 @@ function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServe
 
         for (const action of reportActions) {
             if (action) {
-                showReportActionNotification(reportID, action, currentUserAccountIDParam);
+                // They aren't connected to a UI anywhere, it's OK to use currentEmail
+                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail);
             }
         }
     }
