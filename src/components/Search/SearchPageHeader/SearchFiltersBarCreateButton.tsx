@@ -14,12 +14,11 @@ import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {groupPaidPoliciesWithExpenseChatEnabledSelector} from '@src/selectors/Policy';
+import {groupPaidPoliciesWithExpenseChatEnabledSelector, shouldRedirectToExpensifyClassicSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 
 function SearchFiltersBarCreateButton() {
@@ -33,11 +32,9 @@ function SearchFiltersBarCreateButton() {
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-
     const groupPaidPoliciesWithChatEnabledSelector = useCallback((policies: OnyxCollection<OnyxTypes.Policy>) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, email), [email]);
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabledSelector}, [email]);
-    const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
+    const [shouldRedirectToExpensifyClassic = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: shouldRedirectToExpensifyClassicSelector});
     const shouldShowCreateReportOption = shouldRedirectToExpensifyClassic || groupPoliciesWithChatEnabled.length > 0;
 
     const hideCreateMenu = useCallback(() => setIsCreateMenuActive(false), []);
