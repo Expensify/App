@@ -312,9 +312,7 @@ function IOURequestStepConfirmation({
                 if (participant.accountID) {
                     return getParticipantsOption(participant, personalDetails);
                 }
-                const participantReport =
-                    reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] ??
-                    reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
+                const participantReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] ?? reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
                 const participantChatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participantReport?.chatReportID}`];
                 return getReportOption(
                     participant,

@@ -128,7 +128,16 @@ function SubmitDetailsPage({
         }
         const participantReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
         const participantChatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${participantReport?.chatReportID}`];
-        return getReportOption(participant, privateIsArchived, policy, currentUserPersonalDetails.accountID, personalDetails, participantReport, participantChatReport, reportAttributesDerived);
+        return getReportOption(
+            participant,
+            privateIsArchived,
+            policy,
+            currentUserPersonalDetails.accountID,
+            personalDetails,
+            participantReport,
+            participantChatReport,
+            reportAttributesDerived,
+        );
     });
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
