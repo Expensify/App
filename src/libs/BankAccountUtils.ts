@@ -30,11 +30,11 @@ function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined):
         return false;
     }
 
-    if (accountData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) {
+    if (accountData.state !== CONST.BANK_ACCOUNT.STATE.OPEN) {
         return false;
     }
 
-    if (accountData?.additionalData?.country !== CONST.COUNTRY.US) {
+    if (accountData.additionalData?.country !== CONST.COUNTRY.US) {
         return false;
     }
 

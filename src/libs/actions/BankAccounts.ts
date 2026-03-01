@@ -162,18 +162,14 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
         addressCountry: accountData?.country,
     };
 
-    const bankAccountListUpdates: Record<
-        string,
-        {
-            accountData: {
-                additionalData: {firstName?: string; lastName?: string; addressStreet?: string; addressCity?: string; addressState?: string; addressZipCode?: string; companyPhone?: string};
-            };
-        }
-    > = {};
+    type AdditionalDataUpdate = {firstName?: string; lastName?: string; addressStreet?: string; addressCity?: string; addressState?: string; addressZipCode?: string; companyPhone?: string};
+    const bankAccountListUpdates: Record<string, {accountData: {additionalData: AdditionalDataUpdate}}> = {};
+    const bankAccountListRollback: Record<string, {accountData: {additionalData: AdditionalDataUpdate}}> = {};
     for (const [key, bankAccount] of Object.entries(bankAccountList ?? {})) {
         if (!isPersonalBankAccountMissingInfo(bankAccount?.accountData)) {
             continue;
         }
+        const prevData = bankAccount?.accountData?.additionalData;
         bankAccountListUpdates[key] = {
             accountData: {
                 additionalData: {
@@ -184,6 +180,19 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
                     addressState: parameters.addressState,
                     addressZipCode: parameters.addressZip,
                     companyPhone: parameters.phoneNumber,
+                },
+            },
+        };
+        bankAccountListRollback[key] = {
+            accountData: {
+                additionalData: {
+                    firstName: prevData?.firstName,
+                    lastName: prevData?.lastName,
+                    addressStreet: prevData?.addressStreet,
+                    addressCity: prevData?.addressCity,
+                    addressState: prevData?.addressState,
+                    addressZipCode: prevData?.addressZipCode,
+                    companyPhone: prevData?.companyPhone,
                 },
             },
         };
@@ -200,6 +209,11 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
                     isLoading: true,
                     errors: null,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: bankAccountListUpdates,
             },
         ],
         successData: [
@@ -234,11 +248,6 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
                 },
             },
             {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                value: bankAccountListUpdates,
-            },
-            {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
                 value: null,
@@ -252,6 +261,11 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
                     isLoading: false,
                     errors: getMicroSecondOnyxErrorWithTranslationKey('addPersonalBankAccount.updatePersonalInfoFailure'),
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: bankAccountListRollback,
             },
         ],
     };

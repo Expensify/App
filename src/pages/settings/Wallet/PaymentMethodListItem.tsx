@@ -113,7 +113,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
 
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
     const isInSetupState = isAccountInSetupState(item);
-    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInSetupState;
+    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInSetupState && !item.isMissingPersonalInfo;
 
     const isNeedingAction = isAccountNeedingAction(item);
 
@@ -172,7 +172,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 badgeSuccess={isNeedingAction ? true : undefined}
                 badgeStyle={item.isCardFrozen ? styles.badgeBordered : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                iconRight={isInSetupState ? undefined : item.iconRight}
+                iconRight={isNeedingAction ? undefined : item.iconRight}
                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
                 shouldShowRightComponent={showThreeDotsMenu}
                 rightComponent={

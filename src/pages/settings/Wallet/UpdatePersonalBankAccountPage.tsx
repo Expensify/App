@@ -37,10 +37,10 @@ function UpdatePersonalBankAccountPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
 
@@ -81,12 +81,14 @@ function UpdatePersonalBankAccountPage() {
         return <FullScreenLoadingIndicator />;
     }
 
+    const firstVisiblePage = formPages.find((p) => !skipPages.includes(p.pageName));
+
     const handleBackButtonPress = () => {
         if (isEditing) {
             Navigation.goBack(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(PAGE_NAME.CONFIRM));
             return;
         }
-        if (currentPageName === PAGE_NAME.LEGAL_NAME) {
+        if (currentPageName === firstVisiblePage?.pageName) {
             Navigation.goBack();
             return;
         }
