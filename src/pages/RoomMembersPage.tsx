@@ -68,8 +68,8 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const styles = useThemeStyles();
     const reportAttributes = useReportAttributes();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
     const currentUserAccountID = Number(session?.accountID);
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();

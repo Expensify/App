@@ -16,9 +16,9 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
     const {reportID, policyID} = route.params;
 
     const defaultAvatars = useDefaultAvatars();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const reportAttributes = useReportAttributes();
 
     const attachment: AttachmentModalBaseContentProps = useMemo(() => {
