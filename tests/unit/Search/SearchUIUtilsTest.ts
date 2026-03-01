@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
-import {endOfMonth, format, startOfMonth, subMonths} from 'date-fns';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SelectedTransactionInfo} from '@components/Search/types';
