@@ -52,7 +52,7 @@ function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
     let registrationStatus: RegistrationStatus;
     if (!haveCredentialsEverBeenConfigured) {
         registrationStatus = REGISTRATION_STATUS.NEVER_REGISTERED;
-    } else if (serverKnownCredentialIDs.length === 0) {
+    } else if (totalDeviceCount === 0) {
         registrationStatus = REGISTRATION_STATUS.NOT_REGISTERED;
     } else if (isCurrentDeviceRegistered) {
         registrationStatus = REGISTRATION_STATUS.REGISTERED_THIS_DEVICE;
