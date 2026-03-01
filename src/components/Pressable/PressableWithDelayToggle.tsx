@@ -113,6 +113,7 @@ function PressableWithDelayToggle({
     // of a Pressable
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so empty string tooltip/text values fall through to the next fallback
     const accessibilityLabel = accessibilityLabelProp || (!isActive ? tooltipTextChecked || textChecked : tooltipText || text) || text || '';
     const shouldShowIcon = !!icon || (!isActive && !!resolvedIconChecked);
     const labelText =
