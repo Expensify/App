@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,8 +33,12 @@ type WorkspaceCreateTagPageProps =
 
 function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const policyID = route.params.policyID;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const policyData = usePolicyData(policyID);
+    const {tags: policyTagLists, categories: policyCategories} = policyData;
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const setupTagsTaskReportID = introSelected?.setupTags;
+    const [setupTagsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${setupTagsTaskReportID}`);
+    const {taskReport: setupCategoriesAndTagsTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -46,7 +51,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
             const tagName = escapeTagName(values.tagName.trim());
-            const {tags} = getTagList(policyTags, 0);
+            const {tags} = getTagList(policyTagLists, 0);
 
             if (!isRequiredFulfilled(tagName)) {
                 errors.tagName = translate('workspace.tags.tagRequiredError');
@@ -61,13 +66,12 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
 
             return errors;
         },
-        [policyTags, translate],
+        [policyTagLists, translate],
     );
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {
-        taskReport: setupTagsTaskReport,
         taskParentReport: setupTagsTaskParentReport,
         isOnboardingTaskParentReportArchived: isSetupTagsTaskParentReportArchived,
         hasOutstandingChildTask: setupTagsHasOutstandingChildTask,
@@ -75,7 +79,6 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS);
 
     const {
-        taskReport: setupCategoriesAndTagsTaskReport,
         taskParentReport: setupCategoriesAndTagsTaskParentReport,
         isOnboardingTaskParentReportArchived: isSetupCategoriesAndTagsTaskParentReportArchived,
         hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
@@ -85,9 +88,8 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const createTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             createPolicyTag({
-                policyID,
+                policyData,
                 tagName: values.tagName.trim(),
-                policyTags: policyTags ?? {},
                 setupTagsTaskReport,
                 setupTagsTaskParentReport,
                 isSetupTagsTaskParentReportArchived,
@@ -106,7 +108,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
         },
         [
             policyID,
-            policyTags,
+            policyData,
             isQuickSettingsFlow,
             backTo,
             setupTagsTaskReport,

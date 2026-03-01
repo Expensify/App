@@ -14,8 +14,8 @@ const policySelector = (policy: OnyxEntry<Policy>): PolicySelector =>
     }) as PolicySelector;
 
 function usePersonalPolicy() {
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
-    const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`, {selector: policySelector, canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`, {selector: policySelector});
     return personalPolicy;
 }
 

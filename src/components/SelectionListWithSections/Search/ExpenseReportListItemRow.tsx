@@ -254,6 +254,7 @@ function ExpenseReportListItemRow({
                                 accessibilityLabel={item.text ?? ''}
                                 shouldStopMouseDownPropagation
                                 style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                             />
                         )}
                         <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.mr2]}>
@@ -290,6 +291,7 @@ function ExpenseReportListItemRow({
                         accessibilityLabel={item.text ?? ''}
                         shouldStopMouseDownPropagation
                         style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                     />
                 )}
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), {alignItems: 'stretch'}]}>

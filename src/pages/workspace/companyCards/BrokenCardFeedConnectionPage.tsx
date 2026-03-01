@@ -22,7 +22,7 @@ function BrokenCardFeedConnectionPage({route, policy}: BrokenCardFeedConnectionP
 
     const {translate} = useLocalize();
 
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const currentStep = assignCard?.currentStep;
 
     useEffect(() => {
