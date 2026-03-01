@@ -24,9 +24,9 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersHasPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION);
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const currentType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION);
     const [selectedItems, setSelectedItems] = useState<string[]>(() => {
         if (!searchAdvancedFiltersForm?.has) {
             return [];
@@ -81,7 +81,7 @@ function SearchFiltersHasPage() {
             shouldEnableMaxHeight
         >
             <EducationalTooltip
-                shouldRender={shouldShowProductTrainingTooltip}
+                shouldRender={shouldShowProductTrainingTooltip && currentType === CONST.SEARCH.DATA_TYPES.EXPENSE}
                 renderTooltipContent={renderProductTrainingTooltip}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
