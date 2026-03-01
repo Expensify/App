@@ -51,9 +51,6 @@ type AuthorizeResult = AuthorizeResultSuccess | AuthorizeResultFailure;
 // Instead, the providers abstraction will be added.
 // For context, see: https://github.com/Expensify/App/pull/79473#discussion_r2747993460
 type UseNativeBiometricsReturn = {
-    /** Whether server has any registered credentials for this account */
-    serverHasAnyCredentials: boolean;
-
     /** List of credential IDs known to server (from Onyx) */
     serverKnownCredentialIDs: string[];
 
@@ -100,7 +97,6 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
 
     const [multifactorAuthenticationPublicKeyIDs] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getMultifactorAuthenticationPublicKeyIDs});
     const serverKnownCredentialIDs = useMemo(() => multifactorAuthenticationPublicKeyIDs ?? [], [multifactorAuthenticationPublicKeyIDs]);
-    const serverHasAnyCredentials = serverKnownCredentialIDs.length > 0;
     const haveCredentialsEverBeenConfigured = multifactorAuthenticationPublicKeyIDs !== undefined;
 
     /**
@@ -241,7 +237,6 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     };
 
     return {
-        serverHasAnyCredentials,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
         getLocalPublicKey,

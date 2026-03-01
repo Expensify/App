@@ -85,7 +85,7 @@ describe('useNativeBiometrics hook', () => {
         it('should return hook with required properties', () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current).toHaveProperty('serverHasAnyCredentials');
+            expect(result.current).toHaveProperty('serverKnownCredentialIDs');
             expect(result.current).toHaveProperty('doesDeviceSupportBiometrics');
             expect(result.current).toHaveProperty('getLocalPublicKey');
             expect(result.current).toHaveProperty('areLocalCredentialsKnownToServer');
@@ -100,20 +100,6 @@ describe('useNativeBiometrics hook', () => {
             expect(result.current.doesDeviceSupportBiometrics()).toBe(true);
             await expect(result.current.getLocalPublicKey()).resolves.toBeUndefined();
             await expect(result.current.areLocalCredentialsKnownToServer()).resolves.toBe(false);
-        });
-
-        it('should derive serverHasAnyCredentials from Onyx state', () => {
-            mockMultifactorAuthenticationPublicKeyIDs = ['public-key-123'];
-            const {result} = renderHook(() => useNativeBiometrics());
-
-            expect(result.current.serverHasAnyCredentials).toBe(true);
-        });
-
-        it('should return false for serverHasAnyCredentials when Onyx state is empty', () => {
-            mockMultifactorAuthenticationPublicKeyIDs = [];
-            const {result} = renderHook(() => useNativeBiometrics());
-
-            expect(result.current.serverHasAnyCredentials).toBe(false);
         });
     });
 
@@ -179,21 +165,19 @@ describe('useNativeBiometrics hook', () => {
         });
     });
 
-    describe('serverHasAnyCredentials', () => {
-        it('should return true when server has registered credentials', () => {
-            mockMultifactorAuthenticationPublicKeyIDs = ['public-key-123'];
-
+    describe('serverKnownCredentialIDs', () => {
+        it('should expose credential IDs from Onyx state', () => {
+            mockMultifactorAuthenticationPublicKeyIDs = ['key-1', 'key-2'];
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current.serverHasAnyCredentials).toBe(true);
+            expect(result.current.serverKnownCredentialIDs).toEqual(['key-1', 'key-2']);
         });
 
-        it('should return false when server has no registered credentials', () => {
+        it('should return empty array when Onyx state is empty', () => {
             mockMultifactorAuthenticationPublicKeyIDs = [];
-
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current.serverHasAnyCredentials).toBe(false);
+            expect(result.current.serverKnownCredentialIDs).toEqual([]);
         });
     });
 
