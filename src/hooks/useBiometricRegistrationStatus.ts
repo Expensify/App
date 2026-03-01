@@ -1,3 +1,7 @@
+/**
+ * Hook that derives the current device's biometric registration status by combining the local public key with
+ * the server-known credential list.
+ */
 import {useEffect, useState} from 'react';
 import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
 
@@ -11,10 +15,19 @@ const REGISTRATION_STATUS = {
 type RegistrationStatus = (typeof REGISTRATION_STATUS)[keyof typeof REGISTRATION_STATUS];
 
 type BiometricRegistrationStatus = {
+    /** Public key stored locally on this device, or undefined if none exists */
     localPublicKey: string | undefined;
+
+    /** Whether this device's local key is registered with the server */
     isCurrentDeviceRegistered: boolean;
+
+    /** Total number of devices with registered biometric credentials */
     totalDeviceCount: number;
+
+    /** Number of registered devices excluding the current one */
     otherDeviceCount: number;
+
+    /** High-level registration status summarizing the device's biometric state */
     registrationStatus: RegistrationStatus;
 };
 

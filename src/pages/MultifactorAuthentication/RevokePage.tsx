@@ -7,6 +7,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useBiometricRegistrationStatus from '@hooks/useBiometricRegistrationStatus';
 import useLocalize from '@hooks/useLocalize';
@@ -154,7 +155,7 @@ function MultifactorAuthenticationRevokePage() {
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
-                <View style={[styles.flex1]}>
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <Text style={[styles.m5, styles.mt3, styles.textNormal]}>
                         {translate(hasDevices ? 'multifactorAuthentication.revoke.explanation' : 'multifactorAuthentication.revoke.noDevices')}
                     </Text>
@@ -200,7 +201,7 @@ function MultifactorAuthenticationRevokePage() {
                             )}
                         </View>
                     )}
-                </View>
+                </ScrollView>
                 {!!errorMessage && (
                     <FormHelpMessage
                         message={errorMessage}
