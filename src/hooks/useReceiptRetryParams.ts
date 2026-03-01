@@ -117,6 +117,8 @@ function useReceiptRetryParams(
         transactionViolations: {},
         quickAction,
         policyRecentlyUsedCurrencies: recentlyUsedCurrencies ?? [],
+        existingTransactionDraft: undefined,
+        draftTransactionIDs: [],
         isSelfTourViewed: false,
         betas,
         personalDetails,
