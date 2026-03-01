@@ -47,6 +47,7 @@ type PaymentMethodItem = PaymentMethod & {
     onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
     /** Whether the personal bank account is missing required personal info (name, address, phone) */
     isMissingPersonalInfo?: boolean;
+    isCardFrozen?: boolean;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
@@ -104,7 +105,7 @@ function isAccountNeedingAction(account: PaymentMethodItem) {
 }
 
 function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle}: PaymentMethodListItemProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'QuestionMark']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'FreezeCard', 'QuestionMark']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -133,8 +134,17 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     let badgeText;
     if (isNeedingAction) {
         badgeText = translate('common.actionRequired');
+    } else if (item.isCardFrozen) {
+        badgeText = translate('cardPage.frozen');
     } else if (shouldShowDefaultBadge) {
         badgeText = translate('paymentMethodList.defaultPaymentMethod');
+    }
+
+    let badgeIcon;
+    if (isNeedingAction) {
+        badgeIcon = icons.DotIndicator;
+    } else if (item.isCardFrozen) {
+        badgeIcon = icons.FreezeCard;
     }
 
     return (
@@ -158,8 +168,9 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 iconWidth={item.iconWidth ?? item.iconSize}
                 iconStyles={item.iconStyles}
                 badgeText={badgeText}
-                badgeIcon={isNeedingAction ? icons.DotIndicator : undefined}
+                badgeIcon={badgeIcon}
                 badgeSuccess={isNeedingAction ? true : undefined}
+                badgeStyle={item.isCardFrozen ? styles.badgeBordered : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={isInSetupState ? undefined : item.iconRight}
                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
@@ -191,7 +202,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                         style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart]}
                         accessibilityLabel={translate('walletPage.chaseAccountNumberDifferent')}
                         role={CONST.ROLE.LINK}
-                        sentryLabel="PaymentMethodListItem-ChaseAccountHelp"
+                        sentryLabel={CONST.SENTRY_LABEL.PAYMENT_METHOD_LIST_ITEM.CHASE_ACCOUNT_HELP}
                     >
                         <Icon
                             src={icons.QuestionMark}

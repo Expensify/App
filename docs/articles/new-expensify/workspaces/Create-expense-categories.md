@@ -43,7 +43,7 @@ To delete a category:
 
 ---
 
-## Enable or disable categories
+## How to enable or disable categories
 
 Once categories are added (manually or via import), they can be toggled on or off.
 
@@ -76,6 +76,32 @@ To edit these fields:
 
 ---
 
+# How to configure Category Rules
+
+Category Rules let you control how specific categories behave. You can require additional information, assign approvers, or set spending thresholds for individual categories.
+
+To manage Category Rules:
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4. Select a category to open its settings panel.
+
+Available Category Rule options include:
+
+- **Approver** – Assign a specific approver for expenses in this category.
+- **Default tax rate** – Set a default tax percentage ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+- **Flag amounts over** - Set a spending cap for this category.
+- **Require receipts over** – Set a threshold for when receipts are required.
+- **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
+- **Require fields** - Require specific fields be completed for this category. The options are:
+   - **Require description** - Force members to enter a reason when using the category.
+   - **Require attendees** - Force members to add additional attendees when using the category.
+
+Category Rules apply to all members who use that category. If both a Category Rule and a Workspace Rule apply to the same expense, the Category Rule takes priority.
+
+---
+
 # How to apply categories automatically
 
 Expensify offers two ways to automatically apply categories based on merchant:
@@ -87,14 +113,6 @@ Expensify learns your category preferences over time and suggests them automatic
 - If you manually change a category, Expensify remembers the update.
 - Existing expenses are not updated retroactively.
 - These suggestions are based on patterns and may vary by user.
-
-## Workspace Merchant Rules
-
-Workspace Admins can configure [**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) to apply consistent categories based on merchant name across all workspace members.
-
-- Rules apply across all expenses on the workspace.
-- Rules take precedence over learned suggestions.
-- If a category is already set manually, Expensify won’t override it.
 
 ---
 

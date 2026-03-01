@@ -16,9 +16,11 @@ import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy'
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
 import useTimeSensitiveOffers from './hooks/useTimeSensitiveOffers';
 import ActivateCard from './items/ActivateCard';
+import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
 import FixAccountingConnection from './items/FixAccountingConnection';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
+import FixPersonalCardConnection from './items/FixPersonalCardConnection';
 import Offer25off from './items/Offer25off';
 import Offer50off from './items/Offer50off';
 import ReviewCardFraud from './items/ReviewCardFraud';
@@ -38,6 +40,14 @@ type BrokenCompanyCardConnection = {
     /** The policy ID associated with this connection */
     policyID: string;
 
+    /** The policy name associated with this connection */
+    policyName: string;
+
+    /** The card ID associated with this connection */
+    cardID: string;
+};
+
+type BrokenPersonalCardConnection = {
     /** The card ID associated with this connection */
     cardID: string;
 };
@@ -49,13 +59,13 @@ function TimeSensitiveSection() {
     const {login} = useCurrentUserPersonalDetails();
 
     // Use custom hooks for offers and cards (Release 3)
-    const {shouldShow50off, shouldShow25off, firstDayFreeTrial, discountInfo} = useTimeSensitiveOffers();
+    const {shouldShow50off, shouldShow25off, shouldShowAddPaymentCard, firstDayFreeTrial, discountInfo} = useTimeSensitiveOffers();
     const {shouldShowAddShippingAddress, shouldShowActivateCard, shouldShowReviewCardFraud, cardsNeedingShippingAddress, cardsNeedingActivation, cardsWithFraud} = useTimeSensitiveCards();
 
     // Selector for filtering admin policies (Release 4)
     const adminPoliciesSelectorWrapper = useCallback((policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? ''), [login]);
-    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector: adminPoliciesSelectorWrapper});
-    const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
+    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: adminPoliciesSelectorWrapper});
+    const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
@@ -102,15 +112,39 @@ function TimeSensitiveSection() {
 
             brokenCompanyCardConnections.push({
                 policyID: matchingPolicy.id,
+                policyName: matchingPolicy.name,
+                cardID: String(card.cardID),
+            });
+        }
+    }
+
+    // Get personal cards with broken connections
+    const brokenPersonalCardConnections: BrokenPersonalCardConnection[] = [];
+    const personalCardsWithBrokenConnection = cardFeedErrors.personalCardsWithBrokenConnection;
+    if (personalCardsWithBrokenConnection) {
+        for (const card of Object.values(personalCardsWithBrokenConnection)) {
+            brokenPersonalCardConnections.push({
                 cardID: String(card.cardID),
             });
         }
     }
 
     const hasBrokenCompanyCards = brokenCompanyCardConnections.length > 0;
+    const hasBrokenPersonalCards = brokenPersonalCardConnections.length > 0;
     const hasBrokenAccountingConnections = brokenAccountingConnections.length > 0;
+    // This guard must exactly match the conditions used to render each widget below.
+    // If a widget has additional conditions in the render (e.g. && !!discountInfo), those
+    // must be reflected here to avoid showing an empty "Time sensitive" section.
     const hasAnyTimeSensitiveContent =
-        shouldShowReviewCardFraud || shouldShow50off || shouldShow25off || hasBrokenCompanyCards || hasBrokenAccountingConnections || shouldShowAddShippingAddress || shouldShowActivateCard;
+        shouldShowReviewCardFraud ||
+        shouldShowAddPaymentCard ||
+        shouldShow50off ||
+        (shouldShow25off && !!discountInfo) ||
+        hasBrokenCompanyCards ||
+        hasBrokenPersonalCards ||
+        hasBrokenAccountingConnections ||
+        shouldShowAddShippingAddress ||
+        shouldShowActivateCard;
 
     if (!hasAnyTimeSensitiveContent) {
         return null;
@@ -118,11 +152,13 @@ function TimeSensitiveSection() {
 
     // Priority order:
     // 1. Potential card fraud
-    // 2. Broken bank connections (company cards)
-    // 3. Broken accounting connections
-    // 4. Early adoption discount (50% or 25%)
-    // 5. Expensify card shipping
-    // 6. Expensify card activation
+    // 2. Add payment card (trial ended, no payment card)
+    // 3. Broken bank connections (company cards)
+    // 4. Broken bank connections (personal cards)
+    // 5. Broken accounting connections
+    // 6. Early adoption discount (50% or 25%)
+    // 7. Expensify card shipping
+    // 8. Expensify card activation
     return (
         <WidgetContainer title={translate('homePage.timeSensitiveSection.title')}>
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
@@ -140,7 +176,9 @@ function TimeSensitiveSection() {
                         );
                     })}
 
-                {/* Priority 2: Broken company card connections */}
+                {/* Priority 2: Add payment card (trial ended, no payment card) */}
+                {shouldShowAddPaymentCard && <AddPaymentCard />}
+                {/* Priority 3: Broken company card connections */}
                 {brokenCompanyCardConnections.map((connection) => {
                     const card = cardFeedErrors.cardsWithBrokenFeedConnection[connection.cardID];
                     if (!card) {
@@ -151,11 +189,26 @@ function TimeSensitiveSection() {
                             key={`card-${connection.cardID}`}
                             card={card}
                             policyID={connection.policyID}
+                            policyName={connection.policyName}
                         />
                     );
                 })}
 
-                {/* Priority 3: Broken accounting connections */}
+                {/* Priority 4: Broken personal card connections */}
+                {brokenPersonalCardConnections.map((connection) => {
+                    const card = cardFeedErrors.personalCardsWithBrokenConnection[connection.cardID];
+                    if (!card) {
+                        return null;
+                    }
+                    return (
+                        <FixPersonalCardConnection
+                            key={`card-${connection.cardID}`}
+                            card={card}
+                        />
+                    );
+                })}
+
+                {/* Priority 5: Broken accounting connections */}
                 {brokenAccountingConnections.map((connection) => (
                     <FixAccountingConnection
                         key={`accounting-${connection.policyID}-${connection.connectionName}`}
@@ -165,11 +218,11 @@ function TimeSensitiveSection() {
                     />
                 ))}
 
-                {/* Priority 4: Early adoption discount offers */}
+                {/* Priority 6: Early adoption discount offers */}
                 {shouldShow50off && <Offer50off firstDayFreeTrial={firstDayFreeTrial} />}
                 {shouldShow25off && !!discountInfo && <Offer25off days={discountInfo.days} />}
 
-                {/* Priority 5: Expensify card shipping */}
+                {/* Priority 7: Expensify card shipping */}
                 {shouldShowAddShippingAddress &&
                     cardsNeedingShippingAddress.map((card) => (
                         <AddShippingAddress
@@ -178,7 +231,7 @@ function TimeSensitiveSection() {
                         />
                     ))}
 
-                {/* Priority 6: Expensify card activation */}
+                {/* Priority 8: Expensify card activation */}
                 {shouldShowActivateCard &&
                     cardsNeedingActivation.map((card) => (
                         <ActivateCard
