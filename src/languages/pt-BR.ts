@@ -673,7 +673,7 @@ const translations: TranslationDeepObject<typeof en> = {
         biometricsTest: {
             biometricsTest: 'Teste de biometria',
             authenticationSuccessful: 'Autenticação bem-sucedida',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Você autenticou com sucesso usando ${authType}.`,
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Você se autenticou com sucesso usando ${authType}.`,
             troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometria (${status})`,
             yourAttemptWasUnsuccessful: 'Sua tentativa de autenticação não foi bem-sucedida.',
             youCouldNotBeAuthenticated: 'Não foi possível autenticar você',
@@ -713,12 +713,12 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Ative uma verificação rápida e segura usando seu rosto ou impressão digital. Nenhuma senha ou código é necessário.',
         },
         revoke: {
-            title: 'Face/fingerprint e passkeys',
+            title: 'Reconhecimento facial/digital e passkeys',
             explanation:
-                'A verificação por rosto/digital ou passkey está ativada em um ou mais dispositivos. Revogar o acesso vai exigir um código mágico na próxima verificação nesse dispositivo.',
+                'A verificação por rosto/digital ou chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico na próxima verificação nesse dispositivo.',
             confirmationPrompt: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação nesse dispositivo.',
             cta: 'Revogar acesso',
-            noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou chave de acesso. Se você registrar algum, poderá revogar esse acesso aqui.',
+            noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se registrar algum, você poderá revogar esse acesso aqui.',
             dismiss: 'Entendi',
             error: 'Falha na solicitação. Tente novamente mais tarde.',
             revoke: 'Revogar',
@@ -730,6 +730,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
                 return `${displayCount} ${count === 1 ? 'outro dispositivo' : 'outros dispositivos'}`;
             },
+            confirmationPromptThisDevice: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação neste dispositivo.',
+            confirmationPromptMultiple: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação nesses dispositivos.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo não compatível',

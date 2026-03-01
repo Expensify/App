@@ -675,7 +675,7 @@ const translations: TranslationDeepObject<typeof en> = {
         biometricsTest: {
             biometricsTest: 'Test biometrico',
             authenticationSuccessful: 'Autenticazione riuscita',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Hai eseguito l’autenticazione con successo usando ${authType}.`,
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Hai effettuato l’autenticazione con successo usando ${authType}.`,
             troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Dati biometrici (${status})`,
             yourAttemptWasUnsuccessful: 'Il tentativo di autenticazione non è andato a buon fine.',
             youCouldNotBeAuthenticated: 'Autenticazione non riuscita',
@@ -715,13 +715,14 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Attiva una verifica rapida e sicura utilizzando il volto o l’impronta digitale. Nessuna password o codice richiesto.',
         },
         revoke: {
-            title: 'Riconoscimento facciale/impronta digitale e passkey',
+            title: 'Volto/impronta digitale e passkey',
             explanation:
-                'La verifica tramite volto/impronta digitale o passkey è abilitata su uno o più dispositivi. Revocare l’accesso richiederà un codice magico per la prossima verifica su quel dispositivo.',
+                'La verifica con volto/impronta digitale o passkey è abilitata su uno o più dispositivi. Revocare l’accesso richiederà un codice magico per la prossima verifica su quel dispositivo.',
             confirmationPrompt: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su quel dispositivo.',
             cta: 'Revoca accesso',
-            noDevices: 'Non hai nessun dispositivo registrato per la verifica con volto/impronta o passkey. Se ne registri uno, potrai revocare qui tale accesso.',
-            dismiss: 'Capito',
+            noDevices:
+                'Non hai alcun dispositivo registrato per il riconoscimento facciale/impronta digitale o la verifica tramite passkey. Se ne registri qualcuno, potrai revocare qui tale accesso.',
+            dismiss: 'Ricevuto',
             error: 'Richiesta non riuscita. Riprova più tardi.',
             revoke: 'Revoca',
             confirmationPromptAll: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su qualsiasi dispositivo.',
@@ -732,6 +733,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
                 return `${displayCount} ${count === 1 ? 'altro dispositivo' : 'altri dispositivi'}`;
             },
+            confirmationPromptThisDevice: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su questo dispositivo.',
+            confirmationPromptMultiple: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su quei dispositivi.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo non supportato',

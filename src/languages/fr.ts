@@ -694,7 +694,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
-            statusNeverRegistered: 'Jamais enregistré',
+            statusNeverRegistered: 'Jamais inscrit',
             statusNotRegistered: 'Non enregistré',
             statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Un autre appareil enregistré' : 'Autres appareils enregistrés'),
             statusRegisteredThisDevice: 'Enregistré',
@@ -717,24 +717,26 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Activez une vérification rapide et sécurisée à l’aide de votre visage ou de votre empreinte digitale. Aucun mot de passe ni code requis.',
         },
         revoke: {
-            title: 'Reconnaissance faciale/emprunte digitale & clés d’accès passkeys',
+            title: 'Reconnaissance faciale/empreinte digitale et passkeys',
             explanation:
-                'La vérification par reconnaissance faciale/empreinte digitale ou par clé d’accès est activée sur un ou plusieurs appareils. Révoquer l’accès exigera un code magique pour la prochaine vérification sur cet appareil.',
+                'La vérification par reconnaissance faciale/empreinte digitale ou par passkey est activée sur un ou plusieurs appareils. Révoquer l’accès nécessitera un code magique pour la prochaine vérification sur cet appareil.',
             confirmationPrompt: 'Êtes-vous sûr ? Vous aurez besoin d’un code magique pour la prochaine vérification sur cet appareil.',
             cta: 'Révoquer l’accès',
             noDevices:
-                'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale/empreinte digitale ou par clé d’accès. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
+                'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale/empreinte digitale ou par passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
             dismiss: 'Compris',
             error: 'La requête a échoué. Réessayez plus tard.',
             revoke: 'Révoquer',
-            confirmationPromptAll: 'Êtes-vous sûr(e) ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil.',
-            ctaAll: 'Tout révoquer',
+            confirmationPromptAll: 'Êtes-vous sûr ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil.',
+            ctaAll: 'Révoquer tout',
             thisDevice: 'Cet appareil',
             otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
                 const numberWords = ['Un', 'Deux', 'Trois', 'Quatre', 'Cinq', 'Six', 'Sept', 'Huit', 'Neuf'];
                 const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
                 return `${displayCount} ${count === 1 ? 'autre appareil' : 'autres appareils'}`;
             },
+            confirmationPromptThisDevice: 'Êtes-vous sûr·e ? Vous aurez besoin d’un code magique pour la prochaine vérification sur cet appareil.',
+            confirmationPromptMultiple: 'Êtes-vous sûr ? Vous aurez besoin d’un code magique pour la prochaine vérification sur ces appareils.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Appareil non pris en charge',

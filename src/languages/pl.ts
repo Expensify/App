@@ -673,9 +673,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         biometricsTest: {
             biometricsTest: 'Test biometrii',
-            authenticationSuccessful: 'Uwierzytelnianie zakończone pomyślnie',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Pomyślnie uwierzytelniłeś(-aś) się za pomocą ${authType}.`,
-            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometria (${status})`,
+            authenticationSuccessful: 'Uwierzytelnianie powiodło się',
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Pomyślnie uwierzytelniłeś się za pomocą ${authType}.`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Dane biometryczne (${status})`,
             yourAttemptWasUnsuccessful: 'Twoja próba uwierzytelnienia nie powiodła się.',
             youCouldNotBeAuthenticated: 'Nie udało się uwierzytelnić użytkownika',
             areYouSureToReject: 'Na pewno? Próba uwierzytelnienia zostanie odrzucona, jeśli zamkniesz ten ekran.',
@@ -691,7 +691,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
-            statusNeverRegistered: 'Nigdy niezarejestrowany',
+            statusNeverRegistered: 'Nigdy nie zarejestrowano',
             statusNotRegistered: 'Nie zarejestrowano',
             statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Inne urządzenie zarejestrowane' : 'Inne urządzenia zarejestrowane'),
             statusRegisteredThisDevice: 'Zarejestrowano',
@@ -714,24 +714,26 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Włącz szybką i bezpieczną weryfikację za pomocą twarzy lub odcisku palca. Bez haseł i kodów.',
         },
         revoke: {
-            title: 'Rozpoznawanie twarzy/odcisk palca i klucze dostępu',
+            title: 'Face/odcisk palca i klucze dostępu',
             explanation:
-                'Weryfikacja twarzą/odciskiem palca lub kluczem dostępu jest włączona na jednym lub kilku urządzeniach. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na tym urządzeniu będzie wymagany magiczny kod.',
+                'Weryfikacja twarzą/odciskiem palca lub kluczem dostępu jest włączona na jednym lub więcej urządzeniach. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na tym urządzeniu będzie wymagany magiczny kod.',
             confirmationPrompt: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnej weryfikacji na tym urządzeniu.',
             cta: 'Cofnij dostęp',
             noDevices:
-                'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą, odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp tutaj.',
+                'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą/odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł tutaj cofnąć ten dostęp.',
             dismiss: 'Jasne',
             error: 'Żądanie nie powiodło się. Spróbuj ponownie później.',
             revoke: 'Unieważnij',
-            confirmationPromptAll: 'Na pewno? Będziesz potrzebować magicznego kodu przy kolejnym potwierdzeniu na dowolnym urządzeniu.',
-            ctaAll: 'Unieważnij wszystkie',
+            confirmationPromptAll: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnej weryfikacji na dowolnym urządzeniu.',
+            ctaAll: 'Odwołaj wszystkie',
             thisDevice: 'To urządzenie',
             otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
                 const numberWords = ['Jedno', 'Dwa', 'Trzy', 'Cztery', 'Pięć', 'Sześć', 'Siedem', 'Osiem', 'Dziewięć'];
                 const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
                 return `${displayCount} ${count === 1 ? 'inne urządzenie' : 'innych urządzeń'}`;
             },
+            confirmationPromptThisDevice: 'Na pewno? Do następnej weryfikacji na tym urządzeniu będziesz potrzebować magicznego kodu.',
+            confirmationPromptMultiple: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnej weryfikacji na tych urządzeniach.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nieobsługiwane urządzenie',
