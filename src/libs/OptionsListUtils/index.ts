@@ -740,7 +740,7 @@ function getLastMessageTextForReport({
                   movedFromReport,
                   movedToReport,
                   policyTags,
-                  currentUserLogin: currentUserLogin ?? '',
+                  currentUserLogin,
               })
             : getForReportAction({
                   reportAction: lastReportAction,
