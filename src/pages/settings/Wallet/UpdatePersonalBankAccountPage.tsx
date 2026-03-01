@@ -23,7 +23,6 @@ import UpdatePersonalInfoConfirmation from './UpdatePersonalInfoConfirmation';
 
 const PAGE_NAME = CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME;
 
-// getSkippedStepsPersonalInfo returns 1-based indices for a flow with an extra leading step
 const STEP_INDEX_TO_PAGE_NAME: string[] = [PAGE_NAME.LEGAL_NAME, PAGE_NAME.ADDRESS, PAGE_NAME.PHONE_NUMBER];
 
 const formPages = [

@@ -44,7 +44,7 @@ describe('BankAccountUtils', () => {
             expect(isPersonalBankAccountMissingInfo(accountData)).toBe(false);
         });
 
-        it('returns false when country is undefined on additionalData', () => {
+        it('defaults to US when country is undefined and returns false when all info is present', () => {
             const accountData = {
                 ...completeAccountData,
                 additionalData: {...completeAccountData.additionalData, country: undefined},
@@ -52,16 +52,25 @@ describe('BankAccountUtils', () => {
             expect(isPersonalBankAccountMissingInfo(accountData)).toBe(false);
         });
 
+        it('defaults to US when country is undefined and returns true when info is missing', () => {
+            const accountData = {
+                type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                additionalData: {country: undefined},
+            } as AccountData;
+            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(true);
+        });
+
         it('returns false when accountData is undefined', () => {
             expect(isPersonalBankAccountMissingInfo(undefined)).toBe(false);
         });
 
-        it('returns false when additionalData is undefined', () => {
+        it('defaults to US when additionalData is undefined and returns true since all fields are missing', () => {
             const accountData = {
                 type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
                 state: CONST.BANK_ACCOUNT.STATE.OPEN,
             } as AccountData;
-            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(false);
+            expect(isPersonalBankAccountMissingInfo(accountData)).toBe(true);
         });
 
         it.each([

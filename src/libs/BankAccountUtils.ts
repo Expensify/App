@@ -21,9 +21,7 @@ function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankA
 }
 
 /**
- * Check if a US personal bank account in OPEN state is missing required personal information
- * from the bank account's additionalData. Used to show "Action required" badge for accounts
- * that need updates to enable global reimbursement payments.
+ * Check if a US personal bank account in OPEN state is missing required personal information.
  */
 function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined): boolean {
     if (accountData?.type !== CONST.BANK_ACCOUNT.TYPE.PERSONAL) {
@@ -34,7 +32,10 @@ function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined):
         return false;
     }
 
-    if (accountData.additionalData?.country !== CONST.COUNTRY.US) {
+    // additionalData.country is optional — legacy US accounts may omit it.
+    // Mirror BankAccount.getCountry() which defaults to US when absent.
+    const country = accountData.additionalData?.country ?? CONST.COUNTRY.US;
+    if (country !== CONST.COUNTRY.US) {
         return false;
     }
 
