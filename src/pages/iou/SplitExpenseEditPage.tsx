@@ -225,7 +225,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                         title={translate(
                             'iou.splitExpenseEditTitle',
                             convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency),
-                            splitExpenseDraftTransaction?.merchant ?? '',
+                            splitExpenseDraftTransactionDetails?.merchant ?? '',
                         )}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
