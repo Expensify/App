@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -49,6 +49,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
+    const {currencyList} = useCurrencyListState();
     const {currentSearchResults} = useSearchStateContext();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
@@ -224,7 +225,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                     <HeaderWithBackButton
                         title={translate(
                             'iou.splitExpenseEditTitle',
-                            convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency),
+                            convertToDisplayString(currentAmount, splitExpenseDraftTransactionDetails?.currency, false, currencyList),
                             splitExpenseDraftTransactionDetails?.merchant ?? '',
                         )}
                         onBackButtonPress={() => Navigation.goBack(backTo)}

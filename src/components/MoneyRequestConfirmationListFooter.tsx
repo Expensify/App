@@ -7,7 +7,7 @@ import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -319,6 +319,7 @@ function MoneyRequestConfirmationListFooter({
     const theme = useTheme();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
+    const {currencyList} = useCurrencyListState();
     const {isOffline} = useNetwork();
     const {windowWidth} = useWindowDimensions();
 
@@ -416,7 +417,7 @@ function MoneyRequestConfirmationListFooter({
         (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const taxAmount = getTaxAmount(transaction, false);
-    const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
+    const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode, false, currencyList);
     // Get the tax rate title based on the policy and transaction
     const taxRateTitle = getTaxRateTitle(policy, transaction, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
 
@@ -683,7 +684,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={`time_${translate('common.rate')}`}
                     shouldShowRightIcon={!isReadOnly}
-                    title={translate('iou.timeTracking.ratePreview', convertToDisplayString(iouTimeRate, iouCurrencyCode))}
+                    title={translate('iou.timeTracking.ratePreview', convertToDisplayString(iouTimeRate, iouCurrencyCode, false, currencyList))}
                     description={translate('common.rate')}
                     style={styles.moneyRequestMenuItem}
                     titleStyle={styles.flex1}

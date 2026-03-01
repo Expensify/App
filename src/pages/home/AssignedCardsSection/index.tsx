@@ -46,7 +46,7 @@ function AssignedCardsSection() {
                 const customTitle = card.nameValuePairs?.cardTitle;
                 const description = customTitle && card.lastFourPAN ? `${customTitle} ${CONST.DOT_SEPARATOR} ${card.lastFourPAN}` : (customTitle ?? getCardDescription(card, translate));
                 const currency = getCurrencyKeyByCountryCode(currencyList, card.nameValuePairs?.country ?? card.nameValuePairs?.feedCountry);
-                const formattedAvailableSpend = convertToDisplayString(card.availableSpend, currency);
+                const formattedAvailableSpend = convertToDisplayString(card.availableSpend, currency, false, currencyList);
                 const title = translate('homePage.assignedCardsRemaining', {amount: formattedAvailableSpend});
 
                 const unapprovedExpenseLimit = card.nameValuePairs?.unapprovedExpenseLimit;

@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useMemo, useRef} from 'react';
+import React, {createContext, useCallback, useContext, useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList} from '@src/types/onyx';
@@ -12,12 +12,12 @@ const CurrencyListActionsContext = createContext<CurrencyListActionsContextType>
 function CurrencyListContextProvider({children}: React.PropsWithChildren) {
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST);
 
-    const currencyListRef = useRef(currencyList);
-    currencyListRef.current = currencyList;
-
-    const getCurrencySymbol = useCallback((currencyCode: string): string | undefined => {
-        return currencyListRef.current[currencyCode]?.symbol;
-    }, []);
+    const getCurrencySymbol = useCallback(
+        (currencyCode: string): string | undefined => {
+            return currencyList[currencyCode]?.symbol;
+        },
+        [currencyList],
+    );
 
     const getCurrencyDecimals = useCallback(
         (currencyCode: string | undefined): number => {
