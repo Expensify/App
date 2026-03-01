@@ -24,12 +24,22 @@ function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
 
     useEffect(() => {
         let cancelled = false;
-        getLocalPublicKey().then((key) => {
-            if (cancelled) {
-                return;
+
+        (async () => {
+            try {
+                const key = await getLocalPublicKey();
+                if (cancelled) {
+                    return;
+                }
+                setLocalPublicKey(key);
+            } catch {
+                if (cancelled) {
+                    return;
+                }
+                setLocalPublicKey(undefined);
             }
-            setLocalPublicKey(key);
-        });
+        })();
+
         return () => {
             cancelled = true;
         };
