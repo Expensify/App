@@ -238,15 +238,6 @@ function IOURequestStepScan({
         if (!isMobile() || !isTabActive) {
             return;
         }
-        if (!navigator.permissions?.query) {
-            // Defer to match the async behaviour of the .finally() branch below,
-            // avoiding a synchronous setState inside the effect body (lint rule).
-            const timer = setTimeout(() => setIsQueriedPermissionState(true), 0);
-            return () => {
-                clearTimeout(timer);
-                setVideoConstraints(undefined);
-            };
-        }
         navigator.permissions
             .query({
                 name: 'camera',
