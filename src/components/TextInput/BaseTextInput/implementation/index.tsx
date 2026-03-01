@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useMemo, useId, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
