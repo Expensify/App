@@ -1,5 +1,4 @@
 import {Str} from 'expensify-common';
-import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
@@ -138,13 +137,13 @@ import {
     isExpenseReport,
 } from '@libs/ReportUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
-import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import {getActionHtml} from './actionConfig';
+import type {ActionDescriptor} from './ActionDescriptor';
 
 function setClipboardMessage(content: string | undefined) {
     if (!content) {
@@ -500,35 +499,25 @@ function copyMessageToClipboard(payload: ContextMenuPayloadContextValue) {
     }
 }
 
-function CopyMessage({isFocused, onFocus, onBlur}: ContextMenuActionFocusProps) {
+function useCopyMessageAction(): ActionDescriptor | null {
     const payload = useContextMenuPayload();
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
     const {translate} = useLocalize();
 
-    const closePopover = !payload.isMini;
-
-    const handlePress = () => {
-        copyMessageToClipboard(payload);
-        if (closePopover) {
-            hideContextMenu(true, ReportActionComposeFocusManager.focus);
-        }
+    return {
+        id: 'copyMessage',
+        icon: icons.Copy,
+        text: translate('reportActionContextMenu.copyMessage'),
+        successText: translate('reportActionContextMenu.copied'),
+        successIcon: icons.Checkmark,
+        isAnonymousAction: true,
+        onPress: () =>
+            payload.interceptAnonymousUser(() => {
+                copyMessageToClipboard(payload);
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }, true),
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE,
     };
-
-    return (
-        <ContextMenuItem
-            icon={icons.Copy}
-            text={translate('reportActionContextMenu.copyMessage')}
-            successText={translate('reportActionContextMenu.copied')}
-            successIcon={icons.Checkmark}
-            isMini={payload.isMini}
-            isAnonymousAction
-            onPress={() => payload.interceptAnonymousUser(handlePress, true)}
-            isFocused={isFocused}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE}
-        />
-    );
 }
 
-export default CopyMessage;
+export default useCopyMessageAction;

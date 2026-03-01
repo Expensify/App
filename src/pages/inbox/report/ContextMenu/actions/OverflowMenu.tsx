@@ -1,40 +1,36 @@
 import {useRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
-import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import CONST from '@src/CONST';
+import type {ActionDescriptor} from './ActionDescriptor';
 
-type OverflowMenuProps = ContextMenuActionFocusProps;
+type OverflowMenuDescriptor = ActionDescriptor & {
+    buttonRef: React.RefObject<View | null>;
+};
 
-function OverflowMenu({isFocused, onFocus, onBlur}: OverflowMenuProps) {
-    const {openOverflowMenu, openContextMenu, isMini, interceptAnonymousUser} = useContextMenuPayload();
+function useOverflowMenuAction(): OverflowMenuDescriptor | null {
+    const {openOverflowMenu, openContextMenu, interceptAnonymousUser} = useContextMenuPayload();
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
     const {translate} = useLocalize();
     const threeDotRef = useRef<View>(null);
 
-    const handlePress = (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => {
-        openOverflowMenu(event as GestureResponderEvent | MouseEvent, threeDotRef);
-        openContextMenu();
+    return {
+        id: 'overflowMenu',
+        icon: icons.ThreeDots,
+        text: translate('reportActionContextMenu.menu'),
+        isAnonymousAction: true,
+        shouldPreventDefaultFocusOnPress: false,
+        buttonRef: threeDotRef,
+        onPress: (event) =>
+            interceptAnonymousUser(() => {
+                openOverflowMenu(event as GestureResponderEvent | MouseEvent, threeDotRef);
+                openContextMenu();
+            }, true),
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MENU,
     };
-
-    return (
-        <ContextMenuItem
-            buttonRef={threeDotRef}
-            icon={icons.ThreeDots}
-            text={translate('reportActionContextMenu.menu')}
-            isMini={isMini}
-            onPress={(event) => interceptAnonymousUser(() => handlePress(event), true)}
-            isAnonymousAction
-            isFocused={isFocused}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            shouldPreventDefaultFocusOnPress={false}
-            sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.MENU}
-        />
-    );
 }
 
-export default OverflowMenu;
+export default useOverflowMenuAction;
+export type {OverflowMenuDescriptor};

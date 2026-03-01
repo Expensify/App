@@ -1,51 +1,49 @@
-import CopyEmail from './CopyEmail';
-import CopyLink from './CopyLink';
-import CopyMessage from './CopyMessage';
-import CopyOnyxData from './CopyOnyxData';
-import CopyToClipboard from './CopyToClipboard';
-import CopyURL from './CopyURL';
-import Debug from './Debug';
-import Delete from './Delete';
-import Download from './Download';
-import Edit from './Edit';
-import EmojiReaction from './EmojiReaction';
-import Explain from './Explain';
-import FlagAsOffensive from './FlagAsOffensive';
-import Hold from './Hold';
-import JoinThread from './JoinThread';
-import LeaveThread from './LeaveThread';
-import MarkAsRead from './MarkAsRead';
-import MarkAsUnread from './MarkAsUnread';
-import OverflowMenu from './OverflowMenu';
-import Pin from './Pin';
-import ReplyInThread from './ReplyInThread';
-import Unhold from './Unhold';
-import Unpin from './Unpin';
+import useCopyEmailAction from './CopyEmail';
+import useCopyLinkAction from './CopyLink';
+import useCopyMessageAction from './CopyMessage';
+import useCopyOnyxDataAction from './CopyOnyxData';
+import useCopyToClipboardAction from './CopyToClipboard';
+import useCopyURLAction from './CopyURL';
+import useDebugAction from './Debug';
+import useDeleteAction from './Delete';
+import useDownloadAction from './Download';
+import useEditAction from './Edit';
+import useEmojiReactionData from './EmojiReaction';
+import useExplainAction from './Explain';
+import useFlagAsOffensiveAction from './FlagAsOffensive';
+import useHoldAction from './Hold';
+import useJoinThreadAction from './JoinThread';
+import useLeaveThreadAction from './LeaveThread';
+import useMarkAsReadAction from './MarkAsRead';
+import useMarkAsUnreadAction from './MarkAsUnread';
+import useOverflowMenuAction from './OverflowMenu';
+import usePinAction from './Pin';
+import useReplyInThreadAction from './ReplyInThread';
+import useUnholdAction from './Unhold';
+import useUnpinAction from './Unpin';
 
-const ContextMenuAction = {
-    EmojiReaction,
-    ReplyInThread,
-    MarkAsUnread,
-    Explain,
-    MarkAsRead,
-    Edit,
-    Unhold,
-    Hold,
-    JoinThread,
-    LeaveThread,
-    CopyURL,
-    CopyToClipboard,
-    CopyEmail,
-    CopyMessage,
-    CopyLink,
-    Pin,
-    Unpin,
-    FlagAsOffensive,
-    Download,
-    CopyOnyxData,
-    Debug,
-    Delete,
-    OverflowMenu,
+export {
+    useEmojiReactionData,
+    useReplyInThreadAction,
+    useMarkAsUnreadAction,
+    useExplainAction,
+    useMarkAsReadAction,
+    useEditAction,
+    useUnholdAction,
+    useHoldAction,
+    useJoinThreadAction,
+    useLeaveThreadAction,
+    useCopyURLAction,
+    useCopyToClipboardAction,
+    useCopyEmailAction,
+    useCopyMessageAction,
+    useCopyLinkAction,
+    usePinAction,
+    useUnpinAction,
+    useFlagAsOffensiveAction,
+    useDownloadAction,
+    useCopyOnyxDataAction,
+    useDebugAction,
+    useDeleteAction,
+    useOverflowMenuAction,
 };
-
-export default ContextMenuAction;

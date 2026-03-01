@@ -70,7 +70,6 @@ type ShouldShowArgs = {
     isUnreadChat: boolean;
     isThreadReportParentAction: boolean;
     isOffline: boolean;
-    isMini: boolean;
     isProduction: boolean;
     moneyRequestAction: ReportAction | undefined;
     areHoldRequirementsMet: boolean;
@@ -299,7 +298,7 @@ const ORDERED_ACTION_SHOULD_SHOW: Array<{id: ActionId; isContentAction: boolean;
     {
         id: ACTION_IDS.OVERFLOW_MENU,
         isContentAction: false,
-        shouldShow: ({isMini}) => isMini,
+        shouldShow: () => true,
     },
 ];
 

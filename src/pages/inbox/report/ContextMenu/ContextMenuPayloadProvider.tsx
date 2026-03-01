@@ -39,7 +39,6 @@ type ContextMenuPayloadContextValue = {
     isUnreadChat: boolean;
     isThreadReportParentAction: boolean;
     isOffline: boolean;
-    isMini: boolean;
     isProduction: boolean;
     isHarvestReport: boolean;
     isTryNewDotNVPDismissed: boolean;
@@ -60,6 +59,7 @@ type ContextMenuPayloadContextValue = {
     download: OnyxEntry<DownloadOnyx>;
 
     close: () => void;
+    hideAndRun: (callback?: () => void) => void;
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;

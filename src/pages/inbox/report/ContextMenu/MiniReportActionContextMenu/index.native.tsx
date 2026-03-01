@@ -1,4 +1,2 @@
-import type MiniReportActionContextMenuProps from './types';
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default (props: MiniReportActionContextMenuProps) => null;
+// Mini context menu only renders on web via createPortal
+export default () => null;

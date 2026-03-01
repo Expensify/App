@@ -1,46 +1,31 @@
-import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getChildReportNotificationPreference} from '@libs/ReportUtils';
-import type {ContextMenuActionFocusProps} from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
-import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {toggleSubscribeToChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
+import type {ActionDescriptor} from './ActionDescriptor';
 
-function JoinThread({isFocused, onFocus, onBlur}: ContextMenuActionFocusProps) {
-    const {reportAction, originalReport, currentUserAccountID, isMini, interceptAnonymousUser} = useContextMenuPayload();
+function useJoinThreadAction(): ActionDescriptor | null {
+    const {reportAction, originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun} = useContextMenuPayload();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Bell'] as const);
 
-    const closePopover = !isMini;
-
-    const handlePress = () => {
-        const childReportNotificationPreference = getChildReportNotificationPreference(reportAction);
-        if (closePopover) {
-            hideContextMenu(false, () => {
-                ReportActionComposeFocusManager.focus();
-                toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, childReportNotificationPreference);
-            });
-            return;
-        }
-        ReportActionComposeFocusManager.focus();
-        toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, childReportNotificationPreference);
+    return {
+        id: 'joinThread',
+        icon: icons.Bell,
+        text: translate('reportActionContextMenu.joinThread'),
+        onPress: () =>
+            interceptAnonymousUser(() => {
+                const childReportNotificationPreference = getChildReportNotificationPreference(reportAction);
+                hideAndRun(() => {
+                    ReportActionComposeFocusManager.focus();
+                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, childReportNotificationPreference);
+                });
+            }, false),
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD,
     };
-
-    return (
-        <ContextMenuItem
-            icon={icons.Bell}
-            text={translate('reportActionContextMenu.joinThread')}
-            isMini={isMini}
-            onPress={() => interceptAnonymousUser(handlePress, false)}
-            isFocused={isFocused}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD}
-        />
-    );
 }
 
-export default JoinThread;
+export default useJoinThreadAction;
