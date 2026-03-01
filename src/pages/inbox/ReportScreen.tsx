@@ -859,14 +859,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     }, [reportMetadata?.isLoadingInitialReportActions]);
 
     const navigateToEndOfReport = useCallback(() => {
-        // The linkTo fix ensures a history entry was created,
-        // so we can safely go back to wherever the user came from.
         if (navigation.canGoBack()) {
             Navigation.goBack();
             return;
         }
-
-        // Fallback for direct URL navigation (no previous history).
         Navigation.setParams({reportActionID: ''});
         fetchReport();
     }, [navigation, fetchReport]);

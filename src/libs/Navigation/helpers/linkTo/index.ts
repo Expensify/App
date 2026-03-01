@@ -60,20 +60,16 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
 
     const currentParams = currentRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
     const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+    const currentReportActionID = currentParams?.reportActionID;
+    const newReportActionID = newParams?.reportActionID;
 
-    if (currentParams?.reportID !== newParams?.reportID) {
+    // When moving from the report root to a specific action, push instead of replace
+    // so hardware/browser back can return to the root (#70498).
+    if (!currentReportActionID && !!newReportActionID) {
         return false;
     }
 
-    // Keep PUSH behavior only when opening a linked message from the base report route.
-    // This ensures browser/device back first returns to the report page.
-    const isNavigatingFromReportRootToLinkedMessage = !currentParams?.reportActionID && !!newParams?.reportActionID;
-    if (isNavigatingFromReportRootToLinkedMessage) {
-        return false;
-    }
-
-    // Otherwise, preserve existing replace behavior for same-report navigations.
-    return true;
+    return currentParams?.reportID === newParams?.reportID;
 }
 
 function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigatorParamList>, matchingFullScreenRoute: NavigationPartialRoute) {
@@ -162,8 +158,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // Attachment screen - This is a special case. We want to navigate to it instead of push. If there is no screen on the stack, it will be pushed.
     // If not, it will be replaced. This way, navigating between one attachment screen and another won't be added to the browser history.
     // Report screen - Also a special case. If we are navigating to the report with same reportID we want to replace it (navigate will do that).
-    // In plain report context, when the target has a different reportActionID, we keep PUSH behavior
-    // so browser/device back returns to the report page instead of skipping past it.
+    // This covers the case when we open a specific message in report (reportActionID).
     else if (
         action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
         !isNavigatingToAttachmentScreen(focusedRouteFromPath?.name) &&
