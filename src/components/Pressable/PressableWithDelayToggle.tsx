@@ -69,11 +69,8 @@ type PressableWithDelayToggleProps = PressableProps & {
     /** Icon height */
     iconHeight?: number;
 
-    /** Custom accessibility label for the active state, overrides tooltipText-based label */
+    /** Custom accessibility label that overrides the tooltipText-based label for both states */
     accessibilityLabel?: string;
-
-    /** Custom accessibility label for the checked (toggled) state, overrides tooltipTextChecked-based label */
-    accessibilityLabelChecked?: string;
 };
 
 function PressableWithDelayToggle({
@@ -96,7 +93,6 @@ function PressableWithDelayToggle({
     iconHeight = variables.iconSizeSmall,
     shouldUseButtonBackground = false,
     accessibilityLabel: accessibilityLabelProp,
-    accessibilityLabelChecked,
 }: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -118,7 +114,7 @@ function PressableWithDelayToggle({
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- Use || so empty strings fall back to visible text */
-    const resolvedAccessibilityLabel = !isActive ? accessibilityLabelChecked || tooltipTextChecked || textChecked || text || '' : accessibilityLabelProp || tooltipText || text || '';
+    const resolvedAccessibilityLabel = accessibilityLabelProp || (!isActive ? tooltipTextChecked || textChecked : tooltipText || text) || text || '';
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     const shouldShowIcon = !!icon || (!isActive && !!resolvedIconChecked);
     const labelText =

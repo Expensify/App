@@ -127,7 +127,6 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             tooltipText=""
                                             tooltipTextChecked=""
                                             accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
-                                            accessibilityLabelChecked={`${translate('common.copied')}, ${translate('twoFactorAuth.stepCodes')}`}
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
                                         />
                                         <PressableWithDelayToggle
@@ -145,7 +144,6 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             tooltipText=""
                                             tooltipTextChecked=""
                                             accessibilityLabel={`${translate('common.download')}, ${translate('twoFactorAuth.stepCodes')}`}
-                                            accessibilityLabelChecked={`${translate('common.download')}, ${translate('twoFactorAuth.stepCodes')}`}
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD_CODES}
                                         />
                                     </View>

@@ -126,7 +126,6 @@ function VerifyPage({route}: VerifyPageProps) {
                             tooltipText=""
                             tooltipTextChecked=""
                             accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.secretKey')}`}
-                            accessibilityLabelChecked={`${translate('common.copied')}, ${translate('twoFactorAuth.secretKey')}`}
                             icon={icons.Copy}
                             inline={false}
                             onPress={() => Clipboard.setString(account?.twoFactorAuthSecretKey ?? '')}
