@@ -70,10 +70,13 @@ function UpdatePersonalBankAccountPage() {
         .map((step) => STEP_INDEX_TO_PAGE_NAME.at(step - 1))
         .filter((name): name is string => !!name);
 
+    const firstNonSkippedIndex = formPages.findIndex((p) => !skipPages.includes(p.pageName));
+
     const {CurrentPage, isEditing, currentPageName, prevPage, nextPage, moveTo, isRedirecting} = useSubPage({
         pages: formPages,
         onFinished: submitPersonalInfo,
         skipPages,
+        startFrom: firstNonSkippedIndex >= 0 ? firstNonSkippedIndex : 0,
         buildRoute: (pageName, action) => ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(pageName, action),
     });
 
@@ -81,7 +84,7 @@ function UpdatePersonalBankAccountPage() {
         return <FullScreenLoadingIndicator />;
     }
 
-    const firstVisiblePage = formPages.find((p) => !skipPages.includes(p.pageName));
+    const firstVisiblePage = formPages.at(firstNonSkippedIndex >= 0 ? firstNonSkippedIndex : 0);
 
     const handleBackButtonPress = () => {
         if (isEditing) {

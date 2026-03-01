@@ -233,18 +233,6 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
                     legalFirstName: accountData?.legalFirstName,
                     legalLastName: accountData?.legalLastName,
                     phoneNumber: accountData?.phoneNumber,
-                    addresses: accountData?.addressStreet
-                        ? [
-                              {
-                                  street: formattedStreet,
-                                  city: accountData?.addressCity,
-                                  state: accountData?.addressState,
-                                  zip: accountData?.addressZipCode,
-                                  country: accountData?.country as Country,
-                                  current: true,
-                              },
-                          ]
-                        : undefined,
                 },
             },
             {
