@@ -5615,10 +5615,6 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}19`, draftReport);
             await waitForBatchedUpdates();
 
-            const draftReports = {
-                '19': draftReport,
-            };
-
             const participant: Participant = {
                 reportID: '19',
                 selected: false,
