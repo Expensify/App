@@ -10,7 +10,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext} from '@components/Search/SearchContext';
 import Section from '@components/Section';
 import SentryDebugToolMenu from '@components/SentryDebugToolMenu';
 import Switch from '@components/Switch';
@@ -22,7 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
+import {resetExitSurveyForm, switchToOldDot} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
@@ -62,7 +62,7 @@ function TroubleshootPage() {
     const {resetOptions} = useOptionsList({shouldInitialize: false});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
-    const {setShouldResetSearchQuery} = useSearchContext();
+    const {setShouldResetSearchQuery} = useSearchActionsContext();
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
             const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
@@ -111,6 +111,7 @@ function TroubleshootPage() {
                 : {
                       action() {
                           if (surveyCompletedWithinLastMonth) {
+                              switchToOldDot('');
                               openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                               return;
                           }
@@ -171,6 +172,7 @@ function TroubleshootPage() {
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
+                shouldDisplayHelpButton
                 onBackButtonPress={Navigation.goBack}
                 icon={illustrations.Lightbulb}
                 shouldUseHeadlineHeader

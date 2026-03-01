@@ -8,7 +8,7 @@ import {getButtonRole} from '@components/Button/utils';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -28,7 +28,7 @@ import {isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} fr
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import isActionLoadingSelector from '@src/selectors/ReportMetaData';
+import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
@@ -50,13 +50,15 @@ function TransactionListItem<TItem extends ListItem>({
     customCardNames,
     onDEWModalOpen,
     isDEWBetaEnabled,
+    lastPaymentMethod,
+    personalPolicyID,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchContext();
+    const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
     const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
@@ -70,9 +72,7 @@ function TransactionListItem<TItem extends ListItem>({
     // NOTE: Using || instead of ?? to treat empty string "" as falsy
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const policyID = transactionItem.policyID || snapshotReport?.policyID || activePolicyID;
-    const [parentPolicy] = originalUseOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policy) => policy?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
-    });
+    const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
     const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
 
     const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
@@ -80,8 +80,6 @@ function TransactionListItem<TItem extends ListItem>({
 
     // Fetch policy categories directly from Onyx since they are not included in the search snapshot
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
-    const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`);
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
