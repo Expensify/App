@@ -175,7 +175,12 @@ function MultifactorAuthenticationRevokePage() {
                                                 small
                                                 isLoading={isThisDeviceLoading}
                                                 text={translate('multifactorAuthentication.revoke.revoke')}
-                                                onPress={() => showConfirmModal(() => revokeThisDevice(localPublicKey!), 'thisDevice')}
+                                                onPress={() => {
+                                                    if (!localPublicKey) {
+                                                        return;
+                                                    }
+                                                    showConfirmModal(() => revokeThisDevice(localPublicKey), 'thisDevice');
+                                                }}
                                             />
                                         </View>
                                     }

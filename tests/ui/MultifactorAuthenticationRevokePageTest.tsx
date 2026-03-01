@@ -19,7 +19,7 @@ jest.mock('@hooks/useBiometricRegistrationStatus', () => ({
 
 const mockRevokeCredentials = jest.fn().mockResolvedValue({httpStatusCode: 200});
 jest.mock('@libs/actions/MultifactorAuthentication', () => ({
-    revokeMultifactorAuthenticationCredentials: (...args: unknown[]) => mockRevokeCredentials(...args),
+    revokeMultifactorAuthenticationCredentials: (...args: unknown[]): Promise<{httpStatusCode: number}> => mockRevokeCredentials(...args) as Promise<{httpStatusCode: number}>,
 }));
 
 jest.mock('@userActions/User', () => ({
@@ -51,35 +51,39 @@ jest.mock('@hooks/useThemeStyles', () => ({
 }));
 
 jest.mock('@components/ScreenWrapper', () => {
-    const MockScreenWrapper = ({children, testID}: {children: React.ReactNode; testID?: string}) => <>{children}</>;
+    const MockScreenWrapper = ({children}: {children: React.ReactNode}) => children;
     MockScreenWrapper.displayName = 'ScreenWrapper';
     return MockScreenWrapper;
 });
 
 jest.mock('@components/HeaderWithBackButton', () => {
-    const MockHeader = () => null;
+    function MockHeader() {
+        return null;
+    }
     MockHeader.displayName = 'HeaderWithBackButton';
     return MockHeader;
 });
 
 jest.mock('@components/BlockingViews/FullPageOfflineBlockingView', () => {
-    const MockView = ({children}: {children: React.ReactNode}) => <>{children}</>;
+    const MockView = ({children}: {children: React.ReactNode}) => children;
     MockView.displayName = 'FullPageOfflineBlockingView';
     return MockView;
 });
 
 jest.mock('@components/FormHelpMessage', () => {
-    const MockFormHelpMessage = () => null;
+    function MockFormHelpMessage() {
+        return null;
+    }
     MockFormHelpMessage.displayName = 'FormHelpMessage';
     return MockFormHelpMessage;
 });
 
 let capturedConfirmModalProps: Record<string, unknown> = {};
 jest.mock('@components/ConfirmModal', () => {
-    const MockConfirmModal = (props: Record<string, unknown>) => {
+    function MockConfirmModal(props: Record<string, unknown>) {
         capturedConfirmModalProps = props;
         return null;
-    };
+    }
     MockConfirmModal.displayName = 'ConfirmModal';
     return MockConfirmModal;
 });
@@ -144,7 +148,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user presses the inline Revoke button next to "This device"
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
-            fireEvent.press(revokeButtons[0]);
+            fireEvent.press(revokeButtons.at(0));
 
             // Then the confirmation modal should say "this device" and the confirm button should say "Revoke access"
             expect(capturedConfirmModalProps.prompt).toBe('multifactorAuthentication.revoke.confirmationPromptThisDevice');
@@ -161,7 +165,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user presses the inline Revoke button next to "Other devices"
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
-            const otherDevicesButton = revokeButtons[1];
+            const otherDevicesButton = revokeButtons.at(1);
             fireEvent.press(otherDevicesButton);
 
             // Then the modal should say "that device" and the confirm button should say "Revoke access"
@@ -176,7 +180,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user presses the inline Revoke button next to "Other devices"
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
-            const otherDevicesButton = revokeButtons[1];
+            const otherDevicesButton = revokeButtons.at(1);
             fireEvent.press(otherDevicesButton);
 
             // Then the modal should say "those devices" and the confirm button should say "Revoke access"
@@ -193,7 +197,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // (revoking "other devices" when this device is unregistered means revoking all)
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
-            fireEvent.press(revokeButtons[0]);
+            fireEvent.press(revokeButtons.at(0));
 
             // Then the modal should say "any device" and the confirm button should say "Revoke all"
             expect(capturedConfirmModalProps.prompt).toBe('multifactorAuthentication.revoke.confirmationPromptAll');
@@ -223,7 +227,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user presses the bottom "Revoke access" button
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.cta');
-            const bottomButton = revokeButtons[revokeButtons.length - 1];
+            const bottomButton = revokeButtons.at(revokeButtons.length - 1);
             fireEvent.press(bottomButton);
 
             // Then the modal should say "that device" and the confirm button should say "Revoke access"
@@ -269,10 +273,10 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user confirms revoking this device via the inline button
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
-            fireEvent.press(revokeButtons[0]);
+            fireEvent.press(revokeButtons.at(0));
             const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
             await act(async () => {
-                await onConfirm();
+                onConfirm();
             });
 
             // Then the API should be called with onlyKeyID matching this device's key
@@ -287,10 +291,10 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user confirms revoking other devices via the inline button
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
-            fireEvent.press(revokeButtons[1]);
+            fireEvent.press(revokeButtons.at(1));
             const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
             await act(async () => {
-                await onConfirm();
+                onConfirm();
             });
 
             // Then the API should be called with exceptKeyID to preserve this device's registration
@@ -304,10 +308,10 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user confirms revoking other devices
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
-            fireEvent.press(revokeButtons[0]);
+            fireEvent.press(revokeButtons.at(0));
             const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
             await act(async () => {
-                await onConfirm();
+                onConfirm();
             });
 
             // Then the API should be called with empty params to revoke all credentials
@@ -324,7 +328,7 @@ describe('MultifactorAuthenticationRevokePage', () => {
             fireEvent.press(screen.getByText('multifactorAuthentication.revoke.ctaAll'));
             const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
             await act(async () => {
-                await onConfirm();
+                onConfirm();
             });
 
             // Then the API should be called with undefined to revoke every credential
