@@ -11,8 +11,6 @@ type OnboardingFlowContext = {
     hasAccessibleDomainPolicies?: boolean;
     purposeSelected?: ValueOf<typeof CONST.ONBOARDING_CHOICES>;
     isMergeAccountStepSkipped?: boolean;
-    shouldValidate?: boolean;
-    isValidated?: boolean;
 };
 
 type OnboardingStepResult = {
@@ -29,27 +27,22 @@ const subPageMapping: Partial<Record<OnboardingScreen, OnboardingScreen>> = {
     [ONBOARDING.WORKSPACE_INVITE]: ONBOARDING.WORKSPACE_OPTIONAL,
 };
 
+function getResolvedPage(page: OnboardingScreen, context: OnboardingFlowContext): OnboardingScreen {
+    if (page === ONBOARDING.PRIVATE_DOMAIN && context.isFromPublicDomain) {
+        return ONBOARDING.WORK_EMAIL_VALIDATION;
+    }
+    return subPageMapping[page] ?? page;
+}
+
 function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
     if (context.isFromPublicDomain) {
-        const screens: OnboardingScreen[] = [ONBOARDING.WORK_EMAIL];
-        if (context.shouldValidate !== false) {
-            screens.push(ONBOARDING.WORK_EMAIL_VALIDATION);
-        }
         if (context.isMergeAccountStepSkipped === false) {
-            if (context.shouldValidate === false) {
-                screens.push(ONBOARDING.PRIVATE_DOMAIN);
-            }
-            screens.push(ONBOARDING.WORKSPACES);
+            return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.WORKSPACES];
         }
-        return screens;
+        return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
     if (context.hasAccessibleDomainPolicies) {
-        const screens: OnboardingScreen[] = [ONBOARDING.PERSONAL_DETAILS];
-        if (context.isValidated !== true) {
-            screens.push(ONBOARDING.PRIVATE_DOMAIN);
-        }
-        screens.push(ONBOARDING.WORKSPACES);
-        return screens;
+        return [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.PRIVATE_DOMAIN, ONBOARDING.WORKSPACES];
     }
     return [];
 }
@@ -80,7 +73,7 @@ function getOnboardingFlow(context: OnboardingFlowContext): OnboardingScreen[] |
 }
 
 function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlowContext): OnboardingStepResult | undefined {
-    const resolvedPage = subPageMapping[page] ?? page;
+    const resolvedPage = getResolvedPage(page, context);
     const flow = getOnboardingFlow(context);
 
     if (!flow) {
