@@ -33,6 +33,9 @@ type DatePresetFilterBaseHandle = {
     /** Clears the date value of the selected date modifier */
     clearDateValueOfSelectedDateModifier: () => void;
 
+    /** Restores the Range value to what it was when Range mode was entered, discarding any unsaved ephemeral picks */
+    restoreRangeToEntrySnapshot: () => void;
+
     /** Resets date values to the provided defaults */
     resetDateValuesToDefault: () => void;
 
@@ -185,6 +188,10 @@ function DatePresetFilterBase({
         };
     });
 
+    // Snapshot of the RANGE value at the moment the user enters Range mode.
+    // Used to discard unsaved ephemeral picks when pressing back.
+    const rangeEntrySnapshotRef = useRef<string | undefined>(undefined);
+
     const selectDateModifier = useCallback(
         (dateModifier: SearchDateModifier | null) => {
             resetEphemeralDateValue(dateModifier);
@@ -192,6 +199,8 @@ function DatePresetFilterBase({
 
             if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
                 const currentDateValues = dateValuesRef.current;
+                // Snapshot the committed range value before the user makes ephemeral picks
+                rangeEntrySnapshotRef.current = currentDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
                 const rangeBoundaries = getRangeBoundariesFromFormValue(
                     currentDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
                     currentDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
@@ -291,6 +300,15 @@ function DatePresetFilterBase({
                 const updatedValues = {...currentDateValues, [selectedDateModifier]: undefined};
                 dateValuesRef.current = updatedValues;
                 setDateValue(selectedDateModifier, undefined);
+                onRangeValidationErrorChange?.(false);
+            },
+
+            restoreRangeToEntrySnapshot() {
+                const snapshotValue = rangeEntrySnapshotRef.current;
+                const currentDateValues = dateValuesRef.current;
+                const updatedValues = {...currentDateValues, [CONST.SEARCH.DATE_MODIFIERS.RANGE]: snapshotValue};
+                dateValuesRef.current = updatedValues;
+                updateDateValues(updatedValues);
                 onRangeValidationErrorChange?.(false);
             },
         }),

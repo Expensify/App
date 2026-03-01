@@ -76,7 +76,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
 
     const handleBackPress = useCallback(() => {
         if (searchDatePresetFilterBaseRef.current && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-            searchDatePresetFilterBaseRef.current.resetDateValuesToDefault();
+            searchDatePresetFilterBaseRef.current.restoreRangeToEntrySnapshot();
             updateRangeText();
         }
         clearSelection();

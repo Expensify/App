@@ -136,7 +136,7 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
     const goBack = () => {
         if (selectedDateModifier) {
             if (searchDatePresetFilterBaseRef.current && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-                searchDatePresetFilterBaseRef.current.resetDateValuesToDefault();
+                searchDatePresetFilterBaseRef.current.restoreRangeToEntrySnapshot();
                 setRangeDisplayText(searchDatePresetFilterBaseRef.current.getRangeDisplayText());
             }
             setSelectedDateModifier(null);
