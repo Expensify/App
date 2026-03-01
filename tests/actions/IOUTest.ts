@@ -7118,6 +7118,53 @@ describe('actions/IOU', () => {
 
         afterEach(PusherHelper.teardown);
 
+        it('should set pendingAction on the transaction without sending snapshot fanout updates', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            try {
+                if (transaction && createIOUAction) {
+                    deleteMoneyRequest({
+                        transactionID: transaction.transactionID,
+                        reportAction: createIOUAction,
+                        transactions: {},
+                        violations: {},
+                        iouReport,
+                        chatReport,
+                        isChatIOUReportArchived: true,
+                        allTransactionViolationsParam: {},
+                        currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    });
+                }
+                await waitForBatchedUpdates();
+
+                const deleteRequestCall = writeSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.DELETE_MONEY_REQUEST);
+                expect(deleteRequestCall).toBeDefined();
+                if (!deleteRequestCall) {
+                    throw new Error('Expected DELETE_MONEY_REQUEST to be called');
+                }
+
+                const [, , requestData] = deleteRequestCall as [
+                    ApiCommand,
+                    Record<string, unknown>,
+                    {optimisticData?: Array<{key: string; value?: {pendingAction?: string | null}}>; failureData?: Array<{key: string; value?: {pendingAction?: string | null}}>}
+                ];
+
+                const optimisticData = requestData.optimisticData ?? [];
+                const failureData = requestData.failureData ?? [];
+                const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`;
+
+                const optimisticTransactionUpdate = optimisticData.find((update) => update.key === transactionKey);
+                const failureTransactionUpdate = failureData.find((update) => update.key === transactionKey);
+
+                expect(optimisticTransactionUpdate?.value?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                expect(failureTransactionUpdate?.value?.pendingAction).toBeNull();
+                expect(optimisticData.some((update) => update.key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT))).toBe(false);
+                expect(failureData.some((update) => update.key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT))).toBe(false);
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
         it('delete an expense (IOU Action and transaction) successfully', async () => {
             // Given the fetch operations are paused and an expense is initiated
             mockFetch?.pause?.();
