@@ -90,17 +90,25 @@ function MultifactorAuthenticationRevokePage() {
         [translate],
     );
 
-    const revokeThisDevice = useCallback(async () => {
-        if (!localPublicKey) {
-            return;
-        }
-        await executeRevoke({onlyKeyID: localPublicKey}, setIsThisDeviceLoading);
-    }, [localPublicKey, executeRevoke]);
+    // Since localPublicKey is loaded asynchronously, it can become undefined between the render that shows
+    // the button and the moment the user taps it. If these callbacks closed over localPublicKey directly, a
+    // stale undefined value could cause revokeThisDevice to silently no-op, or revokeOtherDevices to send
+    // empty params and accidentally revoke ALL credentials. The call sites pass localPublicKey at render time
+    // so the closure captures the value that was known-good when the button was displayed.
+    const revokeThisDevice = useCallback(
+        async (keyID: string) => {
+            await executeRevoke({onlyKeyID: keyID}, setIsThisDeviceLoading);
+        },
+        [executeRevoke],
+    );
 
-    const revokeOtherDevices = useCallback(async () => {
-        const params = isCurrentDeviceRegistered && localPublicKey ? {exceptKeyID: localPublicKey} : {};
-        await executeRevoke(params, setIsOtherDevicesLoading);
-    }, [isCurrentDeviceRegistered, localPublicKey, executeRevoke]);
+    const revokeOtherDevices = useCallback(
+        async (currentDeviceKeyID: string | undefined) => {
+            const params = currentDeviceKeyID ? {exceptKeyID: currentDeviceKeyID} : {};
+            await executeRevoke(params, setIsOtherDevicesLoading);
+        },
+        [executeRevoke],
+    );
 
     const revokeAll = useCallback(async () => {
         const setLoading = (loading: boolean) => {
@@ -152,6 +160,8 @@ function MultifactorAuthenticationRevokePage() {
                     </Text>
                     {hasDevices && (
                         <View>
+                            {/* The isCurrentDeviceRegistered guard guarantees localPublicKey is
+                               truthy here. Do not remove this guard without updating the non-null assertion on localPublicKey below. */}
                             {isCurrentDeviceRegistered && (
                                 <MenuItem
                                     title={translate('multifactorAuthentication.revoke.thisDevice')}
@@ -164,7 +174,7 @@ function MultifactorAuthenticationRevokePage() {
                                                 small
                                                 isLoading={isThisDeviceLoading}
                                                 text={translate('multifactorAuthentication.revoke.revoke')}
-                                                onPress={() => showConfirmModal(revokeThisDevice, 'thisDevice')}
+                                                onPress={() => showConfirmModal(() => revokeThisDevice(localPublicKey!), 'thisDevice')}
                                             />
                                         </View>
                                     }
@@ -182,7 +192,7 @@ function MultifactorAuthenticationRevokePage() {
                                                 small
                                                 isLoading={isOtherDevicesLoading}
                                                 text={translate('multifactorAuthentication.revoke.revoke')}
-                                                onPress={() => showConfirmModal(revokeOtherDevices, otherDevicesConfirmMode())}
+                                                onPress={() => showConfirmModal(() => revokeOtherDevices(localPublicKey), otherDevicesConfirmMode())}
                                             />
                                         </View>
                                     }
