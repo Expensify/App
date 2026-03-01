@@ -158,14 +158,8 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Whether to display the option icon when only one option is available */
     shouldUseOptionIcon?: boolean;
 
-    /** Used to apply styles specifically to the header text */
-    headerTextStyles?: StyleProp<TextStyle>;
-
     /** Reference to the outer element */
     ref?: React.Ref<ButtonWithDropdownMenuRef>;
-
-    /** Whether to put the header text after the back button */
-    shouldPutHeaderTextAfterBackButton?: boolean;
 };
 
 type ButtonWithDropdownMenuRef = {

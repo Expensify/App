@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -33,7 +34,7 @@ type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigator
 
 function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, backTo},
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, backTo},
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
@@ -46,6 +47,7 @@ function IOURequestStepUpgrade({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
 
+    const isTrack = iouType === CONST.IOU.TYPE.TRACK;
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [showConfirmationForm, setShowConfirmationForm] = useState(false);
     const [createdPolicyName, setCreatedPolicyName] = useState('');
@@ -59,6 +61,7 @@ function IOURequestStepUpgrade({
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
@@ -101,12 +104,15 @@ function IOURequestStepUpgrade({
 
                 Navigation.goBack(backToRoute);
 
-                setTransactionReport(transactionID, {reportID: expenseReportID}, true);
-                // Let the confirmation step decide the distance rate because policy data is not fully available at this step
-                setCustomUnitRateID(transactionID, '-1', undefined, undefined);
-                Navigation.setParams({reportID: expenseReportID});
+                // For track expense, we want to create the expense inside self dm (which is not expenseReportID).
+                if (!isTrack) {
+                    setTransactionReport(transactionID, {reportID: expenseReportID}, true);
+                    // Let the confirmation step decide the distance rate because policy data is not fully available at this step
+                    setCustomUnitRateID(transactionID, '-1', undefined, undefined);
+                    Navigation.setParams({reportID: expenseReportID});
+                }
 
-                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, expenseReportID));
+                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, isTrack ? reportID : expenseReportID, iouType, action));
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
@@ -157,6 +163,7 @@ function IOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
+            isSelfTourViewed,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
@@ -182,6 +189,7 @@ function IOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
+            isSelfTourViewed,
         });
         policyDataRef.current = policyData;
         setCreatedPolicyName(params.name);

@@ -7,7 +7,7 @@ import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackgrou
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
-import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,7 +18,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import Performance from '@libs/Performance';
 import Visibility from '@libs/Visibility';
 import {clearSignInData} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -179,10 +178,6 @@ function SignInPage({ref}: SignInPageProps) {
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
-
-    useEffect(() => {
-        Performance.measureTTI();
-    }, []);
 
     useEffect(() => {
         if (credentials?.login) {

@@ -6,7 +6,7 @@ import type {Attachment} from '@components/Attachments/types';
 import type {AttachmentContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-const convertFileToAttachment = (file: FileObject | undefined): Attachment => {
+const convertFileToAttachment = (file: FileObject | undefined, index: number): Attachment => {
     if (!file) {
         return {source: ''};
     }
@@ -14,6 +14,7 @@ const convertFileToAttachment = (file: FileObject | undefined): Attachment => {
     return {
         file,
         source: file.uri ?? '',
+        attachmentID: file.uri ?? `local-${index}`,
     };
 };
 
@@ -24,16 +25,22 @@ function AddAttachmentModalCarouselView({fileToDisplay, files}: AttachmentConten
     const [page, setPage] = useState<number>(0);
     const attachments = useMemo(() => {
         if (Array.isArray(files)) {
-            return files?.map((file) => convertFileToAttachment(file)) ?? [];
+            return files?.map((file, index) => convertFileToAttachment(file, index)) ?? [];
         }
 
         if (!files) {
             return [];
         }
 
-        return [convertFileToAttachment(files)];
+        return [convertFileToAttachment(files, 0)];
     }, [files]);
-    const currentAttachment = useMemo(() => convertFileToAttachment(fileToDisplay), [fileToDisplay]);
+    const currentAttachment = useMemo(() => {
+        if (!fileToDisplay) {
+            return convertFileToAttachment(undefined, 0);
+        }
+        const idx = Array.isArray(files) ? files.indexOf(fileToDisplay) : 0;
+        return convertFileToAttachment(fileToDisplay, idx >= 0 ? idx : 0);
+    }, [fileToDisplay, files]);
 
     useEffect(() => {
         clearAttachmentErrors();

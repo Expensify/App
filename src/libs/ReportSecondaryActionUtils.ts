@@ -72,6 +72,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
+    isOdometerDistanceRequest,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
@@ -104,6 +105,10 @@ function isSplitAction(
 
     const reportTransaction = reportTransactions.at(0);
     const {amount} = getTransactionDetails(reportTransaction) ?? {};
+
+    if (isOdometerDistanceRequest(reportTransaction)) {
+        return false;
+    }
 
     if (isPending(reportTransaction) || !!reportTransaction?.errors) {
         return false;
@@ -556,8 +561,11 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
         return true;
     }
 
-    const isProcessingReport = isProcessingReportUtils(report);
+    if (isSubmitter) {
+        return isAwaitingFirstLevelApproval(report);
+    }
 
+    const isProcessingReport = isProcessingReportUtils(report);
     return isProcessingReport;
 }
 
@@ -792,6 +800,18 @@ function isReportLayoutAction(report: Report, reportTransactions: Transaction[])
     return reportTransactions.length >= 2;
 }
 
+function isDuplicateReportAction(report: Report): boolean {
+    if (!isCurrentUserSubmitter(report)) {
+        return false;
+    }
+
+    if (!isExpenseReportUtils(report)) {
+        return false;
+    }
+
+    return true;
+}
+
 function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
     // Only single transactions are supported for now
     if (reportTransactions.length !== 1) {
@@ -949,6 +969,10 @@ function getSecondaryReportActions({
 
     if (isDuplicateAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
+    }
+
+    if (isDuplicateReportAction(report)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);

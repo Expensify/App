@@ -34,9 +34,21 @@ type FormHelpMessageProps = {
 
     /** Whether to show information icon */
     isInfo?: boolean;
+
+    /** Native ID for accessibility association (aria-describedby) */
+    nativeID?: string;
 };
 
-function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true, shouldRenderMessageAsHTML = false, isInfo = false}: FormHelpMessageProps) {
+function FormHelpMessage({
+    message = '',
+    children,
+    isError = true,
+    style,
+    shouldShowRedDotIndicator = true,
+    shouldRenderMessageAsHTML = false,
+    isInfo = false,
+    nativeID,
+}: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
@@ -66,7 +78,10 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
     }
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
+        <View
+            style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}
+            nativeID={nativeID}
+        >
             {isError && shouldShowRedDotIndicator && (
                 <View
                     accessible
