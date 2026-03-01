@@ -486,16 +486,15 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: policyCardFeeds,
         },
-        ...(filteredBankAccountList !== bankAccountList
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.SET,
-                      key: ONYXKEYS.BANK_ACCOUNT_LIST,
-                      value: bankAccountList ?? {},
-                  },
-              ]
-            : []),
     ];
+
+    if (filteredBankAccountList !== bankAccountList) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+            value: bankAccountList ?? {},
+        });
+    }
 
     if (policyID === activePolicyID) {
         const mostRecentlyCreatedGroupPolicy = Object.values(policies ?? {})
@@ -1164,7 +1163,7 @@ function setWorkspaceReimbursement({
                 reimbursementChoice: policy?.reimbursementChoice ?? null,
                 achAccount: {
                     reimburser: policy?.achAccount?.reimburser ?? null,
-                    bankAccountID: null,
+                    bankAccountID: policy?.achAccount?.bankAccountID ?? null,
                     accountNumber: policy?.achAccount?.accountNumber ?? null,
                     addressName: policy?.achAccount?.addressName ?? null,
                     bankName: policy?.achAccount?.bankName ?? null,
@@ -3684,6 +3683,7 @@ function openPolicyExpensifyCardsPage(policyID: string, workspaceAccountID: numb
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 isLoading: false,
+                hasOnceLoaded: true,
             },
         },
     ];
