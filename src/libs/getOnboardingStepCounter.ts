@@ -11,6 +11,8 @@ type OnboardingFlowContext = {
     hasAccessibleDomainPolicies?: boolean;
     purposeSelected?: ValueOf<typeof CONST.ONBOARDING_CHOICES>;
     isMergeAccountStepSkipped?: boolean;
+    shouldValidate?: boolean;
+    isValidated?: boolean;
 };
 
 type OnboardingStepResult = {
@@ -21,31 +23,33 @@ type OnboardingStepResult = {
 const {ONBOARDING} = SCREENS;
 const {ONBOARDING_CHOICES, ONBOARDING_SIGNUP_QUALIFIERS} = CONST;
 
-const baseSubPageMapping: Partial<Record<OnboardingScreen, OnboardingScreen>> = {
+const subPageMapping: Partial<Record<OnboardingScreen, OnboardingScreen>> = {
     [ONBOARDING.WORKSPACE_CONFIRMATION]: ONBOARDING.WORKSPACE_OPTIONAL,
     [ONBOARDING.WORKSPACE_CURRENCY]: ONBOARDING.WORKSPACE_OPTIONAL,
     [ONBOARDING.WORKSPACE_INVITE]: ONBOARDING.WORKSPACE_OPTIONAL,
 };
 
-function getSubPageMapping(context: OnboardingFlowContext): Partial<Record<OnboardingScreen, OnboardingScreen>> {
-    if (context.isFromPublicDomain && context.isMergeAccountStepSkipped === false) {
-        return {
-            ...baseSubPageMapping,
-            [ONBOARDING.PRIVATE_DOMAIN]: ONBOARDING.WORK_EMAIL_VALIDATION,
-        };
-    }
-    return baseSubPageMapping;
-}
-
 function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
     if (context.isFromPublicDomain) {
-        if (context.isMergeAccountStepSkipped === false) {
-            return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.WORKSPACES];
+        const screens: OnboardingScreen[] = [ONBOARDING.WORK_EMAIL];
+        if (context.shouldValidate !== false) {
+            screens.push(ONBOARDING.WORK_EMAIL_VALIDATION);
         }
-        return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
+        if (context.isMergeAccountStepSkipped === false) {
+            if (context.shouldValidate === false) {
+                screens.push(ONBOARDING.PRIVATE_DOMAIN);
+            }
+            screens.push(ONBOARDING.WORKSPACES);
+        }
+        return screens;
     }
     if (context.hasAccessibleDomainPolicies) {
-        return [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.PRIVATE_DOMAIN, ONBOARDING.WORKSPACES];
+        const screens: OnboardingScreen[] = [ONBOARDING.PERSONAL_DETAILS];
+        if (context.isValidated !== true) {
+            screens.push(ONBOARDING.PRIVATE_DOMAIN);
+        }
+        screens.push(ONBOARDING.WORKSPACES);
+        return screens;
     }
     return [];
 }
@@ -76,7 +80,7 @@ function getOnboardingFlow(context: OnboardingFlowContext): OnboardingScreen[] |
 }
 
 function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlowContext): OnboardingStepResult | undefined {
-    const resolvedPage = getSubPageMapping(context)[page] ?? page;
+    const resolvedPage = subPageMapping[page] ?? page;
     const flow = getOnboardingFlow(context);
 
     if (!flow) {
