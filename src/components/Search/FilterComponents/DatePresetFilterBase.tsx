@@ -116,19 +116,17 @@ function DatePresetFilterBase({
         return getDateRangeDisplayValueFromFormValue(rangeValue, dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER], dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
     }, []);
 
-    const onDateValuesChangeRef = useRef(onDateValuesChange);
-    useEffect(() => {
-        onDateValuesChangeRef.current = onDateValuesChange;
-    }, [onDateValuesChange]);
-
     const [dateValues, setDateValues] = useState<SearchDateValues>(defaultDateValues);
     const dateValuesRef = useRef<SearchDateValues>(defaultDateValues);
     const updateDateValues = useCallback((updater: SearchDateValues | ((prevDateValues: SearchDateValues) => SearchDateValues)) => {
         const nextDateValues = typeof updater === 'function' ? updater(dateValuesRef.current) : updater;
         dateValuesRef.current = nextDateValues;
         setDateValues(nextDateValues);
-        onDateValuesChangeRef.current?.(nextDateValues);
     }, []);
+
+    useEffect(() => {
+        onDateValuesChange?.(dateValues);
+    }, [onDateValuesChange, dateValues]);
 
     useEffect(() => {
         if (isSearchAdvancedFiltersFormLoading) {
@@ -147,7 +145,6 @@ function DatePresetFilterBase({
         dateValuesRef.current = defaultDateValues;
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setDateValues(defaultDateValues);
-        onDateValuesChangeRef.current?.(defaultDateValues);
     }, [isSearchAdvancedFiltersFormLoading, defaultDateValues]);
 
     const setDateValue = useCallback(
@@ -198,7 +195,7 @@ function DatePresetFilterBase({
             onRangeValidationErrorChange?.(false);
 
             if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-                const currentDateValues = dateValuesRef.current;
+                const currentDateValues = dateValues;
                 // Snapshot the committed range value before the user makes ephemeral picks
                 rangeEntrySnapshotRef.current = currentDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
                 const rangeBoundaries = getRangeBoundariesFromFormValue(
@@ -214,7 +211,7 @@ function DatePresetFilterBase({
 
             onSelectDateModifier(dateModifier);
         },
-        [resetEphemeralDateValue, onSelectDateModifier, onRangeValidationErrorChange],
+        [resetEphemeralDateValue, onSelectDateModifier, onRangeValidationErrorChange, dateValues],
     );
 
     const validate = useCallback(() => {
