@@ -671,7 +671,10 @@ function setWorkspaceAutoHarvesting(policy: Policy, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReporting: enabled,
-                harvesting: {enabled},
+                harvesting: {
+                    // Auto-harvesting should never be on if auto reporting is set to manual (immediate with harvesting = false)
+                    enabled: policy.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE ? false : enabled,
+                },
                 pendingFields: {
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
