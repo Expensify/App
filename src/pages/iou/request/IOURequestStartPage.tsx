@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -38,10 +39,11 @@ import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
 import {initMoneyRequest} from '@userActions/IOU';
+import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {SelectedTabRequest} from '@src/types/onyx';
+import type {Policy, SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
@@ -60,6 +62,45 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 const platform = getPlatform(true);
 const isWeb = ([CONST.PLATFORM.WEB, CONST.PLATFORM.MOBILE_WEB] as Platform[]).includes(platform);
 
+// Tab indices for IOURequestStartPage
+const PER_DIEM_TAB_INDEX = 2;
+
+// Selector to optimize policy collection subscriptions - only fetch needed fields
+const policySelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
+    if (!policies) {
+        return {};
+    }
+
+    const result: Record<string, Policy> = {};
+
+    for (const [id, policyItem] of Object.entries(policies)) {
+        if (!policyItem) {
+            continue;
+        }
+
+        result[id] = {
+            id: policyItem.id,
+            type: policyItem.type,
+            name: policyItem.name,
+            pendingAction: policyItem.pendingAction,
+            isPolicyExpenseChatEnabled: policyItem.isPolicyExpenseChatEnabled,
+            role: policyItem.role,
+            chatReportIDAdmins: policyItem.chatReportIDAdmins,
+            employeeList: policyItem.employeeList,
+            arePerDiemRatesEnabled: policyItem.arePerDiemRatesEnabled,
+            customUnits: policyItem.customUnits,
+            units: policyItem.units,
+            // Additional fields required by policy utilities
+            isJoinRequestPending: policyItem.isJoinRequestPending,
+            errors: policyItem.errors,
+            owner: policyItem.owner,
+            areInvoicesEnabled: policyItem.areInvoicesEnabled,
+        } as Policy;
+    }
+
+    return result;
+};
+
 function IOURequestStartPage({
     route,
     route: {
@@ -77,12 +118,16 @@ function IOURequestStartPage({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const policy = usePolicy(report?.policyID);
     const [lastSelectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
-    const [selectedTab, setSelectedTab] = useState(lastSelectedTab);
+    // Derive selectedTab directly instead of using state
+    const selectedTab = lastSelectedTab;
 
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: policySelector,
+    });
+
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
@@ -109,8 +154,7 @@ function IOURequestStartPage({
         // We requestAnimationFrame since the function is called in the animate block in the web implementation
         // which fixes a locked animation glitch when swiping between tabs, and aligns with the native implementation internal delay
         requestAnimationFrame(() => {
-            //  2 - PerDiem
-            if (index !== 2) {
+            if (index !== PER_DIEM_TAB_INDEX) {
                 return;
             }
             perDiemInputRef.current?.focus?.();
@@ -164,12 +208,7 @@ function IOURequestStartPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
-        if (isLoadingSelectedTab || selectedTab) {
-            return;
-        }
-        setSelectedTab(lastSelectedTab);
-    }, [isLoadingSelectedTab, selectedTab, lastSelectedTab]);
+    // Removed useEffect that was syncing selectedTab state - now derived directly
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();
@@ -219,7 +258,7 @@ function IOURequestStartPage({
 
     const onTabSelected = useCallback(
         (newIouType: IOURequestType) => {
-            setSelectedTab(newIouType);
+            Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, newIouType);
             resetIOUTypeIfChanged(newIouType);
         },
         [resetIOUTypeIfChanged],

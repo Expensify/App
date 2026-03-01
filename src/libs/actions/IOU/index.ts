@@ -1225,7 +1225,7 @@ function initMoneyRequest({
     newIouRequestType,
     report,
     parentReport,
-    currentDate = '',
+    currentDate,
     lastSelectedDistanceRates,
     currentUserPersonalDetails,
     hasOnlyPersonalPolicies,
