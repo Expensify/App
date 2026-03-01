@@ -19,6 +19,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 const REPORTS_COUNT = 15000;
 const REPORT_THRESHOLD = 5;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
+const CURRENT_USER_LOGIN = 'test@example.com';
 
 const allReports = createCollection<Report>(
     (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
@@ -49,7 +50,6 @@ const mockedBetas = Object.values(CONST.BETAS);
 
 const currentReportId = '1';
 const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
-
 describe('SidebarUtils', () => {
     beforeAll(() => {
         Onyx.init({
@@ -93,6 +93,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 1,
+                currentUserLogin: CURRENT_USER_LOGIN,
             }),
         );
     });
