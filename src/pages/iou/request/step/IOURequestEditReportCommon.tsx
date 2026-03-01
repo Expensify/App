@@ -308,7 +308,7 @@ function IOURequestEditReportCommon({
                 isVisible={perDiemWarningModalVisible}
                 onConfirm={hidePerDiemWarningModal}
                 onCancel={hidePerDiemWarningModal}
-                title={translate('iou.moveExpenses', {count: transactionIDs?.length ?? 1})}
+                title={translate('iou.moveExpenses')}
                 prompt={translate('iou.moveExpensesError')}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
