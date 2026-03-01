@@ -12,6 +12,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useStatusMessageAccessibilityAnnouncement from '@components/utils/useStatusMessageAccessibilityAnnouncement';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -1018,11 +1019,22 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
     );
 
+    const noResultsFoundText = translate('common.noResultsFound');
+    const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
+    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder));
+    const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
+
+    useStatusMessageAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults);
+
     const headerMessageContent = () =>
-        (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
-        !!headerMessage && (
+        shouldShowHeaderMessage && (
             <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                <Text
+                    style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
+                    accessibilityLiveRegion={shouldAnnounceNoResults ? 'polite' : undefined}
+                >
+                    {headerMessage}
+                </Text>
             </View>
         );
 
