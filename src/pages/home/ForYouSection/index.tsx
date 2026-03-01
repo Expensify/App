@@ -23,9 +23,9 @@ function ForYouSection() {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {canBeMissing: true, selector: todosReportCountsSelector});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
 
     const icons = useMemoizedLazyExpensifyIcons(['MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 

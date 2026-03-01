@@ -35,7 +35,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const {isBetaEnabled} = usePermissions();
 
     const isEditing = issueNewCard?.isEditing;

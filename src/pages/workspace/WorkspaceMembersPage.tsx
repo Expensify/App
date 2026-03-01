@@ -1,14 +1,12 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
-// eslint-disable-next-line no-restricted-imports
-import {Plus} from '@components/Icon/Expensicons';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import SearchBar from '@components/SearchBar';
@@ -98,7 +96,7 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 };
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'User', 'UserEye', 'MakeAdmin', 'RemoveMembers', 'Table', 'FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Table', 'User', 'UserEye'] as const);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -113,7 +111,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const filterEmployees = useCallback(
         (employee: PolicyEmployee | undefined) => {
             if (!employee?.email) {
@@ -139,9 +138,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
     );
 
-    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const currentUserAccountID = Number(session?.accountID);
     const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
     const isFocused = useIsFocused();
@@ -659,8 +658,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
         const hasAtLeastOneNonMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
         const hasAtLeastOneNonAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
+        const isReimbursementEnabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        const hasAtLeastOnePayer = isReimbursementEnabled && policy?.achAccount?.reimburser ? selectedEmployees.includes(policy?.achAccount?.reimburser) : false;
 
-        if (hasAtLeastOneNonMemberRole) {
+        if (hasAtLeastOneNonMemberRole && !hasAtLeastOnePayer) {
             options.push(memberOption);
         }
 
@@ -668,7 +669,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             options.push(adminOption);
         }
 
-        if (hasAtLeastOneNonAuditorRole && isControlPolicy(policy)) {
+        if (hasAtLeastOneNonAuditorRole && isControlPolicy(policy) && !hasAtLeastOnePayer) {
             options.push(auditorOption);
         }
 
@@ -747,6 +748,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 isSplitButton={false}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedEmployees.length}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_DROPDOWN}
                 testID="WorkspaceMembersPage-header-dropdown-menu-button"
             />
         ) : (
@@ -754,8 +756,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 <Button
                     success
                     onPress={inviteUser}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_BUTTON}
                     text={translate('workspace.invite.member')}
-                    icon={Plus}
+                    icon={icons.Plus}
                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 />
@@ -764,6 +767,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.MORE_DROPDOWN}
                     options={secondaryActions}
                     isSplitButton={false}
                     wrapperStyle={styles.flexGrow0}

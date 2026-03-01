@@ -1,4 +1,4 @@
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
+import personalDetailsSelector from '@selectors/PersonalDetails';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
 describe('PersonalDetailsSelector', () => {

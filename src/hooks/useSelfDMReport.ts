@@ -4,8 +4,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
 function useSelfDMReport() {
-    const [selfDMReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false, selector: findSelfDMReportID});
-    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {canBeMissing: true});
+    const [selfDMReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: findSelfDMReportID});
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     return selfDMReport ?? buildOptimisticSelfDMReport(DateUtils.getDBTime());
 }
 

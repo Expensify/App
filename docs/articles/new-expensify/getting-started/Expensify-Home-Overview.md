@@ -12,6 +12,8 @@ internalScope: Audience is all Expensify members. Covers what Home is and what a
 
 It gives you a quick way to see whether anything needs attention, get oriented, and check what’s new, without having to dig through menus or reports.
 
+![Home on New Expensify]({{site.url}}/assets/images/home-1.png){:width="100%"}
+
 ---
 
 ## Where to find Home
@@ -60,6 +62,8 @@ The **For you** section highlights items that may need your attention like:
 Each item links you to where you can complete the action, such as a specific report or workspace.
 
 If there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
+
+![Home > For You on New Expensify]({{site.url}}/assets/images/home-2.png){:width="100%"}
 
 ---
 
