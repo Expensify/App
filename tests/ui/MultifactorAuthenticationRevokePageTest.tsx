@@ -1,5 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
+// eslint-disable-next-line @typescript-eslint/naming-convention
+import MultifactorAuthenticationRevokePage from '@pages/MultifactorAuthentication/RevokePage';
 
 let mockBiometricStatus = {
     localPublicKey: undefined as string | undefined,
@@ -81,9 +83,6 @@ jest.mock('@components/ConfirmModal', () => {
     MockConfirmModal.displayName = 'ConfirmModal';
     return MockConfirmModal;
 });
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-import MultifactorAuthenticationRevokePage from '@pages/MultifactorAuthentication/RevokePage';
 
 function setBiometricStatus(overrides: Partial<typeof mockBiometricStatus>) {
     mockBiometricStatus = {
