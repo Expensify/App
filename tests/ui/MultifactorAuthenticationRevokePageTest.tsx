@@ -148,7 +148,11 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user presses the inline Revoke button next to "This device"
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
-            fireEvent.press(revokeButtons.at(0));
+            const thisDeviceButton = revokeButtons.at(0);
+            if (!thisDeviceButton) {
+                throw new Error('Expected "This device" revoke button to exist');
+            }
+            fireEvent.press(thisDeviceButton);
 
             // Then the confirmation modal should say "this device" and the confirm button should say "Revoke access"
             expect(capturedConfirmModalProps.prompt).toBe('multifactorAuthentication.revoke.confirmationPromptThisDevice');
@@ -166,6 +170,9 @@ describe('MultifactorAuthenticationRevokePage', () => {
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
             const otherDevicesButton = revokeButtons.at(1);
+            if (!otherDevicesButton) {
+                throw new Error('Expected "Other devices" revoke button to exist');
+            }
             fireEvent.press(otherDevicesButton);
 
             // Then the modal should say "that device" and the confirm button should say "Revoke access"
@@ -181,6 +188,9 @@ describe('MultifactorAuthenticationRevokePage', () => {
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
             const otherDevicesButton = revokeButtons.at(1);
+            if (!otherDevicesButton) {
+                throw new Error('Expected "Other devices" revoke button to exist');
+            }
             fireEvent.press(otherDevicesButton);
 
             // Then the modal should say "those devices" and the confirm button should say "Revoke access"
@@ -197,7 +207,11 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // (revoking "other devices" when this device is unregistered means revoking all)
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
-            fireEvent.press(revokeButtons.at(0));
+            const otherDevicesButton = revokeButtons.at(0);
+            if (!otherDevicesButton) {
+                throw new Error('Expected "Other devices" revoke button to exist');
+            }
+            fireEvent.press(otherDevicesButton);
 
             // Then the modal should say "any device" and the confirm button should say "Revoke all"
             expect(capturedConfirmModalProps.prompt).toBe('multifactorAuthentication.revoke.confirmationPromptAll');
@@ -227,7 +241,10 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user presses the bottom "Revoke access" button
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.cta');
-            const bottomButton = revokeButtons.at(revokeButtons.length - 1);
+            const bottomButton = revokeButtons.at(-1);
+            if (!bottomButton) {
+                throw new Error('Expected bottom revoke button to exist');
+            }
             fireEvent.press(bottomButton);
 
             // Then the modal should say "that device" and the confirm button should say "Revoke access"
@@ -273,7 +290,11 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user confirms revoking this device via the inline button
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
-            fireEvent.press(revokeButtons.at(0));
+            const thisDeviceButton = revokeButtons.at(0);
+            if (!thisDeviceButton) {
+                throw new Error('Expected "This device" revoke button to exist');
+            }
+            fireEvent.press(thisDeviceButton);
             const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
             await act(async () => {
                 onConfirm();
@@ -291,7 +312,11 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user confirms revoking other devices via the inline button
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
-            fireEvent.press(revokeButtons.at(1));
+            const otherDevicesButton = revokeButtons.at(1);
+            if (!otherDevicesButton) {
+                throw new Error('Expected "Other devices" revoke button to exist');
+            }
+            fireEvent.press(otherDevicesButton);
             const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
             await act(async () => {
                 onConfirm();
@@ -308,7 +333,11 @@ describe('MultifactorAuthenticationRevokePage', () => {
             // When the user confirms revoking other devices
             render(<MultifactorAuthenticationRevokePage />);
             const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
-            fireEvent.press(revokeButtons.at(0));
+            const otherDevicesButton = revokeButtons.at(0);
+            if (!otherDevicesButton) {
+                throw new Error('Expected "Other devices" revoke button to exist');
+            }
+            fireEvent.press(otherDevicesButton);
             const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
             await act(async () => {
                 onConfirm();
