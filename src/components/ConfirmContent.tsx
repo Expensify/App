@@ -111,7 +111,7 @@ function ConfirmContent({
     confirmText = '',
     cancelText = '',
     prompt = '',
-    success = false,
+    success = true,
     danger = false,
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = false,
@@ -206,7 +206,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={shouldShowCancelButton && !danger ? true : success}
+                            success={shouldShowCancelButton && !danger ? success : false}
                             danger={danger}
                             style={shouldReverseStackedButtons ? styles.mt3 : styles.mt4}
                             onPress={onConfirm}
@@ -237,7 +237,7 @@ function ConfirmContent({
                             />
                         )}
                         <Button
-                            success={shouldShowCancelButton && !danger ? true : success}
+                            success={shouldShowCancelButton && !danger ? success : false}
                             danger={danger}
                             style={[styles.flex1]}
                             onPress={onConfirm}

@@ -74,13 +74,13 @@ describe('ConfirmContent', () => {
 
     const testCases = [
         {shouldShowCancelButton: false, danger: false, success: false, expectedSuccess: false},
-        {shouldShowCancelButton: false, danger: false, success: true, expectedSuccess: true},
+        {shouldShowCancelButton: false, danger: false, success: true, expectedSuccess: false},
         {shouldShowCancelButton: false, danger: true, success: false, expectedSuccess: false},
-        {shouldShowCancelButton: false, danger: true, success: true, expectedSuccess: true},
-        {shouldShowCancelButton: true, danger: false, success: false, expectedSuccess: true},
+        {shouldShowCancelButton: false, danger: true, success: true, expectedSuccess: false},
+        {shouldShowCancelButton: true, danger: false, success: false, expectedSuccess: false},
         {shouldShowCancelButton: true, danger: false, success: true, expectedSuccess: true},
         {shouldShowCancelButton: true, danger: true, success: false, expectedSuccess: false},
-        {shouldShowCancelButton: true, danger: true, success: true, expectedSuccess: true},
+        {shouldShowCancelButton: true, danger: true, success: true, expectedSuccess: false},
     ];
 
     describe('stacked buttons (shouldStackButtons=true)', () => {
