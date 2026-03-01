@@ -65,7 +65,10 @@ function TestToolMenu() {
             {isAuthenticated && (
                 <>
                     {/* When toggled the app will be put into debug mode. */}
-                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugMode')}>
+                    <TestToolRow
+                        title={translate('initialSettingsPage.troubleshoot.debugMode')}
+                        isTitleAccessible={false}
+                    >
                         <Switch
                             accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
                             isOn={isDebugModeEnabled}
@@ -137,7 +140,10 @@ function TestToolMenu() {
         This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
         This toggle is not rendered for internal devs as they make environment changes directly to the .env file. */}
             {!CONFIG.IS_USING_LOCAL_WEB && (
-                <TestToolRow title={translate('initialSettingsPage.troubleshoot.useStagingServer')}>
+                <TestToolRow
+                    title={translate('initialSettingsPage.troubleshoot.useStagingServer')}
+                    isTitleAccessible={false}
+                >
                     <Switch
                         accessibilityLabel="Use Staging Server"
                         isOn={shouldUseStagingServer}
@@ -147,7 +153,10 @@ function TestToolMenu() {
             )}
 
             {/* When toggled the app will be forced offline. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.forceOffline')}>
+            <TestToolRow
+                title={translate('initialSettingsPage.troubleshoot.forceOffline')}
+                isTitleAccessible={false}
+            >
                 <Switch
                     accessibilityLabel="Force offline"
                     isOn={!!network?.shouldForceOffline}
@@ -157,7 +166,10 @@ function TestToolMenu() {
             </TestToolRow>
 
             {/* When toggled the app will randomly change internet connection every 2-5 seconds */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulatePoorConnection')}>
+            <TestToolRow
+                title={translate('initialSettingsPage.troubleshoot.simulatePoorConnection')}
+                isTitleAccessible={false}
+            >
                 <Switch
                     accessibilityLabel="Simulate poor internet connection"
                     isOn={!!network?.shouldSimulatePoorConnection}
@@ -167,7 +179,10 @@ function TestToolMenu() {
             </TestToolRow>
 
             {/* When toggled all network requests will fail. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulateFailingNetworkRequests')}>
+            <TestToolRow
+                title={translate('initialSettingsPage.troubleshoot.simulateFailingNetworkRequests')}
+                isTitleAccessible={false}
+            >
                 <Switch
                     accessibilityLabel="Simulate failing network requests"
                     isOn={!!network?.shouldFailAllRequests}

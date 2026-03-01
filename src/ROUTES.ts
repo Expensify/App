@@ -1632,6 +1632,24 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/invoice-account-select` as const, backTo),
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/travel-invoicing',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/travel-invoicing` as const, backTo),
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/travel-invoicing/vendor',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/travel-invoicing/vendor` as const, backTo),
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/travel-invoicing/payable-account',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/travel-invoicing/payable-account` as const, backTo),
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/preferred-exporter',
 
@@ -1883,6 +1901,10 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/overview/description` as const;
         },
+    },
+    WORKSPACE_OVERVIEW_CLIENT_ID: {
+        route: 'workspaces/:policyID/overview/client-id',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/client-id` as const,
     },
     WORKSPACE_OVERVIEW_SHARE: {
         route: 'workspaces/:policyID/overview/share',
@@ -2610,6 +2632,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/travel/settings/frequency',
         getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/frequency` as const,
     },
+    WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS: {
+        route: 'workspaces/:policyID/travel/missing-personal-details',
+        getRoute: (policyID: string) => `workspaces/${policyID}/travel/missing-personal-details` as const,
+    },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'workspaces/:policyID/distance-rates/new',
         getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
@@ -3290,7 +3316,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import` as const,
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/import` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/accounts',
@@ -3333,7 +3359,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/locations/displayed-as',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/locations/displayed-as` as const,
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/import/locations/displayed-as` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/taxes',
@@ -3916,6 +3942,14 @@ const ROUTES = {
     DOMAIN_MEMBERS_SETTINGS_TWO_FACTOR_AUTH: {
         route: 'domain/:domainAccountID/members/settings/two-factor-auth',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/settings/two-factor-auth` as const,
+    },
+    DOMAIN_MEMBER_FORCE_TWO_FACTOR_AUTH: {
+        route: 'domain/:domainAccountID/members/:accountID/force-two-factor-auth',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/force-two-factor-auth` as const,
+    },
+    DOMAIN_MEMBER_RESET_TWO_FACTOR_AUTH: {
+        route: 'domain/:domainAccountID/members/:accountID/reset-two-factor-auth',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/reset-two-factor-auth` as const,
     },
 
     MULTIFACTOR_AUTHENTICATION_MAGIC_CODE: `multifactor-authentication/magic-code`,

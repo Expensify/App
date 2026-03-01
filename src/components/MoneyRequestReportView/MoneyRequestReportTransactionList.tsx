@@ -8,13 +8,12 @@ import Checkbox from '@components/Checkbox';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -193,7 +192,8 @@ function MoneyRequestReportTransactionList({
         return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
     }, [hasPendingDeletionTransaction, transactions]);
 
-    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs} = useSearchStateContext();
+    const {setSelectedTransactions, clearSelectedTransactions} = useSearchActionsContext();
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
@@ -239,15 +239,14 @@ function MoneyRequestReportTransactionList({
     const {sortBy, sortOrder} = sortConfig;
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
-        return [...transactions]
-            .sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true))
-            .map((transaction) => ({
-                ...transaction,
-                shouldBeHighlighted: newTransactions?.includes(transaction),
-            }));
-    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, report]);
+        return [...transactions].sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true));
+    }, [sortBy, sortOrder, transactions, localeCompare, report]);
+
+    const highlightedTransactionIDs = useMemo(() => new Set(newTransactions.map(({transactionID}) => transactionID)), [newTransactions]);
 
     // Always use default columns for money request report view (don't use user-customized search columns)
+    const isExpenseReportViewFromIOUReport = isIOUReport(report);
+    const shouldShowBillableColumn = isBillableEnabledOnPolicy(policy);
     const columnsToShow = useMemo(() => {
         return getColumnsToShow(
             currentUserDetails?.accountID,
@@ -256,11 +255,11 @@ function MoneyRequestReportTransactionList({
             true,
             undefined,
             undefined,
-            isIOUReport(report),
-            isBillableEnabledOnPolicy(policy),
+            isExpenseReportViewFromIOUReport,
+            shouldShowBillableColumn,
             hasNonReimbursableTransactions(transactions),
         );
-    }, [transactions, currentUserDetails?.accountID, report, policy]);
+    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn]);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 
@@ -272,6 +271,9 @@ function MoneyRequestReportTransactionList({
             return groupTransactionsByTag(sortedTransactions, report, localeCompare);
         }
         return groupTransactionsByCategory(sortedTransactions, report, localeCompare);
+        // groupTransactionsByTag() and groupTransactionsByCategory() use the full report object to perform a null check.
+        // We skip including the report as a dependency to avoid unnecessary re-renders as it changes often and we only need to recalculate when currency changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sortedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldShowGroupedTransactions]);
 
     const visualOrderTransactionIDs = useMemo(() => {
@@ -281,25 +283,19 @@ function MoneyRequestReportTransactionList({
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldShowGroupedTransactions]);
 
-    const visualOrderTransactionIDsDeepCompare = useDeepCompareRef(visualOrderTransactionIDs);
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
-        setActiveTransactionIDs(visualOrderTransactionIDsDeepCompare ?? []);
+        setActiveTransactionIDs(visualOrderTransactionIDs);
+    }, [visualOrderTransactionIDs]);
+
+    useEffect(() => {
         return () => {
             clearActiveTransactionIDs();
         };
-    }, [visualOrderTransactionIDsDeepCompare]);
-
-    const sortedTransactionsMap = useMemo(() => {
-        const map = new Map<string, OnyxTypes.Transaction>();
-        for (const transaction of sortedTransactions) {
-            map.set(transaction.transactionID, transaction);
-        }
-        return map;
-    }, [sortedTransactions]);
+    }, []);
 
     const groupSelectionState = useMemo(() => {
         const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();
@@ -514,13 +510,14 @@ function MoneyRequestReportTransactionList({
                                       pendingAction={selectionState.pendingAction}
                                   />
                                   {group.transactions.map((transaction) => {
-                                      const originalTransaction = sortedTransactionsMap.get(transaction.transactionID) ?? transaction;
                                       return (
                                           <MoneyRequestReportTransactionItem
                                               key={transaction.transactionID}
-                                              transaction={originalTransaction}
+                                              transaction={transaction}
+                                              shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
                                               columns={columnsToShow}
                                               report={report}
+                                              policy={policy}
                                               isSelectionModeEnabled={isMobileSelectionModeEnabled}
                                               toggleTransaction={toggleTransaction}
                                               isSelected={isTransactionSelected(transaction.transactionID)}
@@ -541,8 +538,10 @@ function MoneyRequestReportTransactionList({
                           <MoneyRequestReportTransactionItem
                               key={transaction.transactionID}
                               transaction={transaction}
+                              shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
                               columns={columnsToShow}
                               report={report}
+                              policy={policy}
                               isSelectionModeEnabled={isMobileSelectionModeEnabled}
                               toggleTransaction={toggleTransaction}
                               isSelected={isTransactionSelected(transaction.transactionID)}
