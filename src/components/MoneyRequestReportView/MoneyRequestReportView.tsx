@@ -105,7 +105,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const reportID = report?.reportID;
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
@@ -233,10 +232,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 {shouldDisplayReportFooter ? (
                     <ReportFooter
                         report={report}
-                        reportMetadata={reportMetadata}
-                        policy={policy}
-                        pendingAction={reportPendingAction}
-                        isComposerFullSize={!!isComposerFullSize}
                         lastReportAction={lastReportAction}
                         // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                         transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
@@ -306,10 +301,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             <>
                                 <ReportFooter
                                     report={report}
-                                    reportMetadata={reportMetadata}
-                                    policy={policy}
-                                    pendingAction={reportPendingAction}
-                                    isComposerFullSize={!!isComposerFullSize}
                                     lastReportAction={lastReportAction}
                                     reportTransactions={transactions}
                                     // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)

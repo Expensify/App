@@ -63,6 +63,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         'CreditCard',
         'MoneyHourglass',
         'CreditCardHourglass',
+        'ExpensifyCard',
         'Bank',
         'User',
         'Folder',
