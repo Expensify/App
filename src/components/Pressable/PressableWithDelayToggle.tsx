@@ -113,9 +113,7 @@ function PressableWithDelayToggle({
     // of a Pressable
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
-    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- Use || so empty strings fall back to visible text */
-    const resolvedAccessibilityLabel = accessibilityLabelProp || (!isActive ? tooltipTextChecked || textChecked : tooltipText || text) || text || '';
-    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+    const accessibilityLabel = accessibilityLabelProp || (!isActive ? tooltipTextChecked || textChecked : tooltipText || text) || text || '';
     const shouldShowIcon = !!icon || (!isActive && !!resolvedIconChecked);
     const labelText =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
@@ -139,7 +137,7 @@ function PressableWithDelayToggle({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
             ref={ref as any}
             onPress={updatePressState}
-            accessibilityLabel={resolvedAccessibilityLabel}
+            accessibilityLabel={accessibilityLabel}
             suppressHighlighting={inline ? true : undefined}
             accessibilityRole={accessibilityRole}
         >
