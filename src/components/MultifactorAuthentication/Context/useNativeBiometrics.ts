@@ -97,27 +97,6 @@ async function resetKeys(accountID: number) {
     await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
 }
 
-/**
- * Determines if biometric authentication is configured locally for the current account.
- * Checks local public key storage and compares with the provided auth public keys.
- * Note: We only check public key here because checking private key requires biometric authentication.
- * If private key is missing, it will be detected during authorize() and trigger re-registration.
- * @param accountID - The account ID to check biometric configuration for.
- * @param authPublicKeys - The list of public keys registered in auth backend (from Onyx).
- * @returns Object indicating if biometry is locally configured and if local key is in auth.
- */
-async function isBiometryConfigured(accountID: number, authPublicKeys: string[] = []) {
-    const {value: localPublicKey} = await PublicKeyStore.get(accountID);
-
-    const isBiometryRegisteredLocally = !!localPublicKey;
-    const isLocalPublicKeyInAuth = isBiometryRegisteredLocally && authPublicKeys.includes(localPublicKey);
-
-    return {
-        isBiometryRegisteredLocally,
-        isLocalPublicKeyInAuth,
-    };
-}
-
 function useNativeBiometrics(): UseNativeBiometricsReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
@@ -137,20 +116,23 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         return biometrics || credentials;
     }, []);
 
+    // Only the public key is checked here because reading the private key
+    // requires biometric authentication. If the private key is missing, it
+    // will be detected during authorize() and trigger re-registration.
     const getLocalPublicKey = useCallback(async () => {
         const {value} = await PublicKeyStore.get(accountID);
         return value ?? undefined;
     }, [accountID]);
 
     const hasLocalCredentials = useCallback(async () => {
-        const config = await isBiometryConfigured(accountID);
-        return config.isBiometryRegisteredLocally;
-    }, [accountID]);
+        const key = await getLocalPublicKey();
+        return !!key;
+    }, [getLocalPublicKey]);
 
     const areLocalCredentialsKnownToServer = useCallback(async () => {
-        const config = await isBiometryConfigured(accountID, serverKnownCredentialIDs);
-        return config.isLocalPublicKeyInAuth;
-    }, [accountID, serverKnownCredentialIDs]);
+        const key = await getLocalPublicKey();
+        return !!key && serverKnownCredentialIDs.includes(key);
+    }, [getLocalPublicKey, serverKnownCredentialIDs]);
 
     const resetKeysForAccount = useCallback(async () => {
         await resetKeys(accountID);
@@ -225,8 +207,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
             return;
         }
 
-        // Get public key
-        const {value: publicKey} = await PublicKeyStore.get(accountID);
+        const publicKey = await getLocalPublicKey();
 
         if (!publicKey || !authPublicKeys.includes(publicKey)) {
             await resetKeys(accountID);
