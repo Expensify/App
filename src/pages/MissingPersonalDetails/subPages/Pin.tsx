@@ -19,9 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function Pin({onNext}: CustomSubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {pin: savedPin, setPin} = usePin();
-
-    const [isConfirmStep, setIsConfirmStep] = useState(false);
+    const {pin: savedPin, setPin, isConfirmStep, setIsConfirmStep} = usePin();
     const [enteredPin, setEnteredPin] = useState(savedPin);
     const [confirmPin, setConfirmPin] = useState(savedPin);
     const [isPinHidden, setIsPinHidden] = useState(true);
@@ -73,7 +71,7 @@ function Pin({onNext}: CustomSubPageProps) {
         // PIN verified, save it and proceed
         setPin(confirmPin);
         onNext();
-    }, [validatePin, isConfirmStep, confirmPin, setPin, onNext]);
+    }, [validatePin, isConfirmStep, setPin, confirmPin, onNext, setIsConfirmStep]);
 
     const togglePinVisibility = useCallback(() => {
         setIsPinHidden((prev) => !prev);
@@ -81,7 +79,6 @@ function Pin({onNext}: CustomSubPageProps) {
 
     const currentPin = isConfirmStep ? confirmPin : enteredPin;
     const title = isConfirmStep ? translate('cardPage.confirmYourPin') : translate('cardPage.setYourPin');
-    const subtitle = isConfirmStep ? translate('cardPage.reenterPinToConfirm') : translate('cardPage.enterFourDigitPin');
 
     return (
         <FormProvider
@@ -94,7 +91,6 @@ function Pin({onNext}: CustomSubPageProps) {
         >
             <View style={[styles.flex1]}>
                 <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>
-                <Text style={[styles.textSupporting, styles.mb5]}>{subtitle}</Text>
 
                 <View style={[styles.mb4]}>
                     <MagicCodeInput

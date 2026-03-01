@@ -49,7 +49,7 @@ function IssueCardMessage({action, policyID, shouldNavigateToCardDetails}: Issue
             {shouldShowAddMissingDetailsButton && (
                 <Button
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(expensifyCard?.cardID)));
+                        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(expensifyCard.cardID)));
                     }}
                     success
                     style={[styles.alignSelfStart, styles.mt3]}

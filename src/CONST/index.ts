@@ -3800,10 +3800,6 @@ const CONST = {
                 '2015',
             ],
         },
-        PROGRAM: {
-            US: 'US',
-            UK_EU: 'GB',
-        },
     },
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,

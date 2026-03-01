@@ -10,12 +10,20 @@ type PinContextType = {
 
     /** Clear the PIN and reset verification status */
     clearPin: () => void;
+
+    /** Whether the user is on the PIN confirmation step */
+    isConfirmStep: boolean;
+
+    /** Set whether the user is on the PIN confirmation step */
+    setIsConfirmStep: (isConfirmStep: boolean) => void;
 };
 
 const defaultPinContext: PinContextType = {
     pin: '',
     setPin: () => {},
     clearPin: () => {},
+    isConfirmStep: false,
+    setIsConfirmStep: () => {},
 };
 
 const PinContext = createContext<PinContextType>(defaultPinContext);
@@ -31,9 +39,11 @@ type PinContextProviderProps = {
  */
 function PinContextProvider({children}: PinContextProviderProps) {
     const [pin, setPin] = useState('');
+    const [isConfirmStep, setIsConfirmStep] = useState(false);
 
     const clearPin = useCallback(() => {
         setPin('');
+        setIsConfirmStep(false);
     }, []);
 
     // Clear PIN when the context provider unmounts (user leaves the flow)
@@ -48,8 +58,10 @@ function PinContextProvider({children}: PinContextProviderProps) {
             pin,
             setPin,
             clearPin,
+            isConfirmStep,
+            setIsConfirmStep,
         }),
-        [pin, clearPin],
+        [pin, clearPin, isConfirmStep],
     );
 
     return <PinContext.Provider value={value}>{children}</PinContext.Provider>;

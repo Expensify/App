@@ -2632,7 +2632,7 @@ describe('CardUtils', () => {
                 lastUpdated: '',
                 state: 2,
                 nameValuePairs: {
-                    feedCountry: CONST.EXPENSIFY_CARD.PROGRAM.UK_EU,
+                    feedCountry: CONST.COUNTRY.GB,
                 } as Card['nameValuePairs'],
             };
             expect(isExpensifyCardUkEuSupported(card)).toBe(true);
@@ -2667,7 +2667,7 @@ describe('CardUtils', () => {
                 lastUpdated: '',
                 state: 2,
                 nameValuePairs: {
-                    feedCountry: CONST.EXPENSIFY_CARD.PROGRAM.US,
+                    feedCountry: CONST.COUNTRY.US,
                 } as Card['nameValuePairs'],
             };
             expect(isExpensifyCardUkEuSupported(card)).toBe(false);
@@ -2691,7 +2691,7 @@ describe('CardUtils', () => {
                 scrapeMinDate: '2024-10-17',
                 state: 3,
                 nameValuePairs: {
-                    feedCountry: CONST.EXPENSIFY_CARD.PROGRAM.UK_EU,
+                    feedCountry: CONST.COUNTRY.GB,
                 } as Card['nameValuePairs'],
             };
             // Even with UK/EU feedCountry, non-Expensify cards don't qualify
@@ -2713,7 +2713,7 @@ describe('CardUtils', () => {
             lastUpdated: '',
             state: 2,
             nameValuePairs: {
-                feedCountry: CONST.EXPENSIFY_CARD.PROGRAM.UK_EU,
+                feedCountry: CONST.COUNTRY.GB,
             } as Card['nameValuePairs'],
         };
 

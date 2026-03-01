@@ -68,7 +68,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const isUKEUCardSelector = useCallback((cardList: OnyxEntry<CardList>) => isExpensifyCardUkEuSupportedSelector(cardList, cardID), [cardID]);
     const [isUKEUCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: isUKEUCardSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const {pin} = usePin();
+    const {pin, isConfirmStep, setIsConfirmStep} = usePin();
     const shouldCollectPin = isCardOrderFlow && !!isUKEUCard;
 
     // Build form pages dynamically based on whether this is a UK/EU card
@@ -132,6 +132,12 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const handleBackButtonPress = () => {
         if (isEditing) {
             Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM));
+            return;
+        }
+
+        // If on PIN confirmation step, go back to PIN entry step
+        if (currentPageName === CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN && isConfirmStep) {
+            setIsConfirmStep(false);
             return;
         }
 

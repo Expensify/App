@@ -79,7 +79,7 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
         .every((card) => card.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
 
 const isExpensifyCardUkEuSupportedSelector = (cardList: OnyxEntry<CardList>, cardID: string): boolean =>
-    !!cardID && Object.values(cardList ?? {}).filter((card) => isCard(card) && card.cardID === Number(cardID) && isExpensifyCardUkEuSupported(card)).length > 0;
+    !!cardID && Object.values(cardList ?? {}).some((card) => isCard(card) && card.cardID === Number(cardID) && isExpensifyCardUkEuSupported(card));
 
 export {
     filterCardsHiddenFromSearch,
