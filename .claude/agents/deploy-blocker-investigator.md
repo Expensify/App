@@ -207,6 +207,8 @@ Technical explanation of what went wrong in the code.
 
 **DO NOT:**
 - Remove `DeployBlockerCash` if there's an App PR that caused or contributed to the issue
+- Remove `DeployBlockerCash` if the issue is not reproducible on production
+- Remove any of the blocker labels if it has been added by an internal employee
 - Remove both blocker labels simultaneously
 - Make assumptions about code you haven't read
 - Recommend DEMOTE for bugs affecting core functionality (auth, payments, data loss)

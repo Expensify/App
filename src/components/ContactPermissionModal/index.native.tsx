@@ -12,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ContactPermissionModalProps} from './types';
 
 function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPermissionModalProps) {
-    const [hasDeniedContactImportPrompt] = useOnyx(ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT, {canBeMissing: true});
+    const [hasDeniedContactImportPrompt] = useOnyx(ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT);
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const styles = useThemeStyles();

@@ -21,7 +21,7 @@ type ReportLayoutItem = ListItem & {
 function ReportLayoutPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [reportLayoutGroupByNVP] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
+    const [reportLayoutGroupByNVP] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupByNVP);
 

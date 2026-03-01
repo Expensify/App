@@ -2,6 +2,8 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import createRandomTransaction from '../utils/collections/transaction';
+import {translateLocal} from '../utils/TestHelper';
 
 const FAKE_POLICY: Policy = {
     id: 'CEEEDB0EC660F71A',
@@ -138,6 +140,71 @@ describe('DistanceRequestUtils', () => {
             });
 
             expect(result).toBe('B593F3FBBB0BD');
+        });
+
+        it('returns policy default rateID custom unit for isTrackDistanceExpense', () => {
+            const reportID = '1234';
+
+            const result = DistanceRequestUtils.getCustomUnitRateID({
+                reportID,
+                isPolicyExpenseChat: false,
+                policy: FAKE_POLICY,
+                lastSelectedDistanceRates: undefined,
+                isTrackDistanceExpense: true,
+            });
+
+            expect(result).toBe('222AAF6B93BCB');
+        });
+    });
+
+    describe('getDistanceForDisplay', () => {
+        it('returns empty string when distance is 0 and isManualDistanceRequest is false', () => {
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, false);
+            expect(result).toBe('');
+        });
+
+        it('formats zero distance when isManualDistanceRequest is true', () => {
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, true);
+            expect(result).toBe(`0.00 ${translateLocal('common.miles')}`);
+        });
+    });
+
+    describe('getRate', () => {
+        it('returns the rate from policyForMovingExpenses if an unreported transaction rate belongs to it', () => {
+            const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'EE75E6DBC6FF8'}}};
+            const result = DistanceRequestUtils.getRate({policyForMovingExpenses: FAKE_POLICY, transaction, policy: undefined});
+            expect(result.customUnitRateID).toBe('EE75E6DBC6FF8');
+        });
+
+        it('does not return the default rate of the policy if the customUnitRateID of the tracked transaction does not exist', () => {
+            const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'some-rate'}}};
+            const result = DistanceRequestUtils.getRate({policy: FAKE_POLICY, transaction});
+            expect(result.customUnitRateID).toBeUndefined();
+        });
+    });
+
+    describe('getDistanceMerchant', () => {
+        const toLocaleDigitMock = (dot: string): string => dot;
+        const getCurrencySymbolMock = (currency: string): string | undefined => {
+            if (currency === 'USD') {
+                return '$';
+            }
+            return undefined;
+        };
+
+        it('formats zero distance when isManualDistanceRequest is true', () => {
+            const result = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                0,
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                67,
+                'USD',
+                translateLocal,
+                toLocaleDigitMock,
+                getCurrencySymbolMock,
+                true,
+            );
+            expect(result).toBe('0.00 mi @ $0.67 / mi');
         });
     });
 });

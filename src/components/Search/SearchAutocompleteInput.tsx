@@ -1,16 +1,16 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
-import type {ForwardedRef, RefObject} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
 import useFocusAfterNav from '@hooks/useFocusAfterNav';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -34,9 +34,6 @@ type SearchAutocompleteInputProps = {
 
     /** Callback invoked when the user submits the input */
     onSubmit?: () => void;
-
-    /** SearchAutocompleteList ref for managing TextInput and SearchAutocompleteList focus */
-    autocompleteListRef?: RefObject<SelectionListHandle | null>;
 
     /** Whether the input is full width */
     isFullWidth: boolean;
@@ -73,13 +70,12 @@ type SearchAutocompleteInputProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
-} & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection'>;
+} & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection' | 'onKeyPress'>;
 
 function SearchAutocompleteInput({
     value,
     onSearchQueryChange,
     onSubmit = () => {},
-    autocompleteListRef,
     isFullWidth,
     disabled = false,
     shouldDelayFocus = false,
@@ -94,6 +90,7 @@ function SearchAutocompleteInput({
     isSearchingForReports,
     selection,
     substitutionMap,
+    onKeyPress,
     ref,
 }: SearchAutocompleteInputProps) {
     const styles = useThemeStyles();
@@ -103,30 +100,30 @@ function SearchAutocompleteInput({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const inputRef = useRef<AnimatedTextInputRef>(null);
     const autoFocusAfterNav = useFocusAfterNav(inputRef, shouldDelayFocus);
-    const {currencyList} = useCurrencyList();
+    const {currencyList} = useCurrencyListState();
     const currencyAutocompleteList = Object.keys(currencyList).filter((currencyCode) => !currencyList[currencyCode]?.retired);
     const currencySharedValue = useSharedValue(currencyAutocompleteList);
 
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
-    const categoryAutocompleteList = useMemo(() => {
-        return getAutocompleteCategories(allPolicyCategories);
-    }, [allPolicyCategories]);
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const categoryAutocompleteList = getAutocompleteCategories(allPolicyCategories);
     const categorySharedValue = useSharedValue(categoryAutocompleteList);
 
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
-    const tagAutocompleteList = useMemo(() => {
-        return getAutocompleteTags(allPoliciesTags);
-    }, [allPoliciesTags]);
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const tagAutocompleteList = getAutocompleteTags(allPoliciesTags);
     const tagSharedValue = useSharedValue(tagAutocompleteList);
 
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const emailList = Object.keys(loginList ?? {});
     const emailListSharedValue = useSharedValue(emailList);
 
+    const {exportedToFilterOptions} = useExportedToFilterOptions();
+    const exportedToSharedValue = useSharedValue(exportedToFilterOptions);
+
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const {borderColor: focusedBorderColor = theme.border, ...restWrapperFocusedStyle} = wrapperFocusedStyle;
-    const {borderColor: wrapperBorderColor = theme.border, ...restWrapperStyle} = wrapperStyle ?? {};
+    const defaultBorderColor = theme.border;
+    const {borderColor: focusedBorderColor = defaultBorderColor, ...restWrapperFocusedStyle} = wrapperFocusedStyle;
+    const {borderColor: wrapperBorderColor = defaultBorderColor, ...restWrapperStyle} = wrapperStyle ?? {};
 
     // we are handling focused/unfocused style using shared value instead of using state to avoid re-rendering. Otherwise layout animation in `Animated.View` will lag.
     const focusedSharedValue = useSharedValue(false);
@@ -171,19 +168,25 @@ function SearchAutocompleteInput({
         });
     }, [tagSharedValue, tagAutocompleteList]);
 
-    const parser = useCallback(
-        (input: string) => {
+    useEffect(() => {
+        scheduleOnLiveMarkdownRuntime(() => {
             'worklet';
 
-            return parseForLiveMarkdown(input, currentUserPersonalDetails.displayName ?? '', substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue);
-        },
-        [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
-    );
+            exportedToSharedValue.set(exportedToFilterOptions);
+        });
+    }, [exportedToSharedValue, exportedToFilterOptions]);
 
-    const clearInput = useCallback(() => {
+    const currentUserDisplayName = currentUserPersonalDetails.displayName ?? '';
+    const parser = (input: string) => {
+        'worklet';
+
+        return parseForLiveMarkdown(input, currentUserDisplayName, substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue, exportedToSharedValue);
+    };
+
+    const clearInput = () => {
         onSearchQueryChange('');
         setSearchContext(false);
-    }, [onSearchQueryChange]);
+    };
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
@@ -214,15 +217,13 @@ function SearchAutocompleteInput({
                         loadingSpinnerStyle={[styles.mt0, styles.mr1, styles.justifyContentCenter]}
                         onFocus={() => {
                             onFocus?.();
-                            autocompleteListRef?.current?.updateExternalTextInputFocus(true);
                             focusedSharedValue.set(true);
                         }}
                         onBlur={() => {
-                            autocompleteListRef?.current?.updateExternalTextInputFocus(false);
                             focusedSharedValue.set(false);
-
                             onBlur?.();
                         }}
+                        onKeyPress={onKeyPress}
                         isLoading={isSearchingForReports}
                         ref={(element) => {
                             if (!ref) {

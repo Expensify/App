@@ -1,4 +1,4 @@
-import MQ_VALUES from './MQValues';
+import MARQETA_VALUES from './MarqetaValues';
 import type {SecureStoreMethods, SecureStoreValues} from './types';
 
 /**
@@ -10,37 +10,37 @@ const SECURE_STORE_VALUES = {
         UNKNOWN: {
             CODE: -1,
             NAME: 'Unknown',
-            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.OTHER,
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.OTHER,
         },
         NONE: {
             CODE: 0,
             NAME: 'None',
-            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.OTHER,
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.OTHER,
         },
         CREDENTIALS: {
             CODE: 1,
             NAME: 'Credentials',
-            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
         },
         BIOMETRICS: {
             CODE: 2,
             NAME: 'Biometrics',
-            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
         },
         FACE_ID: {
             CODE: 3,
-            NAME: 'FaceID',
-            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
+            NAME: 'Face ID',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },
         TOUCH_ID: {
             CODE: 4,
-            NAME: 'TouchID',
-            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
+            NAME: 'Touch ID',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
         },
         OPTIC_ID: {
             CODE: 5,
-            NAME: 'OpticID',
-            MQ_VALUE: MQ_VALUES.AUTHENTICATION_METHOD.OTHER,
+            NAME: 'Optic ID',
+            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.OTHER,
         },
     },
     WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: -1,

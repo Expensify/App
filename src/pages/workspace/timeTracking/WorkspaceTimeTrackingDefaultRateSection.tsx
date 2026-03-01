@@ -5,7 +5,7 @@ import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,7 +16,6 @@ function WorkspaceTimeTrackingDefaultRateSection({policyID}: {policyID: string})
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        canBeMissing: true,
         selector: policyTimeTrackingSelector,
     });
 
@@ -34,7 +33,7 @@ function WorkspaceTimeTrackingDefaultRateSection({policyID}: {policyID: string})
                     shouldShowLoadingSpinnerIcon={!policy}
                     key={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
                     shouldShowRightIcon
-                    title={policy ? convertAmountToDisplayString(getDefaultTimeTrackingRate(policy), policy?.outputCurrency) : ''}
+                    title={policy ? convertToDisplayString(getDefaultTimeTrackingRate(policy), policy?.outputCurrency) : ''}
                     description={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID))}
                     style={styles.sectionMenuItemTopDescription}
