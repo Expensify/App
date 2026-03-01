@@ -47,7 +47,7 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
-import {cleanUpMoneyRequest} from '@userActions/IOU';
+import {cleanUpMoneyRequest, replaceReceipt} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
@@ -56,6 +56,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionItemImage from './ReportActionItemImage';
 
@@ -98,9 +99,8 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
-
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
     });
@@ -125,6 +125,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const retryAction = useReceiptRetryParams(transaction, iouReport, chatReport, policy, isTrackExpense);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${moneyRequestReport?.policyID}`);
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const hasReceipt = hasReceiptTransactionUtils(updatedTransaction ?? transaction);
@@ -353,6 +354,20 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
         </View>
     );
 
+    const setReceiptFile = (files: FileObject[]) => {
+        if (files.length === 0) {
+            return;
+        }
+
+        const file = files.at(0);
+
+        if (!file || !linkedTransactionID) {
+            return;
+        }
+        const source = URL.createObjectURL(file as Blob);
+        replaceReceipt({transactionID: linkedTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+    };
+
     // For empty receipt should be fullHeight
     // For the rest, expand to match the content
     return (
@@ -385,6 +400,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                         isInMoneyRequestView
                         style={receiptStyle}
                         isDisplayedInWideRHP={isDisplayedInWideRHP}
+                        setReceiptFile={setReceiptFile}
                     />
                 </OfflineWithFeedback>
             )}

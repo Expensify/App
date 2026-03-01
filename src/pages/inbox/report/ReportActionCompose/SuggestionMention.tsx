@@ -75,8 +75,25 @@ function SuggestionMention({
     const policy = usePolicy(policyID);
     suggestionValuesRef.current = suggestionValues;
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    // Filter reports to only include those that can be mentioned within the current policy
+    const mentionableReportsSelector = useCallback(
+        (reports: OnyxCollection<Report>) => {
+            return Object.keys(reports ?? {}).reduce(
+                (acc, reportID) => {
+                    const report = reports?.[reportID];
+                    if (report && canReportBeMentionedWithinPolicy(report, policyID)) {
+                        acc[reportID] = report;
+                    }
+                    return acc;
+                },
+                {} as Record<string, Report>,
+            );
+        },
+        [policyID],
+    );
+
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [mentionableReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: mentionableReportsSelector}, [policyID]);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
@@ -84,7 +101,8 @@ function SuggestionMention({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone', 'FallbackAvatar']);
 
     const {currentReportID} = useCurrentReportIDState();
-    const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`];
+    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`);
+
     // Smaller weight means higher order in suggestion list
     const getPersonalDetailsWeight = useCallback(
         (detail: PersonalDetails, policyEmployeeAccountIDs: number[]): number => {
@@ -351,12 +369,9 @@ function SuggestionMention({
     );
 
     const getRoomMentionOptions = useCallback(
-        (searchTerm: string, reportBatch: OnyxCollection<Report>): Mention[] => {
+        (searchTerm: string): Mention[] => {
             const filteredRoomMentions: Mention[] = [];
-            for (const report of Object.values(reportBatch ?? {})) {
-                if (!canReportBeMentionedWithinPolicy(report, policyID)) {
-                    continue;
-                }
+            for (const report of Object.values(mentionableReports ?? {})) {
                 if (report?.reportName?.toLowerCase().includes(searchTerm.toLowerCase())) {
                     filteredRoomMentions.push({
                         text: report.reportName,
@@ -368,7 +383,7 @@ function SuggestionMention({
 
             return lodashSortBy(filteredRoomMentions, 'handle').slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
         },
-        [policyID],
+        [mentionableReports],
     );
 
     const calculateMentionSuggestion = useCallback(
@@ -429,7 +444,7 @@ function SuggestionMention({
             const shouldDisplayRoomMentionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || normalizedPrefix === '');
             if (prefixType === '#' && shouldDisplayRoomMentionsSuggestions) {
                 // Filter reports by room name and current policy
-                nextState.suggestedMentions = getRoomMentionOptions(normalizedPrefix, reports);
+                nextState.suggestedMentions = getRoomMentionOptions(normalizedPrefix);
 
                 // Even if there are no reports, we should show the suggestion menu - to perform live search
                 nextState.shouldShowSuggestionMenu = true;
@@ -447,7 +462,7 @@ function SuggestionMention({
             }));
             setHighlightedMentionIndex(0);
         },
-        [isComposerFocused, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, weightedPersonalDetails, getRoomMentionOptions, reports],
+        [isComposerFocused, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, weightedPersonalDetails, getRoomMentionOptions],
     );
 
     const debouncedCalculateMentionSuggestion = useDebounce(

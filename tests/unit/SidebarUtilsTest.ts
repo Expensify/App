@@ -531,6 +531,183 @@ describe('SidebarUtils', () => {
         });
     });
 
+    describe('shouldDisplayReportInLHN', () => {
+        it('returns shouldDisplay as true if a one transaction thread expense report has receipt upload error', async () => {
+            const MOCK_REPORT: Report = {
+                reportID: '1',
+                ownerAccountID: 12345,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID: '6',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const MOCK_REPORTS: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT,
+            };
+
+            const MOCK_REPORT_ACTIONS: ReportActions = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1': {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        IOUTransactionID: '1',
+                        type: 'create',
+                    },
+                    message: [{type: 'COMMENT', html: '10.00 expense', text: '10.00 expense'}],
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:20:44.171',
+                },
+            };
+
+            const MOCK_TRANSACTION: Transaction = {
+                transactionID: '1',
+                amount: 10,
+                modifiedAmount: 10,
+                reportID: MOCK_REPORT.reportID,
+                errors: {
+                    '1772030710775000': {
+                        error: CONST.IOU.RECEIPT_ERROR,
+                        source: '',
+                        filename: 'download.jpeg',
+                        action: 'replaceReceipt',
+                        retryParams: {transactionID: '', source: '', transactionPolicy: undefined},
+                    },
+                },
+                created: '2024-08-08 18:20:44.171',
+                currency: 'USD',
+                merchant: 'merchant',
+            };
+
+            const MOCK_TRANSACTIONS = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+            } as OnyxCollection<Transaction>;
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    ...MOCK_REPORTS,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+                });
+            });
+
+            const result = SidebarUtils.shouldDisplayReportInLHN(MOCK_REPORT, MOCK_REPORTS as OnyxCollection<Report>, undefined, true, undefined, {}, undefined, MOCK_TRANSACTIONS);
+
+            expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
+        });
+
+        it('returns shouldDisplay as true if transaction thread report has receipt upload error', async () => {
+            const MOCK_REPORT: Report = {
+                reportID: '1',
+                ownerAccountID: 12345,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID: '6',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const MOCK_TRANSACTION_THREAD_REPORT: Report = {
+                reportID: '2',
+                ownerAccountID: 12345,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: '6',
+                parentReportID: MOCK_REPORT.reportID,
+                parentReportActionID: '1',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const MOCK_REPORTS: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT,
+                [`${ONYXKEYS.COLLECTION.REPORT}${MOCK_TRANSACTION_THREAD_REPORT.reportID}` as const]: MOCK_TRANSACTION_THREAD_REPORT,
+            };
+
+            const MOCK_REPORT_ACTIONS: ReportActions = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1': {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        IOUTransactionID: '1',
+                        type: 'create',
+                    },
+                    message: [{type: 'COMMENT', html: '10.00 expense', text: '10.00 expense'}],
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:20:44.171',
+                },
+                '2': {
+                    reportActionID: '2',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        IOUTransactionID: '2',
+                        type: 'create',
+                    },
+                    message: [{type: 'COMMENT', html: '10.00 expense', text: '10.00 expense'}],
+                    actorAccountID: 12345,
+                    created: '2024-08-08 18:20:44.171',
+                },
+            };
+
+            const MOCK_TRANSACTION: Transaction = {
+                transactionID: '1',
+                amount: 10,
+                modifiedAmount: 10,
+                reportID: MOCK_REPORT.reportID,
+                errors: {
+                    '1772030710775000': {
+                        error: CONST.IOU.RECEIPT_ERROR,
+                        source: '',
+                        filename: 'download.jpeg',
+                        action: 'replaceReceipt',
+                        retryParams: {transactionID: '', source: '', transactionPolicy: undefined},
+                    },
+                },
+                created: '2024-08-08 18:20:44.171',
+                currency: 'USD',
+                merchant: 'merchant',
+            };
+
+            const MOCK_TRANSACTION2: Transaction = {
+                transactionID: '2',
+                amount: 10,
+                modifiedAmount: 10,
+                reportID: MOCK_REPORT.reportID,
+                created: '2024-08-08 18:20:44.171',
+                currency: 'USD',
+                merchant: 'merchant',
+            };
+
+            const MOCK_TRANSACTIONS = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION2.transactionID}` as const]: MOCK_TRANSACTION2,
+            } as OnyxCollection<Transaction>;
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    ...MOCK_REPORTS,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${MOCK_REPORT.reportID}` as const]: MOCK_REPORT_ACTIONS,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION2.transactionID}` as const]: MOCK_TRANSACTION2,
+                });
+            });
+
+            const result = SidebarUtils.shouldDisplayReportInLHN(
+                MOCK_TRANSACTION_THREAD_REPORT,
+                MOCK_REPORTS as OnyxCollection<Report>,
+                undefined,
+                true,
+                undefined,
+                {},
+                undefined,
+                MOCK_TRANSACTIONS,
+            );
+
+            expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
+        });
+    });
+
     describe('shouldShowRedBrickRoad', () => {
         it('returns true when report has transaction thread violations', async () => {
             const MOCK_REPORT: Report = {
