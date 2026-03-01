@@ -462,7 +462,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             validTransactions,
                             allTransactionViolations,
                             bankAccountList,
-                            hash,
                         );
                     }
                 } else {

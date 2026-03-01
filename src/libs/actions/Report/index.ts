@@ -5343,23 +5343,12 @@ function deleteAppReport(
     reportTransactions: Record<string, Transaction>,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
-    hash?: number,
 ) {
     if (!report?.reportID) {
         Log.warn('[Report] deleteAppReport called with no reportID');
         return;
     }
     const reportID = report.reportID;
-
-    // Update search results to mark report as deleted when called from search
-    if (hash) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            data: {
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-            },
-        });
-    }
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -5714,19 +5703,6 @@ function deleteAppReport(
         key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
         value: {hasOutstandingChildRequest: report?.hasOutstandingChildRequest},
     });
-
-    if (hash) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {pendingAction: null},
-                },
-            },
-        });
-    }
 
     const parameters: DeleteAppReportParams = {
         reportID,
