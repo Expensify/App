@@ -22,8 +22,10 @@ import variables from '@styles/variables';
 /** Inner padding between bars (0.3 = 30% of bar width) */
 const BAR_INNER_PADDING = 0.3;
 
-/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop) */
-const BASE_DOMAIN_PADDING = {top: 32, bottom: 0, left: 0, right: 0};
+/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop)
+ * We need bottom: 1 for proper display of the bottom label
+ */
+const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
 
 type BarChartProps = CartesianChartProps & {
     /** Callback when a bar is pressed */
@@ -85,11 +87,11 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
     }, [chartWidth, data.length]);
 
-    const {formatXAxisLabel, formatYAxisLabel} = useChartLabelFormats({
+    const {formatLabel, formatValue} = useChartLabelFormats({
         data,
         font,
-        yAxisUnit,
-        yAxisUnitPosition,
+        unit: yAxisUnit,
+        unitPosition: yAxisUnitPosition,
         labelSkipInterval,
         labelRotation,
         truncatedLabels,
@@ -147,7 +149,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         yZero,
     });
 
-    const tooltipData = useTooltipData(activeDataIndex, data, formatYAxisLabel);
+    const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
 
     const renderBar = useCallback(
         (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
@@ -219,7 +221,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                             // Victory-native positions x-axis labels at: chartBounds.bottom + labelOffset + fontSize.
                             // We subtract descent (fontSize - ascent) so the gap from chart to the ascent line equals AXIS_LABEL_GAP.
                             labelOffset: AXIS_LABEL_GAP - Math.abs(font?.getMetrics().descent ?? 0),
-                            formatXLabel: formatXAxisLabel,
+                            formatXLabel: formatLabel,
                             labelRotate: labelRotation,
                             labelOverflow: 'visible',
                         }}
@@ -227,7 +229,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                             {
                                 font,
                                 labelColor: theme.textSupporting,
-                                formatYLabel: formatYAxisLabel,
+                                formatYLabel: formatValue,
                                 tickCount: Y_AXIS_TICK_COUNT,
                                 lineWidth: Y_AXIS_LINE_WIDTH,
                                 lineColor: theme.border,
