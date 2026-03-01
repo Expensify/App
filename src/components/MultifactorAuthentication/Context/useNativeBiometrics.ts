@@ -66,9 +66,6 @@ type UseNativeBiometricsReturn = {
     /** Check if device supports biometrics */
     doesDeviceSupportBiometrics: () => boolean;
 
-    /** Check if device has biometric credentials stored locally */
-    hasLocalCredentials: () => Promise<boolean>;
-
     /** Check if local credentials are known to server (local credential exists in server's list) */
     areLocalCredentialsKnownToServer: () => Promise<boolean>;
 
@@ -123,11 +120,6 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         const {value} = await PublicKeyStore.get(accountID);
         return value ?? undefined;
     }, [accountID]);
-
-    const hasLocalCredentials = useCallback(async () => {
-        const key = await getLocalPublicKey();
-        return !!key;
-    }, [getLocalPublicKey]);
 
     const areLocalCredentialsKnownToServer = useCallback(async () => {
         const key = await getLocalPublicKey();
@@ -254,7 +246,6 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         haveCredentialsEverBeenConfigured,
         getLocalPublicKey,
         doesDeviceSupportBiometrics,
-        hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,
         authorize,

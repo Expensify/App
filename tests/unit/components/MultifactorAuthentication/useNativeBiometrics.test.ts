@@ -87,19 +87,19 @@ describe('useNativeBiometrics hook', () => {
 
             expect(result.current).toHaveProperty('serverHasAnyCredentials');
             expect(result.current).toHaveProperty('doesDeviceSupportBiometrics');
-            expect(result.current).toHaveProperty('hasLocalCredentials');
+            expect(result.current).toHaveProperty('getLocalPublicKey');
             expect(result.current).toHaveProperty('areLocalCredentialsKnownToServer');
             expect(result.current).toHaveProperty('register');
             expect(result.current).toHaveProperty('authorize');
             expect(result.current).toHaveProperty('resetKeysForAccount');
         });
 
-        it('should initialize info with biometrics status', () => {
+        it('should initialize info with biometrics status', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
             expect(result.current.doesDeviceSupportBiometrics()).toBe(true);
-            expect(result.current.hasLocalCredentials()).resolves.toBe(false);
-            expect(result.current.areLocalCredentialsKnownToServer()).resolves.toBe(false);
+            await expect(result.current.getLocalPublicKey()).resolves.toBeUndefined();
+            await expect(result.current.areLocalCredentialsKnownToServer()).resolves.toBe(false);
         });
 
         it('should derive serverHasAnyCredentials from Onyx state', () => {
@@ -136,15 +136,15 @@ describe('useNativeBiometrics hook', () => {
         });
     });
 
-    describe('hasLocalCredentials', () => {
-        it('should return false when no local credential exists', async () => {
+    describe('getLocalPublicKey', () => {
+        it('should return undefined when no local key exists', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            const hasCredentials = await result.current.hasLocalCredentials();
-            expect(hasCredentials).toBe(false);
+            const key = await result.current.getLocalPublicKey();
+            expect(key).toBeUndefined();
         });
 
-        it('should return true when local credential exists', async () => {
+        it('should return the key string when a local key exists', async () => {
             (PublicKeyStore.get as jest.Mock).mockResolvedValue({
                 value: 'public-key-123',
                 reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_RETRIEVED,
@@ -152,8 +152,8 @@ describe('useNativeBiometrics hook', () => {
 
             const {result} = renderHook(() => useNativeBiometrics());
 
-            const hasCredentials = await result.current.hasLocalCredentials();
-            expect(hasCredentials).toBe(true);
+            const key = await result.current.getLocalPublicKey();
+            expect(key).toBe('public-key-123');
         });
     });
 
