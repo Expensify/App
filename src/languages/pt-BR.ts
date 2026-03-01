@@ -692,7 +692,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             statusNeverRegistered: 'Nunca registrado',
             statusNotRegistered: 'Não registrado',
-            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Outro dispositivo registrado' : 'Outros dispositivos registrados'),
+            statusRegisteredOtherDevice: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) =>
+                otherDeviceCount === 1 ? 'Outro dispositivo registrado' : 'Outros dispositivos registrados',
             statusRegisteredThisDevice: 'Registrado',
         },
         pleaseEnableInSystemSettings: {
@@ -725,10 +726,10 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptAll: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação em qualquer dispositivo.',
             ctaAll: 'Revogar tudo',
             thisDevice: 'Este dispositivo',
-            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
                 const numberWords = ['Um', 'Dois', 'Três', 'Quatro', 'Cinco', 'Seis', 'Sete', 'Oito', 'Nove'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
-                return `${displayCount} ${count === 1 ? 'outro dispositivo' : 'outros dispositivos'}`;
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} ${otherDeviceCount === 1 ? 'outro dispositivo' : 'outros dispositivos'}`;
             },
             confirmationPromptThisDevice: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação neste dispositivo.',
             confirmationPromptMultiple: 'Tem certeza? Você vai precisar de um código mágico para a próxima verificação nesses dispositivos.',

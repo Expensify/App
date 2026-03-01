@@ -693,7 +693,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             statusNeverRegistered: 'Nooit geregistreerd',
             statusNotRegistered: 'Niet geregistreerd',
-            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Een ander apparaat geregistreerd' : 'Andere apparaten geregistreerd'),
+            statusRegisteredOtherDevice: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) =>
+                otherDeviceCount === 1 ? 'Een ander apparaat geregistreerd' : 'Andere apparaten geregistreerd',
             statusRegisteredThisDevice: 'Geregistreerd',
         },
         pleaseEnableInSystemSettings: {
@@ -726,10 +727,10 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptAll: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op elk apparaat.',
             ctaAll: 'Alles intrekken',
             thisDevice: 'Dit apparaat',
-            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
                 const numberWords = ['Eén', 'Twee', 'Drie', 'Vier', 'Vijf', 'Zes', 'Zeven', 'Acht', 'Negen'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
-                return `${displayCount} ${count === 1 ? 'ander apparaat' : 'andere apparaten'}`;
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} ${otherDeviceCount === 1 ? 'ander apparaat' : 'andere apparaten'}`;
             },
             confirmationPromptThisDevice: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op dit apparaat.',
             confirmationPromptMultiple: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op die apparaten.',

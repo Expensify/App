@@ -698,7 +698,8 @@ const translations = {
             troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometrics (${status})`,
             statusNeverRegistered: 'Never registered',
             statusNotRegistered: 'Not registered',
-            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Another device registered' : 'Other devices registered'),
+            statusRegisteredOtherDevice: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) =>
+                otherDeviceCount === 1 ? 'Another device registered' : 'Other devices registered',
             statusRegisteredThisDevice: 'Registered',
             yourAttemptWasUnsuccessful: 'Your authentication attempt was unsuccessful.',
             youCouldNotBeAuthenticated: 'You couldn’t be authenticated',
@@ -748,10 +749,10 @@ const translations = {
             dismiss: 'Got it',
             error: 'Request failed. Try again later.',
             thisDevice: 'This device',
-            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
                 const numberWords = ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
-                return `${displayCount} other ${count === 1 ? 'device' : 'devices'}`;
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} other ${otherDeviceCount === 1 ? 'device' : 'devices'}`;
             },
         },
     },

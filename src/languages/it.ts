@@ -694,7 +694,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             statusNeverRegistered: 'Mai registrato',
             statusNotRegistered: 'Non registrato',
-            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Un altro dispositivo registrato' : 'Altri dispositivi registrati'),
+            statusRegisteredOtherDevice: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) =>
+                otherDeviceCount === 1 ? 'Un altro dispositivo registrato' : 'Altri dispositivi registrati',
             statusRegisteredThisDevice: 'Registrato',
         },
         pleaseEnableInSystemSettings: {
@@ -728,10 +729,10 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptAll: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su qualsiasi dispositivo.',
             ctaAll: 'Revoca tutto',
             thisDevice: 'Questo dispositivo',
-            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
                 const numberWords = ['Un', 'Due', 'Tre', 'Quattro', 'Cinque', 'Sei', 'Sette', 'Otto', 'Nove'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
-                return `${displayCount} ${count === 1 ? 'altro dispositivo' : 'altri dispositivi'}`;
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} ${otherDeviceCount === 1 ? 'altro dispositivo' : 'altri dispositivi'}`;
             },
             confirmationPromptThisDevice: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su questo dispositivo.',
             confirmationPromptMultiple: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su quei dispositivi.',

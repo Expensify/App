@@ -693,7 +693,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             statusNeverRegistered: '未登録',
             statusNotRegistered: '未登録',
-            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? '他のデバイスが登録済み' : '他のデバイスが登録済み'),
+            statusRegisteredOtherDevice: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => (otherDeviceCount === 1 ? '他のデバイスが登録済み' : '他のデバイスが登録済み'),
             statusRegisteredThisDevice: '登録済み',
         },
         pleaseEnableInSystemSettings: {
@@ -725,7 +725,7 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptAll: '本当によろしいですか？今後どの端末でも次回の認証にはマジックコードが必要になります。',
             ctaAll: 'すべて取り消す',
             thisDevice: 'このデバイス',
-            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => `他${count}台のデバイス`,
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => `他${otherDeviceCount}台のデバイス`,
             confirmationPromptThisDevice: '本当によろしいですか？このデバイスで次回の認証を行うには、マジックコードが必要になります。',
             confirmationPromptMultiple: '本当に宜しいですか？そのデバイスで次回の認証を行うには、マジックコードが必要になります。',
         },

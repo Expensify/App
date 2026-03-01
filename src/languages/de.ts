@@ -694,7 +694,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             statusNeverRegistered: 'Nie registriert',
             statusNotRegistered: 'Nicht registriert',
-            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Ein anderes Gerät registriert' : 'Andere Geräte registriert'),
+            statusRegisteredOtherDevice: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) =>
+                otherDeviceCount === 1 ? 'Ein anderes Gerät registriert' : 'Andere Geräte registriert',
             statusRegisteredThisDevice: 'Registriert',
         },
         pleaseEnableInSystemSettings: {
@@ -727,10 +728,10 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptAll: 'Sind Sie sicher? Sie benötigen einen magischen Code für die nächste Verifizierung auf jedem Gerät.',
             ctaAll: 'Alle widerrufen',
             thisDevice: 'Dieses Gerät',
-            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
                 const numberWords = ['Ein', 'Zwei', 'Drei', 'Vier', 'Fünf', 'Sechs', 'Sieben', 'Acht', 'Neun'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
-                return `${displayCount} ${count === 1 ? 'anderes Gerät' : 'andere Geräte'}`;
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} ${otherDeviceCount === 1 ? 'anderes Gerät' : 'andere Geräte'}`;
             },
             confirmationPromptThisDevice: 'Sind Sie sicher? Sie benötigen einen magischen Code für die nächste Verifizierung auf diesem Gerät.',
             confirmationPromptMultiple: 'Sind Sie sicher? Sie benötigen einen magischen Code für die nächste Verifizierung auf diesen Geräten.',

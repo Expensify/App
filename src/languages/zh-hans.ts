@@ -686,7 +686,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             statusNeverRegistered: '从未注册',
             statusNotRegistered: '未注册',
-            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? '另一台设备已注册' : '其他设备已注册'),
+            statusRegisteredOtherDevice: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => (otherDeviceCount === 1 ? '另一台设备已注册' : '其他设备已注册'),
             statusRegisteredThisDevice: '已注册',
         },
         pleaseEnableInSystemSettings: {
@@ -718,7 +718,7 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptAll: '确定要这样吗？您在任何设备上进行下一次验证时都需要输入魔法验证码。',
             ctaAll: '全部撤销',
             thisDevice: '此设备',
-            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => `其他${count}台设备`,
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => `其他${otherDeviceCount}台设备`,
             confirmationPromptThisDevice: '确定吗？此设备下次验证时需要魔法验证码。',
             confirmationPromptMultiple: '确定要这样做吗？接下来在这些设备上进行验证时，你需要使用魔法验证码。',
         },

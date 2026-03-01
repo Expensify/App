@@ -693,7 +693,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             statusNeverRegistered: 'Nigdy nie zarejestrowano',
             statusNotRegistered: 'Nie zarejestrowano',
-            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Inne urządzenie zarejestrowane' : 'Inne urządzenia zarejestrowane'),
+            statusRegisteredOtherDevice: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) =>
+                otherDeviceCount === 1 ? 'Inne urządzenie zarejestrowane' : 'Inne urządzenia zarejestrowane',
             statusRegisteredThisDevice: 'Zarejestrowano',
         },
         pleaseEnableInSystemSettings: {
@@ -727,10 +728,10 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptAll: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnej weryfikacji na dowolnym urządzeniu.',
             ctaAll: 'Odwołaj wszystkie',
             thisDevice: 'To urządzenie',
-            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
                 const numberWords = ['Jedno', 'Dwa', 'Trzy', 'Cztery', 'Pięć', 'Sześć', 'Siedem', 'Osiem', 'Dziewięć'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
-                return `${displayCount} ${count === 1 ? 'inne urządzenie' : 'innych urządzeń'}`;
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} ${otherDeviceCount === 1 ? 'inne urządzenie' : 'innych urządzeń'}`;
             },
             confirmationPromptThisDevice: 'Na pewno? Do następnej weryfikacji na tym urządzeniu będziesz potrzebować magicznego kodu.',
             confirmationPromptMultiple: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnej weryfikacji na tych urządzeniach.',

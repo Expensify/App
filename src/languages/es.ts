@@ -549,7 +549,8 @@ const translations: TranslationDeepObject<typeof en> = {
             troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometría (${status})`,
             statusNeverRegistered: 'Nunca registrado',
             statusNotRegistered: 'No registrado',
-            statusRegisteredOtherDevice: ({count}: MultifactorAuthenticationTranslationParams) => (count === 1 ? 'Otro dispositivo registrado' : 'Otros dispositivos registrados'),
+            statusRegisteredOtherDevice: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) =>
+                otherDeviceCount === 1 ? 'Otro dispositivo registrado' : 'Otros dispositivos registrados',
             statusRegisteredThisDevice: 'Registrado',
             yourAttemptWasUnsuccessful: 'Tu intento de autenticación fue fallido.',
             youCouldNotBeAuthenticated: 'No se pudo autenticar',
@@ -601,10 +602,10 @@ const translations: TranslationDeepObject<typeof en> = {
             dismiss: 'Entendido',
             error: 'La solicitud ha fallado. Inténtalo de nuevo más tarde.',
             thisDevice: 'Este dispositivo',
-            otherDevices: ({count}: MultifactorAuthenticationTranslationParams) => {
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
                 const numberWords = ['Un', 'Dos', 'Tres', 'Cuatro', 'Cinco', 'Seis', 'Siete', 'Ocho', 'Nueve'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
-                return `${displayCount} ${count === 1 ? 'otro dispositivo' : 'otros dispositivos'}`;
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} ${otherDeviceCount === 1 ? 'otro dispositivo' : 'otros dispositivos'}`;
             },
         },
     },
