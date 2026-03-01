@@ -54,11 +54,13 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
             return {
                 height: 0,
                 opacity: 0,
+                overflow: 'hidden',
             };
         }
         return {
             height: !isToggleTriggered.get() ? height.get() : derivedHeight.get(),
             opacity: derivedOpacity.get(),
+            overflow: isExpanded.get() ? 'visible' : 'hidden',
         };
     });
 

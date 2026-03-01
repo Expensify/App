@@ -16,6 +16,7 @@ import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy'
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
 import useTimeSensitiveOffers from './hooks/useTimeSensitiveOffers';
 import ActivateCard from './items/ActivateCard';
+import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
 import FixAccountingConnection from './items/FixAccountingConnection';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
@@ -58,7 +59,7 @@ function TimeSensitiveSection() {
     const {login} = useCurrentUserPersonalDetails();
 
     // Use custom hooks for offers and cards (Release 3)
-    const {shouldShow50off, shouldShow25off, firstDayFreeTrial, discountInfo} = useTimeSensitiveOffers();
+    const {shouldShow50off, shouldShow25off, shouldShowAddPaymentCard, firstDayFreeTrial, discountInfo} = useTimeSensitiveOffers();
     const {shouldShowAddShippingAddress, shouldShowActivateCard, shouldShowReviewCardFraud, cardsNeedingShippingAddress, cardsNeedingActivation, cardsWithFraud} = useTimeSensitiveCards();
 
     // Selector for filtering admin policies (Release 4)
@@ -136,6 +137,7 @@ function TimeSensitiveSection() {
     // must be reflected here to avoid showing an empty "Time sensitive" section.
     const hasAnyTimeSensitiveContent =
         shouldShowReviewCardFraud ||
+        shouldShowAddPaymentCard ||
         shouldShow50off ||
         (shouldShow25off && !!discountInfo) ||
         hasBrokenCompanyCards ||
@@ -150,12 +152,13 @@ function TimeSensitiveSection() {
 
     // Priority order:
     // 1. Potential card fraud
-    // 2. Broken bank connections (company cards)
-    // 3. Broken bank connections (personal cards)
-    // 4. Broken accounting connections
-    // 5. Early adoption discount (50% or 25%)
-    // 6. Expensify card shipping
-    // 7. Expensify card activation
+    // 2. Add payment card (trial ended, no payment card)
+    // 3. Broken bank connections (company cards)
+    // 4. Broken bank connections (personal cards)
+    // 5. Broken accounting connections
+    // 6. Early adoption discount (50% or 25%)
+    // 7. Expensify card shipping
+    // 8. Expensify card activation
     return (
         <WidgetContainer title={translate('homePage.timeSensitiveSection.title')}>
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
@@ -173,7 +176,9 @@ function TimeSensitiveSection() {
                         );
                     })}
 
-                {/* Priority 2: Broken company card connections */}
+                {/* Priority 2: Add payment card (trial ended, no payment card) */}
+                {shouldShowAddPaymentCard && <AddPaymentCard />}
+                {/* Priority 3: Broken company card connections */}
                 {brokenCompanyCardConnections.map((connection) => {
                     const card = cardFeedErrors.cardsWithBrokenFeedConnection[connection.cardID];
                     if (!card) {
@@ -189,7 +194,7 @@ function TimeSensitiveSection() {
                     );
                 })}
 
-                {/* Priority 3: Broken personal card connections */}
+                {/* Priority 4: Broken personal card connections */}
                 {brokenPersonalCardConnections.map((connection) => {
                     const card = cardFeedErrors.personalCardsWithBrokenConnection[connection.cardID];
                     if (!card) {
@@ -203,7 +208,7 @@ function TimeSensitiveSection() {
                     );
                 })}
 
-                {/* Priority 4: Broken accounting connections */}
+                {/* Priority 5: Broken accounting connections */}
                 {brokenAccountingConnections.map((connection) => (
                     <FixAccountingConnection
                         key={`accounting-${connection.policyID}-${connection.connectionName}`}
@@ -213,11 +218,11 @@ function TimeSensitiveSection() {
                     />
                 ))}
 
-                {/* Priority 5: Early adoption discount offers */}
+                {/* Priority 6: Early adoption discount offers */}
                 {shouldShow50off && <Offer50off firstDayFreeTrial={firstDayFreeTrial} />}
                 {shouldShow25off && !!discountInfo && <Offer25off days={discountInfo.days} />}
 
-                {/* Priority 6: Expensify card shipping */}
+                {/* Priority 7: Expensify card shipping */}
                 {shouldShowAddShippingAddress &&
                     cardsNeedingShippingAddress.map((card) => (
                         <AddShippingAddress
@@ -226,7 +231,7 @@ function TimeSensitiveSection() {
                         />
                     ))}
 
-                {/* Priority 7: Expensify card activation */}
+                {/* Priority 8: Expensify card activation */}
                 {shouldShowActivateCard &&
                     cardsNeedingActivation.map((card) => (
                         <ActivateCard

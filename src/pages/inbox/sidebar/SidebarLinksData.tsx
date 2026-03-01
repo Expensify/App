@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
+import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
@@ -24,7 +24,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
-    const {orderedReports, currentReportID} = useSidebarOrderedReports('SidebarLinksData');
+    const {orderedReports, currentReportID} = useSidebarOrderedReportsState('SidebarLinksData');
 
     const currentReportIDRef = useRef(currentReportID);
     currentReportIDRef.current = currentReportID;

@@ -106,9 +106,9 @@ import {
     isDeletedAction,
     isHoldAction,
     isMoneyRequestAction,
+    isReportActionVisible,
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
-    shouldReportActionBeVisible,
 } from './ReportActionsUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
@@ -438,7 +438,7 @@ type SearchTypeMenuItem = {
         | IconAsset
         | Extract<
               ExpensifyIconName,
-              'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket' | 'CalendarSolid'
+              'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket' | 'CalendarSolid' | 'ExpensifyCard'
           >;
     searchQuery: string;
     searchQueryJSON: SearchQueryJSON | undefined;
@@ -485,8 +485,14 @@ type GetSectionsParams = {
     cardList?: OnyxTypes.CardList;
     customCardNames?: Record<number, string>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
 };
+
+const GROUP_BY_TO_SORT_COLUMN: Partial<Record<ValueOf<typeof CONST.SEARCH.GROUP_BY>, string>> = {
+    [CONST.SEARCH.GROUP_BY.CATEGORY]: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+    [CONST.SEARCH.GROUP_BY.MERCHANT]: CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+} as const;
 
 /**
  * Creates a top search menu item with common structure for TOP_SPENDERS, TOP_CATEGORIES, and TOP_MERCHANTS
@@ -494,11 +500,19 @@ type GetSectionsParams = {
 function createTopSearchMenuItem(
     key: SearchKey,
     translationPath: TranslationPaths,
-    icon: IconAsset | Extract<ExpensifyIconName, 'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket'>,
+    icon:
+        | IconAsset
+        | Extract<
+              ExpensifyIconName,
+              'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket' | 'ExpensifyCard'
+          >,
     groupBy: ValueOf<typeof CONST.SEARCH.GROUP_BY>,
     limit?: number,
     view?: ValueOf<typeof CONST.SEARCH.VIEW>,
 ): SearchTypeMenuItem {
+    const defaultSortBy = GROUP_BY_TO_SORT_COLUMN[groupBy] ?? CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL;
+    const defaultSortOrder = GROUP_BY_TO_SORT_COLUMN[groupBy] ? CONST.SEARCH.SORT_ORDER.ASC : CONST.SEARCH.SORT_ORDER.DESC;
+
     const searchQuery = buildQueryStringFromFilterFormValues(
         {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -507,8 +521,8 @@ function createTopSearchMenuItem(
             ...(view && {view}),
         },
         {
-            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            sortBy: defaultSortBy,
+            sortOrder: defaultSortOrder,
             ...(limit && {limit}),
         },
     );
@@ -781,7 +795,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD,
             translationPath: 'workspace.common.expensifyCard',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: 'CreditCard',
+            icon: 'ExpensifyCard',
             searchQuery: buildQueryStringFromFilterFormValues(
                 {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -889,6 +903,7 @@ function getSuggestedSearches(
             'Basket',
             CONST.SEARCH.GROUP_BY.MERCHANT,
             CONST.SEARCH.TOP_SEARCH_LIMIT,
+            CONST.SEARCH.VIEW.PIE,
         ),
         [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: {
             key: CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
@@ -924,7 +939,7 @@ function getSuggestedSearches(
 }
 
 function getDefaultActionableSearchMenuItem(menuItems: SearchTypeMenuItem[]) {
-    return menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE) ?? menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+    return menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS);
 }
 
 /**
@@ -1154,7 +1169,7 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
         if (isTransactionEntry(key)) {
             const item = data[key];
             const merchant = item.modifiedMerchant ? item.modifiedMerchant : (item.merchant ?? '');
-            return !isInvalidMerchantValue(merchant);
+            return !isInvalidMerchantValue(merchant) || isScanning(item);
         }
         return false;
     });
@@ -1848,6 +1863,7 @@ function getActions(
     }
 
     const transaction = isTransaction ? data[key] : undefined;
+
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
@@ -1991,7 +2007,7 @@ function getTaskSections(
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const parentReportName = getReportName(parentReport, policy, undefined, undefined, undefined, undefined, undefined, isParentReportArchived);
+                const parentReportName = getReportName({report: parentReport, policy, isReportArchived: isParentReportArchived});
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
 
@@ -2061,7 +2077,7 @@ function createAndOpenSearchTransactionThread(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [ReportActionListItemType[], number] {
+function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue): [ReportActionListItemType[], number] {
     const reportActionItems: ReportActionListItemType[] = [];
 
     const transactions = Object.keys(data)
@@ -2080,11 +2096,13 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
 
     for (const key in data) {
         if (isReportActionEntry(key)) {
+            const reportIDFromKey = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
             const reportActions = Object.values(data[key]);
             n += reportActions.length;
             for (const reportAction of reportActions) {
+                const reportID = reportAction.reportID ?? reportIDFromKey;
                 const from = reportAction.accountID ? (data.personalDetailsList?.[reportAction.accountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
-                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
+                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
                 const isSendingMoney = isMoneyRequestAction(reportAction) && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails;
@@ -2092,7 +2110,8 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
                 const invoiceReceiverPolicy: OnyxTypes.Policy | undefined =
                     report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
                 if (
-                    !shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)) ||
+                    !reportID ||
+                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
@@ -2774,11 +2793,12 @@ function getSections({
     cardFeeds,
     customCardNames,
     allTransactionViolations,
+    visibleReportActionsData,
     allReportMetadata,
     cardList,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return getReportActionsSections(data);
+        return getReportActionsSections(data, visibleReportActionsData);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getTaskSections(data, formatPhoneNumber, archivedReportsIDList);
@@ -3541,6 +3561,28 @@ function createTypeMenuSections(
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, icons);
     const {visibility: suggestedSearchesVisibility, hasGroupPoliciesWithExpenseChat} = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard);
 
+    // Explore section
+    {
+        const exploreSection: SearchTypeMenuSection = {
+            translationPath: 'common.explore',
+            menuItems: [],
+        };
+
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.REPORTS]) {
+            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
+        }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSES]) {
+            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSES]);
+        }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.CHATS]) {
+            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.CHATS]);
+        }
+
+        if (exploreSection.menuItems.length > 0) {
+            typeMenuSections.push(exploreSection);
+        }
+    }
+
     // Todo section
     {
         const todoSection: SearchTypeMenuSection = {
@@ -3723,28 +3765,6 @@ function createTypeMenuSections(
 
         if (insightsSection.menuItems.length > 0) {
             typeMenuSections.push(insightsSection);
-        }
-    }
-
-    // Explore section
-    {
-        const exploreSection: SearchTypeMenuSection = {
-            translationPath: 'common.explore',
-            menuItems: [],
-        };
-
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSES]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSES]);
-        }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.REPORTS]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.REPORTS]);
-        }
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.CHATS]) {
-            exploreSection.menuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.CHATS]);
-        }
-
-        if (exploreSection.menuItems.length > 0) {
-            typeMenuSections.push(exploreSection);
         }
     }
 
