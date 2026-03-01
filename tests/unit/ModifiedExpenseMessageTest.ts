@@ -3,7 +3,7 @@ import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getForReportAction, getForReportActionTemp, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as PolicyUtils from '@libs/PolicyUtils';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
+// eslint-disable-next-line no-restricted-syntax, no-restricted-imports -- this is required to allow mocking
 import * as ReportNameUtils from '@libs/ReportNameUtils';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportUtils from '@libs/ReportUtils';
