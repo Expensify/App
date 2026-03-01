@@ -8,7 +8,6 @@ import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePers
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {isExpensifyCardUkEuSupported} from './CardUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
@@ -462,8 +461,10 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
  * before revealing their card details (for UK/EU cards only).
  */
 function shouldShowMissingDetailsPage(card: {nameValuePairs?: {feedCountry?: string}} | null | undefined, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    const isUKOrEUCard = card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
     const hasMissingDetails = arePersonalDetailsMissing(privatePersonalDetails);
-    return hasMissingDetails && isExpensifyCardUkEuSupported(card);
+
+    return hasMissingDetails && isUKOrEUCard;
 }
 
 export {
