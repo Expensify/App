@@ -2015,10 +2015,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 PERSONAL_DETAILS,
                 {},
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
+                {countryCode: COUNTRY_CODE},
             );
 
             // Then personal details should be sorted alphabetically
@@ -2046,10 +2043,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 PERSONAL_DETAILS,
                 {},
-                [],
-                excludeLogins,
-                false,
-                COUNTRY_CODE,
+                {excludeLogins, countryCode: COUNTRY_CODE},
             );
 
             // Then the excluded login should not be in the results
@@ -2068,10 +2062,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 undefined,
                 {},
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
+                {countryCode: COUNTRY_CODE},
             );
 
             // Then personal details should still be returned and sorted alphabetically
@@ -2090,10 +2081,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {},
                 {},
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
+                {countryCode: COUNTRY_CODE},
             );
 
             // Then personal details should still be returned and sorted alphabetically
@@ -2112,10 +2100,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {},
                 {},
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
+                {countryCode: COUNTRY_CODE},
             );
 
             // Then personal details should still be returned and sorted alphabetically
@@ -2151,10 +2136,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 partialPersonalDetails,
                 {},
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
+                {countryCode: COUNTRY_CODE},
             );
 
             // Then results should still include all personal details from OPTIONS.personalDetails
@@ -2182,10 +2164,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 modifiedPersonalDetails,
                 {},
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
+                {countryCode: COUNTRY_CODE},
             );
 
             // Then personal details should still be returned
@@ -2207,10 +2186,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 PERSONAL_DETAILS,
                 {},
-                [],
-                excludeLogins,
-                false,
-                COUNTRY_CODE,
+                {excludeLogins, countryCode: COUNTRY_CODE},
             );
 
             // Then Black Panther should not be in the results
@@ -2780,10 +2756,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 PERSONAL_DETAILS,
                 {},
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
+                {countryCode: COUNTRY_CODE},
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details
             const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2802,10 +2775,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 PERSONAL_DETAILS,
                 {},
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
+                {countryCode: COUNTRY_CODE},
             );
             // When we call filterAndOrderOptions with a search value that matches an email
             const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -6411,10 +6381,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 PERSONAL_DETAILS,
                 {},
-                [],
-                {},
-                false,
-                COUNTRY_CODE,
+                {countryCode: COUNTRY_CODE},
             );
 
             // Then the function should complete without errors and return valid results

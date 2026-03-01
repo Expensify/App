@@ -202,7 +202,7 @@ function useSearchSelectorBase({
                     options: optionsWithContacts,
                     draftComments,
                     nvpDismissedProductTraining,
-                    reports: reports,
+                    reports,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,

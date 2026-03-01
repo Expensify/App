@@ -2823,6 +2823,13 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
     };
 }
 
+type MemberInviteConfig = {
+    betas?: Beta[];
+    excludeLogins?: Record<string, boolean>;
+    includeSelectedOptions?: boolean;
+    countryCode?: number;
+};
+
 /**
  * Build the options for the Workspace Member Invite view
  * This method will be removed. See https://github.com/Expensify/App/issues/66615 for more information.
@@ -2835,11 +2842,9 @@ function getMemberInviteOptions(
     currentUserEmail: string,
     personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
     reports: OnyxCollection<Report>,
-    betas: Beta[] = [],
-    excludeLogins: Record<string, boolean> = {},
-    includeSelectedOptions = false,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
+    config: MemberInviteConfig = {},
 ): Options {
+    const {betas = [], excludeLogins = {}, includeSelectedOptions = false, countryCode = CONST.DEFAULT_COUNTRY_CODE} = config;
     return getValidOptions({personalDetails, reports: []}, undefined, undefined, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, reports, {
         betas,
         includeP2P: true,

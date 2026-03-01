@@ -225,10 +225,7 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_EMAIL,
                 personalDetails,
                 {},
-                mockedBetas,
-                {},
-                false,
-                COUNTRY_CODE,
+                {betas: mockedBetas, countryCode: COUNTRY_CODE},
             ),
         );
     });
