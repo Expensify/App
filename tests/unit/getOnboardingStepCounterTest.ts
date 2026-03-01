@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import {getOnboardingFlow, getOnboardingStepCounter} from '@src/libs/getOnboardingStepCounter';
-import type {OnboardingFlowContext} from '@src/libs/getOnboardingStepCounter';
+import type {OnboardingFlowContext, OnboardingScreen} from '@src/libs/getOnboardingStepCounter';
 import SCREENS from '@src/SCREENS';
 
 const O = SCREENS.ONBOARDING;
@@ -250,7 +250,7 @@ describe('getOnboardingStepCounter', () => {
             ctx: OnboardingFlowContext;
             expectedPurposeStep: number;
             expectedPurposePct: number;
-            prefixPages: Array<{page: string; step: number; pct: number}>;
+            prefixPages: Array<{page: OnboardingScreen; step: number; pct: number}>;
         }> = [
             {
                 label: 'no-domain',

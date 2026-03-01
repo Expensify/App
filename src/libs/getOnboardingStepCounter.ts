@@ -21,17 +21,51 @@ type OnboardingStepResult = {
 const {ONBOARDING} = SCREENS;
 const {ONBOARDING_CHOICES, ONBOARDING_SIGNUP_QUALIFIERS} = CONST;
 
-const subPageMapping: Partial<Record<OnboardingScreen, OnboardingScreen>> = {
+const screenResolution: Record<OnboardingScreen, OnboardingScreen> = {
+    [ONBOARDING.WORK_EMAIL]: ONBOARDING.WORK_EMAIL,
+    [ONBOARDING.WORK_EMAIL_VALIDATION]: ONBOARDING.WORK_EMAIL_VALIDATION,
+    [ONBOARDING.PRIVATE_DOMAIN]: ONBOARDING.PRIVATE_DOMAIN,
+    [ONBOARDING.PERSONAL_DETAILS]: ONBOARDING.PERSONAL_DETAILS,
+    [ONBOARDING.WORKSPACES]: ONBOARDING.WORKSPACES,
+    [ONBOARDING.PURPOSE]: ONBOARDING.PURPOSE,
+    [ONBOARDING.EMPLOYEES]: ONBOARDING.EMPLOYEES,
+    [ONBOARDING.ACCOUNTING]: ONBOARDING.ACCOUNTING,
+    [ONBOARDING.INTERESTED_FEATURES]: ONBOARDING.INTERESTED_FEATURES,
+    [ONBOARDING.WORKSPACE_OPTIONAL]: ONBOARDING.WORKSPACE_OPTIONAL,
     [ONBOARDING.WORKSPACE_CONFIRMATION]: ONBOARDING.WORKSPACE_OPTIONAL,
     [ONBOARDING.WORKSPACE_CURRENCY]: ONBOARDING.WORKSPACE_OPTIONAL,
     [ONBOARDING.WORKSPACE_INVITE]: ONBOARDING.WORKSPACE_OPTIONAL,
 };
 
+// Screens that follow PURPOSE. For private domain users, PERSONAL_DETAILS is filtered out.
+const purposeSuffixes = {
+    [ONBOARDING_CHOICES.MANAGE_TEAM]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
+    [ONBOARDING_CHOICES.PERSONAL_SPEND]: [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACE_OPTIONAL],
+    [ONBOARDING_CHOICES.TRACK_WORKSPACE]: [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACE_OPTIONAL],
+    [ONBOARDING_CHOICES.EMPLOYER]: [ONBOARDING.PERSONAL_DETAILS],
+    [ONBOARDING_CHOICES.CHAT_SPLIT]: [ONBOARDING.PERSONAL_DETAILS],
+    [ONBOARDING_CHOICES.LOOKING_AROUND]: [ONBOARDING.PERSONAL_DETAILS],
+    [ONBOARDING_CHOICES.ADMIN]: [ONBOARDING.PERSONAL_DETAILS],
+    [ONBOARDING_CHOICES.SUBMIT]: [ONBOARDING.PERSONAL_DETAILS],
+    [ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER]: [ONBOARDING.PERSONAL_DETAILS],
+} satisfies Record<ValueOf<typeof ONBOARDING_CHOICES>, OnboardingScreen[]>;
+
+// VSB/SMB have fixed suffixes; individual (null) is handled via purposeSuffixes.
+const qualifierSuffixes = {
+    [ONBOARDING_SIGNUP_QUALIFIERS.VSB]: [ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
+    [ONBOARDING_SIGNUP_QUALIFIERS.SMB]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
+    [ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL]: null,
+} satisfies Record<ValueOf<typeof ONBOARDING_SIGNUP_QUALIFIERS>, OnboardingScreen[] | null>;
+
+const maxSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s) => s.length));
+const maxPrivateSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s) => s.filter((p) => p !== ONBOARDING.PERSONAL_DETAILS).length));
+
 function getResolvedPage(page: OnboardingScreen, context: OnboardingFlowContext): OnboardingScreen {
+    // In public domain flows, PRIVATE_DOMAIN is used as a variant of WORK_EMAIL_VALIDATION
     if (page === ONBOARDING.PRIVATE_DOMAIN && context.isFromPublicDomain) {
         return ONBOARDING.WORK_EMAIL_VALIDATION;
     }
-    return subPageMapping[page] ?? page;
+    return screenResolution[page];
 }
 
 function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
@@ -51,25 +85,18 @@ function getOnboardingFlow(context: OnboardingFlowContext): OnboardingScreen[] |
     const prefix = getDomainPrefix(context);
     const isPrivateDomain = !context.isFromPublicDomain && !!context.hasAccessibleDomainPolicies;
 
-    if (context.signupQualifier === ONBOARDING_SIGNUP_QUALIFIERS.VSB) {
-        return [...prefix, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES];
+    const qualifierSuffix = context.signupQualifier ? qualifierSuffixes[context.signupQualifier] : null;
+    if (qualifierSuffix) {
+        return [...prefix, ...qualifierSuffix];
     }
-    if (context.signupQualifier === ONBOARDING_SIGNUP_QUALIFIERS.SMB) {
-        return [...prefix, ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES];
-    }
+
     if (!context.purposeSelected) {
         return undefined;
     }
 
-    const base = [...prefix, ONBOARDING.PURPOSE];
-
-    if (context.purposeSelected === ONBOARDING_CHOICES.MANAGE_TEAM) {
-        return [...base, ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES];
-    }
-    if (context.purposeSelected === ONBOARDING_CHOICES.PERSONAL_SPEND || context.purposeSelected === ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-        return isPrivateDomain ? [...base, ONBOARDING.WORKSPACE_OPTIONAL] : [...base, ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACE_OPTIONAL];
-    }
-    return isPrivateDomain ? base : [...base, ONBOARDING.PERSONAL_DETAILS];
+    const suffix = purposeSuffixes[context.purposeSelected];
+    const adjustedSuffix = isPrivateDomain ? suffix.filter((s) => s !== ONBOARDING.PERSONAL_DETAILS) : suffix;
+    return [...prefix, ONBOARDING.PURPOSE, ...adjustedSuffix];
 }
 
 function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlowContext): OnboardingStepResult | undefined {
@@ -77,14 +104,14 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
     const flow = getOnboardingFlow(context);
 
     if (!flow) {
-        const knownScreens = [...getDomainPrefix(context), ONBOARDING.PURPOSE];
+        const prefix = getDomainPrefix(context);
+        const knownScreens = [...prefix, ONBOARDING.PURPOSE];
         const index = knownScreens.indexOf(resolvedPage);
         if (index === -1) {
             return undefined;
         }
-        // Use the longest possible flow as denominator so the progress bar
-        // never moves backward when a purpose is selected on the next screen.
-        const maxFlowLength = Math.max(...Object.values(ONBOARDING_CHOICES).map((purpose) => getOnboardingFlow({...context, purposeSelected: purpose})?.length ?? 0));
+        const isPrivateDomain = !context.isFromPublicDomain && !!context.hasAccessibleDomainPolicies;
+        const maxFlowLength = prefix.length + 1 + (isPrivateDomain ? maxPrivateSuffixLength : maxSuffixLength);
         return {
             stepCounter: {step: index + 1},
             progressBarPercentage: Math.round(((index + 1) / maxFlowLength) * 100),
