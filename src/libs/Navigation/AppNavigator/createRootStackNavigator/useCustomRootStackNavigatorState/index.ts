@@ -1,6 +1,6 @@
-import {screensWithEnteringAnimation, workspaceOrDomainSplitsWithoutEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {CustomStateHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import reuseNavigatorKey from './reuseNavigatorKey';
 
 // This is an optimization to keep mounted only last few screens in the stack.
 export default function useCustomRootStackNavigatorState({state}: CustomStateHookProps) {
@@ -15,42 +15,10 @@ export default function useCustomRootStackNavigatorState({state}: CustomStateHoo
         indexToSlice = lastSplitIndex - 1;
     }
 
-    // Build map: navigator name → key of first occurrence in the full (unsliced) state.
-    // We need the full state so we find the first key even if it was sliced out.
-    const firstKeyMap = new Map<string, string>();
-    for (const route of state.routes) {
-        if (firstKeyMap.has(route.name)) {
-            continue;
-        }
-        firstKeyMap.set(route.name, route.key);
-    }
+    const routesToRender = state.routes.slice(indexToSlice, state.routes.length);
+    const remappedRoutes = reuseNavigatorKey(routesToRender, state);
 
-    const routesToRender = state.routes.slice(indexToSlice).map((route) => {
-        // Only remap keys for fullscreen (split) navigators. Intermediate screens like WorkspacesList
-        // must keep their own keys — remapping them causes the rendered state to look identical to
-        // the previous render, so React Navigation skips the transition and shows a blank screen.
-        if (!isFullScreenName(route.name)) {
-            return route;
-        }
+    debugger;
 
-        const firstKey = firstKeyMap.get(route.name);
-
-        if (firstKey && route.key !== firstKey) {
-            // Sync animation sets: the sets track keys added during getStateForAction (router level).
-            // Since rendered key changes from route.key → firstKey, we must remap the set entries
-            // so animation config (getFullscreenNavigatorOptions) picks up the right key.
-            if (screensWithEnteringAnimation.has(route.key)) {
-                screensWithEnteringAnimation.delete(route.key);
-                screensWithEnteringAnimation.add(firstKey);
-            }
-            if (workspaceOrDomainSplitsWithoutEnteringAnimation.has(route.key)) {
-                workspaceOrDomainSplitsWithoutEnteringAnimation.delete(route.key);
-                workspaceOrDomainSplitsWithoutEnteringAnimation.add(firstKey);
-            }
-            return {...route, key: firstKey};
-        }
-        return route;
-    });
-
-    return {...state, routes: routesToRender, index: routesToRender.length - 1};
+    return {...state, routes: remappedRoutes, index: remappedRoutes.length - 1};
 }
