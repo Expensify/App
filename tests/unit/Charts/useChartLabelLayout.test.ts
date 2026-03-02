@@ -58,6 +58,8 @@ describe('useChartLabelLayout', () => {
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAA', 'BBB', 'CCC'), font, tickSpacing: 30, labelAreaWidth: 90}));
             expect(result.current.labelRotation).toBe(-0);
             expect(result.current.truncatedLabels).toEqual(['AAA', 'BBB', 'CCC']);
+            expect(result.current.xAxisLabelHeight).toBe(LINE_HEIGHT);
+            expect(result.current.labelSkipInterval).toBe(1);
         });
 
         it('picks 45° when labels overflow horizontally but fit diagonally', () => {
@@ -66,6 +68,8 @@ describe('useChartLabelLayout', () => {
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), font, tickSpacing: 40, labelAreaWidth: 400}));
             expect(result.current.labelRotation).toBe(-45);
             expect(result.current.truncatedLabels).toEqual(['AAAAAA', 'BBBBBB']);
+            expect(result.current.xAxisLabelHeight).toBeCloseTo((42 + LINE_HEIGHT) * SIN_45, 5);
+            expect(result.current.labelSkipInterval).toBe(1);
         });
 
         it('picks 45° when labelAreaWidth is too narrow for 0° despite sufficient tickSpacing', () => {
@@ -220,7 +224,7 @@ describe('useChartLabelLayout', () => {
 
     describe('skip interval', () => {
         it('computes skip interval > 1 at 90° when too many labels for the area', () => {
-            // 10 labels, forced to 90°. verticalWidth = lineHeight = 16.
+            // 10 labels, forced to 90°. At 90°, effectiveWidth = lineHeight = 16.
             // maxVisibleCount(100, 16) = floor(100/20) = 5 < 10 → skip = ceil(10/5) = 2
             const labels = Array.from({length: 10}, (_, i) => `L${String(i).padStart(4, '0')}`);
             const {result} = renderHook(() => useChartLabelLayout({data: makeData(...labels), font, tickSpacing: 10, labelAreaWidth: 100}));
@@ -232,37 +236,7 @@ describe('useChartLabelLayout', () => {
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), font, tickSpacing: 10, labelAreaWidth: 400}));
             expect(result.current.labelRotation).toBe(-90);
             expect(result.current.labelSkipInterval).toBe(1);
-        });
-
-        it('never uses skip interval at 0° or 45°', () => {
-            const {result: h} = renderHook(() => useChartLabelLayout({data: makeData('AAA', 'BBB'), font, tickSpacing: 50, labelAreaWidth: 200}));
-            expect(h.current.labelRotation).toBe(-0);
-            expect(h.current.labelSkipInterval).toBe(1);
-
-            const {result: d} = renderHook(() => useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), font, tickSpacing: 40, labelAreaWidth: 400}));
-            expect(d.current.labelRotation).toBe(-45);
-            expect(d.current.labelSkipInterval).toBe(1);
-        });
-    });
-
-    describe('xAxisLabelHeight', () => {
-        it('equals lineHeight at 0°', () => {
-            const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAA', 'BBB'), font, tickSpacing: 50, labelAreaWidth: 200}));
-            expect(result.current.labelRotation).toBe(-0);
-            expect(result.current.xAxisLabelHeight).toBe(LINE_HEIGHT);
-        });
-
-        it('uses diagonal formula at 45°', () => {
-            // effectiveHeight = (finalMaxWidth + lineHeight) * SIN_45. finalMaxWidth = 42 (no truncation)
-            const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), font, tickSpacing: 40, labelAreaWidth: 400}));
-            expect(result.current.labelRotation).toBe(-45);
-            expect(result.current.xAxisLabelHeight).toBeCloseTo((42 + LINE_HEIGHT) * SIN_45, 5);
-        });
-
-        it('equals label width at 90°', () => {
-            // effectiveHeight at 90° = finalMaxWidth = 42
-            const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), font, tickSpacing: 10, labelAreaWidth: 400}));
-            expect(result.current.labelRotation).toBe(-90);
+            expect(result.current.truncatedLabels).toEqual(['AAAAAA', 'BBBBBB']);
             expect(result.current.xAxisLabelHeight).toBe(42);
         });
     });
@@ -270,20 +244,9 @@ describe('useChartLabelLayout', () => {
     describe('edge cases', () => {
         it('handles single data point', () => {
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAA'), font, tickSpacing: 50, labelAreaWidth: 50}));
+            expect(result.current.labelRotation).toBe(-0);
             expect(result.current.truncatedLabels).toEqual(['AAA']);
             expect(result.current.labelSkipInterval).toBe(1);
-        });
-
-        it('preserves all labels at 0° without truncation', () => {
-            const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAA', 'BBB'), font, tickSpacing: 50, labelAreaWidth: 200}));
-            expect(result.current.labelRotation).toBe(-0);
-            expect(result.current.truncatedLabels).toEqual(['AAA', 'BBB']);
-        });
-
-        it('preserves labels at 90° without truncation', () => {
-            const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), font, tickSpacing: 10, labelAreaWidth: 400}));
-            expect(result.current.labelRotation).toBe(-90);
-            expect(result.current.truncatedLabels).toEqual(['AAAAAA', 'BBBBBB']);
         });
     });
 });

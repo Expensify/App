@@ -36,8 +36,10 @@ describe('truncateLabel', () => {
         expect(truncateLabel('Text', 28, 20, ellipsisWidth)).toBe('...');
     });
 
-    it('keeps at least 1 character before ellipsis', () => {
+    it('keeps at least 1 character before ellipsis even when space is extremely tight', () => {
         // available = 25 - 21 = 4, maxChars = max(1, floor(6 * 4/42)) = 1
+        // Note: the hook enforces MIN_TRUNCATED_CHARS (10) so this extreme case
+        // only tests the pure function's floor behavior.
         expect(truncateLabel('ABCDEF', 42, 25, ellipsisWidth)).toBe('A...');
     });
 });
