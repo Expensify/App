@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
-import {getFakeReportAction} from '../utils/ReportTestUtils';
+import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -31,16 +31,6 @@ const CHILD_REPORT_ACTION_ID = '88888';
 
 const DEFAULT_ERROR_TIMESTAMP = Date.now() * 1000;
 const DEFAULT_ERRORS = {[DEFAULT_ERROR_TIMESTAMP]: 'Something went wrong. Please try again.'};
-
-function createMockReport(overrides: Partial<Report> = {}): Report {
-    return {
-        reportID: REPORT_ID,
-        reportName: 'Test Report',
-        type: CONST.REPORT.TYPE.CHAT,
-        ownerAccountID: ACTOR_ACCOUNT_ID,
-        ...overrides,
-    } as Report;
-}
 
 function getReportActionsFromOnyx(reportID: string): Promise<ReportActions | undefined> {
     return new Promise((resolve) => {
@@ -132,7 +122,7 @@ describe('ClearReportActionErrors UI', () => {
         it('should display error message when action has errors', async () => {
             // Given a report action with errors stored in Onyx
             const action = getFakeReportAction(Number(REPORT_ACTION_ID), {actorAccountID: ACTOR_ACCOUNT_ID, errors: DEFAULT_ERRORS});
-            const report = createMockReport();
+            const report = createMockReport({reportID: REPORT_ID, ownerAccountID: ACTOR_ACCOUNT_ID});
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
@@ -153,7 +143,7 @@ describe('ClearReportActionErrors UI', () => {
         it('should call clearAllRelatedReportActionErrors when error is dismissed', async () => {
             // Given a rendered report action with errors and a mock clear function
             const action = getFakeReportAction(Number(REPORT_ACTION_ID), {actorAccountID: ACTOR_ACCOUNT_ID, errors: DEFAULT_ERRORS});
-            const report = createMockReport();
+            const report = createMockReport({reportID: REPORT_ID, ownerAccountID: ACTOR_ACCOUNT_ID});
             const mockClearErrors = jest.fn();
 
             await act(async () => {
@@ -185,7 +175,7 @@ describe('ClearReportActionErrors UI', () => {
                 actorAccountID: ACTOR_ACCOUNT_ID,
                 errors: {[errorTimestamp]: 'Test error message'},
             });
-            const report = createMockReport();
+            const report = createMockReport({reportID: REPORT_ID, ownerAccountID: ACTOR_ACCOUNT_ID});
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
@@ -232,11 +222,12 @@ describe('ClearReportActionErrors UI', () => {
                 errors: sharedError,
             });
 
-            const parentReport = createMockReport();
+            const parentReport = createMockReport({reportID: REPORT_ID, ownerAccountID: ACTOR_ACCOUNT_ID});
             const childReport = createMockReport({
                 reportID: CHILD_REPORT_ID,
                 parentReportID: REPORT_ID,
                 parentReportActionID: REPORT_ACTION_ID,
+                ownerAccountID: ACTOR_ACCOUNT_ID,
             });
 
             await act(async () => {
@@ -281,7 +272,7 @@ describe('ClearReportActionErrors UI', () => {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 isOptimisticAction: true,
             });
-            const report = createMockReport();
+            const report = createMockReport({reportID: REPORT_ID, ownerAccountID: ACTOR_ACCOUNT_ID});
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);

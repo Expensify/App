@@ -1,9 +1,8 @@
 import Onyx from 'react-native-onyx';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions} from '@src/types/onyx';
-import {getFakeReportAction} from '../utils/ReportTestUtils';
+import type {ReportActions} from '@src/types/onyx';
+import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -13,15 +12,6 @@ const CHILD_REPORT_ID = '3';
 const REPORT_ACTION_ID = '100';
 const PARENT_REPORT_ACTION_ID = '200';
 const CHILD_REPORT_ACTION_ID = '300';
-
-function createMockReport(overrides: Partial<Report> = {}): Report {
-    return {
-        reportID: REPORT_ID,
-        reportName: 'Test Report',
-        type: CONST.REPORT.TYPE.CHAT,
-        ...overrides,
-    } as Report;
-}
 
 function getReportActionsFromOnyx(reportID: string): Promise<ReportActions | undefined> {
     return new Promise((resolve) => {
