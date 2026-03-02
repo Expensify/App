@@ -182,7 +182,7 @@ function SearchEditMultiplePage() {
         return value ? translate('common.yes') : translate('common.no');
     };
 
-    const fields: Array<{description: string; title: string; route: Route; disabled?: boolean}> = [
+    const fields: Array<{description: string; title: string; route: Route; disabled?: boolean; shouldParseTitle?: boolean}> = [
         {
             description: translate('iou.amount'),
             title: draftTransaction?.amount !== undefined ? convertToDisplayStringWithoutCurrency(draftTransaction.amount, currency) : '',
@@ -193,6 +193,7 @@ function SearchEditMultiplePage() {
             description: translate('common.description'),
             title: draftTransaction?.comment?.comment ?? '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP,
+            shouldParseTitle: true,
         },
         {
             description: translate('common.merchant'),
@@ -267,6 +268,7 @@ function SearchEditMultiplePage() {
                             shouldShowRightIcon={!field.disabled}
                             disabled={field.disabled}
                             interactive={!field.disabled}
+                            shouldParseTitle={field.shouldParseTitle}
                         />
                     ))}
                 </ScrollView>
