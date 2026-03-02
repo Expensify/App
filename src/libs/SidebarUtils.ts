@@ -187,6 +187,20 @@ import {getTaskReportActionMessage} from './TaskUtils';
 
 type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
 
+type WelcomeMessageParams = {
+    report: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
+    participantPersonalDetailList: PersonalDetails[];
+    translate: LocalizedTranslate;
+    localeCompare: LocaleContextProps['localeCompare'];
+    conciergeReportID: string | undefined;
+    isReportArchived?: boolean;
+    reportDetailsLink?: string;
+    shouldShowUsePlusButtonText?: boolean;
+    additionalText?: string;
+};
+
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
         return -1;
@@ -1096,8 +1110,16 @@ function getOptionData({
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(
-                    getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, conciergeReportID, isReportArchived)
-                        .messageText ?? translate('report.noActivityYet'),
+                    getWelcomeMessage({
+                        report,
+                        policy,
+                        invoiceReceiverPolicy,
+                        participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
+                        translate,
+                        localeCompare,
+                        conciergeReportID,
+                        isReportArchived,
+                    }).messageText ?? translate('report.noActivityYet'),
                 );
             }
         }
@@ -1105,9 +1127,17 @@ function getOptionData({
     } else {
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, conciergeReportID, isReportArchived)
-                    .messageText || translate('report.noActivityYet'),
+                getWelcomeMessage({
+                    report,
+                    policy,
+                    invoiceReceiverPolicy,
+                    participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
+                    translate,
+                    localeCompare,
+                    conciergeReportID,
+                    isReportArchived,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                }).messageText || translate('report.noActivityYet'),
             );
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
@@ -1161,19 +1191,21 @@ function getOptionData({
     return result;
 }
 
-function getWelcomeMessage(
-    report: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    invoiceReceiverPolicy: OnyxEntry<Policy>,
-    participantPersonalDetailList: PersonalDetails[],
-    translate: LocalizedTranslate,
-    localeCompare: LocaleContextProps['localeCompare'],
-    conciergeReportID: string | undefined,
-    isReportArchived = false,
-    reportDetailsLink = '',
-    shouldShowUsePlusButtonText = false,
-    additionalText = '',
-): WelcomeMessage {
+function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
+    const {
+        report,
+        policy,
+        invoiceReceiverPolicy,
+        participantPersonalDetailList,
+        translate,
+        localeCompare,
+        conciergeReportID,
+        isReportArchived = false,
+        reportDetailsLink = '',
+        shouldShowUsePlusButtonText = false,
+        additionalText = '',
+    } = params;
+
     const welcomeMessage: WelcomeMessage = {};
     if (isChatThread(report) || isTaskReport(report)) {
         return welcomeMessage;

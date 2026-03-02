@@ -1154,15 +1154,15 @@ describe('SidebarUtils', () => {
                         }),
                     )
                     .then(() => {
-                        const result = SidebarUtils.getWelcomeMessage(
-                            MOCK_REPORT,
-                            undefined,
-                            undefined,
+                        const result = SidebarUtils.getWelcomeMessage({
+                            report: MOCK_REPORT,
+                            policy: undefined,
+                            invoiceReceiverPolicy: undefined,
                             participantPersonalDetailList,
-                            translateLocal,
+                            translate: translateLocal,
                             localeCompare,
-                            MOCK_CONCIERGE_REPORT_ID,
-                        );
+                            conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                        });
                         expect(result.messageHtml).toContain('This chat is with');
                         expect(result.messageHtml).toContain('<user-details accountid="1">');
                         expect(result.messageHtml).toContain('<user-details accountid="2">');
@@ -1188,7 +1188,15 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, undefined, participantPersonalDetailList, translateLocal, localeCompare, MOCK_CONCIERGE_REPORT_ID);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList,
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
             expect(result.messageText).toBe('This chat is with Email One.');
             expect(result.messageHtml).toContain('<user-details accountid="1">Email One</user-details>');
         });
@@ -1211,7 +1219,15 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, undefined, participantPersonalDetailList, translateLocal, localeCompare, MOCK_CONCIERGE_REPORT_ID);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList,
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
             expect(result.messageText).toMatch(/^This chat is with .+ and .+\.$/);
             expect(result.messageText).toContain(' and ');
             expect(result.messageText).not.toContain('<user-details');
@@ -1236,7 +1252,15 @@ describe('SidebarUtils', () => {
                 });
             });
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, undefined, participantPersonalDetailList, translateLocal, localeCompare, MOCK_CONCIERGE_REPORT_ID);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList,
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
             expect(result.messageText).toMatch(/^This chat is with .+, .+, and .+\.$/);
             expect(result.messageText).toContain(', and ');
             expect(result.messageText).not.toContain('<user-details');
@@ -1271,16 +1295,16 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(
-                            MOCK_REPORT,
-                            undefined,
-                            undefined,
+                        return SidebarUtils.getWelcomeMessage({
+                            report: MOCK_REPORT,
+                            policy: undefined,
+                            invoiceReceiverPolicy: undefined,
                             participantPersonalDetailList,
-                            translateLocal,
+                            translate: translateLocal,
                             localeCompare,
-                            MOCK_CONCIERGE_REPORT_ID,
-                            isReportArchived.current,
-                        );
+                            conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                            isReportArchived: isReportArchived.current,
+                        });
                     })
 
                     // Then the welcome message should indicate the report is archived
@@ -1310,16 +1334,16 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(
-                            MOCK_REPORT,
-                            undefined,
-                            undefined,
+                        return SidebarUtils.getWelcomeMessage({
+                            report: MOCK_REPORT,
+                            policy: undefined,
+                            invoiceReceiverPolicy: undefined,
                             participantPersonalDetailList,
-                            translateLocal,
+                            translate: translateLocal,
                             localeCompare,
-                            MOCK_CONCIERGE_REPORT_ID,
-                            isReportArchived.current,
-                        );
+                            conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                            isReportArchived: isReportArchived.current,
+                        });
                     })
 
                     // Then the welcome message should explain the purpose of the room
@@ -1352,7 +1376,15 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const result = SidebarUtils.getWelcomeMessage(invoiceRoom, senderPolicy, invoiceReceiverPolicy, [], translateLocal, localeCompare, MOCK_CONCIERGE_REPORT_ID);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: invoiceRoom,
+                policy: senderPolicy,
+                invoiceReceiverPolicy,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
 
             expect(result.messageText).toContain('Client Corporation');
             expect(result.messageText).toContain('Vendor Workspace');
@@ -1380,7 +1412,15 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const result = SidebarUtils.getWelcomeMessage(invoiceRoom, senderPolicy, undefined, [], translateLocal, localeCompare, MOCK_CONCIERGE_REPORT_ID);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: invoiceRoom,
+                policy: senderPolicy,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
 
             // When invoiceReceiverPolicy is undefined (individual payer), it should handle gracefully
             expect(result.messageText).toBeTruthy();
@@ -1408,7 +1448,15 @@ describe('SidebarUtils', () => {
                 policyName: policy.name,
             };
 
-            const result = SidebarUtils.getWelcomeMessage(regularRoom, policy, invoiceReceiverPolicy, [], translateLocal, localeCompare, MOCK_CONCIERGE_REPORT_ID);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: regularRoom,
+                policy,
+                invoiceReceiverPolicy,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
 
             // Should not contain invoice-specific messaging
             expect(result.messageText).not.toContain('Some Policy');
@@ -1441,17 +1489,17 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const result = SidebarUtils.getWelcomeMessage(
-                archivedInvoiceRoom,
-                senderPolicy,
+            const result = SidebarUtils.getWelcomeMessage({
+                report: archivedInvoiceRoom,
+                policy: senderPolicy,
                 invoiceReceiverPolicy,
-                [],
-                translateLocal,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
                 localeCompare,
-                MOCK_CONCIERGE_REPORT_ID,
-                true, // isReportArchived
-                'https://example.com/report',
-            );
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                isReportArchived: true,
+                reportDetailsLink: 'https://example.com/report',
+            });
 
             // Should show archived message
             expect(result.messageText).toContain('You missed the party');
@@ -1477,15 +1525,15 @@ describe('SidebarUtils', () => {
                 },
             };
 
-            const result = SidebarUtils.getWelcomeMessage(
-                invoiceRoom,
-                senderPolicy,
-                undefined, // invoiceReceiverPolicy is undefined
-                [],
-                translateLocal,
+            const result = SidebarUtils.getWelcomeMessage({
+                report: invoiceRoom,
+                policy: senderPolicy,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
                 localeCompare,
-                MOCK_CONCIERGE_REPORT_ID,
-            );
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
 
             // Should still return a message, even if invoiceReceiverPolicy is missing
             expect(result.messageText).toBeTruthy();
@@ -1512,7 +1560,15 @@ describe('SidebarUtils', () => {
             });
 
             // When the report ID matches the conciergeReportID, the welcome message should be the concierge message
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, undefined, participantPersonalDetailList, translateLocal, localeCompare, conciergeReportID);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList,
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID,
+            });
             expect(result.messageText).toBe('This is your chat with Concierge, your personal AI agent. I can do almost anything, try me!');
         });
 
@@ -1535,7 +1591,15 @@ describe('SidebarUtils', () => {
             });
 
             // When the report ID does NOT match the conciergeReportID, the welcome message should be the normal DM message
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, undefined, participantPersonalDetailList, translateLocal, localeCompare, MOCK_CONCIERGE_REPORT_ID);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList,
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
             expect(result.messageText).toBe('This chat is with Email One.');
             expect(result.messageText).not.toContain('Concierge');
         });
@@ -1549,7 +1613,15 @@ describe('SidebarUtils', () => {
                 parentReportActionID: 'action-456',
             };
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, undefined, [], translateLocal, localeCompare, MOCK_CONCIERGE_REPORT_ID);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
             expect(result.messageHtml).toBeUndefined();
             expect(result.messageText).toBeUndefined();
         });
@@ -1561,7 +1633,15 @@ describe('SidebarUtils', () => {
                 type: 'chat',
             };
 
-            const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, undefined, [], translateLocal, localeCompare, MOCK_CONCIERGE_REPORT_ID);
+            const result = SidebarUtils.getWelcomeMessage({
+                report: MOCK_REPORT,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                participantPersonalDetailList: [],
+                translate: translateLocal,
+                localeCompare,
+                conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+            });
             expect(result.messageText).toBeTruthy();
             expect(result.messageText).not.toContain('Concierge');
         });
