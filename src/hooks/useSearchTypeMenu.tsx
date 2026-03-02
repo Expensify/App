@@ -49,6 +49,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const taxRates = getAllTaxRates(allPolicies);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -127,6 +128,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                     autoCompleteWithSpace: false,
                     translate,
                     feedKeysWithCards,
+                    conciergeReportID,
                 });
             }
 
@@ -180,6 +182,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         allPolicies,
         currentUserAccountID,
         translate,
+        conciergeReportID,
     ]);
 
     const activeItemIndex = useMemo(() => {

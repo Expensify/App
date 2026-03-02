@@ -43,6 +43,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {showDeleteModal} = useDeleteSavedSearch();
     const {
@@ -74,6 +75,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
                 autoCompleteWithSpace: false,
                 translate,
                 feedKeysWithCards,
+                conciergeReportID,
             });
         }
 

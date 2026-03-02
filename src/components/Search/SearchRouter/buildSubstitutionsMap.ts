@@ -35,6 +35,7 @@ function buildSubstitutionsMap(
     policies: OnyxCollection<Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
+    conciergeReportID: string | undefined,
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
@@ -73,7 +74,18 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
-            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, translate);
+            const displayValue = getFilterDisplayValue({
+                filterName: filterKey,
+                filterValue,
+                personalDetails,
+                reports,
+                cardList,
+                cardFeeds,
+                policies,
+                currentUserAccountID,
+                translate,
+                conciergeReportID,
+            });
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {
