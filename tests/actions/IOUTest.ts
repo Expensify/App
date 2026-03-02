@@ -4274,6 +4274,8 @@ describe('actions/IOU', () => {
             const createdTransaction = Object.values(allTransactions ?? {}).at(0);
             expect(createdTransaction).toBeTruthy();
             expect(createdTransaction?.comment?.comment).toBe('Odometer test');
+            expect(createdTransaction?.comment?.odometerStart).toBe(10000);
+            expect(createdTransaction?.comment?.odometerEnd).toBe(10050);
         });
 
         it('creates distance request with category in policy expense chat', async () => {
