@@ -1969,12 +1969,10 @@ function getActions(
 
 /**
  * @private
- * Returns the main action that can be taken on a given transaction or report
- *
- * Do not use directly, use only via `getSections()` facade.
+ * Returns the primary action to show in the Action column for a given transaction or report
  */
 function getAction(allActions: SearchTransactionAction[]) {
-    // VIEW should take precedence over CHANGE_APPROVER
+    // Do not set CHANGE_APPROVER as the primary action as it is less frequently used than VIEW
     return allActions.find((action) => action !== CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER) ?? CONST.SEARCH.ACTION_TYPES.VIEW;
 }
 

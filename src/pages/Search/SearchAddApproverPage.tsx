@@ -146,7 +146,7 @@ function SearchAddApproverPage() {
             );
         }
 
-        // This actually clears selected reports as well
+        // Note: This clears both reports and transactions
         clearSelectedTransactions();
     };
 
