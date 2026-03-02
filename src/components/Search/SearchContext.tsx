@@ -4,7 +4,7 @@ import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import usePrevious from '@hooks/usePrevious';
+import usePreviousDefined from '@hooks/usePreviousDefined';
 import useTodos from '@hooks/useTodos';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -79,7 +79,12 @@ const SearchStateContext = React.createContext<SearchStateContextValue>(defaultS
 const SearchActionsContext = React.createContext<SearchActionsContextValue>(defaultSearchActionsContext);
 
 function SearchContextProvider({children, params}: SearchContextProps) {
+    const queryParam = params?.q ?? '';
+    const rawQueryParam = params?.rawQuery ?? '';
+    const queryJSON = queryParam ? buildSearchQueryJSON(queryParam, rawQueryParam) : undefined;
+
     const areTransactionsEmpty = useRef(true);
+    const currentSearchQueryJSON = usePreviousDefined(queryJSON);
 
     const [lastSearchType, setLastSearchType] = useState<string>();
     const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
@@ -87,21 +92,12 @@ function SearchContextProvider({children, params}: SearchContextProps) {
     const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
     const [searchContextData, setSearchContextData] = useState({...defaultSearchContextData});
 
-    const queryParam = params?.q ?? '';
-    const rawQueryParam = params?.rawQuery ?? '';
-
-    const currentSearchQueryJSON = useMemo(() => {
-        return queryParam ? buildSearchQueryJSON(queryParam, rawQueryParam) : undefined;
-    }, [queryParam, rawQueryParam]);
-    const previousSearchQueryJSON = usePrevious(currentSearchQueryJSON);
-    const searchQueryJSON = currentSearchQueryJSON ?? previousSearchQueryJSON;
-
     const selectedReports = searchContextData.selectedReports;
     const selectedTransactions = searchContextData.selectedTransactions;
     const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
-    const currentSearchHash = searchQueryJSON?.hash ?? -1;
-    const currentRecentSearchHash = searchQueryJSON?.recentSearchHash ?? -1;
-    const currentSimilarSearchHash = searchQueryJSON?.similarSearchHash ?? -1;
+    const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
+    const currentRecentSearchHash = currentSearchQueryJSON?.recentSearchHash ?? -1;
+    const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
 
     const todoSearchResultsData = useTodos();
     const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`);
@@ -277,7 +273,6 @@ function SearchContextProvider({children, params}: SearchContextProps) {
         lastSearchType,
         shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
-        currentSearchQueryJSON: searchQueryJSON,
     };
 
     const searchActionsContextValue: SearchActionsContextValue = {
