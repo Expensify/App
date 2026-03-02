@@ -36,6 +36,7 @@ const WRITE_COMMANDS = {
     RECONNECT_APP: 'ReconnectApp',
     HANDLE_RESTRICTED_EVENT: 'HandleRestrictedEvent',
     OPEN_REPORT: 'OpenReport',
+    OPEN_BULK_CHANGE_APPROVER_PAGE: 'OpenBulkChangeApproverPage',
     DELETE_PAYMENT_BANK_ACCOUNT: 'DeletePaymentBankAccount',
     UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT: 'UpdatePersonalInformationForBankAccount',
     VALIDATE_BANK_ACCOUNT_WITH_TRANSACTIONS: 'ValidateBankAccountWithTransactions',
@@ -575,6 +576,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.OPEN_APP]: Parameters.OpenAppParams;
     [WRITE_COMMANDS.HANDLE_RESTRICTED_EVENT]: Parameters.HandleRestrictedEventParams;
     [WRITE_COMMANDS.OPEN_REPORT]: Parameters.OpenReportParams;
+    [WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE]: Parameters.OpenBulkChangeApproverPageParams;
     [WRITE_COMMANDS.DELETE_PAYMENT_BANK_ACCOUNT]: Parameters.DeletePaymentBankAccountParams;
     [WRITE_COMMANDS.UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT]: Parameters.UpdatePersonalInformationForBankAccountParams;
     [WRITE_COMMANDS.VALIDATE_BANK_ACCOUNT_WITH_TRANSACTIONS]: Parameters.ValidateBankAccountWithTransactionsParams;
@@ -1161,7 +1163,6 @@ const READ_COMMANDS = {
     OPEN_PLAID_CARDS_BANK_LOGIN: 'OpenPlaidCardsBankLogin',
     OPEN_PLAID_BANK_ACCOUNT_SELECTOR: 'OpenPlaidBankAccountSelector',
     OPEN_SEARCH_PAGE: 'OpenSearchPage',
-    OPEN_BULK_CHANGE_APPROVER_PAGE: 'OpenBulkChangeApproverPage',
     SEARCH: 'Search',
     GET_OLDER_ACTIONS: 'GetOlderActions',
     GET_NEWER_ACTIONS: 'GetNewerActions',
@@ -1267,7 +1268,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE]: null;
     [READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE]: null;
     [READ_COMMANDS.OPEN_SEARCH_PAGE]: Parameters.OpenSearchPageParams;
-    [READ_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE]: Parameters.OpenBulkChangeApproverPageParams;
     [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
     [READ_COMMANDS.BEGIN_SIGNIN]: Parameters.BeginSignInParams;
     [READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN]: Parameters.SignInWithShortLivedAuthTokenParams;

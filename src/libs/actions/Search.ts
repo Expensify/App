@@ -399,7 +399,23 @@ function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParam
 }
 
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
-    API.read(READ_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE, {reportIDList});
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE,
+            value: true,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE,
+            value: false,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE, {reportIDList}, {optimisticData, successData});
 }
 
 let shouldPreventSearchAPI = false;

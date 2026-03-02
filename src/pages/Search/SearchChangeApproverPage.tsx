@@ -46,32 +46,30 @@ function SearchChangeApproverPage() {
     const {clearSelectedTransactions} = useSearchActionsContext();
     const {selectedReports} = useSearchStateContext();
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const [isLoadingBulkChangeApproverPage = true] = useOnyx(ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE);
     const {isOffline} = useNetwork();
     const [isSaving, setIsSaving] = useState(false);
-    const hasAutoAppliedRef = useRef(false);
-    const hasNavigatedToAddApproverRef = useRef(false);
 
     const getOnyxReports = (allReports: OnyxCollection<Report>) => {
-        const reports = new Map<string, Report>();
+        const reports = Object.create(null) as Record<string, Report>;
         for (const selectedReport of selectedReports) {
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
             if (!report?.reportID) {
                 continue;
             }
-            reports.set(report.reportID, report);
+            reports[report.reportID] = report;
         }
         return reports;
     };
-
-    // React Compiler automatically memoizes the selector, so we can suppress the ESLint rule
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [onyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getOnyxReports});
 
+    const prevSelectedReportsLength = useRef(0);
     useEffect(() => {
-        if (!hasLoadedApp || !selectedReports.length) {
+        if (!hasLoadedApp || !selectedReports.length || prevSelectedReportsLength.current === selectedReports.length) {
             return;
         }
 
+        prevSelectedReportsLength.current = selectedReports.length;
         openBulkChangeApproverPage(selectedReports.map((selectedReport) => selectedReport.reportID).filter((selectedReportID) => undefined !== selectedReportID));
     }, [hasLoadedApp, selectedReports]);
 
@@ -94,7 +92,6 @@ function SearchChangeApproverPage() {
         }
 
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
-            hasNavigatedToAddApproverRef.current = true;
             const policiesToUpgrade = selectedPolicies.filter((policy) => !isControlPolicy(policy));
             if (policiesToUpgrade.length > 1) {
                 // Bulk upgrade is not supported, so show a general page to guide the user to upgrade manually
@@ -115,7 +112,7 @@ function SearchChangeApproverPage() {
         setIsSaving(true);
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            const report = selectedReport.reportID ? onyxReports?.get(selectedReport.reportID) : undefined;
+            const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
             if (!policy || !report) {
                 continue;
             }
@@ -143,7 +140,7 @@ function SearchChangeApproverPage() {
 
         const hasPermission = selectedReports.every((selectedReport) => {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            const report = selectedReport.reportID ? onyxReports?.get(selectedReport.reportID) : undefined;
+            const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
 
             if (!policy || !report) {
                 return false;
@@ -155,7 +152,7 @@ function SearchChangeApproverPage() {
         const shouldShowBypassApproversOption =
             hasPermission &&
             selectedReports.some((selectedReport) => {
-                const report = selectedReport.reportID ? onyxReports?.get(selectedReport.reportID) : undefined;
+                const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
 
                 if (!report) {
                     return false;
@@ -176,18 +173,6 @@ function SearchChangeApproverPage() {
         return data;
     };
     const approverTypes = getApproverTypes();
-
-    useEffect(() => {
-        if (selectedApproverType === undefined && approverTypes.length > 0) {
-            setSelectedApproverType(approverTypes.at(0)?.keyForList);
-            return;
-        }
-
-        if (!hasAutoAppliedRef.current && approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList && !hasNavigatedToAddApproverRef.current) {
-            hasAutoAppliedRef.current = true;
-            changeApprover();
-        }
-    }, [approverTypes, selectedApproverType, changeApprover]);
 
     useEffect(() => {
         if (selectedReports.length && approverTypes.at(0)) {
@@ -218,7 +203,7 @@ function SearchChangeApproverPage() {
             <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.bulkSubtitle')}</Text>
         );
 
-    if ((!isOffline && onyxReports?.size !== selectedReports.length) || isSaving) {
+    if ((!isOffline && isLoadingBulkChangeApproverPage) || isSaving) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
@@ -228,13 +213,13 @@ function SearchChangeApproverPage() {
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             // Show the non-blocking offline indicator if reports are available in Onyx, otherwise show the blocking offline view because this page requires the Onyx data
-            shouldShowOfflineIndicator={onyxReports?.size === selectedReports.length}
+            shouldShowOfflineIndicator={!isLoadingBulkChangeApproverPage}
         >
             <HeaderWithBackButton
                 title={translate('iou.changeApprover.title')}
                 onBackButtonPress={Navigation.goBack}
             />
-            {onyxReports?.size !== selectedReports.length && !!isOffline ? (
+            {!!isLoadingBulkChangeApproverPage && !!isOffline ? (
                 <FullPageOfflineBlockingView>
                     <View />
                 </FullPageOfflineBlockingView>
