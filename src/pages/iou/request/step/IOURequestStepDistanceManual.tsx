@@ -105,7 +105,6 @@ function IOURequestStepDistanceManual({
 
     const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy), [iouType, defaultExpensePolicy]);
 
-    const customUnitRateID = getRateID(transaction);
     // to make sure the correct distance amount and unit will be shown we use distance unit
     // from defaultExpensePolicy or current report's policy instead of from transaction and
     // then we use transaction data (distanceUnit and quantity) for conversions
@@ -210,7 +209,6 @@ function IOURequestStepDistanceManual({
                 transactionID,
                 reportAttributesDerived,
                 personalDetails,
-                customUnitRateID,
                 manualDistance: distanceAsFloat,
                 currentUserLogin: currentUserEmailParam,
                 currentUserAccountID: currentUserAccountIDParam,
@@ -248,7 +246,6 @@ function IOURequestStepDistanceManual({
             reportID,
             reportAttributesDerived,
             personalDetails,
-            customUnitRateID,
             currentUserEmailParam,
             currentUserAccountIDParam,
             backTo,
