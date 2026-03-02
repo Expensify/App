@@ -3124,15 +3124,15 @@ describe('SearchUIUtils', () => {
             expect(result.end).toBe('2025-06-20');
         });
 
-        // These tests use LAST_MONTH preset which resolves dynamically from new Date(),
-        // so we freeze time to February 2026 to make LAST_MONTH = January 2026 deterministically.
-        describe('date preset intersection with frozen time', () => {
-            beforeAll(() => {
+        // These tests use LAST_MONTH date preset which resolves relative to the current date,
+        // so we freeze the clock to February 2026 to ensure LAST_MONTH always means January 2026.
+        describe('date preset intersection with frozen clock', () => {
+            beforeEach(() => {
                 jest.useFakeTimers();
-                jest.setSystemTime(new Date('2026-02-15'));
+                jest.setSystemTime(new Date('2026-02-15T12:00:00Z'));
             });
 
-            afterAll(() => {
+            afterEach(() => {
                 jest.useRealTimers();
             });
 
@@ -6170,6 +6170,25 @@ describe('SearchUIUtils', () => {
             // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
             // instead of the transaction thread report
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
+        });
+
+        test('Should fallback to childReportID from IOU action when transaction thread report is not in Onyx', async () => {
+            const childReportID = 'child-thread-456';
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const multiTransactionItem = transactionsListItems.at(2) as TransactionListItemType;
+            const iouActionWithChild = {
+                ...reportAction3,
+                childReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID3}`, {
+                [iouActionWithChild.reportActionID]: iouActionWithChild,
+            });
+            await waitForBatchedUpdates();
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(multiTransactionItem, introSelectedData, backTo, undefined, undefined, true);
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo}));
         });
 
         test('Should pass introSelected to createTransactionThreadReport when creating thread', () => {
