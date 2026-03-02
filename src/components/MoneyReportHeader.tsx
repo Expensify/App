@@ -429,7 +429,7 @@ function MoneyReportHeader({
     );
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
-    const isDistanceExpenseUnspportedForDuplicating = isDistanceRequest(transaction) && (isArchivedReport || isChatReportArchived || isDM(chatReport) || isSelfDM(chatReport));
+    const isDistanceExpenseUnsupportedForDuplicating = isDistanceRequest(transaction) && (isArchivedReport || isChatReportArchived || isDM(chatReport) || isSelfDM(chatReport));
 
     const [duplicateDistanceErrorModalVisible, setDuplicateDistanceErrorModalVisible] = useState(false);
     const [rateErrorModalVisible, setRateErrorModalVisible] = useState(false);
@@ -1449,7 +1449,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                if (isDistanceExpenseUnspportedForDuplicating) {
+                if (isDistanceExpenseUnsupportedForDuplicating) {
                     setDuplicateDistanceErrorModalVisible(true);
                     return;
                 }
