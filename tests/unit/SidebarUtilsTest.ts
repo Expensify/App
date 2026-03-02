@@ -3383,7 +3383,9 @@ describe('SidebarUtils', () => {
                 lastVisibleActionCreated: '2025-01-20 12:30:03.784',
                 participants: {'18921695': {notificationPreference: 'always'}},
             };
-            const lastAction: ReportAction = {
+            // Use `as ReportAction` instead of `: ReportAction` annotation to avoid
+            // discriminated union narrowing issues with originalMessage fields.
+            const lastAction = {
                 ...createRandomReportAction(2),
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE,
                 actorAccountID: 18921695,
@@ -3395,7 +3397,7 @@ describe('SidebarUtils', () => {
                     field: 'category',
                     approverName: 'Jane Smith',
                 },
-            };
+            } as ReportAction;
             const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
             await act(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
