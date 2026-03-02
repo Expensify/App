@@ -1,5 +1,5 @@
 import {Image as ExpoImage} from 'expo-image';
-import type {ImageLoadEventData, ImageProps as ExpoImageProps} from 'expo-image';
+import type {ImageProps as ExpoImageProps, ImageLoadEventData} from 'expo-image';
 import {useCallback, useContext, useEffect, useRef} from 'react';
 import type {AttachmentSource} from '@components/Attachments/types';
 import getImageRecyclingKey from '@libs/getImageRecyclingKey';
