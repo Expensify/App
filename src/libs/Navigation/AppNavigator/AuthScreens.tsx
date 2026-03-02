@@ -1,5 +1,5 @@
 import type {RouteProp} from '@react-navigation/native';
-import {useNavigationState} from '@react-navigation/native';
+import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
@@ -39,10 +39,11 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+import Navigation, {isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import useNavigateTo3DSAuthorizationChallenge from '@libs/Navigation/useNavigateTo3DSAuthorizationChallenge';
 import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -183,7 +184,7 @@ function AuthScreens() {
     isLoadingAppRef.current = isLoadingApp;
 
     // We can't rely on useRoute in this component because we're not a child of a Navigator, so we must sift through nav state by hand
-    const focusedScreen = useNavigationState((state) => getDeepestFocusedScreen(state));
+    const focusedScreen = useNavigationState((state) => findFocusedRoute(state));
     const focusedScreenName = focusedScreen?.name;
     const focusedScreenParams = focusedScreen?.params;
 
@@ -197,6 +198,7 @@ function AuthScreens() {
 
         return focusedScreenParams as PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>['route']['params'];
     }, [focusedScreenName, focusedScreenParams]);
+    useNavigateTo3DSAuthorizationChallenge();
 
     const handleNetworkReconnect = () => {
         if (isLoadingAppRef.current) {

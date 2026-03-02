@@ -108,7 +108,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
-import {getGlobalFetchMock, getOnyxData, localeCompare, setPersonalDetails, signInWithTestUser, translateLocal} from '../utils/TestHelper';
+import {getGlobalFetchMock, getOnyxData, localeCompare, setPersonalDetails, signInWithTestUser, toLocaleDigit, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
@@ -4275,6 +4275,8 @@ describe('actions/IOU', () => {
             const createdTransaction = Object.values(allTransactions ?? {}).at(0);
             expect(createdTransaction).toBeTruthy();
             expect(createdTransaction?.comment?.comment).toBe('Odometer test');
+            expect(createdTransaction?.comment?.odometerStart).toBe(10000);
+            expect(createdTransaction?.comment?.odometerEnd).toBe(10050);
         });
 
         it('creates distance request with category in policy expense chat', async () => {
@@ -11560,7 +11562,10 @@ describe('actions/IOU', () => {
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
                 newReport: result.current.report,
+                policy: mockPolicy,
                 allTransactions,
+                translate: translateLocal,
+                toLocaleDigit,
             });
 
             let updatedTransaction: OnyxEntry<Transaction>;
@@ -14529,7 +14534,7 @@ describe('actions/IOU', () => {
             // Call should not throw when personalDetails is provided
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
-                    transactions: [transaction],
+                    transactionIDs: [transactionID],
                     iouReport,
                     chatReport,
                     isASAPSubmitBetaEnabled: false,
@@ -14599,7 +14604,7 @@ describe('actions/IOU', () => {
             // Even if no transactions are provided, it should not throw
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
-                    transactions: [],
+                    transactionIDs: [],
                     iouReport,
                     chatReport,
                     isASAPSubmitBetaEnabled: false,
@@ -14639,7 +14644,7 @@ describe('actions/IOU', () => {
             // Should not throw even with empty personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
-                    transactions: [],
+                    transactionIDs: [],
                     iouReport,
                     chatReport,
                     isASAPSubmitBetaEnabled: false,
@@ -14679,7 +14684,7 @@ describe('actions/IOU', () => {
             // Should not throw even with undefined personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
-                    transactions: [],
+                    transactionIDs: [],
                     iouReport,
                     chatReport,
                     isASAPSubmitBetaEnabled: false,
