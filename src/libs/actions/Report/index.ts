@@ -366,6 +366,7 @@ Onyx.connect({
     },
 });
 
+
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;

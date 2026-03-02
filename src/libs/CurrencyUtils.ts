@@ -11,7 +11,12 @@ import {format, formatToParts} from './NumberFormatUtils';
  * @param currency - IOU currency
  */
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD, currencies?: CurrencyList): number {
-    const decimals = currencies?.[currency]?.decimals;
+    const normalizedCurrency = currency.toUpperCase();
+    const decimals = currencies?.[normalizedCurrency]?.decimals;
+    if (decimals !== undefined) {
+        return decimals;
+    }
+
     return decimals ?? 2;
 }
 
@@ -40,7 +45,7 @@ function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: st
  * Get the currency symbol for a currency(ISO 4217) Code
  */
 function getCurrencySymbol(currencyCode: string, currencies?: CurrencyList): string | undefined {
-    return currencies?.[currencyCode]?.symbol;
+    return currencies?.[currencyCode.toUpperCase()]?.symbol;
 }
 
 /**
@@ -188,7 +193,9 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
  * Checks if passed currency code is a valid currency based on currency list
  */
 function isValidCurrencyCode(currencyCode: string, currencies?: CurrencyList): boolean {
-    const currency = currencies?.[currencyCode];
+    const normalizedCurrencyCode = currencyCode.toUpperCase();
+
+    const currency = currencies?.[normalizedCurrencyCode];
     return !!currency;
 }
 
