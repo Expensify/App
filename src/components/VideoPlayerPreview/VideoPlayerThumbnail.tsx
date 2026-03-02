@@ -45,7 +45,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
             )}
             {!isDeleted ? (
                 <ShowContextMenuContext.Consumer>
-                    {({anchor, report, isReportArchived, action, checkIfContextMenuActive, isDisabled, onShowContextMenu, shouldDisplayContextMenu}) => (
+                    {({anchor, report, action, checkIfContextMenuActive, isDisabled, onShowContextMenu, shouldDisplayContextMenu}) => (
                         <PressableWithoutFeedback
                             style={[styles.videoThumbnailContainer]}
                             accessibilityLabel={accessibilityLabel}

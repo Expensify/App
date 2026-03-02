@@ -74,7 +74,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({onShowContextMenu, anchor, report, isReportArchived, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
+            {({onShowContextMenu, anchor, report, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                 <Text
                     suppressHighlighting
                     onLongPress={(event) => {

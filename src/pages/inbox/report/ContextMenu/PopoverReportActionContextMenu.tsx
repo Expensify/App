@@ -104,13 +104,13 @@ function PopoverContextMenuContent({
     return (
         <FocusTrapForModal active={!isSmallScreenWidth && (isPopoverVisible || shouldKeepOpen)}>
             <View>
-                {hasEmoji && (
+                {hasEmoji && emojiData.reportActionID != null && (
                     <QuickEmojiReactions
                         closeContextMenu={emojiData.closeContextMenu}
                         onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
                             emojiData.interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
                         }
-                        reportActionID={emojiData.reportActionID ?? ''}
+                        reportActionID={emojiData.reportActionID}
                         reportAction={emojiData.reportAction}
                         setIsEmojiPickerActive={(active) => {
                             if (!active) {

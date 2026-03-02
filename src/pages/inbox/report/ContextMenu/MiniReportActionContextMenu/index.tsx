@@ -38,7 +38,7 @@ function MiniContextMenuContent({visibleActionIDs}: {visibleActionIDs: Set<strin
 
     return (
         <>
-            {hasEmoji && emojiData.reportAction && emojiData.reportActionID && (
+            {hasEmoji && !!emojiData.reportAction && !!emojiData.reportActionID && (
                 <MiniQuickEmojiReactions
                     onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
                         emojiData.interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
@@ -70,14 +70,14 @@ function MiniContextMenuContent({visibleActionIDs}: {visibleActionIDs: Set<strin
                 (() => {
                     const {buttonRef, text, onPress, sentryLabel, icon} = overflowMenu;
                     return (
-                    <BaseMiniContextMenuItem
-                        ref={buttonRef}
-                        isDelayButtonStateComplete
-                        tooltipText={text}
-                        onPress={onPress}
-                        shouldPreventDefaultFocusOnPress={false}
-                        sentryLabel={sentryLabel ?? ''}
-                    >
+                        <BaseMiniContextMenuItem
+                            ref={buttonRef}
+                            isDelayButtonStateComplete
+                            tooltipText={text}
+                            onPress={onPress}
+                            shouldPreventDefaultFocusOnPress={false}
+                            sentryLabel={sentryLabel ?? ''}
+                        >
                             {({hovered, pressed}) => (
                                 <Icon
                                     small
