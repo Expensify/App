@@ -113,13 +113,19 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
 
+    // Victory's domainPadding extends the data domain, not the pixel range directly.
+    // The actual pixel offset for the first tick is smaller than domainPadding when
+    // the padding is large relative to the plot area.
+    const totalDomainPadding = domainPadding.left + domainPadding.right;
+    const paddingScale = plotAreaWidth > 0 ? plotAreaWidth / (plotAreaWidth + totalDomainPadding) : 0;
+
     const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
         data,
         font,
         tickSpacing,
         labelAreaWidth: plotAreaWidth,
-        firstTickLeftSpace: boundsLeft,
-        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight : 0,
+        firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
+        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
         allowTightDiagonalPacking: true,
     });
 

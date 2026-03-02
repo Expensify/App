@@ -75,15 +75,6 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         setChartWidth(event.nativeEvent.layout.width);
     }, []);
 
-    const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
-        data,
-        font,
-        tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
-        labelAreaWidth: barAreaWidth,
-        firstTickLeftSpace: boundsLeft,
-        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight : 0,
-    });
-
     const domainPadding = useMemo(() => {
         if (chartWidth === 0) {
             return BASE_DOMAIN_PADDING;
@@ -91,6 +82,18 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, BAR_INNER_PADDING);
         return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
     }, [chartWidth, data.length]);
+
+    const totalDomainPadding = domainPadding.left + domainPadding.right;
+    const paddingScale = barAreaWidth > 0 ? barAreaWidth / (barAreaWidth + totalDomainPadding) : 0;
+
+    const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
+        data,
+        font,
+        tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
+        labelAreaWidth: barAreaWidth,
+        firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
+        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
+    });
 
     const {formatValue} = useChartLabelFormats({
         data,

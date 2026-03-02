@@ -22,12 +22,16 @@ function ChartXAxisLabels({labels, labelRotation, labelSkipInterval, font, label
     const fontMetrics = font.getMetrics();
     const ascent = Math.abs(fontMetrics.ascent);
     const descent = Math.abs(fontMetrics.descent);
-    const labelY = chartBoundsBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad);
     const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
 
     const labelWidths = useMemo(() => {
         return labels.map((label) => measureTextWidth(label, font));
     }, [labels, font]);
+
+    // Centered labels extend upward by (maxWidth/2)*sin(angle) from the anchor;
+    // push the anchor down so the top of the bounding box clears chartBoundsBottom.
+    const centeredUpwardOffset = centerRotatedLabels && angleRad > 0 ? (Math.max(...labelWidths) / 2) * Math.sin(angleRad) : 0;
+    const labelY = chartBoundsBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset;
 
     return labels.map((label, i) => {
         if (i % labelSkipInterval !== 0 || label.length === 0) {

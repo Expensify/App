@@ -169,6 +169,7 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTick
         const hWidth = effectiveWidth(maxLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL);
         const hFitsInTicks = hWidth + LABEL_PADDING <= tickSpacing && maxVisibleCount(labelAreaWidth, hWidth) >= data.length;
         const hEdgeFits = edgeLabelsFit(firstLabelWidth, lastLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL, firstTickLeftSpace, lastTickRightSpace, false);
+
         if (hFitsInTicks && hEdgeFits) {
             rotation = LABEL_ROTATIONS.HORIZONTAL;
         } else {
@@ -208,7 +209,8 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTick
         });
 
         // --- 3. Compute skip interval (only at 90°) ---
-        const finalMaxWidth = Math.max(...finalLabels.map((label) => measureTextWidth(label, font)));
+        const finalWidths = finalLabels.map((label) => measureTextWidth(label, font));
+        const finalMaxWidth = Math.max(...finalWidths);
         let skipInterval = 1;
         if (rotation === LABEL_ROTATIONS.VERTICAL) {
             const verticalWidth = effectiveWidth(finalMaxWidth, lineHeight, rotation);
