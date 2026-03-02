@@ -718,6 +718,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
         case 'isAttachmentWithText':
         case 'isNewestReportAction':
         case 'isOptimisticAction':
+        case 'isOriginalReportDeleted':
             return validateBoolean(value);
         case 'created':
         case 'lastModified':
