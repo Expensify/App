@@ -15,7 +15,7 @@ import {
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyTagLists, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
@@ -420,7 +420,6 @@ describe('ReportNameUtils', () => {
             );
             expect(name).toBe(expected);
         });
-
         test('Hold parent action', () => {
             const thread: Report = createWorkspaceThread(52);
             const parentAction: ReportAction = {
@@ -457,7 +456,6 @@ describe('ReportNameUtils', () => {
             );
             expect(name).toBe(expected);
         });
-
         test('Unhold parent action', () => {
             const thread: Report = createWorkspaceThread(53);
             const parentAction: ReportAction = {
@@ -493,6 +491,62 @@ describe('ReportNameUtils', () => {
                 currentUserAccountID,
             );
             expect(name).toBe(expected);
+        });
+
+        test('uses provided policy tags for modified expense thread name generation', () => {
+            const thread: Report = {
+                ...createRegularChat(52, [currentUserAccountID, 1]),
+                policyID: 'policy123',
+                parentReportID: '1000',
+                parentReportActionID: '2000',
+            };
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    oldTag: 'Engineering',
+                    tag: 'Finance',
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            const policyTagsCollection = {
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${thread.policyID}`]: {
+                    tagList0: {
+                        name: 'Cost Center',
+                        required: false,
+                        orderWeight: 0,
+                        tags: {},
+                    },
+                },
+            } as OnyxCollection<PolicyTagLists>;
+
+            const name = computeReportNameOriginal(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+                undefined,
+                policyTagsCollection,
+            );
+
+            expect(name).toContain('Cost Center');
         });
     });
 
