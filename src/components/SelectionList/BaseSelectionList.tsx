@@ -445,7 +445,8 @@ function BaseSelectionList<TItem extends ListItem>({
                     clearTimeout(scrollTimeoutRef.current);
                     scrollTimeoutRef.current = null;
                 }
-                performScroll();
+                // Add small delay after keyboard is shown for layout to settle
+                scrollTimeoutRef.current = setTimeout(performScroll, CONST.ANIMATION_IN_TIMING);
             });
 
             // Fallback timeout in case keyboard event doesn't fire (e.g., keyboard already open)
