@@ -2,7 +2,7 @@ import type {RouteProp} from '@react-navigation/native';
 import {useNavigationState} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {memo, useEffect, useRef, useState} from 'react';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
@@ -41,7 +41,7 @@ import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -67,6 +67,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import {PlatformStackScreenProps} from '../PlatformStackNavigation/types';
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import createRootStackNavigator from './createRootStackNavigator';
 import {screensWithEnteringAnimation, workspaceOrDomainSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
@@ -164,14 +165,6 @@ function AuthScreens() {
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
         useWideRHPState();
 
-    // We can't rely on useRoute in this component because we're not a child of a Navigator, so we must sift through nav state by hand
-    const focusedScreen = useNavigationState((state) => getDeepestFocusedScreen(state));
-    const focusedScreenName = focusedScreen?.name;
-    const focusedScreenParams = focusedScreen?.params;
-
-    // Check if the user is currently on a 2FA setup screen
-    const isIn2FASetupFlow = isTwoFactorSetupScreen(focusedScreenName);
-
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
@@ -188,6 +181,22 @@ function AuthScreens() {
     const isLoadingAppRef = useRef(isLoadingApp);
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
     isLoadingAppRef.current = isLoadingApp;
+
+    // We can't rely on useRoute in this component because we're not a child of a Navigator, so we must sift through nav state by hand
+    const focusedScreen = useNavigationState((state) => getDeepestFocusedScreen(state));
+    const focusedScreenName = focusedScreen?.name;
+    const focusedScreenParams = focusedScreen?.params;
+
+    // Check if the user is currently on a 2FA setup screen
+    const isIn2FASetupFlow = isTwoFactorSetupScreen(focusedScreenName);
+
+    const searchPageParams = useMemo(() => {
+        if (focusedScreenName !== SCREENS.SEARCH.ROOT) {
+            return undefined;
+        }
+
+        return focusedScreenParams as PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>['route']['params'];
+    }, [focusedScreenName, focusedScreenParams]);
 
     const handleNetworkReconnect = () => {
         if (isLoadingAppRef.current) {
@@ -518,7 +527,7 @@ function AuthScreens() {
                 SupportalPermissionDeniedModalProvider,
             ]}
         >
-            <SearchContextProvider params={focusedScreenParams}>
+            <SearchContextProvider params={searchPageParams}>
                 <RootStack.Navigator
                     persistentScreens={[
                         NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
