@@ -1043,8 +1043,14 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
         let firstCategoryApprover = '';
         let firstTagApprover = '';
 
-        for (let i = 0, rule = approvalRules[i]; i < approvalRules.length; i++) {
-            for (let j = 0, applyWhen = rule.applyWhen[j]; j < rule.applyWhen.length && applyWhen.condition === CONST.POLICY.RULE_CONDITIONS.MATCHES; j++) {
+        for (let i = 0, rule = approvalRules.at(i); i < approvalRules.length; i++) {
+            if (!rule) {
+                continue;
+            }
+            for (let j = 0, applyWhen = rule.applyWhen.at(j); j < rule.applyWhen.length && applyWhen?.condition === CONST.POLICY.RULE_CONDITIONS.MATCHES; j++) {
+                if (!applyWhen) {
+                    continue;
+                }
                 if (applyWhen.field === CONST.POLICY.FIELDS.CATEGORY || applyWhen.field === CONST.POLICY.FIELDS.TAG) {
                     rulesMap[applyWhen.field] = {[applyWhen.value]: rule.approver};
                 }
@@ -1054,7 +1060,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
         for (let i = 0; i < allReportTransactions.length; i++) {
             const transaction = allReportTransactions.at(i);
             const category = getCategory(transaction);
-            const categoryApprover = rulesMap['category'][category];
+            const categoryApprover = rulesMap.category[category];
 
             if (categoryApprover && categoryApprover !== employeeLogin) {
                 firstCategoryApprover = categoryApprover;
@@ -1063,7 +1069,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
 
             if (!firstTagApprover) {
                 const tag = getTag(transaction);
-                const tagApprover = rulesMap['tag'][tag];
+                const tagApprover = rulesMap.tag[tag];
 
                 if (tagApprover && tagApprover !== employeeLogin) {
                     firstTagApprover = tagApprover;
