@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -72,6 +72,16 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
             defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
         ),
     );
+
+    useEffect(() => {
+        setRangeDisplayText(
+            getDateRangeDisplayValueFromFormValue(
+                defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+                defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+                defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+            ),
+        );
+    }, [defaultDateValues]);
 
     const handleDateValuesChange = useCallback(() => {
         setRangeDisplayText(searchDatePresetFilterBaseRef.current?.getRangeDisplayText() ?? '');

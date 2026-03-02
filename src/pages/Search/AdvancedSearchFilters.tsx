@@ -357,9 +357,8 @@ function getFilterDisplayTitle(
         if (dateBefore) {
             dateValue.push(translate('search.filters.date.before', dateBefore));
         }
-
         if (dateRange) {
-            const rangeDisplay = getDateRangeDisplayValueFromFormValue(dateRange, dateAfter, dateBefore);
+            const rangeDisplay = getDateRangeDisplayValueFromFormValue(dateRange);
             if (rangeDisplay) {
                 dateValue.push(`${translate('common.range')}: ${rangeDisplay}`);
             }
@@ -462,7 +461,7 @@ function getFilterDisplayTitle(
             }
 
             if (fieldDateValues.range) {
-                const rangeDisplay = getDateRangeDisplayValueFromFormValue(fieldDateValues.range, fieldDateValues.after, fieldDateValues.before);
+                const rangeDisplay = getDateRangeDisplayValueFromFormValue(fieldDateValues.range);
                 if (rangeDisplay) {
                     values.push(translate('search.filters.reportField', fieldName, `${translate('common.range')}: ${rangeDisplay}`.toLowerCase()));
                 }

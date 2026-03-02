@@ -264,18 +264,20 @@ function DatePresetFilterBase({
                 }
 
                 const currentDateValues = dateValuesRef.current;
-                // For Range, mark as Range mode without altering ON/AFTER/BEFORE values.
                 if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
                     const rangeValue = getRangeQueryValue(rangeEphemeralValues.from, rangeEphemeralValues.to) || undefined;
                     const updatedValues = {...currentDateValues, [CONST.SEARCH.DATE_MODIFIERS.RANGE]: rangeValue};
                     dateValuesRef.current = updatedValues;
-                    setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, rangeValue);
+                    updateDateValues(updatedValues);
                     return;
                 }
 
-                const updatedValues = {...currentDateValues, [selectedDateModifier]: ephemeralDateValue};
+                const updatedValues = {
+                    ...currentDateValues,
+                    [selectedDateModifier]: ephemeralDateValue,
+                };
                 dateValuesRef.current = updatedValues;
-                setDateValue(selectedDateModifier, ephemeralDateValue);
+                updateDateValues(updatedValues);
             },
 
             clearDateValueOfSelectedDateModifier() {
@@ -284,19 +286,18 @@ function DatePresetFilterBase({
                 }
 
                 const currentDateValues = dateValuesRef.current;
-                // Range flag is independent metadata and should not clear ON/AFTER/BEFORE values.
                 if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
                     const updatedValues = {...currentDateValues, [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined};
                     dateValuesRef.current = updatedValues;
                     setRangeEphemeralValues({});
-                    setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, undefined);
+                    updateDateValues(updatedValues);
                     onRangeValidationErrorChange?.(false);
                     return;
                 }
 
                 const updatedValues = {...currentDateValues, [selectedDateModifier]: undefined};
                 dateValuesRef.current = updatedValues;
-                setDateValue(selectedDateModifier, undefined);
+                updateDateValues(updatedValues);
                 onRangeValidationErrorChange?.(false);
             },
 
@@ -316,7 +317,6 @@ function DatePresetFilterBase({
             rangeEphemeralValues.from,
             rangeEphemeralValues.to,
             getRangeDisplayTextFromDateValues,
-            setDateValue,
             updateDateValues,
             validate,
             onRangeValidationErrorChange,

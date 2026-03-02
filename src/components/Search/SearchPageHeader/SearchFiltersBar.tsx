@@ -204,7 +204,6 @@ function SearchFiltersBar({queryJSON, isMobileSelectionModeEnabled}: SearchFilte
     const is = isFilterValues ? isOptions.filter((option) => isFilterValues.includes(option.value)) : [];
 
     const createDateDisplayValue = (filterValues: {on?: string; after?: string; before?: string; range?: string}): [SearchDateValues, string[]] => {
-        const hasRange = !!filterValues.range;
         const value: SearchDateValues = {
             [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
             [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterValues.after,
@@ -222,8 +221,8 @@ function SearchFiltersBar({queryJSON, isMobileSelectionModeEnabled}: SearchFilte
         if (value.Before) {
             displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
         }
-        if (hasRange) {
-            const rangeDisplay = getDateRangeDisplayValueFromFormValue(filterValues.range, filterValues.after, filterValues.before);
+        if (value.Range) {
+            const rangeDisplay = getDateRangeDisplayValueFromFormValue(value.Range);
             if (rangeDisplay) {
                 displayText.push(`${translate('common.range')}: ${rangeDisplay}`);
             }

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -55,6 +55,11 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
     const [rangeText, setRangeText] = useState(() =>
         getDateRangeDisplayValueFromFormValue(value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
     );
+    const syncedRangeText = useMemo(
+        () => getDateRangeDisplayValueFromFormValue(value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
+        [value],
+    );
+    const displayedRangeText = selectedDateModifier ? rangeText : syncedRangeText;
 
     const updateRangeText = useCallback(() => {
         setRangeText(searchDatePresetFilterBaseRef.current?.getRangeDisplayText() ?? '');
@@ -167,10 +172,10 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                 <View style={[styles.flexRow, styles.gap2, useRangeLayout ? styles.mh5 : styles.ph5, useRangeLayout && styles.alignItemsCenter, useRangeLayout && styles.pt1]}>
                     {useRangeLayout && (
                         <View style={[styles.flex1, styles.mr2]}>
-                            {!!rangeText && (
+                            {!!displayedRangeText && (
                                 <Text style={[styles.textLabelSupporting]}>
                                     {`${translate('common.range')}: `}
-                                    <Text style={[styles.textLabel]}>{rangeText}</Text>
+                                    <Text style={[styles.textLabel]}>{displayedRangeText}</Text>
                                 </Text>
                             )}
                         </View>
@@ -237,10 +242,10 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                     ))}
                 {datePresetFilterBase}
             </ScrollView>
-            {!!rangeText && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (
+            {!!displayedRangeText && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (
                 <Text style={[styles.textLabelSupporting, styles.ph5, styles.mt2, styles.textAlignLeft]}>
                     {`${translate('common.range')}: `}
-                    <Text style={[styles.textLabel]}>{rangeText}</Text>
+                    <Text style={[styles.textLabel]}>{displayedRangeText}</Text>
                 </Text>
             )}
             <View style={mobileButtonRowStyle}>

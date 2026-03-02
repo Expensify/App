@@ -56,7 +56,6 @@ type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS]: '*:' as const,
-    [CONST.SEARCH.SYNTAX_OPERATORS.RANGE]: '~' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: '<' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: '<=' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: '>' as const,
@@ -191,75 +190,6 @@ function parseRangeQueryValue(rangeValue?: string) {
     };
 }
 
-function normalizeRangeFilterKey(rawKey: string): string {
-    const normalizedKey = rawKey.toLowerCase();
-
-    if (DATE_FILTER_KEYS.includes(normalizedKey as SearchDateFilterKeys)) {
-        return normalizedKey;
-    }
-
-    if (normalizedKey.startsWith('report-field-')) {
-        return `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${rawKey.slice('report-field-'.length)}`;
-    }
-
-    // cspell:ignore reportfield
-    const reportFieldNoDashPrefix = 'reportfield-';
-    if (normalizedKey.startsWith(reportFieldNoDashPrefix)) {
-        return `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${rawKey.slice(reportFieldNoDashPrefix.length)}`;
-    }
-
-    return rawKey;
-}
-
-function normalizeRangeFiltersForParsing(query: SearchQueryString): {
-    parserQuery: SearchQueryString;
-    explicitRangeFilters: Map<string, {from?: string; to?: string}>;
-} {
-    const tokens = query.match(/"[^"]*"|[^ \t\r\n\xA0]+/g) ?? [];
-    const normalizedTokens: string[] = [];
-    const explicitRangeFilters = new Map<string, {from?: string; to?: string}>();
-    const rangeTokenPattern = /^(-?)([^~\s]+)~([^~\s]+)$/;
-
-    for (const token of tokens) {
-        if (token.startsWith('"') || !token.includes('~')) {
-            normalizedTokens.push(token);
-            continue;
-        }
-
-        const match = token.match(rangeTokenPattern);
-        if (!match) {
-            normalizedTokens.push(token);
-            continue;
-        }
-
-        const [, negation, rawKey, rangeValue] = match;
-        if (negation) {
-            normalizedTokens.push(token);
-            continue;
-        }
-
-        const boundaries = parseRangeQueryValue(rangeValue);
-        if (!boundaries.from && !boundaries.to) {
-            normalizedTokens.push(token);
-            continue;
-        }
-
-        explicitRangeFilters.set(normalizeRangeFilterKey(rawKey), boundaries);
-
-        if (boundaries.from) {
-            normalizedTokens.push(`${rawKey}>${boundaries.from}`);
-        }
-        if (boundaries.to) {
-            normalizedTokens.push(`${rawKey}<${boundaries.to}`);
-        }
-    }
-
-    return {
-        parserQuery: normalizedTokens.join(' '),
-        explicitRangeFilters,
-    };
-}
-
 /**
  * @private
  * Returns date filter value for QueryString.
@@ -270,8 +200,8 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, 
     const dateAfter = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`];
     const dateBefore = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`];
     const dateRange = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`];
-    const rangeBoundaries = getRangeBoundariesFromFormValue(dateRange, dateAfter, dateBefore);
-    const hasRange = !!dateRange && !!(rangeBoundaries.from ?? rangeBoundaries.to);
+    const rangeBoundaries = parseRangeQueryValue(dateRange);
+    const hasRange = !!(rangeBoundaries.from ?? rangeBoundaries.to);
 
     const dateFilters = [];
 
@@ -279,15 +209,17 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, 
         dateFilters.push(`${filterKey}:${dateOn}`);
     }
     if (hasRange) {
-        const rangeValue = getRangeQueryValue(rangeBoundaries.from, rangeBoundaries.to);
-        if (rangeValue) {
-            dateFilters.push(`${filterKey}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.RANGE]}${rangeValue}`);
+        if (rangeBoundaries.from) {
+            dateFilters.push(`${filterKey}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]}${rangeBoundaries.from}`);
+        }
+        if (rangeBoundaries.to) {
+            dateFilters.push(`${filterKey}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]}${rangeBoundaries.to}`);
         }
     }
-    if (dateAfter && (!hasRange || dateAfter !== rangeBoundaries.from)) {
+    if (dateAfter) {
         dateFilters.push(`${filterKey}>${dateAfter}`);
     }
-    if (dateBefore && (!hasRange || dateBefore !== rangeBoundaries.to)) {
+    if (dateBefore) {
         dateFilters.push(`${filterKey}<${dateBefore}`);
     }
     if (negatedDate) {
@@ -348,8 +280,20 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
             filterValueString += `${delimiter}${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
             filterValueString += ` -${filterName}:${sanitizeSearchValue(queryFilter.value.toString())}`;
+        } else if (queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.RANGE) {
+            const rangeBoundaries = parseRangeQueryValue(queryFilter.value.toString());
+            if (rangeBoundaries.from) {
+                filterValueString += ` ${filterName}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]}${sanitizeSearchValue(rangeBoundaries.from)}`;
+            }
+            if (rangeBoundaries.to) {
+                filterValueString += ` ${filterName}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]}${sanitizeSearchValue(rangeBoundaries.to)}`;
+            }
         } else {
-            filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(queryFilter.value.toString())}`;
+            const operatorChar = operatorToCharMap[queryFilter.operator];
+            if (!operatorChar) {
+                continue;
+            }
+            filterValueString += ` ${filterName}${operatorChar}${sanitizeSearchValue(queryFilter.value.toString())}`;
         }
     }
 
@@ -585,14 +529,6 @@ function getChartViewDefaults(queryJSON: SearchQueryJSON): Partial<SearchQueryJS
     return defaults;
 }
 
-function getRangeBoundariesFromFilterValues(values: QueryFilter[]) {
-    const normalizedValues = values.map((value) => value.value.toString()).filter((value) => isValidDate(value));
-    return {
-        from: normalizedValues.at(0),
-        to: normalizedValues.at(1),
-    };
-}
-
 /**
  * Parses a given search query string into a structured `SearchQueryJSON` format.
  * This format of query is most commonly shared between components and also sent to backend to retrieve search results.
@@ -601,8 +537,7 @@ function getRangeBoundariesFromFilterValues(values: QueryFilter[]) {
  */
 function getRawFilterListFromQuery(rawQuery: SearchQueryString) {
     try {
-        const {parserQuery} = normalizeRangeFiltersForParsing(rawQuery);
-        const rawResult = parseSearchQuery(parserQuery) as SearchQueryJSON;
+        const rawResult = parseSearchQuery(rawQuery) as SearchQueryJSON;
         const sanitizedFilters = getSanitizedRawFilters(rawResult);
         return sanitizedFilters;
     } catch (error) {
@@ -627,8 +562,7 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
     }
 
     try {
-        const {parserQuery} = normalizeRangeFiltersForParsing(query);
-        const result = parseSearchQuery(parserQuery) as SearchQueryJSON;
+        const result = parseSearchQuery(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
 
         // Add the full input and hash to the results
@@ -921,56 +855,28 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 if (isRangeDateField) {
                     const suffix = filterKey.replace(CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX, '');
                     const key = `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${suffix}`;
-                    const afterKey = `${CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX}${suffix}` as SearchAdvancedFiltersKey;
-                    const beforeKey = `${CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX}${suffix}` as SearchAdvancedFiltersKey;
-                    const rangeBoundaries = getRangeBoundariesFromFormValue(
-                        filterValue as string | undefined,
-                        supportedFilterValues[afterKey] as string | undefined,
-                        supportedFilterValues[beforeKey] as string | undefined,
-                    );
-                    const rangeValue = getRangeQueryValue(rangeBoundaries.from, rangeBoundaries.to);
+                    const rangeBoundaries = parseRangeQueryValue(filterValue as string | undefined);
+                    const rangeFilters: string[] = [];
+                    if (rangeBoundaries.from) {
+                        rangeFilters.push(`${key}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO]}${rangeBoundaries.from}`);
+                    }
+                    if (rangeBoundaries.to) {
+                        rangeFilters.push(`${key}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]}${rangeBoundaries.to}`);
+                    }
 
-                    if (!rangeValue) {
+                    if (rangeFilters.length === 0) {
                         return undefined;
                     }
 
-                    return `${key}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.RANGE]}${rangeValue}`;
+                    return rangeFilters.join(' ');
                 }
 
                 if (isAfterDateField) {
-                    const suffix = filterKey.replace(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX, '');
-                    const rangeKey = `${CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX}${suffix}` as SearchAdvancedFiltersKey;
-                    const afterKey = `${CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX}${suffix}` as SearchAdvancedFiltersKey;
-                    const beforeKey = `${CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX}${suffix}` as SearchAdvancedFiltersKey;
-                    const rangeValue = supportedFilterValues[rangeKey] as string | undefined;
-                    const rangeBoundaries = getRangeBoundariesFromFormValue(
-                        rangeValue,
-                        supportedFilterValues[afterKey] as string | undefined,
-                        supportedFilterValues[beforeKey] as string | undefined,
-                    );
-                    if (rangeValue && rangeBoundaries.from === (filterValue as string)) {
-                        return undefined;
-                    }
-
                     const key = filterKey.replace(CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX, CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX);
                     return `${key}>${value}`;
                 }
 
                 if (isBeforeDateField) {
-                    const suffix = filterKey.replace(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX, '');
-                    const rangeKey = `${CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX}${suffix}` as SearchAdvancedFiltersKey;
-                    const afterKey = `${CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX}${suffix}` as SearchAdvancedFiltersKey;
-                    const beforeKey = `${CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX}${suffix}` as SearchAdvancedFiltersKey;
-                    const rangeValue = supportedFilterValues[rangeKey] as string | undefined;
-                    const rangeBoundaries = getRangeBoundariesFromFormValue(
-                        rangeValue,
-                        supportedFilterValues[afterKey] as string | undefined,
-                        supportedFilterValues[beforeKey] as string | undefined,
-                    );
-                    if (rangeValue && rangeBoundaries.to === (filterValue as string)) {
-                        return undefined;
-                    }
-
                     const key = filterKey.replace(CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX, CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX);
                     return `${key}<${value}`;
                 }
@@ -1063,7 +969,6 @@ function buildFilterFormValuesFromQuery(
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
     const policyID = queryJSON.policyID;
-    const {explicitRangeFilters} = normalizeRangeFiltersForParsing(queryJSON.inputQuery);
 
     for (const queryFilter of filters) {
         const filterList = queryFilter.filters;
@@ -1189,7 +1094,8 @@ function buildFilterFormValuesFromQuery(
 
             const beforeFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidDate(filter.value.toString()));
             const afterFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString()));
-            const dateRangeFilters = filterList.filter((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.RANGE);
+            const rangeStartFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO && isValidDate(filter.value.toString()));
+            const rangeEndFilter = filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO && isValidDate(filter.value.toString()));
 
             // The `On` and `Not on` filter could be either a date or a date preset (e.g. Last month)
             const negatedFilter = filterList.find((filter) => {
@@ -1198,16 +1104,11 @@ function buildFilterFormValuesFromQuery(
             const onFilter = filterList.find((filter) => {
                 return filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()));
             });
-            const explicitRange = explicitRangeFilters.get(filterKey);
-            const rangeBoundariesFromOperator = getRangeBoundariesFromFilterValues(dateRangeFilters);
-            const rangeValue = getRangeQueryValue(rangeBoundariesFromOperator.from ?? explicitRange?.from, rangeBoundariesFromOperator.to ?? explicitRange?.to);
-            const afterFilterValue = afterFilter?.value.toString();
-            const beforeFilterValue = beforeFilter?.value.toString();
-            const shouldIgnoreAfterAsRangeBoundary = !!explicitRange?.from && afterFilterValue === explicitRange.from;
-            const shouldIgnoreBeforeAsRangeBoundary = !!explicitRange?.to && beforeFilterValue === explicitRange.to;
+            const existingRangeBoundaries = parseRangeQueryValue(filtersForm[rangeKey]);
+            const rangeValue = getRangeQueryValue(rangeStartFilter?.value.toString() ?? existingRangeBoundaries.from, rangeEndFilter?.value.toString() ?? existingRangeBoundaries.to);
 
-            filtersForm[beforeKey] = shouldIgnoreBeforeAsRangeBoundary ? filtersForm[beforeKey] : (beforeFilterValue ?? filtersForm[beforeKey]);
-            filtersForm[afterKey] = shouldIgnoreAfterAsRangeBoundary ? filtersForm[afterKey] : (afterFilterValue ?? filtersForm[afterKey]);
+            filtersForm[beforeKey] = beforeFilter?.value.toString() ?? filtersForm[beforeKey];
+            filtersForm[afterKey] = afterFilter?.value.toString() ?? filtersForm[afterKey];
             filtersForm[onKey] = onFilter?.value.toString() ?? filtersForm[onKey];
             filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
 
@@ -1261,7 +1162,8 @@ function buildFilterFormValuesFromQuery(
             let dateBeforeFilter;
             let dateAfterFilter;
             let dateOnFilter;
-            const dateRangeFilters: QueryFilter[] = [];
+            let dateRangeStartFilter;
+            let dateRangeEndFilter;
             let negatedFilter;
             let textFilter;
 
@@ -1270,8 +1172,10 @@ function buildFilterFormValuesFromQuery(
                     dateBeforeFilter = filter;
                 } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidDate(filter.value.toString())) {
                     dateAfterFilter = filter;
-                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.RANGE) {
-                    dateRangeFilters.push(filter);
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO && isValidDate(filter.value.toString())) {
+                    dateRangeStartFilter = filter;
+                } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO && isValidDate(filter.value.toString())) {
+                    dateRangeEndFilter = filter;
                 } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString()))) {
                     dateOnFilter = filter;
                 } else if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO) {
@@ -1281,19 +1185,14 @@ function buildFilterFormValuesFromQuery(
                 }
             }
 
-            const explicitRange = explicitRangeFilters.get(filterKey);
-            const rangeBoundariesFromOperator = getRangeBoundariesFromFilterValues(dateRangeFilters);
-            const rangeValue = getRangeQueryValue(rangeBoundariesFromOperator.from ?? explicitRange?.from, rangeBoundariesFromOperator.to ?? explicitRange?.to);
-            const dateAfterFilterValue = dateAfterFilter?.value.toString();
-            const dateBeforeFilterValue = dateBeforeFilter?.value.toString();
-            const shouldIgnoreAfterAsRangeBoundary = !!explicitRange?.from && dateAfterFilterValue === explicitRange.from;
-            const shouldIgnoreBeforeAsRangeBoundary = !!explicitRange?.to && dateBeforeFilterValue === explicitRange.to;
+            const existingRangeBoundaries = parseRangeQueryValue(filtersForm[dateRangeKey]);
+            const rangeValue = getRangeQueryValue(dateRangeStartFilter?.value.toString() ?? existingRangeBoundaries.from, dateRangeEndFilter?.value.toString() ?? existingRangeBoundaries.to);
 
             filtersForm[textKey] = textFilter?.value.toString() ?? filtersForm[textKey];
             filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
             filtersForm[dateOnKey] = dateOnFilter?.value.toString() ?? filtersForm[dateOnKey];
-            filtersForm[dateBeforeKey] = shouldIgnoreBeforeAsRangeBoundary ? filtersForm[dateBeforeKey] : (dateBeforeFilterValue ?? filtersForm[dateBeforeKey]);
-            filtersForm[dateAfterKey] = shouldIgnoreAfterAsRangeBoundary ? filtersForm[dateAfterKey] : (dateAfterFilterValue ?? filtersForm[dateAfterKey]);
+            filtersForm[dateBeforeKey] = dateBeforeFilter?.value.toString() ?? filtersForm[dateBeforeKey];
+            filtersForm[dateAfterKey] = dateAfterFilter?.value.toString() ?? filtersForm[dateAfterKey];
 
             if (rangeValue) {
                 filtersForm[dateRangeKey] = rangeValue;

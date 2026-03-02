@@ -274,14 +274,15 @@ describe('SearchQueryUtils', () => {
             expect(result).not.toMatch(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
         });
 
-        test('serializes explicit date range with dedicated range operator', () => {
+        test('serializes explicit date range with inclusive boundaries', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
                 dateRange: '2025-03-01,2025-03-10',
             };
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
-            expect(result).toContain('date~2025-03-01,2025-03-10');
+            expect(result).toContain('date>=2025-03-01');
+            expect(result).toContain('date<=2025-03-10');
             expect(result).not.toContain('date>2025-03-01');
             expect(result).not.toContain('date<2025-03-10');
 
@@ -289,17 +290,18 @@ describe('SearchQueryUtils', () => {
             const dateOperators = queryJSON?.flatFilters
                 .filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE)
                 .flatMap((filter) => filter.filters.map((dateFilter) => dateFilter.operator));
-            expect(dateOperators).toEqual(expect.arrayContaining([CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]));
+            expect(dateOperators).toEqual(expect.arrayContaining([CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]));
         });
 
-        test('serializes explicit report field range with dedicated range operator', () => {
+        test('serializes explicit report field range with inclusive boundaries', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
                 'reportFieldRange-start-date': '2025-03-01,2025-03-10',
             };
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
-            expect(result).toContain('reportField-start-date~2025-03-01,2025-03-10');
+            expect(result).toContain('reportField-start-date>=2025-03-01');
+            expect(result).toContain('reportField-start-date<=2025-03-10');
             expect(result).not.toContain('reportField-start-date>2025-03-01');
             expect(result).not.toContain('reportField-start-date<2025-03-10');
         });
@@ -311,12 +313,72 @@ describe('SearchQueryUtils', () => {
             };
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
-            expect(result).toContain('date~,2025-03-10');
+            expect(result).toContain('date<=2025-03-10');
 
             const queryJSON = buildSearchQueryJSON(result);
             expect(queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE)?.filters).toEqual([
-                {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, value: '2025-03-10'},
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: '2025-03-10'},
             ]);
+        });
+
+        test('range mode keeps after and before filters independent for date filters even when boundaries match', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                dateAfter: '2025-03-01',
+                dateBefore: '2025-03-10',
+                dateRange: '2025-03-01,2025-03-10',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+            expect(result).toContain('date>=2025-03-01');
+            expect(result).toContain('date<=2025-03-10');
+            expect(result).toContain('date>2025-03-01');
+            expect(result).toContain('date<2025-03-10');
+        });
+
+        test('range mode keeps after and before filters independent for report field date filters even when boundaries match', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                'reportFieldAfter-start-date': '2025-03-01',
+                'reportFieldBefore-start-date': '2025-03-10',
+                'reportFieldRange-start-date': '2025-03-01,2025-03-10',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+            expect(result).toContain('reportField-start-date>=2025-03-01');
+            expect(result).toContain('reportField-start-date<=2025-03-10');
+            expect(result).toContain('reportField-start-date>2025-03-01');
+            expect(result).toContain('reportField-start-date<2025-03-10');
+        });
+
+        test('invalid range value keeps after and before filters exclusive', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                dateRange: 'invalid',
+                dateAfter: '2025-03-01',
+                dateBefore: '2025-03-10',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+            expect(result).toContain('date>2025-03-01');
+            expect(result).toContain('date<2025-03-10');
+            expect(result).not.toContain('date>=2025-03-01');
+            expect(result).not.toContain('date<=2025-03-10');
+        });
+
+        test('invalid report field range value keeps after and before filters exclusive', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                'reportFieldRange-start-date': 'invalid',
+                'reportFieldAfter-start-date': '2025-03-01',
+                'reportFieldBefore-start-date': '2025-03-10',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+            expect(result).toContain('reportField-start-date>2025-03-01');
+            expect(result).toContain('reportField-start-date<2025-03-10');
+            expect(result).not.toContain('reportField-start-date>=2025-03-01');
+            expect(result).not.toContain('reportField-start-date<=2025-03-10');
         });
 
         test('total filter values', () => {
@@ -846,7 +908,7 @@ describe('SearchQueryUtils', () => {
             });
         });
 
-        test('hydrates explicit date range flag from range query operator', () => {
+        test('hydrates explicit date range flag from inclusive range boundaries', () => {
             const policyCategories = {};
             const policyTags = {};
             const currencyList = {};
@@ -854,7 +916,7 @@ describe('SearchQueryUtils', () => {
             const cardList = {};
             const reports = {};
             const taxRates = {};
-            const queryString = 'sortBy:date sortOrder:desc type:expense date~2025-03-01,2025-03-10';
+            const queryString = 'sortBy:date sortOrder:desc type:expense date>=2025-03-01 date<=2025-03-10';
             const queryJSON = buildSearchQueryJSON(queryString);
 
             if (!queryJSON) {
@@ -888,7 +950,7 @@ describe('SearchQueryUtils', () => {
             expect(result.dateRange).toBeUndefined();
         });
 
-        test('hydrates explicit report field range flag from range query operator', () => {
+        test('hydrates explicit report field range flag from inclusive range boundaries', () => {
             const policyCategories = {};
             const policyTags = {};
             const currencyList = {};
@@ -896,7 +958,7 @@ describe('SearchQueryUtils', () => {
             const cardList = {};
             const reports = {};
             const taxRates = {};
-            const queryString = 'sortBy:date sortOrder:desc type:expense reportField-start-date~2025-03-01,2025-03-10';
+            const queryString = 'sortBy:date sortOrder:desc type:expense reportField-start-date>=2025-03-01 reportField-start-date<=2025-03-10';
             const queryJSON = buildSearchQueryJSON(queryString);
 
             if (!queryJSON) {
