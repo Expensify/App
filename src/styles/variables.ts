@@ -147,8 +147,12 @@ export default {
     checkboxLabelActiveOpacity: 0.7,
     checkboxLabelHoverOpacity: 1,
     avatarChatSpacing: 12,
+    cornerHandleSize: 12,
+    cornerTapTargetSize: 40,
+    edgeHandleTapTargetThickness: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    cropBorderWidth: 1,
     emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
     emptyLHNIconHeight: 16,
     emptySelectionListIconWidth: 120,
@@ -224,6 +228,7 @@ export default {
     receiptPlaceholderIconWidth: 80,
     receiptPlaceholderIconHeight: 80,
     reportPreviewMaxWidth: 335,
+    previewEReceiptHeight: 186,
     reportActionImagesSingleImageHeight: 160,
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
@@ -245,6 +250,7 @@ export default {
     changePolicyEducationModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
     changePolicyEducationModalIconHeight: 180,
+    transactionReceiptButtonWidth: 100,
 
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
 
@@ -409,6 +415,8 @@ export default {
     // Multifactor Authentication illustrations size
     openPadlockWidth: 140,
     openPadlockHeight: 140,
+    transactionHandWidth: 118,
+    transactionHandHeight: 191,
     runOutOfTimeWidth: 218,
     runOutOfTimeHeight: 200,
     humptyDumptyWidth: 245,
