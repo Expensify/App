@@ -225,7 +225,7 @@ function SettlementButton({
 
         if (isBankAccountLocked) {
             setShowUnlockBankAccountModal(true);
-            return;
+            return true;
         }
 
         if (!isUserValidated) {

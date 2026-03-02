@@ -122,7 +122,11 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
         if (isInLockedState) {
-            item.onThreeDotsMenuPress?.(e);
+            if (item.onThreeDotsMenuPress) {
+                item.onThreeDotsMenuPress(e);
+            } else {
+                item.onPress?.(e);
+            }
             return;
         }
 

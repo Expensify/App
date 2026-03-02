@@ -23,6 +23,7 @@ import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useBankAccountUnlockEffect from '@hooks/useBankAccountUnlockEffect';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
@@ -68,7 +69,6 @@ import {
     isAdminRoom,
     isAnnounceRoom,
     isChatThread,
-    isConciergeChatReport,
     isGroupChat,
     isHiddenForCurrentUser,
     isInvoiceReport,
@@ -85,7 +85,6 @@ import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
-import {clearInitiatingBankAccountUnlock, initiateBankAccountUnlock} from '@userActions/BankAccounts';
 import {setShouldShowComposeInput} from '@userActions/Composer';
 import {
     createTransactionThreadReport,
@@ -291,7 +290,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     // wrapping in useMemo because this is array operation and can cause performance issues
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`);
-    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
 
     const viewportOffsetTop = useViewportOffsetTop();
 
@@ -342,19 +340,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const {closeSidePanel} = useSidePanelActions();
 
-    useEffect(() => {
-        if (!isConciergeChatReport(report) || !initiatingBankAccountUnlock?.bankAccountIDToUnlock) {
-            return;
-        }
-        initiateBankAccountUnlock(initiatingBankAccountUnlock.bankAccountIDToUnlock);
-    }, [initiatingBankAccountUnlock?.bankAccountIDToUnlock, report]);
-
-    useEffect(() => {
-        if (!initiatingBankAccountUnlock?.isSuccess || !isConciergeChatReport(report)) {
-            return;
-        }
-        clearInitiatingBankAccountUnlock();
-    }, [initiatingBankAccountUnlock?.isSuccess, report]);
+    useBankAccountUnlockEffect(report);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {

@@ -1490,7 +1490,7 @@ function initiateBankAccountUnlock(bankAccountID: number) {
                 value: {
                     errors: null,
                     isLoading: false,
-                    isSuccess: true,
+                    isSuccess: null,
                     bankAccountIDToUnlock: null,
                     optimisticReportActionID: null,
                 },
@@ -1572,10 +1572,6 @@ function pressedOnLockedBankAccount(bankAccountID: number, translate: LocalizedT
     });
 }
 
-function clearInitiatingBankAccountUnlock() {
-    Onyx.merge(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK, {bankAccountIDToUnlock: null, isSuccess: null, errors: null, optimisticReportActionID: null});
-}
-
 export {
     acceptACHContractForBankAccount,
     addBusinessWebsiteForDraft,
@@ -1634,5 +1630,4 @@ export {
     clearShareBankAccountErrors,
     initiateBankAccountUnlock,
     pressedOnLockedBankAccount,
-    clearInitiatingBankAccountUnlock,
 };
