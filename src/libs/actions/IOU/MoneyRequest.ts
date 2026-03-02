@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -27,7 +27,6 @@ import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
     getPolicyTags,
-    getRecentWaypoints,
     requestMoney,
     setCustomUnitRateID,
     setMoneyRequestDistance,
@@ -60,6 +59,7 @@ type CreateTransactionParams = {
     policyParams?: {policy: OnyxEntry<Policy>};
     billable?: boolean;
     reimbursable?: boolean;
+    allTransactionDrafts: OnyxCollection<Transaction>;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -107,7 +107,9 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     shouldGenerateTransactionThreadReport: boolean;
     selfDMReport: OnyxEntry<Report>;
     isSelfTourViewed: boolean;
+    allTransactionDrafts: OnyxCollection<Transaction>;
     betas: OnyxEntry<Beta[]>;
+    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -121,7 +123,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     reportAttributesDerived?: Record<string, ReportAttributes>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     waypoints?: WaypointCollection;
-    customUnitRateID: string;
     manualDistance?: number;
     currentUserLogin?: string;
     currentUserAccountID: number;
@@ -173,11 +174,14 @@ function createTransaction({
     policyParams,
     billable,
     reimbursable = true,
+    allTransactionDrafts,
     isSelfTourViewed,
     betas,
     personalDetails,
     recentWaypoints,
 }: CreateTransactionParams) {
+    const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
+
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
@@ -213,6 +217,9 @@ function createTransaction({
                 betas,
             });
         } else {
+            const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+            const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
+
             requestMoney({
                 report,
                 betas,
@@ -242,6 +249,8 @@ function createTransaction({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                existingTransactionDraft,
+                draftTransactionIDs,
                 isSelfTourViewed,
                 personalDetails,
             });
@@ -297,7 +306,9 @@ function handleMoneyRequestStepScanParticipants({
     locationPermissionGranted = false,
     selfDMReport,
     isSelfTourViewed,
+    allTransactionDrafts,
     betas,
+    recentWaypoints,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -379,7 +390,6 @@ function handleMoneyRequestStepScanParticipants({
                             lat: successData.coords.latitude,
                             long: successData.coords.longitude,
                         };
-                        const recentWaypoints = getRecentWaypoints();
                         createTransaction({
                             transactions,
                             iouType,
@@ -401,6 +411,7 @@ function handleMoneyRequestStepScanParticipants({
                             billable: false,
                             reimbursable: defaultReimbursable,
                             isSelfTourViewed,
+                            allTransactionDrafts,
                             betas,
                             personalDetails,
                             recentWaypoints,
@@ -409,7 +420,6 @@ function handleMoneyRequestStepScanParticipants({
                     (errorData) => {
                         Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                         // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                        const recentWaypoints = getRecentWaypoints();
                         createTransaction({
                             transactions,
                             iouType,
@@ -428,6 +438,7 @@ function handleMoneyRequestStepScanParticipants({
                             participant,
                             reimbursable: defaultReimbursable,
                             isSelfTourViewed,
+                            allTransactionDrafts,
                             betas,
                             personalDetails,
                             recentWaypoints,
@@ -436,7 +447,6 @@ function handleMoneyRequestStepScanParticipants({
                 );
                 return;
             }
-            const recentWaypoints = getRecentWaypoints();
             createTransaction({
                 transactions,
                 iouType,
@@ -455,6 +465,7 @@ function handleMoneyRequestStepScanParticipants({
                 participant,
                 reimbursable: defaultReimbursable,
                 isSelfTourViewed,
+                allTransactionDrafts,
                 betas,
                 personalDetails,
                 recentWaypoints,
@@ -515,7 +526,6 @@ function handleMoneyRequestStepDistanceNavigation({
     reportAttributesDerived,
     personalDetails,
     waypoints,
-    customUnitRateID,
     manualDistance,
     currentUserLogin,
     currentUserAccountID,
@@ -597,7 +607,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         participant,
                     },
                     policyParams: {
-                        policy,
+                        policy: policyForMovingExpenses,
                     },
                     transactionParams: {
                         amount: 0,
@@ -609,7 +619,12 @@ function handleMoneyRequestStepDistanceNavigation({
                         billable: false,
                         reimbursable: defaultReimbursable,
                         validWaypoints,
-                        customUnitRateID,
+                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({
+                            reportID: report.reportID,
+                            isTrackDistanceExpense: true,
+                            policy: policyForMovingExpenses,
+                            isPolicyExpenseChat: false,
+                        }),
                         attendees: transaction?.comment?.attendees,
                         gpsCoordinates,
                         odometerStart,

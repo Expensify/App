@@ -9,6 +9,7 @@ import {
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getAllTaxRatesNamesAndValues,
+    getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
@@ -2008,6 +2009,76 @@ describe('PolicyUtils', () => {
             const result = sortPoliciesByName(policies, localeCompare);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.name).toBe('Only');
+        });
+    });
+
+    describe('getConnectedIntegrationNamesForPolicies', () => {
+        it('returns empty Set when policies is undefined', () => {
+            expect(getConnectedIntegrationNamesForPolicies(undefined)).toEqual(new Set());
+        });
+
+        it('returns empty Set when policies is empty object', () => {
+            expect(getConnectedIntegrationNamesForPolicies({})).toEqual(new Set());
+        });
+
+        it('returns Set with connection name when policy has verified connection', () => {
+            const policyWithXero = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                        lastSync: {isConnected: true},
+                    },
+                } as Connections,
+            } as Policy;
+            const policies: OnyxCollection<Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policyWithXero,
+            };
+            expect(getConnectedIntegrationNamesForPolicies(policies)).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]));
+        });
+
+        it('filters by policyIDs when provided', () => {
+            const policy1WithQBO = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {lastSync: {isConnected: true}},
+                } as Connections,
+            } as Policy;
+            const policy2WithXero = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {lastSync: {isConnected: true}},
+                } as Connections,
+            } as Policy;
+            const policies: OnyxCollection<Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1WithQBO,
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2WithXero,
+            };
+            expect(getConnectedIntegrationNamesForPolicies(policies, ['1'])).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.QBO]));
+        });
+
+        it('returns all connection names when policies have different connections', () => {
+            const policy1 = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {lastSync: {isConnected: true}},
+                } as Connections,
+            } as Policy;
+
+            const policy2 = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {lastSync: {isConnected: true}},
+                } as Connections,
+            } as Policy;
+
+            const policies: OnyxCollection<Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1,
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
+            };
+            const result = getConnectedIntegrationNamesForPolicies(policies);
+            expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
+            expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
+            expect(result.size).toBe(2);
         });
     });
 });

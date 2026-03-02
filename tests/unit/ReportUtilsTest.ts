@@ -1453,7 +1453,7 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated(transactionThread, undefined, unreportedTransactionAction);
+                const reportName = getReportNameDeprecated({report: transactionThread, parentReportActionParam: unreportedTransactionAction});
 
                 // Should NOT contain HTML tags
                 expect(reportName).not.toContain('<a href');
@@ -1658,7 +1658,16 @@ describe('ReportUtils', () => {
                 };
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated(report, policy, undefined, participantsPersonalDetails, undefined, undefined, [], false, [], [], explicitConciergeReportID);
+                const reportName = getReportNameDeprecated({
+                    report,
+                    policy,
+                    personalDetails: participantsPersonalDetails,
+                    transactions: [],
+                    isReportArchived: false,
+                    reports: [],
+                    policies: [],
+                    conciergeReportID: explicitConciergeReportID,
+                });
                 expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
             });
 
@@ -1670,7 +1679,16 @@ describe('ReportUtils', () => {
                 };
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated(report, policy, undefined, participantsPersonalDetails, undefined, undefined, [], false, [], [], explicitConciergeReportID);
+                const reportName = getReportNameDeprecated({
+                    report,
+                    policy,
+                    personalDetails: participantsPersonalDetails,
+                    transactions: [],
+                    isReportArchived: false,
+                    reports: [],
+                    policies: [],
+                    conciergeReportID: explicitConciergeReportID,
+                });
                 expect(reportName).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
                 // Should generate name from participants instead
                 expect(reportName).toBe('Ragnar Lothbrok');
@@ -1684,7 +1702,7 @@ describe('ReportUtils', () => {
                 };
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated(report, policy, undefined, participantsPersonalDetails);
+                const reportName = getReportNameDeprecated({report, policy, personalDetails: participantsPersonalDetails});
                 expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
             });
         });
@@ -4998,6 +5016,34 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                 }),
             ).toBeFalsy();
+        });
+
+        it('should return DEFAULT for an empty concierge chat when excludeEmptyChats is true', async () => {
+            const conciergeReportID = 'concierge-report-123';
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: conciergeReportID,
+            };
+            const currentReportId = '';
+            const isInFocusMode = false;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+            await waitForBatchedUpdates();
+
+            expect(
+                reasonForReportToBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: true,
+                    draftComment: '',
+                    isReportArchived: undefined,
+                }),
+            ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
 
         it('should return false when the users email is domain-based and the includeDomainEmail is false', () => {
@@ -11848,6 +11894,7 @@ describe('ReportUtils', () => {
         it('should return error for DEW_SUBMIT_FAILED action on OPEN report', () => {
             const report = {
                 reportID: '1',
+                ownerAccountID: currentUserAccountID,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             };
@@ -11877,6 +11924,34 @@ describe('ReportUtils', () => {
 
             expect(errors?.dewSubmitFailed).toBeDefined();
             expect(reportAction).toEqual(dewSubmitFailedAction);
+        });
+
+        it('should NOT return error for DEW_SUBMIT_FAILED when current user is not the report owner', () => {
+            const report = {
+                reportID: '1',
+                ownerAccountID: 999,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const dewSubmitFailedAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
         });
 
         it('should NOT return error for DEW_SUBMIT_FAILED if there is a more recent SUBMITTED action', () => {
@@ -11917,6 +11992,7 @@ describe('ReportUtils', () => {
         it('should return error for DEW_SUBMIT_FAILED if it is more recent than SUBMITTED action', () => {
             const report = {
                 reportID: '1',
+                ownerAccountID: currentUserAccountID,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             };
