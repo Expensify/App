@@ -26,8 +26,8 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Log from '@libs/Log';
 import {getBrowser} from '@libs/Browser';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
 
