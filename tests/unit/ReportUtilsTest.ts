@@ -1453,7 +1453,7 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated(transactionThread, undefined, unreportedTransactionAction);
+                const reportName = getReportNameDeprecated({report: transactionThread, parentReportActionParam: unreportedTransactionAction});
 
                 // Should NOT contain HTML tags
                 expect(reportName).not.toContain('<a href');
@@ -1658,7 +1658,16 @@ describe('ReportUtils', () => {
                 };
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated(report, policy, undefined, participantsPersonalDetails, undefined, undefined, [], false, [], [], explicitConciergeReportID);
+                const reportName = getReportNameDeprecated({
+                    report,
+                    policy,
+                    personalDetails: participantsPersonalDetails,
+                    transactions: [],
+                    isReportArchived: false,
+                    reports: [],
+                    policies: [],
+                    conciergeReportID: explicitConciergeReportID,
+                });
                 expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
             });
 
@@ -1670,7 +1679,16 @@ describe('ReportUtils', () => {
                 };
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated(report, policy, undefined, participantsPersonalDetails, undefined, undefined, [], false, [], [], explicitConciergeReportID);
+                const reportName = getReportNameDeprecated({
+                    report,
+                    policy,
+                    personalDetails: participantsPersonalDetails,
+                    transactions: [],
+                    isReportArchived: false,
+                    reports: [],
+                    policies: [],
+                    conciergeReportID: explicitConciergeReportID,
+                });
                 expect(reportName).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
                 // Should generate name from participants instead
                 expect(reportName).toBe('Ragnar Lothbrok');
@@ -1684,7 +1702,7 @@ describe('ReportUtils', () => {
                 };
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated(report, policy, undefined, participantsPersonalDetails);
+                const reportName = getReportNameDeprecated({report, policy, personalDetails: participantsPersonalDetails});
                 expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
             });
         });
