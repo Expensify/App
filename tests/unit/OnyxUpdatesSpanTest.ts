@@ -54,14 +54,6 @@ jest.mock('@libs/PusherUtils', () => ({
     },
 }));
 
-jest.mock('@libs/Performance', () => ({
-    __esModule: true,
-    default: {
-        markStart: jest.fn(),
-        markEnd: jest.fn(),
-    },
-}));
-
 jest.mock('@libs/Log', () => ({
     __esModule: true,
     default: {

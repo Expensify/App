@@ -156,6 +156,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         const mergedErrors: DomainMemberErrors = {
             errors: {...accountIDErrors?.errors, ...emailErrors?.errors},
             vacationDelegateErrors: {...accountIDErrors?.vacationDelegateErrors, ...emailErrors?.vacationDelegateErrors},
+            twoFactorAuthExemptEmailsError: {...accountIDErrors?.twoFactorAuthExemptEmailsError, ...emailErrors?.twoFactorAuthExemptEmailsError},
         };
         const brickRoadIndicator = hasDomainMemberDetailsErrors(mergedErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 

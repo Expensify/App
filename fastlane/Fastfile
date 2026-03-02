@@ -490,7 +490,10 @@ platform :ios do
 
   desc "Upload HybridApp to TestFlight"
   lane :upload_testflight_hybrid do
+    # Use environment variable if set (for separate upload jobs), otherwise fall back to lane context (for local runs)
+    ipa_path = ENV[KEY_IPA_PATH] || lane_context[SharedValues::IPA_OUTPUT_PATH]
     upload_to_testflight(
+      ipa: ipa_path,
       app_identifier: ENV["APPLE_ID"],
       api_key_path: "./ios-fastlane-json-key.json",
       distribute_external: true,

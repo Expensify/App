@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from 'react';
+import {useEffect} from 'react';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {TranslationParameters} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ConfirmModal from './ConfirmModal';
 
 type ImportSpreadsheetConfirmModalProps = {
     /** Modal visibility */
@@ -21,36 +21,31 @@ type ImportSpreadsheetConfirmModalProps = {
 
 function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onModalHide, shouldHandleNavigationBack = true}: ImportSpreadsheetConfirmModalProps) {
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
 
-    const [titleText, setTitleText] = useState('');
-    const [promptText, setPromptText] = useState('');
+    const titleText = spreadsheet?.importFinalModal?.titleKey ? translate(spreadsheet.importFinalModal.titleKey) : '';
+    const promptText = spreadsheet?.importFinalModal?.promptKey
+        ? translate(spreadsheet.importFinalModal.promptKey, spreadsheet.importFinalModal.promptKeyParams as TranslationParameters<typeof spreadsheet.importFinalModal.promptKey>[0])
+        : '';
 
     useEffect(() => {
-        if (!isVisible || !spreadsheet?.importFinalModal) {
+        if (!isVisible || !titleText || !promptText || !spreadsheet?.importFinalModal) {
             return;
         }
-        const title = spreadsheet.importFinalModal.titleKey ? translate(spreadsheet.importFinalModal.titleKey) : '';
-        const prompt = spreadsheet.importFinalModal.promptKey
-            ? translate(spreadsheet.importFinalModal.promptKey, spreadsheet.importFinalModal.promptKeyParams as TranslationParameters<typeof spreadsheet.importFinalModal.promptKey>[0])
-            : '';
-        setTitleText(title);
-        setPromptText(prompt);
-    }, [isVisible, spreadsheet, translate]);
+        showConfirmModal({
+            title: titleText,
+            prompt: promptText,
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            shouldHandleNavigationBack,
+            onModalHide,
+        }).then(() => {
+            closeImportPageAndModal();
+        });
+    }, [isVisible, titleText, promptText, closeImportPageAndModal, onModalHide, shouldHandleNavigationBack, showConfirmModal, translate, spreadsheet?.importFinalModal]);
 
-    return (
-        <ConfirmModal
-            isVisible={isVisible}
-            title={titleText}
-            prompt={promptText}
-            onConfirm={closeImportPageAndModal}
-            onCancel={closeImportPageAndModal}
-            confirmText={translate('common.buttonConfirm')}
-            shouldShowCancelButton={false}
-            shouldHandleNavigationBack={shouldHandleNavigationBack}
-            onModalHide={onModalHide}
-        />
-    );
+    return null;
 }
 
 export default ImportSpreadsheetConfirmModal;
