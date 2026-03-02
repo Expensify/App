@@ -37,6 +37,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Whether tooltips should be shown */
     shouldShowTooltips?: boolean;
 
+    /** Custom content to display in the header of list component. */
+    customListHeaderContent?: React.JSX.Element | null;
+
     /** Called when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
@@ -129,9 +132,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
         /** Custom header content to render instead of the default select all header */
         customListHeader?: React.ReactNode;
 
-        /** Custom content to display in the header of list component. */
-        customListHeaderContent?: React.JSX.Element | null;
-
         /** Custom component to render while data is loading */
         customLoadingPlaceholder?: React.JSX.Element;
 
@@ -187,6 +187,9 @@ type SelectionListStyle = {
 
     /** Styles for the content container of the list (scrolls with content) */
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the list footer content container */
+    listFooterContentStyle?: StyleProp<ViewStyle>;
 
     /** Styles for the list container */
     containerStyle?: StyleProp<ViewStyle>;
@@ -246,6 +249,9 @@ type TextInputOptions = {
 
     /** Whether the text input auto correct should be disabled */
     disableAutoCorrect?: boolean;
+
+    /** Whether the text input should intercept swipes */
+    shouldInterceptSwipe?: boolean;
 
     /** Styles for the text input */
     style?: {

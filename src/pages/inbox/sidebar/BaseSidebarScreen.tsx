@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -8,8 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
-import Performance from '@libs/Performance';
-import CONST from '@src/CONST';
 import SidebarLinksData from './SidebarLinksData';
 
 function BaseSidebarScreen() {
@@ -17,10 +15,6 @@ function BaseSidebarScreen() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayLHB = !shouldUseNarrowLayout;
-
-    useEffect(() => {
-        Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
-    }, []);
 
     return (
         <ScreenWrapper

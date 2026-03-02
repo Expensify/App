@@ -75,9 +75,9 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const reportAttributesDerived = useReportAttributes();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 
@@ -103,15 +103,11 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         if (!options || isLoadingMore) {
             return;
         }
-
-        const hasMoreToLoad = options.reports.length < totalReports;
-        if (hasMoreToLoad) {
-            setIsLoadingMore(true);
-            setReportsLimit((prev) => prev + batchSize);
-        }
+        setIsLoadingMore(true);
+        setReportsLimit((prev) => prev + batchSize);
     };
 
-    const hasMore = options ? options.reports.length < totalReports : false;
+    const hasMore = options ? reportsLimit < totalReports : false;
 
     return {
         options,

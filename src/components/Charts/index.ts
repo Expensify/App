@@ -2,8 +2,7 @@ import BarChart from './BarChart';
 import ChartHeader from './components/ChartHeader';
 import ChartTooltip from './components/ChartTooltip';
 import LineChart from './LineChart';
+import PieChart from './PieChart';
 
-export {BarChart, ChartHeader, ChartTooltip, LineChart};
-export type {ChartDataPoint, CartesianChartProps, YAxisUnit, YAxisUnitPosition} from './types';
-export type {BarChartProps} from './BarChart/BarChartContent';
-export type {LineChartProps} from './LineChart/LineChartContent';
+export {BarChart, ChartHeader, ChartTooltip, LineChart, PieChart};
+export type {CartesianChartProps, ChartDataPoint, UnitPosition, UnitWithFallback} from './types';
