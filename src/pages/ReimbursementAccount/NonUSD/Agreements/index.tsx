@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import AgreementsFullStep from '@components/SubStepForms/AgreementsFullStep';
 import useOnyx from '@hooks/useOnyx';
 import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
@@ -23,12 +23,15 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPa
     const agreementsStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isDocusignStepRequired = requiresDocusignStep(currency);
+    const isSubmittingRef = useRef(false);
 
     const submit = () => {
         if (isDocusignStepRequired) {
             onSubmit();
             return;
         }
+
+        isSubmittingRef.current = true;
 
         finishCorpayBankAccountOnboarding({
             inputs: JSON.stringify({
@@ -51,7 +54,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPa
             return;
         }
 
-        if (reimbursementAccount?.isSuccess) {
+        if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
             onSubmit();
             clearReimbursementAccountFinishCorpayBankAccountOnboarding();
         }
