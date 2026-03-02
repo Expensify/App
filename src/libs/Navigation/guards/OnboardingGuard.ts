@@ -166,8 +166,8 @@ const OnboardingGuard: NavigationGuard = {
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link)
         // The OnboardingModalNavigator is not mounted when onboarding is complete, so the route would silently fail
-        if (isOnboardingCompleted && isNavigatingToOnboardingFlow(action)) {
-            Log.info('[OnboardingGuard] Redirecting completed user away from onboarding route to home');
+        if ((isOnboardingCompleted || CONFIG.SKIP_ONBOARDING) && isNavigatingToOnboardingFlow(action)) {
+            Log.info('[OnboardingGuard] Redirecting user away from onboarding route to home');
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }
 
