@@ -761,7 +761,8 @@ function getOptionData({
     result.isMoneyRequestReport = isMoneyRequestReport(report);
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const threadSuppression = isChatThread(report) && !isTripRoom(report) && !(isExpenseRequest(report) && policy);
-    result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression;
+    const taskSuppression = isTaskReport(report);
+    result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;

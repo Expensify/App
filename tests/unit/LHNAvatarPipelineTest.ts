@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import {getIcons, isChatThread, isExpenseRequest, isTripRoom, shouldReportShowSubscript} from '@libs/ReportUtils';
+import {getIcons, isChatThread, isExpenseRequest, isTaskReport, isTripRoom, shouldReportShowSubscript} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -82,7 +82,8 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     // Stage 1: SidebarUtils subscript + icon logic
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const threadSuppression = isChatThread(report) && !isTripRoom(report) && !(isExpenseRequest(report) && !!policy);
-    const shouldShowSubscript = rawShouldShowSubscript && !threadSuppression;
+    const taskSuppression = isTaskReport(report);
+    const shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
 
     const formatPhoneNumber = (s: string) => s;
     let icons = getIcons(report, formatPhoneNumber, PERSONAL_DETAILS, null, '', -1, policy, undefined, isReportArchived);
@@ -364,7 +365,7 @@ describe('LHN Avatar Pipeline', () => {
     });
 
     // ── Case 12: Task Report (workspace) ────────────────────────────────
-    it('Task Report (workspace) → subscript (matches header)', () => {
+    it('Task Report (workspace) → single (task suppression)', () => {
         const report = {
             ...createWorkspaceTaskReport(111, [CURRENT_USER_ACCOUNT_ID, 2], PARENT_PEC_REPORT_ID),
             policyID: POLICY_ID,
@@ -372,9 +373,9 @@ describe('LHN Avatar Pipeline', () => {
         };
         const result = computeAvatarResult({report});
 
-        expect(result.shouldShowSubscript).toBe(true);
-        expect(result.avatarType).toBe('subscript');
-        expect(result.icons).toHaveLength(2);
+        expect(result.shouldShowSubscript).toBe(false);
+        expect(result.avatarType).toBe('single');
+        expect(result.icons).toHaveLength(1);
     });
 
     // ── Case 13: Trip Room ──────────────────────────────────────────────

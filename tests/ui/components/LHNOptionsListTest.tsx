@@ -466,10 +466,10 @@ describe('LHNOptionsList', () => {
     });
 
     describe('Task report avatar rendering', () => {
-        it('should render a subscript avatar for a workspace task report (matches header)', async () => {
+        it('should render a single avatar for a workspace task report (task suppression)', async () => {
             // Given a task report inside a workspace (chatType policyExpenseChat).
-            // shouldReportShowSubscript returns true. LHN matches the header behavior
-            // and shows SUBSCRIPT (user avatar + workspace icon).
+            // shouldReportShowSubscript returns true, but taskSuppression in SidebarUtils
+            // overrides it to false. The icons should be trimmed to 1 for SINGLE rendering.
             const policyID = 'taskTestPolicy';
             const parentReportID = 'taskParentReport';
             const reportID = 'taskTestReport';
@@ -523,10 +523,10 @@ describe('LHNOptionsList', () => {
             // When the LHNOptionsList renders the task report
             render(getLHNOptionsListElement({data: [taskReport]}));
 
-            // Then it should render a subscript avatar (user + workspace), matching the header
+            // Then it should render a single avatar, not a subscript (task suppression)
             await waitFor(() => {
-                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
-                expect(screen.queryByTestId('ReportActionAvatars-SingleAvatar')).toBeNull();
+                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
             });
         });
     });
