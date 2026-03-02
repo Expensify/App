@@ -277,6 +277,7 @@ const WRITE_COMMANDS = {
     REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED: 'RemoveWorkspaceCategoryReceiptsRequired',
     SET_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED: 'SetPolicyCategoryItemizedReceiptsRequired',
     REMOVE_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED: 'RemoveWorkspaceCategoryItemizedReceiptsRequired',
+    SET_POLICY_CATEGORY_RECEIPTS_AND_ITEMIZED_RECEIPT_REQUIRED: 'SetPolicyCategoryReceiptsAndItemizedReceiptRequired',
     SET_POLICY_CATEGORY_MAX_AMOUNT: 'SetPolicyCategoryMaxAmount',
     SET_POLICY_CATEGORY_APPROVER: 'SetPolicyCategoryApprover',
     SET_POLICY_CATEGORY_TAX: 'SetPolicyCategoryTax',
@@ -819,6 +820,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_RECEIPTS_REQUIRED]: Parameters.RemovePolicyCategoryReceiptsRequiredParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED]: Parameters.SetPolicyCategoryItemizedReceiptsRequiredParams;
     [WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED]: Parameters.RemovePolicyCategoryItemizedReceiptsRequiredParams;
+    [WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_AND_ITEMIZED_RECEIPT_REQUIRED]: Parameters.SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_MAX_AMOUNT]: Parameters.SetPolicyCategoryMaxAmountParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_APPROVER]: Parameters.SetPolicyCategoryApproverParams;
     [WRITE_COMMANDS.SET_POLICY_CATEGORY_TAX]: Parameters.SetPolicyCategoryTaxParams;

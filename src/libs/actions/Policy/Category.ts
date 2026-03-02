@@ -16,6 +16,7 @@ import type {
     SetPolicyCategoryDescriptionRequiredParams,
     SetPolicyCategoryItemizedReceiptsRequiredParams,
     SetPolicyCategoryMaxAmountParams,
+    SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams,
     SetPolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryTaxParams,
     SetWorkspaceCategoryDescriptionHintParams,
@@ -801,6 +802,79 @@ function removePolicyCategoryItemizedReceiptsRequired(policyData: PolicyData, ca
     };
 
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CATEGORY_ITEMIZED_RECEIPTS_REQUIRED, parameters, onyxData);
+}
+
+function setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData: PolicyData, categoryName: string, maxAmountNoReceipt: number, maxAmountNoItemizedReceipt: number) {
+    const policyID = policyData.policy?.id;
+    const originalMaxAmountNoReceipt = policyData.categories[categoryName]?.maxAmountNoReceipt;
+    const originalMaxAmountNoItemizedReceipt = policyData.categories[categoryName]?.maxAmountNoItemizedReceipt;
+    const policyCategoriesOptimisticData = {
+        [categoryName]: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            pendingFields: {
+                maxAmountNoReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                maxAmountNoItemizedReceipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+            maxAmountNoReceipt,
+            maxAmountNoItemizedReceipt,
+        },
+    };
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: policyCategoriesOptimisticData,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        pendingAction: null,
+                        pendingFields: {
+                            maxAmountNoReceipt: null,
+                            maxAmountNoItemizedReceipt: null,
+                        },
+                        maxAmountNoReceipt,
+                        maxAmountNoItemizedReceipt,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        pendingAction: null,
+                        pendingFields: {
+                            maxAmountNoReceipt: null,
+                            maxAmountNoItemizedReceipt: null,
+                        },
+                        maxAmountNoReceipt: originalMaxAmountNoReceipt,
+                        maxAmountNoItemizedReceipt: originalMaxAmountNoItemizedReceipt,
+                    },
+                },
+            },
+        ],
+    };
+
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
+
+    const parameters: SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams = {
+        policyID,
+        categoryName,
+        maxExpenseAmountNoReceipt: maxAmountNoReceipt,
+        maxExpenseAmountNoItemizedReceipt: maxAmountNoItemizedReceipt,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_RECEIPTS_AND_ITEMIZED_RECEIPT_REQUIRED, parameters, onyxData);
 }
 
 function createPolicyCategory({
@@ -1807,6 +1881,7 @@ export {
     setPolicyCategoryGLCode,
     setPolicyCategoryMaxAmount,
     setPolicyCategoryPayrollCode,
+    setPolicyCategoryReceiptsAndItemizedReceiptRequired,
     setPolicyCategoryReceiptsRequired,
     setPolicyCategoryItemizedReceiptsRequired,
     setPolicyCategoryTax,
