@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -65,8 +65,11 @@ import type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -391,6 +394,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Cartão',
         whyDoWeAskForThis: 'Por que pedimos isso?',
         required: 'Obrigatório',
+        automatic: 'Automático',
         showing: 'Mostrando',
         of: 'de',
         default: 'Padrão',
@@ -525,10 +529,11 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Ação necessária',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
-        duplicateExpense: 'Despesa duplicada',
+        duplicateExpense: 'Duplicar despesa',
         exchangeRate: 'Taxa de câmbio',
         reimbursableTotal: 'Total reembolsável',
         nonReimbursableTotal: 'Total não reembolsável',
+        opensInNewTab: 'Abre em uma nova aba',
         locked: 'Bloqueado',
         month: 'Mês',
         week: 'Semana',
@@ -536,6 +541,8 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Delegado de férias',
         expensifyLogo: 'Logo da Expensify',
+        duplicateReport: 'Duplicar relatório',
+        explain: 'Explicar',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -639,6 +646,30 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Faça login novamente.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Analisar transação',
+            pleaseReview: 'Revise esta transação',
+            requiresYourReview: 'Uma transação com o Cartão Expensify requer sua revisão abaixo.',
+            transactionDetails: 'Detalhes da transação',
+            deny: 'Negar',
+            approve: 'Aprovar',
+            denyTransaction: 'Negar transação',
+            transactionDenied: 'Transação negada',
+            transactionApproved: 'Transação aprovada!',
+            areYouSureToDeny: 'Tem certeza? A transação será recusada se você fechar esta tela.',
+            youCanTryAgainAtMerchantOrReachOut:
+                'Você pode tentar novamente no estabelecimento. Se você não fez esta transação, <concierge-link>entre em contato com a Concierge</concierge-link> para relatar possível fraude.',
+            youNeedToTryAgainAtMerchant: 'Essa transação não foi verificada, então nós a negamos. Você precisará tentar novamente no estabelecimento.',
+            goBackToTheMerchant: 'Volte ao site do estabelecimento para continuar a transação.',
+            attemptedTransaction: 'Transação tentada',
+            transactionFailed: 'Transação falhou',
+            transactionCouldNotBeCompleted: 'Não foi possível concluir sua transação. Tente novamente no estabelecimento.',
+            transactionCouldNotBeCompletedReachOut:
+                'Sua transação não pôde ser concluída. Se você não tentou fazer essa transação, <concierge-link>entre em contato com o Concierge</concierge-link> para relatar possível fraude.',
+            reviewFailed: 'Falha na análise',
+            alreadyReviewedSubtitle:
+                'Você já revisou esta transação. Verifique seu <transaction-history-link>histórico de transações</transaction-history-link> ou entre em contato com o <concierge-link>Concierge</concierge-link> para relatar qualquer problema.',
+        },
         biometricsTest: {
             biometricsTest: 'Teste de biometria',
             authenticationSuccessful: 'Autenticação bem-sucedida',
@@ -690,7 +721,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo não compatível',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.`,
         },
         verificationFailed: 'Falha na verificação',
     },
@@ -936,6 +967,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({days}: {days: number}) => `Restam ${days} ${days === 1 ? 'dia' : 'dias'}`,
             },
             addShippingAddress: {title: 'Precisamos do seu endereço de entrega', subtitle: 'Informe um endereço para receber seu Cartão Expensify.', cta: 'Adicionar endereço'},
+            addPaymentCard: {title: 'Adicione um cartão de pagamento para continuar usando o Expensify', subtitle: 'Conta > Assinatura', cta: 'Adicionar'},
             activateCard: {title: 'Ative seu Cartão Expensify', subtitle: 'Valide seu cartão e comece a gastar.', cta: 'Ativar'},
             reviewCardFraud: {
                 title: 'Analisar possível fraude no seu Cartão Expensify',
@@ -946,20 +978,20 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: 'Corrigir',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Corrigir conexão do cartão corporativo ${feedName}` : 'Corrigir conexão do cartão corporativo'),
-                defaultSubtitle: 'Área de trabalho > Cartões corporativos',
+                defaultSubtitle: 'Espaço de trabalho',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Cartões corporativos`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Corrigir conexão com ${integrationName}`,
-                defaultSubtitle: 'Espaço de trabalho > Contabilidade',
+                defaultSubtitle: 'Espaço de trabalho',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Contabilidade`,
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Corrigir conexão do cartão pessoal ${cardName}` : 'Corrigir conexão do cartão pessoal'),
-                subtitle: 'Carteira > Cartões atribuídos',
+                subtitle: 'Carteira',
             },
         },
-        assignedCards: 'Cartões atribuídos',
+        assignedCards: 'Seus Cartões Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restante`,
         announcements: 'Comunicados',
         discoverSection: {
@@ -975,10 +1007,38 @@ const translations: TranslationDeepObject<typeof en> = {
             export: ({count}: {count: number}) => `Exportar ${count} ${count === 1 ? 'relatório' : 'relatórios'}`,
             begin: 'Iniciar',
             emptyStateMessages: {
-                nicelyDone: 'Muito bem feito',
-                keepAnEyeOut: 'Fique de olho no que vem por aí!',
-                allCaughtUp: 'Você está em dia',
-                upcomingTodos: 'Os próximos afazeres aparecerão aqui.',
+                thumbsUpStarsTitle: 'Você terminou!',
+                thumbsUpStarsDescription: 'Parabéns para você, fique atento a mais tarefas.',
+                smallRocketTitle: 'Tudo em dia',
+                smallRocketDescription: 'As próximas tarefas pendentes serão exibidas aqui.',
+                cowboyHatTitle: 'Você terminou!',
+                cowboyHatDescription: 'Todas as tarefas estão controladas, fique de olho nas próximas.',
+                trophy1Title: 'Nada para mostrar',
+                trophy1Description: 'Você conseguiu! Fique de olho nas próximas tarefas.',
+                palmTreeTitle: 'Tudo em dia',
+                palmTreeDescription: 'Hora de relaxar, mas fique atento a futuras tarefas.',
+                fishbowlBlueTitle: 'Você terminou!',
+                fishbowlBlueDescription: 'As futuras tarefas aparecerão aqui.',
+                targetTitle: 'Tudo em dia',
+                targetDescription: 'Boa, você está mantendo o foco. Volte para mais tarefas!',
+                chairTitle: 'Nada para mostrar',
+                chairDescription: 'Vá relaxar, listaremos as próximas tarefas aqui.',
+                broomTitle: 'Você terminou!',
+                broomDescription: 'As tarefas estão em dia, mas fique atento a mais tarefas.',
+                houseTitle: 'Tudo em dia',
+                houseDescription: 'Esta é sua base para as próximas tarefas.',
+                conciergeBotTitle: 'Nada para mostrar',
+                conciergeBotDescription: 'Bi bi bi bi, volte para mais tarefas!',
+                checkboxTextTitle: 'Tudo em dia',
+                checkboxTextDescription: 'Marque aqui suas próximas tarefas pendentes.',
+                flashTitle: 'Você terminou!',
+                flashDescription: 'Suas futuras tarefas aparecerão aqui.',
+                sunglassesTitle: 'Nada para mostrar',
+                sunglassesDescription: 'Hora de relaxar, mas fique atento ao que vem por aí!',
+                f1FlagsTitle: 'Tudo em dia',
+                f1FlagsDescription: 'Você concluiu todas as tarefas pendentes.',
+                fireworksTitle: 'Tudo em dia',
+                fireworksDescription: 'As próximas tarefas aparecerão aqui.',
             },
         },
     },
@@ -1073,6 +1133,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'Tem certeza de que deseja excluir este recibo?',
         addReceipt: 'Adicionar recibo',
         scanFailed: 'O recibo não pôde ser digitalizado porque está faltando o comerciante, a data ou o valor.',
+        crop: 'Cortar',
         addAReceipt: {
             phrase1: 'Adicionar um recibo',
             phrase2: 'ou arraste e solte um aqui',
@@ -1169,6 +1230,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Recibo aguardando correspondência com transação do cartão. Marque como dinheiro para cancelar.',
         markAsCash: 'Marcar como dinheiro',
         routePending: 'Rota pendente...',
+        automaticallyEnterExpenseDetails: 'O Concierge inserirá automaticamente os detalhes da despesa para você, ou você pode adicioná-los manualmente.',
         receiptScanning: () => ({
             one: 'Digitalizando recibo...',
             other: 'Escaneando recibos...',
@@ -1376,7 +1438,14 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Alguns desses duplicados já foram aprovados ou pagos.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Manter tudo',
-        confirmApprovalWithHeldAmount: 'O relatório contém despesas em espera. Aprovar apenas despesas em conformidade, ou aprovar o relatório inteiro?',
+        noDuplicatesTitle: 'Tudo pronto!',
+        noDuplicatesDescription: 'Não há transações duplicadas para revisar aqui.',
+        confirmApprove: 'Confirmar valor da aprovação',
+        confirmApprovalAmount: 'Aprove apenas as despesas em conformidade ou aprove o relatório inteiro.',
+        confirmApprovalAllHoldAmount: () => ({
+            one: 'Esta despesa está em espera. Deseja aprovar mesmo assim?',
+            other: 'Essas despesas estão em espera. Deseja aprovar mesmo assim?',
+        }),
         confirmPay: 'Confirmar valor do pagamento',
         confirmPayAmount: 'Pague o que não está retido ou pague o relatório inteiro.',
         confirmPayAllHoldAmount: () => ({
@@ -1457,7 +1526,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: 'marcou o motivo da rejeição como resolvido',
             },
         },
-        moveExpenses: () => ({one: 'Mover despesa', other: 'Mover despesas'}),
+        moveExpenses: 'Mover para relatório',
         moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros workspaces, porque as tarifas de diária podem ser diferentes entre os workspaces.',
         changeApprover: {
             title: 'Alterar aprovador',
@@ -1484,18 +1553,19 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'O valor total é muito alto. Diminua as horas ou reduza a tarifa.',
         },
         correctRateError: 'Corrija o erro de taxa e tente novamente.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
+        duplicateNonDefaultWorkspacePerDiemError: 'Você não pode duplicar despesas de diárias entre espaços de trabalho porque as tarifas podem variar entre eles.',
+        rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcou a despesa como "reembolsável"' : 'marcou a despesa como “não reembolsável”'),
-            billable: (value: boolean) => (value ? 'marcou a despesa como "faturável"' : 'marcou a despesa como “não faturável”'),
-            tax: (value: string, isFirst: boolean) => (isFirst ? `definir a alíquota de imposto como "${value}"` : `alíquota de imposto para “${value}”`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            billable: (value: boolean) => (value ? 'marcou a despesa como "faturável"' : 'marcou a despesa como "não faturável"'),
+            tax: (value: string, isFirst: boolean) => (isFirst ? `definir a alíquota de imposto como "${value}"` : `alíquota de imposto para "${value}"`),
+            reportName: (value: string) => `moveu esta despesa para o relatório "${value}"`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `defina ${field} como "${value}"` : `${field} para "${value}"`;
             },
-            format: (fragments: string, route: string) => `${fragments} via <a href="${route}">regras do espaço de trabalho</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">regras de despesas pessoais</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">regras do workspace</a>`,
         },
-        duplicateNonDefaultWorkspacePerDiemError: 'Você não pode duplicar despesas de diárias entre espaços de trabalho porque as tarifas podem variar entre eles.',
     },
     transactionMerge: {
         listPage: {
@@ -1747,6 +1817,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Novo método de contato',
         goBackContactMethods: 'Voltar para métodos de contato',
+        yourDefaultContactMethodRestrictedSwitch: 'Este é seu método de contato padrão atual. Sua empresa restringiu a remoção ou alteração dele.',
     },
     pronouns: {
         coCos: 'Co / Cos',
@@ -3864,8 +3935,11 @@ ${
             clearFilter: 'Limpar filtro',
             workspaceName: 'Nome do workspace',
             workspaceOwner: 'Proprietário',
+            keepMeAsAdmin: 'Manter-me como administrador',
             workspaceType: 'Tipo de workspace',
             workspaceAvatar: 'Avatar do workspace',
+            clientID: 'ID do cliente',
+            clientIDInputHint: 'Insira o identificador único do cliente',
             mustBeOnlineToViewMembers: 'Você precisa estar online para visualizar os membros deste workspace.',
             moreFeatures: 'Mais recursos',
             requested: 'Solicitado',
@@ -4220,6 +4294,9 @@ ${
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas reembolsáveis serão exportadas quando pagas',
                 },
             },
+            travelInvoicing: 'Faturamento de Viagens',
+            travelInvoicingVendor: 'Fornecedor de viagens',
+            travelInvoicingPayableAccount: 'Conta a pagar de viagens',
         },
         workspaceList: {
             joinNow: 'Participar agora',
@@ -5131,6 +5208,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         confirm: 'Entendi',
                     },
                 },
+                personalDetailsDescription: 'Para reservar viagens, insira seu nome legal exatamente como consta no documento de identificação emitido pelo governo.',
             },
             expensifyCard: {
                 title: 'Cartão Expensify',
@@ -6317,6 +6395,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 adultEntertainment: 'Entretenimento adulto',
                 requireCompanyCard: 'Exigir cartões corporativos para todas as compras',
                 requireCompanyCardDescription: 'Sinalize todos os gastos em dinheiro, incluindo despesas com quilometragem e diárias.',
+                requireCompanyCardDisabledTooltip: 'Ative Cartões corporativos (em Mais recursos) para desbloquear.',
             },
             expenseReportRules: {
                 title: 'Avançado',
@@ -6772,6 +6851,11 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `alterou o pagador autorizado para "${newReimburser}" (anteriormente "${previousReimburser}")` : `alterou o pagador autorizado para "${newReimburser}"`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `reembolsos ${enabled ? 'ativado' : 'desativado'}`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `alterou o nome do imposto personalizado para "${newName}" (antes "${oldName}")`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
+            `alterou a taxa de imposto padrão da moeda do workspace para "${newName}" (anteriormente "${oldName}")`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
+            `alterou a alíquota de imposto padrão em moeda estrangeira para "${newName}" (anteriormente "${oldName}")`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `adicionou o imposto "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removeu o imposto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7056,6 +7140,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         groupColumns: 'Agrupar colunas',
         expenseColumns: 'Colunas de despesas',
         statements: 'Extratos',
+        cardStatements: 'Extratos de cartão',
+        monthlyAccrual: 'Acréscimo mensal',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCard: 'Cartão não aprovado',
         reconciliation: 'Conciliação',
@@ -7157,6 +7243,26 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             table: 'Tabela',
             bar: 'Bar',
             line: 'Linha',
+            pie: 'Torta',
+        },
+        noCategory: 'Sem categoria',
+        noMerchant: 'Sem comerciante',
+        noTag: 'Sem tag',
+        expenseType: 'Tipo de despesa',
+        withdrawalType: 'Tipo de saque',
+        recentSearches: 'Pesquisas recentes',
+        recentChats: 'Chats recentes',
+        searchIn: 'Pesquisar em',
+        searchPlaceholder: 'Pesquisar algo',
+        suggestions: 'Sugestões',
+        exportSearchResults: {
+            title: 'Criar exportação',
+            description: 'Uau, são muitos itens! Vamos agrupá-los e o Concierge enviará um arquivo para você em breve.',
+        },
+        exportedTo: 'Exportado para',
+        exportAll: {
+            selectAllMatchingItems: 'Selecionar todos os itens correspondentes',
+            allMatchingItemsSelected: 'Todos os itens correspondentes selecionados',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
@@ -7173,25 +7279,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não tem despesas.',
             accessPlaceHolder: 'Abrir para ver detalhes',
-        },
-        noCategory: 'Sem categoria',
-        noMerchant: 'Nenhum estabelecimento',
-        noTag: 'Sem tag',
-        expenseType: 'Tipo de despesa',
-        withdrawalType: 'Tipo de saque',
-        recentSearches: 'Pesquisas recentes',
-        recentChats: 'Conversas recentes',
-        searchIn: 'Pesquisar em',
-        searchPlaceholder: 'Pesquise algo',
-        suggestions: 'Sugestões',
-        exportSearchResults: {
-            title: 'Criar exportação',
-            description: 'Uau, são muitos itens! Vamos agrupá-los e a Concierge enviará um arquivo para você em breve.',
-        },
-        exportedTo: 'Exportado para',
-        exportAll: {
-            selectAllMatchingItems: 'Selecione todos os itens correspondentes',
-            allMatchingItemsSelected: 'Todos os itens correspondentes selecionados',
         },
         spendOverTime: 'Gastos ao longo do tempo',
     },
@@ -7337,6 +7424,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `a conta bancária empresarial ${maskedBankAccountNumber} foi bloqueada automaticamente devido a um problema com Reembolso ou liquidação do Cartão Expensify. Corrija o problema nas suas <a href="${linkURL}">configurações de workspace</a>.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}saiu do chat`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Abra o app móvel da Expensify para revisar sua transação de${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
+                },
             },
             error: {
                 invalidCredentials: 'Credenciais inválidas, verifique a configuração da sua conexão.',
@@ -7390,6 +7481,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         scrollToNewestMessages: 'Rolar até as mensagens mais recentes',
         preStyledText: 'Texto pré-formatado',
         viewAttachment: 'Ver anexo',
+        selectAllFeatures: 'Selecionar todos os recursos',
+        selectAllTransactions: 'Selecionar todas as transações',
+        selectAllItems: 'Selecionar todos os itens',
     },
     parentReportAction: {
         deletedReport: 'Relatório excluído',
@@ -7506,6 +7600,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             endTitle: 'Foto final do hodômetro',
             deleteOdometerPhoto: 'Excluir foto do odômetro',
             deleteOdometerPhotoConfirmation: 'Tem certeza de que deseja excluir esta foto do odômetro?',
+            cameraAccessRequired: 'É necessário acessar a câmera para tirar fotos.',
+            snapPhotoStart: '<muted-text-label>Tire uma foto do odômetro no <strong>início</strong> da sua viagem.</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>Tire uma foto do odômetro no <strong>final</strong> da sua viagem.</muted-text-label>',
         },
     },
     gps: {
@@ -8426,15 +8523,24 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
                 addMember: 'Não foi possível adicionar este membro. Tente novamente.',
                 vacationDelegate: 'Não foi possível definir este usuário como delegado de férias. Tente novamente.',
             },
+            cannotSetVacationDelegateForMember: (email: string) => `Você não pode definir um procurador de férias para ${email} porque esta pessoa já é procuradora dos seguintes membros:`,
+        },
+        common: {
+            settings: 'Configurações',
             forceTwoFactorAuth: 'Forçar autenticação em duas etapas',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>Desative o <a href="${samlPageUrl}">SAML</a> para forçar a autenticação em duas etapas.</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>Exigir autenticação em duas etapas para todos os membros deste domínio. Os membros do domínio serão solicitados a configurar a autenticação em duas etapas na conta ao fazer login.</muted-text>`,
             forceTwoFactorAuthError: 'Não foi possível alterar a exigência de autenticação em duas etapas. Tente novamente mais tarde.',
-            cannotSetVacationDelegateForMember: (email: string) => `Você não pode definir um procurador de férias para ${email} porque esta pessoa já é procuradora dos seguintes membros:`,
+            resetTwoFactorAuth: 'Redefinir autenticação de dois fatores',
         },
-        common: {settings: 'Configurações'},
         groups: {title: 'Grupos', memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membros`})},
+    },
+    proactiveAppReview: {
+        title: 'Curtindo o novo Expensify?',
+        description: 'Avise-nos para que possamos ajudar a tornar sua experiência com despesas ainda melhor.',
+        positiveButton: 'Sim!',
+        negativeButton: 'Na verdade, não',
     },
 };
 export default translations;

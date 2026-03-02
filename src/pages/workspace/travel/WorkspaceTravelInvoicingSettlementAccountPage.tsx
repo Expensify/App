@@ -35,8 +35,8 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
     const policyID = route.params?.policyID;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
-    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID), {canBeMissing: true});
+    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList);

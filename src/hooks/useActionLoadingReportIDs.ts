@@ -2,7 +2,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
 function useActionLoadingReportIDs(): ReadonlySet<string> {
-    const [reportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
+    const [reportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
 
     const ids = new Set<string>();
     if (!reportMetadata) {
