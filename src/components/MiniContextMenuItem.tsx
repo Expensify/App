@@ -13,7 +13,7 @@ import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
-type BaseMiniContextMenuItemProps = WithSentryLabel & {
+type MiniContextMenuItemProps = WithSentryLabel & {
     /**
      * Text to display when hovering the menu item
      */
@@ -48,7 +48,7 @@ type BaseMiniContextMenuItemProps = WithSentryLabel & {
  * Component that renders a mini context menu item with a
  * pressable. Also renders a tooltip when hovering the item.
  */
-function BaseMiniContextMenuItem({
+function MiniContextMenuItem({
     tooltipText,
     onPress,
     children,
@@ -56,7 +56,7 @@ function BaseMiniContextMenuItem({
     shouldPreventDefaultFocusOnPress = true,
     ref,
     sentryLabel,
-}: BaseMiniContextMenuItemProps) {
+}: MiniContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (
@@ -105,4 +105,4 @@ function BaseMiniContextMenuItem({
     );
 }
 
-export default BaseMiniContextMenuItem;
+export default MiniContextMenuItem;

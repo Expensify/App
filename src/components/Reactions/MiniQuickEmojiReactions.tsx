@@ -1,7 +1,7 @@
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
-import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
+import MiniContextMenuItem from '@components/MiniContextMenuItem';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -65,7 +65,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
     return (
         <View style={styles.flexRow}>
             {CONST.QUICK_REACTIONS.slice(0, 3).map((emoji: Emoji) => (
-                <BaseMiniContextMenuItem
+                <MiniContextMenuItem
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
@@ -78,9 +78,9 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                     >
                         {getPreferredEmojiCode(emoji, preferredSkinTone)}
                     </Text>
-                </BaseMiniContextMenuItem>
+                </MiniContextMenuItem>
             ))}
-            <BaseMiniContextMenuItem
+            <MiniContextMenuItem
                 ref={ref}
                 onPress={callFunctionIfActionIsAllowed(() => {
                     if (!emojiPickerRef.current?.isEmojiPickerVisible) {
@@ -101,7 +101,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
                     />
                 )}
-            </BaseMiniContextMenuItem>
+            </MiniContextMenuItem>
         </View>
     );
 }

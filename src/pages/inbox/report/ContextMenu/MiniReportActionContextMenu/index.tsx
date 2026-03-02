@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
-import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
+import MiniContextMenuItem from '@components/MiniContextMenuItem';
 import Icon from '@components/Icon';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -182,7 +182,7 @@ function MiniReportActionContextMenu() {
                             />
                         )}
                         {visibleActions.map((action: ActionDescriptor) => (
-                            <BaseMiniContextMenuItem
+                            <MiniContextMenuItem
                                 key={action.id}
                                 isDelayButtonStateComplete
                                 tooltipText={action.text}
@@ -196,13 +196,13 @@ function MiniReportActionContextMenu() {
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                                     />
                                 )}
-                            </BaseMiniContextMenuItem>
+                            </MiniContextMenuItem>
                         ))}
                         {!!(needsOverflow && overflowMenu) &&
                             (() => {
                                 const {buttonRef, text, onPress, sentryLabel, icon} = overflowMenu;
                                 return (
-                                    <BaseMiniContextMenuItem
+                                    <MiniContextMenuItem
                                         ref={buttonRef}
                                         isDelayButtonStateComplete
                                         tooltipText={text}
@@ -217,7 +217,7 @@ function MiniReportActionContextMenu() {
                                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                                             />
                                         )}
-                                    </BaseMiniContextMenuItem>
+                                    </MiniContextMenuItem>
                                 );
                             })()}
                     </View>
