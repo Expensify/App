@@ -83,6 +83,10 @@ const DYNAMIC_ROUTES = {
         path: 'verify-account',
         entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
     },
+    OWNER_SELECTOR: {
+        path: 'owner-selector',
+        entryScreens: [],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -3082,6 +3086,7 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
     },
+    WORKSPACE_CONFIRMATION_OWNER_SELECTOR: 'workspace/confirmation/owner-selector',
     MIGRATED_USER_WELCOME_MODAL: {
         route: 'onboarding/migrated-user-welcome',
 
