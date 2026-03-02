@@ -192,6 +192,7 @@ type GetReportSectionsParams = {
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
+    queryJSON?: SearchQueryJSON;
 };
 
 type GetTransactionSectionsParams = {
@@ -1392,6 +1393,7 @@ function buildLastExportedActionByReportIDMap(data: OnyxTypes.SearchResults['dat
 function shouldShowYear(
     data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data'],
     checkOnlyReports = false,
+    precomputedLastExportedMap?: Map<string, OnyxTypes.ReportAction>,
 ): ShouldShowYearResult {
     const result: ShouldShowYearResult = {
         shouldShowYearCreated: false,
@@ -1449,7 +1451,7 @@ function shouldShowYear(
         return result;
     }
 
-    const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
+    const lastExportedActionByReportID = precomputedLastExportedMap ?? buildLastExportedActionByReportIDMap(data);
 
     for (const key of Object.keys(data)) {
         if (!checkOnlyReports && isTransactionEntry(key)) {
@@ -1670,7 +1672,8 @@ function getTransactionsSections({
     cardFeeds,
 }: GetTransactionSectionsParams): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data);
+    const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data, false, lastExportedActionByReportID);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
     // Pre-filter transaction keys to avoid repeated checks
@@ -1683,8 +1686,6 @@ function getTransactionsSections({
     const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
 
     const transactionsSections: TransactionListItemType[] = [];
-
-    const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
 
     // Use the provided queryJSON if available, otherwise fall back to getCurrentSearchQueryJSON()
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
@@ -1970,6 +1971,7 @@ function getTaskSections(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     archivedReportsIDList?: ArchivedReportsIDSet,
 ): [TaskListItemType[], number] {
+    const {shouldShowYearCreated} = shouldShowYear(data);
     const tasks = Object.keys(data)
         .filter(isReportEntry)
         // Ensure that the reports that were passed are tasks, and not some other
@@ -1987,7 +1989,6 @@ function getTaskSections(
             const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
             const parentReport = getReportOrDraftReport(taskItem.parentReportID) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${taskItem.parentReportID}`];
 
-            const {shouldShowYearCreated} = shouldShowYear(data);
             const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName));
             const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description));
 
@@ -2163,8 +2164,10 @@ function getReportSections({
     bankAccountList,
     reportActions = {},
     allReportMetadata,
+    queryJSON,
 }: GetReportSectionsParams): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
+    const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
 
     const {
         shouldShowYearCreated: shouldShowYearCreatedTransaction,
@@ -2172,14 +2175,14 @@ function getReportSections({
         shouldShowYearApproved: shouldShowYearApprovedTransaction,
         shouldShowYearPosted: shouldShowYearPostedTransaction,
         shouldShowYearExported: shouldShowYearExportedTransaction,
-    } = shouldShowYear(data);
+    } = shouldShowYear(data, false, lastExportedActionByReportID);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
     const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
 
     // Get violations - optimize by using a Map for faster lookups
     const allViolations = getViolations(data);
 
-    const queryJSON = getCurrentSearchQueryJSON();
+    const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
     const {reportKeys, transactionKeys} = Object.keys(data).reduce(
@@ -2200,9 +2203,7 @@ function getReportSections({
         shouldShowYearSubmitted: shouldShowYearSubmittedReport,
         shouldShowYearApproved: shouldShowYearApprovedReport,
         shouldShowYearExported: shouldShowYearExportedReport,
-    } = shouldShowYear(data, true);
-
-    const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
+    } = shouldShowYear(data, true, lastExportedActionByReportID);
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
@@ -2215,9 +2216,9 @@ function getReportSections({
             let shouldShow = true;
 
             const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`);
-            if (queryJSON && !isActionLoading) {
-                if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-                    const status = queryJSON.status;
+            if (currentQueryJSON && !isActionLoading) {
+                if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+                    const status = currentQueryJSON.status;
 
                     if (Array.isArray(status)) {
                         shouldShow = status.some((expenseStatus) => {
@@ -2825,6 +2826,7 @@ function getSections({
             bankAccountList,
             reportActions,
             allReportMetadata,
+            queryJSON,
         });
     }
 
