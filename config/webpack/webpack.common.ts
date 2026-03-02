@@ -17,8 +17,8 @@ import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 // eslint-disable-next-line import/extensions
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
-// eslint-disable-next-line import/extensions
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+// eslint-disable-next-line import/extensions
 import ModuleInitTimingPlugin from './ModuleInitTimingPlugin.ts';
 // eslint-disable-next-line import/extensions
 import type Environment from './types.ts';

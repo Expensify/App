@@ -1,8 +1,8 @@
 import {AppStartTimeNitroModule} from '@expensify/nitro-utils';
+import * as Sentry from '@sentry/react-native';
 import Log from '@libs/Log';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
-import * as Sentry from '@sentry/react-native';
 import setupSentry from './setupSentry';
 
 export default function (): void {
