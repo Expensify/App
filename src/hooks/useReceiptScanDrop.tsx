@@ -15,6 +15,7 @@ import type {Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useFilesValidation from './useFilesValidation';
+import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnyx from './useOnyx';
 import useSelfDMReport from './useSelfDMReport';
 
@@ -23,8 +24,10 @@ import useSelfDMReport from './useSelfDMReport';
  * Returns the drop handler, PDF validation component, and error modal needed for drag-and-drop receipt scanning.
  */
 function useReceiptScanDrop() {
+    const isAnonymousUser = useIsAnonymousUser();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const selfDMReport = useSelfDMReport();
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -75,7 +78,7 @@ function useReceiptScanDrop() {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
         }
 
-        if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
+        if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriods)) {
             const shouldAutoReport = !!activePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const report = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id) : selfDMReport;
             const transactionReportID = isSelfDM(report) ? CONST.REPORT.UNREPORTED_REPORT_ID : report?.reportID;
@@ -115,7 +118,7 @@ function useReceiptScanDrop() {
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
-    return {initScanRequest, PDFValidationComponent, ErrorModal};
+    return {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled: isAnonymousUser};
 }
 
 export default useReceiptScanDrop;
