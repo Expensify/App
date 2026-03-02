@@ -6298,21 +6298,26 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         downgrade: {
             commonFeatures: {
                 title: 'Zmień plan na Collect',
-                note: 'Jeśli przejdziesz na niższy plan, utracisz dostęp do tych funkcji i wielu innych:',
+                note: 'Stracisz dostęp do następujących funkcji',
                 benefits: {
                     note: 'Aby zobaczyć pełne porównanie naszych planów, sprawdź nasz',
                     pricingPage: 'strona cenowa',
-                    confirm: 'Czy na pewno chcesz obniżyć plan i usunąć swoje konfiguracje?',
+                    confirm: 'Musisz zmienić „Typ planu” każdego workspace’u na „Collect”, żeby zapewnić stawkę Collect.',
                     warning: 'Tej operacji nie można cofnąć.',
-                    benefit1: 'Połączenia księgowe (z wyjątkiem QuickBooks Online i Xero)',
-                    benefit2: 'Inteligentne reguły wydatków',
-                    benefit3: 'Wielopoziomowe przepływy zatwierdzania',
-                    benefit4: 'Zaawansowane mechanizmy zabezpieczeń',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit2: 'Workday, Certinia',
+                    benefit3: 'SSO/SAML',
+                    benefit4: 'Inteligentne reguły wydatków, diety, wielopoziomowe zatwierdzanie, raporty niestandardowe i budżetowanie',
                     headsUp: 'Uwaga!',
                     multiWorkspaceNote:
                         'Przed pierwszą miesięczną płatnością musisz obniżyć pakiet wszystkich swoich przestrzeni roboczych, aby rozpocząć subskrypcję w taryfie Collect. Kliknij',
                     selectStep: '> wybierz każdą przestrzeń roboczą > zmień typ planu na',
+                    benefit1Label: 'Integracje z ERP',
+                    benefit2Label: 'Integracje HR',
+                    benefit3Label: 'Bezpieczeństwo',
+                    benefit4Label: 'Zaawansowane',
                 },
+                noteAndMore: 'i więcej:',
             },
             completed: {
                 headline: 'Twoje środowisko pracy zostało zdegradowane',
