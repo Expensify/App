@@ -1,5 +1,6 @@
 import type {SkFont} from '@shopify/react-native-skia';
 import {renderHook} from '@testing-library/react-native';
+import {SIN_45} from '@components/Charts/constants';
 import {useChartLabelLayout} from '@components/Charts/hooks/useChartLabelLayout';
 import type {ChartDataPoint} from '@components/Charts/types';
 
@@ -22,7 +23,6 @@ function makeData(...labels: string[]): ChartDataPoint[] {
     return labels.map((label, i) => ({label, total: (i + 1) * 100}));
 }
 
-const SIN_45 = Math.sin(Math.PI / 4);
 const LINE_HEIGHT = 16; // |ascent(12)| + |descent(4)|
 
 describe('useChartLabelLayout', () => {

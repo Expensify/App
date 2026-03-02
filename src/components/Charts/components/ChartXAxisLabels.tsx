@@ -5,13 +5,27 @@ import {AXIS_LABEL_GAP} from '@components/Charts/constants';
 import {measureTextWidth, rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
 
 type ChartXAxisLabelsProps = {
+    /** Processed label strings (already truncated by the layout hook). */
     labels: string[];
+
+    /** Label rotation in degrees (negative value, e.g. -45). */
     labelRotation: number;
+
+    /** Show every Nth label (1 = all, 2 = every other, etc.). */
     labelSkipInterval: number;
+
+    /** Skia font used for measuring and rendering labels. */
     font: SkFont;
+
+    /** Fill color for the label text. */
     labelColor: string;
+
+    /** Maps a data-point index to its x-pixel position on the chart. */
     xScale: (value: number) => number;
+
+    /** Y-pixel coordinate of the bottom edge of the chart plot area. */
     chartBoundsBottom: number;
+
     /** When true, rotated labels are centered on the tick. When false, they are right-aligned (end of text at tick). */
     centerRotatedLabels?: boolean;
 };
