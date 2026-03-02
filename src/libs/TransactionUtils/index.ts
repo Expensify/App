@@ -240,10 +240,7 @@ function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean
  * Converts odometer start/end readings from one distance unit to another.
  * Returns an object with the converted values, only including fields that exist on the transaction.
  */
-function convertOdometerReadings(
-    transaction: OnyxEntry<Transaction>,
-    existingDistanceUnit: string,
-): {odometerStart?: number; odometerEnd?: number} {
+function convertOdometerReadings(transaction: OnyxEntry<Transaction>, existingDistanceUnit: string): {odometerStart?: number; odometerEnd?: number} {
     const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
     const result: {odometerStart?: number; odometerEnd?: number} = {};
     const odometerStart = transaction?.comment?.odometerStart;
