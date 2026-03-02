@@ -82,6 +82,12 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         sectionStartIndices.push((sectionStartIndices.at(-1) ?? 0) + section.menuItems.length);
     }
 
+    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => {
+        clearSelectedTransactions();
+        setSearchContext(false);
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
+    });
+
     return (
         <>
             {CreateReportConfirmationModal}
@@ -114,12 +120,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                             const focused = activeItemIndex === flattenedIndex;
                                             const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
-                                            const onPress = singleExecution(() => {
-                                                clearSelectedTransactions();
-                                                setSearchContext(false);
-                                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
-                                            });
-
                                             return (
                                                 <MenuItem
                                                     key={item.key}
@@ -133,7 +133,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                     wrapperStyle={styles.sectionMenuItem}
                                                     badgeText={getItemBadgeText(item.key, reportCounts)}
                                                     focused={focused}
-                                                    onPress={onPress}
+                                                    onPress={() => handleTypeMenuItemPress(item.searchQuery)}
                                                     shouldIconUseAutoWidthStyle
                                                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
                                                 />
