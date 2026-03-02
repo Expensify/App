@@ -250,7 +250,6 @@ function Search({
         customCardNames,
         violations,
         cardFeeds,
-        cardFeedsLoading: isCardFeedsLoading,
         searchKey,
         savedSearchName,
         transactions,
@@ -264,7 +263,16 @@ function Search({
         allReportMetadata,
         cardList,
         searchDataType,
-    } = useSearchData({queryJSON, searchResults, isDataLoaded, shouldUseLiveData});
+        hasErrors,
+        shouldShowLoadingState,
+        shouldShowLoadingMoreItems,
+    } = useSearchData({
+        queryJSON,
+        searchResults,
+        isDataLoaded,
+        shouldUseLiveData,
+        searchRequestResponseStatusCode,
+    });
 
     const {email} = useCurrentUserPersonalDetails();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, hash, offset === 0);
@@ -378,17 +386,6 @@ function Search({
         shouldUseLiveData,
     });
 
-    const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
-
-    // For to-do searches, we never show loading state since the data is always available locally from Onyx
-    const shouldShowLoadingState =
-        !shouldUseLiveData &&
-        !isOffline &&
-        (!isDataLoaded ||
-            (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
-            (hasErrors && searchRequestResponseStatusCode === null) ||
-            isCardFeedsLoading);
-    const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot

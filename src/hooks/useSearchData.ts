@@ -22,6 +22,7 @@ type UseSearchDataParams = {
     searchResults: SearchResults | undefined;
     isDataLoaded: boolean;
     shouldUseLiveData?: boolean;
+    searchRequestResponseStatusCode?: number | null;
 };
 
 type UseSearchDataResult = {
@@ -71,6 +72,12 @@ type UseSearchDataResult = {
     cardList: ReturnType<typeof useOnyx<typeof ONYXKEYS.CARD_LIST>>[0];
     /** The resolved search data type (expense_report when using live data) */
     searchDataType: SearchDataTypes | undefined;
+    /** Whether the search response has errors (and we're not offline) */
+    hasErrors: boolean;
+    /** Whether to show the full-page loading state */
+    shouldShowLoadingState: boolean;
+    /** Whether to show "loading more" at the bottom (pagination) */
+    shouldShowLoadingMoreItems: boolean;
 };
 
 /**
@@ -80,7 +87,13 @@ type UseSearchDataResult = {
  * The component can then focus purely on selection state, bulk actions,
  * scroll handling, and navigation.
  */
-function useSearchData({queryJSON, searchResults, isDataLoaded, shouldUseLiveData}: UseSearchDataParams): UseSearchDataResult {
+function useSearchData({
+    queryJSON,
+    searchResults,
+    isDataLoaded,
+    shouldUseLiveData,
+    searchRequestResponseStatusCode,
+}: UseSearchDataParams): UseSearchDataResult {
     const {type, hash, recentSearchHash, groupBy} = queryJSON;
     const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
 
@@ -126,6 +139,19 @@ function useSearchData({queryJSON, searchResults, isDataLoaded, shouldUseLiveDat
     const cardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
 
     const searchDataType: SearchDataTypes | undefined = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
+
+    const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
+
+    const shouldShowLoadingState =
+        !shouldUseLiveData &&
+        !isOffline &&
+        (!isDataLoaded ||
+            (!!searchResults?.search?.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
+            (hasErrors && searchRequestResponseStatusCode === null) ||
+            cardFeedsLoading);
+
+    const shouldShowLoadingMoreItems =
+        !shouldShowLoadingState && !!searchResults?.search?.isLoading && (searchResults?.search?.offset ?? 0) > 0;
 
     // --- Section building ---
     const [sections, allDataLength] = useMemo(() => {
@@ -220,6 +246,9 @@ function useSearchData({queryJSON, searchResults, isDataLoaded, shouldUseLiveDat
         allReportMetadata,
         cardList,
         searchDataType,
+        hasErrors,
+        shouldShowLoadingState,
+        shouldShowLoadingMoreItems,
     };
 }
 
