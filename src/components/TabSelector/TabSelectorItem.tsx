@@ -9,54 +9,18 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
+import type {TabSelectorItemProps as BaseTabSelectorItemProps} from './types';
 
 const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
 
-type TabSelectorItemProps = {
-    /** Function to call when onPress */
-    onPress?: () => void;
-
-    /** Icon to display on tab */
-    icon?: IconAsset;
-
-    /** Title of the tab */
-    title?: string;
-
-    /** Animated background color value for the tab button */
-    backgroundColor?: string | Animated.AnimatedInterpolation<string>;
-
-    /** Animated opacity value while the tab is in inactive state */
-    inactiveOpacity?: number | Animated.AnimatedInterpolation<number>;
-
-    /** Animated opacity value while the tab is in active state */
-    activeOpacity?: number | Animated.AnimatedInterpolation<number>;
-
-    /** Whether this tab is active */
-    isActive?: boolean;
-
-    /** Whether to show the label when the tab is inactive */
-    shouldShowLabelWhenInactive?: boolean;
-
-    /** Test identifier used to find elements in unit and e2e tests */
-    testID?: string;
-
-    /** Determines whether the product training tooltip should be displayed to the user. */
-    shouldShowProductTrainingTooltip?: boolean;
-
-    /** Function to render the content of the product training tooltip. */
-    renderProductTrainingTooltip?: () => React.JSX.Element;
-
+type TabSelectorItemProps = BaseTabSelectorItemProps & {
     /** Parent horizontal location, for computing tooltip placement */
     parentX?: number;
 
     /** Parent width, for computing tooltip placement */
     parentWidth?: number;
-
-    /** Whether tabs should have equal width */
-    equalWidth?: boolean;
 };
 
 function TabSelectorItem({
@@ -69,6 +33,7 @@ function TabSelectorItem({
     isActive = false,
     shouldShowLabelWhenInactive = true,
     testID,
+    sentryLabel,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
     parentX = 0,
@@ -127,6 +92,7 @@ function TabSelectorItem({
             role={CONST.ROLE.TAB}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             testID={testID}
+            sentryLabel={sentryLabel}
             ref={childRef}
         >
             <TabIcon

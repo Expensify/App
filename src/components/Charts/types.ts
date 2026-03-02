@@ -1,24 +1,30 @@
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type BarChartDataPoint = {
-    /** Label displayed under the bar (e.g., "Amazon", "Travel", "Nov 2025") */
+type ChartDataPoint = {
+    /** Label displayed under the data point (e.g., "Amazon", "Nov 2025") */
     label: string;
 
     /** Total amount (pre-formatted, e.g., dollars not cents) */
     total: number;
 
-    /** Currency code for formatting */
-    currency: string;
-
-    /** Query string for navigation when bar is clicked (optional) */
+    /** Query string for navigation when data point is clicked (optional) */
     onClickQuery?: string;
 };
 
-type BarChartProps = {
-    /** Data points to display */
-    data: BarChartDataPoint[];
+/**
+ * Unit with font fallback support.
+ * The chart checks if the font can render `value` and uses `fallback` if not.
+ */
+type UnitWithFallback = {value: string; fallback: string};
 
-    /** Chart title (e.g., "Top Categories", "Spend by Merchant") */
+/** Position of the unit symbol relative to the formatted value. */
+type UnitPosition = 'left' | 'right';
+
+type ChartProps = {
+    /** Data points to display */
+    data: ChartDataPoint[];
+
+    /** Chart title (e.g., "Top Categories", "Spend over time") */
     title?: string;
 
     /** Icon displayed next to the title */
@@ -26,18 +32,37 @@ type BarChartProps = {
 
     /** Whether data is loading */
     isLoading?: boolean;
-
-    /** Callback when a bar is pressed */
-    onBarPress?: (dataPoint: BarChartDataPoint, index: number) => void;
-
-    /** Symbol/unit for Y-axis labels (e.g., '$', '€', 'zł'). Empty string or undefined shows raw numbers. */
-    yAxisUnit?: string;
-
-    /** Position of the unit symbol relative to the value. Defaults to 'left'. */
-    yAxisUnitPosition?: 'left' | 'right';
-
-    /** When true, all bars use the same color. When false (default), each bar uses a different color from the palette. */
-    useSingleColor?: boolean;
 };
 
-export type {BarChartDataPoint, BarChartProps};
+type CartesianChartProps = ChartProps & {
+    /** Symbol/unit for Y-axis labels with font fallback support. */
+    yAxisUnit?: UnitWithFallback;
+
+    /** Position of the unit symbol relative to the value. Defaults to 'left'. */
+    yAxisUnitPosition?: UnitPosition;
+};
+
+type PieSlice = {
+    /** Display label for this slice */
+    label: string;
+
+    /** Absolute value used for slice sizing */
+    value: number;
+
+    /** Hex color assigned based on sorted rank */
+    color: string;
+
+    /** Percentage of the total pie this slice represents */
+    percentage: number;
+
+    /** Starting angle in degrees (0 = 3 o'clock) */
+    startAngle: number;
+
+    /** Ending angle in degrees */
+    endAngle: number;
+
+    /** Index in the original unsorted data array, used to map back for tooltips */
+    originalIndex: number;
+};
+
+export type {ChartDataPoint, ChartProps, CartesianChartProps, PieSlice, UnitPosition, UnitWithFallback};

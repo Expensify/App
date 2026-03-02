@@ -28,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
+import type {IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
@@ -230,7 +230,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
-function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, isAuthenticated: boolean, conciergeReportID: string | undefined) {
+function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, isAuthenticated: boolean, conciergeReportID: string | undefined, introSelected: OnyxEntry<IntroSelected>) {
     const reportID = getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
@@ -242,7 +242,7 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
         });
 
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport(reportID, '', [], undefined, '0', true);
+        openReport(reportID, introSelected, undefined, [], undefined, '0', true);
 
         // Show the sign-in page if the app is offline
         if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
@@ -327,7 +327,7 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
                                 const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                                 // If the report does not exist, navigate to the last accessed report or Concierge chat
                                 if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
-                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
+                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), reportID)?.reportID;
                                     if (lastAccessedReportID) {
                                         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});

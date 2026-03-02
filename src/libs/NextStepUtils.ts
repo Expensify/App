@@ -1,14 +1,13 @@
 import {addMonths, format, isPast, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
@@ -20,8 +19,11 @@ import {
     getPersonalDetailsForAccountID,
     isExpenseReport,
     isInvoiceReport,
+    isOpenExpenseReport,
     isPayer,
+    isReportOwner,
 } from './ReportUtils';
+import {hasSubmissionBlockingViolations} from './TransactionUtils';
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
@@ -42,7 +44,8 @@ type BuildNextStepNewParams = {
 };
 
 function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
-    const actor = getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+    // Escape actor name to prevent HTML injection since this will be rendered as HTML
+    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '');
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
@@ -58,7 +61,8 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
         eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
         etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
     } else if (nextStep.eta?.dateTime) {
-        eta = DateUtils.formatToLongDateWithWeekday(nextStep.eta.dateTime);
+        const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
+        eta = format(new Date(nextStep.eta.dateTime), formatString);
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 
@@ -318,6 +322,30 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
     return optimisticNextStep;
 }
 
+function buildOptimisticFixIssueNextStep() {
+    const optimisticNextStep: ReportNextStepDeprecated = {
+        type: 'neutral',
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        message: [
+            {
+                text: 'Waiting for ',
+            },
+            {
+                text: `you`,
+                type: 'strong',
+            },
+            {
+                text: ' to ',
+            },
+            {
+                text: 'fix the issue(s)',
+            },
+        ],
+    };
+
+    return optimisticNextStep;
+}
+
 function buildOptimisticNextStepForStrictPolicyRuleViolations() {
     const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'alert',
@@ -332,6 +360,39 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
     return optimisticNextStep;
 }
 
+function getReportNextStep(
+    currentNextStep: ReportNextStepDeprecated | undefined,
+    moneyRequestReport: OnyxEntry<Report>,
+    transactions: Array<OnyxEntry<Transaction>>,
+    policy: OnyxEntry<Policy>,
+    transactionViolations: OnyxCollection<TransactionViolations>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+) {
+    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
+
+    if (
+        isOpenExpenseReport(moneyRequestReport) &&
+        transactions.length > 0 &&
+        transactions.every(
+            (transaction) => !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, policy),
+        )
+    ) {
+        return buildOptimisticFixIssueNextStep();
+    }
+
+    const isSubmitterSameAsNextApprover =
+        isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
+
+    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
+    // We should always show this optimistic message for policies with preventSelfApproval
+    // to avoid any flicker during transitions between online/offline states
+    if (isSubmitterSameAsNextApprover && policy?.preventSelfApproval) {
+        return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
+    }
+
+    return currentNextStep;
+}
 function buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(iconFill?: string) {
     const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'alert',
@@ -745,6 +806,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
 }
 
 export {
+    getReportNextStep,
     buildNextStepMessage,
     buildOptimisticNextStep,
     parseMessage,

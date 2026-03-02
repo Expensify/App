@@ -56,9 +56,7 @@ function useReportActionAvatars({
     /* Get avatar type */
     const allPersonalDetails = usePersonalDetails();
     const {formatPhoneNumber} = useLocalize();
-    const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
-    });
+    const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     // When the search hash changes, personalDetails from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to allPersonalDetails while the data is being fetched.
     const personalDetails = personalDetailsFromSnapshot ?? allPersonalDetails;
@@ -66,7 +64,7 @@ function useReportActionAvatars({
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
     const chatReportID = report?.chatReportID ?? passedChatReportID;
-    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
+    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
 
     const chatReport = isReportAChatReport ? report : reportChatReport;
     const iouReport = isReportAChatReport ? undefined : report;
@@ -81,7 +79,7 @@ function useReportActionAvatars({
         action = getReportAction(reportChatReport?.reportID, chatReport.parentReportActionID);
     }
 
-    const [actionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`, {canBeMissing: true});
+    const [actionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`);
 
     const isAReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
 
@@ -111,9 +109,7 @@ function useReportActionAvatars({
     const {chatReportIDAdmins, chatReportIDAnnounce, workspaceAccountID} = policy ?? {};
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${Number(chatReportIDAnnounce) ? chatReportIDAnnounce : chatReportIDAdmins}`, {
-        canBeMissing: true,
-    });
+    const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${Number(chatReportIDAnnounce) ? chatReportIDAnnounce : chatReportIDAdmins}`);
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;

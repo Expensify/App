@@ -36,10 +36,9 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['MushroomTopHat']);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [exitSurveyResponse] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
         selector: exitResponseSelector,
-        canBeMissing: true,
     });
     const shouldShowQuickTips =
         isEmptyObject(tryNewDot) || tryNewDot?.classicRedirect?.dismissed === true || (!isEmptyObject(tryNewDot) && tryNewDot?.classicRedirect?.dismissed === undefined);
@@ -95,6 +94,7 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
                     large
                     text={translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}
                     pressOnEnter
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.GO_TO_CLASSIC}
                     onPress={() => {
                         switchToOldDot(exitSurveyResponse);
                         Navigation.dismissModal();
