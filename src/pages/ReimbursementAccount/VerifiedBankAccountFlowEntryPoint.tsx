@@ -4,8 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import {Connect, RotateLeft} from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -90,7 +88,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Lock', 'Bank']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock', 'RotateLeft'] as const);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
@@ -235,7 +233,7 @@ function VerifiedBankAccountFlowEntryPoint({
                             >
                                 <MenuItem
                                     title={translate('workspace.bankAccount.continueWithSetup')}
-                                    icon={Connect}
+                                    icon={expensifyIcons.Connect}
                                     onPress={onContinuePress}
                                     shouldShowRightIcon
                                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
@@ -243,7 +241,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 />
                                 <MenuItem
                                     title={translate('workspace.bankAccount.startOver')}
-                                    icon={RotateLeft}
+                                    icon={expensifyIcons.RotateLeft}
                                     onPress={requestResetBankAccount}
                                     shouldShowRightIcon
                                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
@@ -264,7 +262,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 )}
                                 <MenuItem
                                     title={translate('bankAccount.connectManually')}
-                                    icon={Connect}
+                                    icon={expensifyIcons.Connect}
                                     onPress={handleConnectManually}
                                     shouldShowRightIcon
                                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
@@ -279,6 +277,7 @@ function VerifiedBankAccountFlowEntryPoint({
                         onPress={() => openExternalLink(CONST.ENCRYPTION_AND_SECURITY_HELP_URL)}
                         style={[styles.flexRow, styles.alignItemsCenter]}
                         accessibilityLabel={translate('bankAccount.yourDataIsSecure')}
+                        sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.DATA_SECURE_LINK}
                     >
                         <TextLink href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}>{translate('bankAccount.yourDataIsSecure')}</TextLink>
                         <View style={styles.ml1}>

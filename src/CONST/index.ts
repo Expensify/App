@@ -1222,6 +1222,7 @@ const CONST = {
             MERGE: 'merge',
             REPORT_LAYOUT: 'reportLayout',
             DUPLICATE: 'duplicate',
+            DUPLICATE_REPORT: 'duplicateReport',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1269,6 +1270,8 @@ const CONST = {
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
                 ACTIONABLE_ADD_PAYMENT_CARD: 'ACTIONABLEADDPAYMENTCARD',
+                // Concierge message informing the user of a 3DS challenge - custom reportAction type because we want to translate it
+                ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL: 'ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL',
                 ACTIONABLE_CARD_FRAUD_ALERT: 'ACTIONABLECARDFRAUDALERT',
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
@@ -1774,17 +1777,20 @@ const CONST = {
         TAG_EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
         TAG_EXPENSE_COMMAND: 'expense_command',
         TAG_EXPENSE_JSON_CODE: 'expense_json_code',
+        TAG_BUILD_TYPE: 'build_type',
+        BUILD_TYPE_HYBRID_APP: 'hybrid_app',
+        BUILD_TYPE_STANDALONE: 'standalone',
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
-        SPAN_NAVIGATE_TO_REPORTS_TAB: 'ManualNavigateToReportsTab',
-        SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER: 'ManualNavigateToReportsTabRender',
-        SPAN_ON_LAYOUT_SKELETON_REPORTS: 'ManualOnLayoutSkeletonReports',
+        SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
+        SPAN_CAMERA_INIT: 'ManualCameraInit',
+        SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
         SPAN_SUBMIT_EXPENSE: 'ManualCreateExpenseSubmit',
         SPAN_NAVIGATE_AFTER_EXPENSE_CREATE: 'ManualCreateExpenseNavigation',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
@@ -1849,6 +1855,7 @@ const CONST = {
         ATTRIBUTE_ROUTE_TO: 'route_to',
         ATTRIBUTE_MIN_DURATION: 'min_duration',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
+        ATTRIBUTE_IS_WARM: 'is_warm',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
         ATTRIBUTE_HAS_RECEIPT: 'has_receipt',
@@ -2288,6 +2295,12 @@ const CONST = {
         INITIAL: 'initial',
     },
 
+    IMAGE_LOADING_PRIORITY: {
+        LOW: 'low',
+        NORMAL: 'normal',
+        HIGH: 'high',
+    },
+
     FILE_TYPE_REGEX: {
         // Image MimeTypes allowed by iOS photos app.
         IMAGE: /\.(jpg|jpeg|png|webp|gif|tiff|bmp|heic|heif)$/,
@@ -2446,6 +2459,8 @@ const CONST = {
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
         ACCOUNTING_METHOD: 'accountingMethod',
+        TRAVEL_INVOICING_VENDOR: 'travelInvoicingVendorID',
+        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
     },
 
     XERO_CONFIG: {
@@ -3422,6 +3437,7 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
+                CERTINIA: 'certinia',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {
                 FINANCIALFORCE: 'financialForce',
@@ -3435,6 +3451,7 @@ const CONST = {
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'sage-intacct',
                 QBD: 'quickbooks-desktop',
+                CERTINIA: 'certinia',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -3443,12 +3460,16 @@ const CONST = {
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
                 financialForce: 'FinancialForce',
+                certinia: 'Certinia',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
                 sap: 'SAP',
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
+            },
+            get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
+                return Object.values(this.NAME).map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
             },
             CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
@@ -3781,9 +3802,10 @@ const CONST = {
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
             MOCK_BANK: 'Mock Bank',
-            PEX: 'PEX',
-            EXPENSIFY: 'Expensify',
             OTHER: 'Other',
+        },
+        NON_CONNECTABLE_BANKS: {
+            PEX: 'PEX',
         },
         BANK_CONNECTIONS: {
             WELLS_FARGO: 'wellsfargo',
@@ -7413,6 +7435,7 @@ const CONST = {
             TABLE: 'table',
             BAR: 'bar',
             LINE: 'line',
+            PIE: 'pie',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -7457,6 +7480,7 @@ const CONST = {
             ATTENDEE: 'attendee',
             IS: 'is',
             REPORT_FIELD: 'reportField',
+            EXPORTED_TO: 'exportedTo',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field
@@ -7523,6 +7547,7 @@ const CONST = {
             ATTENDEE: 'attendee',
             IS: 'is',
             REPORT_FIELD: 'report-field',
+            EXPORTED_TO: 'exported-to',
             COLUMNS: 'columns',
             LIMIT: 'limit',
         },
@@ -7626,6 +7651,7 @@ const CONST = {
             STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
+            EXPENSIFY_CARD: 'expensifyCard',
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
             TOP_CATEGORIES: 'topCategories',
@@ -8491,6 +8517,7 @@ const CONST = {
             ADD_EXPENSE_TRACK_DISTANCE: 'MoreMenu-AddExpenseTrackDistance',
             ADD_EXPENSE_UNREPORTED: 'MoreMenu-AddExpenseUnreported',
             PAY: 'MoreMenu-Pay',
+            DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',
@@ -8618,6 +8645,9 @@ const CONST = {
             SAVE_BUTTON: 'SplitExpense-SaveButton',
             REMOVE_SPLIT_BUTTON: 'SplitExpense-RemoveSplitButton',
             EDIT_SAVE_BUTTON: 'SplitExpense-EditSaveButton',
+        },
+        MERGE_EXPENSE: {
+            MERGE_TRANSACTION_ITEM: 'MergeExpense-MergeTransactionItem',
         },
         IOU_REQUEST_STEP: {
             DISTANCE_NEXT_BUTTON: 'IOURequestStep-DistanceNextButton',
@@ -8812,6 +8842,8 @@ const CONST = {
         },
         SIDE_PANEL: {
             HELP: 'SidePanel-Help',
+            BACK_BUTTON: 'SidePanel-BackButton',
+            CLOSE_BUTTON: 'SidePanel-CloseButton',
         },
         PRODUCT_TRAINING: {
             TOOLTIP: 'ProductTraining-Tooltip',
@@ -8838,6 +8870,8 @@ const CONST = {
             RESEND_CODE: 'TwoFactorAuth-ResendCode',
             SWITCH_BETWEEN_METHODS: 'TwoFactorAuth-SwitchBetweenMethods',
             COPY: 'TwoFactorAuth-Copy',
+            COPY_CODES: 'TwoFactorAuth-CopyCodes',
+            DOWNLOAD_CODES: 'TwoFactorAuth-DownloadCodes',
         },
         VALIDATE_CODE: {
             RESEND_CODE: 'ValidateCode-ResendCode',
@@ -8850,6 +8884,51 @@ const CONST = {
         },
         SOCIALS: {
             LINK: 'Socials',
+        },
+        CONFIRM_CONTENT: {
+            DISMISS_BUTTON: 'ConfirmContent-DismissButton',
+        },
+        COPY_TEXT_TO_CLIPBOARD: {
+            COPY_BUTTON: 'CopyTextToClipboard-CopyButton',
+        },
+        LOCATION_ERROR: {
+            CLOSE_BUTTON: 'LocationError-CloseButton',
+        },
+        PIN_BUTTON: {
+            TOGGLE: 'PinButton-Toggle',
+        },
+        PRESSABLE_WITH_DELAY_TOGGLE: {
+            BUTTON: 'PressableWithDelayToggle-Button',
+        },
+        RADIO_BUTTON: {
+            BUTTON: 'RadioButton-Button',
+        },
+        REFERRAL_PROGRAM: {
+            CTA: 'ReferralProgram-CTA',
+            DISMISS_BUTTON: 'ReferralProgram-DismissButton',
+        },
+        USER_LIST_ITEM: {
+            CHECKBOX: 'UserListItem-Checkbox',
+            CHECKBOX_RIGHT: 'UserListItem-CheckboxRight',
+        },
+        USER_LIST_ITEM_WITH_SECTIONS: {
+            CHECKBOX: 'UserListItemWithSections-Checkbox',
+            CHECKBOX_RIGHT: 'UserListItemWithSections-CheckboxRight',
+        },
+        UPLOAD_FILE: {
+            REMOVE_BUTTON: 'UploadFile-RemoveButton',
+        },
+        BANK_ACCOUNT: {
+            DATA_SECURE_LINK: 'BankAccount-DataSecureLink',
+        },
+        EARLY_DISCOUNT_BANNER: {
+            DISMISS_BUTTON: 'EarlyDiscountBanner-DismissButton',
+        },
+        WORKSPACE_CARDS_LIST: {
+            INFO_BUTTON: 'WorkspaceCardsList-InfoButton',
+        },
+        RECEIPT_PARTNERS: {
+            INVITE_RESEND_BUTTON: 'ReceiptPartners-InviteResendButton',
         },
         SIGN_IN: {
             CONTINUE: 'SignIn-Continue',
