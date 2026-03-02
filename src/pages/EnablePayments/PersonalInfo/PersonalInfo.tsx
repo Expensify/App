@@ -28,8 +28,8 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [LegalName, DateOf
 function PersonalInfoPage() {
     const {translate} = useLocalize();
 
-    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {canBeMissing: true});
-    const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, {canBeMissing: true});
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
 
     useEffect(() => {
         // if we're at this step, then we have already added a bank account so we need to clear ONYX keys for the bank account

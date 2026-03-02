@@ -18,7 +18,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
@@ -123,7 +123,7 @@ type OptionRowLHNDataProps = {
     viewMode?: OptionMode;
 
     /** The last message text from the report */
-    lastMessageTextFromReport: string;
+    lastMessageTextFromReport?: string;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
@@ -133,6 +133,9 @@ type OptionRowLHNDataProps = {
 
     /** The report attributes for the report */
     reportAttributes: OnyxEntry<ReportAttributes>;
+
+    /** The derived report attributes for all reports */
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 
     /** Whether to show the educational tooltip for the GBR or RBR */
     shouldShowRBRorGBRTooltip: boolean;

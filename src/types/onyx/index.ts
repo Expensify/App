@@ -21,8 +21,10 @@ import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
 import type {
     AddNewCompanyCardFeed,
+    CardFeed,
     CardFeedsStatus,
     CardFeedsStatusByDomainID,
+    CardFeedWithDomainID,
     CombinedCardFeed,
     CombinedCardFeeds,
     CompanyCardFeed,
@@ -33,7 +35,6 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
-import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
@@ -44,10 +45,12 @@ import type {
     CardFeedErrorsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
+    PersonalAndWorkspaceCardListDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
     TodoMetadata,
     TodosDerivedValue,
+    VisibleReportActionsDerivedValue,
 } from './DerivedValues';
 import type DeviceBiometrics from './DeviceBiometrics';
 import type DismissedProductTraining from './DismissedProductTraining';
@@ -61,6 +64,7 @@ import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
+import type {ExpensifyCardSettingsBase} from './ExpensifyCardSettings';
 import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -76,6 +80,9 @@ import type LastExportMethod from './LastExportMethod';
 import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
+import type LocallyProcessed3DSChallengeReviews from './LocallyProcessed3DSChallengeReviews';
+import type LocalPasskeyCredentialsEntry from './LocalPasskeyCredentialsEntry';
+import type {PasskeyCredential, PasskeyTransport} from './LocalPasskeyCredentialsEntry';
 import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
@@ -87,9 +94,10 @@ import type NewGroupChatDraft from './NewGroupChatDraft';
 import type Onboarding from './Onboarding';
 import type OnboardingRHPVariant from './OnboardingRHPVariant';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
-import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
+import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type Pages from './Pages';
+import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
@@ -146,16 +154,19 @@ import type StripeCustomerID from './StripeCustomerID';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
 import type Transaction from './Transaction';
+import type TransactionPending3DSReview from './TransactionPending3DSReview';
+import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type TravelProvisioning from './TravelProvisioning';
-import type {TravelSettings} from './TravelSettings';
+import type {TravelSettings, WorkspaceTravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
 import type UnshareBankAccount from './UnshareBankAccount';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type VacationDelegate from './VacationDelegate';
+import type ValidateDomainTwoFactorCode from './ValidateDomainTwoFactorCode';
 import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
@@ -171,6 +182,8 @@ export type {
     Account,
     AccountData,
     AssignCard,
+    TransactionPending3DSReview,
+    TransactionsPending3DSReview,
     BankAccount,
     BankAccountList,
     Beta,
@@ -193,6 +206,7 @@ export type {
     WorkspaceCardsList,
     ExpenseRule,
     ExpensifyCardSettings,
+    ExpensifyCardSettingsBase,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
     Fund,
@@ -208,11 +222,16 @@ export type {
     CombinedCardFeeds,
     CardContinuousReconciliation,
     CompanyCardFeedWithDomainID,
+    CardFeed,
+    CardFeedWithDomainID,
     LastExportMethod,
     Locale,
+    LocalPasskeyCredentialsEntry,
     LockAccountDetails,
     Login,
     LoginList,
+    PasskeyCredential,
+    PasskeyTransport,
     PendingContactAction,
     MapboxAccessToken,
     Modal,
@@ -220,7 +239,9 @@ export type {
     OnyxInputOrEntry,
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,
+    AnyOnyxUpdatesFromServer,
     Pages,
+    PendingConciergeResponse,
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,
@@ -274,6 +295,7 @@ export type {
     TransactionViolation,
     TransactionViolations,
     TravelSettings,
+    WorkspaceTravelSettings,
     UserLocation,
     UserMetadata,
     UserWallet,
@@ -295,9 +317,7 @@ export type {
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
-    Log,
     PolicyJoinMember,
-    CapturedLogs,
     SearchResults,
     ReviewDuplicates,
     PrivateSubscription,
@@ -320,6 +340,7 @@ export type {
     Onboarding,
     OnboardingPurpose,
     OnboardingRHPVariant,
+    ValidateDomainTwoFactorCode,
     ValidateMagicCodeAction,
     ShareTempFile,
     CorpayFields,
@@ -333,7 +354,9 @@ export type {
     LastSearchParams,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
+    VisibleReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
+    PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     TodosDerivedValue,
     TodoMetadata,
@@ -351,4 +374,5 @@ export type {
     CodingRuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,
+    LocallyProcessed3DSChallengeReviews,
 };

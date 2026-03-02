@@ -4,7 +4,7 @@ import type {GroupedTransactions} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
-import isTagMissing from './TagUtils';
+import {isTagMissing} from './TagUtils';
 import {getAmount, getCategory, getCurrency, getTag, isTransactionPendingDelete} from './TransactionUtils';
 
 /**

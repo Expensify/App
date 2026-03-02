@@ -136,6 +136,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
     compareItems,
     isItemInFilter,
     isItemInSearch,
+    initialSortColumn,
     children,
     ...listProps
 }: TableProps<T, ColumnKey, FilterKey>) {
@@ -147,7 +148,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
 
     const {middleware: searchMiddleware, activeSearchString, methods: searchMethods} = useSearching<T>({isItemInSearch});
 
-    const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<T, ColumnKey>({compareItems});
+    const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<T, ColumnKey>({compareItems, initialSortColumn});
 
     const processedData = [filterMiddleware, searchMiddleware, sortMiddleware].reduce((acc, middleware) => middleware(acc), data);
 

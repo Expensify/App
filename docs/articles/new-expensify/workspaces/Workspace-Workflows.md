@@ -25,7 +25,7 @@ To get started, enable the **Workflows** feature for your workspace.
 
 ---
 
-# Configure Workflow Settings
+## Configure Workflow Settings
 
 Once enabled, go to the **Workflows** tab in the left menu to customize your submission and approval logic.
 
@@ -34,13 +34,16 @@ Once enabled, go to the **Workflows** tab in the left menu to customize your sub
 
 ![Enable workflow features]({{site.url}}/assets/images/submissions-03.png){:width="100%"}
 
-## Add Approvals
+## How to Add Approvals
 
 - Requires each expense to be reviewed and approved before payment.
 - You can assign an approver per workspace member.
-- The default approver is the **Workspace Owner**, but any **Workspace Admin** can be selected.
+- You can also set an over-limit approver for reports that exceed a specific amount. 
+- The default approver is the **Workspace Owner**, but any workspace member can be selected.
 
-## Submission Frequency
+Learn how to [add Approvals](https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals) on your workspace. 
+
+## How to Set a Submission Frequency
 
 - Controls when expenses are automatically submitted.
 - Choose how frequently expenses are submitted:
@@ -53,9 +56,11 @@ Once enabled, go to the **Workflows** tab in the left menu to customize your sub
    - Manually – Expenses are auto-added to a report, but employees must submit them manually.
 - If turned **off**, all reimbursable and non-reimbursable expenses are submitted instantly.
 
+Learn how to [configure Submissions](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#submission-frequency) on your workspace. 
+
 ---
 
-# Set Up a Payment Account
+## How to Set Up a Payment Account
 
 To reimburse employees or pay invoices directly from Expensify, connect your business bank account.
 
@@ -63,6 +68,8 @@ To reimburse employees or pay invoices directly from Expensify, connect your bus
 2. Toggle on **Payments**.
 3. Click **Connect Bank Account** and follow the [bank connection guide](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
 4. Choose an **authorized expense payer**—a Workspace Admin who has access to the bank account and will be the default reimburser.
+
+Learn how to [pay expenses submitted on a workspace](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Pay-Expenses#how-to-pay-expenses-submitted-to-a-workspace).
 
 ---
 

@@ -3,15 +3,16 @@ import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
-import Performance from './Performance';
 import {isPaidGroupPolicy} from './PolicyUtils';
+import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
+import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
@@ -49,7 +50,6 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
 }
 
 function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
-    Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
@@ -333,6 +333,12 @@ function navigateToConfirmationPage(
     reportIDParam: string | undefined = undefined,
     fromManualDistanceRequest = false,
 ) {
+    endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+    startSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT, {
+        name: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
+        op: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
+        parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+    });
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
@@ -356,6 +362,17 @@ function navigateToConfirmationPage(
                 ),
             );
     }
+}
+
+/**
+ * Get the existing transaction ID from a linked tracked expense report action.
+ * This is used when moving a transaction from track expense to submit.
+ */
+function getExistingTransactionID(linkedTrackedExpenseReportAction: ReportAction | undefined): string | undefined {
+    if (!linkedTrackedExpenseReportAction || !isMoneyRequestAction(linkedTrackedExpenseReportAction)) {
+        return undefined;
+    }
+    return getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID;
 }
 
 function calculateDefaultReimbursable({
@@ -382,6 +399,7 @@ export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
     calculateSplitPercentagesFromAmounts,
+    getExistingTransactionID,
     insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,

@@ -4,7 +4,7 @@ on:
   issues:
     types: [closed]
 
-# The updateProduction and createNewStagingDeployCash jobs are executed when a StagingDeployCash is closed.
+# The updateProduction and createNewDeployChecklist jobs are executed when a deploy checklist is closed.
 jobs:
   validate:
     runs-on: blacksmith-2vcpu-ubuntu-2404

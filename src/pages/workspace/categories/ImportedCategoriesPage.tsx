@@ -27,13 +27,13 @@ type ImportedCategoriesPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED>;
 function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingCategories, setIsImportingCategories] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const {setIsClosing} = useCloseImportPage();
 

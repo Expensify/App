@@ -2,10 +2,10 @@ import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import type {EventMapCore, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
+import type {TabSelectorProps} from '@components/TabSelector/types';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Tab from '@userActions/Tab';
@@ -105,9 +105,10 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     equalWidth = false,
     ...rest
 }: OnyxTabNavigatorProps<TTabName>) {
+    const isFirstMountRef = useRef(true);
     // Mapping of tab name to focus trap container element
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`, {canBeMissing: true});
+    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
 
     const tabNames = useMemo(() => getTabNames(children), [children]);
 
@@ -177,6 +178,10 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                         const state = event.data.state;
                         const index = state.index;
                         const routeNames = state.routeNames;
+                        if (isFirstMountRef.current) {
+                            onTabSelect?.({index});
+                            isFirstMountRef.current = false;
+                        }
                         const newSelectedTab = routeNames.at(index);
                         if (selectedTab === newSelectedTab) {
                             return;

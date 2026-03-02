@@ -54,7 +54,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     useEffect(() => {
         setTaskReport(report);
@@ -105,7 +105,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                 <OfflineWithFeedback
                     shouldShowErrorMessages
                     errors={report?.errorFields?.editTask ?? report?.errorFields?.createTask}
-                    onClose={() => clearTaskErrors(report, conciergeReportID)}
+                    onClose={() => clearTaskErrors(report, conciergeReportID, accountID)}
                     errorRowStyles={styles.ph5}
                 >
                     <Hoverable>

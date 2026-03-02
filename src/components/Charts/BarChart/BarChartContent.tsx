@@ -2,13 +2,13 @@ import {useFont} from '@shopify/react-native-skia';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
-import Animated, {useSharedValue} from 'react-native-reanimated';
+import {useSharedValue} from 'react-native-reanimated';
 import type {ChartBounds, PointsArray, Scale} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
-import {CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LABEL_OFFSET, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
+import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
@@ -22,8 +22,10 @@ import variables from '@styles/variables';
 /** Inner padding between bars (0.3 = 30% of bar width) */
 const BAR_INNER_PADDING = 0.3;
 
-/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop) */
-const BASE_DOMAIN_PADDING = {top: 32, bottom: 0, left: 0, right: 0};
+/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop)
+ * We need bottom: 1 for proper display of the bottom label
+ */
+const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
 
 type BarChartProps = CartesianChartProps & {
     /** Callback when a bar is pressed */
@@ -85,69 +87,69 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
     }, [chartWidth, data.length]);
 
-    const {formatXAxisLabel, formatYAxisLabel} = useChartLabelFormats({
+    const {formatLabel, formatValue} = useChartLabelFormats({
         data,
-        yAxisUnit,
-        yAxisUnitPosition,
+        font,
+        unit: yAxisUnit,
+        unitPosition: yAxisUnitPosition,
         labelSkipInterval,
         labelRotation,
         truncatedLabels,
     });
 
     // Store bar geometry for hit-testing (only constants, no arrays)
-    const barGeometry = useSharedValue({barWidth: 0, chartBottom: 0, yZero: 0});
+    const barWidth = useSharedValue(0);
+    const chartBottom = useSharedValue(0);
+    const yZero = useSharedValue(0);
 
     const handleChartBoundsChange = useCallback(
         (bounds: ChartBounds) => {
             const domainWidth = bounds.right - bounds.left;
             const calculatedBarWidth = ((1 - BAR_INNER_PADDING) * domainWidth) / data.length;
-            barGeometry.set({
-                ...barGeometry.get(),
-                barWidth: calculatedBarWidth,
-                chartBottom: bounds.bottom,
-            });
+            barWidth.set(calculatedBarWidth);
+            chartBottom.set(bounds.bottom);
+            yZero.set(0);
             setBarAreaWidth(domainWidth);
         },
-        [data.length, barGeometry],
+        [data.length, barWidth, chartBottom, yZero],
     );
 
     const handleScaleChange = useCallback(
         (_xScale: Scale, yScale: Scale) => {
-            barGeometry.set({
-                ...barGeometry.get(),
-                yZero: yScale(0),
-            });
+            yZero.set(yScale(0));
         },
-        [barGeometry],
+        [yZero],
     );
 
     const checkIsOverBar = useCallback(
         (args: HitTestArgs) => {
             'worklet';
 
-            const {barWidth, yZero} = barGeometry.get();
-            if (barWidth === 0) {
+            const currentBarWidth = barWidth.get();
+            const currentYZero = yZero.get();
+            if (currentBarWidth === 0) {
                 return false;
             }
-            const barLeft = args.targetX - barWidth / 2;
-            const barRight = args.targetX + barWidth / 2;
+            const barLeft = args.targetX - currentBarWidth / 2;
+            const barRight = args.targetX + currentBarWidth / 2;
             // For positive bars: targetY < yZero, bar goes from targetY (top) to yZero (bottom)
             // For negative bars: targetY > yZero, bar goes from yZero (top) to targetY (bottom)
-            const barTop = Math.min(args.targetY, yZero);
-            const barBottom = Math.max(args.targetY, yZero);
+            const barTop = Math.min(args.targetY, currentYZero);
+            const barBottom = Math.max(args.targetY, currentYZero);
 
             return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
         },
-        [barGeometry],
+        [barWidth, yZero],
     );
 
-    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle} = useChartInteractions({
+    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handleBarPress,
         checkIsOver: checkIsOverBar,
-        barGeometry,
+        chartBottom,
+        yZero,
     });
 
-    const tooltipData = useTooltipData(activeDataIndex, data, yAxisUnit, yAxisUnitPosition);
+    const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
 
     const renderBar = useCallback(
         (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
@@ -216,7 +218,10 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                             tickCount: data.length,
                             labelColor: theme.textSupporting,
                             lineWidth: X_AXIS_LINE_WIDTH,
-                            formatXLabel: formatXAxisLabel,
+                            // Victory-native positions x-axis labels at: chartBounds.bottom + labelOffset + fontSize.
+                            // We subtract descent (fontSize - ascent) so the gap from chart to the ascent line equals AXIS_LABEL_GAP.
+                            labelOffset: AXIS_LABEL_GAP - Math.abs(font?.getMetrics().descent ?? 0),
+                            formatXLabel: formatLabel,
                             labelRotate: labelRotation,
                             labelOverflow: 'visible',
                         }}
@@ -224,11 +229,11 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                             {
                                 font,
                                 labelColor: theme.textSupporting,
-                                formatYLabel: formatYAxisLabel,
+                                formatYLabel: formatValue,
                                 tickCount: Y_AXIS_TICK_COUNT,
                                 lineWidth: Y_AXIS_LINE_WIDTH,
                                 lineColor: theme.border,
-                                labelOffset: Y_AXIS_LABEL_OFFSET,
+                                labelOffset: AXIS_LABEL_GAP,
                                 domain: yAxisDomain,
                             },
                         ]}
@@ -239,13 +244,13 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                     </CartesianChart>
                 )}
                 {isTooltipActive && !!tooltipData && (
-                    <Animated.View style={tooltipStyle}>
-                        <ChartTooltip
-                            label={tooltipData.label}
-                            amount={tooltipData.amount}
-                            percentage={tooltipData.percentage}
-                        />
-                    </Animated.View>
+                    <ChartTooltip
+                        label={tooltipData.label}
+                        amount={tooltipData.amount}
+                        percentage={tooltipData.percentage}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
                 )}
             </View>
         </View>

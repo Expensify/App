@@ -59,7 +59,6 @@ function useSearchHighlightAndScroll({
 
     const transactionIDsToHighlightSelector = useCallback((allTransactionIDs: OnyxEntry<Record<string, Record<string, boolean>>>) => allTransactionIDs?.[queryJSON.type], [queryJSON.type]);
     const [transactionIDsToHighlight] = useOnyx(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {
-        canBeMissing: true,
         selector: transactionIDsToHighlightSelector,
     });
     const searchResultsData = searchResults?.data;
