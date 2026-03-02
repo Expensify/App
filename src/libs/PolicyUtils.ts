@@ -1043,16 +1043,18 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
         let firstCategoryApprover = '';
         let firstTagApprover = '';
 
-        for (let i = 0, rule = approvalRules.at(i); i < approvalRules.length; i++) {
+        for (let i = 0; i < approvalRules.length; i++) {
+            const rule = approvalRules.at(i);
             if (!rule) {
                 continue;
             }
-            for (let j = 0, applyWhen = rule.applyWhen.at(j); j < rule.applyWhen.length && applyWhen?.condition === CONST.POLICY.RULE_CONDITIONS.MATCHES; j++) {
-                if (!applyWhen) {
+            for (let j = 0; j < rule.applyWhen.length; j++) {
+                const applyWhen = rule.applyWhen.at(j);
+                if (!applyWhen || applyWhen.condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES) {
                     continue;
                 }
                 if (applyWhen.field === CONST.POLICY.FIELDS.CATEGORY || applyWhen.field === CONST.POLICY.FIELDS.TAG) {
-                    rulesMap[applyWhen.field] = {[applyWhen.value]: rule.approver};
+                    rulesMap[applyWhen.field][applyWhen.value] = rule.approver;
                 }
             }
         }
