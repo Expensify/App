@@ -789,6 +789,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             return;
         }
 
+        if (reportIDFromRoute) {
+            Navigation.removeReportScreen(new Set([reportIDFromRoute]));
+        }
+
         // Only redirect if focused
         if (!isFocused) {
             return;
@@ -806,7 +810,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         Navigation.isNavigationReady().then(() => {
             navigateToConciergeChat(conciergeReportID);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, reportIDFromRoute]);
 
     useEffect(() => {
         if (!isValidReportIDFromPath(reportIDFromRoute)) {

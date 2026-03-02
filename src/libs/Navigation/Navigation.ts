@@ -815,19 +815,58 @@ function removeScreenByKey(key: string) {
 function removeReportScreen(reportIDSet: Set<string>) {
     isNavigationReady().then(() => {
         navigationRef.current?.dispatch((state) => {
-            const routes = state?.routes.filter((route) => {
-                if (route.name === SCREENS.REPORT && route.params && 'reportID' in route.params) {
-                    return !reportIDSet.has(route.params?.reportID as string);
-                }
-                return true;
-            });
+            const removalResult = removeReportRoutesFromState(state, reportIDSet);
+            if (!removalResult) {
+                return state;
+            }
+            const {updatedState, didRemoveRouteAtRoot} = removalResult;
+            const routes = updatedState.routes ?? [];
+            const nextIndex = didRemoveRouteAtRoot ? Math.max(0, Math.min(updatedState.index ?? 0, routes.length - 1)) : updatedState.index;
             return CommonActions.reset({
-                ...state,
+                ...updatedState,
                 routes,
-                index: routes.length < state.routes.length ? state.index - 1 : state.index,
+                index: nextIndex ?? 0,
             });
         });
     });
+}
+
+function removeReportRoutesFromState(state: NavigationState, reportIDSet: Set<string>): {updatedState: NavigationState; didRemoveRouteAtRoot: boolean} | null {
+    if (!state?.routes) {
+        return null;
+    }
+
+    let didRemoveRouteAtRoot = false;
+    let didChangeNestedRoutes = false;
+
+    const nextRoutes = state.routes
+        .map((route) => {
+            if (route.name === SCREENS.REPORT && route.params && 'reportID' in route.params) {
+                const reportID = route.params?.reportID as string;
+                if (reportIDSet.has(reportID)) {
+                    didRemoveRouteAtRoot = true;
+                    return null;
+                }
+            }
+
+            if (route.state && 'routes' in route.state) {
+                const nestedState = removeReportRoutesFromState(route.state as NavigationState, reportIDSet);
+                if (nestedState) {
+                    didChangeNestedRoutes = didChangeNestedRoutes || nestedState.didRemoveRouteAtRoot || nestedState.updatedState !== route.state;
+                    return {...route, state: nestedState.updatedState};
+                }
+            }
+
+            return route;
+        })
+        .filter((route): route is NavigationState['routes'][number] => !!route);
+
+    if (!didRemoveRouteAtRoot && !didChangeNestedRoutes) {
+        return null;
+    }
+
+    const nextIndex = didRemoveRouteAtRoot ? Math.max(0, Math.min(state.index, nextRoutes.length - 1)) : state.index;
+    return {updatedState: {...state, routes: nextRoutes, index: nextIndex}, didRemoveRouteAtRoot};
 }
 
 function isOnboardingFlow() {
