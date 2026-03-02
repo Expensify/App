@@ -276,6 +276,7 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettin
 
 const WorkspaceConfirmationModalStackNavigator = createModalStackNavigator<WorkspaceConfirmationNavigatorParamList>({
     [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationPage').default,
+    [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceConfirmationOwnerSelectorPage').default,
     [SCREENS.CURRENCY.SELECTION]: () => require<ReactComponentModule>('../../../../pages/CurrencySelectionPage').default,
 });
 
@@ -802,6 +803,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceSettlementFrequencyPage').default,
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelInvoicingSettlementAccountPage').default,
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelInvoicingSettlementFrequencyPage').default,
+    [SCREENS.WORKSPACE.TRAVEL_MISSING_PERSONAL_DETAILS]: () => require<ReactComponentModule>('../../../../pages/Travel/TravelLegalNamePage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SELECT_FEED]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardSelectorPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardDetailsPage').default,
@@ -1087,6 +1089,7 @@ const MultifactorAuthenticationStackNavigator = createModalStackNavigator<Multif
     [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE]: () => require<ReactComponentModule>('@pages/MultifactorAuthentication/OutcomePage').default,
     [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/PromptPage').default,
     [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: () => require<ReactComponentModule>('@pages/MultifactorAuthentication/RevokePage').default,
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION]: () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/AuthorizeTransactionPage').default,
     [SCREENS.MULTIFACTOR_AUTHENTICATION.NOT_FOUND]: () => require<ReactComponentModule>('../../../../pages/ErrorPage/NotFoundPage').default,
 });
 

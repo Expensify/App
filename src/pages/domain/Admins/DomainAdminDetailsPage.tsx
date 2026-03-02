@@ -1,5 +1,5 @@
 import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@selectors/Domain';
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -34,8 +34,9 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
         selector: adminAccountIDsSelector,
     });
 
+    const adminPersonalDetailsSelector = useCallback((personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID], [accountID]);
     const [adminPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
+        selector: adminPersonalDetailsSelector,
     });
 
     const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
