@@ -526,7 +526,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             }
 
                             Navigation.dismissModal({
-                                callback: () => Navigation.navigate(getDestinationRoute()),
+                                afterTransition: () => Navigation.navigate(getDestinationRoute()),
                             });
                         }}
                         text={translate('common.replace')}
