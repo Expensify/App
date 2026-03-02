@@ -68,6 +68,7 @@ import {
     isAdminRoom,
     isAnnounceRoom,
     isChatThread,
+    isConciergeChatReport,
     isGroupChat,
     isHiddenForCurrentUser,
     isInvoiceReport,
