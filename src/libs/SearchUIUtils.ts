@@ -944,7 +944,6 @@ function getDefaultActionableSearchMenuItem(menuItems: SearchTypeMenuItem[]) {
 
 /**
  * Determines if the current user is eligible for the approve suggestion on a given policy.
- * This is shared between `useDefaultSearchQuery` (lightweight hook) and `getSuggestedSearchesVisibility`.
  */
 function isEligibleForApproveSuggestion(approvalMode: string | undefined, isApprover: boolean, isSubmittedToTarget: boolean): boolean {
     const isApprovalEnabled = approvalMode ? approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
