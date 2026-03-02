@@ -23,9 +23,9 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [onfidoApplicantID] = useOnyx(ONYXKEYS.ONFIDO_APPLICANT_ID, {canBeMissing: false});
-    const [onfidoToken] = useOnyx(ONYXKEYS.ONFIDO_TOKEN, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [onfidoApplicantID] = useOnyx(ONYXKEYS.ONFIDO_APPLICANT_ID);
+    const [onfidoToken] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
     const [onfidoKey, setOnfidoKey] = useState(() => Math.floor(Math.random() * 1000000));
 
     const policyID = reimbursementAccount?.achData?.policyID;

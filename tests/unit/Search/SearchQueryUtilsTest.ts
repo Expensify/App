@@ -30,6 +30,14 @@ const personalDetailsFakeData = {
     },
 } as Record<string, {accountID: number}>;
 
+jest.mock('@libs/SearchParser/searchParser', () => {
+    const actual = jest.requireActual<{parse: (...args: unknown[]) => unknown}>('@libs/SearchParser/searchParser');
+    return {
+        ...actual,
+        parse: jest.fn(actual.parse),
+    };
+});
+
 jest.mock('@libs/PersonalDetailsUtils', () => {
     const actual = jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils');
     return {
@@ -1285,6 +1293,82 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toContain('view:pie');
             expect(result).toContain('merchant:Amazon');
+        });
+    });
+
+    describe('buildSearchQueryJSON cache', () => {
+        test('mutating the returned object does not affect subsequent calls for the same query', () => {
+            const query = `type:expense groupBy:category view:bar date:last-month merchant:test${Date.now()}`;
+
+            const first = buildSearchQueryJSON(query);
+            if (first) {
+                first.groupBy = undefined;
+                first.view = CONST.SEARCH.VIEW.TABLE;
+            }
+
+            const second = buildSearchQueryJSON(query);
+
+            expect(second?.groupBy).toBe('category');
+            expect(second?.view).toBe('bar');
+        });
+
+        test('returns equal result on repeated calls with the same query', () => {
+            const query = 'type:expense status:outstanding';
+
+            const first = buildSearchQueryJSON(query);
+            const second = buildSearchQueryJSON(query);
+
+            expect(first).toEqual(second);
+        });
+
+        test('returns independent results for the same query with different rawQuery values', () => {
+            const query = 'type:expense';
+            const rawQueryA = 'type:expense status:drafts';
+            const rawQueryB = 'type:expense status:paid';
+
+            const resultA = buildSearchQueryJSON(query, rawQueryA);
+            const resultB = buildSearchQueryJSON(query, rawQueryB);
+
+            expect(resultA?.rawFilterList).not.toEqual(resultB?.rawFilterList);
+        });
+
+        test('does not cache a failed parse result so subsequent calls retry the parser', () => {
+            // Force the parser to throw on the first call only, then succeed on the second.
+            // Verifies that a failed parse is not stored in the cache.
+            const searchParserModule: {parse: jest.Mock} = jest.requireMock('@libs/SearchParser/searchParser');
+            const originalImpl = jest.requireActual<{parse: (...args: unknown[]) => unknown}>('@libs/SearchParser/searchParser').parse;
+
+            const query = `type:expense merchant:cache-err-test${Date.now()}`;
+            let callCount = 0;
+            searchParserModule.parse.mockImplementation((...args: unknown[]) => {
+                callCount++;
+                if (callCount === 1) {
+                    throw new Error('Simulated parser failure');
+                }
+                return originalImpl(...args);
+            });
+
+            const firstResult = buildSearchQueryJSON(query);
+            const secondResult = buildSearchQueryJSON(query);
+
+            expect(firstResult).toBeUndefined();
+            expect(secondResult?.type).toBe('expense');
+
+            searchParserModule.parse.mockImplementation(originalImpl);
+        });
+
+        test('evicts the oldest entry when the cache exceeds max size', () => {
+            // Insert 51 entries (max is 50) to trigger eviction, then verify
+            // the evicted entry can still be re-parsed correctly.
+            const uniquePrefix = `type:expense merchant:evict${Date.now()}x`;
+            for (let i = 0; i < 51; i++) {
+                buildSearchQueryJSON(`${uniquePrefix}${i}`);
+            }
+
+            const afterEviction = buildSearchQueryJSON(`${uniquePrefix}0`);
+
+            expect(afterEviction).toBeDefined();
+            expect(afterEviction?.type).toBe('expense');
         });
     });
 });

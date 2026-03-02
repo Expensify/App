@@ -44,7 +44,7 @@ describe('MultifactorAuthentication Biometrics helpers', () => {
             const result = parseHttpRequest(999, responseMap, 'Something is needed');
 
             expect(result.httpStatusCode).toBe(999);
-            expect(result.reason).toBe(VALUES.REASON.BACKEND.UNKNOWN_RESPONSE);
+            expect(result.reason).toBe(VALUES.REASON.GENERIC.UNKNOWN_RESPONSE);
         });
 
         it('should handle undefined HTTP code', () => {
@@ -52,7 +52,7 @@ describe('MultifactorAuthentication Biometrics helpers', () => {
             const result = parseHttpRequest(undefined, responseMap, undefined);
 
             expect(result.httpStatusCode).toBe(0);
-            expect(result.reason).toBe(VALUES.REASON.BACKEND.UNKNOWN_RESPONSE);
+            expect(result.reason).toBe(VALUES.REASON.GENERIC.UNKNOWN_RESPONSE);
         });
     });
 
