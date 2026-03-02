@@ -21,8 +21,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import todosReportCountsSelector from '@src/selectors/Todos';
-import SearchTypeMenuItem from './SearchTypeMenuItem';
 import SavedSearchList from './SavedSearchList';
+import SearchTypeMenuItem from './SearchTypeMenuItem';
 import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
 type SearchTypeMenuProps = {
