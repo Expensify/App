@@ -1220,7 +1220,6 @@ const CONST = {
             EXPORT: 'export',
             PAY: 'pay',
             MERGE: 'merge',
-            REPORT_LAYOUT: 'reportLayout',
             DUPLICATE: 'duplicate',
             DUPLICATE_REPORT: 'duplicateReport',
         },
@@ -1270,6 +1269,8 @@ const CONST = {
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
                 ACTIONABLE_ADD_PAYMENT_CARD: 'ACTIONABLEADDPAYMENTCARD',
+                // Concierge message informing the user of a 3DS challenge - custom reportAction type because we want to translate it
+                ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL: 'ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL',
                 ACTIONABLE_CARD_FRAUD_ALERT: 'ACTIONABLECARDFRAUDALERT',
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
@@ -1775,12 +1776,13 @@ const CONST = {
         TAG_EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
         TAG_EXPENSE_COMMAND: 'expense_command',
         TAG_EXPENSE_JSON_CODE: 'expense_json_code',
+        TAG_BUILD_TYPE: 'build_type',
+        BUILD_TYPE_HYBRID_APP: 'hybrid_app',
+        BUILD_TYPE_STANDALONE: 'standalone',
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
-        SPAN_NAVIGATE_TO_REPORTS_TAB: 'ManualNavigateToReportsTab',
-        SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER: 'ManualNavigateToReportsTabRender',
-        SPAN_ON_LAYOUT_SKELETON_REPORTS: 'ManualOnLayoutSkeletonReports',
+        SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
@@ -1788,7 +1790,11 @@ const CONST = {
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
-        SPAN_TAKE_PHOTO: 'ManualTakePhoto',
+        SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
+        SPAN_SCAN_PROCESS_AND_NAVIGATE: 'ManualScanProcessAndNavigate',
+        SPAN_CONFIRMATION_MOUNT: 'ManualConfirmationMount',
+        SPAN_CONFIRMATION_LIST_READY: 'ManualConfirmationListReady',
+        SPAN_CONFIRMATION_RECEIPT_LOAD: 'ManualConfirmationReceiptLoad',
         SPAN_SUBMIT_EXPENSE: 'ManualCreateExpenseSubmit',
         SPAN_NAVIGATE_AFTER_EXPENSE_CREATE: 'ManualCreateExpenseNavigation',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
@@ -1853,6 +1859,7 @@ const CONST = {
         ATTRIBUTE_ROUTE_TO: 'route_to',
         ATTRIBUTE_MIN_DURATION: 'min_duration',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
+        ATTRIBUTE_IS_WARM: 'is_warm',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
         ATTRIBUTE_HAS_RECEIPT: 'has_receipt',
@@ -1864,6 +1871,8 @@ const CONST = {
         ATTRIBUTE_THROTTLE_WAIT_MS: 'throttle_wait_ms',
         ATTRIBUTE_JSON_CODE: 'json_code',
         ATTRIBUTE_ONYX_UPDATES_COUNT: 'onyx_updates_count',
+        ATTRIBUTE_PLATFORM: 'platform',
+        ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
         SUBMIT_EXPENSE_SCENARIO: {
             REQUEST_MONEY_MANUAL: 'request_money_manual',
             REQUEST_MONEY_SCAN: 'request_money_scan',
@@ -2456,6 +2465,8 @@ const CONST = {
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
         ACCOUNTING_METHOD: 'accountingMethod',
+        TRAVEL_INVOICING_VENDOR: 'travelInvoicingVendorID',
+        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
     },
 
     XERO_CONFIG: {
@@ -3432,6 +3443,7 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
+                CERTINIA: 'certinia',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {
                 FINANCIALFORCE: 'financialForce',
@@ -3445,6 +3457,7 @@ const CONST = {
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'sage-intacct',
                 QBD: 'quickbooks-desktop',
+                CERTINIA: 'certinia',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -3453,12 +3466,16 @@ const CONST = {
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
                 financialForce: 'FinancialForce',
+                certinia: 'Certinia',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
                 sap: 'SAP',
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
+            },
+            get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
+                return Object.values(this.NAME).map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
             },
             CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
@@ -3791,9 +3808,10 @@ const CONST = {
             STRIPE: 'Stripe',
             WELLS_FARGO: 'Wells Fargo',
             MOCK_BANK: 'Mock Bank',
-            PEX: 'PEX',
-            EXPENSIFY: 'Expensify',
             OTHER: 'Other',
+        },
+        NON_CONNECTABLE_BANKS: {
+            PEX: 'PEX',
         },
         BANK_CONNECTIONS: {
             WELLS_FARGO: 'wellsfargo',
@@ -7187,6 +7205,24 @@ const CONST = {
                 CHAT: {},
             };
         },
+        get REPORT_DETAILS_CUSTOM_COLUMNS() {
+            return {
+                RECEIPT: this.TABLE_COLUMNS.RECEIPT,
+                DATE: this.TABLE_COLUMNS.DATE,
+                MERCHANT: this.TABLE_COLUMNS.MERCHANT,
+                DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
+                CARD: this.TABLE_COLUMNS.CARD,
+                CATEGORY: this.TABLE_COLUMNS.CATEGORY,
+                TAG: this.TABLE_COLUMNS.TAG,
+                EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
+                ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+                REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
+                BILLABLE: this.TABLE_COLUMNS.BILLABLE,
+                TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
+                TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
+                AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
+            };
+        },
         get GROUP_CUSTOM_COLUMNS() {
             return {
                 FROM: {
@@ -7466,6 +7502,7 @@ const CONST = {
             ATTENDEE: 'attendee',
             IS: 'is',
             REPORT_FIELD: 'reportField',
+            EXPORTED_TO: 'exportedTo',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field
@@ -7532,6 +7569,7 @@ const CONST = {
             ATTENDEE: 'attendee',
             IS: 'is',
             REPORT_FIELD: 'report-field',
+            EXPORTED_TO: 'exported-to',
             COLUMNS: 'columns',
             LIMIT: 'limit',
         },
@@ -8089,14 +8127,14 @@ const CONST = {
         ] as string[],
         SPECIAL_LIST_REGION_KEYS: ['bankRegion', 'accountHolderRegion'] as string[],
         SPECIAL_LIST_ADDRESS_KEYS: ['bankAddressLine1', 'accountHolderAddress1'] as string[],
-        STEPS_NAME: {
-            COUNTRY_SELECTOR: 'CountrySelector',
-            BANK_ACCOUNT_DETAILS: 'BankAccountDetails',
-            ACCOUNT_TYPE: 'AccountType',
-            BANK_INFORMATION: 'BankInformation',
-            ACCOUNT_HOLDER_INFORMATION: 'AccountHolderInformation',
-            CONFIRMATION: 'Confirmation',
-            SUCCESS: 'Success',
+        PAGE_NAME: {
+            COUNTRY: 'country',
+            ACCOUNT_DETAILS: 'account-details',
+            ACCOUNT_TYPE: 'account-type',
+            BANK_INFORMATION: 'bank-information',
+            ACCOUNT_HOLDER_DETAILS: 'account-holder-details',
+            CONFIRM: 'confirm',
+            SUCCESS: 'success',
         },
         INDEXES: {
             MAPPING: {
@@ -8450,6 +8488,9 @@ const CONST = {
             SPLIT_LIST_ITEM_EDIT_BUTTON: 'SplitListItem-EditButton',
             LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeader-SelectAll',
         },
+        LIST_ITEM: {
+            INVITE_MEMBER_CHECKBOX: 'ListItem-InviteMemberCheckbox',
+        },
         CONTEXT_MENU: {
             REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
             MARK_AS_UNREAD: 'ContextMenu-MarkAsUnread',
@@ -8491,7 +8532,6 @@ const CONST = {
             MERGE: 'MoreMenu-Merge',
             CHANGE_WORKSPACE: 'MoreMenu-ChangeWorkspace',
             CHANGE_APPROVER: 'MoreMenu-ChangeApprover',
-            REPORT_LAYOUT: 'MoreMenu-ReportLayout',
             DELETE: 'MoreMenu-Delete',
             RETRACT: 'MoreMenu-Retract',
             REOPEN: 'MoreMenu-Reopen',
@@ -8629,6 +8669,9 @@ const CONST = {
             SAVE_BUTTON: 'SplitExpense-SaveButton',
             REMOVE_SPLIT_BUTTON: 'SplitExpense-RemoveSplitButton',
             EDIT_SAVE_BUTTON: 'SplitExpense-EditSaveButton',
+        },
+        MERGE_EXPENSE: {
+            MERGE_TRANSACTION_ITEM: 'MergeExpense-MergeTransactionItem',
         },
         IOU_REQUEST_STEP: {
             DISTANCE_NEXT_BUTTON: 'IOURequestStep-DistanceNextButton',

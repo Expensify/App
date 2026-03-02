@@ -34,7 +34,7 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -241,7 +241,7 @@ function IOURequestStepScan({
 
             return () => {
                 subscription.remove();
-                cancelSpan(CONST.TELEMETRY.SPAN_TAKE_PHOTO);
+                cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
                 cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
 
                 if (isLoaderVisible) {
@@ -312,7 +312,7 @@ function IOURequestStepScan({
     });
 
     const maybeCancelShutterSpan = useCallback(() => {
-        cancelSpan(CONST.TELEMETRY.SPAN_TAKE_PHOTO);
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
 
         if (isMultiScanEnabled) {
             return;
@@ -322,15 +322,11 @@ function IOURequestStepScan({
     }, [isMultiScanEnabled]);
 
     const capturePhoto = useCallback(() => {
-        startSpan(CONST.TELEMETRY.SPAN_TAKE_PHOTO, {
-            name: CONST.TELEMETRY.SPAN_TAKE_PHOTO,
-            op: CONST.TELEMETRY.SPAN_TAKE_PHOTO,
-        });
-
         if (!isMultiScanEnabled) {
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
                 op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
             });
         }
 
@@ -355,6 +351,13 @@ function IOURequestStepScan({
             return;
         }
 
+        startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
+            name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
+        });
+
         isCapturingPhoto.current = true;
         showBlink();
 
@@ -367,10 +370,8 @@ function IOURequestStepScan({
                 path,
             })
             .then((photo: PhotoFile) => {
-                // Freeze camera preview now that photo is captured
                 setDidCapturePhoto(true);
 
-                // Store the receipt on the transaction object in Onyx
                 const transaction =
                     isMultiScanEnabled && initialTransaction?.receipt?.source
                         ? buildOptimisticTransactionAndCreateDraft({
@@ -382,7 +383,7 @@ function IOURequestStepScan({
                 const transactionID = transaction?.transactionID ?? initialTransactionID;
                 const source = getPhotoSource(photo.path);
                 const filename = photo.path;
-                endSpan(CONST.TELEMETRY.SPAN_TAKE_PHOTO);
+                endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
 
                 const cameraFile = {
                     uri: source,
@@ -411,6 +412,7 @@ function IOURequestStepScan({
             })
             .catch((error: string) => {
                 isCapturingPhoto.current = false;
+                cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
                 maybeCancelShutterSpan();
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
