@@ -793,6 +793,49 @@ function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean 
 }
 
 /**
+ * For Amex Direct (FDX) feeds, parent cards aggregate child accounts and should not be assignable.
+ * Parent cards follow the format "CardType - Digits" (2 segments separated by " - "),
+ * while child cards include a cardholder name: "CardType - NAME - Digits" (3 segments).
+ * A parent card is removed only when a child card with the same card type AND digits exists.
+ *
+ * Returns the set of parent card names that should be filtered out.
+ */
+function getAmexDirectParentCardNames(accountList: string[], feedName?: CompanyCardFeedWithDomainID): Set<string> {
+    const isAmexDirectFeed = feedName ? getCompanyCardFeed(feedName).startsWith(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT) : false;
+    if (!isAmexDirectFeed) {
+        return new Set();
+    }
+
+    // Map account names into parts once to avoid repeated splitting
+    const parsedAccounts = accountList.map((name) => ({
+        name,
+        segments: name.split(' - '),
+    }));
+
+    // Create a lookup for children: "CardType|Digits"
+    const childKeys = new Set(parsedAccounts.filter(({segments}) => segments.length >= 3).map(({segments}) => `${segments.at(0)}\0${segments.at(-1)}`));
+
+    // Identify parent cards (2 segments) that have a matching child with same card type AND digits
+    // Filter for parents that exist in the child lookup
+    const parentNames = parsedAccounts
+        .filter(({segments}) => segments.length === 2 && childKeys.has(`${segments.at(0)}\0${segments.at(1)}`))
+        .map((account) => normalizeCardName(account.name));
+
+    return new Set(parentNames);
+}
+
+/**
+ * Filters out Amex Direct parent cards from the account list.
+ */
+function filterAmexDirectParentCard(accountList: string[], feedName?: CompanyCardFeedWithDomainID): string[] {
+    const parentCards = getAmexDirectParentCardNames(accountList, feedName);
+    if (parentCards.size === 0) {
+        return accountList;
+    }
+    return accountList.filter((name) => !parentCards.has(normalizeCardName(name)));
+}
+
+/**
  * Returns list of unassigned cards that can be assigned.
  *
  * This function normalizes the difference between:
@@ -801,7 +844,12 @@ function isSelectedFeedExpired(cardFeed: CombinedCardFeed | undefined): boolean 
  *
  * @returns Array of UnassignedCard objects with consistent displayName and cardIdentifier properties
  */
-function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: string[] | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): UnassignedCard[] {
+function getFilteredCardList(
+    list: WorkspaceCardsList | undefined,
+    accountList: string[] | undefined,
+    workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>,
+    feedName?: CompanyCardFeedWithDomainID,
+): UnassignedCard[] {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
     const assignedCards = new Set(Object.values(cards).map((card) => card.cardName));
 
@@ -822,7 +870,7 @@ function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: 
 
     // For direct feeds (Plaid/OAuth): displayName === cardIdentifier
     if (accountList) {
-        return accountList
+        return filterAmexDirectParentCard(accountList, feedName)
             .filter((cardName) => !assignedCards.has(cardName) && !allWorkspaceAssignedCards.has(cardName))
             .map((cardName) => ({
                 cardName,
@@ -1298,6 +1346,7 @@ export {
     getFeedNameForDisplay,
     isCardClosed,
     isPlaidSupportedCountry,
+    filterAmexDirectParentCard,
     getFilteredCardList,
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
