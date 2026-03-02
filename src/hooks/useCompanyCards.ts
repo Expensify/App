@@ -73,6 +73,10 @@ function resolveCardListEntry(card: Card, cardListEntries: Array<[string, string
         return {...card, encryptedCardNumber: matchedByName[1]};
     }
 
+    if (!panSuffix) {
+        return card;
+    }
+
     const [matchedCard, ...otherMatchedCards] = cardListEntries.filter(([name]) => name.endsWith(panSuffix)).slice(0, 2);
 
     // If there are other matched cards, return the original card.
