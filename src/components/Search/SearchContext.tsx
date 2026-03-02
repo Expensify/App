@@ -81,7 +81,7 @@ const SearchActionsContext = React.createContext<SearchActionsContextValue>(defa
 function SearchContextProvider({children, params}: SearchContextProps) {
     const queryParam = params?.q ?? '';
     const rawQueryParam = params?.rawQuery ?? '';
-    const queryJSON = queryParam ? buildSearchQueryJSON(queryParam, rawQueryParam) : undefined;
+    const queryJSON = queryParam != null ? buildSearchQueryJSON(queryParam, rawQueryParam) : undefined;
 
     const areTransactionsEmpty = useRef(true);
     const currentSearchQueryJSON = usePreviousDefined(queryJSON);
