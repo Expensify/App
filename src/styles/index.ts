@@ -977,7 +977,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.badgeDefaultBG,
             paddingHorizontal: 8,
             minHeight: 24,
-            height: 24,
             flexDirection: 'row',
             alignItems: 'center',
         },
