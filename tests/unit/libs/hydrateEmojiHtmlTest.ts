@@ -21,43 +21,43 @@ describe('hydrateEmojiHtml (iOS)', () => {
         expect(hydrateEmojiHtmlIOS(html)).toBe('<emoji ismedium>😀</emoji> and <emoji ismedium>👍</emoji>');
     });
 
-    it('adds oneline when emoji is on its own line at start of string', () => {
+    it('adds isOnSeparateLine when emoji is on its own line at start of string', () => {
         const html = '<emoji>😀</emoji>';
-        expect(hydrateEmojiHtmlIOS(html)).toBe('<emoji oneline ismedium>😀</emoji>');
+        expect(hydrateEmojiHtmlIOS(html)).toBe('<emoji isOnSeparateLine ismedium>😀</emoji>');
     });
 
-    it('adds oneline when emoji is on its own line after <br>', () => {
+    it('adds isOnSeparateLine when emoji is on its own line after <br>', () => {
         const html = 'Hello<br /><emoji>😀</emoji><br />world';
-        expect(hydrateEmojiHtmlIOS(html)).toBe('Hello<br /><emoji oneline ismedium>😀</emoji><br />world');
+        expect(hydrateEmojiHtmlIOS(html)).toBe('Hello<br /><emoji isOnSeparateLine ismedium>😀</emoji><br />world');
     });
 
-    it('adds oneline when emoji is on its own line after closing block tag', () => {
+    it('adds isOnSeparateLine when emoji is on its own line after closing block tag', () => {
         const html = '<p>Text</p><emoji>😀</emoji><p>More</p>';
-        expect(hydrateEmojiHtmlIOS(html)).toBe('<p>Text</p><emoji oneline ismedium>😀</emoji><p>More</p>');
+        expect(hydrateEmojiHtmlIOS(html)).toBe('<p>Text</p><emoji isOnSeparateLine ismedium>😀</emoji><p>More</p>');
     });
 
-    it('does not add oneline when emoji is inline with text', () => {
+    it('does not add isOnSeparateLine when emoji is inline with text', () => {
         const html = 'Hello <emoji>😀</emoji> world';
         expect(hydrateEmojiHtmlIOS(html)).toBe('Hello <emoji ismedium>😀</emoji> world');
     });
 
-    it('does not add oneline twice when tag already has oneline', () => {
-        const html = '<br /><emoji ismedium oneline>😀</emoji><br />';
-        expect(hydrateEmojiHtmlIOS(html)).toBe('<br /><emoji ismedium oneline>😀</emoji><br />');
+    it('does not add isOnSeparateLine twice when tag already has isOnSeparateLine', () => {
+        const html = '<br /><emoji ismedium isOnSeparateLine>😀</emoji><br />';
+        expect(hydrateEmojiHtmlIOS(html)).toBe('<br /><emoji ismedium isOnSeparateLine>😀</emoji><br />');
     });
 
     it('handles emoji with whitespace before boundary after', () => {
         const html = '<br />  <emoji>😀</emoji>  <br />';
-        expect(hydrateEmojiHtmlIOS(html)).toBe('<br />  <emoji oneline ismedium>😀</emoji>  <br />');
+        expect(hydrateEmojiHtmlIOS(html)).toBe('<br />  <emoji isOnSeparateLine ismedium>😀</emoji>  <br />');
     });
 
     it('handles multiple emojis on separate lines', () => {
         const html = '<emoji>😀</emoji><br /><emoji>👍</emoji>';
-        expect(hydrateEmojiHtmlIOS(html)).toBe('<emoji oneline ismedium>😀</emoji><br /><emoji oneline ismedium>👍</emoji>');
+        expect(hydrateEmojiHtmlIOS(html)).toBe('<emoji isOnSeparateLine ismedium>😀</emoji><br /><emoji isOnSeparateLine ismedium>👍</emoji>');
     });
 
-    it('adds oneline only for emoji on separate line, not for inline one', () => {
+    it('adds isOnSeparateLine only for emoji on separate line, not for inline one', () => {
         const html = 'Prefix <emoji>👍</emoji><br /><emoji>😀</emoji><br />Suffix';
-        expect(hydrateEmojiHtmlIOS(html)).toBe('Prefix <emoji ismedium>👍</emoji><br /><emoji oneline ismedium>😀</emoji><br />Suffix');
+        expect(hydrateEmojiHtmlIOS(html)).toBe('Prefix <emoji ismedium>👍</emoji><br /><emoji isOnSeparateLine ismedium>😀</emoji><br />Suffix');
     });
 });

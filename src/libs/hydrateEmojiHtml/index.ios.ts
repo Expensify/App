@@ -5,19 +5,19 @@ const BLOCK_BOUNDARY_AFTER = '(?:$|<br\\s*\\/?>|<(?:div|p|blockquote|comment|h[1
 const EMOJI_ON_SEPARATE_LINE_PATTERN = new RegExp(`(${BLOCK_BOUNDARY_BEFORE})(\\s*)(<emoji\\b)([^>]*>[^<]*</emoji>)(\\s*)(?=${BLOCK_BOUNDARY_AFTER})`, 'gi');
 
 /**
- * Hydrates raw <emoji> tags in HTML by adding ismedium and oneline attributes (iOS-only).
+ * Hydrates raw <emoji> tags in HTML by adding ismedium and isOnSeparateLine attributes (iOS-only).
  * - Adds ismedium to every <emoji> opening tag for consistent rendering.
  * - Adds oneline to emoji tags that appear on their own line (between block boundaries).
  *
  * @param html - HTML string containing raw <emoji> tags (e.g. <emoji>😀</emoji>)
- * @returns HTML with hydrated <emoji> tags (e.g. <emoji ismedium>😀</emoji> or <emoji ismedium oneline>😀</emoji> when on separate line)
+ * @returns HTML with hydrated <emoji> tags (e.g. <emoji ismedium>😀</emoji> or <emoji ismedium isOnSeparateLine>😀</emoji> when on separate line)
  */
 function hydrateEmojiHtml(html: string): string {
     let result = Str.replaceAll(html, '<emoji>', '<emoji ismedium>');
     result = result.replaceAll(EMOJI_ON_SEPARATE_LINE_PATTERN, (_match: string, boundaryBefore: string, wsBefore: string, emojiStart: string, emojiRest: string, wsAfter: string) => {
         const fullOpeningTag = emojiStart + emojiRest;
-        if (!fullOpeningTag.includes('oneline')) {
-            return `${boundaryBefore}${wsBefore}<emoji oneline${emojiRest}${wsAfter}`;
+        if (!fullOpeningTag.includes('isOnSeparateLine')) {
+            return `${boundaryBefore}${wsBefore}<emoji isOnSeparateLine${emojiRest}${wsAfter}`;
         }
         return _match;
     });
