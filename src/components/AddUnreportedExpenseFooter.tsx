@@ -81,13 +81,9 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     policy,
                     reportNextStep,
                     policyCategories,
-<<<<<<< HEAD
-                    allTransactions: selectedTransactions,
                     translate,
                     toLocaleDigit,
-=======
                     allTransactions,
->>>>>>> parent of a595a5a92e6 (Merge pull request #81742 from parasharrajat/onyx-convertBulk)
                 });
             }
         });
