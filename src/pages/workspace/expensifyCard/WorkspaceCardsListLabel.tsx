@@ -18,6 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {getCardSettings} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -59,9 +60,10 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const settlementCurrency = useCurrencyForExpensifyCard({policyID});
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const settings = getCardSettings(cardSettings);
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${defaultFundID}`);
     const icons = useMemoizedLazyExpensifyIcons(['Info'] as const);
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
+    const paymentBankAccountID = settings?.paymentBankAccountID;
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
@@ -88,13 +90,13 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     }, [isVisible, windowWidth]);
 
     const requestLimitIncrease = () => {
-        requestExpensifyCardLimitIncrease(cardSettings?.paymentBankAccountID);
+        requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID);
         setVisible(false);
         navigateToConciergeChat(conciergeReportID, false);
     };
 
     const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
-    const isSettleBalanceButtonDisplayed = !!cardSettings?.isMonthlySettlementAllowed && !cardManualBilling && isCurrentBalanceType;
+    const isSettleBalanceButtonDisplayed = !!settings?.isMonthlySettlementAllowed && !cardManualBilling && isCurrentBalanceType;
     const isSettleDateTextDisplayed = !!cardManualBilling && isCurrentBalanceType;
 
     const settlementDate = isSettleDateTextDisplayed ? format(addDays(new Date(), 1), CONST.DATE.FNS_FORMAT_STRING) : '';

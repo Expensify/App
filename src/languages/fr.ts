@@ -544,7 +544,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Délégué de vacances',
         expensifyLogo: 'Logo Expensify',
         duplicateReport: 'Note de frais en double',
-        explain: 'Expliquer',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -1566,6 +1565,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Le montant total est trop élevé. Réduisez le nombre d’heures ou diminuez le taux.',
         },
         correctRateError: 'Corrigez l’erreur de taux et réessayez.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Expliquer</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Vous ne pouvez pas dupliquer les indemnités journalières entre plusieurs espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
         rulesModifiedFields: {
@@ -1580,6 +1580,11 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">règles de dépenses personnelles</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">règles d’espace de travail</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `échec de la soumission de la note de frais via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">soumissions différées</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `échec de la soumission de la note de frais. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) =>
+            `impossible d’approuver via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l’espace de travail</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `échec de l’approbation. ${reason}`,
     },
     transactionMerge: {
         listPage: {

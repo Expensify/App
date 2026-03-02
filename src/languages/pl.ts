@@ -543,7 +543,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Zastępca urlopowy',
         expensifyLogo: 'Logo Expensify',
         duplicateReport: 'Zduplikowany raport',
-        explain: 'Wyjaśnij',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
@@ -1555,6 +1554,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Łączna kwota jest zbyt wysoka. Zmniejsz liczbę godzin lub obniż stawkę.',
         },
         correctRateError: 'Napraw błąd stawki i spróbuj ponownie.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Wyjaśnij</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Nie możesz duplikować wydatków z tytułu diet między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
         rulesModifiedFields: {
@@ -1569,6 +1569,11 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} przez <a href="${route}">zasady wydatków prywatnych</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} przez <a href="${route}">zasady workspace’u</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `nie udało się przesłać raportu przez <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnianie wysyłki</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `nie udało się wysłać raportu. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) =>
+            `nie udało się zatwierdzić przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady w przestrzeni roboczej</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `nie udało się zaakceptować. ${reason}`,
     },
     transactionMerge: {
         listPage: {

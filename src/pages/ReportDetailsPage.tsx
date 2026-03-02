@@ -1,6 +1,6 @@
 import {StackActions} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -1012,7 +1012,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             navigateToTargetUrl();
-            deleteTransaction();
+            // Delay deletion until the RHP close animation finishes to prevent a brief
+            // "Not Found" flash inside the animating-out panel on slower devices.
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                deleteTransaction();
+            });
         });
     }, [showConfirmModal, translate, caseID, navigateToTargetUrl, deleteTransaction]);
 
