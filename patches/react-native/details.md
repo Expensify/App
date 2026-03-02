@@ -204,6 +204,13 @@
 - E/App issue: [#76859](https://github.com/Expensify/App/issues/76859)
 - PR introducing patch: [#76154](https://github.com/Expensify/App/pull/76154)
 
+### [react-native+0.81.4+028+strip-hermes-debug-info.patch](react-native+0.81.4+028+strip-hermes-debug-info.patch)
+
+- Reason: Always pass `-output-source-map` to `hermesc` for production iOS builds, stripping ~13.4MB of debug metadata from the Hermes bytecode. Previously this flag was only passed when `SOURCEMAP_FILE` was set; if the build environment didn't propagate that variable, debug info remained in the shipped bundle.
+- Upstream PR/issue: This should ideally be the default behavior upstream, but no PR has been filed yet.
+- E/App issue: [#83000](https://github.com/Expensify/App/issues/83000)
+- PR introducing patch: [#83256](https://github.com/Expensify/App/pull/83256)
+
 ### [react-native+0.83.1+027+fix-fetching-files-android.patch](react-native+0.83.1+027+fix-fetching-files-android.patch)
 
 - Reason: Fixes fetching files (blobs, file URIs) on Android
@@ -211,7 +218,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/75120
 - PR Introducing Patch: https://github.com/Expensify/App/pull/79962
 
-### [react-native+0.83.1+028+fix-view-stealing-first-responder.patch](react-native+0.83.1+028+fix-view-stealing-first-responder.patch)
+### [react-native+0.83.1+029+fix-view-stealing-first-responder.patch](react-native+0.83.1+029+fix-view-stealing-first-responder.patch)
 
 - Reason: In RN 0.83, `RCTViewComponentView.canBecomeFirstResponder` unconditionally returns `YES` (added for the `enableImperativeFocus` feature). This causes UIKit to promote parent views to first responder after navigation transitions complete (`_promoteSelfOrDescendantToFirstResponderIfNecessary`), stealing focus from text inputs and triggering an immediate focus→blur cycle. The fix gates `canBecomeFirstResponder` behind the `enableImperativeFocus` feature flag, which defaults to `false`.
 - Upstream PR/issue: 🛑

@@ -53,6 +53,8 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
 
 type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
     focusTextInput: () => void;
+    scrollToIndex: (index: number) => void;
+    clearInputAfterSelect: () => void;
     updateAndScrollToFocusedIndex: (index: number, shouldScroll?: boolean) => void;
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
     getFocusedOption: () => TItem | undefined;

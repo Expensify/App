@@ -267,11 +267,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             );
         },
         [
+            reportAttributes,
             reports,
             reportNameValuePairs,
             reportActions,
-            isOffline,
-            reportAttributes,
             policy,
             transactions,
             draftComments,
