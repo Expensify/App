@@ -63,93 +63,14 @@ type PopoverReportActionContextMenuProps = {
     ref?: ForwardedRef<ReportActionContextMenu>;
 };
 
-function PopoverContextMenuContent({
-    isPopoverVisible,
-    localShouldKeepOpen,
-    visibleActionIDs,
-    setLocalShouldKeepOpen,
-}: {
-    isPopoverVisible: boolean;
-    localShouldKeepOpen: boolean;
-    visibleActionIDs: Set<string>;
-    setLocalShouldKeepOpen: (val: boolean) => void;
-}) {
-    const actions = useContextMenuActions(visibleActionIDs);
-    const emojiData = useEmojiReactionData();
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {windowWidth} = useWindowDimensions();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-
-    const shouldKeepOpen = localShouldKeepOpen;
-    const shouldEnableArrowNavigation = isPopoverVisible || shouldKeepOpen;
-
-    const contentActionIndexes = actions
-        .map((action, index) => {
-            const entry = ORDERED_ACTION_SHOULD_SHOW.find((e) => e.id === action.id);
-            return entry?.isContentAction ? index : undefined;
-        })
-        .filter((index): index is number => index !== undefined);
-
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
-        initialFocusedIndex: -1,
-        disabledIndexes: contentActionIndexes,
-        maxIndex: actions.length - 1,
-        isActive: shouldEnableArrowNavigation,
-    });
-
-    const hasEmoji = visibleActionIDs.has('emojiReaction');
-
-    return (
-        <FocusTrapForModal active={!isSmallScreenWidth && (isPopoverVisible || shouldKeepOpen)}>
-            <View>
-                {hasEmoji && emojiData.reportActionID != null && (
-                    <QuickEmojiReactions
-                        closeContextMenu={emojiData.closeContextMenu}
-                        onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
-                            emojiData.interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
-                        }
-                        reportActionID={emojiData.reportActionID}
-                        reportAction={emojiData.reportAction}
-                        setIsEmojiPickerActive={(active) => {
-                            if (!active) {
-                                return;
-                            }
-                            setLocalShouldKeepOpen(true);
-                        }}
-                    />
-                )}
-                {actions.map((action: ActionDescriptor, i: number) => (
-                    <FocusableMenuItem
-                        key={action.id}
-                        title={action.text}
-                        icon={action.icon}
-                        onPress={action.onPress}
-                        wrapperStyle={[styles.pr8]}
-                        description={action.description ?? ''}
-                        descriptionTextStyle={styles.breakWord}
-                        style={StyleUtils.getContextMenuItemStyles(windowWidth)}
-                        isAnonymousAction={action.isAnonymousAction}
-                        focused={focusedIndex === i}
-                        interactive
-                        onFocus={() => setFocusedIndex(i)}
-                        onBlur={() => (i === actions.length - 1 || i === 1) && setFocusedIndex(-1)}
-                        disabled={action.disabled}
-                        shouldShowLoadingSpinnerIcon={action.shouldShowLoadingSpinnerIcon}
-                        sentryLabel={action.sentryLabel}
-                    />
-                ))}
-            </View>
-        </FocusTrapForModal>
-    );
-}
-
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
     const modalContext = useModal();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {windowWidth} = useWindowDimensions();
 
     const [menuState, setMenuState] = useState<PopoverContextMenuState | null>(null);
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -476,6 +397,27 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsEmojiPickerActive: menuState?.onEmojiPickerToggle,
     };
 
+    const actions = useContextMenuActions(visibleActionIDs, payloadValue);
+    const emojiData = useEmojiReactionData(payloadValue);
+
+    const shouldKeepOpen = localShouldKeepOpen;
+    const shouldEnableArrowNavigation = isPopoverVisible || shouldKeepOpen;
+
+    const contentActionIndexes = actions
+        .map((action, index) => {
+            const entry = ORDERED_ACTION_SHOULD_SHOW.find((e) => e.id === action.id);
+            return entry?.isContentAction ? index : undefined;
+        })
+        .filter((index): index is number => index !== undefined);
+
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: -1,
+        disabledIndexes: contentActionIndexes,
+        maxIndex: actions.length - 1,
+        isActive: shouldEnableArrowNavigation,
+    });
+
+    const hasEmoji = visibleActionIDs.has('emojiReaction');
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(false, shouldUseNarrowLayout);
 
     return (
@@ -505,12 +447,46 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     ref={contentRef}
                     style={wrapperStyle}
                 >
-                    <PopoverContextMenuContent
-                        isPopoverVisible={isPopoverVisible}
-                        localShouldKeepOpen={localShouldKeepOpen}
-                        visibleActionIDs={visibleActionIDs}
-                        setLocalShouldKeepOpen={setLocalShouldKeepOpen}
-                    />
+                    <FocusTrapForModal active={!isSmallScreenWidth && (isPopoverVisible || shouldKeepOpen)}>
+                        <View>
+                            {hasEmoji && emojiData.reportActionID != null && (
+                                <QuickEmojiReactions
+                                    closeContextMenu={emojiData.closeContextMenu}
+                                    onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
+                                        emojiData.interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
+                                    }
+                                    reportActionID={emojiData.reportActionID}
+                                    reportAction={emojiData.reportAction}
+                                    setIsEmojiPickerActive={(active) => {
+                                        if (!active) {
+                                            return;
+                                        }
+                                        setLocalShouldKeepOpen(true);
+                                    }}
+                                />
+                            )}
+                            {actions.map((action: ActionDescriptor, i: number) => (
+                                <FocusableMenuItem
+                                    key={action.id}
+                                    title={action.text}
+                                    icon={action.icon}
+                                    onPress={action.onPress}
+                                    wrapperStyle={[styles.pr8]}
+                                    description={action.description ?? ''}
+                                    descriptionTextStyle={styles.breakWord}
+                                    style={StyleUtils.getContextMenuItemStyles(windowWidth)}
+                                    isAnonymousAction={action.isAnonymousAction}
+                                    focused={focusedIndex === i}
+                                    interactive
+                                    onFocus={() => setFocusedIndex(i)}
+                                    onBlur={() => (i === actions.length - 1 || i === 1) && setFocusedIndex(-1)}
+                                    disabled={action.disabled}
+                                    shouldShowLoadingSpinnerIcon={action.shouldShowLoadingSpinnerIcon}
+                                    sentryLabel={action.sentryLabel}
+                                />
+                            ))}
+                        </View>
+                    </FocusTrapForModal>
                 </View>
             </ContextMenuPayloadContext.Provider>
         </PopoverWithMeasuredContent>

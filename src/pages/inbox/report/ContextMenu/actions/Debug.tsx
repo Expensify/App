@@ -2,14 +2,15 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ActionDescriptor} from './ActionDescriptor';
 
-function useDebugAction(): ActionDescriptor | null {
-    const {reportID, reportAction, interceptAnonymousUser} = useContextMenuPayload();
+function useDebugAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
+    const {reportID, reportAction, interceptAnonymousUser} = useContextMenuPayload(payloadOverride);
     const icons = useMemoizedLazyExpensifyIcons(['Bug'] as const);
     const {translate} = useLocalize();
 

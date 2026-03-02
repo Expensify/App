@@ -3,6 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {deleteReportActionDraft, openReport, saveReportActionDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -10,8 +11,8 @@ import ROUTES from '@src/ROUTES';
 import {getActionHtml} from './actionConfig';
 import type {ActionDescriptor} from './ActionDescriptor';
 
-function useEditAction(): ActionDescriptor | null {
-    const {reportID, reportAction, moneyRequestAction, draftMessage, introSelected, interceptAnonymousUser, hideAndRun} = useContextMenuPayload();
+function useEditAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
+    const {reportID, reportAction, moneyRequestAction, draftMessage, introSelected, interceptAnonymousUser, hideAndRun} = useContextMenuPayload(payloadOverride);
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
 

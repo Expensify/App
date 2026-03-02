@@ -1,13 +1,14 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {showDeleteModal} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {ActionDescriptor} from './ActionDescriptor';
 
-function useDeleteAction(): ActionDescriptor | null {
-    const {reportID, reportAction, moneyRequestAction, hideAndRun} = useContextMenuPayload();
+function useDeleteAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
+    const {reportID, reportAction, moneyRequestAction, hideAndRun} = useContextMenuPayload(payloadOverride);
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const {translate} = useLocalize();
 

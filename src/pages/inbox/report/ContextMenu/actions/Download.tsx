@@ -5,6 +5,7 @@ import {isMobileSafari} from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {setDownload} from '@userActions/Download';
@@ -12,8 +13,8 @@ import CONST from '@src/CONST';
 import {getActionHtml} from './actionConfig';
 import type {ActionDescriptor} from './ActionDescriptor';
 
-function useDownloadAction(): ActionDescriptor | null {
-    const {reportAction, encryptedAuthToken, interceptAnonymousUser, download, translate: payloadTranslate} = useContextMenuPayload();
+function useDownloadAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
+    const {reportAction, encryptedAuthToken, interceptAnonymousUser, download, translate: payloadTranslate} = useContextMenuPayload(payloadOverride);
     const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const {translate} = useLocalize();
 

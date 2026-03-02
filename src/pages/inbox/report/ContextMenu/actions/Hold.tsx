@@ -1,13 +1,14 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
+import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {ActionDescriptor} from './ActionDescriptor';
 
-function useHoldAction(): ActionDescriptor | null {
-    const {moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal, interceptAnonymousUser, hideAndRun} = useContextMenuPayload();
+function useHoldAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
+    const {moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal, interceptAnonymousUser, hideAndRun} = useContextMenuPayload(payloadOverride);
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch'] as const);
 

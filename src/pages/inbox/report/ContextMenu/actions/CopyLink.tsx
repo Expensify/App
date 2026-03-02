@@ -3,13 +3,14 @@ import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {ActionDescriptor} from './ActionDescriptor';
 
-function useCopyLinkAction(): ActionDescriptor | null {
-    const {reportAction, originalReportID, interceptAnonymousUser} = useContextMenuPayload();
+function useCopyLinkAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
+    const {reportAction, originalReportID, interceptAnonymousUser} = useContextMenuPayload(payloadOverride);
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy', 'Checkmark'] as const);
     const {translate} = useLocalize();
 

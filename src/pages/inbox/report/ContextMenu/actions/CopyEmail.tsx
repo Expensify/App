@@ -3,13 +3,14 @@ import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import EmailUtils from '@libs/EmailUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {ActionDescriptor} from './ActionDescriptor';
 
-function useCopyEmailAction(): ActionDescriptor | null {
-    const {selection, interceptAnonymousUser} = useContextMenuPayload();
+function useCopyEmailAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
+    const {selection, interceptAnonymousUser} = useContextMenuPayload(payloadOverride);
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
     const {translate} = useLocalize();
 

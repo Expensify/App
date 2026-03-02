@@ -77,8 +77,11 @@ type ContextMenuPayloadContextValue = {
 
 const ContextMenuPayloadContext = createContext<ContextMenuPayloadContextValue | null>(null);
 
-function useContextMenuPayload(): ContextMenuPayloadContextValue {
+function useContextMenuPayload(override?: ContextMenuPayloadContextValue): ContextMenuPayloadContextValue {
     const ctx = useContext(ContextMenuPayloadContext);
+    if (override) {
+        return override;
+    }
     if (ctx === null) {
         throw new Error('useContextMenuPayload must be used within a ContextMenuPayloadProvider');
     }

@@ -499,8 +499,8 @@ function copyMessageToClipboard(payload: ContextMenuPayloadContextValue) {
     }
 }
 
-function useCopyMessageAction(): ActionDescriptor | null {
-    const payload = useContextMenuPayload();
+function useCopyMessageAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
+    const payload = useContextMenuPayload(payloadOverride);
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
     const {translate} = useLocalize();
 

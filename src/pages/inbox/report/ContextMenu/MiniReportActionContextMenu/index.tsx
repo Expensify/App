@@ -26,72 +26,6 @@ import CONST from '@src/CONST';
 const SLIDE_DURATION = 200;
 const OVERSHOOT_EASING = Easing.bezier(0.34, 1.56, 0.64, 1);
 
-function MiniContextMenuContent({visibleActionIDs}: {visibleActionIDs: Set<string>}) {
-    const actions = useContextMenuActions(visibleActionIDs);
-    const emojiData = useEmojiReactionData();
-    const overflowMenu = useOverflowMenuAction();
-    const StyleUtils = useStyleUtils();
-
-    const hasEmoji = visibleActionIDs.has('emojiReaction') && !!emojiData.reportAction && !!emojiData.reportActionID;
-    const needsOverflow = actions.length > CONST.MINI_CONTEXT_MENU_MAX_ITEMS;
-    const visibleActions = needsOverflow ? actions.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1) : actions;
-
-    return (
-        <>
-            {hasEmoji && !!emojiData.reportAction && !!emojiData.reportActionID && (
-                <MiniQuickEmojiReactions
-                    onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
-                        emojiData.interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
-                    }
-                    onPressOpenPicker={emojiData.onPressOpenPicker}
-                    onEmojiPickerClosed={emojiData.onEmojiPickerClosed}
-                    reportActionID={emojiData.reportActionID}
-                    reportAction={emojiData.reportAction}
-                />
-            )}
-            {visibleActions.map((action: ActionDescriptor) => (
-                <BaseMiniContextMenuItem
-                    key={action.id}
-                    isDelayButtonStateComplete
-                    tooltipText={action.text}
-                    onPress={action.onPress}
-                    sentryLabel={action.sentryLabel ?? ''}
-                >
-                    {({hovered, pressed}) => (
-                        <Icon
-                            small
-                            src={action.icon}
-                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                        />
-                    )}
-                </BaseMiniContextMenuItem>
-            ))}
-            {!!(needsOverflow && overflowMenu) &&
-                (() => {
-                    const {buttonRef, text, onPress, sentryLabel, icon} = overflowMenu;
-                    return (
-                        <BaseMiniContextMenuItem
-                            ref={buttonRef}
-                            isDelayButtonStateComplete
-                            tooltipText={text}
-                            onPress={onPress}
-                            shouldPreventDefaultFocusOnPress={false}
-                            sentryLabel={sentryLabel ?? ''}
-                        >
-                            {({hovered, pressed}) => (
-                                <Icon
-                                    small
-                                    src={icon}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                />
-                            )}
-                        </BaseMiniContextMenuItem>
-                    );
-                })()}
-        </>
-    );
-}
-
 function MiniReportActionContextMenu() {
     const state = useMiniContextMenuState();
     const miniActions = useMiniContextMenuActions();
@@ -201,6 +135,14 @@ function MiniReportActionContextMenu() {
         setIsEmojiPickerActive: state?.setIsEmojiPickerActive,
     };
 
+    const actions = useContextMenuActions(visibleActionIDs, payloadValue);
+    const emojiData = useEmojiReactionData(payloadValue);
+    const overflowMenu = useOverflowMenuAction(payloadValue);
+
+    const hasEmoji = visibleActionIDs.has('emojiReaction') && !!emojiData.reportAction && !!emojiData.reportActionID;
+    const needsOverflow = actions.length > CONST.MINI_CONTEXT_MENU_MAX_ITEMS;
+    const visibleActions = needsOverflow ? actions.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1) : actions;
+
     if (!state) {
         return null;
     }
@@ -228,7 +170,56 @@ function MiniReportActionContextMenu() {
             <Animated.View style={[{position: 'absolute'}, positionStyle]}>
                 <ContextMenuPayloadContext.Provider value={payloadValue}>
                     <View style={wrapperStyle}>
-                        <MiniContextMenuContent visibleActionIDs={visibleActionIDs} />
+                        {hasEmoji && !!emojiData.reportAction && !!emojiData.reportActionID && (
+                            <MiniQuickEmojiReactions
+                                onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
+                                    emojiData.interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
+                                }
+                                onPressOpenPicker={emojiData.onPressOpenPicker}
+                                onEmojiPickerClosed={emojiData.onEmojiPickerClosed}
+                                reportActionID={emojiData.reportActionID}
+                                reportAction={emojiData.reportAction}
+                            />
+                        )}
+                        {visibleActions.map((action: ActionDescriptor) => (
+                            <BaseMiniContextMenuItem
+                                key={action.id}
+                                isDelayButtonStateComplete
+                                tooltipText={action.text}
+                                onPress={action.onPress}
+                                sentryLabel={action.sentryLabel ?? ''}
+                            >
+                                {({hovered, pressed}) => (
+                                    <Icon
+                                        small
+                                        src={action.icon}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                    />
+                                )}
+                            </BaseMiniContextMenuItem>
+                        ))}
+                        {!!(needsOverflow && overflowMenu) &&
+                            (() => {
+                                const {buttonRef, text, onPress, sentryLabel, icon} = overflowMenu;
+                                return (
+                                    <BaseMiniContextMenuItem
+                                        ref={buttonRef}
+                                        isDelayButtonStateComplete
+                                        tooltipText={text}
+                                        onPress={onPress}
+                                        shouldPreventDefaultFocusOnPress={false}
+                                        sentryLabel={sentryLabel ?? ''}
+                                    >
+                                        {({hovered, pressed}) => (
+                                            <Icon
+                                                small
+                                                src={icon}
+                                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                            />
+                                        )}
+                                    </BaseMiniContextMenuItem>
+                                );
+                            })()}
                     </View>
                 </ContextMenuPayloadContext.Provider>
             </Animated.View>

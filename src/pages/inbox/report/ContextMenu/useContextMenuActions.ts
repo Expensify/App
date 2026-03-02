@@ -22,34 +22,35 @@ import {
     useUnholdAction,
     useUnpinAction,
 } from './actions/ContextMenuAction';
+import type {ContextMenuPayloadContextValue} from './ContextMenuPayloadProvider';
 
 /**
  * Aggregates all individual context menu action hooks into a single ordered array.
  * Each hook is always called (rules of hooks), and returns null when it shouldn't be shown.
  * The returned array contains only the visible actions, in display order.
  */
-function useContextMenuActions(visibleActionIDs: Set<string>): ActionDescriptor[] {
-    const replyInThread = useReplyInThreadAction();
-    const markAsUnread = useMarkAsUnreadAction();
-    const explain = useExplainAction();
-    const markAsRead = useMarkAsReadAction();
-    const edit = useEditAction();
-    const unhold = useUnholdAction();
-    const hold = useHoldAction();
-    const joinThread = useJoinThreadAction();
-    const leaveThread = useLeaveThreadAction();
-    const copyUrl = useCopyURLAction();
-    const copyToClipboard = useCopyToClipboardAction();
-    const copyEmail = useCopyEmailAction();
-    const copyMessage = useCopyMessageAction();
-    const copyLink = useCopyLinkAction();
-    const pin = usePinAction();
-    const unpin = useUnpinAction();
-    const flagAsOffensive = useFlagAsOffensiveAction();
-    const download = useDownloadAction();
-    const copyOnyxData = useCopyOnyxDataAction();
-    const debug = useDebugAction();
-    const deleteAction = useDeleteAction();
+function useContextMenuActions(visibleActionIDs: Set<string>, payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor[] {
+    const replyInThread = useReplyInThreadAction(payloadOverride);
+    const markAsUnread = useMarkAsUnreadAction(payloadOverride);
+    const explain = useExplainAction(payloadOverride);
+    const markAsRead = useMarkAsReadAction(payloadOverride);
+    const edit = useEditAction(payloadOverride);
+    const unhold = useUnholdAction(payloadOverride);
+    const hold = useHoldAction(payloadOverride);
+    const joinThread = useJoinThreadAction(payloadOverride);
+    const leaveThread = useLeaveThreadAction(payloadOverride);
+    const copyUrl = useCopyURLAction(payloadOverride);
+    const copyToClipboard = useCopyToClipboardAction(payloadOverride);
+    const copyEmail = useCopyEmailAction(payloadOverride);
+    const copyMessage = useCopyMessageAction(payloadOverride);
+    const copyLink = useCopyLinkAction(payloadOverride);
+    const pin = usePinAction(payloadOverride);
+    const unpin = useUnpinAction(payloadOverride);
+    const flagAsOffensive = useFlagAsOffensiveAction(payloadOverride);
+    const download = useDownloadAction(payloadOverride);
+    const copyOnyxData = useCopyOnyxDataAction(payloadOverride);
+    const debug = useDebugAction(payloadOverride);
+    const deleteAction = useDeleteAction(payloadOverride);
 
     const allActions = [
         replyInThread,

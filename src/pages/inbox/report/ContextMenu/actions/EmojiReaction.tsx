@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
+import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {toggleEmojiReaction} from '@userActions/Report';
 import type {ReportActionReactions} from '@src/types/onyx';
@@ -15,8 +16,8 @@ type EmojiReactionData = {
     interceptAnonymousUser: ReturnType<typeof useContextMenuPayload>['interceptAnonymousUser'];
 };
 
-function useEmojiReactionData(): EmojiReactionData {
-    const {reportID, reportAction, currentUserAccountID, openContextMenu, setIsEmojiPickerActive, hideAndRun, interceptAnonymousUser} = useContextMenuPayload();
+function useEmojiReactionData(payloadOverride?: ContextMenuPayloadContextValue): EmojiReactionData {
+    const {reportID, reportAction, currentUserAccountID, openContextMenu, setIsEmojiPickerActive, hideAndRun, interceptAnonymousUser} = useContextMenuPayload(payloadOverride);
 
     const closeContextMenu = (onHideCallback?: () => void) => {
         hideAndRun(onHideCallback);

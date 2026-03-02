@@ -1,13 +1,14 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {navigateToAndOpenChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ActionDescriptor} from './ActionDescriptor';
 
-function useReplyInThreadAction(): ActionDescriptor | null {
-    const {childReport, reportAction, originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun} = useContextMenuPayload();
+function useReplyInThreadAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
+    const {childReport, reportAction, originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun} = useContextMenuPayload(payloadOverride);
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubbleReply'] as const);
 

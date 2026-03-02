@@ -1,13 +1,14 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {ActionDescriptor} from './ActionDescriptor';
 
-function useMarkAsReadAction(): ActionDescriptor | null {
-    const {reportID, interceptAnonymousUser, hideAndRun} = useContextMenuPayload();
+function useMarkAsReadAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
+    const {reportID, interceptAnonymousUser, hideAndRun} = useContextMenuPayload(payloadOverride);
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Mail', 'Checkmark'] as const);
 

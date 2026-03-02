@@ -1,13 +1,14 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {explain} from '@userActions/Report';
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ActionDescriptor} from './ActionDescriptor';
 
-function useExplainAction(): ActionDescriptor | null {
-    const {childReport, originalReport, reportAction, currentUserPersonalDetails, interceptAnonymousUser, hideAndRun} = useContextMenuPayload();
+function useExplainAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
+    const {childReport, originalReport, reportAction, currentUserPersonalDetails, interceptAnonymousUser, hideAndRun} = useContextMenuPayload(payloadOverride);
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Concierge'] as const);
 

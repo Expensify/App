@@ -2,6 +2,7 @@ import {useRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import CONST from '@src/CONST';
 import type {ActionDescriptor} from './ActionDescriptor';
@@ -10,8 +11,8 @@ type OverflowMenuDescriptor = ActionDescriptor & {
     buttonRef: React.RefObject<View | null>;
 };
 
-function useOverflowMenuAction(): OverflowMenuDescriptor | null {
-    const {openOverflowMenu, openContextMenu, interceptAnonymousUser} = useContextMenuPayload();
+function useOverflowMenuAction(payloadOverride?: ContextMenuPayloadContextValue): OverflowMenuDescriptor | null {
+    const {openOverflowMenu, openContextMenu, interceptAnonymousUser} = useContextMenuPayload(payloadOverride);
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
     const {translate} = useLocalize();
     const threeDotRef = useRef<View>(null);
