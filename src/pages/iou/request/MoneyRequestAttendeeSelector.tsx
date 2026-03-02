@@ -299,7 +299,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onEndReached={onListEndReached}
-            disableMaintainingScrollPosition
             shouldSingleExecuteRowSelect
             shouldShowTextInput
             canSelectMultiple
