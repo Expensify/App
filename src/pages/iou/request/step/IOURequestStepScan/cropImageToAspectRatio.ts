@@ -86,11 +86,11 @@ function cropImageToAspectRatio(
                         const wasAutoRotated = normalizedSize.width !== imageSize.width || normalizedSize.height !== imageSize.height;
 
                         const cropPromise = wasAutoRotated
-                            ? cropOrRotateImage(
-                                  normalizedImage.uri,
-                                  [{crop: calculateCropRect(normalizedSize.width, normalizedSize.height, ratioWidth, ratioHeight, shouldAlignTop)}],
-                                  {compress: 1, name: croppedFilename, type: IMAGE_TYPE},
-                              )
+                            ? cropOrRotateImage(normalizedImage.uri, [{crop: calculateCropRect(normalizedSize.width, normalizedSize.height, ratioWidth, ratioHeight, shouldAlignTop)}], {
+                                  compress: 1,
+                                  name: croppedFilename,
+                                  type: IMAGE_TYPE,
+                              })
                             : cropOrRotateImage(normalizedImage.uri, [{rotate: rotation}, {crop}], {compress: 1, name: croppedFilename, type: IMAGE_TYPE});
 
                         return cropPromise.then((croppedImage) => {
