@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
@@ -77,13 +77,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
-    const sectionStartIndices = useMemo(() => {
-        const indices: number[] = [0];
-        for (const section of typeMenuSections) {
-            indices.push(indices[indices.length - 1] + section.menuItems.length);
-        }
-        return indices;
-    }, [typeMenuSections]);
+    const sectionStartIndices = [0];
+    for (const section of typeMenuSections) {
+        sectionStartIndices.push((sectionStartIndices.at(-1) ?? 0) + section.menuItems.length);
+    }
 
     return (
         <>
@@ -113,8 +110,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                 ) : (
                                     <>
                                         {section.menuItems.map((item, itemIndex) => {
-                                            const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
-                                            const flattenedIndex = previousItemCount + itemIndex;
+                                            const flattenedIndex = (sectionStartIndices?.at(sectionIndex) ?? 0) + itemIndex;
                                             const focused = activeItemIndex === flattenedIndex;
                                             const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
