@@ -452,7 +452,7 @@ describe('actions/Report', () => {
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
                 Report.openReport(REPORT_ID, TEST_INTRO_SELECTED);
-                Report.readNewestAction(REPORT_ID);
+                Report.readNewestAction(REPORT_ID, true);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
             })
