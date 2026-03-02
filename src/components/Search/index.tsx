@@ -875,7 +875,7 @@ function Search({
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
     useEffect(() => {
-        if ((previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns)) || offset === 0 || isSmallScreenWidth) {
+        if (offset === 0 || isSmallScreenWidth || (previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns))) {
             setColumnsToShow(currentColumns);
             return;
         }
