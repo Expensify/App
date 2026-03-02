@@ -116,7 +116,6 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
-
             // Evaluate navigation guards FIRST
             const guardState = handleNavigationGuards(state, action, configOptions, stackRouter);
             if (guardState) {

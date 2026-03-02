@@ -18,7 +18,5 @@ export default function useCustomRootStackNavigatorState({state}: CustomStateHoo
     const routesToRender = state.routes.slice(indexToSlice, state.routes.length);
     const remappedRoutes = reuseNavigatorKey(routesToRender, state);
 
-    debugger;
-
     return {...state, routes: remappedRoutes, index: remappedRoutes.length - 1};
 }

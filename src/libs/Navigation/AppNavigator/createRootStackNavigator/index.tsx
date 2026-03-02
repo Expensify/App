@@ -1,10 +1,10 @@
-import type { NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator } from '@react-navigation/native';
-import { createNavigatorFactory } from '@react-navigation/native';
+import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
+import {createNavigatorFactory} from '@react-navigation/native';
 import RootNavigatorExtraContent from '@components/Navigation/RootNavigatorExtraContent';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
-import type { PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState } from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import RootStackRouter from './RootStackRouter';
 import useCustomRootStackNavigatorState from './useCustomRootStackNavigatorState';
 

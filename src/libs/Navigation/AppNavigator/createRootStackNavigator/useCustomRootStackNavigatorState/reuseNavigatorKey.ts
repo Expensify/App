@@ -1,6 +1,6 @@
-import type { ParamListBase, StackNavigationState } from '@react-navigation/native';
-import { screensWithEnteringAnimation } from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
-import { isFullScreenName } from '@libs/Navigation/helpers/isNavigatorName';
+import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
+import {screensWithEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 
 type StateRoutes = StackNavigationState<ParamListBase>['routes'];
 

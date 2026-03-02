@@ -487,7 +487,6 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
  * see the NAVIGATION.md documentation.
  */
 function popToSidebar() {
-
     setShouldPopToSidebar(false);
 
     const rootState = navigationRef.current?.getRootState();
