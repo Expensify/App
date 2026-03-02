@@ -30,6 +30,7 @@ function GPSTripStateChecker() {
 
     useEffect(() => {
         async function handleGpsTripInProgressOnAppRestart() {
+            await checkAndCleanGpsNotification();
             const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 
             if (!gpsTrip?.isTracking) {
@@ -40,7 +41,6 @@ function GPSTripStateChecker() {
         }
 
         handleGpsTripInProgressOnAppRestart();
-        checkAndCleanGpsNotification();
 
         return () => {
             hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).then((isRunning) => {
