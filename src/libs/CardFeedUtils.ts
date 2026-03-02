@@ -1,7 +1,7 @@
-import type {FeedKeysWithAssignedCards} from '@selectors/Card';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionListWithSections/Search/CardListItem';
+import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
@@ -100,9 +100,10 @@ function createCardFilterItem(
     const cardName = card?.nameValuePairs?.cardTitle;
     const text = personalDetails?.displayName ?? cardName;
     const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
+    const isCSVImportCard = card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
 
     return {
-        lastFourPAN: card.lastFourPAN,
+        lastFourPAN: isCSVImportCard ? card?.cardName : card.lastFourPAN,
         isVirtual: card?.nameValuePairs?.isVirtual,
         shouldShowOwnersAvatar: true,
         cardName,

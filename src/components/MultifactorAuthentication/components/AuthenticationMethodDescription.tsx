@@ -3,9 +3,9 @@ import {useMultifactorAuthenticationState} from '@components/MultifactorAuthenti
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {AuthTypeName} from '@libs/MultifactorAuthentication/Biometrics/types';
 import type {TranslationPaths} from '@src/languages/types';
-import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const AUTH_TYPE_TRANSLATION_KEY = {
@@ -22,9 +22,9 @@ const AUTH_TYPE_TRANSLATION_KEY = {
 function AuthenticationMethodDescription() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {state} = useMultifactorAuthenticationState();
+    const {authenticationMethod} = useMultifactorAuthenticationState();
 
-    const authType = translate(AUTH_TYPE_TRANSLATION_KEY[state.authenticationMethod?.name ?? SECURE_STORE_VALUES.AUTH_TYPE.UNKNOWN.NAME]);
+    const authType = translate(AUTH_TYPE_TRANSLATION_KEY[authenticationMethod?.name ?? SECURE_STORE_VALUES.AUTH_TYPE.UNKNOWN.NAME]);
 
     return <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('multifactorAuthentication.biometricsTest.successfullyAuthenticatedUsing', {authType})}</Text>;
 }
