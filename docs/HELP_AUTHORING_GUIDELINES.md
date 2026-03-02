@@ -34,7 +34,6 @@ If multiple workflows are detected → split into multiple articles.
   - Setup
   - Options
   - Step 1
-  - FAQs
 
 ## Requirements
 
@@ -57,17 +56,12 @@ If multiple workflows are detected → split into multiple articles.
 Every article must begin with:
 
 ```yaml
+---
 title: Clear task-based title using feature name
 description: 1–2 sentence summary of outcome
-keywords:
-  - primary task phrase
-  - feature name
-  - relevant roles
-internalScope:
-  audience: Target role(s)
-  covers: Included workflow
-  doesNotCover: Explicit exclusions
-
+keywords: [primary task phrase, feature name, relevant roles]
+internalScope: Audience is [target role(s), covers [included workflow], does not cover [explicit exclusions]
+---
 ```
 
 Metadata must reflect real search queries.
@@ -104,12 +98,12 @@ Every article must:
  - Include at least one full "How to..." heading using feature name
  - Include realistic search phrases
  - Avoid vague wording
-- Avoid multi-feature coverage
+-  Avoid multi-feature coverage
  - Use UI-exact labels
  - Avoid internal language
 
 Do not combine:
- - Setup + troubleshooting + policy design
+ - Setup + troubleshooting + workspace design
  - Admin + Member flows unless inseparable
 
 ---
