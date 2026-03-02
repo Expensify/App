@@ -13,13 +13,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxListItemProvider';
 
-type OptionsListContextProps = {
+type OptionsListStateContextProps = {
     /** List of options for reports and personal details */
     options: OptionList;
-    /** Function to initialize the options */
-    initializeOptions: () => void;
     /** Flag to check if the options are initialized */
     areOptionsInitialized: boolean;
+};
+
+type OptionsListActionsContextProps = {
+    /** Function to initialize the options */
+    initializeOptions: () => void;
     /** Function to reset the options */
     resetOptions: () => void;
 };
@@ -29,13 +32,16 @@ type OptionsListProviderProps = {
     children: React.ReactNode;
 };
 
-const OptionsListContext = createContext<OptionsListContextProps>({
+const OptionsListStateContext = createContext<OptionsListStateContextProps>({
     options: {
         reports: [],
         personalDetails: [],
     },
-    initializeOptions: () => {},
     areOptionsInitialized: false,
+});
+
+const OptionsListActionsContext = createContext<OptionsListActionsContextProps>({
+    initializeOptions: () => {},
     resetOptions: () => {},
 });
 
@@ -290,21 +296,25 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         });
     }, []);
 
+    const stateValue = useMemo(() => ({options, areOptionsInitialized: areOptionsInitialized.current}), [options]);
+    const actionsValue = useMemo(() => ({initializeOptions, resetOptions}), [initializeOptions, resetOptions]);
+
     return (
-        <OptionsListContext.Provider
-            value={useMemo(() => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized.current, resetOptions}), [options, initializeOptions, resetOptions])}
-        >
-            {children}
-        </OptionsListContext.Provider>
+        <OptionsListStateContext.Provider value={stateValue}>
+            <OptionsListActionsContext.Provider value={actionsValue}>{children}</OptionsListActionsContext.Provider>
+        </OptionsListStateContext.Provider>
     );
 }
 
-const useOptionsListContext = () => useContext(OptionsListContext);
+const useOptionsListState = () => useContext(OptionsListStateContext);
+
+const useOptionsListActions = () => useContext(OptionsListActionsContext);
 
 // Hook to use the OptionsListContext with an initializer to load the options
 const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
-    const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
+    const {options: optionsList, areOptionsInitialized} = useOptionsListState();
+    const {initializeOptions, resetOptions} = useOptionsListActions();
     const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
     const prevOptions = useRef<OptionList>(null);
     const [areInternalOptionsInitialized, setAreInternalOptionsInitialized] = useState(false);
@@ -361,4 +371,4 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
 
 export default OptionsListContextProvider;
 
-export {useOptionsList, OptionsListContext};
+export {useOptionsList, useOptionsListState, useOptionsListActions, OptionsListStateContext, OptionsListActionsContext};
