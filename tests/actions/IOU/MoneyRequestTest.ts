@@ -1,5 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getOnyxData} from 'tests/utils/TestHelper';
 import type {MoneyRequestStepScanParticipantsFlowParams} from '@libs/actions/IOU/MoneyRequest';
 import {createTransaction, handleMoneyRequestStepDistanceNavigation, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -9,7 +10,7 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, QuickAction, RecentWaypoint} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, QuickAction, RecentWaypoint} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
 import * as Split from '../../../src/libs/actions/IOU/Split';
@@ -413,6 +414,7 @@ describe('MoneyRequest', () => {
             betas: [],
             recentWaypoints: [] as RecentWaypoint[],
             allTransactionDrafts: {},
+            allPolicyTags: {} as OnyxCollection<PolicyTagLists>,
         };
 
         beforeEach(async () => {
@@ -426,6 +428,13 @@ describe('MoneyRequest', () => {
                 },
             });
             baseParams.recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+            await getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    baseParams.allPolicyTags = value;
+                },
+            });
         });
 
         afterEach(async () => {

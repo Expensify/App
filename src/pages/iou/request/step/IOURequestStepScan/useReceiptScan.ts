@@ -127,6 +127,7 @@ function useReceiptScan({
     }
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     function navigateToConfirmationStep(files: ReceiptFile[], locationPermissionGranted = false, isTestTransaction = false) {
         handleMoneyRequestStepScanParticipants({
@@ -171,6 +172,7 @@ function useReceiptScan({
             betas,
             recentWaypoints,
             allTransactionDrafts,
+            allPolicyTags,
         });
     }
 

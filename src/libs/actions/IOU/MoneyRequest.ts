@@ -17,7 +17,19 @@ import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, RecentWaypoint, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Beta,
+    IntroSelected,
+    LastSelectedDistanceRates,
+    PersonalDetailsList,
+    Policy,
+    PolicyTagLists,
+    QuickAction,
+    RecentWaypoint,
+    Report,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -26,7 +38,6 @@ import type {GpsPoint} from './index';
 import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
-    getPolicyTags,
     requestMoney,
     setCustomUnitRateID,
     setMoneyRequestDistance,
@@ -110,6 +121,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     allTransactionDrafts: OnyxCollection<Transaction>;
     betas: OnyxEntry<Beta[]>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
+    allPolicyTags: OnyxCollection<PolicyTagLists>;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -309,6 +321,7 @@ function handleMoneyRequestStepScanParticipants({
     allTransactionDrafts,
     betas,
     recentWaypoints,
+    allPolicyTags,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -367,7 +380,7 @@ function handleMoneyRequestStepScanParticipants({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     // No need to update recently used tags because no tags are used when the confirmation step is skipped
                     policyRecentlyUsedTags: undefined,
-                    allPolicyTags: getPolicyTags(),
+                    allPolicyTags,
                 });
                 return;
             }
