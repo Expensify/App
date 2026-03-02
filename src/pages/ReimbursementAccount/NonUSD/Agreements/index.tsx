@@ -17,12 +17,12 @@ const INPUT_KEYS = {
     authorizedToBindClientToAgreement: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
 };
 
-function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: NonUSDPageProps) {
+function Agreements({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPageProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const agreementsStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
+    const isDocusignStepRequired = requiresDocusignStep(currency);
 
     const submit = () => {
         if (isDocusignStepRequired) {
@@ -59,7 +59,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: No
         return () => {
             clearReimbursementAccountFinishCorpayBankAccountOnboarding();
         };
-    }, [reimbursementAccount?.errors, reimbursementAccount?.isFinishingCorpayBankAccountOnboarding, reimbursementAccount?.isSuccess, onSubmit, policyCurrency, isDocusignStepRequired]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isFinishingCorpayBankAccountOnboarding, reimbursementAccount?.isSuccess, onSubmit, currency, isDocusignStepRequired]);
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
@@ -74,7 +74,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: No
             isLoading={reimbursementAccount?.isFinishingCorpayBankAccountOnboarding ?? false}
             onBackButtonPress={handleBackButtonPress}
             onSubmit={submit}
-            currency={policyCurrency ?? ''}
+            currency={currency ?? ''}
             startStepIndex={5}
             stepNames={stepNames}
         />
