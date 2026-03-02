@@ -31,7 +31,7 @@ function useDynamicBackPath(dynamicRouteSuffix: DynamicRouteSuffix): Route {
     const [normalizedPath] = splitPathAndQuery(pathWithoutLeadingSlash);
 
     if (normalizedPath?.endsWith(`/${dynamicRouteSuffix}`)) {
-        return removeDynamicSuffixFromPath(pathWithoutLeadingSlash, dynamicRouteSuffix) as Route;
+        return removeDynamicSuffixFromPath(pathWithoutLeadingSlash, dynamicRouteSuffix);
     }
 
     // If suffix is not the last segment, return the original path

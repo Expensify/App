@@ -32,7 +32,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
         const dynamicRoute: string = dynamicRouteKeys.find((key) => DYNAMIC_ROUTES[key].path === dynamicRouteSuffix) ?? '';
 
         // Get the currently focused route from the base path to check permissions
-        const focusedRoute = findFocusedRoute(getStateFromPath(pathWithoutDynamicSuffix as Route) ?? {});
+        const focusedRoute = findFocusedRoute(getStateFromPath(pathWithoutDynamicSuffix) ?? {});
         const entryScreens: Screen[] = DYNAMIC_ROUTES[dynamicRoute as DynamicRouteKey]?.entryScreens ?? [];
 
         // Check if the focused route is allowed to access this dynamic route
@@ -44,7 +44,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
             }
 
             // Fallback to not found page so users can't land on dynamic suffix directly.
-            if (pathWithoutDynamicSuffix === '/' || pathWithoutDynamicSuffix === '') {
+            if ((pathWithoutDynamicSuffix as string) === '/' || (pathWithoutDynamicSuffix as string) === '') {
                 const state = {routes: [{name: SCREENS.NOT_FOUND, path: normalizedPathAfterRedirection}]};
 
                 return state;

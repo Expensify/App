@@ -10,8 +10,8 @@ import splitPathAndQuery from './splitPathAndQuery';
  * @param path - The path to find the matching dynamic suffix for
  * @returns The matching dynamic suffix, or undefined if no matching suffix is found
  */
-function findMatchingDynamicSuffix(path: string | undefined): string | undefined {
-    const [normalizedPath] = splitPathAndQuery(path ?? '');
+function findMatchingDynamicSuffix(path = ''): string | undefined {
+    const [normalizedPath] = splitPathAndQuery(path);
     if (!normalizedPath) {
         return undefined;
     }

@@ -204,7 +204,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             const pathWithoutDynamicSuffix = removeDynamicSuffixFromPath(route.path, dynamicRouteSuffix);
 
             // Get navigation state for the base path without dynamic suffix
-            const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix as RoutePath);
+            const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix);
             const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
             if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
