@@ -10,6 +10,7 @@ import {
     areTransactionsEligibleForMerge,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
+    getTransactionThreadReportID,
     MERGE_FIELDS,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
@@ -56,7 +57,10 @@ function setupMergeTransactionDataAndNavigate(
     if (transactions.length === 1) {
         const transaction = transactions.at(0);
         if (transaction) {
-            setupMergeTransactionData(navigationTransactionID, {targetTransactionID: transaction.transactionID});
+            setupMergeTransactionData(navigationTransactionID, {
+                targetTransactionID: transaction.transactionID,
+                targetTransactionThreadReportID: getTransactionThreadReportID(transaction),
+            });
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute(), isOnSearch));
             return;
         }
@@ -67,7 +71,11 @@ function setupMergeTransactionDataAndNavigate(
         return;
     }
 
-    const setupData = {targetTransactionID: targetTransaction?.transactionID, sourceTransactionID: sourceTransaction?.transactionID};
+    const setupData = {
+        targetTransactionID: targetTransaction?.transactionID,
+        sourceTransactionID: sourceTransaction?.transactionID,
+        targetTransactionThreadReportID: getTransactionThreadReportID(targetTransaction),
+    };
     if (isSelectingSourceTransaction) {
         setMergeTransactionKey(navigationTransactionID, setupData);
     } else {
