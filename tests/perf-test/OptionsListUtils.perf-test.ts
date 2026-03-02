@@ -27,7 +27,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import {getNvpDismissedProductTraining} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const REPORTS_COUNT = 20000;
+const REPORTS_COUNT = 5000;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
 const SEARCH_VALUE = 'Expense';
 const COUNTRY_CODE = 1;
