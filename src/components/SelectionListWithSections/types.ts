@@ -26,7 +26,7 @@ import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
 import type CONST from '@src/CONST';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {LastPaymentMethod, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -669,6 +669,10 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     onDEWModalOpen?: () => void;
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -694,6 +698,12 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
 
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
+
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -708,6 +718,10 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     onDEWModalOpen?: () => void;
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
 };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<

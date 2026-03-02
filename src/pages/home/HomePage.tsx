@@ -64,6 +64,7 @@ function HomePage() {
                 <TopBar
                     breadcrumbLabel={translate('common.home')}
                     shouldShowLoadingBar={isForYouLoading}
+                    shouldDisplayHelpButton
                 />
                 <ScrollView
                     contentContainerStyle={styles.homePageContentContainer}

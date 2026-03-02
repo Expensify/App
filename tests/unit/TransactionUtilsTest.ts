@@ -1,13 +1,11 @@
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
-import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Policy, Report, Transaction} from '../../src/types/onyx';
 import type {CardList} from '../../src/types/onyx/Card';
@@ -85,40 +83,7 @@ const reportCollectionDataSet = {
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_SECOND_USER_ID}`]: secondUserOpenReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_CHAT_REPORT_ID}`]: chatReport,
 } as OnyxCollection<Report>;
-const defaultDistanceRatePolicyID1: Record<string, Rate> = {
-    customUnitRateID1: {
-        currency: 'USD',
-        customUnitRateID: 'customUnitRateID1',
-        enabled: true,
-        name: 'Default Rate',
-        rate: 70,
-        subRates: [],
-    },
-};
-const distanceRateTransactionID1: TransactionCustomUnit = {
-    customUnitID: 'customUnitID1',
-    customUnitRateID: 'customUnitRateID1',
-    distanceUnit: 'mi',
-    name: 'Distance',
-};
-const distanceRateTransactionID2: TransactionCustomUnit = {
-    customUnitID: 'customUnitID2',
-    customUnitRateID: 'customUnitRateID2',
-    distanceUnit: 'mi',
-    name: 'Distance',
-};
-const defaultCustomUnitPolicyID1: Record<string, CustomUnit> = {
-    customUnitID1: {
-        attributes: {
-            unit: 'mi',
-        },
-        customUnitID: 'customUnitID1',
-        defaultCategory: 'Car',
-        enabled: true,
-        name: 'Distance',
-        rates: defaultDistanceRatePolicyID1,
-    },
-};
+
 const currentUserPersonalDetails = {
     accountID: CURRENT_USER_ID,
     login: CURRENT_USER_EMAIL,
@@ -798,96 +763,6 @@ describe('TransactionUtils', () => {
                 },
             });
             expect(TransactionUtils.isExpenseSplit(transaction)).toBe(false);
-        });
-    });
-
-    describe('isUnreportedAndHasInvalidDistanceRateTransaction', () => {
-        it('should be false when transaction is null', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(null, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be false when transaction is not distance type transaction', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
-            };
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be false when transaction is reported', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                reportID: '1',
-            };
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be false when transaction is unreported and has valid rate', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                reportID: '0',
-                comment: {
-                    customUnit: distanceRateTransactionID1,
-                    type: 'customUnit',
-                },
-            };
-
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be false when transaction is unreported, has invalid rate but policy has default rate', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                reportID: '0',
-                comment: {
-                    customUnit: distanceRateTransactionID2,
-                    type: 'customUnit',
-                },
-            };
-
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be true when transaction is unreported, has invalid rate and policy has no default rate', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: {},
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                reportID: '0',
-                comment: {
-                    customUnit: distanceRateTransactionID2,
-                    type: 'customUnit',
-                },
-            };
-
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(true);
         });
     });
 
