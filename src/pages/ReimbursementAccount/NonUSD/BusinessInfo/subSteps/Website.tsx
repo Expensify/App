@@ -70,6 +70,7 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
             inputMode={CONST.INPUT_MODE.URL}
             defaultValue={defaultCompanyWebsite}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }

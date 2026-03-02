@@ -57,6 +57,7 @@ function Last4SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBei
             defaultValue={defaultLast4SSN}
             shouldShowHelpLinks={false}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+            shouldDelayAutoFocus
         />
     );
 }

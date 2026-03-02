@@ -54,6 +54,7 @@ function Name({onNext, onMove, isEditing}: NameProps) {
             inputMode={CONST.INPUT_MODE.TEXT}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }

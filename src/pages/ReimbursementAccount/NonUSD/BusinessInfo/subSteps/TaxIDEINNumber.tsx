@@ -55,6 +55,7 @@ function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
             inputLabel={translate('businessInfoStep.taxIDEIN', businessStepCountryValue)}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }

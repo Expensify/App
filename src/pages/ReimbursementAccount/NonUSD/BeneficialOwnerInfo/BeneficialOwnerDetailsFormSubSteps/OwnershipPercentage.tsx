@@ -59,6 +59,7 @@ function OwnershipPercentage({onNext, isEditing, onMove, isUserEnteringHisOwnDat
             inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultOwnershipPercentage}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }
