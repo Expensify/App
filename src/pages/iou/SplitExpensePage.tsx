@@ -56,6 +56,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {SplitExpense} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SplitList from './SplitList';
@@ -102,6 +103,17 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+
+    const isSplitExpenseEditable = (splitExpense: SplitExpense) => {
+        const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense?.transactionID}`];
+        const currentItemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
+        const currentItemPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentItemReport?.policyID}`];
+
+        return (
+            !currentTransaction ||
+            isSplitAction(currentItemReport, [currentTransaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentItemPolicy)
+        );
+    };
 
     const isSplitAvailable =
         report &&
@@ -158,7 +170,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     let isUnitRateIDOutOfPolicy = false;
     for (const splitExpense of splitExpenses) {
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpense.transactionID)}`] ?? transaction;
-        if (splitTransaction && currentPolicy) {
+        const isEditable = isSplitExpenseEditable(splitExpense);
+        if (splitTransaction && currentPolicy && isEditable) {
             const isSplitDistance = isDistanceRequest(splitTransaction);
             if (isSplitDistance) {
                 const currentRateID = splitExpense?.customUnit?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID);
@@ -311,7 +324,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const previewHeaderText: TranslationPathOrText[] = [transactionTypeTranslationPath];
         const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item?.transactionID}`];
         const currentItemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
-        const currentItemPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentItemReport?.policyID}`];
         const isApproved = isReportApproved({report: currentItemReport});
         const isSettled = isSettledReportUtils(currentItemReport?.reportID);
         const isCancelled = currentItemReport && currentItemReport?.isCancelledIOU;
@@ -349,9 +361,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             onSplitExpenseValueChange,
             isSelected: splitExpenseTransactionID === item.transactionID,
             keyForList: item?.transactionID,
-            isEditable:
-                !currentTransaction ||
-                isSplitAction(currentItemReport, [currentTransaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentItemPolicy),
+            isEditable: isSplitExpenseEditable(item),
         };
     });
 
