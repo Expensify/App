@@ -6,8 +6,8 @@ import variables from './variables';
     },
 };
 
-// Ensure task descriptions are fully visible
+// Export as StyleSheet to ensure proper styling
 export default StyleSheet.create({
     ...styles,
-    taskDescriptionContainer: { maxHeight: undefined, flexShrink: 0 },
+    taskDescriptionContainer: { maxHeight: undefined },
 });
