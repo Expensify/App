@@ -81,7 +81,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import SearchChartView from './SearchChartView';
-import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
+import {useSearchActionsContext, useSearchResultsContext, useSearchStateContext} from './SearchContext';
 import SearchList from './SearchList';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
@@ -227,8 +227,8 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {markReportIDAsExpense} = useWideRHPActions();
-    const {currentSearchHash, selectedTransactions, shouldTurnOffSelectionMode, lastSearchType, areAllMatchingItemsSelected, shouldResetSearchQuery, shouldUseLiveData} =
-        useSearchStateContext();
+    const {currentSearchHash, selectedTransactions, shouldTurnOffSelectionMode, lastSearchType, areAllMatchingItemsSelected, shouldResetSearchQuery} = useSearchStateContext();
+    const {shouldUseLiveData} = useSearchResultsContext();
     const {
         setCurrentSearchHashAndKey,
         setCurrentSearchQueryJSON,

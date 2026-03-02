@@ -166,10 +166,14 @@ type SearchContextData = {
     shouldResetSearchQuery: boolean;
 };
 
-type SearchStateContextValue = SearchContextData & {
+/** Context value for search results only; split out so consumers that only need results re-render only when results change */
+type SearchResultsContextValue = {
     currentSearchResults: SearchResults | undefined;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
+};
+
+type SearchStateContextValue = Omit<SearchContextData, 'currentSearchResults'> & {
     shouldShowFiltersBarLoading: boolean;
     lastSearchType: string | undefined;
     shouldShowSelectAllMatchingItems: boolean;
@@ -385,6 +389,7 @@ export type {
     ReportFieldNegatedKey,
     SortOrder,
     SearchStateContextValue,
+    SearchResultsContextValue,
     SearchActionsContextValue,
     SearchContextData,
     ASTNode,

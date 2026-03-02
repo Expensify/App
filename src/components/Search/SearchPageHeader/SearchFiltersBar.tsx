@@ -13,7 +13,7 @@ import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopu
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
@@ -133,7 +133,8 @@ function SearchFiltersBar({queryJSON, isMobileSelectionModeEnabled}: SearchFilte
     const filterFormValues = useFilterFormValues(queryJSON);
     useSearchFilterSync(filterFormValues);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
+    const {selectedTransactions, shouldShowFiltersBarLoading} = useSearchStateContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
 

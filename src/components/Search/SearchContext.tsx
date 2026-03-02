@@ -14,7 +14,7 @@ import type {SearchResults} from '@src/types/onyx';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SearchActionsContextValue, SearchContextData, SearchQueryJSON, SearchStateContextValue, SelectedTransactions} from './types';
+import type {SearchActionsContextValue, SearchContextData, SearchQueryJSON, SearchResultsContextValue, SearchStateContextValue, SelectedTransactions} from './types';
 
 // Default search info when building from live data
 // Used for to-do searches where we build SearchResults from live Onyx data instead of API snapshots
@@ -44,14 +44,18 @@ const defaultSearchContextData: SearchContextData = {
     shouldResetSearchQuery: false,
 };
 
+const defaultSearchResultsContext: SearchResultsContextValue = {
+    currentSearchResults: undefined,
+    shouldUseLiveData: false,
+};
+
+const {currentSearchResults: omittedFromStateDefault, ...searchContextDataForState} = defaultSearchContextData;
 const defaultSearchStateContext: SearchStateContextValue = {
-    ...defaultSearchContextData,
+    ...searchContextDataForState,
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
     shouldShowSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
-    currentSearchResults: undefined,
-    shouldUseLiveData: false,
 };
 
 const defaultSearchActionsContext: SearchActionsContextValue = {
@@ -68,6 +72,7 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
 };
 
 const SearchStateContext = React.createContext<SearchStateContextValue>(defaultSearchStateContext);
+const SearchResultsContext = React.createContext<SearchResultsContextValue>(defaultSearchResultsContext);
 const SearchActionsContext = React.createContext<SearchActionsContextValue>(defaultSearchActionsContext);
 
 function SearchContextProvider({children}: ChildrenProps) {
@@ -160,7 +165,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         }
 
         // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
-        let selectedReports: SearchStateContextValue['selectedReports'] = [];
+        let selectedReports: SearchContextData['selectedReports'] = [];
 
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
             selectedReports = data
@@ -273,14 +278,18 @@ function SearchContextProvider({children}: ChildrenProps) {
         }));
     };
 
+    const {currentSearchResults: omittedFromState, ...searchContextDataWithoutResults} = searchContextData;
     const searchStateContextValue: SearchStateContextValue = {
-        ...searchContextData,
-        currentSearchResults,
-        shouldUseLiveData,
+        ...searchContextDataWithoutResults,
         shouldShowFiltersBarLoading,
         lastSearchType,
         shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
+    };
+
+    const searchResultsContextValue: SearchResultsContextValue = {
+        currentSearchResults,
+        shouldUseLiveData,
     };
 
     const searchActionsContextValue: SearchActionsContextValue = {
@@ -297,9 +306,11 @@ function SearchContextProvider({children}: ChildrenProps) {
     };
 
     return (
-        <SearchStateContext value={searchStateContextValue}>
-            <SearchActionsContext value={searchActionsContextValue}>{children}</SearchActionsContext>
-        </SearchStateContext>
+        <SearchStateContext.Provider value={searchStateContextValue}>
+            <SearchResultsContext.Provider value={searchResultsContextValue}>
+                <SearchActionsContext.Provider value={searchActionsContextValue}>{children}</SearchActionsContext.Provider>
+            </SearchResultsContext.Provider>
+        </SearchStateContext.Provider>
     );
 }
 
@@ -312,8 +323,12 @@ function useSearchStateContext() {
     return useContext(SearchStateContext);
 }
 
+function useSearchResultsContext() {
+    return useContext(SearchResultsContext);
+}
+
 function useSearchActionsContext() {
     return useContext(SearchActionsContext);
 }
 
-export {SearchContextProvider, useSearchStateContext, useSearchActionsContext, SearchStateContext, SearchActionsContext};
+export {SearchContextProvider, useSearchStateContext, useSearchResultsContext, useSearchActionsContext, SearchStateContext, SearchResultsContext, SearchActionsContext};

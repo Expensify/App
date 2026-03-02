@@ -6,7 +6,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchResultsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -76,7 +76,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected, currentSearchResults} = useSearchStateContext();
+    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected} = useSearchStateContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchActionsContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID} = currentUserPersonalDetails;

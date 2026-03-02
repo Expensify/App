@@ -4,8 +4,8 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
-import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
+import {SearchActionsContext, SearchResultsContext, SearchStateContext} from '@components/Search/SearchContext';
+import type {SearchActionsContextValue, SearchColumnType, SearchResultsContextValue, SearchStateContextValue} from '@components/Search/types';
 import WeekListItemHeader from '@components/SelectionListWithSections/Search/WeekListItemHeader';
 import type {TransactionWeekGroupListItemType} from '@components/SelectionListWithSections/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -25,7 +25,6 @@ const mockSearchStateContext = {
     currentRecentSearchHash: 12345,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
-    currentSearchResults: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
@@ -36,8 +35,12 @@ const mockSearchStateContext = {
     areAllMatchingItemsSelected: false,
     shouldShowSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
-    shouldUseLiveData: false,
 } satisfies SearchStateContextValue;
+
+const mockSearchResultsContext: SearchResultsContextValue = {
+    currentSearchResults: undefined,
+    shouldUseLiveData: false,
+};
 
 const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
@@ -82,19 +85,21 @@ const renderWeekListItemHeader = (
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <SearchStateContext.Provider value={mockSearchStateContext}>
-                <SearchActionsContext.Provider value={mockSearchActionsContext}>
-                    <WeekListItemHeader
-                        week={weekItem}
-                        onCheckboxPress={props.onCheckboxPress ?? jest.fn()}
-                        isDisabled={props.isDisabled ?? false}
-                        canSelectMultiple={props.canSelectMultiple ?? false}
-                        isSelectAllChecked={props.isSelectAllChecked ?? false}
-                        isIndeterminate={props.isIndeterminate ?? false}
-                        onDownArrowClick={props.onDownArrowClick}
-                        isExpanded={props.isExpanded ?? false}
-                        columns={props.columns ?? [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]}
-                    />
-                </SearchActionsContext.Provider>
+                <SearchResultsContext.Provider value={mockSearchResultsContext}>
+                    <SearchActionsContext.Provider value={mockSearchActionsContext}>
+                        <WeekListItemHeader
+                            week={weekItem}
+                            onCheckboxPress={props.onCheckboxPress ?? jest.fn()}
+                            isDisabled={props.isDisabled ?? false}
+                            canSelectMultiple={props.canSelectMultiple ?? false}
+                            isSelectAllChecked={props.isSelectAllChecked ?? false}
+                            isIndeterminate={props.isIndeterminate ?? false}
+                            onDownArrowClick={props.onDownArrowClick}
+                            isExpanded={props.isExpanded ?? false}
+                            columns={props.columns ?? [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]}
+                        />
+                    </SearchActionsContext.Provider>
+                </SearchResultsContext.Provider>
             </SearchStateContext.Provider>
         </ComposeProviders>,
     );

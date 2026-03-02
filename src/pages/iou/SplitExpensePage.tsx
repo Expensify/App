@@ -10,7 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchResultsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useAllTransactions from '@hooks/useAllTransactions';
@@ -73,7 +73,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {showConfirmModal} = useConfirmModal();
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
-    const {currentSearchResults, currentSearchHash} = useSearchStateContext();
+    const {currentSearchHash} = useSearchStateContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
 
     const {getCurrencySymbol} = useCurrencyListActions();

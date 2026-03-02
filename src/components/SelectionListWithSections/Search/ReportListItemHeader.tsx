@@ -7,7 +7,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
@@ -221,7 +221,8 @@ function ReportListItemHeader<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = useSearchStateContext();
+    const {currentSearchHash, currentSearchKey} = useSearchStateContext();
+    const {currentSearchResults: snapshot} = useSearchResultsContext();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);

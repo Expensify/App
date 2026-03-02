@@ -3,7 +3,7 @@ import Animated from 'react-native-reanimated';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchResultsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
@@ -35,7 +35,8 @@ function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey} = useSearchStateContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 

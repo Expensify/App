@@ -8,7 +8,7 @@ import {getButtonRole} from '@components/Button/utils';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -58,7 +58,8 @@ function TransactionListItem<TItem extends ListItem>({
     const theme = useTheme();
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {currentSearchHash, currentSearchKey} = useSearchStateContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
