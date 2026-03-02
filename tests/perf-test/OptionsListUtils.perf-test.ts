@@ -3,7 +3,16 @@ import type * as NativeNavigation from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
-import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {
+    createFilteredOptionList,
+    createFilteredOptionListOption_SearchSupported,
+    createOptionList,
+    createSearchFilteredOptionList_Szymon,
+    filterAndOrderOptions,
+    getMemberInviteOptions,
+    getSearchOptions,
+    getValidOptions,
+} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,9 +27,9 @@ import {createRandomReport} from '../utils/collections/reports';
 import {getNvpDismissedProductTraining} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const REPORTS_COUNT = 5000;
+const REPORTS_COUNT = 20000;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
-const SEARCH_VALUE = 'TestingValue';
+const SEARCH_VALUE = 'Expense';
 const COUNTRY_CODE = 1;
 
 const PERSONAL_DETAILS_COUNT = 1000;
@@ -284,5 +293,143 @@ describe('OptionsListUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true));
+    });
+
+    test.only('1.1 - [createFilteredOptionList] original', async () => {
+        await waitForBatchedUpdates();
+        await measureFunction(() =>
+            createFilteredOptionList(
+                personalDetails,
+                mockedReportsMap,
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                undefined, // reportAttributesDerived
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                {maxRecentReports: 500, searchTerm: ''},
+            ),
+        );
+    });
+
+    test.only('1.2 - [getSearchOptions] with 1.1', async () => {
+        await waitForBatchedUpdates();
+        const optionLists = createFilteredOptionList(
+            personalDetails,
+            mockedReportsMap,
+            MOCK_CURRENT_USER_ACCOUNT_ID,
+            undefined, // reportAttributesDerived
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            {maxRecentReports: 500, searchTerm: ''},
+        );
+        await measureFunction(() =>
+            getSearchOptions({
+                options: optionLists,
+                betas: mockedBetas,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
+                personalDetails,
+                maxResults: 20,
+            }),
+        );
+    });
+
+    test.only('2.1 - [createFilteredOptionList] original with searchTerm', async () => {
+        await waitForBatchedUpdates();
+        await measureFunction(() =>
+            createFilteredOptionList(personalDetails, mockedReportsMap, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, {
+                maxRecentReports: 500,
+                searchTerm: SEARCH_VALUE,
+            }),
+        );
+    });
+
+    test.only('2.2 - [getSearchOptions] with 2.1', async () => {
+        await waitForBatchedUpdates();
+        const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, {
+            maxRecentReports: 500,
+            searchTerm: SEARCH_VALUE,
+        });
+        await measureFunction(() =>
+            getSearchOptions({
+                options: optionLists,
+                betas: mockedBetas,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
+                personalDetails,
+                maxResults: 20,
+            }),
+        );
+    });
+
+    test.only("3.1 - [createSearchFilteredOptionList] Szymon suggestion's with searchTerm", async () => {
+        await waitForBatchedUpdates();
+        await measureFunction(() =>
+            createSearchFilteredOptionList_Szymon(personalDetails, mockedReportsMap, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, {
+                maxRecentReports: 500,
+                searchTerm: SEARCH_VALUE,
+            }),
+        );
+    });
+
+    test.only('3.2 - [getSearchOptions] with 3.1', async () => {
+        await waitForBatchedUpdates();
+        const optionLists = createSearchFilteredOptionList_Szymon(personalDetails, mockedReportsMap, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, {
+            maxRecentReports: 500,
+            searchTerm: SEARCH_VALUE,
+        });
+
+        await measureFunction(() =>
+            getSearchOptions({
+                options: optionLists,
+                betas: mockedBetas,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
+                personalDetails,
+                maxResults: 20,
+            }),
+        );
+    });
+
+    test.only('4.1 - [createFilteredOptionListOption_SearchSupported] Search is supported with searchTerm', async () => {
+        await waitForBatchedUpdates();
+        await measureFunction(() =>
+            createFilteredOptionListOption_SearchSupported(personalDetails, mockedReportsMap, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, {
+                maxRecentReports: 20,
+                searchTerm: SEARCH_VALUE,
+            }),
+        );
+    });
+
+    test.only('4.2 - [getSearchOptions] with 4.1', async () => {
+        await waitForBatchedUpdates();
+        const optionLists = createFilteredOptionListOption_SearchSupported(personalDetails, mockedReportsMap, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, {
+            maxRecentReports: 20,
+            searchTerm: SEARCH_VALUE,
+        });
+
+        await measureFunction(() =>
+            getSearchOptions({
+                options: optionLists,
+                betas: mockedBetas,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
+                personalDetails,
+                maxResults: 20,
+            }),
+        );
     });
 });
