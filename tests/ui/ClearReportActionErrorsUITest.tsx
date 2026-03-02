@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import {getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -28,24 +29,8 @@ const REPORT_ACTION_ID = '99999';
 const CHILD_REPORT_ID = '67890';
 const CHILD_REPORT_ACTION_ID = '88888';
 
-function createMockReportAction(overrides: Partial<ReportAction> = {}): ReportAction {
-    const errorTimestamp = Date.now() * 1000;
-    return {
-        reportActionID: REPORT_ACTION_ID,
-        actorAccountID: ACTOR_ACCOUNT_ID,
-        created: '2025-01-01 12:00:00.000',
-        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-        automatic: false,
-        shouldShow: true,
-        avatar: '',
-        person: [{type: 'TEXT', style: 'strong', text: ACTOR_EMAIL}],
-        message: [{type: 'COMMENT', html: 'Test message with error', text: 'Test message with error'}],
-        errors: {
-            [errorTimestamp]: 'Something went wrong. Please try again.',
-        },
-        ...overrides,
-    } as ReportAction;
-}
+const DEFAULT_ERROR_TIMESTAMP = Date.now() * 1000;
+const DEFAULT_ERRORS = {[DEFAULT_ERROR_TIMESTAMP]: 'Something went wrong. Please try again.'};
 
 function createMockReport(overrides: Partial<Report> = {}): Report {
     return {
@@ -146,7 +131,7 @@ describe('ClearReportActionErrors UI', () => {
     describe('Error display and dismissal', () => {
         it('should display error message when action has errors', async () => {
             // Given a report action with errors stored in Onyx
-            const action = createMockReportAction();
+            const action = getFakeReportAction(Number(REPORT_ACTION_ID), {actorAccountID: ACTOR_ACCOUNT_ID, errors: DEFAULT_ERRORS});
             const report = createMockReport();
 
             await act(async () => {
@@ -167,7 +152,7 @@ describe('ClearReportActionErrors UI', () => {
 
         it('should call clearAllRelatedReportActionErrors when error is dismissed', async () => {
             // Given a rendered report action with errors and a mock clear function
-            const action = createMockReportAction();
+            const action = getFakeReportAction(Number(REPORT_ACTION_ID), {actorAccountID: ACTOR_ACCOUNT_ID, errors: DEFAULT_ERRORS});
             const report = createMockReport();
             const mockClearErrors = jest.fn();
 
@@ -196,7 +181,8 @@ describe('ClearReportActionErrors UI', () => {
         it('should clear error from Onyx when dismissed', async () => {
             // Given a rendered report action with a visible error message
             const errorTimestamp = Date.now() * 1000;
-            const action = createMockReportAction({
+            const action = getFakeReportAction(Number(REPORT_ACTION_ID), {
+                actorAccountID: ACTOR_ACCOUNT_ID,
                 errors: {[errorTimestamp]: 'Test error message'},
             });
             const report = createMockReport();
@@ -235,14 +221,14 @@ describe('ClearReportActionErrors UI', () => {
             const sharedErrorTimestamp = Date.now() * 1000;
             const sharedError = {[sharedErrorTimestamp]: 'Shared error message'};
 
-            const parentAction = createMockReportAction({
-                reportActionID: REPORT_ACTION_ID,
+            const parentAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
+                actorAccountID: ACTOR_ACCOUNT_ID,
                 childReportID: CHILD_REPORT_ID,
                 errors: sharedError,
             });
 
-            const childAction = createMockReportAction({
-                reportActionID: CHILD_REPORT_ACTION_ID,
+            const childAction = getFakeReportAction(Number(CHILD_REPORT_ACTION_ID), {
+                actorAccountID: ACTOR_ACCOUNT_ID,
                 errors: sharedError,
             });
 
@@ -289,7 +275,9 @@ describe('ClearReportActionErrors UI', () => {
     describe('Optimistic action deletion', () => {
         it('should delete optimistic action instead of clearing errors', async () => {
             // Given an optimistic report action (pendingAction='add' and isOptimisticAction=true) with errors
-            const action = createMockReportAction({
+            const action = getFakeReportAction(Number(REPORT_ACTION_ID), {
+                actorAccountID: ACTOR_ACCOUNT_ID,
+                errors: DEFAULT_ERRORS,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 isOptimisticAction: true,
             });

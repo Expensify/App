@@ -2,7 +2,8 @@ import Onyx from 'react-native-onyx';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportActions} from '@src/types/onyx';
+import {getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -12,18 +13,6 @@ const CHILD_REPORT_ID = '3';
 const REPORT_ACTION_ID = '100';
 const PARENT_REPORT_ACTION_ID = '200';
 const CHILD_REPORT_ACTION_ID = '300';
-
-function createMockReportAction(overrides: Partial<ReportAction> = {}): ReportAction {
-    return {
-        reportActionID: REPORT_ACTION_ID,
-        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-        actorAccountID: 1,
-        created: '2024-01-01 00:00:00.000',
-        message: [{type: 'TEXT', text: 'Test message'}],
-        errors: {error1: 'Error message'},
-        ...overrides,
-    } as ReportAction;
-}
 
 function createMockReport(overrides: Partial<Report> = {}): Report {
     return {
@@ -93,7 +82,7 @@ describe('ClearReportActionErrors', () => {
 
         it('should return early when reportAction has no errors', async () => {
             // Given a report action with no errors
-            const reportAction = createMockReportAction({errors: undefined});
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {errors: undefined});
 
             // When clearAllRelatedReportActionErrors is called
             clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
@@ -106,7 +95,7 @@ describe('ClearReportActionErrors', () => {
 
         it('should return early when reportID is undefined', async () => {
             // Given a report action with errors
-            const reportAction = createMockReportAction();
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {errors: {error1: 'Error message'}});
 
             // When clearAllRelatedReportActionErrors is called with undefined reportID
             clearAllRelatedReportActionErrors(undefined, reportAction, REPORT_ID);
@@ -119,7 +108,7 @@ describe('ClearReportActionErrors', () => {
 
         it('should clear only specified error keys when keys parameter is provided', async () => {
             // Given a report action with multiple errors in Onyx
-            const reportAction = createMockReportAction({
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
                 errors: {error1: 'Error 1', error2: 'Error 2', error3: 'Error 3'},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
@@ -140,7 +129,8 @@ describe('ClearReportActionErrors', () => {
 
         it('should delete isOptimisticAction report action instead of clearing errors', async () => {
             // Given an optimistic report action with errors in Onyx
-            const reportAction = createMockReportAction({
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
+                errors: {error1: 'Error message'},
                 isOptimisticAction: true,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
@@ -163,11 +153,10 @@ describe('ClearReportActionErrors', () => {
                 parentReportID: PARENT_REPORT_ID,
                 parentReportActionID: PARENT_REPORT_ACTION_ID,
             });
-            const reportAction = createMockReportAction({
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
                 errors: {sharedError: 'Error message'},
             });
-            const parentReportAction = createMockReportAction({
-                reportActionID: PARENT_REPORT_ACTION_ID,
+            const parentReportAction = getFakeReportAction(Number(PARENT_REPORT_ACTION_ID), {
                 errors: {sharedError: 'Parent error message'},
             });
 
@@ -195,11 +184,10 @@ describe('ClearReportActionErrors', () => {
                 parentReportID: PARENT_REPORT_ID,
                 parentReportActionID: PARENT_REPORT_ACTION_ID,
             });
-            const reportAction = createMockReportAction({
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
                 errors: {sharedError: 'Error message'},
             });
-            const parentReportAction = createMockReportAction({
-                reportActionID: PARENT_REPORT_ACTION_ID,
+            const parentReportAction = getFakeReportAction(Number(PARENT_REPORT_ACTION_ID), {
                 errors: {sharedError: 'Parent error message'},
             });
 
@@ -223,12 +211,11 @@ describe('ClearReportActionErrors', () => {
 
         it('should not clear child errors when ignore is set to child', async () => {
             // Given a parent action with childReportID and both have errors with matching keys
-            const reportAction = createMockReportAction({
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
                 childReportID: CHILD_REPORT_ID,
                 errors: {sharedError: 'Error message'},
             });
-            const childReportAction = createMockReportAction({
-                reportActionID: CHILD_REPORT_ACTION_ID,
+            const childReportAction = getFakeReportAction(Number(CHILD_REPORT_ACTION_ID), {
                 errors: {sharedError: 'Child error message'},
             });
 
@@ -256,11 +243,10 @@ describe('ClearReportActionErrors', () => {
                 parentReportID: PARENT_REPORT_ID,
                 parentReportActionID: PARENT_REPORT_ACTION_ID,
             });
-            const reportAction = createMockReportAction({
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
                 errors: {error1: 'Error message'},
             });
-            const parentReportAction = createMockReportAction({
-                reportActionID: PARENT_REPORT_ACTION_ID,
+            const parentReportAction = getFakeReportAction(Number(PARENT_REPORT_ACTION_ID), {
                 errors: {differentError: 'Parent error message'},
             });
 
@@ -285,7 +271,7 @@ describe('ClearReportActionErrors', () => {
         it('should use originalReportID for clearing errors when it differs from reportID', async () => {
             // Given a report action stored under a different originalReportID
             const originalReportID = '999';
-            const reportAction = createMockReportAction();
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {errors: {error1: 'Error message'}});
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
                 [REPORT_ACTION_ID]: reportAction,
@@ -303,7 +289,7 @@ describe('ClearReportActionErrors', () => {
 
         it('should handle empty errors object', async () => {
             // Given a report action with an empty errors object
-            const reportAction = createMockReportAction({errors: {}});
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {errors: {}});
 
             // When clearAllRelatedReportActionErrors is called
             clearAllRelatedReportActionErrors(REPORT_ID, reportAction, REPORT_ID);
@@ -316,7 +302,7 @@ describe('ClearReportActionErrors', () => {
 
         it('should handle report action without reportActionID', async () => {
             // Given a report action with empty reportActionID in Onyx
-            const reportAction = createMockReportAction({reportActionID: ''});
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {reportActionID: '', errors: {error1: 'Error message'}});
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
                 [REPORT_ACTION_ID]: reportAction,
@@ -335,16 +321,14 @@ describe('ClearReportActionErrors', () => {
 
         it('should clear multiple child report action errors', async () => {
             // Given a parent action with childReportID pointing to a report with multiple actions
-            const reportAction = createMockReportAction({
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
                 childReportID: CHILD_REPORT_ID,
                 errors: {sharedError: 'Error message'},
             });
-            const childReportAction1 = createMockReportAction({
-                reportActionID: CHILD_REPORT_ACTION_ID,
+            const childReportAction1 = getFakeReportAction(Number(CHILD_REPORT_ACTION_ID), {
                 errors: {sharedError: 'Child error message 1'},
             });
-            const childReportAction2 = createMockReportAction({
-                reportActionID: '301',
+            const childReportAction2 = getFakeReportAction(301, {
                 errors: {sharedError: 'Child error message 2'},
             });
 
@@ -373,12 +357,11 @@ describe('ClearReportActionErrors', () => {
 
         it('should only clear child errors that match the error keys', async () => {
             // Given a parent action and child action where child has additional non-matching errors
-            const reportAction = createMockReportAction({
+            const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
                 childReportID: CHILD_REPORT_ID,
                 errors: {error1: 'Error message'},
             });
-            const childReportAction = createMockReportAction({
-                reportActionID: CHILD_REPORT_ACTION_ID,
+            const childReportAction = getFakeReportAction(Number(CHILD_REPORT_ACTION_ID), {
                 errors: {error1: 'Child error 1', error2: 'Child error 2'},
             });
 
