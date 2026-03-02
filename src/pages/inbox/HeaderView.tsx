@@ -403,8 +403,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                         </PressableWithoutFeedback>
                                     </Tooltip>
                                 )}
-                                {!isInSidePanel && <SidePanelButton style={styles.ml2} />}
-                                {shouldDisplaySearchRouter && <SearchButton />}
+                                {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
+                                {!isInSidePanel && <SidePanelButton />}
                             </View>
                         </View>
                     )}
