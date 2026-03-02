@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/core';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Alert, AppState, StyleSheet, View} from 'react-native';
 import type {LayoutRectangle} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -34,6 +34,7 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -91,6 +92,59 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+
+    // Track camera init telemetry
+    const cameraInitSpanStarted = useRef(false);
+    const cameraInitialized = useRef(false);
+
+    // Start camera init span when permission is granted and camera is ready
+    useEffect(() => {
+        if (cameraInitSpanStarted.current || cameraPermissionStatus !== RESULTS.GRANTED || device == null) {
+            return;
+        }
+        startSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT, {
+            name: CONST.TELEMETRY.SPAN_CAMERA_INIT,
+            op: CONST.TELEMETRY.SPAN_CAMERA_INIT,
+        });
+        cameraInitSpanStarted.current = true;
+    }, [cameraPermissionStatus, device]);
+
+    // Cancel spans when permission is denied/blocked/unavailable
+    useEffect(() => {
+        if (cameraPermissionStatus !== RESULTS.BLOCKED && cameraPermissionStatus !== RESULTS.UNAVAILABLE && cameraPermissionStatus !== RESULTS.DENIED) {
+            return;
+        }
+        cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+    }, [cameraPermissionStatus]);
+
+    // Cancel spans on unmount if camera never initialized
+    useEffect(() => {
+        return () => {
+            // If camera initialized successfully, spans were already ended
+            if (cameraInitialized.current) {
+                return;
+            }
+            // Cancel camera init span if it was started
+            if (cameraInitSpanStarted.current) {
+                cancelSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
+            }
+            // Always cancel the create expense span if camera never initialized
+            cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+        };
+    }, []);
+
+    const handleCameraInitialized = useCallback(() => {
+        // Prevent duplicate span endings if callback fires multiple times
+        if (cameraInitialized.current) {
+            return;
+        }
+        cameraInitialized.current = true;
+        // Only end camera init span if it was actually started
+        if (cameraInitSpanStarted.current) {
+            endSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
+        }
+        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+    }, []);
 
     const askForPermissions = useCallback(() => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
@@ -165,6 +219,7 @@ function IOURequestStepScan({
 
             return () => {
                 subscription.remove();
+                cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
 
                 if (isLoaderVisible) {
                     setIsLoaderVisible(false);
@@ -235,8 +290,24 @@ function IOURequestStepScan({
 
     const viewfinderLayout = useRef<LayoutRectangle>(null);
 
+    const maybeCancelShutterSpan = useCallback(() => {
+        if (isMultiScanEnabled) {
+            return;
+        }
+
+        cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+    }, [isMultiScanEnabled]);
+
     const capturePhoto = useCallback(() => {
+        if (!isMultiScanEnabled) {
+            startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
+                name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+            });
+        }
+
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
+            maybeCancelShutterSpan();
             askForPermissions();
             return;
         }
@@ -246,10 +317,13 @@ function IOURequestStepScan({
         };
 
         if (!camera.current) {
+            maybeCancelShutterSpan();
             showCameraAlert();
+            return;
         }
 
         if (didCapturePhoto) {
+            maybeCancelShutterSpan();
             return;
         }
 
@@ -323,6 +397,7 @@ function IOURequestStepScan({
                     })
                     .catch((error: string) => {
                         setDidCapturePhoto(false);
+                        maybeCancelShutterSpan();
                         showCameraAlert();
                         Log.warn('Error taking photo', error);
                     });
@@ -416,6 +491,7 @@ function IOURequestStepScan({
                                         cameraTabIndex={1}
                                         onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
                                         forceInactive={isAttachmentPickerActive}
+                                        onInitialized={handleCameraInitialized}
                                     />
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                                     <Animated.View
