@@ -535,6 +535,8 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, parameters, getOnyxDataForOpenOrReconnect());
 }
 
+type PolicyType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE;
+
 type CreateWorkspaceWithPolicyDraftParams = {
     isSelfTourViewed: boolean | undefined;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
@@ -552,6 +554,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     shouldCreateControlPolicy?: boolean;
+    type?: PolicyType;
 };
 
 /**
@@ -574,11 +577,12 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         currentUserAccountIDParam,
         currentUserEmailParam,
         shouldCreateControlPolicy,
+        type,
         isSelfTourViewed,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
-    createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
+    createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file, type);
     Navigation.isNavigationReady().then(() => {
         if (transitionFromOldDot) {
             // We must call goBack() to remove the /transition route from history
@@ -599,6 +603,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             currentUserEmailParam,
             allReportsParam: allReports,
             shouldCreateControlPolicy,
+            type,
             isSelfTourViewed,
         });
         Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
@@ -620,6 +625,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     currentUserEmailParam: string;
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
     shouldCreateControlPolicy?: boolean;
+    type?: PolicyType;
 };
 
 /**
@@ -639,6 +645,7 @@ function savePolicyDraftByNewWorkspace({
     currentUserEmailParam,
     allReportsParam,
     shouldCreateControlPolicy,
+    type,
     isSelfTourViewed,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
@@ -656,6 +663,7 @@ function savePolicyDraftByNewWorkspace({
         currentUserEmailParam,
         allReportsParam,
         shouldCreateControlPolicy,
+        type,
         isSelfTourViewed,
     });
 }

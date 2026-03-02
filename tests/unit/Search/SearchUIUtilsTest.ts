@@ -3124,58 +3124,71 @@ describe('SearchUIUtils', () => {
             expect(result.end).toBe('2025-06-20');
         });
 
-        it('should intersect date preset with additional constraints instead of overwriting', () => {
-            // Test that when combining a date preset (EQUAL_TO) with additional constraints,
-            // we intersect the ranges (take max for start, min for end) rather than overwriting
-            const yearDateRange = DateUtils.getYearDateRange(2026);
-            const dateFilter = {
-                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                filters: [
-                    {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                        value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // e.g., January 2026: 2026-01-01 to 2026-01-31
-                    },
-                    {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
-                        value: '2025-04-01', // Earlier than preset start
-                    },
-                ],
-            };
+        // These tests use LAST_MONTH date preset which resolves relative to the current date,
+        // so we freeze the clock to February 2026 to ensure LAST_MONTH always means January 2026.
+        describe('date preset intersection with frozen clock', () => {
+            beforeEach(() => {
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-02-15T12:00:00Z'));
+            });
 
-            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
+            afterEach(() => {
+                jest.useRealTimers();
+            });
 
-            // Should intersect: max(preset start, constraint start) = max(2026-01-01, 2025-04-01) = 2026-01-01
-            // The preset start should be preserved, not overwritten by the earlier constraint
-            expect(result.start).toBe('2026-01-01');
-            // End should remain the preset end (2026-01-31)
-            expect(result.end).toBe('2026-01-31');
-        });
+            it('should intersect date preset with additional constraints instead of overwriting', () => {
+                // Test that when combining a date preset (EQUAL_TO) with additional constraints,
+                // we intersect the ranges (take max for start, min for end) rather than overwriting
+                const yearDateRange = DateUtils.getYearDateRange(2026);
+                const dateFilter = {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                            value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // January 2026: 2026-01-01 to 2026-01-31
+                        },
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                            value: '2025-04-01', // Earlier than preset start
+                        },
+                    ],
+                };
 
-        it('should intersect date preset end limit with additional constraints', () => {
-            // Test that when combining a date preset with an end constraint,
-            // we take the minimum (earliest) end date to intersect ranges
-            const yearDateRange = DateUtils.getYearDateRange(2026);
-            const dateFilter = {
-                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                filters: [
-                    {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                        value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // e.g., January 2026: 2026-01-01 to 2026-01-31
-                    },
-                    {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
-                        value: '2026-01-15', // Earlier than preset end
-                    },
-                ],
-            };
+                const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
 
-            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
+                // Should intersect: max(preset start, constraint start) = max(2026-01-01, 2025-04-01) = 2026-01-01
+                // The preset start should be preserved, not overwritten by the earlier constraint
+                expect(result.start).toBe('2026-01-01');
+                // End should remain the preset end (2026-01-31)
+                expect(result.end).toBe('2026-01-31');
+            });
 
-            // Start should remain the preset start (2026-01-01)
-            expect(result.start).toBe('2026-01-01');
-            // Should intersect: min(preset end, constraint end) = min(2026-01-31, 2026-01-15) = 2026-01-15
-            // The constraint end should be used (earlier date)
-            expect(result.end).toBe('2026-01-15');
+            it('should intersect date preset end limit with additional constraints', () => {
+                // Test that when combining a date preset with an end constraint,
+                // we take the minimum (earliest) end date to intersect ranges
+                const yearDateRange = DateUtils.getYearDateRange(2026);
+                const dateFilter = {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                            value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // January 2026: 2026-01-01 to 2026-01-31
+                        },
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                            value: '2026-01-15', // Earlier than preset end
+                        },
+                    ],
+                };
+
+                const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
+
+                // Start should remain the preset start (2026-01-01)
+                expect(result.start).toBe('2026-01-01');
+                // Should intersect: min(preset end, constraint end) = min(2026-01-31, 2026-01-15) = 2026-01-15
+                // The constraint end should be used (earlier date)
+                expect(result.end).toBe('2026-01-15');
+            });
         });
 
         it('should correctly intersect multiple date filters (GREATER_THAN and LOWER_THAN) when expanding quarter groups', () => {
@@ -6157,6 +6170,25 @@ describe('SearchUIUtils', () => {
             // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
             // instead of the transaction thread report
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
+        });
+
+        test('Should fallback to childReportID from IOU action when transaction thread report is not in Onyx', async () => {
+            const childReportID = 'child-thread-456';
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const multiTransactionItem = transactionsListItems.at(2) as TransactionListItemType;
+            const iouActionWithChild = {
+                ...reportAction3,
+                childReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID3}`, {
+                [iouActionWithChild.reportActionID]: iouActionWithChild,
+            });
+            await waitForBatchedUpdates();
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(multiTransactionItem, introSelectedData, backTo, undefined, undefined, true);
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo}));
         });
 
         test('Should pass introSelected to createTransactionThreadReport when creating thread', () => {

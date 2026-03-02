@@ -3868,6 +3868,7 @@ ${
             clearFilter: '清除筛选器',
             workspaceName: '工作区名称',
             workspaceOwner: '所有者',
+            keepMeAsAdmin: '保留我为管理员',
             workspaceType: '工作区类型',
             workspaceAvatar: '工作区头像',
             clientID: '客户ID',
@@ -7431,7 +7432,6 @@ ${reportName}
         },
     },
     gps: {
-        disclaimer: '使用 GPS 根据您的行程创建报销。点击下方的“开始”以开始跟踪。',
         error: {
             failedToStart: '启动位置跟踪失败。',
             failedToGetPermissions: '获取必要的位置信息权限失败。',
