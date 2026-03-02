@@ -1,6 +1,7 @@
 import {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
+import type {TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import {selectFilteredReportActions} from '@libs/ReportUtils';
 import {getColumnsToShow, getSections, getSuggestedSearches} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -14,6 +15,7 @@ import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
+import useMultipleSnapshots from './useMultipleSnapshots';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
@@ -78,6 +80,8 @@ type UseSearchDataResult = {
     shouldShowLoadingState: boolean;
     /** Whether to show "loading more" at the bottom (pagination) */
     shouldShowLoadingMoreItems: boolean;
+    /** For group-by views: true when all group snapshots are loaded and have no more results */
+    hasLoadedAllTransactions: boolean;
 };
 
 /**
@@ -213,6 +217,73 @@ function useSearchData({
 
     const filteredDataLength = sections.length;
 
+    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+    const groupByTransactionHashes = useMemo(() => {
+        if (!validGroupBy) {
+            return [];
+        }
+        return (sections as TransactionGroupListItemType[])
+            .map((item) => (item.transactionsQueryJSON?.hash != null ? String(item.transactionsQueryJSON.hash) : undefined))
+            .filter((hashValue): hashValue is string => !!hashValue);
+    }, [validGroupBy, sections]);
+
+    const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
+
+    const sectionsToReturn = useMemo(() => {
+        if (!validGroupBy || isExpenseReportType) {
+            return sections;
+        }
+        return (sections as TransactionGroupListItemType[]).map((item) => {
+            const snapshot =
+                item.transactionsQueryJSON?.hash != null ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            if (!snapshot?.data) {
+                return item;
+            }
+            const [transactions1] = getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: snapshot.data,
+                currentAccountID: accountID,
+                currentUserEmail: email ?? '',
+                bankAccountList,
+                translate,
+                formatPhoneNumber,
+                isActionLoadingSet,
+                cardFeeds,
+                allReportMetadata,
+                cardList,
+            });
+            return {...item, transactions: transactions1 as TransactionListItemType[]};
+        });
+    }, [
+        validGroupBy,
+        isExpenseReportType,
+        sections,
+        groupByTransactionSnapshots,
+        accountID,
+        email,
+        bankAccountList,
+        translate,
+        formatPhoneNumber,
+        isActionLoadingSet,
+        cardFeeds,
+        allReportMetadata,
+        cardList,
+    ]);
+
+    const hasLoadedAllTransactions = useMemo(() => {
+        if (!validGroupBy) {
+            return true;
+        }
+        return (sections as TransactionGroupListItemType[]).every((item) => {
+            const snapshot =
+                item.transactionsQueryJSON?.hash != null || item.transactionsQueryJSON?.hash === 0
+                    ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)]
+                    : undefined;
+            return !!snapshot && !snapshot?.search?.hasMoreResults;
+        });
+    }, [validGroupBy, sections, groupByTransactionSnapshots]);
+
     // --- Column visibility ---
     const searchResultsData = searchResults?.data;
     const columns = useMemo(() => {
@@ -223,7 +294,7 @@ function useSearchData({
     }, [accountID, searchResultsData, searchDataType, visibleColumns, validGroupBy]);
 
     return {
-        sections,
+        sections: sectionsToReturn,
         allDataLength,
         filteredDataLength,
         columns,
@@ -249,6 +320,7 @@ function useSearchData({
         hasErrors,
         shouldShowLoadingState,
         shouldShowLoadingMoreItems,
+        hasLoadedAllTransactions,
     };
 }
 

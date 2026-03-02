@@ -22,7 +22,6 @@ import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -45,7 +44,6 @@ import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryU
 import {
     createAndOpenSearchTransactionThread,
     getListItem,
-    getSections,
     getSortedSections,
     getWideAmountIndicators,
     isGroupedItemArray,
@@ -243,13 +241,12 @@ function Search({
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
 
     const {
-        sections: baseFilteredData,
+        sections: filteredData,
         allDataLength,
         filteredDataLength,
         columns: currentColumns,
         customCardNames,
         violations,
-        cardFeeds,
         searchKey,
         savedSearchName,
         transactions,
@@ -258,14 +255,11 @@ function Search({
         introSelected,
         accountID,
         login,
-        bankAccountList,
-        isActionLoadingSet,
-        allReportMetadata,
-        cardList,
         searchDataType,
         hasErrors,
         shouldShowLoadingState,
         shouldShowLoadingMoreItems,
+        hasLoadedAllTransactions,
     } = useSearchData({
         queryJSON,
         searchResults,
@@ -279,7 +273,7 @@ function Search({
 
     const previousTransactions = usePrevious(transactions);
     const previousReportActions = usePrevious(reportActions);
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     const spanExistedOnMount = useRef(!!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE));
@@ -390,74 +384,6 @@ function Search({
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
     // containing its individual transactions. We collect these hashes and fetch their snapshots to enrich the grouped items.
-    const groupByTransactionHashes = useMemo(() => {
-        if (!validGroupBy) {
-            return [];
-        }
-        return (baseFilteredData as TransactionGroupListItemType[])
-            .map((item) => (item.transactionsQueryJSON?.hash ? String(item.transactionsQueryJSON.hash) : undefined))
-            .filter((hashValue): hashValue is string => !!hashValue);
-    }, [validGroupBy, baseFilteredData]);
-
-    const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
-
-    const filteredData = useMemo(() => {
-        if (!validGroupBy || isExpenseReportType) {
-            return baseFilteredData;
-        }
-
-        const enriched = (baseFilteredData as TransactionGroupListItemType[]).map((item) => {
-            const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
-            if (!snapshot?.data) {
-                return item;
-            }
-
-            const [transactions1] = getSections({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                data: snapshot.data,
-                currentAccountID: accountID,
-                currentUserEmail: email ?? '',
-                bankAccountList,
-                translate,
-                formatPhoneNumber,
-                isActionLoadingSet,
-                cardFeeds,
-                allReportMetadata,
-                cardList,
-            });
-            return {...item, transactions: transactions1 as TransactionListItemType[]};
-        });
-
-        return enriched;
-    }, [
-        validGroupBy,
-        isExpenseReportType,
-        baseFilteredData,
-        groupByTransactionSnapshots,
-        accountID,
-        email,
-        translate,
-        formatPhoneNumber,
-        isActionLoadingSet,
-        cardFeeds,
-        bankAccountList,
-        allReportMetadata,
-        cardList,
-    ]);
-
-    const hasLoadedAllTransactions = useMemo(() => {
-        if (!validGroupBy) {
-            return true;
-        }
-        // For group-by views, check if all transactions in groups have been loaded
-        return (baseFilteredData as TransactionGroupListItemType[]).every((item) => {
-            const snapshot = item.transactionsQueryJSON?.hash || item.transactionsQueryJSON?.hash === 0 ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
-            // If snapshot doesn't exist, the group hasn't been expanded yet (transactions not loaded)
-            // If snapshot exists and has hasMoreResults: true, not all transactions are loaded
-            return !!snapshot && !snapshot?.search?.hasMoreResults;
-        });
-    }, [validGroupBy, baseFilteredData, groupByTransactionSnapshots]);
-
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
         setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
