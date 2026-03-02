@@ -79,7 +79,6 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
 }
 
 function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
-
     pusherEventsPromise = pusherEventsPromise.then(() => {
         Log.info('[OnyxUpdateManager] Applying pusher update', false, {lastUpdateID});
     });
@@ -94,7 +93,6 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
 }
 
 function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
-
     airshipEventsPromise = airshipEventsPromise.then(() => {
         Log.info('[OnyxUpdateManager] Applying Airship updates', false, {lastUpdateID});
     });

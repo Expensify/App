@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
-import CONST from '@src/CONST';
 // This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
 import '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import HttpUtils from '@src/libs/HttpUtils';
@@ -45,7 +44,7 @@ describe('Middleware', () => {
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
             await waitForBatchedUpdates();
 
-            Request.addMiddleware(SaveResponseInOnyx, 'SaveResponseInOnyx');
+            Request.addMiddleware(SaveResponseInOnyx);
 
             const mockResponse = {
                 jsonCode: 200,
