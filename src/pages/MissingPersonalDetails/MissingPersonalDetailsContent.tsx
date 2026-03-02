@@ -130,14 +130,14 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     }
 
     const handleBackButtonPress = () => {
-        if (isEditing) {
-            Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM));
-            return;
-        }
-
         // If on PIN confirmation step, go back to PIN entry step
         if (currentPageName === CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN && isConfirmStep) {
             setIsConfirmStep(false);
+            return;
+        }
+
+        if (isEditing) {
+            Navigation.goBack(ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM));
             return;
         }
 

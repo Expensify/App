@@ -1,12 +1,14 @@
 import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
+import {usePin} from '@pages/MissingPersonalDetails/PinContext';
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing, shouldCollectPin = false}: CustomSubPageProps) {
     const {translate} = useLocalize();
+    const {setIsConfirmStep} = usePin();
 
     const pageIndexes = shouldCollectPin ? CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
     const legalNameIndex = pageIndexes.LEGAL_NAME;
@@ -59,13 +61,14 @@ function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing,
                 title: '••••',
                 shouldShowRightIcon: true,
                 onPress: () => {
+                    setIsConfirmStep(false);
                     onMove(pinIndex);
                 },
             });
         }
 
         return baseItems;
-    }, [translate, values, onMove, legalNameIndex, dateOfBirthIndex, addressIndex, phoneNumberIndex, pinIndex, shouldCollectPin]);
+    }, [translate, values, onMove, legalNameIndex, dateOfBirthIndex, addressIndex, phoneNumberIndex, pinIndex, shouldCollectPin, setIsConfirmStep]);
 
     return (
         <ConfirmationStep
