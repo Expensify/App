@@ -52,6 +52,7 @@ import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import ExpenseCopy from '@assets/images/expense-copy.svg';
+import ExpensifyCardHourglass from '@assets/images/expensify-card-hourglass.svg';
 import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
@@ -200,6 +201,7 @@ export {
     CreditCardHourglass,
     CreditCardExclamation,
     CreditCardLock,
+    ExpensifyCardHourglass,
     Crop,
     CircleSlash,
     Document,

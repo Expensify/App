@@ -85,6 +85,7 @@ import Exit from '@assets/images/exit.svg';
 import Expand from '@assets/images/expand.svg';
 import ExpenseCopy from '@assets/images/expense-copy.svg';
 import ExpensifyAppIcon from '@assets/images/expensify-app-icon.svg';
+import ExpensifyCardHourglass from '@assets/images/expensify-card-hourglass.svg';
 import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
@@ -320,6 +321,7 @@ const Expensicons = {
     Exit,
     ExpensifyAppIcon,
     ExpensifyCard,
+    ExpensifyCardHourglass,
     ExpensifyWordmark,
     ExpensifyFooterLogo,
     ExpensifyFooterLogoVertical,

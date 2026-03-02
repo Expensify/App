@@ -46,12 +46,12 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const {translate} = useLocalize();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Car', 'CreditCard', 'CreditCardLock', 'ExpensifyCard', 'CreditCardHourglass', 'Cash', 'Clock', 'CalendarSolid']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Car', 'CreditCard', 'CreditCardLock', 'ExpensifyCard', 'ExpensifyCardHourglass', 'Cash', 'Clock', 'CalendarSolid']);
     const type = getTransactionType(transactionItem, cardList);
     const isExpensifyCard = isExpensifyCardTransaction(transactionItem);
     const isManagedCard = isManagedCardTransaction(transactionItem);
     const isPendingExpensifyCardTransaction = isExpensifyCard && isPending(transactionItem);
-    const typeIcon = isPendingExpensifyCardTransaction ? expensifyIcons.CreditCardHourglass : getTypeIcon(expensifyIcons, type, isExpensifyCard, isManagedCard);
+    const typeIcon = isPendingExpensifyCardTransaction ? expensifyIcons.ExpensifyCardHourglass : getTypeIcon(expensifyIcons, type, isExpensifyCard, isManagedCard);
     const typeText = isPendingExpensifyCardTransaction ? 'iou.pending' : getExpenseTypeTranslationKey(type);
     const styles = useThemeStyles();
 
