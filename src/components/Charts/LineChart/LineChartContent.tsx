@@ -1,5 +1,5 @@
 import {useFont} from '@shopify/react-native-skia';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {CartesianChartRenderArg, ChartBounds} from 'victory-native';
@@ -49,38 +49,32 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     const [boundsRight, setBoundsRight] = useState(0);
 
     const yAxisDomain = useDynamicYDomain(data);
-    const chartData = useMemo(() => {
-        return data.map((point, index) => ({
-            x: index,
-            y: point.total,
-        }));
-    }, [data]);
+    const chartData = data.map((point, index) => ({
+        x: index,
+        y: point.total,
+    }));
 
-    const handlePointPress = useCallback(
-        (index: number) => {
-            if (index < 0 || index >= data.length) {
-                return;
-            }
-            const dataPoint = data.at(index);
-            if (dataPoint && onPointPress) {
-                onPointPress(dataPoint, index);
-            }
-        },
-        [data, onPointPress],
-    );
+    const handlePointPress = (index: number) => {
+        if (index < 0 || index >= data.length) {
+            return;
+        }
+        const dataPoint = data.at(index);
+        if (dataPoint && onPointPress) {
+            onPointPress(dataPoint, index);
+        }
+    };
 
-    const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    const handleLayout = (event: LayoutChangeEvent) => {
         setChartWidth(event.nativeEvent.layout.width);
-    }, []);
+    };
 
-    const handleChartBoundsChange = useCallback((bounds: ChartBounds) => {
+    const handleChartBoundsChange = (bounds: ChartBounds) => {
         setPlotAreaWidth(bounds.right - bounds.left);
         setBoundsLeft(bounds.left);
         setBoundsRight(bounds.right);
-    }, []);
+    };
 
-    // Optimize by reducing wasted space when edge labels are shorter than tick spacing
-    const domainPadding = useMemo(() => {
+    const domainPadding = (() => {
         if (chartWidth === 0 || data.length === 0) {
             return BASE_DOMAIN_PADDING;
         }
@@ -94,7 +88,6 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         const firstLabelWidth = measureTextWidth(data.at(0)?.label ?? '', font);
         const lastLabelWidth = measureTextWidth(data.at(-1)?.label ?? '', font);
 
-        // At 0° rotation, centered labels extend by half their width
         const firstLabelNeeds = firstLabelWidth / 2;
         const lastLabelNeeds = lastLabelWidth / 2;
 
@@ -102,20 +95,16 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         const wastedRight = geometricPadding - lastLabelNeeds;
         const reclaimablePadding = Math.min(wastedLeft, wastedRight);
 
-        // Only reduce if both sides have excess space (labels short enough for 0°)
         if (reclaimablePadding <= 0) {
             return {...BASE_DOMAIN_PADDING, left: geometricPadding, right: geometricPadding};
         }
 
         const horizontalPadding = Math.max(geometricPadding - reclaimablePadding, MIN_SAFE_PADDING);
         return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
-    }, [chartWidth, data, font]);
+    })();
 
     const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
 
-    // Victory's domainPadding extends the data domain, not the pixel range directly.
-    // The actual pixel offset for the first tick is smaller than domainPadding when
-    // the padding is large relative to the plot area.
     const totalDomainPadding = domainPadding.left + domainPadding.right;
     const paddingScale = plotAreaWidth > 0 ? plotAreaWidth / (plotAreaWidth + totalDomainPadding) : 0;
 
@@ -136,13 +125,13 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         unitPosition: yAxisUnitPosition,
     });
 
-    const checkIsOverDot = useCallback((args: HitTestArgs) => {
+    const checkIsOverDot = (args: HitTestArgs) => {
         'worklet';
 
         const dx = args.cursorX - args.targetX;
         const dy = args.cursorY - args.targetY;
         return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
-    }, []);
+    };
 
     const {actionsRef, customGestures, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handlePointPress,
@@ -151,44 +140,38 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
 
     const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
 
-    const renderOutsideComponents = useCallback(
-        (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
-            return (
-                <>
-                    <LeftFrameLine
-                        chartBounds={args.chartBounds}
-                        yTicks={args.yTicks}
-                        yScale={args.yScale}
-                        color={theme.border}
+    const renderOutsideComponents = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+        return (
+            <>
+                <LeftFrameLine
+                    chartBounds={args.chartBounds}
+                    yTicks={args.yTicks}
+                    yScale={args.yScale}
+                    color={theme.border}
+                />
+                <ScatterPoints
+                    points={args.points.y}
+                    radius={DOT_RADIUS}
+                    color={DEFAULT_CHART_COLOR}
+                />
+                {!!font && (
+                    <ChartXAxisLabels
+                        labels={truncatedLabels}
+                        labelRotation={labelRotation}
+                        labelSkipInterval={labelSkipInterval}
+                        font={font}
+                        labelColor={theme.textSupporting}
+                        xScale={args.xScale}
+                        chartBoundsBottom={args.chartBounds.bottom}
                     />
-                    <ScatterPoints
-                        points={args.points.y}
-                        radius={DOT_RADIUS}
-                        color={DEFAULT_CHART_COLOR}
-                    />
-                    {!!font && (
-                        <ChartXAxisLabels
-                            labels={truncatedLabels}
-                            labelRotation={labelRotation}
-                            labelSkipInterval={labelSkipInterval}
-                            font={font}
-                            labelColor={theme.textSupporting}
-                            xScale={args.xScale}
-                            chartBoundsBottom={args.chartBounds.bottom}
-                        />
-                    )}
-                </>
-            );
-        },
-        [font, truncatedLabels, labelRotation, labelSkipInterval, theme.textSupporting, theme.border],
-    );
+                )}
+            </>
+        );
+    };
 
-    const dynamicChartStyle = useMemo(
-        () => ({
-            height: CHART_CONTENT_MIN_HEIGHT + (xAxisLabelHeight ?? 0),
-        }),
-        [xAxisLabelHeight],
-    );
+    const dynamicChartStyle = {
+        height: CHART_CONTENT_MIN_HEIGHT + (xAxisLabelHeight ?? 0),
+    };
 
     if (isLoading || !font) {
         return (
