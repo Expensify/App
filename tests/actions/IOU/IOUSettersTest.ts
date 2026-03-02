@@ -13,13 +13,15 @@ import {
     setMoneyRequestReimbursable,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
+    setMoneyRequestDistanceRate,
     setMoneyRequestTaxRate,
     updateSubrate,
 } from '@libs/actions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
+import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -464,6 +466,59 @@ describe('Subrate operations', () => {
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
             expect(draft?.comment?.customUnit?.subRates).toEqual([]);
+        });
+    });
+
+    describe('setMoneyRequestDistanceRate', () => {
+        it('should convert odometer readings when changing to a rate with a different unit', async () => {
+            // Given: a policy with a km mileage rate
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            kmRate: {
+                                customUnitRateID: 'kmRate',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 100,
+                                enabled: true,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        },
+                    },
+                },
+            };
+
+            // And: a draft transaction in miles with odometer readings
+            const transaction: Transaction = {
+                ...createRandomTransaction(0),
+                transactionID: TRANSACTION_ID,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'miRate',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 400,
+                    },
+                    odometerStart: 100,
+                    odometerEnd: 500,
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await waitForBatchedUpdates();
+
+            // When: changing the rate to one with km unit
+            setMoneyRequestDistanceRate(TRANSACTION_ID, 'kmRate', fakePolicy, true);
+            await waitForBatchedUpdates();
+
+            // Then: odometer readings should be converted from miles to km
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            expect(draft?.comment?.odometerStart).toBe(160.93); // 100 * 1.609344
+            expect(draft?.comment?.odometerEnd).toBe(804.67); // 500 * 1.609344
+            expect(draft?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
         });
     });
 });

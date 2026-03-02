@@ -390,6 +390,59 @@ describe('TransactionUtils', () => {
                 merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             });
         });
+
+        it('should convert odometer readings when customUnitRateID changes to a rate with a different unit', () => {
+            // Given: a policy with a km mileage rate
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            kmRate: {
+                                customUnitRateID: 'kmRate',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 100,
+                                enabled: true,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        },
+                    },
+                },
+            };
+
+            // And: a transaction in miles with odometer readings
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'miRate',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 400,
+                    },
+                    odometerStart: 100,
+                    odometerEnd: 500,
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            // When: changing the rate to one with km unit
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'kmRate'},
+            });
+
+            // Then: quantity should be converted from miles to km (400 * 1.609344 = 643.74)
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(643.74);
+
+            // And: odometer readings should be converted from miles to km
+            expect(updatedTransaction.comment?.odometerStart).toBe(160.93); // 100 * 1.609344
+            expect(updatedTransaction.comment?.odometerEnd).toBe(804.67); // 500 * 1.609344
+        });
     });
 
     describe('getTransactionType', () => {
