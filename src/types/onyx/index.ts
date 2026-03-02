@@ -65,6 +65,7 @@ import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
+import type {ExpensifyCardSettingsBase} from './ExpensifyCardSettings';
 import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -80,6 +81,7 @@ import type LastExportMethod from './LastExportMethod';
 import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
+import type LocallyProcessed3DSChallengeReviews from './LocallyProcessed3DSChallengeReviews';
 import type LocalPasskeyCredentialsEntry from './LocalPasskeyCredentialsEntry';
 import type {PasskeyCredential, PasskeyTransport} from './LocalPasskeyCredentialsEntry';
 import type LockAccountDetails from './LockAccountDetails';
@@ -153,6 +155,8 @@ import type StripeCustomerID from './StripeCustomerID';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
 import type Transaction from './Transaction';
+import type TransactionPending3DSReview from './TransactionPending3DSReview';
+import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type TravelProvisioning from './TravelProvisioning';
@@ -180,6 +184,8 @@ export type {
     Account,
     AccountData,
     AssignCard,
+    TransactionPending3DSReview,
+    TransactionsPending3DSReview,
     BankAccount,
     BankAccountList,
     Beta,
@@ -202,6 +208,7 @@ export type {
     WorkspaceCardsList,
     ExpenseRule,
     ExpensifyCardSettings,
+    ExpensifyCardSettingsBase,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
     Fund,
@@ -369,4 +376,5 @@ export type {
     CodingRuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,
+    LocallyProcessed3DSChallengeReviews,
 };
