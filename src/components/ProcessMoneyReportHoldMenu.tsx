@@ -105,6 +105,7 @@ function ProcessMoneyReportHoldMenu({
                 isASAPSubmitBetaEnabled,
                 moneyRequestReportNextStep,
                 betas,
+                userBillingGraceEndPeriods,
                 full,
             );
         } else if (chatReport && paymentType) {
