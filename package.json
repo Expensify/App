@@ -84,7 +84,7 @@
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
     "@expensify/react-native-live-markdown": "0.1.324",
     "@expensify/react-native-wallet": "0.1.11",
-    "@expo/metro-runtime": "^6.0.2",
+    "@expo/metro-runtime": "55.0.6",
     "@formatjs/intl-listformat": "^7.5.7",
     "@formatjs/intl-locale": "^4.0.0",
     "@formatjs/intl-numberformat": "^8.10.3",
