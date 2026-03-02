@@ -155,7 +155,7 @@ This can result in duplicate reporting and reimbursement issues if not resolved.
 Expenses will only merge automatically if all of the following are true:
 - The card feed posts within 7 days of the SmartScan.
 - The amounts match exactly.
-- The SmartScanned receipt is not yet submitted.
+- The SmartScanned receipt is not yet exported.
 - Only one matching pair exists.
 
 If these conditions aren’t met, the merge won’t happen automatically.

@@ -7,21 +7,22 @@ const DEFAULT_CARD_FEED_ERROR_STATE: CardFeedErrorState = {
     isFeedConnectionBroken: false,
     hasFeedErrors: false,
     hasWorkspaceErrors: false,
-    hasFailedCardAssignments: false,
 };
 
 const DEFAULT_CARD_FEED_ERRORS: CardFeedErrors = {
     cardFeedErrors: {},
     cardsWithBrokenFeedConnection: {},
+    personalCardsWithBrokenConnection: {},
     shouldShowRbrForWorkspaceAccountID: {},
     shouldShowRbrForFeedNameWithDomainID: {},
     all: DEFAULT_CARD_FEED_ERROR_STATE,
     companyCards: DEFAULT_CARD_FEED_ERROR_STATE,
     expensifyCard: DEFAULT_CARD_FEED_ERROR_STATE,
+    personalCard: DEFAULT_CARD_FEED_ERROR_STATE,
 };
 
 function useCardFeedErrors(): CardFeedErrors {
-    const [cardFeedErrors] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {canBeMissing: true});
+    const [cardFeedErrors] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS);
 
     return cardFeedErrors ?? DEFAULT_CARD_FEED_ERRORS;
 }

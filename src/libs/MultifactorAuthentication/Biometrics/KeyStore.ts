@@ -4,7 +4,7 @@
 import {decodeExpoMessage} from './helpers';
 import {SECURE_STORE_METHODS, SECURE_STORE_VALUES} from './SecureStore';
 import type {SecureStoreOptions} from './SecureStore';
-import type {MultifactorAuthenticationKeyType, MultifactorAuthenticationPartialStatus, MultifactorKeyStoreOptions} from './types';
+import type {MultifactorAuthenticationKeyStoreStatus, MultifactorAuthenticationKeyType, MultifactorKeyStoreOptions} from './types';
 import VALUES from './VALUES';
 
 /**
@@ -43,7 +43,7 @@ class MultifactorAuthenticationKeyStore<T extends MultifactorAuthenticationKeyTy
     /**
      * Saves a key to secure storage for the given account.
      */
-    public async set(accountID: number, value: string, KSOptions: MultifactorKeyStoreOptions<T>): Promise<MultifactorAuthenticationPartialStatus<boolean, true>> {
+    public async set(accountID: number, value: string, KSOptions: MultifactorKeyStoreOptions<T>): Promise<MultifactorAuthenticationKeyStoreStatus<boolean>> {
         try {
             const alias = `${accountID}_${this.key}`;
             const type = await SECURE_STORE_METHODS.setItemAsync(alias, value, {...secureStoreOptions(this.key, KSOptions), ...STATIC_OPTIONS});
@@ -63,7 +63,7 @@ class MultifactorAuthenticationKeyStore<T extends MultifactorAuthenticationKeyTy
     /**
      * Deletes a key from secure storage for the given account.
      */
-    public async delete(accountID: number): Promise<MultifactorAuthenticationPartialStatus<boolean, true>> {
+    public async delete(accountID: number): Promise<MultifactorAuthenticationKeyStoreStatus<boolean>> {
         try {
             const alias = `${accountID}_${this.key}`;
             await SECURE_STORE_METHODS.deleteItemAsync(alias, {
@@ -84,7 +84,7 @@ class MultifactorAuthenticationKeyStore<T extends MultifactorAuthenticationKeyTy
     /**
      * Retrieves a key from secure storage for the given account with optional authentication.
      */
-    public async get(accountID: number, KSOptions: MultifactorKeyStoreOptions<T>): Promise<MultifactorAuthenticationPartialStatus<string | null, true>> {
+    public async get(accountID: number, KSOptions: MultifactorKeyStoreOptions<T>): Promise<MultifactorAuthenticationKeyStoreStatus<string | null>> {
         try {
             const alias = `${accountID}_${this.key}`;
             const [key, type] = await SECURE_STORE_METHODS.getItemAsync(alias, {...secureStoreOptions(this.key, KSOptions), ...STATIC_OPTIONS});

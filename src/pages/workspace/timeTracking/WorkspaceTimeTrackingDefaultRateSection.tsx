@@ -16,7 +16,6 @@ function WorkspaceTimeTrackingDefaultRateSection({policyID}: {policyID: string})
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        canBeMissing: true,
         selector: policyTimeTrackingSelector,
     });
 
