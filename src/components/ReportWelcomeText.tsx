@@ -116,6 +116,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         participantPersonalDetailListExcludeCurrentUser,
         translate,
         localeCompare,
+        conciergeReportID,
         isReportArchived,
         reportDetailsLink,
         shouldShowUsePlusButtonText,
