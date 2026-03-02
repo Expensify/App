@@ -14,11 +14,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import {getItemBadgeText} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -34,7 +32,6 @@ type SearchTypeMenuProps = {
 
 function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {hash, similarSearchHash} = queryJSON ?? {};
-    const shouldSkipSuggestedSearchNavigation = useMemo(() => shouldSkipSuggestedSearchNavigationForQuery(queryJSON), [queryJSON]);
 
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -59,15 +56,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
 
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
-
-    useSuggestedSearchDefaultNavigation({
-        shouldShowSkeleton: shouldShowSuggestedSearchSkeleton,
-        flattenedMenuItems,
-        similarSearchHash,
-        clearSelectedTransactions,
-        shouldSkipNavigation: shouldSkipSuggestedSearchNavigation,
-    });
-
     const isSavedSearchActive = !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
 
     const route = useRoute();
