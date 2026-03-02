@@ -756,8 +756,7 @@ function getOptionData({
     result.isMoneyRequestReport = isMoneyRequestReport(report);
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const threadSuppression = isChatThread(report) && !isTripRoom(report) && !(isExpenseRequest(report) && policy);
-    const taskSuppression = isTaskReport(report);
-    result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
+    result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression;
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
@@ -1151,7 +1150,8 @@ function getOptionData({
 
     // IOU icon trimming (single vs diagonal) is handled at the component level
     // using useReportPreviewSenderID which has access to transaction attendee data.
-    if (!result.shouldShowSubscript && report.type !== CONST.REPORT.TYPE.IOU && reportIcons.length > 1) {
+    // INVOICE is also exempt — B2B invoices show two workspace icons as diagonal.
+    if (!result.shouldShowSubscript && report.type !== CONST.REPORT.TYPE.IOU && report.type !== CONST.REPORT.TYPE.INVOICE && reportIcons.length > 1) {
         const firstIcon = reportIcons.at(0);
         result.icons = firstIcon ? [firstIcon] : [];
     } else {
