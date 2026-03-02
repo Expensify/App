@@ -194,7 +194,7 @@ function BaseDomainMembersPage({
 
     const showSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
     const listHeaderContent = (
-        <View style={[styles.mh5, styles.gap3, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow]}>
+        <View style={[styles.mh5, styles.gap3, styles.mb5, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow]}>
             <View
                 style={[shouldUseNarrowLayout && styles.w100, showSearchBar && !shouldUseNarrowLayout && styles.h13, showSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter]}
             >
