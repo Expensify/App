@@ -61,9 +61,6 @@ function resolveCardListEntry(card: Card, cardListEntries: Array<[string, string
     // Using || instead of ?? because an empty-string lastFourPAN should fall through to cardName
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const panSuffix = lastFourPAN || cardName;
-    if (!panSuffix) {
-        return card;
-    }
 
     const isLinkedByEncrypted = encryptedCardNumber && cardListEntries.some(([, entryEncryptedCardNumber]) => entryEncryptedCardNumber === encryptedCardNumber);
     if (isLinkedByEncrypted) {
@@ -92,7 +89,7 @@ function resolveCardListEntry(card: Card, cardListEntries: Array<[string, string
  * then filling in remaining unassigned cards from accountList/cardList.
  */
 function buildCompanyCardEntries(accountList: string[] | undefined, cardList: AssignableCardsList | undefined, assignedCards: CardList): CompanyCardEntry[] {
-    const entries: CompanyCardEntry[] = [];
+    const entriesMap = new Map<string, CompanyCardEntry>();
     const coveredNames = new Set<string>();
     const coveredEncrypted = new Set<string>();
 
@@ -104,51 +101,47 @@ function buildCompanyCardEntries(accountList: string[] | undefined, cardList: As
             continue;
         }
 
-        const resolved = resolveCardListEntry(card, cardListEntries);
-        const {cardName = card.cardName, encryptedCardNumber = card.cardName} = resolved;
+        const {cardName = card.cardName, encryptedCardNumber = card.cardName} = resolveCardListEntry(card, cardListEntries);
+        const normalizedName = normalizeCardName(cardName);
+        const cardEntryID = encryptedCardNumber ?? normalizedName;
+
+        const existingEntry = entriesMap.get(cardEntryID);
+
+        const isRicherRecord = card.lastFourPAN && !existingEntry?.assignedCard?.lastFourPAN;
 
         // Skip duplicate when two assigned-card records (e.g. old-format + new-format) resolve to the same cardList entry.
-        const alreadyCovered = encryptedCardNumber !== cardName && coveredEncrypted.has(encryptedCardNumber);
-        if (!alreadyCovered) {
-            entries.push({cardName, encryptedCardNumber, isAssigned: true, assignedCard: card});
-            coveredNames.add(normalizeCardName(cardName));
-            if (encryptedCardNumber !== cardName) {
-                coveredEncrypted.add(encryptedCardNumber);
-            }
-        } else {
-            // When deduplicating, prefer the card with richer metadata (e.g. new-format with lastFourPAN)
-            // so that downstream UI/actions use the canonical record.
-            const existingIdx = entries.findIndex((e) => e.encryptedCardNumber === encryptedCardNumber);
-            const existingEntry = entries.at(existingIdx);
-            if (existingIdx !== -1 && card.lastFourPAN && existingEntry && !existingEntry.assignedCard?.lastFourPAN) {
-                entries[existingIdx] = {...existingEntry, assignedCard: card};
-            }
-            coveredNames.add(normalizeCardName(card.cardName ?? ''));
-            if (card.encryptedCardNumber && card.encryptedCardNumber !== card.cardName) {
-                coveredEncrypted.add(card.encryptedCardNumber);
-            }
+        if (!existingEntry || isRicherRecord) {
+            entriesMap.set(cardEntryID, {cardName, encryptedCardNumber, isAssigned: true, assignedCard: card});
+        }
+
+        coveredNames.add(normalizedName);
+        if (encryptedCardNumber !== cardName) {
+            coveredEncrypted.add(encryptedCardNumber);
         }
     }
 
     // Phase 2: Add remaining unassigned cards. cardList first so its encryptedCardNumber takes precedence.
-    for (const [name, encryptedCardNumber] of cardListEntries) {
-        if (coveredNames.has(normalizeCardName(name)) || coveredEncrypted.has(encryptedCardNumber)) {
+    for (const [cardName, encryptedCardNumber] of cardListEntries) {
+        const normalizedName = normalizeCardName(cardName);
+        if (coveredNames.has(normalizedName) || coveredEncrypted.has(encryptedCardNumber) || entriesMap.has(encryptedCardNumber)) {
             continue;
         }
-        entries.push({cardName: name, encryptedCardNumber, isAssigned: false});
-        coveredNames.add(normalizeCardName(name));
+
+        entriesMap.set(encryptedCardNumber, {cardName, encryptedCardNumber, isAssigned: false});
+        coveredNames.add(normalizedName);
         coveredEncrypted.add(encryptedCardNumber);
     }
 
-    for (const name of accountList ?? []) {
-        if (coveredNames.has(normalizeCardName(name))) {
+    for (const cardName of accountList ?? []) {
+        const normalizedName = normalizeCardName(cardName);
+        if (coveredNames.has(normalizedName) || coveredEncrypted.has(cardName) || entriesMap.has(normalizedName)) {
             continue;
         }
-        entries.push({cardName: name, encryptedCardNumber: name, isAssigned: false});
-        coveredNames.add(normalizeCardName(name));
+        entriesMap.set(normalizedName, {cardName, encryptedCardNumber: cardName, isAssigned: false});
+        coveredNames.add(normalizedName);
     }
 
-    return entries;
+    return Array.from(entriesMap.values());
 }
 
 function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProps): UseCompanyCardsResult {
