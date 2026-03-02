@@ -8,8 +8,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, ReportAttributesDerivedValue} from '@src/types/onyx';
 
+// Initialized to `true` because `reportAttributes` is persisted to disk and restored on startup,
+// so the cached value is already valid. Starting `false` would trigger an unnecessary full recompute
+// of all reports on the first compute call before any data has actually changed.
 let isFullyComputed = true;
-let previousLocale: string | undefined;
 let previousDisplayNames: Record<string, string | undefined> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 
@@ -88,16 +90,10 @@ export default createOnyxDerivedValueConfig({
 
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
         // we need to recompute all report attributes on locale change because the report names are locale dependent.
-        // We skip the reset on the very first locale load (previousLocale undefined) because the locale is already
-        // set correctly before any data batch arrives — report names will be computed in the right locale regardless.
-        if ((hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && !!previousLocale) || displayNamesChanged) {
+        // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
+        // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
+        if ((hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) || displayNamesChanged) {
             isFullyComputed = false;
-        }
-
-        // Only update previousLocale when we have an actual value, to avoid a null overwrite
-        // masking a subsequent real locale change.
-        if (preferredLocale) {
-            previousLocale = preferredLocale;
         }
 
         // if we already computed the report attributes and there is no new reports data, return the current value
