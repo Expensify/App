@@ -531,6 +531,70 @@ describe('LHNOptionsList', () => {
         });
     });
 
+    describe('Invoice report avatar rendering', () => {
+        it('should render subscript avatar for an individual invoice report', async () => {
+            // Given an invoice report whose parent is an invoice room with an individual receiver.
+            // The LHN should show a subscript avatar (workspace + user).
+            const policyID = 'invoiceTestPolicy';
+            const invoiceRoomID = 'invoiceRoomReport';
+            const invoiceReportID = 'invoiceTestReport';
+            const accountID1 = 1;
+            const accountID2 = 2;
+
+            const invoicePolicy: Policy = {
+                id: policyID,
+                name: 'Invoice Test Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            const invoiceRoom: Report = {
+                reportID: invoiceRoomID,
+                reportName: 'Invoice Room',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                policyID,
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: accountID2},
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const invoiceReport: Report = {
+                reportID: invoiceReportID,
+                reportName: 'Invoice Report',
+                type: CONST.REPORT.TYPE.INVOICE,
+                policyID,
+                chatReportID: invoiceRoomID,
+                parentReportID: invoiceRoomID,
+                ownerAccountID: accountID1,
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, invoicePolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, invoiceRoom);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, invoiceReport);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [accountID1]: {accountID: accountID1, login: 'sender@test.com', displayName: 'Sender', avatar: 'sender-avatar'},
+                    [accountID2]: {accountID: accountID2, login: 'receiver@test.com', displayName: 'Receiver', avatar: 'receiver-avatar'},
+                });
+            });
+
+            // When the LHNOptionsList renders the invoice report
+            render(getLHNOptionsListElement({data: [invoiceReport]}));
+
+            // Then it should render a subscript avatar (workspace icon + user avatar)
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+            });
+        });
+    });
+
     describe('IOU report avatar rendering', () => {
         it('should render diagonal avatars for an IOU report between two users', async () => {
             // Given an IOU report with two participants (owner + manager).

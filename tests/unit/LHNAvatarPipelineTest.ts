@@ -498,4 +498,18 @@ describe('LHN Avatar Pipeline', () => {
         expect(result.avatarType).toBe('single');
         expect(result.icons).toHaveLength(1);
     });
+
+    // ── Case 20: Invoice report shows correct workspace icon when invoice room is not loaded ──
+    it('Invoice Report (invoice room not in Onyx) → workspace icon uses policy name, not "Unavailable workspace"', () => {
+        const report = {
+            ...createInvoiceReport(120),
+            policyID: POLICY_ID,
+            chatReportID: 'nonExistentRoom',
+            parentReportID: 'nonExistentRoom',
+        } as Report;
+        const result = computeAvatarResult({report});
+
+        expect(result.icons.at(0)?.name).toBe('Test Workspace');
+        expect(result.icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
+    });
 });
