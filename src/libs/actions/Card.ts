@@ -1180,7 +1180,20 @@ function deletePersonalCard({cardID, card}: {cardID: number; card?: Card}) {
             }
         }
 
+        // Optimistic: mark card as pending delete so it shows greyed out when offline
         const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {
+                    [cardID]:
+                        card != null
+                            ? {...card, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                            : null,
+                },
+            },
+        ];
+        const successData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.CARD_LIST,
@@ -1212,7 +1225,7 @@ function deletePersonalCard({cardID, card}: {cardID: number; card?: Card}) {
                 value: transaction,
             });
         }
-        API.write(WRITE_COMMANDS.DELETE_PERSONAL_CARD, {cardID}, {optimisticData, failureData});
+        API.write(WRITE_COMMANDS.DELETE_PERSONAL_CARD, {cardID}, {optimisticData, successData, failureData});
     };
 
     connTransactions = Onyx.connectWithoutView({
