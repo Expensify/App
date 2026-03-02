@@ -380,6 +380,10 @@ function computeReportNameBasedOnReportAction(
     parentReport: Report | undefined,
     policyTags?: OnyxEntry<PolicyTagLists>,
 ): string | undefined {
+    if (policyTags && !parentReportAction) {
+        return undefined;
+    }
+
     if (!parentReportAction) {
         return undefined;
     }
