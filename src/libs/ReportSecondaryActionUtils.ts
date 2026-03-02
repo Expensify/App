@@ -399,7 +399,7 @@ function isCancelPaymentAction(
         payActions.length > 0 &&
         payActions.every((action) => {
             const originalMessage = getOriginalMessage(action);
-            return originalMessage && 'paymentType' in originalMessage && originalMessage.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+            return originalMessage && typeof originalMessage === 'object' && 'paymentType' in originalMessage && originalMessage.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
         });
 
     // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button

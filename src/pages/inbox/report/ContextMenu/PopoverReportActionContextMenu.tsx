@@ -316,7 +316,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const transactionIDs: string[] = [];
     if (isMoneyRequestAction(reportActionRef.current)) {
         const originalMessage = getOriginalMessage(reportActionRef.current);
-        if (originalMessage && 'IOUTransactionID' in originalMessage && !!originalMessage.IOUTransactionID) {
+        if (originalMessage && typeof originalMessage === 'object' && 'IOUTransactionID' in originalMessage && !!originalMessage.IOUTransactionID) {
             transactionIDs.push(originalMessage.IOUTransactionID);
         }
     }

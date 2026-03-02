@@ -218,7 +218,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     // A legacy deleted comment has either an empty array or an object with html field with empty string as value
     const isLegacyDeletedComment = message.length === 0 || message.at(0)?.html === '';
 
-    return isLegacyDeletedComment || !!message.at(0)?.deleted || (!!originalMessage && 'deleted' in originalMessage && !!originalMessage?.deleted);
+    return isLegacyDeletedComment || !!message.at(0)?.deleted || (!!originalMessage && typeof originalMessage === 'object' && 'deleted' in originalMessage && !!originalMessage?.deleted);
 }
 
 /**
@@ -452,7 +452,7 @@ function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<Rep
         return undefined;
     }
 
-    if ('delegateAccountID' in originalMessage) {
+    if (typeof originalMessage === 'object' && 'delegateAccountID' in originalMessage) {
         return originalMessage.delegateAccountID;
     }
 
@@ -896,9 +896,10 @@ function getReportActionActorAccountID(
             const actionName = reportAction?.actionName;
 
             // Check if this should show Concierge as the actor
-            const wasSubmittedViaHarvesting = originalMessage && 'harvesting' in originalMessage ? originalMessage.harvesting : false;
-            const wasAutomatic = originalMessage && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
-            const isPayment = originalMessage && 'type' in originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+            const isOriginalMessageObject = originalMessage && typeof originalMessage === 'object';
+            const wasSubmittedViaHarvesting = isOriginalMessageObject && 'harvesting' in originalMessage ? originalMessage.harvesting : false;
+            const wasAutomatic = isOriginalMessageObject && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
+            const isPayment = isOriginalMessageObject && 'type' in originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
 
             // Show Concierge for:
             // - Harvesting (delayed submissions)

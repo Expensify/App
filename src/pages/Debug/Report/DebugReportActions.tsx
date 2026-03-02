@@ -64,7 +64,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 return '';
             }
 
-            if (!!reportActionMessage.deleted || (originalMessage && 'deleted' in originalMessage && originalMessage.deleted)) {
+            if (!!reportActionMessage.deleted || (originalMessage && typeof originalMessage === 'object' && 'deleted' in originalMessage && originalMessage.deleted)) {
                 return `[${translate('parentReportAction.deletedMessage')}]`;
             }
 
