@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/no-multiple-api-calls */
 import {search} from '@libs/actions/Search';
-import {waitForWrites, makeRequestWithSideEffects} from '@libs/API';
+import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
