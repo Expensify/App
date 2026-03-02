@@ -772,26 +772,31 @@ function clearIssueNewCardError(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
-function buildCardListUpdates(workspaceAccountID: number, cardID: number, cardUpdateData: CardListUpdateData): CardOnyxUpdate[] {
+function buildCardListUpdates(workspaceAccountID: number, cardID: number, cardUpdateData: CardListUpdateData, shouldUpdateCardList: boolean): CardOnyxUpdate[] {
     const workspaceKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}` as `${typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${string}`;
-
-    return [
+    const updates: CardOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: workspaceKey,
             value: {[cardID]: cardUpdateData},
         },
-        {
+    ];
+
+    if (shouldUpdateCardList) {
+        updates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
             value: {[cardID]: cardUpdateData},
-        },
-    ];
+        });
+    }
+
+    return updates;
 }
 
 function freezeCard(workspaceAccountID: number, card: Card, currentUserAccountID: number) {
     const cardID = card.cardID;
     const previousFrozen = card?.nameValuePairs?.frozen ?? null;
+    const shouldUpdateCardList = card.accountID === currentUserAccountID;
 
     const frozenData: CardListUpdateData = {
         state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
@@ -807,14 +812,14 @@ function freezeCard(workspaceAccountID: number, card: Card, currentUserAccountID
         errors: null,
     };
 
-    const optimisticData = buildCardListUpdates(workspaceAccountID, cardID, frozenData);
+    const optimisticData = buildCardListUpdates(workspaceAccountID, cardID, frozenData, shouldUpdateCardList);
     const successData = buildCardListUpdates(workspaceAccountID, cardID, {
         nameValuePairs: {
             pendingFields: {frozen: null},
         },
         pendingAction: null,
         isLoading: false,
-    });
+    }, shouldUpdateCardList);
     const failureData = buildCardListUpdates(workspaceAccountID, cardID, {
         state: card?.state ?? CONST.EXPENSIFY_CARD.STATE.OPEN,
         nameValuePairs: {
@@ -824,7 +829,7 @@ function freezeCard(workspaceAccountID: number, card: Card, currentUserAccountID
         pendingAction: null,
         isLoading: false,
         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-    });
+    }, shouldUpdateCardList);
 
     const parameters: FreezeCardParams = {
         cardID,
@@ -837,9 +842,10 @@ function freezeCard(workspaceAccountID: number, card: Card, currentUserAccountID
     });
 }
 
-function unfreezeCard(workspaceAccountID: number, card: Card) {
+function unfreezeCard(workspaceAccountID: number, card: Card, currentUserAccountID: number) {
     const cardID = card.cardID;
     const previousFrozen = card?.nameValuePairs?.frozen ?? null;
+    const shouldUpdateCardList = card.accountID === currentUserAccountID;
 
     const unfrozenData: CardListUpdateData = {
         state: CONST.EXPENSIFY_CARD.STATE.OPEN,
@@ -852,14 +858,14 @@ function unfreezeCard(workspaceAccountID: number, card: Card) {
         errors: null,
     };
 
-    const optimisticData = buildCardListUpdates(workspaceAccountID, cardID, unfrozenData);
+    const optimisticData = buildCardListUpdates(workspaceAccountID, cardID, unfrozenData, shouldUpdateCardList);
     const successData = buildCardListUpdates(workspaceAccountID, cardID, {
         nameValuePairs: {
             pendingFields: {frozen: null},
         },
         pendingAction: null,
         isLoading: false,
-    });
+    }, shouldUpdateCardList);
     const failureData = buildCardListUpdates(workspaceAccountID, cardID, {
         state: card?.state ?? CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
         nameValuePairs: {
@@ -869,7 +875,7 @@ function unfreezeCard(workspaceAccountID: number, card: Card) {
         pendingAction: null,
         isLoading: false,
         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-    });
+    }, shouldUpdateCardList);
 
     const parameters: FreezeCardParams = {
         cardID,

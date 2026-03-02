@@ -885,8 +885,15 @@ function filterAllInactiveCards(cards: CardList | undefined) {
         return {};
     }
 
-    const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
-    const filteredCards = filterObject(cards, (_key, card) => !closedStates.has(card.state));
+    const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED]);
+    const filteredCards = filterObject(cards, (_key, card) => {
+        if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
+            // Only include suspended cards that are frozen.
+            return !!card.nameValuePairs?.frozen;
+        }
+
+        return !closedStates.has(card.state);
+    });
 
     return filteredCards;
 }

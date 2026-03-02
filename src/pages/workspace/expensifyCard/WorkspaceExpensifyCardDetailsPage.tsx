@@ -127,7 +127,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         if (!card) {
             return;
         }
-        unfreezeCardAction(Number(card?.fundID ?? defaultFundID ?? CONST.DEFAULT_NUMBER_ID), card);
+        unfreezeCardAction(Number(card?.fundID ?? defaultFundID ?? CONST.DEFAULT_NUMBER_ID), card, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
         setIsUnfreezeModalVisible(false);
     };
 

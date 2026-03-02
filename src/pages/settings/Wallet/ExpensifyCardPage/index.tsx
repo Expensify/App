@@ -207,9 +207,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         if (!currentCard) {
             return;
         }
-        unfreezeCard(Number(currentCard?.fundID ?? CONST.DEFAULT_NUMBER_ID), currentCard);
+        unfreezeCard(Number(currentCard?.fundID ?? CONST.DEFAULT_NUMBER_ID), currentCard, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
         handleDismissUnfreezeModal();
-    }, [currentCard, handleDismissUnfreezeModal]);
+    }, [currentCard, handleDismissUnfreezeModal, session?.accountID]);
 
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
