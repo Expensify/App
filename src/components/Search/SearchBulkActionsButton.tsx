@@ -74,6 +74,9 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     const isExpenseReportType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
+    const shouldPopoverUseScrollView =
+        headerButtonsOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD || headerButtonsOptions.some((option) => (option.subMenuItems?.length ?? 0) >= CONST.DROPDOWN_SCROLL_THRESHOLD);
+
     const selectedItemsCount = useMemo(() => {
         if (!selectedTransactions) {
             return 0;
@@ -118,7 +121,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 shouldAlwaysShowDropdownMenu
                                 isDisabled={headerButtonsOptions.length === 0}
                                 onPress={() => null}
-                                shouldPopoverUseScrollView={headerButtonsOptions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
+                                shouldPopoverUseScrollView={shouldPopoverUseScrollView}
                                 onSubItemSelected={(subItem) =>
                                     handleBulkPayItemSelected({
                                         item: subItem,
@@ -156,6 +159,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                                 customText={selectionButtonText}
                                 options={headerButtonsOptions}
+                                shouldPopoverUseScrollView={shouldPopoverUseScrollView}
                                 onSubItemSelected={(subItem) =>
                                     handleBulkPayItemSelected({
                                         item: subItem,
