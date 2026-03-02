@@ -5657,6 +5657,15 @@ describe('actions/IOU', () => {
                 },
             });
 
+            let allPolicyTags;
+            await getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allPolicyTags = value;
+                },
+            });
+
             // When splitting the expense
             updateSplitTransactionsFromSplitExpensesFlow({
                 allTransactionsList: allTransactions,
@@ -5683,6 +5692,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 iouReportNextStep: undefined,
                 betas: [CONST.BETAS.ALL],
+                allPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -5763,6 +5773,16 @@ describe('actions/IOU', () => {
     });
 
     describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
+        let allPolicyTags: OnyxCollection<PolicyTagLists>;
+        beforeEach(async () => {
+            await getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    allPolicyTags = value;
+                },
+            });
+        });
         it('should delete the original transaction thread report', async () => {
             const expenseReport: Report = {
                 ...createRandomReport(1, undefined),
@@ -5854,6 +5874,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 iouReportNextStep: undefined,
                 betas: [CONST.BETAS.ALL],
+                allPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -5964,6 +5985,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 iouReportNextStep: undefined,
                 betas: [CONST.BETAS.ALL],
+                allPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -6087,6 +6109,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 iouReportNextStep: undefined,
                 betas: [CONST.BETAS.ALL],
+                allPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -11608,6 +11631,16 @@ describe('actions/IOU', () => {
         });
 
         describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
+            let allPolicyTags: OnyxCollection<PolicyTagLists>;
+            beforeEach(async () => {
+                await getOnyxData({
+                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+                    waitForCollectionCallback: true,
+                    callback: (value) => {
+                        allPolicyTags = value;
+                    },
+                });
+            });
             it("should update split transaction's description correctly ", async () => {
                 const amount = 10000;
                 let expenseReport: OnyxEntry<Report>;
@@ -11764,6 +11797,7 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
+                    allPolicyTags,
                 });
                 await waitForBatchedUpdates();
 
@@ -11929,6 +11963,7 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
+                    allPolicyTags,
                 });
                 await waitForBatchedUpdates();
 
@@ -12108,6 +12143,7 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
+                    allPolicyTags,
                 });
                 await waitForBatchedUpdates();
 
@@ -12310,6 +12346,7 @@ describe('actions/IOU', () => {
                     quickAction: undefined,
                     iouReportNextStep: undefined,
                     betas: [CONST.BETAS.ALL],
+                    allPolicyTags,
                 });
 
                 await waitForBatchedUpdates();

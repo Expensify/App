@@ -1163,6 +1163,15 @@ describe('split expense', () => {
             },
         });
 
+        let allPolicyTags: OnyxCollection<PolicyTagLists>;
+        await getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allPolicyTags = value;
+            },
+        });
+
         // When splitting the expense
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
@@ -1189,6 +1198,7 @@ describe('split expense', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            allPolicyTags,
         });
 
         await waitForBatchedUpdates();
@@ -1267,6 +1277,16 @@ describe('startSplitBill', () => {
 });
 
 describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
+    let allPolicyTags: OnyxCollection<PolicyTagLists>;
+    beforeEach(async () => {
+        await getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allPolicyTags = value;
+            },
+        });
+    });
     it('should delete the original transaction thread report', async () => {
         const expenseReport: Report = {
             ...createRandomReport(1, undefined),
@@ -1358,6 +1378,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            allPolicyTags,
         });
 
         await waitForBatchedUpdates();
@@ -1468,6 +1489,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            allPolicyTags,
         });
 
         await waitForBatchedUpdates();
@@ -1591,6 +1613,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            allPolicyTags,
         });
 
         await waitForBatchedUpdates();
@@ -1743,6 +1766,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            allPolicyTags,
         });
         await waitForBatchedUpdates();
 
@@ -1796,6 +1820,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            allPolicyTags,
         });
         await waitForBatchedUpdates();
 
@@ -1816,6 +1841,16 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 });
 
 describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
+    let allPolicyTags: OnyxCollection<PolicyTagLists>;
+    beforeEach(async () => {
+        await getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allPolicyTags = value;
+            },
+        });
+    });
     it("should update split transaction's description correctly ", async () => {
         const amount = 10000;
         let expenseReport: OnyxEntry<Report>;
@@ -1972,6 +2007,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            allPolicyTags,
         });
         await waitForBatchedUpdates();
 
@@ -2137,6 +2173,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            allPolicyTags,
         });
         await waitForBatchedUpdates();
 
@@ -2316,6 +2353,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            allPolicyTags,
         });
         await waitForBatchedUpdates();
 
@@ -2518,6 +2556,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            allPolicyTags,
         });
 
         await waitForBatchedUpdates();

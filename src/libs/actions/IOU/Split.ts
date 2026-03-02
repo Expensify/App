@@ -117,6 +117,7 @@ type UpdateSplitTransactionsParams = {
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isFromSplitExpensesFlow?: boolean;
+    allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
 };
 
 type SplitBillActionsParams = {
@@ -1044,7 +1045,7 @@ function updateSplitTransactions({
     isFromSplitExpensesFlow,
     betas,
     allPolicyTags,
-}: UpdateSplitTransactionsParams & {allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>}) {
+}: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
@@ -1685,7 +1686,7 @@ function updateSplitTransactions({
 }
 
 function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransactionsParams) {
-    updateSplitTransactions({...params, isFromSplitExpensesFlow: true, allPolicyTags: getPolicyTags()});
+    updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
     const transactionReport = getReportOrDraftReport(params.transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
