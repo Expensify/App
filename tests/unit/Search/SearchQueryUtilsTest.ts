@@ -1321,7 +1321,7 @@ describe('SearchQueryUtils', () => {
             expect(queryJSON?.sortOrder).toBe('asc');
         });
 
-        test('explicit non-default sortBy is preserved across groupBy changes', () => {
+        test('sortBy is reset to groupBy default on groupBy change even when previously set to a custom value', () => {
             const result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.WEEK, view: CONST.SEARCH.VIEW.BAR},
                 {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
@@ -1329,7 +1329,7 @@ describe('SearchQueryUtils', () => {
             );
             const queryJSON = buildSearchQueryJSON(result ?? '');
 
-            expect(queryJSON?.sortBy).toBe('amount');
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK);
         });
 
         test('sortOrder is correctly derived when sortBy matches groupBy default (view change)', () => {

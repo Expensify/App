@@ -1639,10 +1639,10 @@ function shouldResetSortOrder({
 }
 
 /**
- * Builds a query string from filter form values, resetting sortOrder when the view or groupBy
- * has changed so the parser can re-derive the correct default. When a reset is needed, the query
- * is round-tripped through the parser so that parser-derived defaults (like sortOrder) appear
- * in the final query string.
+ * Builds a query string from filter form values, resetting sortBy and sortOrder when the view
+ * or groupBy has changed so the parser can re-derive the correct defaults. When a reset is needed,
+ * the query is round-tripped through the parser so that parser-derived defaults appear in the
+ * final query string.
  *
  * Returns undefined if the parser round-trip fails.
  */
@@ -1659,7 +1659,7 @@ function buildFilterQueryWithSortDefaults(
     });
 
     const queryString = buildQueryStringFromFilterFormValues(filterValues, {
-        sortBy: currentQueryOptions.sortBy,
+        sortBy: resetSort ? undefined : currentQueryOptions.sortBy,
         sortOrder: resetSort ? undefined : currentQueryOptions.sortOrder,
         limit: currentQueryOptions.limit,
     });
