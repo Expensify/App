@@ -56,17 +56,18 @@ function getTagViolationsForSingleLevelTags(
     const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
     const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG);
     const isTagInPolicy = policyTags ? !!policyTags[updatedTransaction.tag ?? '']?.enabled : false;
+    const hasEnabledTagsInList = policyTags ? Object.values(policyTags).some((tag) => !!tag.enabled) : false;
     let newTransactionViolations = [...transactionViolations];
 
-    // Add 'tagOutOfPolicy' violation if tag is not in policy
-    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
+    // Add 'tagOutOfPolicy' violation if tag is not in policy and there are enabled tags
+    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy && hasEnabledTagsInList) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
         newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}, showInReview: true});
     }
 
-    // Remove 'tagOutOfPolicy' violation if tag is in policy
-    if (hasTagOutOfPolicyViolation && updatedTransaction.tag && isTagInPolicy) {
+    // Remove 'tagOutOfPolicy' violation if tag is in policy or there are no enabled tags
+    if (hasTagOutOfPolicyViolation && updatedTransaction.tag && (isTagInPolicy || !hasEnabledTagsInList)) {
         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
     }
 
@@ -148,8 +149,9 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags.at(i);
             const tags = policyTagList[policyTagKeys[i]].tags;
+            const hasEnabledTagsInLevel = Object.values(tags).some((tag) => !!tag.enabled);
             const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && !!tag.enabled);
-            if (!isTagInPolicy && selectedTag) {
+            if (!isTagInPolicy && selectedTag && hasEnabledTagsInLevel) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -255,7 +257,6 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             return !!(category && policyCategories?.[category]?.enabled);
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.TAG_OUT_OF_POLICY}`]: () => {
-            // Tag is fixed if it's empty or matches a valid tag in policy
             if (!tag) {
                 return true;
             }
@@ -263,8 +264,11 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
                 return false;
             }
             const hasEnabledTags = Object.values(policyTagLists).some((tagList) => tagList.tags && Object.values(tagList.tags).some((t) => t.enabled));
+            if (!hasEnabledTags) {
+                return true;
+            }
             const hasMatchingTag = Object.values(policyTagLists).some((tagList) => tagList.tags && Object.values(tagList.tags).some((t) => t.name === tag && t.enabled));
-            return hasEnabledTags && hasMatchingTag;
+            return hasMatchingTag;
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.TAX_OUT_OF_POLICY}`]: () => {
             if (!taxCode || !policyTaxRates) {
