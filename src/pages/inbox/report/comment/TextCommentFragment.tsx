@@ -2,9 +2,9 @@ import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
+import {useEnvironmentActions} from '@components/EnvironmentContextProvider';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -14,7 +14,6 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
 import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
-import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
@@ -58,15 +57,12 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const text = getTextFromHtml(html);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {adjustExpensifyLinksForEnv} = useEnvironment();
+    const {adjustExpensifyLinksForEnv} = useEnvironmentActions();
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
     const processedTextArray = splitTextWithEmojis(message);
 
-    useEffect(() => {
-        Performance.markEnd(CONST.TIMING.SEND_MESSAGE, {message: text});
-    }, [text]);
     useEffect(() => {
         if (!reportActionID) {
             return;

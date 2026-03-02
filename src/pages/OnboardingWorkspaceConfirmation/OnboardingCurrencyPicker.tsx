@@ -33,7 +33,7 @@ function OnboardingCurrencyPicker({label, value, errorText, style, onInputChange
     const {getCurrencySymbol} = useCurrencyListActions();
     const didOpenCurrencySelector = useRef(false);
     const isFocused = useIsFocused();
-    const [draftValues] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT, {canBeMissing: true});
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT);
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         if (draftValues?.currency) {
