@@ -36,7 +36,7 @@ function SearchChangeApproverPage() {
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>();
+    const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
     const [hasError, setHasError] = useState(false);
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
