@@ -1571,6 +1571,11 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} tramite <a href="${route}">regole spese personali</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} tramite <a href="${route}">regole spazio di lavoro</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `invio del resoconto non riuscito tramite <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">rimanda invii</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `invio del rapporto non riuscito. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) =>
+            `approvazione non riuscita tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `approvazione non riuscita. ${reason}`,
     },
     transactionMerge: {
         listPage: {

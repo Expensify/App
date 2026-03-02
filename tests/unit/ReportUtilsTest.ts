@@ -13141,6 +13141,143 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('GBR: draft report with delayed submission off then on (issue #69891)', () => {
+        const policyID = 'policy-delayed-submit';
+        const adminAccountID = 42;
+        const expenseReportID = '30000';
+
+        const teamPolicy: Policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            type: CONST.POLICY.TYPE.TEAM,
+            harvesting: {
+                enabled: false,
+            },
+        };
+
+        it('should show GBR on workspace chat when delayed submission is OFF and expense is in draft', async () => {
+            await Onyx.clear();
+
+            const policyExpenseChat: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+                policyID,
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            const expenseReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+                reportID: expenseReportID,
+                chatReportID: policyExpenseChat.reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID,
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, teamPolicy),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
+            ]);
+            await waitForBatchedUpdates();
+
+            // getOutstandingChildRequest returns true for the draft expense when harvesting is OFF
+            expect(getOutstandingChildRequest(expenseReport).hasOutstandingChildRequest).toBe(true);
+
+            // GBR shows on the workspace chat
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
+
+            const reason = reasonForReportToBeInOptionList({
+                report: policyExpenseChat,
+                chatReport: policyExpenseChat,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                isReportArchived: false,
+                draftComment: '',
+            });
+            expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+
+            await Onyx.clear();
+        });
+
+        it('should still show GBR on workspace chat after delayed submission is turned ON', async () => {
+            await Onyx.clear();
+
+            // The workspace chat still has hasOutstandingChildRequest: true from when
+            // the expense was created with delayed submission OFF. When delayed submission
+            // is turned ON, getOutstandingChildRequest returns {} (empty, not false) for
+            // the expense report, so the existing true value on the chat persists.
+            const policyExpenseChat: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+                policyID,
+                ownerAccountID: currentUserAccountID,
+                hasOutstandingChildRequest: true,
+                iouReportID: expenseReportID,
+            };
+
+            const expenseReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, adminAccountID]),
+                reportID: expenseReportID,
+                chatReportID: policyExpenseChat.reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID,
+            };
+
+            const policyWithHarvestingOn: Policy = {
+                ...teamPolicy,
+                harvesting: {
+                    enabled: true,
+                },
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithHarvestingOn),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
+            ]);
+            await waitForBatchedUpdates();
+
+            // getOutstandingChildRequest returns {} (empty object) when harvesting is ON.
+            // The field must be omitted (not set to false), so an Onyx merge won't
+            // overwrite the existing true value on the workspace chat.
+            expect(getOutstandingChildRequest(expenseReport)).toEqual({});
+
+            // The workspace chat still has hasOutstandingChildRequest: true, so GBR persists
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat)).toBe(true);
+
+            const reason = reasonForReportToBeInOptionList({
+                report: policyExpenseChat,
+                chatReport: policyExpenseChat,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                isReportArchived: false,
+                draftComment: '',
+            });
+            expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+
+            await Onyx.clear();
+        });
+    });
     describe('getAddExpenseDropdownOptions', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
         const mockIcons = {Location: jest.fn(), ReceiptPlus: jest.fn()} as unknown as Record<'Location' | 'ReceiptPlus', IconAsset>;

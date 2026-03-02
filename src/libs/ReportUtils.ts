@@ -729,6 +729,7 @@ type OptimisticTaskReport = SetRequired<
     Pick<
         Report,
         | 'reportID'
+        | 'created'
         | 'reportName'
         | 'description'
         | 'ownerAccountID'
@@ -8551,6 +8552,7 @@ function buildOptimisticTaskReport(
 
     return {
         reportID: generateReportID(),
+        created: DateUtils.getDBTime(),
         reportName: getParsedComment(title ?? '', undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]),
         description: getParsedComment(description ?? '', {}),
         ownerAccountID,
