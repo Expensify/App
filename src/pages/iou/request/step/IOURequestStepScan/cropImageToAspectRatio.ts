@@ -59,6 +59,7 @@ function cropImageToAspectRatio(
                 imageHeight,
                 aspectRatioWidth: ratioWidth,
                 aspectRatioHeight: ratioHeight,
+                rotation,
             } = getDeviceOrientationAwareImageSize({imageSize, orientation, aspectRatioWidth, aspectRatioHeight});
 
             if (!imageWidth || !imageHeight || !ratioWidth || !ratioHeight) {
@@ -67,6 +68,40 @@ function cropImageToAspectRatio(
 
             const crop = calculateCropRect(imageWidth, imageHeight, ratioWidth, ratioHeight, shouldAlignTop);
             const croppedFilename = `receipt_cropped_${Date.now()}.jpeg`;
+
+            // On Android, when EXIF rotation of 90° or 270° is detected, the image loader (Glide)
+            // may or may not auto-apply the rotation depending on the device. We normalize the
+            // image first to strip EXIF metadata, then check whether rotation was already applied
+            // by comparing pixel dimensions, and act accordingly. We only handle 90/270 because
+            // 180° rotation doesn't swap dimensions, making auto-rotation undetectable.
+            if (rotation === 90 || rotation === 270) {
+                const tempFilename = `receipt_normalized_${Date.now()}.jpeg`;
+                return cropOrRotateImage(image.source, [], {compress: 1, name: tempFilename, type: IMAGE_TYPE}).then((normalizedImage) => {
+                    if (!normalizedImage?.uri) {
+                        return image;
+                    }
+                    return ImageSize.getSize(normalizedImage.uri).then((normalizedSize) => {
+                        // If the normalized image dimensions differ from the raw dimensions,
+                        // the image loader already applied EXIF rotation during normalization.
+                        const wasAutoRotated = normalizedSize.width !== imageSize.width || normalizedSize.height !== imageSize.height;
+
+                        const cropPromise = wasAutoRotated
+                            ? cropOrRotateImage(
+                                  normalizedImage.uri,
+                                  [{crop: calculateCropRect(normalizedSize.width, normalizedSize.height, ratioWidth, ratioHeight, shouldAlignTop)}],
+                                  {compress: 1, name: croppedFilename, type: IMAGE_TYPE},
+                              )
+                            : cropOrRotateImage(normalizedImage.uri, [{rotate: rotation}, {crop}], {compress: 1, name: croppedFilename, type: IMAGE_TYPE});
+
+                        return cropPromise.then((croppedImage) => {
+                            if (!croppedImage?.uri || !croppedImage?.name) {
+                                return image;
+                            }
+                            return {file: croppedImage, filename: croppedImage.name, source: croppedImage.uri};
+                        });
+                    });
+                });
+            }
 
             return cropOrRotateImage(image.source, [{crop}], {compress: 1, name: croppedFilename, type: IMAGE_TYPE}).then((croppedImage) => {
                 if (!croppedImage?.uri || !croppedImage?.name) {

@@ -6,6 +6,7 @@ type DeviceOrientationAwareImageSize = {
     imageHeight: number;
     aspectRatioWidth?: number;
     aspectRatioHeight?: number;
+    rotation?: number;
 };
 
 type GetDeviceOrientationAwareImageSizeParams = {
