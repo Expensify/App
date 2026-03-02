@@ -203,6 +203,7 @@ import type {
     PolicyEmployee,
     PolicyEmployeeList,
     PolicyReportField,
+    PolicyTagLists,
     RecentlyUsedReportFields,
     Report,
     ReportAction,
@@ -355,6 +356,24 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
+    },
+});
+
+let allPolicies: OnyxCollection<Policy>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allPolicies = value;
+    },
+});
+
+let allPolicyTags: OnyxCollection<PolicyTagLists>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allPolicyTags = value;
     },
 });
 
@@ -3878,9 +3897,21 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     const onClick = () => close(() => navigateFromNotification(reportID));
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
+        const policyID = report.policyID;
+        const policyTags = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined;
+        const policy = policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
         const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport, currentUserLogin});
+        LocalNotification.showModifiedExpenseNotification({
+            report,
+            reportAction,
+            onClick,
+            movedFromReport,
+            movedToReport,
+            policyTags,
+            policy,
+            currentUserLogin,
+        });
     } else {
         LocalNotification.showCommentNotification(report, reportAction, onClick);
     }
