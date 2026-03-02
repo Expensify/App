@@ -8704,10 +8704,6 @@ const CONST = {
         NEW_CHAT: {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
-        USER_LIST_ITEM: {
-            LEFT_CHECKBOX: 'UserListItem-LeftCheckbox',
-            RIGHT_CHECKBOX: 'UserListItem-RightCheckbox',
-        },
         WORKSPACE_EXPENSIFY_CARD: {
             CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
         },
