@@ -1186,10 +1186,7 @@ function deletePersonalCard({cardID, card}: {cardID: number; card?: Card}) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.CARD_LIST,
                 value: {
-                    [cardID]:
-                        card != null
-                            ? {...card, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                            : null,
+                    [cardID]: card != null ? {...card, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} : null,
                 },
             },
         ];
