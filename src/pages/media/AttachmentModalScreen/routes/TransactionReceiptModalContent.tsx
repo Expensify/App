@@ -571,18 +571,18 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     ]);
 
     const customAttachmentContent = useMemo(() => {
-        if (!isCropping || !source) {
+        if (!isCropping || (!sourceUri && !source)) {
             return null;
         }
 
         return (
             <ReceiptCropView
-                imageUri={source as string}
+                imageUri={(sourceUri || source) as string}
                 onCropChange={handleCropChange}
-                isAuthTokenRequired={isAuthTokenRequired}
+                isAuthTokenRequired={sourceUri ? false : isAuthTokenRequired}
             />
         );
-    }, [isCropping, source, handleCropChange, isAuthTokenRequired]);
+    }, [isCropping, sourceUri, handleCropChange, isAuthTokenRequired, source]);
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
