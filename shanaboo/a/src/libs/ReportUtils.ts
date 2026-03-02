@@ -1,12 +1,13 @@
 import {format} from 'date-fns';
-import {unescape} from 'lodash';
-import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
-import lodashIntersection from 'lodash/intersection';
-        return '';
-    }
-
-    return unescape(reportAction.message?.[0]?.text ?? reportAction.originalMessage?.html ?? '');
+import {parse} from 'expensify-common';
+import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+ */
+function getTaskDescription(report: OnyxEntry<Report>): string {
+    const description = report?.description ?? '';
+    const parsedDescription = parse(description, {textRepresentation: 'text'});
+    return parsedDescription;
 }
 
 /**
