@@ -166,8 +166,9 @@ function SearchAutocompleteList({
 
     const computeSpanStarted = useRef(false);
     const spanHandoffDone = useRef(false);
+    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
     // eslint-disable-next-line react-hooks/refs -- intentional: telemetry span must start during render to measure computation time
-    if (!computeSpanStarted.current && areOptionsInitialized && getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER)) {
+    if (!computeSpanStarted.current && areOptionsInitialized && isRecentSearchesDataLoaded && getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER)) {
         startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS, {
             name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS,
             op: 'function',
@@ -446,7 +447,6 @@ function SearchAutocompleteList({
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
 
-    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
     const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
 
     if (isLoading) {
