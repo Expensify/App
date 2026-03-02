@@ -60,6 +60,7 @@ import {
     doesReportBelongToWorkspace,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
+    getAddExpenseDropdownOptions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getAvailableReportFields,
@@ -129,6 +130,8 @@ import {
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
+import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
+import {openUnreportedExpense} from '@libs/actions/Report';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -227,6 +230,17 @@ jest.mock('@libs/PolicyUtils', () => ({
 }));
 
 const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
+
+jest.mock('@libs/actions/IOU', () => ({
+    ...jest.requireActual<typeof import('@libs/actions/IOU')>('@libs/actions/IOU'),
+    startMoneyRequest: jest.fn(),
+    startDistanceRequest: jest.fn(),
+}));
+
+jest.mock('@libs/actions/Report', () => ({
+    ...jest.requireActual<typeof import('@libs/actions/Report')>('@libs/actions/Report'),
+    openUnreportedExpense: jest.fn(),
+}));
 
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
@@ -13136,6 +13150,204 @@ describe('ReportUtils', () => {
 
             const result = getOriginalReportID(reportID, reportAction, {});
             expect(result).toBe(reportID);
+        });
+    });
+
+    describe('getAddExpenseDropdownOptions', () => {
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
+        const mockIcons = {Location: jest.fn(), ReceiptPlus: jest.fn()} as unknown as Record<'Location' | 'ReceiptPlus', IconAsset>;
+        const policyID = '5001';
+        const iouReportID = 'reportABC';
+        const ownerAccountID = 999;
+
+        const mockedStartMoneyRequest = jest.mocked(startMoneyRequest);
+        const mockedStartDistanceRequest = jest.mocked(startDistanceRequest);
+        const mockedOpenUnreportedExpense = jest.mocked(openUnreportedExpense);
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        });
+
+        it('should return 3 dropdown options with correct values', () => {
+            const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, null, undefined, undefined);
+
+            expect(options).toHaveLength(3);
+            expect(options.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
+            expect(options.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
+            expect(options.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE);
+        });
+
+        describe('CREATE_NEW_EXPENSE', () => {
+            it('should return early when iouReportID is undefined', () => {
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, null, undefined, undefined);
+                options.at(0)?.onSelected?.();
+
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+                expect(mockedStartMoneyRequest).not.toHaveBeenCalled();
+            });
+
+            it('should navigate to restricted action when non-personal policy owner is past due', async () => {
+                const policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                } as Policy;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await waitForBatchedUpdates();
+
+                const pastDueCollection = {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
+                        value: Math.floor(Date.now() / 1000) - 3600,
+                    },
+                };
+
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, pastDueCollection, undefined);
+                options.at(0)?.onSelected?.();
+
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+                expect(mockedStartMoneyRequest).not.toHaveBeenCalled();
+            });
+
+            it('should not restrict for personal policy type even when owner is past due', async () => {
+                const policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                } as Policy;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await waitForBatchedUpdates();
+
+                const pastDueCollection = {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
+                        value: Math.floor(Date.now() / 1000) - 3600,
+                    },
+                };
+
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, pastDueCollection, undefined);
+                options.at(0)?.onSelected?.();
+
+                expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+                expect(mockedStartMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, iouReportID, undefined, false, undefined);
+            });
+
+            it('should start money request when policy owner is not past due', async () => {
+                const policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                } as Policy;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await waitForBatchedUpdates();
+
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, undefined, undefined);
+                options.at(0)?.onSelected?.();
+
+                expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+                expect(mockedStartMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, iouReportID, undefined, false, undefined);
+            });
+        });
+
+        describe('TRACK_DISTANCE_EXPENSE', () => {
+            it('should return early when iouReportID is undefined', () => {
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, null, undefined, undefined);
+                options.at(1)?.onSelected?.();
+
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+                expect(mockedStartDistanceRequest).not.toHaveBeenCalled();
+            });
+
+            it('should navigate to restricted action when policy owner is past due', async () => {
+                const policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    ownerAccountID,
+                } as Policy;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await waitForBatchedUpdates();
+
+                const pastDueCollection = {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
+                        value: Math.floor(Date.now() / 1000) - 3600,
+                    },
+                };
+
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, pastDueCollection, undefined);
+                options.at(1)?.onSelected?.();
+
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+                expect(mockedStartDistanceRequest).not.toHaveBeenCalled();
+            });
+
+            it('should start distance request when policy owner is not restricted', async () => {
+                const policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    ownerAccountID,
+                } as Policy;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await waitForBatchedUpdates();
+
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, undefined, undefined);
+                options.at(1)?.onSelected?.();
+
+                expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+                expect(mockedStartDistanceRequest).toHaveBeenCalled();
+            });
+        });
+
+        describe('ADD_UNREPORTED_EXPENSE', () => {
+            it('should navigate to restricted action when policy owner is past due', async () => {
+                const policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    ownerAccountID,
+                } as Policy;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await waitForBatchedUpdates();
+
+                const pastDueCollection = {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
+                        value: Math.floor(Date.now() / 1000) - 3600,
+                    },
+                };
+
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, pastDueCollection, undefined);
+                options.at(2)?.onSelected?.();
+
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+                expect(mockedOpenUnreportedExpense).not.toHaveBeenCalled();
+            });
+
+            it('should open unreported expense when policy owner is not restricted', () => {
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, null, undefined, undefined);
+                options.at(2)?.onSelected?.();
+
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+                expect(mockedOpenUnreportedExpense).toHaveBeenCalledWith(iouReportID, undefined);
+            });
+
+            it('should pass ownerBillingGraceEndPeriod to restrict owner with past-due billing', async () => {
+                const gracePeriodEnd = Math.floor(Date.now() / 1000) - 3600;
+                const policy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    ownerAccountID: currentUserAccountID,
+                } as Policy;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
+                await waitForBatchedUpdates();
+
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, undefined, gracePeriodEnd);
+                options.at(2)?.onSelected?.();
+
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+                expect(mockedOpenUnreportedExpense).not.toHaveBeenCalled();
+            });
         });
     });
 });
