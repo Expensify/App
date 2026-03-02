@@ -439,7 +439,6 @@ function PaymentMethodList({
                 shouldShowRightIcon,
                 canDismissError: true,
                 isMissingPersonalInfo,
-                brickRoadIndicator: isMissingPersonalInfo ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             };
         });
         return combinedPaymentMethods;

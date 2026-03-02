@@ -2862,7 +2862,6 @@ const CONST = {
             LEGAL_NAME: 'legal-name',
             ADDRESS: 'address',
             PHONE_NUMBER: 'phone-number',
-            CONFIRM: 'confirm',
         },
     },
 

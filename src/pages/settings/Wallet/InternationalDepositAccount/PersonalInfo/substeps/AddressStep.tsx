@@ -22,6 +22,7 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY);
     const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [homeAddressFormDraft] = useOnyx(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT);
 
     const address = useMemo(() => {
         const normalizedAddress = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address;
@@ -43,13 +44,18 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
         bankAccountPersonalDetails?.country,
         privatePersonalDetails,
     ]);
+
+    // homeAddressFormDraft stores draft values saved by shouldSaveDraft on the form inputs.
+    // These take priority over the address computed above (which comes from PERSONAL_BANK_ACCOUNT_FORM_DRAFT / privatePersonalDetails).
+    const draftCountry = homeAddressFormDraft?.country;
+    const draftState = homeAddressFormDraft?.state;
     const {translate} = useLocalize();
 
     // Check if country is valid
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
-    const [currentCountry, setCurrentCountry] = useState<string | undefined>(address?.country ?? defaultCountry ?? CONST.COUNTRY.US);
-    const [state, setState] = useState<string | undefined>(address?.state);
+    const [currentCountry, setCurrentCountry] = useState<string | undefined>(draftCountry ?? address?.country ?? defaultCountry ?? CONST.COUNTRY.US);
+    const [state, setState] = useState<string | undefined>(draftState ?? address?.state);
     const [city, setCity] = useState<string | undefined>(address?.city);
     const [zipcode, setZipcode] = useState<string | undefined>(address?.zip);
 
@@ -57,11 +63,11 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
         if (!address) {
             return;
         }
-        setState(address?.state);
-        setCurrentCountry(address?.country);
+        setState(draftState ?? address?.state);
+        setCurrentCountry(draftCountry ?? address?.country);
         setCity(address?.city);
         setZipcode(address?.zip);
-    }, [address?.state, address?.country, address?.city, address?.zip, address]);
+    }, [address?.state, address?.country, address?.city, address?.zip, address, draftCountry, draftState]);
 
     const handleAddressChange = (value: unknown, key: unknown) => {
         const addressPart = value as string;
@@ -120,6 +126,7 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
                 street1={street1}
                 street2={street2}
                 zip={zipcode}
+                shouldSaveDraft
             />
         </>
     );

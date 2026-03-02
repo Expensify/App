@@ -1,36 +1,60 @@
 import React, {useEffect} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
-import {clearPersonalBankAccount, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
+import {clearPersonalBankAccount, clearPersonalBankAccountErrors, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
+import {clearDraftValues, clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
 import Address from './InternationalDepositAccount/PersonalInfo/substeps/AddressStep';
 import LegalName from './InternationalDepositAccount/PersonalInfo/substeps/LegalNameStep';
 import PhoneNumber from './InternationalDepositAccount/PersonalInfo/substeps/PhoneNumberStep';
 import getSkippedStepsPersonalInfo from './InternationalDepositAccount/PersonalInfo/utils/getSkippedStepsPersonalInfo';
-import UpdatePersonalInfoConfirmation from './UpdatePersonalInfoConfirmation';
 
 const PAGE_NAME = CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME;
 
-const STEP_INDEX_TO_PAGE_NAME: string[] = [PAGE_NAME.LEGAL_NAME, PAGE_NAME.ADDRESS, PAGE_NAME.PHONE_NUMBER];
+const PAGE_NAMES: string[] = [PAGE_NAME.LEGAL_NAME, PAGE_NAME.ADDRESS, PAGE_NAME.PHONE_NUMBER];
+
+/**
+ * Wrapper that delays auto-focus to avoid validation errors during URL-based navigation transitions.
+ */
+function DelayedPhoneNumber({isEditing, onNext, onMove}: SubStepProps) {
+    return (
+        <PhoneNumber
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
+            shouldDelayAutoFocus
+        />
+    );
+}
 
 const formPages = [
     {pageName: PAGE_NAME.LEGAL_NAME, component: LegalName},
     {pageName: PAGE_NAME.ADDRESS, component: Address},
-    {pageName: PAGE_NAME.PHONE_NUMBER, component: PhoneNumber},
-    {pageName: PAGE_NAME.CONFIRM, component: UpdatePersonalInfoConfirmation},
+    {pageName: PAGE_NAME.PHONE_NUMBER, component: DelayedPhoneNumber},
 ];
+
+/**
+ * Returns the first non-skipped page name for the update flow.
+ */
+function getFirstPageName(details?: Partial<PrivatePersonalDetails>): string {
+    const skippedSteps = getSkippedStepsPersonalInfo(details);
+    const skipPageNames = new Set(skippedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name));
+    const firstPage = PAGE_NAMES.find((name) => !skipPageNames.has(name));
+    return firstPage ?? PAGE_NAME.LEGAL_NAME;
+}
 
 function UpdatePersonalBankAccountPage() {
     const {translate} = useLocalize();
@@ -41,13 +65,20 @@ function UpdatePersonalBankAccountPage() {
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
-    useEffect(() => clearPersonalBankAccount, []);
+    useEffect(() => {
+        clearPersonalBankAccountErrors();
+        clearErrors(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
+        return () => {
+            clearPersonalBankAccount();
+            clearErrors(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
+        };
+    }, []);
 
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
-
     const exitFlow = () => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
         clearPersonalBankAccount();
+        clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
     };
 
     const submitPersonalInfo = () => {
@@ -67,32 +98,22 @@ function UpdatePersonalBankAccountPage() {
         updatePersonalBankAccountInfo(accountData);
     };
 
-    const skipPages = getSkippedStepsPersonalInfo(privatePersonalDetails)
-        .map((step) => STEP_INDEX_TO_PAGE_NAME.at(step - 1))
-        .filter((name): name is string => !!name);
+    const skippedSteps = getSkippedStepsPersonalInfo(privatePersonalDetails);
+    const skipPages = skippedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name);
 
-    const firstNonSkippedIndex = formPages.findIndex((p) => !skipPages.includes(p.pageName));
+    const firstPageName = getFirstPageName(privatePersonalDetails);
+    const firstNonSkippedIndex = formPages.findIndex((p) => p.pageName === firstPageName);
 
-    const {CurrentPage, isEditing, currentPageName, prevPage, nextPage, moveTo, isRedirecting} = useSubPage({
+    const {CurrentPage, currentPageName, prevPage, nextPage} = useSubPage({
         pages: formPages,
         onFinished: submitPersonalInfo,
         skipPages,
         startFrom: firstNonSkippedIndex >= 0 ? firstNonSkippedIndex : 0,
-        buildRoute: (pageName, action) => ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(pageName, action),
+        buildRoute: (pageName) => ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(pageName),
     });
 
-    if (isRedirecting) {
-        return <FullScreenLoadingIndicator />;
-    }
-
-    const firstVisiblePage = formPages.at(firstNonSkippedIndex >= 0 ? firstNonSkippedIndex : 0);
-
     const handleBackButtonPress = () => {
-        if (isEditing) {
-            Navigation.goBack(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(PAGE_NAME.CONFIRM));
-            return;
-        }
-        if (currentPageName === firstVisiblePage?.pageName) {
+        if (currentPageName === firstPageName) {
             Navigation.goBack();
             return;
         }
@@ -136,9 +157,9 @@ function UpdatePersonalBankAccountPage() {
                 onBackButtonPress={handleBackButtonPress}
             />
             <CurrentPage
-                isEditing={isEditing}
+                isEditing={false}
                 onNext={nextPage}
-                onMove={moveTo}
+                onMove={() => {}}
             />
         </ScreenWrapper>
     );
@@ -147,3 +168,4 @@ function UpdatePersonalBankAccountPage() {
 UpdatePersonalBankAccountPage.displayName = 'UpdatePersonalBankAccountPage';
 
 export default UpdatePersonalBankAccountPage;
+export {getFirstPageName};

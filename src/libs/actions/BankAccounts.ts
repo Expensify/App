@@ -199,7 +199,12 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
     }
 
     const onyxData: OnyxData<
-        typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT | typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT
+        | typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT
+        | typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS
+        | typeof ONYXKEYS.BANK_ACCOUNT_LIST
+        | typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT
+        | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM
+        | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT
     > = {
         optimisticData: [
             {
@@ -207,6 +212,13 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: true,
+                    errors: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
+                value: {
                     errors: null,
                 },
             },
@@ -228,6 +240,13 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
+                value: {
+                    errors: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
                     legalFirstName: accountData?.legalFirstName,
@@ -240,6 +259,11 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
                 key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
                 value: null,
             },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT,
+                value: null,
+            },
         ],
         failureData: [
             {
@@ -247,6 +271,13 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('addPersonalBankAccount.updatePersonalInfoFailure'),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
+                value: {
                     errors: getMicroSecondOnyxErrorWithTranslationKey('addPersonalBankAccount.updatePersonalInfoFailure'),
                 },
             },
