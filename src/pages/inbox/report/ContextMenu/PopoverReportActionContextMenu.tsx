@@ -47,7 +47,7 @@ type PopoverReportActionContextMenuProps = {
 };
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
-    const {translate} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -88,6 +88,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const personalPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`];
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -370,7 +373,19 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(childReport, selfDMReport, email ?? '', currentUserAccountID, reportTransactions, allTransactionViolations, bankAccountList, currentSearchHash);
+            deleteAppReport({
+                report: childReport,
+                selfDMReport,
+                currentUserEmailParam: email ?? '',
+                currentUserAccountIDParam: currentUserAccountID,
+                reportTransactions,
+                allTransactionViolations,
+                bankAccountList,
+                personalPolicy,
+                translate,
+                toLocaleDigit,
+                hash: currentSearchHash,
+            });
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
@@ -397,7 +412,10 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         email,
         reportTransactions,
         bankAccountList,
+        personalPolicy,
         isOriginalReportArchived,
+        translate,
+        toLocaleDigit,
         visibleReportActionsData,
     ]);
 
