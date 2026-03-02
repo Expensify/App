@@ -12,7 +12,7 @@ import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import {clearPersonalBankAccount, clearPersonalBankAccountErrors, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
-import {clearDraftValues, clearErrors} from '@userActions/FormActions';
+import {clearDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -67,11 +67,8 @@ function UpdatePersonalBankAccountPage() {
 
     useEffect(() => {
         clearPersonalBankAccountErrors();
-        clearErrors(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
-        return () => {
-            clearPersonalBankAccount();
-            clearErrors(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
-        };
+        clearPersonalBankAccount();
+        clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
     }, []);
 
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
