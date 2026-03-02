@@ -15,6 +15,8 @@ const isAccountLoadingSelector = (data: OnyxEntry<Account>) => !!data?.isLoading
 
 const requiresTwoFactorAuthSelector = (data: OnyxEntry<Account>) => data?.requiresTwoFactorAuth;
 
+const accountGuideDetailsSelector = (account: OnyxEntry<Account>) => account?.guideDetails;
+
 export {
     isActingAsDelegateSelector,
     isUserValidatedSelector,
@@ -23,4 +25,5 @@ export {
     hasBiometricsRegisteredSelector,
     isAccountLoadingSelector,
     requiresTwoFactorAuthSelector,
+    accountGuideDetailsSelector,
 };
