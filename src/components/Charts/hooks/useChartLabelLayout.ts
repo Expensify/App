@@ -57,7 +57,7 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTick
 
     const hWidth = effectiveWidth(maxLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL);
     const hFitsInTicks = hWidth + LABEL_PADDING <= tickSpacing && maxVisibleCount(labelAreaWidth, hWidth) >= data.length;
-    const hEdgeFits = edgeLabelsFit(firstLabelWidth, lastLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL, firstTickLeftSpace, lastTickRightSpace, false);
+    const hEdgeFits = edgeLabelsFit({firstLabelWidth, lastLabelWidth, lineHeight, rotation: LABEL_ROTATIONS.HORIZONTAL, firstTickLeftSpace, lastTickRightSpace, rightAligned: false});
 
     if (hFitsInTicks && hEdgeFits) {
         rotation = LABEL_ROTATIONS.HORIZONTAL;
@@ -108,7 +108,7 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTick
     const xAxisLabelHeight = effectiveHeight(finalMaxWidth, lineHeight, rotation);
 
     return {
-        labelRotation: -rotation,
+        labelRotation: rotation,
         labelSkipInterval: skipInterval,
         truncatedLabels: finalLabels,
         xAxisLabelHeight,

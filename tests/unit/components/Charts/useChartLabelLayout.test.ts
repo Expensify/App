@@ -56,7 +56,7 @@ describe('useChartLabelLayout', () => {
         it('picks 0° when labels fit horizontally', () => {
             // "AAA" = 21px. 21+4=25 ≤ tickSpacing(30). maxVisibleCount(90,21)=3 ≥ 3
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAA', 'BBB', 'CCC'), font, tickSpacing: 30, labelAreaWidth: 90}));
-            expect(result.current.labelRotation).toBe(-0);
+            expect(result.current.labelRotation).toBe(0);
             expect(result.current.truncatedLabels).toEqual(['AAA', 'BBB', 'CCC']);
             expect(result.current.xAxisLabelHeight).toBe(LINE_HEIGHT);
             expect(result.current.labelSkipInterval).toBe(1);
@@ -66,7 +66,7 @@ describe('useChartLabelLayout', () => {
             // "AAAAAA" = 42px. 42+4=46 > tickSpacing(40) → 0° fails.
             // At 45°: 42*SIN_45 ≈ 29.7, 29.7+4 ≤ 40 ✓
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), font, tickSpacing: 40, labelAreaWidth: 400}));
-            expect(result.current.labelRotation).toBe(-45);
+            expect(result.current.labelRotation).toBe(45);
             expect(result.current.truncatedLabels).toEqual(['AAAAAA', 'BBBBBB']);
             expect(result.current.xAxisLabelHeight).toBeCloseTo((42 + LINE_HEIGHT) * SIN_45, 5);
             expect(result.current.labelSkipInterval).toBe(1);
@@ -77,13 +77,13 @@ describe('useChartLabelLayout', () => {
             // BUT labelAreaWidth=40: maxVisibleCount(40,21) = floor(40/25) = 1 < 3 → 0° fails.
             // At 45°: 21*SIN_45 ≈ 14.85, 14.85+4=18.85 ≤ 30 ✓ → 45° selected.
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAA', 'BBB', 'CCC'), font, tickSpacing: 30, labelAreaWidth: 40}));
-            expect(result.current.labelRotation).toBe(-45);
+            expect(result.current.labelRotation).toBe(45);
         });
 
         it('picks 90° when labels overflow at all rotations', () => {
             // tickSpacing=20: 0° fails (46>20), 45° fails (29.7+4=33.7>20)
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), font, tickSpacing: 20, labelAreaWidth: 400}));
-            expect(result.current.labelRotation).toBe(-90);
+            expect(result.current.labelRotation).toBe(90);
             expect(result.current.truncatedLabels).toEqual(['AAAAAA', 'BBBBBB']);
         });
     });
@@ -107,7 +107,7 @@ describe('useChartLabelLayout', () => {
                     lastTickRightSpace: Infinity,
                 }),
             );
-            expect(result.current.labelRotation).toBe(-0);
+            expect(result.current.labelRotation).toBe(0);
         });
     });
 
@@ -117,11 +117,11 @@ describe('useChartLabelLayout', () => {
             const config = {data: makeData('A'.repeat(16), 'BB', 'CC'), font, tickSpacing: 120, labelAreaWidth: 360};
 
             const {result: noEdge} = renderHook(() => useChartLabelLayout(config));
-            expect(noEdge.current.labelRotation).toBe(-0);
+            expect(noEdge.current.labelRotation).toBe(0);
 
             // firstTickLeftSpace=40 < 56 → 0° edge fails → escalates to 45°
             const {result: withEdge} = renderHook(() => useChartLabelLayout({...config, firstTickLeftSpace: 40, lastTickRightSpace: 200}));
-            expect(withEdge.current.labelRotation).toBe(-45);
+            expect(withEdge.current.labelRotation).toBe(45);
         });
 
         it('escalates to 90° when edge space is too small for both 0° and 45°', () => {
@@ -129,7 +129,7 @@ describe('useChartLabelLayout', () => {
             const {result} = renderHook(() =>
                 useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), font, tickSpacing: 50, labelAreaWidth: 200, firstTickLeftSpace: 5, lastTickRightSpace: 5}),
             );
-            expect(result.current.labelRotation).toBe(-90);
+            expect(result.current.labelRotation).toBe(90);
         });
 
         it('allowTightDiagonalPacking enables 45° at tighter tick spacing', () => {
@@ -139,10 +139,10 @@ describe('useChartLabelLayout', () => {
             const base = {data: makeData('AAAAAA', 'BBBBBB'), font, tickSpacing: 30, labelAreaWidth: 400, firstTickLeftSpace: 100, lastTickRightSpace: 100};
 
             const {result: noPacking} = renderHook(() => useChartLabelLayout({...base, allowTightDiagonalPacking: false}));
-            expect(noPacking.current.labelRotation).toBe(-90);
+            expect(noPacking.current.labelRotation).toBe(90);
 
             const {result: withPacking} = renderHook(() => useChartLabelLayout({...base, allowTightDiagonalPacking: true}));
-            expect(withPacking.current.labelRotation).toBe(-45);
+            expect(withPacking.current.labelRotation).toBe(45);
         });
     });
 
@@ -160,10 +160,10 @@ describe('useChartLabelLayout', () => {
                     lastTickRightSpace: 200,
                 }),
             );
-            expect(result.current.labelRotation).toBe(-45);
-            expect(result.current.truncatedLabels?.at(0)).toBe(`${'A'.repeat(10)}...`);
-            expect(result.current.truncatedLabels?.at(1)).toBe('BB');
-            expect(result.current.truncatedLabels?.at(2)).toBe('CC');
+            expect(result.current.labelRotation).toBe(45);
+            expect(result.current.truncatedLabels.at(0)).toBe(`${'A'.repeat(10)}...`);
+            expect(result.current.truncatedLabels.at(1)).toBe('BB');
+            expect(result.current.truncatedLabels.at(2)).toBe('CC');
         });
 
         it('truncates first label due to edge constraint (right-aligned)', () => {
@@ -180,9 +180,9 @@ describe('useChartLabelLayout', () => {
                     allowTightDiagonalPacking: true,
                 }),
             );
-            expect(result.current.labelRotation).toBe(-45);
-            expect(result.current.truncatedLabels?.at(0)).toBe(`${'A'.repeat(10)}...`);
-            expect(result.current.truncatedLabels?.at(1)).toBe('BB');
+            expect(result.current.labelRotation).toBe(45);
+            expect(result.current.truncatedLabels.at(0)).toBe(`${'A'.repeat(10)}...`);
+            expect(result.current.truncatedLabels.at(1)).toBe('BB');
         });
 
         it('truncates last label when centered due to symmetric overhang', () => {
@@ -198,8 +198,8 @@ describe('useChartLabelLayout', () => {
                     lastTickRightSpace: 40,
                 }),
             );
-            expect(result.current.labelRotation).toBe(-45);
-            expect(result.current.truncatedLabels?.at(2)).toBe(`${'A'.repeat(10)}...`);
+            expect(result.current.labelRotation).toBe(45);
+            expect(result.current.truncatedLabels.at(2)).toBe(`${'A'.repeat(10)}...`);
         });
 
         it('does NOT truncate last label when right-aligned despite tight right edge', () => {
@@ -217,8 +217,8 @@ describe('useChartLabelLayout', () => {
                     allowTightDiagonalPacking: true,
                 }),
             );
-            expect(result.current.labelRotation).toBe(-45);
-            expect(result.current.truncatedLabels?.at(2)).toBe('A'.repeat(16));
+            expect(result.current.labelRotation).toBe(45);
+            expect(result.current.truncatedLabels.at(2)).toBe('A'.repeat(16));
         });
     });
 
@@ -228,13 +228,13 @@ describe('useChartLabelLayout', () => {
             // maxVisibleCount(100, 16) = floor(100/20) = 5 < 10 → skip = ceil(10/5) = 2
             const labels = Array.from({length: 10}, (_, i) => `L${String(i).padStart(4, '0')}`);
             const {result} = renderHook(() => useChartLabelLayout({data: makeData(...labels), font, tickSpacing: 10, labelAreaWidth: 100}));
-            expect(result.current.labelRotation).toBe(-90);
+            expect(result.current.labelRotation).toBe(90);
             expect(result.current.labelSkipInterval).toBe(2);
         });
 
         it('returns skip interval 1 at 90° when labels fit', () => {
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), font, tickSpacing: 10, labelAreaWidth: 400}));
-            expect(result.current.labelRotation).toBe(-90);
+            expect(result.current.labelRotation).toBe(90);
             expect(result.current.labelSkipInterval).toBe(1);
             expect(result.current.truncatedLabels).toEqual(['AAAAAA', 'BBBBBB']);
             expect(result.current.xAxisLabelHeight).toBe(42);
@@ -244,7 +244,7 @@ describe('useChartLabelLayout', () => {
     describe('edge cases', () => {
         it('handles single data point', () => {
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAA'), font, tickSpacing: 50, labelAreaWidth: 50}));
-            expect(result.current.labelRotation).toBe(-0);
+            expect(result.current.labelRotation).toBe(0);
             expect(result.current.truncatedLabels).toEqual(['AAA']);
             expect(result.current.labelSkipInterval).toBe(1);
         });

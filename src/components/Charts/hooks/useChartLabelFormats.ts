@@ -60,7 +60,7 @@ export default function useChartLabelFormats({data, font, unit, unitPosition = '
             return '';
         }
 
-        const sourceToUse = labelRotation === -LABEL_ROTATIONS.VERTICAL || !truncatedLabels ? data.map((p) => p.label) : truncatedLabels;
+        const sourceToUse = labelRotation === LABEL_ROTATIONS.VERTICAL || !truncatedLabels ? data.map((p) => p.label) : truncatedLabels;
 
         return sourceToUse.at(index) ?? '';
     };

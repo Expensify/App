@@ -244,15 +244,23 @@ function labelOverhang(labelWidth: number, lineHeight: number, rotation: number,
 }
 
 /** Check if first and last labels fit within the available canvas edge space. */
-function edgeLabelsFit(
-    firstLabelWidth: number,
-    lastLabelWidth: number,
-    lineHeight: number,
-    rotation: number,
-    firstTickLeftSpace: number,
-    lastTickRightSpace: number,
-    rightAligned: boolean,
-): boolean {
+function edgeLabelsFit({
+    firstLabelWidth,
+    lastLabelWidth,
+    lineHeight,
+    rotation,
+    firstTickLeftSpace,
+    lastTickRightSpace,
+    rightAligned,
+}: {
+    firstLabelWidth: number;
+    lastLabelWidth: number;
+    lineHeight: number;
+    rotation: number;
+    firstTickLeftSpace: number;
+    lastTickRightSpace: number;
+    rightAligned: boolean;
+}): boolean {
     const first = labelOverhang(firstLabelWidth, lineHeight, rotation, rightAligned);
     const last = labelOverhang(lastLabelWidth, lineHeight, rotation, rightAligned);
     return first.left <= firstTickLeftSpace && last.right <= lastTickRightSpace;

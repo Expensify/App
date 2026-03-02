@@ -8,7 +8,7 @@ type ChartXAxisLabelsProps = {
     /** Processed label strings (already truncated by the layout hook). */
     labels: string[];
 
-    /** Label rotation in degrees (negative value, e.g. -45). */
+    /** Label rotation in degrees (e.g. 0, 45, 90). */
     labelRotation: number;
 
     /** Show every Nth label (1 = all, 2 = every other, etc.). */

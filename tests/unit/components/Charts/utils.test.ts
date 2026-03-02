@@ -112,16 +112,18 @@ describe('labelOverhang', () => {
 });
 
 describe('edgeLabelsFit', () => {
+    const base = {firstLabelWidth: 40, lastLabelWidth: 40, lineHeight: LINE_HEIGHT, rotation: 0, firstTickLeftSpace: 30, lastTickRightSpace: 30, rightAligned: false};
+
     it('returns true when both edges have enough space', () => {
-        expect(edgeLabelsFit(40, 40, LINE_HEIGHT, 0, 30, 30, false)).toBe(true);
+        expect(edgeLabelsFit(base)).toBe(true);
     });
 
     it('returns false when first label overflows left', () => {
-        expect(edgeLabelsFit(100, 40, LINE_HEIGHT, 0, 30, 30, false)).toBe(false);
+        expect(edgeLabelsFit({...base, firstLabelWidth: 100})).toBe(false);
     });
 
     it('returns false when last label overflows right', () => {
-        expect(edgeLabelsFit(40, 100, LINE_HEIGHT, 0, 30, 30, false)).toBe(false);
+        expect(edgeLabelsFit({...base, lastLabelWidth: 100})).toBe(false);
     });
 });
 
