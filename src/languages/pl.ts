@@ -3944,6 +3944,7 @@ ${
             clearFilter: 'Wyczyść filtr',
             workspaceName: 'Nazwa przestrzeni roboczej',
             workspaceOwner: 'Właściciel',
+            keepMeAsAdmin: 'Zachowaj mnie jako administratora',
             workspaceType: 'Typ przestrzeni roboczej',
             workspaceAvatar: 'Awatar przestrzeni roboczej',
             clientID: 'ID klienta',
@@ -7609,7 +7610,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
     },
     gps: {
-        disclaimer: 'Użyj GPS, aby utworzyć wydatek z podróży. Stuknij przycisk „Start” poniżej, aby rozpocząć śledzenie.',
         error: {
             failedToStart: 'Nie udało się uruchomić śledzenia lokalizacji.',
             failedToGetPermissions: 'Nie udało się uzyskać wymaganych uprawnień lokalizacji.',
