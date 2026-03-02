@@ -1,5 +1,7 @@
 import type {StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
+import {spanToJSON} from '@sentry/react-native';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
 const activeSpans = new Map<string, ReturnType<typeof Sentry.startInactiveSpan>>();
@@ -15,6 +17,12 @@ type StartSpanExtraOptions = Partial<{
 function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}) {
     // End any existing span for this name
     cancelSpan(spanId);
+    Log.info(`[Sentry][${spanId}] Starting span`, undefined, {
+        spanId,
+        spanOptions: options,
+        spanExtraOptions: extraOptions,
+        timestamp: Date.now(),
+    });
     const span = Sentry.startInactiveSpan(options);
 
     if (extraOptions.minDuration) {
@@ -29,8 +37,13 @@ function endSpan(spanId: string) {
     const span = activeSpans.get(spanId);
 
     if (!span) {
+        Log.info(`[Sentry][${spanId}] Trying to end span but it does not exist`, undefined, {spanId, timestamp: Date.now()});
         return;
     }
+    const now = Date.now();
+    const startTimestamp = spanToJSON(span).start_timestamp;
+    const durationMs = Math.round(now - startTimestamp * 1000);
+    Log.info(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, undefined, {spanId, durationMs, timestamp: now});
     span.setStatus({code: 1});
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);
     span.end();
@@ -39,10 +52,14 @@ function endSpan(spanId: string) {
 
 function cancelSpan(spanId: string) {
     const span = activeSpans.get(spanId);
-    span?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true);
+    if (!span) {
+        return;
+    }
+    Log.info(`[Sentry][${spanId}] Canceling span`, undefined, {spanId, timestamp: Date.now()});
+    span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true);
     // In Sentry there are only OK or ERROR status codes.
     // We treat canceled spans as OK, so we can properly track spans that are not finished at all (their status would be different)
-    span?.setStatus({code: 1});
+    span.setStatus({code: 1});
     endSpan(spanId);
 }
 
