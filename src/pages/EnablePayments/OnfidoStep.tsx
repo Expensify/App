@@ -15,9 +15,7 @@ import OnfidoPrivacy from './OnfidoPrivacy';
 
 function OnfidoStep() {
     const {translate} = useLocalize();
-    const [walletOnfidoData] = useOnyx(ONYXKEYS.WALLET_ONFIDO, {
-        canBeMissing: true,
-    });
+    const [walletOnfidoData] = useOnyx(ONYXKEYS.WALLET_ONFIDO);
 
     const shouldShowOnfido = walletOnfidoData?.hasAcceptedPrivacyPolicy && !walletOnfidoData?.isLoading && !walletOnfidoData?.errors && walletOnfidoData?.sdkToken;
 

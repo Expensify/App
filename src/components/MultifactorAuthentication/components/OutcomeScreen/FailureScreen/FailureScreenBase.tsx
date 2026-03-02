@@ -1,7 +1,6 @@
 import React from 'react';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import OutcomeScreenBase from '@components/MultifactorAuthentication/components/OutcomeScreen/OutcomeScreenBase';
-import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import useLocalize from '@hooks/useLocalize';
 // Spacing is needed for icon padding configuration
 // eslint-disable-next-line no-restricted-imports
@@ -18,14 +17,12 @@ type FailureScreenBaseProps = {
     customSubtitle?: React.ReactElement;
 };
 
-function FailureScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle}: FailureScreenBaseProps) {
+function FailureScreenBase({headerTitle = 'multifactorAuthentication.verificationFailed', illustration, iconWidth, iconHeight, title, subtitle, customSubtitle}: FailureScreenBaseProps) {
     const {translate} = useLocalize();
-    const {state} = useMultifactorAuthenticationState();
-    const resolvedHeaderTitle = headerTitle ?? state.scenario?.failureHeaderTitle ?? 'multifactorAuthentication.verificationFailed';
 
     return (
         <OutcomeScreenBase
-            headerTitle={translate(resolvedHeaderTitle)}
+            headerTitle={translate(headerTitle)}
             illustration={illustration}
             iconWidth={iconWidth}
             iconHeight={iconHeight}

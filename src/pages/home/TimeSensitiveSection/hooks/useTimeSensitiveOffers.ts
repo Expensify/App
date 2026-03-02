@@ -1,13 +1,13 @@
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useOnyx from '@hooks/useOnyx';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
-import {getEarlyDiscountInfo, shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
+import {doesUserHavePaymentCardAdded, getEarlyDiscountInfo, hasUserFreeTrialEnded, shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function useTimeSensitiveOffers() {
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
 
@@ -19,9 +19,13 @@ function useTimeSensitiveOffers() {
     const shouldShow50off = shouldShowDiscount && discountInfo?.discountType === 50;
     const shouldShow25off = shouldShowDiscount && discountInfo?.discountType === 25;
 
+    // Show add payment card for users whose trial ended and haven't added a payment card
+    const shouldShowAddPaymentCard = hasUserFreeTrialEnded(lastDayFreeTrial) && !doesUserHavePaymentCardAdded(userBillingFundID);
+
     return {
         shouldShow50off,
         shouldShow25off,
+        shouldShowAddPaymentCard,
         firstDayFreeTrial,
         discountInfo,
     };

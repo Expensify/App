@@ -348,18 +348,16 @@ function SearchList({
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-    });
-
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
 
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector, canBeMissing: false});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
@@ -480,11 +478,12 @@ function SearchList({
                         columns={columns}
                         policies={policies}
                         isDisabled={isDisabled}
-                        allReports={allReports}
                         groupBy={groupBy}
                         searchType={type}
                         onDEWModalOpen={onDEWModalOpen}
                         isDEWBetaEnabled={isDEWBetaEnabled}
+                        lastPaymentMethod={lastPaymentMethod}
+                        personalPolicyID={personalPolicyID}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
@@ -516,7 +515,6 @@ function SearchList({
             hash,
             columns,
             policies,
-            allReports,
             userWalletTierName,
             isUserValidated,
             personalDetails,
@@ -525,6 +523,8 @@ function SearchList({
             violations,
             onDEWModalOpen,
             isDEWBetaEnabled,
+            lastPaymentMethod,
+            personalPolicyID,
             customCardNames,
         ],
     );
@@ -539,7 +539,7 @@ function SearchList({
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
                     {canSelectMultiple && (
                         <Checkbox
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
                             onPress={() => {
@@ -556,7 +556,7 @@ function SearchList({
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={onAllCheckboxPress}
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             role="button"
                             accessibilityState={{checked: isSelectAllChecked}}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_BUTTON}
