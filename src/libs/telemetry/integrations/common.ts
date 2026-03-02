@@ -12,4 +12,12 @@ const navigationIntegration = Sentry.reactNavigationIntegration({
 
 const browserProfilingIntegration = SentryReact.browserProfilingIntegration();
 
-export {navigationIntegration, shouldCreateSpanForRequest, browserProfilingIntegration};
+const breadcrumbsIntegration = Sentry.breadcrumbsIntegration({
+    console: false,
+});
+
+const consoleIntegration = Sentry.consoleLoggingIntegration({
+    levels: ['error'],
+});
+
+export {navigationIntegration, shouldCreateSpanForRequest, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration};

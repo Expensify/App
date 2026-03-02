@@ -49,6 +49,7 @@ export type {WorkspaceCategoryForm} from './WorkspaceCategoryForm';
 export type {WorkspaceSettingsForm} from './WorkspaceSettingsForm';
 export type {ReportPhysicalCardForm} from './ReportPhysicalCardForm';
 export type {WorkspaceDescriptionForm} from './WorkspaceDescriptionForm';
+export type {WorkspaceClientIDForm} from './WorkspaceClientIDForm';
 export type {WorkspaceMemberCustomFieldsForm} from './WorkspaceCustomFieldsForm';
 export type {AdditionalDetailStepForm} from './AdditionalDetailStepForm';
 export type {PolicyTagNameForm} from './PolicyTagNameForm';
@@ -102,9 +103,6 @@ export type {InternationalBankAccountForm} from './InternationalBankAccountForm'
 export type {WorkspacePerDiemForm} from './WorkspacePerDiemForm';
 export type {MoneyRequestRejectReasonForm} from './MoneyRequestRejectReasonForm';
 export type {EnableGlobalReimbursementsForm} from './EnableGlobalReimbursementsForm';
-export type {SearchEditMultipleDescriptionForm} from './SearchEditMultipleDescriptionForm';
-export type {SearchEditMultipleMerchantForm} from './SearchEditMultipleMerchantForm';
-export type {SearchEditMultipleDateForm} from './SearchEditMultipleDateForm';
 export type {EnterSignerInfoForm} from './EnterSignerInfoForm';
 export type {CreateDomainForm} from './CreateDomainForm';
 export type {SplitExpenseEditDateForm} from './SplitExpenseEditDateForm';

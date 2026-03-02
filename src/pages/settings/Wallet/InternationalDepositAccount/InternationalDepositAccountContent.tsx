@@ -81,28 +81,31 @@ function InternationalDepositAccountContent({
 
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((route) => isFullScreenName(route.name)));
 
-    const goBack = useCallback(() => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        switch (topmostFullScreenRoute?.name) {
-            case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
-                Navigation.goBack(ROUTES.SETTINGS_WALLET);
-                break;
-            case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
-                Navigation.closeRHPFlow();
-                break;
-            default:
-                Navigation.goBack();
-                break;
-        }
-    }, [backTo, topmostFullScreenRoute?.name]);
+    const goBack = useCallback(
+        (shouldIgnoreBackToParam = false) => {
+            if (backTo && !shouldIgnoreBackToParam) {
+                Navigation.goBack(backTo);
+                return;
+            }
+            switch (topmostFullScreenRoute?.name) {
+                case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
+                    Navigation.goBack(ROUTES.SETTINGS_WALLET);
+                    break;
+                case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
+                    Navigation.closeRHPFlow();
+                    break;
+                default:
+                    Navigation.goBack();
+                    break;
+            }
+        },
+        [backTo, topmostFullScreenRoute?.name],
+    );
 
     const handleFinishStep = useCallback(() => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-        goBack();
-    }, [goBack]);
+        goBack(backTo?.includes(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE));
+    }, [goBack, backTo]);
 
     const {componentToRender: SubStep, isEditing, nextScreen, prevScreen, screenIndex, moveTo, resetScreenIndex} =
         // eslint-disable-next-line @typescript-eslint/no-deprecated

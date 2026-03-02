@@ -27,7 +27,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
     const {transactionID, reportID, backTo} = route.params;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const ancestors = useAncestors(report);
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)

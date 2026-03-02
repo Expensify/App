@@ -27,7 +27,7 @@ function ExpensifyCodePage() {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [hasSubmitted, setHasSubmitted] = useState(false);
-    const [subscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
+    const [subscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const isExpensifyCodeApplied = !!subscription?.expensifyCode;
 
     const defaultValues = {

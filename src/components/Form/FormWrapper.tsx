@@ -11,6 +11,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
@@ -103,7 +104,7 @@ function FormWrapper({
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
 
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
+    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
 
     const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
 
@@ -134,8 +135,17 @@ function FormWrapper({
             );
         }
 
-        // Focus the input after scrolling, as on the Web it gives a slightly better visual result
-        focusInput?.focus?.();
+        // We use InteractionManager to ensure the accessibility focus happens after the scroll animation completes
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+            const nativeRef = (focusInput as any)?.getNativeRef?.() ?? focusInput;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            Accessibility.moveAccessibilityFocus(nativeRef);
+
+            // Focus the input after moving accessibility focus
+            focusInput?.focus?.();
+        });
     };
 
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,

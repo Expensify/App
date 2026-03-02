@@ -255,6 +255,9 @@ type ReceiptError = {
 
     /** Parameters required to retry the failed action */
     retryParams: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+
+    /** The type of receipt error */
+    error: typeof CONST.IOU.RECEIPT_ERROR;
 };
 
 /** Collection of receipt errors, indexed by a UNIX timestamp of when the error occurred */
@@ -536,9 +539,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction id */
         transactionID: string;
 
-        /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
-        selectedTransactionIDs?: string[];
-
         /** The transaction tag */
         tag?: string;
 
@@ -653,6 +653,9 @@ type AdditionalTransactionChanges = {
 
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
+
+    /** The unit for the distance/quantity */
+    quantity?: number;
 };
 
 /** Model of transaction changes  */
