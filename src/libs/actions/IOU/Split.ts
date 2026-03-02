@@ -1043,7 +1043,8 @@ function updateSplitTransactions({
     iouReportNextStep,
     isFromSplitExpensesFlow,
     betas,
-}: UpdateSplitTransactionsParams) {
+    allPolicyTags,
+}: UpdateSplitTransactionsParams & {allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>}) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
@@ -1053,7 +1054,7 @@ function updateSplitTransactions({
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
     // TODO: remove `allPolicyTags` from this file [https://github.com/Expensify/App/issues/80401]
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyTags = getPolicyTagsData(expenseReport?.policyID);
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
     const participants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
@@ -1683,7 +1684,7 @@ function updateSplitTransactions({
 }
 
 function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransactionsParams) {
-    updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
+    updateSplitTransactions({...params, isFromSplitExpensesFlow: true, allPolicyTags: getPolicyTags()});
     const transactionReport = getReportOrDraftReport(params.transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
