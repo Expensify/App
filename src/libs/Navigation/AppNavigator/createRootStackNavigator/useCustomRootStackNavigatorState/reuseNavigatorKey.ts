@@ -1,6 +1,6 @@
-import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
-import {screensWithEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
-import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import type { ParamListBase, StackNavigationState } from '@react-navigation/native';
+import { screensWithEnteringAnimation } from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import { isFullScreenName } from '@libs/Navigation/helpers/isNavigatorName';
 
 type StateRoutes = StackNavigationState<ParamListBase>['routes'];
 
@@ -9,19 +9,20 @@ type StateRoutes = StackNavigationState<ParamListBase>['routes'];
  * already exists in the full state (with a different key). If so, replaces the new route
  * with the existing one updated with the new params — exactly mirroring what
  * handlePushFullscreenAction did at the router level.
- *
  * This causes React to reuse the already-mounted navigator component (same key),
  * while the new params tell the navigator which screen to show.
  * The real navigation state is untouched.
  */
+
+
+
 function reuseNavigatorKey(routesToRender: StateRoutes, fullState: StackNavigationState<ParamListBase>): StateRoutes {
     return routesToRender.map((route) => {
-        if (!isFullScreenName(route.name)) {
+        if (!isFullScreenName(route.name) || fullState.routes.at(fullState.routes.length - 1)?.name === route.name) {
             return route;
         }
 
-        // Find a route already in the stack with the same navigator name.
-        // A different key means it was pushed in a previous navigation action.
+        // Find an already mounted route with the same navigator name
         const existingRoute = fullState.routes.find((r) => r.name === route.name && r.key !== route.key);
 
         if (!existingRoute) {
@@ -39,13 +40,11 @@ function reuseNavigatorKey(routesToRender: StateRoutes, fullState: StackNavigati
             screensWithEnteringAnimation.add(existingRoute.key);
         }
 
-        // Mirror handlePushFullscreenAction:
-        // spread the existing route (preserves key and navigator state) and merge new params on top.
-        // The existing key causes React to reuse the mounted component.
-        // The merged params carry the new navigation target (screen/params) into the reused component.
         return {
-            ...existingRoute,
-            params: {...existingRoute.params, ...route.params},
+            ...existingRoute, // Preserve key and internal navigator state
+            params: {
+                ...route.params, // Apply params from the new navigation action
+            },
         };
     });
 }
