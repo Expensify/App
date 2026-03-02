@@ -3995,6 +3995,7 @@ const translations = {
             clearFilter: 'Clear filter',
             workspaceName: 'Workspace name',
             workspaceOwner: 'Owner',
+            keepMeAsAdmin: 'Keep me as an admin',
             workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
             clientID: 'Client ID',
@@ -7610,7 +7611,6 @@ const translations = {
         },
     },
     gps: {
-        disclaimer: 'Use GPS to create an expense from your journey. Tap Start below to begin tracking.',
         error: {
             failedToStart: 'Failed to start location tracking.',
             failedToGetPermissions: 'Failed to get required location permissions.',
