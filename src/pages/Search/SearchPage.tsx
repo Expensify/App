@@ -23,7 +23,6 @@ import {searchInServer} from '@libs/actions/Report';
 import {search, updateAdvancedFilters} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
@@ -38,26 +37,20 @@ function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults} = useSearchStateContext();
-    const {clearSelectedTransactions, setLastSearchType, setSearchQueryJSON} = useSearchActionsContext();
+    const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
+    const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
-    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
 
-    const formValues = useFilterFormValues(queryJSON);
+    const formValues = useFilterFormValues(currentSearchQueryJSON);
 
     useEffect(() => {
         updateAdvancedFilters(formValues, true);
     }, [formValues]);
-
-    // Sync the search query JSON up to the context so that it can be used globally
-    useEffect(() => {
-        setSearchQueryJSON(queryJSON);
-    }, [queryJSON, setSearchQueryJSON]);
 
     useConfirmReadyToOpenApp();
 
@@ -70,7 +63,7 @@ function SearchPage({route}: SearchPageProps) {
         if (currentSearchResults.data) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
-    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
+    }, [lastSearchType, currentSearchQueryJSON, setLastSearchType, currentSearchResults]);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -86,7 +79,7 @@ function SearchPage({route}: SearchPageProps) {
     }
 
     const metadata = searchResults?.search;
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
     const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
 
     useEffect(() => {
@@ -169,7 +162,7 @@ function SearchPage({route}: SearchPageProps) {
                 <DragAndDropProvider isDisabled={isDragDisabled}>
                     {PDFValidationComponent}
                     <SearchPageNarrow
-                        queryJSON={queryJSON}
+                        queryJSON={currentSearchQueryJSON}
                         metadata={metadata}
                         searchResults={searchResults}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -190,7 +183,7 @@ function SearchPage({route}: SearchPageProps) {
                 </DragAndDropProvider>
             ) : (
                 <SearchPageWide
-                    queryJSON={queryJSON}
+                    queryJSON={currentSearchQueryJSON}
                     searchResults={searchResults}
                     searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}

@@ -1,5 +1,3 @@
-import {useNavigationState} from '@react-navigation/native';
-import {deepEqual} from 'fast-equals';
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
@@ -7,16 +5,24 @@ import {useOnyx} from 'react-native-onyx';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useTodos from '@hooks/useTodos';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SearchActionsContextValue, SearchContextData, SearchQueryJSON, SearchStateContextValue, SelectedTransactions} from './types';
+import type {SearchActionsContextValue, SearchContextData, SearchStateContextValue, SelectedTransactions} from './types';
+
+type SearchContextProps = {
+    children: React.ReactNode;
+    params?: PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>['route']['params'];
+};
 
 // Default search info when building from live data
 // Used for to-do searches where we build SearchResults from live Onyx data instead of API snapshots
@@ -66,13 +72,12 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
     setShouldShowSelectAllMatchingItems: () => {},
     selectAllMatchingItems: () => {},
     setShouldResetSearchQuery: () => {},
-    setSearchQueryJSON: () => {},
 };
 
 const SearchStateContext = React.createContext<SearchStateContextValue>(defaultSearchStateContext);
 const SearchActionsContext = React.createContext<SearchActionsContextValue>(defaultSearchActionsContext);
 
-function SearchContextProvider({children}: ChildrenProps) {
+function SearchContextProvider({children, params}: SearchContextProps) {
     const areTransactionsEmpty = useRef(true);
 
     const [lastSearchType, setLastSearchType] = useState<string>();
@@ -94,6 +99,16 @@ function SearchContextProvider({children}: ChildrenProps) {
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const {accountID} = useCurrentUserPersonalDetails();
     const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeed?.id);
+
+    const query = params?.q ?? '';
+    const rawQuery = params?.rawQuery ?? '';
+    const currentSearchQueryJSON = useMemo(() => {
+        if (!query) {
+            return undefined;
+        }
+
+        return buildSearchQueryJSON(query, rawQuery);
+    }, [query, rawQuery]);
 
     const currentSearchKey = useMemo(() => {
         return Object.values(suggestedSearches).find((search) => search.similarSearchHash === currentSimilarSearchHash)?.key;
@@ -123,16 +138,6 @@ function SearchContextProvider({children}: ChildrenProps) {
 
         return snapshotSearchResults ?? undefined;
     }, [currentSearchKey, shouldUseLiveData, snapshotSearchResults, todoSearchResultsData]);
-
-    const setSearchQueryJSON = useCallback((searchQueryJSON: SearchQueryJSON | undefined) => {
-        setSearchContextData((prevState) => {
-            if (deepEqual(prevState.currentSearchQueryJSON, searchQueryJSON)) {
-                return prevState;
-            }
-
-            return {...prevState, currentSearchQueryJSON: searchQueryJSON};
-        });
-    }, []);
 
     const setSelectedTransactions: SearchActionsContextValue['setSelectedTransactions'] = (transactionIDs, data = []) => {
         if (transactionIDs instanceof Array) {
@@ -267,6 +272,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         currentSearchHash,
         currentSimilarSearchHash,
         currentSearchResults,
+        currentSearchQueryJSON,
         shouldUseLiveData,
         shouldShowFiltersBarLoading,
         lastSearchType,
@@ -283,7 +289,6 @@ function SearchContextProvider({children}: ChildrenProps) {
         setShouldShowSelectAllMatchingItems,
         selectAllMatchingItems,
         setShouldResetSearchQuery,
-        setSearchQueryJSON,
     };
 
     return (
