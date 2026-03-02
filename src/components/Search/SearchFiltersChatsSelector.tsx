@@ -170,7 +170,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
 
     const textInputOptions = {
         value: searchTerm,
-        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        label: translate('common.search'),
         onChangeText: setSearchTerm,
         headerMessage,
     };

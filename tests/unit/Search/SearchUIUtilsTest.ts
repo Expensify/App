@@ -6936,4 +6936,59 @@ describe('SearchUIUtils', () => {
             expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG]);
         });
     });
+
+    describe('Test getFeedOptions', () => {
+        test('should return feed options sorted alphabetically', () => {
+            const mockCardFeeds: OnyxCollection<OnyxTypes.CardFeeds> = {
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}100`]: {
+                    settings: {
+                        companyCards: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: {
+                                pending: false,
+                            },
+                        },
+                        companyCardNicknames: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Zebra Card',
+                        },
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}200`]: {
+                    settings: {
+                        companyCards: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
+                                pending: false,
+                            },
+                        },
+                        companyCardNicknames: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'Alpha Card',
+                        },
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}300`]: {
+                    settings: {
+                        companyCards: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: {
+                                pending: false,
+                            },
+                        },
+                        companyCardNicknames: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: 'Middle Card',
+                        },
+                    },
+                },
+            };
+
+            const result = SearchUIUtils.getFeedOptions(mockCardFeeds, undefined, translateLocal, localeCompare);
+
+            expect(result.length).toBe(3);
+            expect(result.at(0)?.text).toBe('Alpha Card');
+            expect(result.at(1)?.text).toBe('Middle Card');
+            expect(result.at(2)?.text).toBe('Zebra Card');
+        });
+
+        test('should return empty array when no card feeds exist', () => {
+            const result = SearchUIUtils.getFeedOptions({}, undefined, translateLocal, localeCompare);
+            expect(result).toEqual([]);
+        });
+    });
 });

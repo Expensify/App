@@ -125,7 +125,7 @@ function SearchFiltersBar({queryJSON, isMobileSelectionModeEnabled}: SearchFilte
     const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -185,7 +185,7 @@ function SearchFiltersBar({queryJSON, isMobileSelectionModeEnabled}: SearchFilte
     const groupCurrency = groupCurrencyOptions.find((option) => option.value === searchAdvancedFiltersForm.groupCurrency) ?? null;
 
     const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
-    const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, feedKeysWithCards);
+    const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, localeCompare, feedKeysWithCards);
     const feed = feedFilterValues ? feedOptions.filter((option) => feedFilterValues.includes(option.value)) : [];
 
     const statusOptions = type ? getStatusOptions(translate, type.value) : [];
@@ -335,7 +335,6 @@ function SearchFiltersBar({queryJSON, isMobileSelectionModeEnabled}: SearchFilte
             closeOverlay={closeOverlay}
             onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
             isSearchable
-            searchPlaceholder={translate('common.groupCurrency')}
         />
     );
 
@@ -349,6 +348,7 @@ function SearchFiltersBar({queryJSON, isMobileSelectionModeEnabled}: SearchFilte
             items={feedOptions}
             value={feed}
             onChangeCallback={updateFeedFilterForm}
+            isSearchable={feedOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
         />
     );
 

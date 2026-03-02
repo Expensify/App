@@ -406,7 +406,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const textInputOptions = useMemo(
         () => ({
             value: searchTerm,
-            label: translate('selectionList.nameEmailOrPhoneNumber'),
+            label: translate('common.search'),
             onChangeText: setSearchTerm,
             headerMessage,
         }),
