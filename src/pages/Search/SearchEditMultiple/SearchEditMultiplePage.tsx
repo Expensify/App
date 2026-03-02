@@ -120,10 +120,10 @@ function SearchEditMultiplePage() {
         if (draftTransaction.taxCode) {
             changes.taxCode = draftTransaction.taxCode;
         }
-        if (draftTransaction.billable !== undefined) {
+        if (typeof draftTransaction.billable === 'boolean') {
             changes.billable = draftTransaction.billable;
         }
-        if (draftTransaction.reimbursable !== undefined) {
+        if (typeof draftTransaction.reimbursable === 'boolean') {
             changes.reimbursable = draftTransaction.reimbursable;
         }
 
