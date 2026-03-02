@@ -802,7 +802,7 @@ function ReportActionsList({
         return (
             <>
                 {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
-                <View style={[styles.overflowScroll, styles.overflowXHidden, styles.pt4]}>
+                <View style={[styles.overflowScroll, styles.overflowXHidden, styles.pt4, styles.maxHeight100Percentage]}>
                     {previewItems.map((action) => (
                         <View key={action.reportActionID}>{renderItem({item: action, index: sortedVisibleReportActions.indexOf(action)} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
                     ))}
