@@ -201,6 +201,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
     }, [reportID, transaction?.transactionID, transactionViolations]);
 
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const duplicateTransaction = useCallback(
         (transactions: Transaction[]) => {
             if (!transactions.length) {
@@ -235,6 +236,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     betas,
                     personalDetails,
                     recentWaypoints,
+                    allPolicyTags,
                 });
             }
         },
@@ -254,6 +256,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             betas,
             personalDetails,
             recentWaypoints,
+            allPolicyTags,
         ],
     );
 

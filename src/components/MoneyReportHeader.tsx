@@ -701,6 +701,7 @@ function MoneyReportHeader({
         markAsCashAction(iouTransactionID, reportID, transactionViolations);
     }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID, transactionViolations]);
 
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const duplicateExpenseTransaction = useCallback(
         (transactionList: OnyxTypes.Transaction[]) => {
             if (!transactionList.length) {
@@ -734,6 +735,7 @@ function MoneyReportHeader({
                     betas,
                     personalDetails,
                     recentWaypoints,
+                    allPolicyTags,
                 });
             }
         },
@@ -753,6 +755,7 @@ function MoneyReportHeader({
             betas,
             personalDetails,
             recentWaypoints,
+            allPolicyTags,
         ],
     );
 

@@ -1,5 +1,5 @@
 import {format} from 'date-fns';
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 import * as API from '@libs/API';
@@ -34,22 +34,11 @@ import {
     getCleanUpTransactionThreadReportOnyxData,
     getCurrentUserEmail,
     getMoneyRequestParticipantsFromReport,
-    getPolicyTags,
     getUserAccountID,
     requestMoney,
     submitPerDiemExpense,
     trackExpense,
 } from '.';
-
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getPolicyTagsData` from this file https://github.com/Expensify/App/issues/80049
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getPolicyTagsData(policyID: string | undefined) {
-    const allPolicyTags = getPolicyTags();
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
 
 function getIOUActionForTransactions(transactionIDList: Array<string | undefined>, iouReportID: string | undefined): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
     const allReportActions = getAllReportActionsFromIOU();
@@ -507,6 +496,7 @@ type DuplicateExpenseTransactionParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
 };
 
 function duplicateExpenseTransaction({
@@ -528,6 +518,7 @@ function duplicateExpenseTransaction({
     betas,
     personalDetails,
     recentWaypoints,
+    allPolicyTags,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -617,9 +608,7 @@ function duplicateExpenseTransaction({
 
     params.policyParams = {
         policy: targetPolicy,
-        // TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80049
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        policyTagList: getPolicyTagsData(targetPolicy.id) ?? {},
+        policyTagList: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicy.id}`] ?? {},
         policyCategories: targetPolicyCategories ?? {},
     };
 
