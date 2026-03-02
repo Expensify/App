@@ -43,7 +43,7 @@ import {
     setIsComingFromGlobalReimbursementsFlow,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
-import {filterInactiveCards} from '@libs/CardUtils';
+import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -99,7 +99,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.profile');
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const isBankAccountVerified = !!cardSettings?.paymentBankAccountID;
+    const settings = getCardSettings(cardSettings);
+    const isBankAccountVerified = !!settings?.paymentBankAccountID;
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';

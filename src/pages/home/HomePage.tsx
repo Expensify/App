@@ -31,7 +31,7 @@ function HomePage() {
     const theme = useTheme();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
-    const {initScanRequest, PDFValidationComponent, ErrorModal} = useReceiptScanDrop();
+    const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
 
     useDocumentTitle(translate('common.home'));
 
@@ -43,7 +43,7 @@ function HomePage() {
     usePreloadFullScreenNavigators();
 
     return (
-        <DragAndDropProvider>
+        <DragAndDropProvider isDisabled={isDragDisabled}>
             {PDFValidationComponent}
             <ScreenWrapper
                 shouldEnablePickerAvoiding={false}
@@ -62,6 +62,7 @@ function HomePage() {
                 <TopBar
                     breadcrumbLabel={translate('common.home')}
                     shouldShowLoadingBar={false}
+                    shouldDisplayHelpButton
                 />
                 <ScrollView
                     contentContainerStyle={styles.homePageContentContainer}

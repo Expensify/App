@@ -379,6 +379,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         policyID: route.params.policyID,
                         reimbursementChoice: newReimbursementChoice,
                         reimburserEmail: newReimburserEmail ?? '',
+                        bankAccountID: policy?.achAccount?.bankAccountID,
+                        accountNumber: policy?.achAccount?.accountNumber,
+                        addressName: policy?.achAccount?.addressName,
+                        bankName: policy?.achAccount?.bankName,
+                        state: policy?.achAccount?.state,
                     });
                 },
                 subMenuItems: (

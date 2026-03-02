@@ -32,6 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainTopLevelScreens = keyof typeof DOMAIN_TO_RHP;
 
@@ -58,10 +59,10 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const domainAccountID = route.params?.domainAccountID;
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
     useDocumentTitle(domainName ?? '');
-    const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
+    const [isAdmin, adminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
     const domainMenuItems: DomainMenuItem[] = [
@@ -101,6 +102,16 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     useNetwork({onReconnect: fetchDomainData});
 
     useConfirmReadyToOpenApp();
+
+    const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata, adminMetadata);
+
+    useEffect(() => {
+        if (shouldShowFullScreenLoadingIndicator || (domain && isAdmin)) {
+            return;
+        }
+
+        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+    }, [domain, isAdmin, shouldShowFullScreenLoadingIndicator]);
 
     return (
         <ScreenWrapper

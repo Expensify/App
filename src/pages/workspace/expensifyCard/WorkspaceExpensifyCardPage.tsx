@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
-import {filterInactiveCards} from '@libs/CardUtils';
+import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -26,6 +26,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const defaultFundID = useDefaultFundID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const settings = getCardSettings(cardSettings);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
     const fetchExpensifyCards = useCallback(() => {
@@ -39,11 +40,11 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
         fetchExpensifyCards();
     }, [fetchExpensifyCards]);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);
+    const paymentBankAccountID = settings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isLoading = !isOffline && (!cardSettings || settings?.isLoading) && !cardSettings?.hasOnceLoaded;
 
     const renderContent = () => {
-        if (!!isLoading && !paymentBankAccountID) {
+        if (isLoading) {
             return <FullScreenLoadingIndicator shouldUseGoBackButton />;
         }
         if (paymentBankAccountID) {
@@ -55,7 +56,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                 />
             );
         }
-        if (!paymentBankAccountID && !isLoading) {
+        if (!paymentBankAccountID) {
             return <WorkspaceExpensifyCardPageEmptyState route={route} />;
         }
     };
