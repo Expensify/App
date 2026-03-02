@@ -36,8 +36,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const {typeMenuSections, CreateReportConfirmationModal, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
+    const {typeMenuSections, CreateReportConfirmationModal, shouldShowSuggestedSearchSkeleton, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'CalendarSolid',
@@ -54,9 +53,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     ] as const);
     const {clearSelectedTransactions} = useSearchActionsContext();
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
-
-    const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
-    const isSavedSearchActive = !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
 
     const route = useRoute();
     const scrollViewRef = useRef<RNScrollView>(null);
@@ -81,14 +77,13 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
-    const activeItemIndex = useMemo(() => {
-        // If we have a suggested search, then none of the menu items are active
-        if (isSavedSearchActive) {
-            return -1;
+    const sectionStartIndices = useMemo(() => {
+        const indices: number[] = [0];
+        for (const section of typeMenuSections) {
+            indices.push(indices[indices.length - 1] + section.menuItems.length);
         }
-
-        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
+        return indices;
+    }, [typeMenuSections]);
 
     return (
         <>
