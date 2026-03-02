@@ -18,7 +18,7 @@ import {translateLocal} from '@libs/Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {MaxHeap} from '@libs/MaxHeap';
 import {MinHeap} from '@libs/MinHeap';
-import {getForReportAction, getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
+import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
@@ -597,7 +597,6 @@ function getLastMessageTextForReport({
     movedToReport,
     policy,
     isReportArchived = false,
-    policyForMovingExpensesID,
     chatReport,
     reportMetadata,
     visibleReportActionsDataParam,
@@ -731,23 +730,15 @@ function getLastMessageTextForReport({
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translate('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = policyTags
-            ? getForReportActionTemp({
-                  translate,
-                  reportAction: lastReportAction,
-                  policy,
-                  movedFromReport,
-                  movedToReport,
-                  policyTags,
-                  currentUserLogin: currentUserLogin ?? '',
-              })
-            : getForReportAction({
-                  reportAction: lastReportAction,
-                  policyID: report?.policyID,
-                  movedFromReport,
-                  movedToReport,
-                  policyForMovingExpensesID,
-              });
+        const properSchemaForModifiedExpenseMessage = getForReportAction({
+            translate,
+            reportAction: lastReportAction,
+            policy,
+            movedFromReport,
+            movedToReport,
+            policyTags,
+            currentUserLogin: currentUserLogin ?? '',
+        });
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedTransactionMessage(translate, lastReportAction));

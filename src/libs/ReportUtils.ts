@@ -5818,15 +5818,15 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
             return generateArchivedReportName(reportActionMessage);
         }
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
-            const policyID = report?.policyID;
-
             const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
             const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const modifiedMessage = getForReportAction({
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; getReportName is non-React code that cannot use the translate hook
+                translate: translateLocal,
                 reportAction: parentReportAction,
-                policyID,
                 movedFromReport,
                 movedToReport,
+                currentUserLogin: currentUserEmail ?? '',
             });
             return formatReportLastMessageText(modifiedMessage);
         }

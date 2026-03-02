@@ -5,7 +5,7 @@ import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.p
 import * as AppUpdate from '@libs/actions/AppUpdate';
 // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
 import {translateLocal} from '@libs/Localize';
-import {getForReportAction, getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
+import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -144,23 +144,16 @@ export default {
         currentUserLogin,
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = policyTags
-            ? getForReportActionTemp({
-                  // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
-                  translate: translateLocal,
-                  reportAction,
-                  policy,
-                  movedFromReport,
-                  movedToReport,
-                  policyTags,
-                  currentUserLogin,
-              })
-            : getForReportAction({
-                  reportAction,
-                  policyID: report.policyID,
-                  movedFromReport,
-                  movedToReport,
-              });
+        const body = getForReportAction({
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
+            translate: translateLocal,
+            reportAction,
+            policy,
+            movedFromReport,
+            movedToReport,
+            policyTags,
+            currentUserLogin,
+        });
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,

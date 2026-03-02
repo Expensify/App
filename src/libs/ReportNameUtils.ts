@@ -28,7 +28,7 @@ import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNum
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal, translate as translateWithLocale} from './Localize';
 // eslint-disable-next-line import/no-cycle
-import {getForReportAction, getForReportActionTemp, getMovedReportID} from './ModifiedExpenseMessage';
+import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
@@ -732,29 +732,20 @@ function computeChatThreadReportName(
         return generateArchivedReportName(reportActionMessage);
     }
     if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
-        const policyID = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`]?.policyID;
-
         const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        const modifiedMessage = policyTags
-            ? getForReportActionTemp({
-                  translate,
-                  reportAction: parentReportAction,
-                  movedFromReport,
-                  movedToReport,
-                  policyTags,
-                  policy,
-                  // currentUserLogin is not threaded through this call chain yet; the empty string
-                  // causes policy-admin checks to fall back to the non-admin message path.
-                  // This will be addressed as part of the broader Onyx.connect migration.
-                  currentUserLogin: '',
-              })
-            : getForReportAction({
-                  reportAction: parentReportAction,
-                  policyID,
-                  movedFromReport,
-                  movedToReport,
-              });
+        const modifiedMessage = getForReportAction({
+            translate,
+            reportAction: parentReportAction,
+            movedFromReport,
+            movedToReport,
+            policyTags,
+            policy,
+            // currentUserLogin is not threaded through this call chain yet; the empty string
+            // causes policy-admin checks to fall back to the non-admin message path.
+            // This will be addressed as part of the broader Onyx.connect migration.
+            currentUserLogin: '',
+        });
         return formatReportLastMessageText(modifiedMessage);
     }
     if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
