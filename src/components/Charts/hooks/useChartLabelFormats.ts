@@ -1,6 +1,6 @@
 import type {SkFont} from '@shopify/react-native-skia';
+import {LABEL_ROTATIONS} from '@components/Charts/constants';
 import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/Charts/types';
-import {LABEL_ROTATIONS} from '@components/Charts/utils';
 import useLocalize from '@hooks/useLocalize';
 
 type UseChartLabelFormatsProps = {

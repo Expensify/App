@@ -1,5 +1,6 @@
 import type {SkFont} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
+import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from './constants';
 import type {ChartDataPoint, PieSlice} from './types';
 
 /**
@@ -180,23 +181,6 @@ function processDataIntoSlices(data: ChartDataPoint[], startAngle: number): PieS
         ).slices;
 }
 
-/** Supported label rotation angles in degrees */
-const LABEL_ROTATIONS = {
-    HORIZONTAL: 0,
-    DIAGONAL: 45,
-    VERTICAL: 90,
-} as const;
-
-const SIN_45 = Math.sin(Math.PI / 4);
-
-/** Minimum gap between adjacent labels (px) */
-const LABEL_PADDING = 4;
-
-const ELLIPSIS = '...';
-
-/** Minimum visible characters (excluding ellipsis) for truncation to be worthwhile */
-const MIN_TRUNCATED_CHARS = 10;
-
 /** Truncate `label` so its pixel width fits within `maxWidth`, adding ellipsis. */
 function truncateLabel(label: string, labelWidth: number, maxWidth: number, ellipsisWidth: number): string {
     if (labelWidth <= maxWidth) {
@@ -303,11 +287,6 @@ export {
     isAngleInSlice,
     findSliceAtPosition,
     processDataIntoSlices,
-    LABEL_ROTATIONS,
-    SIN_45,
-    LABEL_PADDING,
-    ELLIPSIS,
-    MIN_TRUNCATED_CHARS,
     truncateLabel,
     effectiveWidth,
     effectiveHeight,

@@ -1,20 +1,8 @@
 import type {SkFont} from '@shopify/react-native-skia';
 import {useMemo} from 'react';
+import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MIN_TRUNCATED_CHARS, SIN_45} from '@components/Charts/constants';
 import type {ChartDataPoint} from '@components/Charts/types';
-import {
-    edgeLabelsFit,
-    edgeMaxLabelWidth,
-    effectiveHeight,
-    effectiveWidth,
-    ELLIPSIS,
-    LABEL_PADDING,
-    LABEL_ROTATIONS,
-    maxVisibleCount,
-    measureTextWidth,
-    MIN_TRUNCATED_CHARS,
-    SIN_45,
-    truncateLabel,
-} from '@components/Charts/utils';
+import {edgeLabelsFit, edgeMaxLabelWidth, effectiveHeight, effectiveWidth, maxVisibleCount, measureTextWidth, truncateLabel} from '@components/Charts/utils';
 
 type LabelLayoutConfig = {
     data: ChartDataPoint[];
