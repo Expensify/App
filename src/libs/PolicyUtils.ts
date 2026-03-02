@@ -1033,14 +1033,48 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
 function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
-    const ruleApprovers = getRuleApprovers(policy, expenseReport);
-    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
-    if (ruleApprovers.length > 0 && ruleApprovers.at(0) === employeeLogin) {
-        ruleApprovers.shift();
-    }
-    if (ruleApprovers.length > 0 && !isSubmitAndClose(policy)) {
-        return getAccountIDsByLogins([ruleApprovers.at(0) ?? '']).at(0) ?? -1;
+    const approvalRules = policy?.rules?.approvalRules;
+    if (!isSubmitAndClose(policy) && approvalRules?.length) {
+        const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+        const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
+
+        const allReportTransactions = getAllSortedTransactions(expenseReport?.reportID);
+        const rulesMap: Record<'category' | 'tag', Record<string, string>> = {category: {}, tag: {}};
+        let firstCategoryApprover = '';
+        let firstTagApprover = '';
+
+        for (let i = 0, rule = approvalRules[i]; i < approvalRules.length; i++) {
+            for (let j = 0, applyWhen = rule.applyWhen[j]; j < rule.applyWhen.length && applyWhen.condition === CONST.POLICY.RULE_CONDITIONS.MATCHES; j++) {
+                if (applyWhen.field === CONST.POLICY.FIELDS.CATEGORY || applyWhen.field === CONST.POLICY.FIELDS.TAG) {
+                    rulesMap[applyWhen.field] = {[applyWhen.value]: rule.approver};
+                }
+            }
+        }
+
+        for (let i = 0; i < allReportTransactions.length; i++) {
+            const transaction = allReportTransactions.at(i);
+            const category = getCategory(transaction);
+            const categoryApprover = rulesMap['category'][category];
+
+            if (categoryApprover && categoryApprover !== employeeLogin) {
+                firstCategoryApprover = categoryApprover;
+                break;
+            }
+
+            if (!firstTagApprover) {
+                const tag = getTag(transaction);
+                const tagApprover = rulesMap['tag'][tag];
+
+                if (tagApprover && tagApprover !== employeeLogin) {
+                    firstTagApprover = tagApprover;
+                }
+            }
+        }
+
+        const ruleApprover = firstCategoryApprover || firstTagApprover;
+        if (ruleApprover) {
+            return getAccountIDsByLogins([ruleApprover]).at(0) ?? -1;
+        }
     }
 
     return getManagerAccountID(policy, expenseReport);
