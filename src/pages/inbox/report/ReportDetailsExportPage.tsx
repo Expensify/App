@@ -40,7 +40,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenAndHourglass']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare']);
 
     const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
     const canBeExported = canBeExportedUtil(report);
@@ -51,7 +51,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
             if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
                 exportToIntegration(reportID, connectionName);
             } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                markAsManuallyExported([reportID], connectionName);
+                markAsManuallyExported(reportID, connectionName);
             }
             Navigation.dismissModal();
         },
