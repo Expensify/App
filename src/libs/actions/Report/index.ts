@@ -5555,10 +5555,10 @@ function deleteAppReport({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID: transaction?.reportID,
-                        comment: transaction.comment,
-                        modifiedAmount: transaction.modifiedAmount,
-                        modifiedCurrency: transaction.modifiedCurrency,
-                        modifiedMerchant: transaction.modifiedMerchant,
+                        comment: transaction?.comment,
+                        modifiedAmount: transaction?.modifiedAmount,
+                        modifiedCurrency: transaction?.modifiedCurrency,
+                        modifiedMerchant: transaction?.modifiedMerchant,
                     },
                 },
                 {
