@@ -200,6 +200,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,
+    convertOdometerReadings,
     getAmount,
     getCategoryTaxCodeAndAmount,
     getClearedPendingFields,
@@ -1801,30 +1802,21 @@ function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: st
     const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     let newDistance;
-    let newOdometerStart;
-    let newOdometerEnd;
-    if (newDistanceUnit && newDistanceUnit !== transaction?.comment?.customUnit?.distanceUnit) {
-        newDistance = DistanceRequestUtils.convertDistanceUnit(getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit), newDistanceUnit);
+    let convertedOdometer: {odometerStart?: number; odometerEnd?: number} = {};
+    const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+    if (newDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
+        newDistance = DistanceRequestUtils.convertDistanceUnit(getDistanceInMeters(transaction, existingDistanceUnit), newDistanceUnit);
 
         // Also convert odometer readings if they exist
-        const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
         if (existingDistanceUnit) {
-            const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
-            const odometerStart = transaction?.comment?.odometerStart;
-            const odometerEnd = transaction?.comment?.odometerEnd;
-            if (odometerStart !== null && odometerStart !== undefined) {
-                newOdometerStart = roundToTwoDecimalPlaces(odometerStart * conversionFactor);
-            }
-            if (odometerEnd !== null && odometerEnd !== undefined) {
-                newOdometerEnd = roundToTwoDecimalPlaces(odometerEnd * conversionFactor);
-            }
+            convertedOdometer = convertOdometerReadings(transaction, existingDistanceUnit);
         }
     }
 
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
-            ...(newOdometerStart !== undefined && {odometerStart: newOdometerStart}),
-            ...(newOdometerEnd !== undefined && {odometerEnd: newOdometerEnd}),
+            ...(convertedOdometer.odometerStart !== undefined && {odometerStart: convertedOdometer.odometerStart}),
+            ...(convertedOdometer.odometerEnd !== undefined && {odometerEnd: convertedOdometer.odometerEnd}),
             customUnit: {
                 customUnitRateID,
                 ...(!!policy && {defaultP2PRate: null}),

@@ -236,6 +236,27 @@ function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean
     );
 }
 
+/**
+ * Converts odometer start/end readings from one distance unit to another.
+ * Returns an object with the converted values, only including fields that exist on the transaction.
+ */
+function convertOdometerReadings(
+    transaction: OnyxEntry<Transaction>,
+    existingDistanceUnit: string,
+): {odometerStart?: number; odometerEnd?: number} {
+    const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
+    const result: {odometerStart?: number; odometerEnd?: number} = {};
+    const odometerStart = transaction?.comment?.odometerStart;
+    const odometerEnd = transaction?.comment?.odometerEnd;
+    if (odometerStart != null) {
+        result.odometerStart = roundToTwoDecimalPlaces(odometerStart * conversionFactor);
+    }
+    if (odometerEnd != null) {
+        result.odometerEnd = roundToTwoDecimalPlaces(odometerEnd * conversionFactor);
+    }
+    return result;
+}
+
 function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
@@ -770,13 +791,12 @@ function getUpdatedTransaction({
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
 
             // Also convert odometer start/end readings if they exist
-            const odometerStart = transaction?.comment?.odometerStart;
-            const odometerEnd = transaction?.comment?.odometerEnd;
-            if (odometerStart !== null && odometerStart !== undefined) {
-                lodashSet(updatedTransaction, 'comment.odometerStart', roundToTwoDecimalPlaces(odometerStart * conversionFactor));
+            const convertedOdometer = convertOdometerReadings(transaction, existingDistanceUnit);
+            if (convertedOdometer.odometerStart !== undefined) {
+                lodashSet(updatedTransaction, 'comment.odometerStart', convertedOdometer.odometerStart);
             }
-            if (odometerEnd !== null && odometerEnd !== undefined) {
-                lodashSet(updatedTransaction, 'comment.odometerEnd', roundToTwoDecimalPlaces(odometerEnd * conversionFactor));
+            if (convertedOdometer.odometerEnd !== undefined) {
+                lodashSet(updatedTransaction, 'comment.odometerEnd', convertedOdometer.odometerEnd);
             }
         }
 
@@ -2822,6 +2842,7 @@ export {
     getCurrency,
     shouldClearConvertedAmount,
     getDistanceInMeters,
+    convertOdometerReadings,
     getCardID,
     getOriginalCurrency,
     getOriginalAmount,
