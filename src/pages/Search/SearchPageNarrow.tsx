@@ -177,6 +177,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                 shouldShowLoadingBar={shouldShowLoadingState}
                                 breadcrumbLabel={translate('common.reports')}
                                 shouldDisplaySearch={false}
+                                shouldDisplayHelpButton
                                 cancelSearch={shouldDisplayCancelSearch ? cancelSearchCallback : undefined}
                             />
                         </View>

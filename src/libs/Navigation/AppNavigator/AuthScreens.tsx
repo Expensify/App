@@ -42,6 +42,7 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {getDeepestFocusedScreenName, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
+import useNavigateTo3DSAuthorizationChallenge from '@libs/Navigation/useNavigateTo3DSAuthorizationChallenge';
 import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -187,6 +188,8 @@ function AuthScreens() {
     const isLoadingAppRef = useRef(isLoadingApp);
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
     isLoadingAppRef.current = isLoadingApp;
+
+    useNavigateTo3DSAuthorizationChallenge();
 
     const handleNetworkReconnect = () => {
         if (isLoadingAppRef.current) {

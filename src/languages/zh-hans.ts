@@ -539,6 +539,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: '休假代理',
         expensifyLogo: 'Expensify徽标',
         duplicateReport: '重复报销单',
+        explain: '说明',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -641,6 +642,28 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: '请重新登录。',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: '查看交易',
+            pleaseReview: '请审核此交易',
+            requiresYourReview: '需要您在下方审核一笔 Expensify Card 交易。',
+            transactionDetails: '交易详情',
+            deny: '拒绝',
+            approve: '批准',
+            denyTransaction: '拒绝交易',
+            transactionDenied: '交易被拒绝',
+            transactionApproved: '交易已批准！',
+            areYouSureToDeny: '您确定吗？如果关闭此界面，这笔交易将被拒绝。',
+            youCanTryAgainAtMerchantOrReachOut: '您可以在商家处重试。如果您没有发起此交易，请<concierge-link>联系 Concierge</concierge-link>报告潜在欺诈。',
+            youNeedToTryAgainAtMerchant: '此交易未通过验证，因此已被拒绝。请在商户处重新尝试。',
+            goBackToTheMerchant: '返回商家网站以继续完成交易。',
+            attemptedTransaction: '已尝试的交易',
+            transactionFailed: '交易失败',
+            transactionCouldNotBeCompleted: '您的交易未能完成。请在商户处重试。',
+            transactionCouldNotBeCompletedReachOut: '您的交易无法完成。如果您未尝试进行此笔交易，请<concierge-link>联系 Concierge</concierge-link>报告潜在欺诈。',
+            reviewFailed: '审核失败',
+            alreadyReviewedSubtitle:
+                '您已审核过此交易。请查看您的<transaction-history-link>交易记录</transaction-history-link>，或联系<concierge-link>Concierge</concierge-link>报告任何问题。',
+        },
         biometricsTest: {
             biometricsTest: '生物识别测试',
             authenticationSuccessful: '验证成功',
@@ -691,7 +714,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         unsupportedDevice: {
             unsupportedDevice: '不支持的设备',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> 您的设备不支持此操作。请从<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a>或<a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play 商店</a>下载 Expensify 应用，然后重试。</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `您的设备不支持此操作。请从<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a>或<a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play 商店</a>下载 Expensify 应用，然后重试。`,
         },
         verificationFailed: '验证失败',
     },
@@ -1385,9 +1408,11 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseOnHold: '此报销已被搁置。请查看评论以了解下一步操作。',
         expensesOnHold: '所有报销都已被搁置。请查看评论以了解下一步操作。',
         expenseDuplicate: '此报销与另一笔报销的明细相似。请查看可能重复的报销后再继续。',
-        someDuplicatesArePaid: '其中有些重复项已经被批准或支付。',
-        reviewDuplicates: '查看重复项',
+        someDuplicatesArePaid: '其中一些重复项已被批准或支付。',
+        reviewDuplicates: '审核重复项',
         keepAll: '全部保留',
+        noDuplicatesTitle: '全部完成！',
+        noDuplicatesDescription: '这里没有需要审核的重复交易。',
         confirmApprove: '确认批准金额',
         confirmApprovalAmount: '仅批准合规报销，或批准整份报销报告。',
         confirmApprovalAllHoldAmount: () => ({
@@ -1500,7 +1525,6 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '总金额过大。请减少工时或降低费率。',
         },
         correctRateError: '修复费率错误后请重试。',
-        AskToExplain: `。<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>说明</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError: '您无法在不同工作区之间复制每日津贴报销，因为各工作区的补贴标准可能不同。',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? '将该报销单标记为“可报销”' : '将该报销单标记为“不可报销”'),
@@ -3844,6 +3868,7 @@ ${
             clearFilter: '清除筛选器',
             workspaceName: '工作区名称',
             workspaceOwner: '所有者',
+            keepMeAsAdmin: '保留我为管理员',
             workspaceType: '工作区类型',
             workspaceAvatar: '工作区头像',
             clientID: '客户ID',
@@ -7227,6 +7252,10 @@ ${reportName}
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `由于报销或 Expensify 卡结算问题，企业银行账户 ${maskedBankAccountNumber} 已被自动锁定。请在<a href="${linkURL}">工作区设置</a>中解决该问题。`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}离开了聊天`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `打开 Expensify 移动应用以查看你${amountAndMerchantText ? `的 ${amountAndMerchantText} ` : '的 '}交易`;
+                },
             },
             error: {
                 invalidCredentials: '凭证无效，请检查您的连接配置。',
@@ -7403,7 +7432,6 @@ ${reportName}
         },
     },
     gps: {
-        disclaimer: '使用 GPS 根据您的行程创建报销。点击下方的“开始”以开始跟踪。',
         error: {
             failedToStart: '启动位置跟踪失败。',
             failedToGetPermissions: '获取必要的位置信息权限失败。',
