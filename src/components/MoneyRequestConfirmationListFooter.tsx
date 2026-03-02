@@ -2,7 +2,7 @@ import {emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useMemo, useState} from 'react';
+import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -31,6 +31,7 @@ import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import {
     getTagForDisplay,
     getTaxAmount,
@@ -587,7 +588,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
+                    shouldShowRightIcon={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT}
                     title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
@@ -597,7 +598,7 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        if (!isPolicyExpenseChat) {
+                        if ((!isPolicyExpenseChat && !isTrackExpense) || (shouldNavigateToUpgradePath && isTrackExpense)) {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                     action,
@@ -606,16 +607,22 @@ function MoneyRequestConfirmationListFooter({
                                     reportID,
                                     upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
                                     backTo: Navigation.getActiveRoute(),
-                                    shouldSubmitExpense: true,
+                                    shouldSubmitExpense: !isTrackExpense,
                                 }),
                             );
-                            return;
+                        } else if (!policy && shouldSelectPolicy && isTrackExpense) {
+                            Navigation.navigate(
+                                ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                                    ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                ),
+                            );
+                        } else {
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                         }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
-                    interactive={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
+                    interactive={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
                 />
             ),
@@ -1010,7 +1017,12 @@ function MoneyRequestConfirmationListFooter({
     const isCompactMode = useMemo(() => !showMoreFields && isScan, [isScan, showMoreFields]);
     const [receiptAspectRatio, setReceiptAspectRatio] = useState<number | null>(null);
     const [compactReceiptContainerWidth, setCompactReceiptContainerWidth] = useState(0);
+    const hasEndedReceiptLoadSpan = useRef(false);
     const handleReceiptLoad = useCallback((event?: {nativeEvent: {width: number; height: number}}) => {
+        if (!hasEndedReceiptLoadSpan.current) {
+            hasEndedReceiptLoadSpan.current = true;
+            endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
+        }
         const width = event?.nativeEvent.width ?? 0;
         const height = event?.nativeEvent.height ?? 0;
         if (!width || !height) {
