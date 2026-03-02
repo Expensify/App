@@ -127,23 +127,50 @@ jobs:
         run: |
           git add Mobile-Expensify
           git commit -m "Update Mobile-Expensify submodule version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
-          if ! git push origin main; then
-            echo "Race condition! E/App main was updated while this workflow was running, so push failed. Fetching remote, rebasing, and retrying push once."
+          
+          MAX_RETRIES=5
+          RETRY_DELAY=2
+          
+          for i in $(seq 1 $MAX_RETRIES); do
+            if git push origin main; then
+              echo "::notice::Successfully pushed E/App changes on attempt $i"
+              exit 0
+            fi
+            
+            echo "::warning::Push attempt $i failed, retrying in ${RETRY_DELAY}s..."
+            sleep $RETRY_DELAY
+            RETRY_DELAY=$((RETRY_DELAY * 2))
+            
             if ! git fetch origin main; then
-              echo "::error:: ❌ Unable to fetch main"
-              echo "::error:: This can happen when Mobile-Expensify and E/App repos got out of sync."
-              echo "::error:: We likely need to manually bump the version in E/App to match Mobile-Expensify."
-              exit 1
+              echo "::error::Unable to fetch main on attempt $i"
+              continue
             fi
+            
             if ! git rebase origin/main; then
-              echo "::error:: Rebase failed while retrying E/App push"
-              exit 1
+              echo "::warning::Rebase failed on attempt $i, aborting and retrying..."
+              git rebase --abort || true
+              continue
             fi
-            if ! git push origin main; then
-              echo "::error:: E/App change failed to push after rebase"
-              exit 1
-            fi
+          done
+          
+          echo "::error::E/App push failed after $MAX_RETRIES attempts"
+          echo "::error::CRITICAL: Mobile-Expensify has version ${{ steps.bumpVersion.outputs.NEW_VERSION }} but E/App does not!"
+          echo "::error::Manual intervention required - run the syncVersions workflow to fix"
+          exit 1
+
+      - name: Verify version sync
+        run: |
+          APP_VERSION=$(jq -r .version package.json)
+          ME_VERSION=$(jq -r .meta.version Mobile-Expensify/app/config/config.json)
+          
+          if [ "$APP_VERSION" != "$ME_VERSION" ]; then
+            echo "::error::Version mismatch detected after push!"
+            echo "::error::E/App version: $APP_VERSION"
+            echo "::error::Mobile-Expensify version: $ME_VERSION"
+            echo "::error::Run the syncVersions workflow to fix this"
+            exit 1
           fi
+          echo "::notice::Versions verified: $APP_VERSION"
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}

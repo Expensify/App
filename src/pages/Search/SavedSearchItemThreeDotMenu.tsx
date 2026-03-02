@@ -29,6 +29,7 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrai
                 }}
                 iconStyles={styles.wAuto}
                 hideProductTrainingTooltip={hideProductTrainingTooltip}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU}
             />
         </View>
     );

@@ -25,6 +25,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Custom content to display in the footer */
     footerContent?: React.ReactNode;
 
+    /** Custom content to display in the footer of list component */
+    listFooterContent?: React.JSX.Element | null | undefined;
+
     /** Whether to show the loading placeholder */
     showLoadingPlaceholder?: boolean;
 
@@ -33,6 +36,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Whether tooltips should be shown */
     shouldShowTooltips?: boolean;
+
+    /** Custom content to display in the header of list component. */
+    customListHeaderContent?: React.JSX.Element | null;
 
     /** Called when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -73,6 +79,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Whether to scroll to the focused item */
     shouldScrollToFocusedIndex?: boolean;
 
+    /** Whether to scroll to the focused item on mount. When false, the list stays at the top to keep header content visible */
+    shouldScrollToFocusedIndexOnMount?: boolean;
+
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
 
@@ -96,6 +105,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Called when the list is scrolled and the user begins dragging */
     onScrollBeginDrag?: () => void;
+
+    /** Configuration for the confirm button */
+    confirmButtonOptions?: ConfirmButtonOptions<TItem>;
 };
 
 /**
@@ -117,20 +129,11 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
         /** Callback to fire when the item is long pressed */
         onLongPressRow?: (item: TItem) => void;
 
-        /** Configuration for the confirm button */
-        confirmButtonOptions?: ConfirmButtonOptions<TItem>;
-
         /** Custom header content to render instead of the default select all header */
         customListHeader?: React.ReactNode;
 
-        /** Custom content to display in the header of list component. */
-        customListHeaderContent?: React.JSX.Element | null;
-
         /** Custom component to render while data is loading */
         customLoadingPlaceholder?: React.JSX.Element;
-
-        /** Custom content to display in the footer of list component */
-        listFooterContent?: React.JSX.Element | null | undefined;
 
         /** Number of lines to show for alternate text */
         alternateNumberOfSupportedLines?: number;
@@ -182,6 +185,12 @@ type SelectionListStyle = {
     /** Styles for the list */
     listStyle?: StyleProp<ViewStyle>;
 
+    /** Styles for the content container of the list (scrolls with content) */
+    contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the list footer content container */
+    listFooterContentStyle?: StyleProp<ViewStyle>;
+
     /** Styles for the list container */
     containerStyle?: StyleProp<ViewStyle>;
 
@@ -196,6 +205,9 @@ type SelectionListStyle = {
 
     /** Styles for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles for the error row of the list item */
+    listItemErrorRowStyles?: StyleProp<ViewStyle>;
 
     /** Styles for the section titles */
     sectionTitleStyles?: StyleProp<TextStyle>;
@@ -234,6 +246,12 @@ type TextInputOptions = {
 
     /** Whether the text input autofocus should be disabled */
     disableAutoFocus?: boolean;
+
+    /** Whether the text input auto correct should be disabled */
+    disableAutoCorrect?: boolean;
+
+    /** Whether the text input should intercept swipes */
+    shouldInterceptSwipe?: boolean;
 
     /** Styles for the text input */
     style?: {

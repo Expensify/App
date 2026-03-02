@@ -26,6 +26,12 @@ afterEach(() => {
 });
 
 describe('useSearchHighlightAndScroll', () => {
+    beforeAll(async () => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
     const baseProps: UseSearchHighlightAndScroll = {
         shouldUseLiveData: false,
         searchResults: {

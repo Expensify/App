@@ -6,12 +6,14 @@ import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {initGpsDraft, resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
 import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import BackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, getBackgroundLocationTaskOptions} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import openSettings from './openSettings';
 
@@ -29,9 +31,10 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const [showStopConfirmation, setShowStopConfirmation] = useState(false);
     const [showZeroDistanceModal, setShowZeroDistanceModal] = useState(false);
     const [showDisabledServicesModal, setShowDisabledServicesModal] = useState(false);
+    const {isOffline} = useNetwork();
 
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -90,6 +93,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                         large
                         style={[styles.w100, styles.flexShrink0]}
                         text={translate('gps.discard')}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_DISCARD_BUTTON}
                     />
                     <Button
                         onPress={onNext}
@@ -99,6 +103,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                         large
                         style={[styles.w100, styles.flexShrink0]}
                         text={translate('common.next')}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_NEXT_BUTTON}
                     />
                 </View>
             ) : (
@@ -111,6 +116,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                     large
                     style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
                     text={gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}
+                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
                 />
             )}
 
@@ -129,7 +135,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 isVisible={showStopConfirmation}
                 onConfirm={() => {
                     setShowStopConfirmation(false);
-                    stopGpsTrip();
+                    stopGpsTrip(isOffline);
                 }}
                 onCancel={() => setShowStopConfirmation(false)}
                 confirmText={translate('gps.stopGpsTrackingModal.confirm')}

@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
-import useSidePanel from './useSidePanel';
+import useSidePanelState from './useSidePanelState';
 
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
@@ -21,7 +21,7 @@ type UseAutoFocusInput = {
 export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
     const isPopoverVisible = modal?.willAlertModalBecomeVisible && modal?.isPopover;
 
     const {splashScreenState} = useSplashScreenState();
@@ -63,7 +63,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     );
 
     // Trigger focus when Side Panel transition ends
-    const {isSidePanelTransitionEnded, shouldHideSidePanel} = useSidePanel();
+    const {isSidePanelTransitionEnded, shouldHideSidePanel} = useSidePanelState();
     const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
     const [wasSidePanelClosed, setWasSidePanelClosed] = useState(false);
 
