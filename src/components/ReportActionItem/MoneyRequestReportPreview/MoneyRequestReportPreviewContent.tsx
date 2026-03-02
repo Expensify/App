@@ -474,15 +474,16 @@ function MoneyRequestReportPreviewContent({
     const [optimisticIndex, setOptimisticIndex] = useState<number | undefined>(undefined);
     const carouselRef = useRef<FlashListRef<Transaction> | null>(null);
     const prevTransactionCountForScroll = useRef(carouselTransactions.length);
+    const [carouselKey, setCarouselKey] = useState(0);
 
-    // Reset carousel scroll position when transitioning from empty to non-empty data.
-    // Without this, a stale scroll offset from a previous state (e.g., after moving all
-    // expenses out) causes the newly added transaction preview to render off-screen.
+    // Reset carousel when transitioning from empty to non-empty data.
+    // scrollToOffset doesn't clear RecyclerListView's internal layout cache on iOS mobile web,
+    // so we force a full re-mount via key to prevent new items from rendering off-screen.
     useEffect(() => {
         if (carouselTransactions.length > 0 && prevTransactionCountForScroll.current === 0) {
-            carouselRef.current?.scrollToOffset({offset: 0, animated: false});
             setCurrentIndex(0);
             setOptimisticIndex(undefined);
+            setCarouselKey((prev) => prev + 1);
         }
         prevTransactionCountForScroll.current = carouselTransactions.length;
     }, [carouselTransactions.length]);
@@ -930,6 +931,7 @@ function MoneyRequestReportPreviewContent({
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.minHeight42]}>
                                             <FlashList
+                                                key={carouselKey}
                                                 snapToAlignment="start"
                                                 decelerationRate="fast"
                                                 snapToOffsets={snapOffsets}
