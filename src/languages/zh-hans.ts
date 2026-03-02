@@ -510,6 +510,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: '注意！',
         submitTo: '提交给',
         forwardTo: '转发至',
+        approvalLimit: '审批限额',
+        overLimitForwardTo: '超出限额时转发至',
         merge: '合并',
         none: '无',
         unstableInternetConnection: '网络连接不稳定。请检查您的网络后重试。',

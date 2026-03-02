@@ -514,6 +514,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Let op!',
         submitTo: 'Indienen bij',
         forwardTo: 'Doorsturen naar',
+        approvalLimit: 'Goedkeuringslimiet',
+        overLimitForwardTo: 'Doorsturen bij overschrijding limiet',
         merge: 'Samenvoegen',
         none: 'Geen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',

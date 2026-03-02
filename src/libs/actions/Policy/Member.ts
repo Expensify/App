@@ -1018,6 +1018,10 @@ type PolicyMember = {
     role: string;
     submitsTo?: string;
     forwardsTo?: string;
+    customField1?: string;
+    customField2?: string;
+    approvalLimit?: string;
+    overLimitForwardsTo?: string;
 };
 
 function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]) {
@@ -1029,7 +1033,15 @@ function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[])
         (acc, curr) => {
             const employee = policy?.employeeList?.[curr.email];
             if (employee) {
-                if (curr.role !== employee.role || (curr.submitsTo ?? '') !== (employee.submitsTo ?? '') || (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '')) {
+                if (
+                    curr.role !== employee.role ||
+                    (curr.submitsTo ?? '') !== (employee.submitsTo ?? '') ||
+                    (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '') ||
+                    (curr.customField1 !== undefined && curr.customField1 !== (employee.employeeUserID ?? '')) ||
+                    (curr.customField2 !== undefined && curr.customField2 !== (employee.employeePayrollID ?? '')) ||
+                    (curr.approvalLimit !== undefined && curr.approvalLimit !== String(employee.approvalLimit ?? '')) ||
+                    (curr.overLimitForwardsTo !== undefined && curr.overLimitForwardsTo !== (employee.overLimitForwardsTo ?? ''))
+                ) {
                     acc.updated++;
                 }
             } else {
@@ -1043,7 +1055,18 @@ function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[])
 
     const parameters = {
         policyID: policy.id,
-        employees: JSON.stringify(members.map((member) => ({email: member.email, role: member.role, submitsTo: member.submitsTo, forwardsTo: member.forwardsTo}))),
+        employees: JSON.stringify(
+            members.map((member) => ({
+                email: member.email,
+                role: member.role,
+                submitsTo: member.submitsTo,
+                forwardsTo: member.forwardsTo,
+                ...(member.customField1 !== undefined && {customField1: member.customField1}),
+                ...(member.customField2 !== undefined && {customField2: member.customField2}),
+                ...(member.approvalLimit !== undefined && {approvalLimit: member.approvalLimit}),
+                ...(member.overLimitForwardsTo !== undefined && {overLimitForwardsTo: member.overLimitForwardsTo}),
+            })),
+        ),
     };
 
     API.write(WRITE_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, onyxData);
