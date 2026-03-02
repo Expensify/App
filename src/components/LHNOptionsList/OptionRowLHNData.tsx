@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -52,8 +53,9 @@ function OptionRowLHNData({
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fullReport?.chatReportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const {login} = useCurrentUserPersonalDetails();
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
     // Check the report errors equality to avoid re-rendering when there are no changes
     const prevReportErrors = usePrevious(reportAttributes?.reportErrors);
     const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
@@ -82,8 +84,9 @@ function OptionRowLHNData({
             movedFromReport,
             movedToReport,
             currentUserAccountID,
-            chatReport,
             reportAttributesDerived,
+            policyTags,
+            currentUserLogin: login,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
@@ -94,6 +97,7 @@ function OptionRowLHNData({
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
+        // Listen to lastAction to update when action is deleted or gets pendingAction
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         fullReport,
@@ -115,14 +119,17 @@ function OptionRowLHNData({
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
         card,
+        lastAction,
+        lastActionReport,
         translate,
         localeCompare,
         isReportArchived,
         movedFromReport,
         movedToReport,
         currentUserAccountID,
-        chatReport,
         reportAttributesDerived,
+        policyTags,
+        login,
     ]);
 
     return (

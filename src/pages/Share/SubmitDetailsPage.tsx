@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -22,6 +23,7 @@ import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyR
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
@@ -71,6 +73,9 @@ function SubmitDetailsPage({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
+    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
+
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
@@ -169,6 +174,9 @@ function SubmitDetailsPage({
                 betas,
             });
         } else {
+            const existingTransactionID = getExistingTransactionID(transaction.linkedTrackedExpenseReportAction);
+            const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
+
             requestMoney({
                 report,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
@@ -201,6 +209,8 @@ function SubmitDetailsPage({
                 transactionViolations,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
+                existingTransactionDraft,
+                draftTransactionIDs,
                 isSelfTourViewed,
                 betas,
                 personalDetails,

@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import {toLocaleDigit as toLocaleDigitUtil} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate} from '@libs/Localize';
 import Pusher from '@libs/Pusher';
@@ -439,6 +440,11 @@ function localeCompare(a: string, b: string): number {
     return customCollator.compare(a, b);
 }
 
+function toLocaleDigit(digit: string): string {
+    const currentLocale = IntlStore.getCurrentLocale();
+    return toLocaleDigitUtil(currentLocale, digit);
+}
+
 export type {MockFetch, FormData};
 export {
     translateLocal,
@@ -461,4 +467,5 @@ export {
     localeCompare,
     STRIPE_CUSTOMER_ID,
     getNvpDismissedProductTraining,
+    toLocaleDigit,
 };
