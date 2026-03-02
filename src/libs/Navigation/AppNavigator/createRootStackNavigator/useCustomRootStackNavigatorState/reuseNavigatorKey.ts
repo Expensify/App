@@ -111,8 +111,9 @@ function cleanNavigationState(state) {
             index: cleanedIndex,
         };
     }
-
-    return processNavigator(state);
+    const result = processNavigator(state);
+    debugger;
+    return result
 }
 
 export {reuseNavigatorKey,cleanNavigationState};
