@@ -273,6 +273,7 @@ function SearchContextProvider({children, params}: SearchContextProps) {
         lastSearchType,
         shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
+        currentSearchQueryJSON,
     };
 
     const searchActionsContextValue: SearchActionsContextValue = {
