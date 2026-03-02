@@ -106,14 +106,14 @@ function findColumnName(header: string): string {
         case 'date':
         case 'transactiondate':
         case 'transaction_date':
-            attribute = 'date';
+            attribute = CONST.CSV_IMPORT_COLUMNS.DATE;
             break;
 
         case 'merchant':
         case 'merchants':
         case 'vendor':
         case 'vendors':
-            attribute = 'merchant';
+            attribute = CONST.CSV_IMPORT_COLUMNS.MERCHANT;
             break;
 
         case 'rateid':

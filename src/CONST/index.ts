@@ -8002,6 +8002,8 @@ const CONST = {
         IGNORE: 'ignore',
         DESTINATION: 'destination',
         CATEGORY: 'category',
+        DATE: 'date',
+        MERCHANT: 'merchant',
         TRANSACTION_FIELDS: ['date', 'merchant', 'amount', 'category'] as const,
     },
 

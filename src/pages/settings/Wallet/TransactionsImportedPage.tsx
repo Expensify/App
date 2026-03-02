@@ -64,10 +64,10 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
     const columnRoles: ColumnRole[] = useMemo(
         () => [
             {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
-            {text: translate('common.date'), value: 'date', isRequired: true},
-            {text: translate('common.merchant'), value: 'merchant', isRequired: true},
-            {text: translate('common.category'), value: 'category'},
-            {text: translate('iou.amount'), value: 'amount', isRequired: true},
+            {text: translate('common.date'), value: CONST.CSV_IMPORT_COLUMNS.DATE, isRequired: true},
+            {text: translate('common.merchant'), value: CONST.CSV_IMPORT_COLUMNS.MERCHANT, isRequired: true},
+            {text: translate('common.category'), value: CONST.CSV_IMPORT_COLUMNS.CATEGORY},
+            {text: translate('iou.amount'), value: CONST.CSV_IMPORT_COLUMNS.AMOUNT, isRequired: true},
         ],
         [translate],
     );
