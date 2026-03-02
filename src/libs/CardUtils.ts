@@ -1183,6 +1183,14 @@ type SplitMaskedCardNumberResult = {
  * @param maskChar the character used to mask the card number
  * @returns the first and last digits of the card number
  */
+function formatMaskedCardName(cardName: string): string {
+    if (!/^[0-9X]+$/.test(cardName)) {
+        return cardName;
+    }
+    const padded = cardName.padStart(16, 'X');
+    return padded.match(/.{1,4}/g)?.join('-') ?? padded;
+}
+
 function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string = CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR): SplitMaskedCardNumberResult {
     if (!cardNumber) {
         return {
@@ -1393,6 +1401,7 @@ export {
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
+    formatMaskedCardName,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
     generateCardID,
