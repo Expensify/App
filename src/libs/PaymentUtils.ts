@@ -145,15 +145,25 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
 }
 
 /**
+ * Ensures data has the shape of AccountData so we can safely read values from it without type casting.
+ */
+function isAccountData(data: unknown): data is AccountData {
+    return typeof data === 'object' && data !== null && 'type' in data && 'state' in data;
+}
+
+/**
  * Returns all valid business bank accounts for the pay menu.
  * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
  */
 function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[]): BusinessBankAccountOption[] {
     return formattedPaymentMethods
         .filter((method) => {
-            const accountData = method?.accountData as AccountData | undefined;
-            const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-            return accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && method?.methodID != null && !isPartiallySetup;
+            if (!isAccountData(method?.accountData)) {
+                return false;
+            }
+            const accountData = method.accountData;
+            const isPartiallySetup = isBankAccountPartiallySetup(accountData.state);
+            return accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN && method?.methodID != null && !isPartiallySetup;
         })
         .map((formattedPaymentMethod) => ({
             text: formattedPaymentMethod?.title ?? '',

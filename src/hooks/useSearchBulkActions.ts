@@ -581,49 +581,40 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
                 }
             }
-            const paymentData = (
-                selectedReports.length
-                    ? selectedReports.map((report) => {
-                          const effectivePaymentType =
-                              getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(report.reportID)) ?? paymentMethod;
-                          return {
-                              reportID: report.reportID,
-                              amount: report.total,
-                              paymentType: effectivePaymentType,
-                              ...(isInvoiceReport(report.reportID)
-                                  ? getPayMoneyOnSearchInvoiceParams(
-                                        report.policyID,
-                                        additionalData?.payAsBusiness ?? isBusinessInvoiceRoom(report.chatReportID),
-                                        additionalData?.bankAccountID ?? getLastPolicyBankAccountID(report.policyID, lastPaymentMethods),
-                                        CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-                                    )
-                                  : {}),
-                              ...(isExpenseReportUtil(report.reportID) && effectivePaymentType === CONST.IOU.PAYMENT_TYPE.VBBA && expenseReportBankAccountID != null
-                                  ? {bankAccountID: expenseReportBankAccountID}
-                                  : {}),
-                          };
-                      })
-                    : Object.values(selectedTransactions).map((transaction) => {
-                          const effectivePaymentType =
-                              getLastPolicyPaymentMethod(transaction.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(transaction.reportID)) ?? paymentMethod;
-                          return {
-                              reportID: transaction.reportID,
-                              amount: transaction.amount,
-                              paymentType: effectivePaymentType,
-                              ...(isInvoiceReport(transaction.reportID)
-                                  ? getPayMoneyOnSearchInvoiceParams(
-                                        transaction.policyID,
-                                        additionalData?.payAsBusiness ?? isBusinessInvoiceRoom(transaction.reportID),
-                                        additionalData?.bankAccountID ?? getLastPolicyBankAccountID(transaction.policyID, lastPaymentMethods),
-                                        CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-                                    )
-                                  : {}),
-                              ...(isExpenseReportUtil(transaction.reportID) && effectivePaymentType === CONST.IOU.PAYMENT_TYPE.VBBA && expenseReportBankAccountID != null
-                                  ? {bankAccountID: expenseReportBankAccountID}
-                                  : {}),
-                          };
-                      })
-            ) as PaymentData[];
+            const itemsToPay =
+                selectedReports.length > 0
+                    ? selectedReports.map((report) => ({
+                          reportID: report.reportID,
+                          amount: report.total,
+                          policyID: report.policyID,
+                          chatReportID: report.chatReportID,
+                      }))
+                    : Object.values(selectedTransactions).map((transaction) => ({
+                          reportID: transaction.reportID,
+                          amount: transaction.amount,
+                          policyID: transaction.policyID,
+                          chatReportID: transaction.reportID,
+                      }));
+
+            const paymentData = itemsToPay.map((item) => {
+                const effectivePaymentType = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID)) ?? paymentMethod;
+                return {
+                    reportID: item.reportID,
+                    amount: item.amount,
+                    paymentType: effectivePaymentType,
+                    ...(isInvoiceReport(item.reportID)
+                        ? getPayMoneyOnSearchInvoiceParams(
+                              item.policyID,
+                              additionalData?.payAsBusiness ?? isBusinessInvoiceRoom(item.chatReportID),
+                              additionalData?.bankAccountID ?? getLastPolicyBankAccountID(item.policyID, lastPaymentMethods),
+                              CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                          )
+                        : {}),
+                    ...(isExpenseReportUtil(item.reportID) && effectivePaymentType === CONST.IOU.PAYMENT_TYPE.VBBA && expenseReportBankAccountID != null
+                        ? {bankAccountID: expenseReportBankAccountID}
+                        : {}),
+                };
+            }) as PaymentData[];
 
             payMoneyRequestOnSearch(hash, paymentData);
 
