@@ -73,7 +73,7 @@ describe('Middleware', () => {
 
     describe('HandleUnusedOptimisticID', () => {
         test('Normal request', async () => {
-            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'OpenReport',
@@ -108,7 +108,7 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID', async () => {
-            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'OpenReport',
@@ -157,7 +157,7 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID and no reportID in params', async () => {
-            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'RequestMoney',
@@ -221,7 +221,7 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID and optimisticReportID param', async () => {
-            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'MoveIOUReportToExistingPolicy',
@@ -276,8 +276,8 @@ describe('Middleware', () => {
                 },
             });
 
-            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
-            Request.addMiddleware(SaveResponseInOnyx, 'SaveResponseInOnyx');
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
 
             const requests = [
                 {
@@ -396,8 +396,8 @@ describe('Middleware', () => {
                 },
             });
 
-            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
-            Request.addMiddleware(SaveResponseInOnyx, 'SaveResponseInOnyx');
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
 
             const requests = [
                 {
