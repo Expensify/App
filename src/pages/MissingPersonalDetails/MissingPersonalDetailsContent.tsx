@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -103,16 +103,11 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             }
 
             const personalDetailsParams: Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
-
-            // The reason for using it, despite it being deprecated: https://github.com/Expensify/App/pull/79473#discussion_r2745847379
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() =>
-                executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD, {
-                    ...personalDetailsParams,
-                    pin,
-                    cardID,
-                }),
-            );
+            executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD, {
+                ...personalDetailsParams,
+                pin,
+                cardID,
+            });
         } else {
             onComplete();
         }

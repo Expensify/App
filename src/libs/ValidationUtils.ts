@@ -781,9 +781,6 @@ function isInvalidMerchantValue(merchant?: string): boolean {
  * PIN must be exactly 4 digits and not in the list of invalid/weak PINs.
  */
 function isValidPin(pin: string): boolean {
-    if (pin.length !== CONST.EXPENSIFY_CARD.PIN.LENGTH) {
-        return false;
-    }
     if (!/^\d{4}$/.test(pin)) {
         return false;
     }
