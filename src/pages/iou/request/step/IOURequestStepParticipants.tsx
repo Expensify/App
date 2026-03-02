@@ -156,7 +156,7 @@ function IOURequestStepParticipants({
     // because we want to first check if the p2p rate exists on the workspace.
     // If it doesn't exist - we'll show an error message to force the user to choose a valid rate from the workspace.
     useEffect(() => {
-        if (!isMovingTransactionFromTrackExpense) {
+        if (!isMovingTransactionFromTrackExpense || !isFocused) {
             return;
         }
 
@@ -185,8 +185,13 @@ function IOURequestStepParticipants({
             return;
         }
 
-        const rateID = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
         for (const transaction of transactions) {
+            const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: selfDMReportID,
+                isTrackDistanceExpense: isDistanceRequest(transaction),
+                policy: policyForMovingExpenses,
+                isPolicyExpenseChat: false,
+            });
             setCustomUnitRateID(transaction.transactionID, rateID, transaction, activePolicy);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(
@@ -222,6 +227,7 @@ function IOURequestStepParticipants({
         currentUserPersonalDetails.accountID,
         isActivePolicyRequest,
         backTo,
+        policyForMovingExpenses,
         activePolicy,
     ]);
 
@@ -253,7 +259,7 @@ function IOURequestStepParticipants({
                 setMoneyRequestParticipants(initialTransactionID, val);
             }
 
-            if (!isMovingTransactionFromTrackExpense) {
+            if (!isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
                 // If not moving the transaction from track expense, select the default rate automatically.
                 // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
