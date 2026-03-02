@@ -72,9 +72,9 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             createPolicyTag(policyData, values.tagName.trim(), setupTagsTaskReport, setupCategoriesAndTagsTaskReport, policyHasCustomCategories);
             Keyboard.dismiss();
-            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
+            Navigation.dismissModal();
         },
-        [policyID, policyData, isQuickSettingsFlow, backTo, setupTagsTaskReport, setupCategoriesAndTagsTaskReport, policyHasCustomCategories],
+        [policyData, setupTagsTaskReport, setupCategoriesAndTagsTaskReport, policyHasCustomCategories],
     );
 
     return (
@@ -91,7 +91,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.addTag')}
-                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
+                    onBackButtonPress={() => Navigation.dismissModal()}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
