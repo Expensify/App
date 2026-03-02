@@ -85,16 +85,16 @@ Formatting requirements:
 - Do not call it “More”.
 - Do not write “More menu”.
 
+Correct:
+- Select the three dots **(⋮)**.
+- Click the three dots **(⋮)** next to the expense.
+  
 Incorrect:
 - Click More
 - Select “: More”
 - Tap the three dots
 - Open the More menu
 - Click ⋮
-
-Correct:
-- Select the three dots **(⋮)**.
-- Click the three dots **(⋮)** next to the expense.
 
 ---
 
@@ -172,17 +172,6 @@ Do not soften or imply this limitation.
 Example:
 - Enable **Reimbursements**.
 - Turn on **Company Cards**.
-
----
-
-# Breadcrumb Referencing Rule
-
-When referencing breadcrumbs inside instructions:
-
-- Breadcrumbs must follow the formatting rules defined in:
-  /docs/HELPSITE_NAMING_CONVENTIONS.md
-- Do not paraphrase breadcrumb labels.
-- Do not modify breadcrumb structure.
 
 ---
 
