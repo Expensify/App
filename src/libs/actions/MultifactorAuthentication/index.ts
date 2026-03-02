@@ -42,14 +42,14 @@ async function registerAuthenticationKey({keyInfo, authenticationMethod}: Multif
 }
 
 type RegistrationChallengeResponse = {
-    httpCode: number;
+    httpStatusCode: number;
     reason: MultifactorAuthenticationReason;
     challenge: RegistrationChallenge | undefined;
     publicKeys: string[] | undefined;
 };
 
 type AuthenticationChallengeResponse = {
-    httpCode: number;
+    httpStatusCode: number;
     reason: MultifactorAuthenticationReason;
     challenge: AuthenticationChallenge | undefined;
     publicKeys: string[] | undefined;

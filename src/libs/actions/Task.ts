@@ -321,7 +321,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         });
         Navigation.dismissModalWithReport({reportID: parentReportID});
     }
-    notifyNewAction(parentReportID, currentUserAccountID, optimisticAddCommentReport.reportAction);
+    notifyNewAction(parentReportID, optimisticAddCommentReport.reportAction, true);
 }
 
 function buildTaskData(
@@ -1013,7 +1013,7 @@ function getShareDestination(
         icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, Expensicons.FallbackAvatar),
         // Will be fixed in https://github.com/Expensify/App/issues/76852
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        displayName: ReportUtils.getReportName(report),
+        displayName: ReportUtils.getReportName({report}),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),
@@ -1181,7 +1181,7 @@ function deleteTask(
     };
 
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
-    notifyNewAction(report.reportID, currentUserAccountID);
+    notifyNewAction(report.reportID, undefined, true);
 
     const urlToNavigateBack = getNavigationUrlOnTaskDelete(report);
     if (urlToNavigateBack) {

@@ -1,5 +1,4 @@
 import throttle from 'lodash/throttle';
-import {getBrowser, isChromeIOS} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
@@ -59,15 +58,4 @@ function toggleTestToolsModal() {
     throttledToggle();
 }
 
-function shouldShowProfileTool() {
-    const browser = getBrowser();
-    const isSafariOrFirefox = browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.FIREFOX;
-
-    if (isSafariOrFirefox || isChromeIOS()) {
-        return false;
-    }
-    return true;
-}
-
-export {shouldShowProfileTool};
 export default toggleTestToolsModal;

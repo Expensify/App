@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import CategorySelectorModal from '@components/CategorySelector/CategorySelectorModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,6 +26,7 @@ import {clearPolicyErrorField, setWorkspaceDefaultSpendCategory} from '@userActi
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import KeyboardUtils from '@src/utils/keyboard';
 
 type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps &
     (
@@ -44,8 +45,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const [categoryID, setCategoryID] = useState<string>();
     const [groupID, setGroupID] = useState<string>();
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS;
-    const toggleSubtitle =
-        isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', {connectionName: currentConnectionName}) : undefined;
+    const toggleSubtitle = isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', currentConnectionName) : undefined;
 
     const updateWorkspaceRequiresCategory = useCallback(
         (value: boolean) => {
@@ -81,10 +81,8 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
             setWorkspaceDefaultSpendCategory(policyID, currentGroupID, selectedCategory.keyForList);
         }
 
-        Keyboard.dismiss();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setIsSelectorModalVisible(false);
+        KeyboardUtils.dismiss({
+            afterTransition: () => setIsSelectorModalVisible(false),
         });
     };
 
@@ -100,7 +98,12 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
 
     const selectionListHeaderContent = (
         <View style={[styles.mh5, styles.mt2, styles.mb1]}>
-            <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>
+            <Text
+                style={[styles.headerText]}
+                accessibilityRole={CONST.ROLE.HEADER}
+            >
+                {translate('workspace.categories.defaultSpendCategories')}
+            </Text>
             <Text style={[styles.mt1, styles.lh20]}>{translate('workspace.categories.spendCategoriesDescription')}</Text>
         </View>
     );

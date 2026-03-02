@@ -117,6 +117,22 @@ describe('IOU Utils', () => {
             // Then we should start per diem request flow
             expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.PER_DIEM, true, undefined, undefined, undefined);
         });
+
+        it('should be navigated to Time Expense', () => {
+            // When the quick action is REQUEST_TIME
+            navigateToQuickAction({
+                isValidReport: true,
+                quickAction: {action: CONST.QUICK_ACTIONS.REQUEST_TIME, chatReportID: reportID},
+                selectOption: (onSelected: () => void) => {
+                    onSelected();
+                },
+                targetAccountPersonalDetails: createPersonalDetails(1),
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+            });
+
+            // Then we should start time request flow
+            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.TIME, false, undefined, undefined, undefined);
+        });
     });
 });
 

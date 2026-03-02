@@ -67,6 +67,15 @@ const categoryOverLimitViolation = {
     },
 };
 
+const overTripLimitViolation = {
+    name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: {
+        formattedLimit: convertAmountToDisplayString(400),
+    },
+};
+
 const categoryMissingCommentViolation = {
     name: CONST.VIOLATIONS.MISSING_COMMENT,
     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -974,6 +983,62 @@ describe('getViolationsOnyxData', () => {
             });
         });
     });
+
+    describe('overTripLimit violation', () => {
+        it('should add overTripLimit violation if the modified transaction amount is over the original transaction amount', () => {
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -400;
+            transaction.modifiedAmount = -600;
+            transaction.receipt = {
+                reservationList: [
+                    {
+                        start: {date: '2023-07-24'},
+                        end: {date: '2023-07-25'},
+                        type: 'train',
+                    },
+                ],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual(expect.arrayContaining([overTripLimitViolation, ...transactionViolations]));
+        });
+
+        it('should not add overTripLimit violation if the modified transaction currency is different from the original transaction currency', () => {
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -400;
+            transaction.modifiedAmount = -600;
+            transaction.currency = CONST.CURRENCY.USD;
+            transaction.modifiedCurrency = CONST.CURRENCY.GBP;
+            transaction.receipt = {
+                reservationList: [
+                    {
+                        start: {date: '2023-07-24'},
+                        end: {date: '2023-07-25'},
+                        type: 'train',
+                    },
+                ],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([]);
+        });
+
+        it('should remove overTripLimit violation if the modified transaction amount is not over the original transaction amount', () => {
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -400;
+            transaction.modifiedAmount = -300;
+            transaction.receipt = {
+                reservationList: [
+                    {
+                        start: {date: '2023-07-24'},
+                        end: {date: '2023-07-25'},
+                        type: 'train',
+                    },
+                ],
+            };
+            const modifiedTransactionViolations = [overTripLimitViolation, ...transactionViolations];
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, modifiedTransactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([]);
+        });
+    });
 });
 
 const getFakeTransaction = (transactionID: string, comment?: Transaction['comment']) => ({
@@ -1565,6 +1630,16 @@ describe('getIsViolationFixed', () => {
                 policyTaxRates: {TAX_10: {name: '10%', value: '10'}},
             });
             expect(result).toBe(true);
+        });
+
+        it("should return false when taxCodes match but the taxValues doesn't", () => {
+            const result = getIsViolationFixed('violations.taxOutOfPolicy', {
+                ...defaultParams,
+                taxCode: 'CUSTOM_TAX',
+                taxValue: '15',
+                policyTaxRates: {CUSTOM_TAX: {name: '10%', value: '10'}},
+            });
+            expect(result).toBe(false);
         });
     });
 

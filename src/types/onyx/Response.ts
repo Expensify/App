@@ -11,7 +11,7 @@ type Data = {
 };
 
 /** Model of server response */
-type Response<TKey extends OnyxKey = OnyxKey> = {
+type Response<TKey extends OnyxKey> = {
     /** ID of the next update that needs to be fetched from the server */
     previousUpdateID?: number | string;
 
