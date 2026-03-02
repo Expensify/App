@@ -646,6 +646,30 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'もう一度サインインしてください。',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: '取引を確認',
+            pleaseReview: 'この取引を確認してください',
+            requiresYourReview: 'Expensifyカードの取引が、以下の内容であなたの確認を必要としています。',
+            transactionDetails: '取引の詳細',
+            deny: '拒否',
+            approve: '承認',
+            denyTransaction: '取引を却下',
+            transactionDenied: '取引が拒否されました',
+            transactionApproved: '取引が承認されました！',
+            areYouSureToDeny: 'よろしいですか？この画面を閉じると、その取引は拒否されます。',
+            youCanTryAgainAtMerchantOrReachOut:
+                '加盟店でもう一度お試しください。もしこの取引に心当たりがない場合は、不正の可能性がありますので、<concierge-link>Concierge に連絡してください</concierge-link>。',
+            youNeedToTryAgainAtMerchant: 'この取引は未認証のため、拒否されました。再度加盟店でお試しください。',
+            goBackToTheMerchant: '取引を続行するには、加盟店のサイトに戻ってください。',
+            attemptedTransaction: '試行された取引',
+            transactionFailed: '取引に失敗しました',
+            transactionCouldNotBeCompleted: '取引を完了できませんでした。加盟店で再度お試しください。',
+            transactionCouldNotBeCompletedReachOut:
+                '取引を完了できませんでした。心当たりのない取引の場合は、不正の可能性がありますので、<concierge-link>Conciergeに連絡してください</concierge-link>。',
+            reviewFailed: 'レビューに失敗しました',
+            alreadyReviewedSubtitle:
+                'この取引はすでに確認済みです。問題がある場合は、<transaction-history-link>取引履歴</transaction-history-link>をご確認いただくか、<concierge-link>Concierge</concierge-link>までご連絡ください。',
+        },
         biometricsTest: {
             biometricsTest: '生体認証テスト',
             authenticationSuccessful: '認証に成功しました',
@@ -696,7 +720,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         unsupportedDevice: {
             unsupportedDevice: '未対応のデバイス',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> この操作はお使いのデバイスではサポートされていません。<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> または <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Playストア</a> からExpensifyアプリをダウンロードして、もう一度お試しください。</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `この操作はお使いのデバイスではサポートされていません。<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> または <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Playストア</a> からExpensifyアプリをダウンロードして、もう一度お試しください。`,
         },
         verificationFailed: '認証に失敗しました',
     },
@@ -1405,9 +1429,11 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseOnHold: 'この経費は保留されています。今後の手順についてコメントを確認してください。',
         expensesOnHold: 'すべての経費が保留になっています。次のステップについてはコメントを確認してください。',
         expenseDuplicate: 'この経費は別の経費と詳細がよく似ています。続行するには重複しているものを確認してください。',
-        someDuplicatesArePaid: 'これらの重複のうち、いくつかはすでに承認または支払い済みです。',
+        someDuplicatesArePaid: 'これらの重複の一部は、すでに承認または支払い済みです。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
+        noDuplicatesTitle: '準備完了！',
+        noDuplicatesDescription: '確認が必要な重複取引はありません。',
         confirmApprove: '承認金額を確認',
         confirmApprovalAmount: '準拠している経費のみを承認するか、レポート全体を承認します。',
         confirmApprovalAllHoldAmount: () => ({
@@ -1535,6 +1561,10 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} (<a href="${route}">個人経費ルール</a> 経由)`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} (<a href="${route}">ワークスペースルール</a> 経由)`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出を遅らせる</a>を使ったレポートの送信に失敗しました。${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `レポートの送信に失敗しました。${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>で承認に失敗しました。${reason}`,
+        failedToApproveViaDEW: (reason: string) => `承認に失敗しました。${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -3896,6 +3926,7 @@ ${
             clearFilter: 'フィルターをクリア',
             workspaceName: 'ワークスペース名',
             workspaceOwner: 'オーナー',
+            keepMeAsAdmin: '管理者のままにする',
             workspaceType: 'ワークスペースの種類',
             workspaceAvatar: 'ワークスペースのアバター',
             clientID: 'クライアントID',
@@ -7341,6 +7372,10 @@ ${reportName}
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `ビジネス銀行口座 ${maskedBankAccountNumber} は、払い戻しまたは Expensify カードの精算に問題が発生したため自動的にロックされました。問題を解決するには、<a href="${linkURL}">ワークスペース設定</a>で修正してください。`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}がチャットから退出しました`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Expensify モバイルアプリを開いて、${amountAndMerchantText && `${amountAndMerchantText} `}の取引を確認してください`;
+                },
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
@@ -7518,7 +7553,6 @@ ${reportName}
         },
     },
     gps: {
-        disclaimer: 'GPSを使用して移動履歴から経費を作成しましょう。追跡を開始するには、下の「開始」をタップしてください。',
         error: {
             failedToStart: '位置情報の追跡を開始できませんでした。',
             failedToGetPermissions: '必要な位置情報の権限を取得できませんでした。',
