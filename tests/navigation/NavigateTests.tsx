@@ -210,7 +210,6 @@ describe('Navigate', () => {
                                 name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                                 state: {
                                     index: 0,
-                                    stale: false,
                                     routes: [
                                         {
                                             name: SCREENS.SETTINGS.ROOT,
