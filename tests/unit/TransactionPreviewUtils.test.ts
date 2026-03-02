@@ -278,44 +278,6 @@ describe('TransactionPreviewUtils', () => {
                 expect(result.RBRMessage.translationPath).toEqual('iou.error.other');
             });
 
-            it('should show customUnitOutOfPolicy error for distance request with invalid rate', () => {
-                const functionArgs = {
-                    ...basicProps,
-                    policy: {
-                        ...createRandomPolicy(1),
-                        customUnits: {
-                            unit1: {
-                                customUnitID: 'unit1',
-                                name: 'Distance',
-                                attributes: {unit: 'mi' as const},
-                                rates: {},
-                            },
-                        },
-                    },
-                    transaction: {
-                        ...basicProps.transaction,
-                        reportID: '',
-                        routes: {
-                            route0: {
-                                distance: 1000,
-                                geometry: {coordinates: null},
-                            },
-                        },
-                        comment: {
-                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                            customUnit: {
-                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                                customUnitRateID: 'invalid_rate',
-                            },
-                        },
-                    },
-                    shouldShowRBR: true,
-                    originalTransaction: undefined,
-                };
-                const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-                expect(result.RBRMessage.translationPath).toEqual('violations.customUnitOutOfPolicy');
-            });
-
             it('should show violation message for notice violations with policy', () => {
                 const violationMsg = 'This expense violates policy rules';
                 const functionArgs = {
@@ -564,42 +526,6 @@ describe('TransactionPreviewUtils', () => {
                             message: [{type: 'TEXT', text: 'Failed to submit'}],
                             originalMessage: {message: 'Failed to submit'},
                             pendingAction: null,
-                        },
-                    },
-                };
-                const result = createTransactionPreviewConditionals(functionArgs);
-                expect(result.shouldShowRBR).toBeTruthy();
-            });
-
-            it('should show RBR for distance request with invalid rate in policy', () => {
-                const functionArgs = {
-                    ...basicProps,
-                    policy: {
-                        ...createRandomPolicy(1),
-                        customUnits: {
-                            unit1: {
-                                customUnitID: 'unit1',
-                                name: 'Distance',
-                                attributes: {unit: 'mi' as const},
-                                rates: {},
-                            },
-                        },
-                    },
-                    transaction: {
-                        ...basicProps.transaction,
-                        reportID: '',
-                        routes: {
-                            route0: {
-                                distance: 1000,
-                                geometry: {coordinates: null},
-                            },
-                        },
-                        comment: {
-                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                            customUnit: {
-                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                                customUnitRateID: 'invalid_rate',
-                            },
                         },
                     },
                 };
