@@ -105,6 +105,7 @@ autocompleteKey "key"
       / submitted
       / approved
       / paid
+      / exportedTo
       / exported
       / withdrawn
       / posted
