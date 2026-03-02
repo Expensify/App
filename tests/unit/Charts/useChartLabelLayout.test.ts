@@ -68,6 +68,14 @@ describe('useChartLabelLayout', () => {
             expect(result.current.truncatedLabels).toEqual(['AAAAAA', 'BBBBBB']);
         });
 
+        it('picks 45° when labelAreaWidth is too narrow for 0° despite sufficient tickSpacing', () => {
+            // "AAA" = 21px. tickSpacing=30: 21+4=25 ≤ 30 ✓ (tick check passes).
+            // BUT labelAreaWidth=40: maxVisibleCount(40,21) = floor(40/25) = 1 < 3 → 0° fails.
+            // At 45°: 21*SIN_45 ≈ 14.85, 14.85+4=18.85 ≤ 30 ✓ → 45° selected.
+            const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAA', 'BBB', 'CCC'), font, tickSpacing: 30, labelAreaWidth: 40}));
+            expect(result.current.labelRotation).toBe(-45);
+        });
+
         it('picks 90° when labels overflow at all rotations', () => {
             // tickSpacing=20: 0° fails (46>20), 45° fails (29.7+4=33.7>20)
             const {result} = renderHook(() => useChartLabelLayout({data: makeData('AAAAAA', 'BBBBBB'), font, tickSpacing: 20, labelAreaWidth: 400}));
