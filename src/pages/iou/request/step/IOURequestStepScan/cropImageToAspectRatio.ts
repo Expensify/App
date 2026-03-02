@@ -77,21 +77,22 @@ function cropImageToAspectRatio(
             if (rotation === 90 || rotation === 270) {
                 const tempFilename = `receipt_normalized_${Date.now()}.jpeg`;
                 return cropOrRotateImage(image.source, [], {compress: 1, name: tempFilename, type: IMAGE_TYPE}).then((normalizedImage) => {
-                    if (!normalizedImage?.uri) {
+                    const normalizedUri = 'uri' in normalizedImage ? normalizedImage.uri : undefined;
+                    if (!normalizedUri) {
                         return image;
                     }
-                    return ImageSize.getSize(normalizedImage.uri).then((normalizedSize) => {
+                    return ImageSize.getSize(normalizedUri).then((normalizedSize) => {
                         // If the normalized image dimensions differ from the raw dimensions,
                         // the image loader already applied EXIF rotation during normalization.
                         const wasAutoRotated = normalizedSize.width !== imageSize.width || normalizedSize.height !== imageSize.height;
 
                         const cropPromise = wasAutoRotated
-                            ? cropOrRotateImage(normalizedImage.uri, [{crop: calculateCropRect(normalizedSize.width, normalizedSize.height, ratioWidth, ratioHeight, shouldAlignTop)}], {
+                            ? cropOrRotateImage(normalizedUri, [{crop: calculateCropRect(normalizedSize.width, normalizedSize.height, ratioWidth, ratioHeight, shouldAlignTop)}], {
                                   compress: 1,
                                   name: croppedFilename,
                                   type: IMAGE_TYPE,
                               })
-                            : cropOrRotateImage(normalizedImage.uri, [{rotate: rotation}, {crop}], {compress: 1, name: croppedFilename, type: IMAGE_TYPE});
+                            : cropOrRotateImage(normalizedUri, [{rotate: rotation}, {crop}], {compress: 1, name: croppedFilename, type: IMAGE_TYPE});
 
                         return cropPromise.then((croppedImage) => {
                             if (!croppedImage?.uri || !croppedImage?.name) {
