@@ -7,7 +7,7 @@ const EMOJI_ON_SEPARATE_LINE_PATTERN = new RegExp(`(${BLOCK_BOUNDARY_BEFORE})(\\
 /**
  * Hydrates raw <emoji> tags in HTML by adding ismedium and isOnSeparateLine attributes (iOS-only).
  * - Adds ismedium to every <emoji> opening tag for consistent rendering.
- * - Adds oneline to emoji tags that appear on their own line (between block boundaries).
+ * - Adds isOnSeparateLine to emoji tags that appear on their own line (between block boundaries).
  *
  * @param html - HTML string containing raw <emoji> tags (e.g. <emoji>😀</emoji>)
  * @returns HTML with hydrated <emoji> tags (e.g. <emoji ismedium>😀</emoji> or <emoji ismedium isOnSeparateLine>😀</emoji> when on separate line)
