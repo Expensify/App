@@ -15,25 +15,31 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type SearchTypeMenuItemProps = {
     /** Translated title */
     title: string;
+
     /** Icon component or asset */
     icon: IconAsset | undefined;
+
     /** Optional badge text (e.g. count) */
     badgeText?: string;
+
     /** Whether the item is focused (keyboard nav) */
     focused?: boolean;
+
     /** Press handler */
     onPress: () => void;
+
     /** Wrapper style override */
     wrapperStyle?: StyleProp<ViewStyle>;
+
     /** Badge container style override */
     badgeStyle?: StyleProp<ViewStyle>;
+
     /** Sentry label for the pressable */
     sentryLabel?: string;
 };
 
 /**
- * Lightweight menu row for Search type menu: icon + title + optional badge.
- * Avoids the full MenuItem component overhead (Hoverable, secondary interaction, avatars, etc.).
+ * Menu item row for Search type menu
  */
 function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, wrapperStyle, badgeStyle, sentryLabel}: SearchTypeMenuItemProps) {
     const styles = useThemeStyles();
