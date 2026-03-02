@@ -1033,12 +1033,14 @@ function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[])
         (acc, curr) => {
             const employee = policy?.employeeList?.[curr.email];
             if (employee) {
+                const existingCustomField1 = employee.employeeUserID;
+                const existingCustomField2 = employee.employeePayrollID;
                 if (
                     curr.role !== employee.role ||
                     (curr.submitsTo ?? '') !== (employee.submitsTo ?? '') ||
                     (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '') ||
-                    (curr.customField1 !== undefined && curr.customField1 !== (employee.employeeUserID ?? '')) ||
-                    (curr.customField2 !== undefined && curr.customField2 !== (employee.employeePayrollID ?? '')) ||
+                    (curr.customField1 !== undefined && curr.customField1 !== (existingCustomField1 ?? '')) ||
+                    (curr.customField2 !== undefined && curr.customField2 !== (existingCustomField2 ?? '')) ||
                     (curr.approvalLimit !== undefined && curr.approvalLimit !== String(employee.approvalLimit ?? '')) ||
                     (curr.overLimitForwardsTo !== undefined && curr.overLimitForwardsTo !== (employee.overLimitForwardsTo ?? ''))
                 ) {
