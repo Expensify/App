@@ -18,31 +18,17 @@ function isTravelCVVTestingEnabled(): boolean {
 }
 
 /**
- * Gets the Travel Invoicing settings from the card settings object.
- *
- * The backend returns Travel Invoicing data in two different shapes depending on the source:
- * - OpenPolicyTravelPage: returns flat settings at the root level (extracted from TRAVEL_US in C++)
- * - Setup script / direct NVP write: stores settings nested under a TRAVEL_US key
- *
- * When TRAVEL_US exists, its values take precedence over root-level values (which may belong
- * to the Expensify Card program sharing the same NVP). When TRAVEL_US doesn't exist but
- * travel-specific fields like isEnabled are present at the root, those are used directly
- * (this is the shape returned by OpenPolicyTravelPage after the C++ layer extracts TRAVEL_US).
+ * Gets the Travel Invoicing settings from the nested TRAVEL_US object.
+ * Only returns settings if cardSettings.TRAVEL_US exists — root-level cardSettings
+ * (e.g. paymentBankAccountID for the Expensify Card) must not be treated as Travel Invoicing data.
  */
 function getTravelSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>): ExpensifyCardSettingsBase | undefined {
-    if (!cardSettings) {
+    if (!cardSettings?.TRAVEL_US) {
         return undefined;
     }
-
-    if (cardSettings.TRAVEL_US) {
-        return {...cardSettings, ...cardSettings.TRAVEL_US};
-    }
-
-    if (cardSettings.isEnabled !== undefined || cardSettings.paymentBankAccountID) {
-        return cardSettings;
-    }
-
-    return undefined;
+    // Merge root settings with TRAVEL_US so partial optimistic updates (e.g. only isEnabled) still
+    // inherit other fields like monthlySettlementDate from the root.
+    return {...cardSettings, ...cardSettings.TRAVEL_US};
 }
 
 /**
