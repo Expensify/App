@@ -1014,12 +1014,6 @@ function getOptionData({
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
             result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
-        } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
-            const displayName =
-                (lastMessageTextFromReport.length > 0 &&
-                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
-                lastActorDisplayName;
-            result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else if (lastAction && isOldDotReportAction(lastAction)) {
             result.alternateText = getMessageOfOldDotReportAction(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
@@ -1088,6 +1082,12 @@ function getOptionData({
             result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
+        } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
+            const displayName =
+                (lastMessageTextFromReport.length > 0 &&
+                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
+                lastActorDisplayName;
+            result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0

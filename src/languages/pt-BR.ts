@@ -645,6 +645,30 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Faça login novamente.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Analisar transação',
+            pleaseReview: 'Revise esta transação',
+            requiresYourReview: 'Uma transação com o Cartão Expensify requer sua revisão abaixo.',
+            transactionDetails: 'Detalhes da transação',
+            deny: 'Negar',
+            approve: 'Aprovar',
+            denyTransaction: 'Negar transação',
+            transactionDenied: 'Transação negada',
+            transactionApproved: 'Transação aprovada!',
+            areYouSureToDeny: 'Tem certeza? A transação será recusada se você fechar esta tela.',
+            youCanTryAgainAtMerchantOrReachOut:
+                'Você pode tentar novamente no estabelecimento. Se você não fez esta transação, <concierge-link>entre em contato com a Concierge</concierge-link> para relatar possível fraude.',
+            youNeedToTryAgainAtMerchant: 'Essa transação não foi verificada, então nós a negamos. Você precisará tentar novamente no estabelecimento.',
+            goBackToTheMerchant: 'Volte ao site do estabelecimento para continuar a transação.',
+            attemptedTransaction: 'Transação tentada',
+            transactionFailed: 'Transação falhou',
+            transactionCouldNotBeCompleted: 'Não foi possível concluir sua transação. Tente novamente no estabelecimento.',
+            transactionCouldNotBeCompletedReachOut:
+                'Sua transação não pôde ser concluída. Se você não tentou fazer essa transação, <concierge-link>entre em contato com o Concierge</concierge-link> para relatar possível fraude.',
+            reviewFailed: 'Falha na análise',
+            alreadyReviewedSubtitle:
+                'Você já revisou esta transação. Verifique seu <transaction-history-link>histórico de transações</transaction-history-link> ou entre em contato com o <concierge-link>Concierge</concierge-link> para relatar qualquer problema.',
+        },
         biometricsTest: {
             biometricsTest: 'Teste de biometria',
             authenticationSuccessful: 'Autenticação bem-sucedida',
@@ -696,7 +720,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo não compatível',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.`,
         },
         verificationFailed: 'Falha na verificação',
     },
@@ -1542,6 +1566,10 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">regras de despesas pessoais</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">regras do workspace</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `falha ao enviar o relatório via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">adiar envios</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `falha ao enviar o relatório. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `falha ao aprovar pelas <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `falha ao aprovar. ${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -3911,6 +3939,7 @@ ${
             clearFilter: 'Limpar filtro',
             workspaceName: 'Nome do workspace',
             workspaceOwner: 'Proprietário',
+            keepMeAsAdmin: 'Manter-me como administrador',
             workspaceType: 'Tipo de workspace',
             workspaceAvatar: 'Avatar do workspace',
             clientID: 'ID do cliente',
@@ -7399,6 +7428,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `a conta bancária empresarial ${maskedBankAccountNumber} foi bloqueada automaticamente devido a um problema com Reembolso ou liquidação do Cartão Expensify. Corrija o problema nas suas <a href="${linkURL}">configurações de workspace</a>.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}saiu do chat`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Abra o app móvel da Expensify para revisar sua transação de${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
+                },
             },
             error: {
                 invalidCredentials: 'Credenciais inválidas, verifique a configuração da sua conexão.',
@@ -7577,7 +7610,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         },
     },
     gps: {
-        disclaimer: 'Use o GPS para criar uma despesa a partir da sua viagem. Toque em Iniciar abaixo para começar a rastrear.',
         error: {
             failedToStart: 'Falha ao iniciar o rastreamento de localização.',
             failedToGetPermissions: 'Falha ao obter as permissões de localização necessárias.',

@@ -9,6 +9,7 @@ import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/Multifac
 
 type ErrorState = {
     reason: MultifactorAuthenticationReason;
+    payload?: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario>;
     httpStatusCode?: number;
     message?: string;
 };
