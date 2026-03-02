@@ -275,7 +275,7 @@ function MoneyRequestConfirmationList({
     const [defaultMileageRateDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
         selector: mileageRateSelector,
     });
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const [defaultMileageRateReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: mileageRateSelector,
@@ -336,7 +336,12 @@ function MoneyRequestConfirmationList({
     const defaultRate = defaultMileageRate?.customUnitRateID;
     const lastSelectedRate = policy?.id ? (lastSelectedDistanceRates?.[policy.id] ?? defaultRate) : defaultRate;
 
-    const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
+    const mileageRate = DistanceRequestUtils.getRate({
+        transaction,
+        policy,
+        ...(isMovingTransactionFromTrackExpense && {policyForMovingExpenses}),
+        policyDraft,
+    });
     const rate = mileageRate.rate;
     const prevRate = usePrevious(rate);
     const unit = mileageRate.unit;
@@ -344,8 +349,6 @@ function MoneyRequestConfirmationList({
     const currency = mileageRate.currency ?? CONST.CURRENCY.USD;
     const prevCurrency = usePrevious(currency);
     const prevSubRates = usePrevious(subRates);
-
-    const {shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     // A flag for showing the categories field
     const shouldShowCategories = isTrackExpense
@@ -547,7 +550,7 @@ function MoneyRequestConfirmationList({
     }, [shouldCalculateDistanceAmount, isReadOnly, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
 
     // Calculate and set tax amount in transaction draft
-    const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : (transaction?.amount ?? 0);
+    const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : Math.abs(transaction?.amount ?? 0);
     // First we'll try to get the tax value from the chosen policy and if not found, we'll try to get it from the policy for moving expenses (only if the transaction is moving from track expense)
     const taxPercentage =
         getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ??
