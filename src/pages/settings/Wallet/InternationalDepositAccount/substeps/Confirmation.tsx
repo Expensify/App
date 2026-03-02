@@ -40,8 +40,8 @@ function TermsAndConditionsLabel() {
 function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {canBeMissing: false});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const {isOffline} = useNetwork();
     const {getCurrencySymbol} = useCurrencyListActions();
 
