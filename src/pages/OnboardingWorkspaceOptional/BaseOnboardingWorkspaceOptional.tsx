@@ -43,6 +43,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const {onboardingMessages} = useOnboardingMessages();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
@@ -89,6 +90,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             adminsChatReportID: onboardingAdminsChatReportID,
             onboardingPolicyID,
             introSelected,
+            betas,
         });
 
         setOnboardingAdminsChatReportID();
@@ -116,6 +118,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         mergedAccountConciergeReportID,
         introSelected,
         conciergeChatReportID,
+        betas,
     ]);
 
     return (
