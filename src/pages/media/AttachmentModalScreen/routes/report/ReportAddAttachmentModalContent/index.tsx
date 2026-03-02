@@ -4,6 +4,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {openReport} from '@libs/actions/Report';
+import {isMultipleAttachmentsValidationResult, validateAttachmentFile, validateMultipleAttachmentFiles} from '@libs/AttachmentValidation';
+import type {MultipleAttachmentsValidationResult, SingleAttachmentValidationResult} from '@libs/AttachmentValidation';
 import {getValidatedImageSource} from '@libs/AvatarUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {canUserPerformWriteAction, isReportNotFound} from '@libs/ReportUtils';
@@ -18,8 +20,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {isMultipleAttachmentsValidationResult, validateAttachmentFile, validateMultipleAttachmentFiles} from '@libs/AttachmentValidation';
-import type {MultipleAttachmentsValidationResult, SingleAttachmentValidationResult} from '@libs/AttachmentValidation';
 import AddAttachmentModalCarouselView from './AddAttachmentModalCarouselView';
 
 function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ADD_ATTACHMENT>) {
