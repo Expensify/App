@@ -48,9 +48,10 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
     const isComingFromExpensifyCard = route.params?.isComingFromExpensifyCard;
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const policyCurrency = policy?.outputCurrency ?? reimbursementAccount?.achData?.currency ?? '';
-    const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? CONST.BBA_COUNTRY_CURRENCY_MAP[reimbursementAccount?.achData?.country ?? ''] ?? '';
+    const isDocusignStepRequired = requiresDocusignStep(currency);
     const stepNames = isDocusignStepRequired ? CONST.NON_USD_BANK_ACCOUNT.DOCUSIGN_REQUIRED_STEP_NAMES : CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES;
 
     const pages = useMemo(() => (isDocusignStepRequired ? allPages : allPages.filter((p) => p.pageName !== PAGE_NAME.DOCUSIGN)), [isDocusignStepRequired]);
@@ -82,7 +83,7 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
                 onSubmit={onSubmit}
                 onBackButtonPress={onBackButtonPress}
                 policyID={policyID}
-                policyCurrency={policyCurrency}
+                currency={currency}
                 stepNames={stepNames}
                 currentSubPage={currentSubPage}
                 isComingFromExpensifyCard={isComingFromExpensifyCard}

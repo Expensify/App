@@ -17,7 +17,7 @@ const INPUT_KEYS = {
     ACH_AUTHORIZATION_FORM: INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM,
 };
 
-function Docusign({onBackButtonPress, onSubmit, stepNames, policyCurrency}: NonUSDPageProps) {
+function Docusign({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPageProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const finalStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
@@ -65,7 +65,7 @@ function Docusign({onBackButtonPress, onSubmit, stepNames, policyCurrency}: NonU
             isLoading={reimbursementAccount?.isFinishingCorpayBankAccountOnboarding ?? false}
             onBackButtonPress={handleBackButtonPress}
             onSubmit={submit}
-            currency={policyCurrency ?? ''}
+            currency={currency ?? ''}
             startStepIndex={6}
             stepNames={stepNames}
         />

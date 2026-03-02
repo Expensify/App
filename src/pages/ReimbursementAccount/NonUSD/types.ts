@@ -8,8 +8,8 @@ type NonUSDPageProps = {
     /** ID of current policy */
     policyID?: string;
 
-    /** Currency of the policy */
-    policyCurrency?: string;
+    /** Currency of Business Bank Account */
+    currency?: string;
 
     /** Array of step names for the progress indicator */
     stepNames?: readonly string[];
