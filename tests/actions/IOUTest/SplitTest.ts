@@ -2598,6 +2598,7 @@ describe('updateSplitTransactions', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            isSelfTourViewed: false,
         });
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
@@ -2628,6 +2629,8 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            existingTransactionDraft: undefined,
+            draftTransactionIDs: [],
         });
         await waitForBatchedUpdates();
 
@@ -2724,6 +2727,7 @@ describe('updateSplitTransactions', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            isSelfTourViewed: false,
         });
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
@@ -2754,6 +2758,8 @@ describe('updateSplitTransactions', () => {
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
+            existingTransactionDraft: undefined,
+            draftTransactionIDs: [],
         });
         await waitForBatchedUpdates();
 
