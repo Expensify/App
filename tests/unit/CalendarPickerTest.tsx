@@ -12,11 +12,11 @@ jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: jest.fn(),
 }));
 
-jest.mock('../../src/hooks/useLocalize', () =>
-    jest.fn(() => ({
+jest.mock('../../src/hooks/useLocalize', () => ({
+    useActionsLocalize: () => ({
         translate: jest.fn(),
-    })),
-);
+    }),
+}));
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 

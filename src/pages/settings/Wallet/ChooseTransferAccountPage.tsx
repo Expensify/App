@@ -10,7 +10,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
@@ -33,7 +33,7 @@ function ChooseTransferAccountPage() {
     const [walletTransfer, walletTransferResult] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     /**
      * Go back to transfer balance screen with the selected bank account set
      * @param event Click event object

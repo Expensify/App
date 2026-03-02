@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -23,7 +23,7 @@ import INPUT_IDS from '@src/types/form/IKnowTeacherForm';
 
 function KnowATeacherPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {isProduction} = useEnvironment();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);

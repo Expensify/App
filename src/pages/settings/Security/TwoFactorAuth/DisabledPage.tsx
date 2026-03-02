@@ -3,7 +3,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
@@ -14,7 +14,7 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 function DisabledPage() {
     const illustrations = useMemoizedLazyIllustrations(['LockOpen']);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <TwoFactorAuthWrapper

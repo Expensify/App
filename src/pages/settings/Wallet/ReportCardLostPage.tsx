@@ -6,7 +6,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SingleOptionSelector from '@components/SingleOptionSelector';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -55,7 +55,7 @@ function ReportCardLostPage({
 }: ReportCardLostPageProps) {
     const styles = useThemeStyles();
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
     const cardList = useNonPersonalCardList();

@@ -15,7 +15,7 @@ import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -46,7 +46,7 @@ type WorkspaceEditCardLimitTypePageProps = PlatformStackScreenProps<
 function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageProps) {
     const {policyID, cardID, backTo} = route.params;
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const formRef = useRef<FormRef | null>(null);

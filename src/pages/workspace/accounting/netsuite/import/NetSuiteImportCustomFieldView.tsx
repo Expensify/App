@@ -6,7 +6,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/actions/connections/NetSuiteCommands';
 import {clearNetSuiteErrorField, clearNetSuitePendingField, removeNetSuiteCustomFieldByIndex} from '@libs/actions/Policy/Policy';
@@ -44,7 +44,7 @@ function NetSuiteImportCustomFieldView({
 }: NetSuiteImportCustomFieldViewProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [isRemoveModalOpen, setIsRemoveModalOpen] = useState<boolean>(false);
 
     const config = policy?.connections?.netsuite?.options?.config;

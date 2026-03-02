@@ -10,7 +10,7 @@ import type {TaskListItemType} from '@components/SelectionListWithSections/types
 import TextWithTooltip from '@components/TextWithTooltip';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useParentReport from '@hooks/useParentReport';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -73,7 +73,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const session = useSession();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const parentReport = useParentReport(taskItem?.report?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(taskItem.report);

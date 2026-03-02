@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,7 +24,7 @@ type DomainMembersSettingsPageProps = PlatformStackScreenProps<SettingsNavigator
 function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
     const {domainAccountID} = route.params;
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 

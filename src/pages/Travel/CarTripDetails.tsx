@@ -4,7 +4,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
@@ -19,7 +19,7 @@ type CarTripDetailsProps = {
 function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const pickUpDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
     const dropOffDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));

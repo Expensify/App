@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +20,7 @@ type BadgeActionCellProps = {
 };
 
 function BadgeActionCell({action, isLargeScreenWidth, isSelected, extraSmall, shouldDisablePointerEvents}: BadgeActionCellProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

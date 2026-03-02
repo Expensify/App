@@ -5,7 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isInvalidMerchantValue, isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
@@ -38,7 +38,7 @@ function TextBase<TFormID extends OnyxFormKey>({
     characterLimit = CONST.MERCHANT_NAME_MAX_BYTES,
     isMarkdownEnabled = false,
 }: TextBaseProps<TFormID>) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [form] = useOnyx(formID);
     const styles = useThemeStyles();
 

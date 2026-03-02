@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo} from 'react';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -18,7 +18,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     const {accountID = CONST.DEFAULT_NUMBER_ID, source: tempSource, originalFileName: tempOriginalFileName} = route.params;
 
     const defaultAvatars = useDefaultAvatars();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber} = useActionsLocalize();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const personalDetail = personalDetails?.[accountID];

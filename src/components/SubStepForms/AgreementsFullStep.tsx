@@ -6,7 +6,7 @@ import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Fo
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isRequiredFulfilled} from '@libs/ValidationUtils';
 import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
@@ -14,22 +14,22 @@ import {clearErrors} from '@userActions/FormActions';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 function IsAuthorizedToUseBankAccountLabel() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     return <Text>{translate('agreementsStep.iAmAuthorized')}</Text>;
 }
 
 function CertifyTrueAndAccurateLabel() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     return <Text>{translate('agreementsStep.iCertify')}</Text>;
 }
 
 function TermsAndConditionsLabel() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     return <RenderHTML html={translate('agreementsStep.iAcceptTheTermsAndConditions')} />;
 }
 
 function ConsentToPrivacyNoticeLabel() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     return <RenderHTML html={translate('agreementsStep.iConsentToThePrivacyNotice')} />;
 }
 
@@ -78,7 +78,7 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     stepNames,
     startStepIndex,
 }: AgreementsFullStepProps<TFormID>) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const isDocusignStepRequired = requiresDocusignStep(currency);

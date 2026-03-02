@@ -7,7 +7,7 @@ import PercentageForm from '@components/PercentageForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,7 +28,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
     const policy = usePolicy(policyID);
 
     const {inputCallbackRef} = useAutoFocusInput();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);

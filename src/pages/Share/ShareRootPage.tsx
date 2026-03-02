@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useFilesValidation from '@hooks/useFilesValidation';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
@@ -64,7 +64,7 @@ function ShareRootPage() {
     const [isFileReady, setIsFileReady] = useState(false);
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [isFileScannable, setIsFileScannable] = useState(false);
     const receiptFileFormats = Object.values(CONST.RECEIPT_ALLOWED_FILE_TYPES) as string[];
     const shareFileMimeTypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];

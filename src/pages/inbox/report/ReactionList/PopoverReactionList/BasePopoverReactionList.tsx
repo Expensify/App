@@ -4,7 +4,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useBasePopoverReactionList from '@hooks/useBasePopoverReactionList';
 import type {BasePopoverReactionListProps} from '@hooks/useBasePopoverReactionList/types';
-import useLocalize from '@hooks/useLocalize';
+import {useStateLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import BaseReactionList from '@pages/inbox/report/ReactionList/BaseReactionList';
 import CONST from '@src/CONST';
@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 type PopoverReactionListProps = WithCurrentUserPersonalDetailsProps & BasePopoverReactionListProps;
 
 function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonalDetails, ref}: PopoverReactionListProps) {
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale} = useStateLocalize();
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reactionReportActionID = reportActionID || CONST.DEFAULT_NUMBER_ID;

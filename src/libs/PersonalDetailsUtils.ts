@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
@@ -213,7 +213,7 @@ function getNewAccountIDsAndLogins(logins: string[], accountIDs: number[]) {
 function getPersonalDetailsOnyxDataForOptimisticUsers(
     newLogins: string[],
     newAccountIDs: number[],
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'],
 ): OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> {
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
@@ -319,7 +319,7 @@ function getFormattedAddress(privatePersonalDetails: OnyxEntry<PrivatePersonalDe
  * @param personalDetail - details object
  * @returns - The effective display name
  */
-function getEffectiveDisplayName(formatPhoneNumber: LocaleContextValue['formatPhoneNumber'], personalDetail?: PersonalDetails): string | undefined {
+function getEffectiveDisplayName(formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'], personalDetail?: PersonalDetails): string | undefined {
     if (personalDetail) {
         return formatPhoneNumber(personalDetail?.login ?? '') || personalDetail.displayName;
     }
@@ -333,7 +333,7 @@ function getEffectiveDisplayName(formatPhoneNumber: LocaleContextValue['formatPh
 function createDisplayName(
     login: string,
     passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxInputOrEntry<PersonalDetails>,
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'],
 ): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.

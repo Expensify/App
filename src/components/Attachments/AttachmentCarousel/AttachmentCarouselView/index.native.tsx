@@ -6,7 +6,7 @@ import type {AttachmentCarouselPagerHandle} from '@components/Attachments/Attach
 import type {AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
@@ -27,7 +27,7 @@ function AttachmentCarouselView({
     setPage,
     attachmentID,
 }: AttachmentCarouselViewProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const canUseTouchScreen = canUseTouchScreenUtil();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);

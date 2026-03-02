@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {TranslationParameters} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +20,7 @@ type ImportSpreadsheetConfirmModalProps = {
 };
 
 function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onModalHide, shouldHandleNavigationBack = true}: ImportSpreadsheetConfirmModalProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
 

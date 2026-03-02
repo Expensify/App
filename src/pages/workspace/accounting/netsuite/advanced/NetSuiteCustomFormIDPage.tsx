@@ -8,7 +8,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const styles = useThemeStyles();

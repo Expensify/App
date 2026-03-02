@@ -1,7 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {isPolicyAdmin as isPolicyAdminPolicyUtils} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter, isReportApproved, isReportManuallyReimbursed} from '@libs/ReportUtils';
@@ -22,7 +22,7 @@ type BrokenConnectionDescriptionProps = {
 };
 
 function BrokenConnectionDescription({transactionID, policy, report}: BrokenConnectionDescriptionProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
     const {environmentURL} = useEnvironment();
 

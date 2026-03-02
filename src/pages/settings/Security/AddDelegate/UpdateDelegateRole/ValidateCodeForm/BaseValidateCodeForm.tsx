@@ -10,7 +10,7 @@ import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicC
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -52,7 +52,7 @@ type BaseValidateCodeFormProps = {
 };
 
 function BaseValidateCodeForm({autoComplete = CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE, innerRef = () => {}, delegate, role, wrapperStyle}: BaseValidateCodeFormProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {isOffline} = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();

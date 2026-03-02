@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import type {PrivateSubscription} from '@src/types/onyx';
@@ -16,7 +16,7 @@ type SubscriptionPlanDowngradeBlockedProps = {
 };
 
 function SubscriptionPlanDowngradeBlocked({privateSubscription, formattedSubscriptionEndDate, onClosePress}: SubscriptionPlanDowngradeBlockedProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const isInvoicingPlanType = isSubscriptionTypeOfInvoicing(privateSubscription?.type);

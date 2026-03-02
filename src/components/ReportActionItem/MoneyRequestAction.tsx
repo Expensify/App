@@ -3,7 +3,7 @@ import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useContext, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -89,7 +89,7 @@ function MoneyRequestAction({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();

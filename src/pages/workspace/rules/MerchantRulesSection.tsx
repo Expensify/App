@@ -8,7 +8,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,7 +35,7 @@ type FieldLabels = {
 /**
  * Generates a human-readable description of what a coding rule does
  */
-function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLocalize>['translate'], labels: FieldLabels): string {
+function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useActionsLocalize>['translate'], labels: FieldLabels): string {
     const actions: string[] = [];
 
     if (rule.merchant) {
@@ -66,7 +66,7 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
 }
 
 function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const policy = usePolicy(policyID);

@@ -3,7 +3,7 @@ import React, {useCallback, useEffect} from 'react';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +14,7 @@ import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
 function PlaidStep({onNext}: SubStepProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);

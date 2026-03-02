@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateXeroAutoSync} from '@libs/actions/connections/Xero';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -26,7 +26,7 @@ type XeroAutoSyncPageRouteParams = {
 
 function XeroAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const policyID = policy?.id;
     const config = policy?.connections?.xero?.config;
     const {autoSync, pendingFields} = config ?? {};

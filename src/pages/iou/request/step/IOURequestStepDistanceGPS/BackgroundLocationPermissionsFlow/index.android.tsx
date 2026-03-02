@@ -4,7 +4,7 @@ import {Linking} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import type BackgroundLocationPermissionsFlowProps from './types';
 
 async function requestForegroundPermissions({
@@ -83,7 +83,7 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
     const [showBgPermissionsModal, setShowBgPermissionsModal] = useState(false);
     const [showPreciseLocationModal, setShowPreciseLocationModal] = useState(false);
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const onForegroundPermissionsGranted = async () => {
         const {granted} = await getBackgroundPermissionsAsync();

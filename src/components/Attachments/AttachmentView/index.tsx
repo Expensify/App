@@ -16,7 +16,7 @@ import Text from '@components/Text';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -137,7 +137,7 @@ function AttachmentView({
     const transaction = transactionProp ?? transactionFromOnyx;
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {currentlyPlayingURL} = usePlaybackStateContext();
     const {updateCurrentURLAndReportID, playVideo} = usePlaybackActionsContext();
 

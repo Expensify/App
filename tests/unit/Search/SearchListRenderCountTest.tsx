@@ -20,12 +20,12 @@ import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBa
 
 jest.mock('@components/Icon/Expensicons');
 
-jest.mock('@hooks/useLocalize', () =>
-    jest.fn(() => ({
+jest.mock('@hooks/useLocalize', () => ({
+    useActionsLocalize: () => ({
         translate: jest.fn((key: string) => key),
         numberFormat: jest.fn(),
-    })),
-);
+    }),
+}));
 
 jest.mock('@hooks/useNetwork', () =>
     jest.fn(() => ({

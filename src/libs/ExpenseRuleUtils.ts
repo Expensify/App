@@ -1,4 +1,4 @@
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, TaxRate} from '@src/types/onyx';
@@ -29,7 +29,7 @@ type ValueForKey = {
     tax: string;
 };
 
-function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextValue['translate']): string {
+function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleActionsContextValue['translate']): string {
     const changes: string[] = [];
 
     const addChange = <K extends ChangeKey>(key: K, value: ValueForKey[K]) => {

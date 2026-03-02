@@ -3,7 +3,7 @@ import ChangeWorkspaceMenuSectionList from '@components/ChangeWorkspaceMenuSecti
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissChangePolicyModal} from '@libs/actions/Report';
@@ -12,7 +12,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 function ChangePolicyEducationalModal() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['ReceiptFairy']);

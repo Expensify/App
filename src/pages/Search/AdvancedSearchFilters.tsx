@@ -5,7 +5,7 @@ import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtil
 import type {OnyxCollection} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
@@ -13,7 +13,7 @@ import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchDatePreset, Sea
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -273,7 +273,12 @@ function getFilterWorkspaceDisplayTitle(filters: SearchAdvancedFiltersForm, poli
         .join(', ');
 }
 
-function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, policies: OnyxCollection<Policy>, cards: CardList | undefined, translate: LocaleContextValue['translate']) {
+function getFilterCardDisplayTitle(
+    filters: Partial<SearchAdvancedFiltersForm>,
+    policies: OnyxCollection<Policy>,
+    cards: CardList | undefined,
+    translate: LocaleActionsContextValue['translate'],
+) {
     const cardIdsFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
     const feedFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED] ?? [];
     const workspaceCardFeeds = Object.entries(cards ?? {}).reduce<Record<string, WorkspaceCardsList>>((workspaceCardsFeed, [cardID, card]) => {
@@ -306,7 +311,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
     return [...feedNames, ...cardNames].join(', ');
 }
 
-function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined, formatPhoneNumber: LocaleContextValue['formatPhoneNumber']) {
+function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined, formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber']) {
     return accountIDs
         .map((id) => {
             const personalDetail = personalDetails?.[id];
@@ -324,8 +329,8 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
 function getFilterDisplayTitle(
     filters: Partial<SearchAdvancedFiltersForm>,
     filterKey: SearchFilterKey,
-    translate: LocaleContextValue['translate'],
-    localeCompare: LocaleContextValue['localeCompare'],
+    translate: LocaleActionsContextValue['translate'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
 ) {
     let key: SearchFilterKey = filterKey;
 
@@ -493,7 +498,7 @@ function getFilterDisplayTitle(
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
 
-function getFilterViewDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextValue['translate']) {
+function getFilterViewDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleActionsContextValue['translate']) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
     if (!filterValue) {
         return translate('search.view.table');
@@ -501,7 +506,7 @@ function getFilterViewDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
     return translate(`search.view.${filterValue as ValueOf<typeof CONST.SEARCH.VIEW>}`);
 }
 
-function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, translate: LocaleContextValue['translate']) {
+function getStatusFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, type: SearchDataTypes, translate: LocaleActionsContextValue['translate']) {
     const statusOptions = getStatusOptions(translate, type).concat({text: translate('common.all'), value: CONST.SEARCH.STATUS.EXPENSE.ALL});
     let filterValue = filters?.status;
 
@@ -541,7 +546,7 @@ function getFilterTaxRateDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
     return result.join(', ');
 }
 
-function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleContextValue['translate']) {
+function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, translate: LocaleActionsContextValue['translate']) {
     const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE];
     return filterValue
         ? Object.values(CONST.SEARCH.TRANSACTION_TYPE)
@@ -553,7 +558,7 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
 
 function getFilterInDisplayTitle(
     filters: Partial<SearchAdvancedFiltersForm>,
-    _: LocaleContextValue['translate'],
+    _: LocaleActionsContextValue['translate'],
     reports: OnyxCollection<Report>,
     reportAttributes: ReportAttributesDerivedValue['reports'],
 ) {
@@ -564,7 +569,7 @@ function getFilterInDisplayTitle(
 }
 
 function AdvancedSearchFilters() {
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useActionsLocalize();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();

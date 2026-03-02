@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -473,7 +473,7 @@ function sortCategorizedReports(
         archivedReports: MiniReport[];
     },
     isInDefaultMode: boolean,
-    localeCompare: LocaleContextValue['localeCompare'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
 ): {
     pinnedAndGBRReports: MiniReport[];
     errorReports: MiniReport[];
@@ -541,7 +541,7 @@ function combineReportCategories(
 function sortReportsToDisplayInLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     priorityMode: OnyxEntry<PriorityMode>,
-    localeCompare: LocaleContextValue['localeCompare'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
     reportsDrafts: OnyxCollection<string> | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
     conciergeReportID: string | undefined,
@@ -693,7 +693,7 @@ function getOptionData({
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     translate: LocalizedTranslate;
-    localeCompare: LocaleContextValue['localeCompare'];
+    localeCompare: LocaleActionsContextValue['localeCompare'];
     isReportArchived: boolean | undefined;
     lastActionReport: OnyxEntry<Report>;
     movedFromReport?: OnyxEntry<Report>;
@@ -1164,7 +1164,7 @@ function getWelcomeMessage(
     invoiceReceiverPolicy: OnyxEntry<Policy>,
     participantPersonalDetailList: PersonalDetails[],
     translate: LocalizedTranslate,
-    localeCompare: LocaleContextValue['localeCompare'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
     isReportArchived = false,
     reportDetailsLink = '',
     shouldShowUsePlusButtonText = false,

@@ -10,7 +10,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ObjectType, OnyxDataType} from '@libs/DebugUtils';
@@ -53,7 +53,7 @@ type DebugDetailsProps = {
 };
 
 function DebugDetails({formType, data, policyHasEnabledTags, policyID, children, onSave, onDelete, validate}: DebugDetailsProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare} = useActionsLocalize();
     const styles = useThemeStyles();
     const [formDraftData] = useOnyx(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT);
     const booleanFields = useMemo(

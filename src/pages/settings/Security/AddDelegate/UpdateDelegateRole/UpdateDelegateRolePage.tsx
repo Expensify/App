@@ -7,7 +7,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,7 +22,7 @@ type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 
 function UpdateDelegateRoleSelectionListHeader() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
@@ -41,7 +41,7 @@ function UpdateDelegateRoleSelectionListHeader() {
 }
 
 function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [delegates] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegatesSelector});
     const {currentRole, login} = route.params;
 

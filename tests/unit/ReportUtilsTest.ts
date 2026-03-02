@@ -4,7 +4,7 @@ import {act, renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -8662,7 +8662,7 @@ describe('ReportUtils', () => {
     });
 
     describe('getReportStatusTranslation', () => {
-        const mockTranslate: LocaleContextValue['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
+        const mockTranslate: LocaleActionsContextValue['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
 
         it('should return "Draft" for state 0, status 0', () => {
             const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate});

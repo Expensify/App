@@ -13,7 +13,7 @@ import Popover from '@components/Popover';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -135,7 +135,7 @@ function AttachmentPicker({
     const onClosed = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     /**

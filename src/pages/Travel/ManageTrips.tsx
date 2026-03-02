@@ -9,7 +9,7 @@ import FeatureList from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -23,7 +23,7 @@ type ManageTripsProps = {
 function ManageTrips({policyID}: ManageTripsProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
     const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts']);

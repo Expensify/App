@@ -1,7 +1,7 @@
 import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
@@ -13,7 +13,7 @@ type Offer25offProps = {
 
 function Offer25off({days}: Offer25offProps) {
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['TreasureChest'] as const);
 
     const subtitle = translate('homePage.timeSensitiveSection.offer25off.subtitle', {days});

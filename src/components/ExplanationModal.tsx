@@ -1,11 +1,11 @@
 import React from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import FeatureTrainingModal from './FeatureTrainingModal';
 
 function ExplanationModal() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <FeatureTrainingModal

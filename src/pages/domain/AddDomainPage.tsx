@@ -9,7 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createDomain, resetCreateDomainForm} from '@libs/actions/Domain';
@@ -23,7 +23,7 @@ import INPUT_IDS from '@src/types/form/CreateDomainForm';
 
 function AddDomainPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);

@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 function ConnectionCompletePage() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ConnectionComplete', 'ExpensifyWordmark'] as const);
     return (
         <View style={styles.deeplinkWrapperContainer}>

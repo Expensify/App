@@ -5,7 +5,7 @@ import {Alert, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Text from '@components/Text';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
@@ -17,7 +17,7 @@ import type AddToWalletButtonProps from './types';
 function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddToWalletButtonProps) {
     const [isWalletAvailable, setIsWalletAvailable] = React.useState<boolean>(false);
     const [isInWallet, setIsInWallet] = React.useState<boolean | null>(null);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
     const platform = getPlatform() === CONST.PLATFORM.IOS ? 'Apple' : 'Google';

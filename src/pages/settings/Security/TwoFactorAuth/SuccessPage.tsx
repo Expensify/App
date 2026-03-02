@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import LottieAnimations from '@components/LottieAnimations';
 import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -26,7 +26,7 @@ function classicRedirectDismissedSelector(tryNewDot: OnyxEntry<TryNewDot>) {
 }
 
 function SuccessPage({route}: SuccessPageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
 

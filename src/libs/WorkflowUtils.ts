@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import lodashMapKeys from 'lodash/mapKeys';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
@@ -102,7 +102,7 @@ type PolicyConversionParams = {
     firstApprover?: string;
 
     /** Locale comparison function */
-    localeCompare: LocaleContextValue['localeCompare'];
+    localeCompare: LocaleActionsContextValue['localeCompare'];
 };
 
 type PolicyConversionResult = {
@@ -527,7 +527,7 @@ function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountLis
 type GetApprovalLimitDescriptionParams = {
     approver: Approver | undefined;
     currency: string;
-    translate: LocaleContextValue['translate'];
+    translate: LocaleActionsContextValue['translate'];
     personalDetailsByEmail: PersonalDetailsList | undefined;
 };
 

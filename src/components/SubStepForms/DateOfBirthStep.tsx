@@ -5,7 +5,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -57,7 +57,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldShowPatriotActLink = false,
     forwardedFSClass,
 }: DateOfBirthStepProps<TFormID>) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);

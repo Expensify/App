@@ -5,7 +5,7 @@ import Icon from '@components/Icon';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -18,7 +18,7 @@ type HelpLinkProps = {
 function HelpLinks({containerStyles}: HelpLinkProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>

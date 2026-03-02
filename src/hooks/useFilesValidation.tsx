@@ -21,7 +21,7 @@ import convertHeicImage from '@libs/fileDownload/heicConverter';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
-import useLocalize from './useLocalize';
+import {useActionsLocalize} from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 
 const DEFAULT_IS_VALIDATING_RECEIPTS = true;
@@ -41,7 +41,7 @@ const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, num
 
 function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransferItems: DataTransferItem[]) => void) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [isValidatingFiles, setIsValidatingFiles] = useState(false);
     const [isValidatingReceipts, setIsValidatingReceipts] = useState<boolean>();

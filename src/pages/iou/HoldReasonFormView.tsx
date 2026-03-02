@@ -8,7 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -31,7 +31,7 @@ type HoldReasonFormViewProps = {
 
 function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1}: HoldReasonFormViewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
     return (

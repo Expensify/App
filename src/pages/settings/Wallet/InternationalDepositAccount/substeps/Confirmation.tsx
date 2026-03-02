@@ -9,7 +9,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,12 +33,12 @@ type MenuItemProps = {
 };
 
 function TermsAndConditionsLabel() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     return <RenderHTML html={translate('common.acceptTermsOfService')} />;
 }
 
 function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);

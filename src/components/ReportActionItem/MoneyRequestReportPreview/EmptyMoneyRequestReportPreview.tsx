@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,7 +12,7 @@ function EmptyMoneyRequestReportPreview() {
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (

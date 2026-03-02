@@ -4,7 +4,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {UnitItemType} from '@components/UnitPicker';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -25,7 +25,7 @@ type UnitSelectorProps = {
 };
 
 function UnitSelector({defaultValue, wrapperStyle, label, setNewUnit}: UnitSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 

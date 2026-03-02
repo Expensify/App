@@ -7,7 +7,7 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetSuiteImportAddCustomSegmentFormSubmit from '@hooks/useNetSuiteImportAddCustomSegmentForm';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
@@ -20,7 +20,7 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 const STEP_FIELDS = [INPUT_IDS.SEGMENT_NAME];
 function CustomSegmentNameStep({customSegmentType, onNext, isEditing, customSegments}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`);

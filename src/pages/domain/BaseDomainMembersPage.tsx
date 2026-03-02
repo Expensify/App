@@ -8,7 +8,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
@@ -100,7 +100,7 @@ function BaseDomainMembersPage({
     turnOnSelectionModeOnLongPress = false,
     onBackButtonPress,
 }: BaseDomainMembersPageProps) {
-    const {formatPhoneNumber, localeCompare, translate} = useLocalize();
+    const {formatPhoneNumber, localeCompare, translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);

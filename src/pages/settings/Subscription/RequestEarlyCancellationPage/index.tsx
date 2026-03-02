@@ -12,7 +12,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCancellationType from '@hooks/useCancellationType';
 import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cancelBillingSubscription} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,7 +24,7 @@ import ROUTES from '@src/ROUTES';
 function RequestEarlyCancellationPage() {
     const {environmentURL} = useEnvironment();
     const workspacesListRoute = `${environmentURL}/${ROUTES.WORKSPACES_LIST.route}`;
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const [isLoading, setIsLoading] = useState(false);

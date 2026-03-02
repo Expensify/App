@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -25,7 +25,7 @@ function isContentType(contentType: unknown): contentType is ContentType {
 function EmptySelectionListContent({contentType}: EmptySelectionListContentProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     if (!isContentType(contentType)) {
         return null;

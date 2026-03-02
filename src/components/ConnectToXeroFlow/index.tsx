@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
 import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import {close} from '@libs/actions/Modal';
@@ -12,7 +12,7 @@ import ROUTES from '@src/ROUTES';
 import type {ConnectToXeroFlowProps} from './types';
 
 function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {environmentURL} = useEnvironment();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);

@@ -4,7 +4,7 @@ import React, {useEffect, useRef} from 'react';
 import type {GestureResponderEvent, Role, Text as TextType, View as ViewType} from 'react-native';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,7 +47,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     const fabPressable = useRef<HTMLDivElement | ViewType | TextType | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isLHBVisible = !shouldUseNarrowLayout;
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const fabSize = isLHBVisible ? variables.iconSizeSmall : variables.iconSizeNormal;
 

@@ -2,7 +2,7 @@ import {TabActions} from '@react-navigation/native';
 import React from 'react';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import {getIconTitleAndTestID, MEMOIZED_LAZY_TAB_SELECTOR_ICONS} from './getIconTitleAndTestID';
 import TabSelectorBase from './TabSelectorBase';
 import type {TabSelectorBaseItem, TabSelectorProps} from './types';
@@ -19,7 +19,7 @@ function TabSelector({
     equalWidth = false,
 }: TabSelectorProps) {
     const icons = useMemoizedLazyExpensifyIcons(MEMOIZED_LAZY_TAB_SELECTOR_ICONS);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const tabs: TabSelectorBaseItem[] = state.routes.map((route) => {
         const {icon, title, testID, sentryLabel} = getIconTitleAndTestID(icons, route.name, translate);

@@ -1,6 +1,6 @@
 import React from 'react';
 import RenderHTML from '@components/RenderHTML';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getCreatedReportForUnapprovedTransactionsMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -16,7 +16,7 @@ type CreatedReportForUnapprovedTransactionsActionProps = {
 
 function CreatedReportForUnapprovedTransactionsAction({action}: CreatedReportForUnapprovedTransactionsActionProps) {
     const {originalID} = getOriginalMessage(action) ?? {};
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalID}`);
     const reportName = getReportName(report);
     const htmlContent = `<comment><muted-text>${getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translate)}</muted-text></comment>`;

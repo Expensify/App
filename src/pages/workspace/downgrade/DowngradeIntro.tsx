@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openLink} from '@libs/actions/Link';
@@ -25,7 +25,7 @@ type Props = {
 
 function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}: Props) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {environmentURL} = useEnvironment();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
 

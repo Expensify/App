@@ -6,7 +6,7 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -43,7 +43,7 @@ function NetSuiteImportMappingPage({
 }: NetSuiteImportMappingPageProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const importMappings = netsuiteConfig?.syncOptions?.mapping;

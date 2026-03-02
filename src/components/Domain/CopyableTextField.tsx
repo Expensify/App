@@ -6,7 +6,7 @@ import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,7 +30,7 @@ type CopyableTextFieldProps = {
 function CopyableTextField({value, isLoading = false, style, textStyle, shouldDisplayShowMoreButton = false}: CopyableTextFieldProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [expanded, setExpanded] = useState(false);
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);

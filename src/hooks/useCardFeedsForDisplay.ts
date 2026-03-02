@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
-import useLocalize from './useLocalize';
+import {useActionsLocalize} from './useLocalize';
 import useOnyx from './useOnyx';
 
 const eligiblePoliciesSelector = (policies: OnyxCollection<Policy>): string[] => {
@@ -19,7 +19,7 @@ const eligiblePoliciesSelector = (policies: OnyxCollection<Policy>): string[] =>
 };
 
 const useCardFeedsForDisplay = () => {
-    const {localeCompare, translate} = useLocalize();
+    const {localeCompare, translate} = useActionsLocalize();
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);

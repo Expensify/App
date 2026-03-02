@@ -2,7 +2,7 @@ import React, {memo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -72,7 +72,7 @@ function Banner({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Close']);
 
     const displayIcon = icon ?? expensifyIcons.Exclamation;

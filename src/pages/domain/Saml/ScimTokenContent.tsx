@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import Button from '@components/Button';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getScimToken} from '@libs/actions/Domain';
@@ -15,7 +15,7 @@ type ScimTokenContentProps = {
 };
 
 function ScimTokenContent({domainName}: ScimTokenContentProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 

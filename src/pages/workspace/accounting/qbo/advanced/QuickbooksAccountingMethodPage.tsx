@@ -7,7 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineAccountingMethod} from '@libs/actions/connections/QuickbooksOnline';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -28,7 +28,7 @@ type QuickbooksAccountingMethodPageRouteParams = {
 };
 
 function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const policyID = policy?.id;
     const {backTo} = route.params as QuickbooksAccountingMethodPageRouteParams;
     const styles = useThemeStyles();

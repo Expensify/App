@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
@@ -25,7 +25,7 @@ type NetSuiteCustomListPickerProps = {
 };
 
 function NetSuiteCustomListPicker({value, policy, internalIDInputID, errorText, onInputChange = () => {}}: NetSuiteCustomListPickerProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const hidePickerModal = () => {

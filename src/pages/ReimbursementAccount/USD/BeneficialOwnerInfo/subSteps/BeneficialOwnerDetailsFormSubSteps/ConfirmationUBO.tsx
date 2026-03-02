@@ -1,6 +1,6 @@
 import React from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -13,7 +13,7 @@ type ConfirmationUBOProps = SubStepProps & {beneficialOwnerBeingModifiedID: stri
 const UBO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT.SUBSTEP_INDEX.UBO;
 
 function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}: ConfirmationUBOProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);

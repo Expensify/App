@@ -5,7 +5,7 @@ import type {StyleProp, TextStyle} from 'react-native';
 import {useEnvironmentActions} from '@components/EnvironmentContextProvider';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,7 +54,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const styles = useThemeStyles();
     const {html = ''} = fragment ?? {};
     const text = getTextFromHtml(html);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {adjustExpensifyLinksForEnv} = useEnvironmentActions();
 

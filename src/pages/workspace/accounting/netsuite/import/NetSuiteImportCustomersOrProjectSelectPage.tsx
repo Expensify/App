@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCustomersJobsMapping} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -21,7 +21,7 @@ type ImportListItem = SelectorType & {
 
 function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;

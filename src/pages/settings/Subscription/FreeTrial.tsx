@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -32,7 +32,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
 
     const [freeTrialText, setFreeTrialText] = useState<string | undefined>(undefined);
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Star'] as const);
 
     useEffect(() => {

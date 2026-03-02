@@ -12,9 +12,7 @@ jest.mock('@libs/Parser', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: jest.fn(() => ({
+    useActionsLocalize: jest.fn(() => ({
         translate: jest.fn((key: string) => key),
     })),
 }));

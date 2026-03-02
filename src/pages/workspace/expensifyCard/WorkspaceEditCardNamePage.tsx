@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateExpensifyCardTitle} from '@libs/actions/Card';
@@ -30,7 +30,7 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     const {policyID, cardID, backTo} = route.params;
     const defaultFundID = useDefaultFundID(policyID);
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
 

@@ -4,7 +4,7 @@ import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -27,7 +27,7 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Thread']);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const isReportArchived = useReportIsArchived(ancestor.report.reportID);

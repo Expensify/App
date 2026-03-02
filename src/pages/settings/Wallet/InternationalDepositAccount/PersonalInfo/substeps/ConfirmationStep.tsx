@@ -1,6 +1,6 @@
 import React from 'react';
 import CommonConfirmationStep from '@components/SubStepForms/ConfirmationStep';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -16,7 +16,7 @@ const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const DEFAULT_OBJECT = {};
 
 function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);

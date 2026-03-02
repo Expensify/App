@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {ComponentType} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -27,7 +27,7 @@ type EnterSignerInfoFormSubStepProps = SubStepProps & {policyID: string};
 const bodyContent: Array<ComponentType<EnterSignerInfoFormSubStepProps>> = [Name, JobTitle, DateOfBirth, Address, UploadDocuments, Confirmation];
 
 function EnterSignerInfo({route}: EnterSignerInfoProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const bankAccountID = Number(route.params.bankAccountID);
     const policyID = route.params.policyID;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);

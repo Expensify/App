@@ -2,13 +2,13 @@ import React from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,7 +37,7 @@ type WorkspaceAutoReportingFrequencyPageItem = {
 
 type AutoReportingFrequencyDisplayNames = Record<AutoReportingFrequencyKey, string>;
 
-const getAutoReportingFrequencyDisplayNames = (translate: LocaleContextValue['translate']): AutoReportingFrequencyDisplayNames => ({
+const getAutoReportingFrequencyDisplayNames = (translate: LocaleActionsContextValue['translate']): AutoReportingFrequencyDisplayNames => ({
     [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: translate('workflowsPage.frequencies.monthly'),
     [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: translate('workflowsPage.frequencies.daily'),
     [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: translate('workflowsPage.frequencies.weekly'),
@@ -50,7 +50,7 @@ const getAutoReportingFrequencyDisplayNames = (translate: LocaleContextValue['tr
 function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoReportingFrequencyPageProps) {
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
 
-    const {translate, toLocaleOrdinal} = useLocalize();
+    const {translate, toLocaleOrdinal} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const onSelectAutoReportingFrequency = (item: WorkspaceAutoReportingFrequencyPageItem) => {

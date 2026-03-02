@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Text from './Text';
@@ -11,7 +11,7 @@ type ExceededCommentLengthProps = {
 
 function ExceededCommentLength({maxCommentLength = CONST.MAX_COMMENT_LENGTH, isTaskTitle}: ExceededCommentLengthProps) {
     const styles = useThemeStyles();
-    const {numberFormat, translate} = useLocalize();
+    const {numberFormat, translate} = useActionsLocalize();
 
     const translationKey = isTaskTitle ? 'composer.taskTitleExceededMaxLength' : 'composer.commentExceededMaxLength';
 

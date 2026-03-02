@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useLetterAvatars from '@hooks/useLetterAvatars';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,7 +35,7 @@ const SPACER_SIZE = 10;
  * AvatarSelector — renders a grid of selectable avatars.
  */
 function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_SIZE.MEDIUM}: AvatarSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();

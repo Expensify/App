@@ -1,13 +1,13 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,7 +31,7 @@ type IndividualExpenseRulesSectionProps = {
 
 type IndividualExpenseRulesSectionSubtitleProps = {
     policy?: Policy;
-    translate: LocaleContextValue['translate'];
+    translate: LocaleActionsContextValue['translate'];
     styles: ThemeStyles;
     environmentURL: string;
 };
@@ -70,7 +70,7 @@ function IndividualExpenseRulesSectionSubtitle({policy, translate, styles, envir
 }
 
 function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSectionProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const [cardFeeds] = useCardFeeds(policyID);

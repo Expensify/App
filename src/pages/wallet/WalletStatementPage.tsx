@@ -8,7 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import WalletStatementModal from '@components/WalletStatementModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -36,7 +36,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     const isWalletStatementGenerating = walletStatement?.isGenerating ?? false;
     const prevIsWalletStatementGenerating = usePrevious(isWalletStatementGenerating);
     const [isDownloading, setIsDownloading] = useState(isWalletStatementGenerating);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const {environment} = useEnvironment();

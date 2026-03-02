@@ -1,6 +1,6 @@
 import React from 'react';
 import ConfirmModal from '@components/ConfirmModal';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from '@libs/actions/isOpenConfirmNavigateExpensifyClassicModal';
@@ -13,7 +13,7 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 function BaseConfirmNavigateExpensifyClassicModal() {
     const [isOpenAppConfirmNavigateExpensifyClassicModalOpen = false] = useOnyx(ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const handleConfirm = () => {
         setIsOpenConfirmNavigateExpensifyClassicModalOpen(false);

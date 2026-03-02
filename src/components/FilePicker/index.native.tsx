@@ -2,7 +2,7 @@ import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import React, {useCallback, useRef} from 'react';
 import {Alert} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import {cleanFileName} from '@libs/fileDownload/FileUtils';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type FilePickerProps from './types';
@@ -41,7 +41,7 @@ function FilePicker({children}: FilePickerProps) {
     const completeFileSelection = useRef<(data: FileObject) => void>(() => {});
     const onCanceled = useRef<() => void>(() => {});
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     /**
      * A generic handling for file picker errors

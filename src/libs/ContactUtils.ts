@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Login, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {DeviceContact, StringHolder} from './ContactImport/types';
@@ -7,7 +7,7 @@ import {getUserToInviteContactOption} from './OptionsListUtils';
 import type {SearchOption} from './OptionsListUtils';
 import RandomAvatarUtils from './RandomAvatarUtils';
 
-function sortEmailObjects(emails: StringHolder[], localeCompare: LocaleContextValue['localeCompare']): string[] {
+function sortEmailObjects(emails: StringHolder[], localeCompare: LocaleActionsContextValue['localeCompare']): string[] {
     if (!emails?.length) {
         return [];
     }
@@ -31,7 +31,7 @@ function sortEmailObjects(emails: StringHolder[], localeCompare: LocaleContextVa
 
 const getContacts = (
     deviceContacts: DeviceContact[] | [],
-    localeCompare: LocaleContextValue['localeCompare'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
     countryCode: number,
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,

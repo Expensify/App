@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteSyncTaxConfiguration} from '@libs/actions/connections/NetSuiteCommands';
@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare} = useActionsLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
 

@@ -3,7 +3,7 @@ import keyBy from 'lodash/keyBy';
 import reject from 'lodash/reject';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
@@ -197,7 +197,7 @@ function getTagViolationsForMultiLevelTags(
 /**
  * Returns a period-separated string of violation messages for missing tag levels in a multi-level tag, based on error indexes.
  */
-function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, errorIndexes: number[], tags: PolicyTagLists, translate: LocaleContextValue['translate']): string {
+function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, errorIndexes: number[], tags: PolicyTagLists, translate: LocaleActionsContextValue['translate']): string {
     if (isEmpty(errorIndexes) || isEmpty(tags)) {
         return translate('violations.someTagLevelsRequired', {tagName});
     }
@@ -208,7 +208,7 @@ function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, e
 /**
  * Extracts unique error messages from errors and actions
  */
-function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: ReportAction[], translate: LocaleContextValue['translate']): string[] {
+function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: ReportAction[], translate: LocaleActionsContextValue['translate']): string[] {
     const uniqueMessages = new Set<string>();
 
     // Combine transaction and action errors
@@ -639,7 +639,7 @@ const ViolationsUtils = {
      */
     getViolationTranslation(
         violation: TransactionViolation,
-        translate: LocaleContextValue['translate'],
+        translate: LocaleActionsContextValue['translate'],
         canEdit = true,
         tags?: PolicyTagLists,
         companyCardPageURL?: string,
@@ -785,7 +785,7 @@ const ViolationsUtils = {
     getRBRMessages(
         transaction: Transaction,
         transactionViolations: TransactionViolation[],
-        translate: LocaleContextValue['translate'],
+        translate: LocaleActionsContextValue['translate'],
         missingFieldError?: string,
         transactionThreadActions?: ReportAction[],
         tags?: PolicyTagLists,

@@ -6,7 +6,7 @@ import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmM
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {generateCustomUnitID, importPerDiemRates} from '@libs/actions/Policy/PerDiem';
@@ -48,7 +48,7 @@ function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: stri
 
 type ImportedPerDiemPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_IMPORTED>;
 function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {currencyList} = useCurrencyListState();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingPerDiemRates, setIsImportingPerDiemRates] = useState(false);

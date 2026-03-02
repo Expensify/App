@@ -4,7 +4,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasOtherControlWorkspaces as hasOtherControlWorkspacesPolicyUtils} from '@libs/PolicyUtils';
@@ -17,7 +17,7 @@ type Props = {
 };
 
 function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['MushroomTopHat']);
     const {login} = useCurrentUserPersonalDetails();

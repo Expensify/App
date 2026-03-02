@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import AddressStep from '@components/SubStepForms/AddressStep';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -13,7 +13,7 @@ type NameProps = SubStepProps;
 const {STREET, CITY, STATE, ZIP_CODE, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
 function Address({onNext, isEditing, onMove}: NameProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const inputKeys = {

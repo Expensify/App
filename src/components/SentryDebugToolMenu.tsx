@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIsSentryDebugEnabled, setSentryDebugHighlightedSpanOps} from '@libs/actions/SentryDebug';
@@ -15,7 +15,7 @@ type SentryDebugToggleProps = {
 };
 
 function SentryDebugToggle({isEnabled}: SentryDebugToggleProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <TestToolRow title={translate('initialSettingsPage.troubleshoot.sentryDebugDescription')}>
@@ -30,7 +30,7 @@ function SentryDebugToggle({isEnabled}: SentryDebugToggleProps) {
 
 function HighlightedSpanOpsInput() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [highlightedSpanOps] = useOnyx(ONYXKEYS.SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS);
     const [inputValue, setInputValue] = useState(() => highlightedSpanOps?.join(', '));
 
@@ -59,7 +59,7 @@ function HighlightedSpanOpsInput() {
 
 function SentryDebugToolMenu() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [isSentryDebugEnabled = false] = useOnyx(ONYXKEYS.IS_SENTRY_DEBUG_ENABLED);
 
     return (

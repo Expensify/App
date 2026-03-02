@@ -2,13 +2,13 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import useLocalize from '@hooks/useLocalize';
+import {useStateLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {findEmojiByCode, getLocalizedEmojiName} from '@libs/EmojiUtils';
 import type EmojiWithTooltipProps from './types';
 
 function EmojiWithTooltip({emojiCode, style = {}}: EmojiWithTooltipProps) {
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale} = useStateLocalize();
     const styles = useThemeStyles();
     const emoji = findEmojiByCode(emojiCode);
     const emojiName = getLocalizedEmojiName(emoji?.name, preferredLocale);

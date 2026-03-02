@@ -15,7 +15,7 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -80,7 +80,7 @@ function IOURequestStepSubrate({
     const customUnit = getPerDiemCustomUnit(policy);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const {showConfirmModal} = useConfirmModal();
     const textInputRef = useRef<AnimatedTextInputRef>(null);

@@ -8,7 +8,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -92,7 +92,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldShowPatriotActLink = false,
     forwardedFSClass,
 }: SingleFieldStepProps<TFormID>) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const internalInputRef = useRef<AnimatedTextInputRef>(null);
     useDelayedAutoFocus(internalInputRef, shouldDelayAutoFocus);

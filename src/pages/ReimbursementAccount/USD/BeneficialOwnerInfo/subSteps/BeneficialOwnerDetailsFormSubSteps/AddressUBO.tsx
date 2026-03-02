@@ -1,6 +1,6 @@
 import React from 'react';
 import AddressStep from '@components/SubStepForms/AddressStep';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -14,7 +14,7 @@ const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BE
 type AddressUBOProps = SubStepProps & {beneficialOwnerBeingModifiedID: string};
 
 function AddressUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID}: AddressUBOProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 

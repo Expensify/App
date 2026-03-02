@@ -5,7 +5,7 @@ import Checkbox from '@components/Checkbox';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {DataDetailsType, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -42,7 +42,7 @@ function ListHeader<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow,
 }: ListHeaderProps<TItem>) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     if (!canSelectMultiple || !shouldShowSelectAllButton) {
         return customListHeader;

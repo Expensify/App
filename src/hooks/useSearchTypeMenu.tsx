@@ -22,7 +22,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useDeleteSavedSearch from './useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
-import useLocalize from './useLocalize';
+import {useActionsLocalize} from './useLocalize';
 import useOnyx from './useOnyx';
 import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 import useSingleExecution from './useSingleExecution';
@@ -39,7 +39,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {windowHeight} = useWindowDimensions();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {typeMenuSections, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const {showDeleteModal} = useDeleteSavedSearch();

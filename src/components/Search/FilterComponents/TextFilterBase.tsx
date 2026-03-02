@@ -7,7 +7,7 @@ import type {SearchTextFilterKeys} from '@components/Search/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidInputLength} from '@libs/ValidationUtils';
@@ -24,7 +24,7 @@ type SearchFiltersTextBaseProps = {
 
 function TextFilterBase({filterKey, title, onSubmit, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES, description}: SearchFiltersTextBaseProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const currentValue = searchAdvancedFiltersForm?.[filterKey] ?? '';

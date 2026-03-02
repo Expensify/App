@@ -1,7 +1,7 @@
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import {cancelAnimation, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
-import useLocalize from '@hooks/useLocalize';
+import {useStateLocalize} from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
@@ -41,7 +41,7 @@ function GenericTooltip({
     onTooltipPress,
     computeHorizontalShiftForNative = false,
 }: GenericTooltipProps) {
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale} = useStateLocalize();
     const {windowWidth} = useWindowDimensions();
 
     // Is tooltip already rendered on the page's body? happens once.

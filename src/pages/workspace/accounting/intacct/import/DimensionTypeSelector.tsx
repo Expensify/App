@@ -4,7 +4,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -20,7 +20,7 @@ type DimensionTypeSelectorProps = {
 };
 
 function DimensionTypeSelector({errorText = '', value = '', onInputChange}: DimensionTypeSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const selectionOptions = [

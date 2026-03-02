@@ -10,7 +10,7 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,7 +34,7 @@ function IOURequestStepOdometerImage({
         params: {action, iouType, transactionID, reportID, imageType},
     },
 }: IOURequestStepOdometerImageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isDraggingOver} = useDragAndDropState();

@@ -7,7 +7,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,7 +38,7 @@ function UserSelectionListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber} = useActionsLocalize();
 
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {

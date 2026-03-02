@@ -4,7 +4,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -33,7 +33,7 @@ type PushRowFieldsStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubSt
 };
 
 function PushRowFieldsStep<TFormID extends keyof OnyxFormValuesMapping>({formID, formTitle, pushRowFields, onSubmit, isEditing}: PushRowFieldsStepProps<TFormID>) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const pushRowFieldsIDs = pushRowFields.map((field) => field.inputID);
 

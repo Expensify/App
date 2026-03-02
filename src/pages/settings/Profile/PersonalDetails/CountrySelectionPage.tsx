@@ -3,7 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -20,7 +20,7 @@ type CountrySelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParam
 
 function CountrySelectionPage({route}: CountrySelectionPageProps) {
     const [searchValue, setSearchValue] = useState('');
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const currentCountry = route.params.country;
 
     const countries = useMemo(

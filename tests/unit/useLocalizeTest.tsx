@@ -2,12 +2,12 @@ import {renderHook} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-describe('useLocalize', () => {
+describe('useActionsLocalize', () => {
     beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS});
         await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT);
@@ -20,7 +20,7 @@ describe('useLocalize', () => {
 
     describe('localeCompare', () => {
         it('should return -1 for descending comparison', async () => {
-            const {result} = renderHook(() => useLocalize(), {
+            const {result} = renderHook(() => useActionsLocalize(), {
                 wrapper: TestWrapper,
             });
             await waitForBatchedUpdatesWithAct();
@@ -30,7 +30,7 @@ describe('useLocalize', () => {
         });
 
         it('should return -1 for ascending comparison', async () => {
-            const {result} = renderHook(() => useLocalize(), {
+            const {result} = renderHook(() => useActionsLocalize(), {
                 wrapper: TestWrapper,
             });
             await waitForBatchedUpdatesWithAct();
@@ -40,7 +40,7 @@ describe('useLocalize', () => {
         });
 
         it('should return 0 for equal strings', async () => {
-            const {result} = renderHook(() => useLocalize(), {
+            const {result} = renderHook(() => useActionsLocalize(), {
                 wrapper: TestWrapper,
             });
             await waitForBatchedUpdatesWithAct();
@@ -50,7 +50,7 @@ describe('useLocalize', () => {
         });
 
         it('should put uppercase letters first', async () => {
-            const {result} = renderHook(() => useLocalize(), {
+            const {result} = renderHook(() => useActionsLocalize(), {
                 wrapper: TestWrapper,
             });
             await waitForBatchedUpdatesWithAct();
@@ -63,7 +63,7 @@ describe('useLocalize', () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES);
             await waitForBatchedUpdatesWithAct();
 
-            const {result} = renderHook(() => useLocalize(), {
+            const {result} = renderHook(() => useActionsLocalize(), {
                 wrapper: TestWrapper,
             });
             await waitForBatchedUpdatesWithAct();

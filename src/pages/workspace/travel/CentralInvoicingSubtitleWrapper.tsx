@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type CentralInvoicingSubtitleWrapperProps = {
@@ -10,7 +10,7 @@ type CentralInvoicingSubtitleWrapperProps = {
 
 function CentralInvoicingSubtitleWrapper({htmlComponent}: CentralInvoicingSubtitleWrapperProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <View style={[styles.mt2, styles.mr5]}>

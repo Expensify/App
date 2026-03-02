@@ -2,7 +2,7 @@ import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import AutoEmailLink from '@components/AutoEmailLink';
 import TextLink from '@components/TextLink';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -25,7 +25,7 @@ function BlockingViewSubtitle({
     linkTranslationKey?: TranslationPaths;
 }) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     return (
         <>
             {!!subtitle && (

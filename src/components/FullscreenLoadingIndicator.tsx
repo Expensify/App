@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import type {ActivityIndicatorProps, StyleProp, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ExtraLoadingContext} from '@libs/AppState';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,7 +43,7 @@ function FullScreenLoadingIndicator({
     reasonAttributes,
 }: FullScreenLoadingIndicatorProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [showGoBackButton, setShowGoBackButton] = useState(false);
     useSkeletonSpan('FullScreenLoadingIndicator', reasonAttributes);
 

@@ -7,7 +7,7 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useInitialValue from '@hooks/useInitialValue';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {updateSelectedTimezone} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -26,7 +26,7 @@ const getUserTimezone = (currentUserPersonalDetails: ValueOf<WithCurrentUserPers
     currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
 
 function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const timezone = getUserTimezone(currentUserPersonalDetails);
     const allTimezones = useInitialValue(() =>
         TIMEZONES.filter((tz: string) => !tz.startsWith('Etc/GMT')).map((text: string) => ({

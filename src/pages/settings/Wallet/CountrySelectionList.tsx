@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchOptions from '@libs/searchOptions';
@@ -33,7 +33,7 @@ type CountrySelectionListProps = {
 };
 
 function CountrySelectionList({isEditing, selectedCountry, countries, onCountrySelected, onConfirm, footerContent}: CountrySelectionListProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchValue, setSearchValue] = useState('');

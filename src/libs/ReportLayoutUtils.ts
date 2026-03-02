@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import type {GroupedTransactions} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -10,7 +10,7 @@ import {getAmount, getCategory, getCurrency, getTag, isTransactionPendingDelete}
 /**
  * Sorts groups alphabetically (A→Z) with empty keys at the end
  */
-function sortGroupedTransactions(groups: GroupedTransactions[], localeCompare: LocaleContextValue['localeCompare']): GroupedTransactions[] {
+function sortGroupedTransactions(groups: GroupedTransactions[], localeCompare: LocaleActionsContextValue['localeCompare']): GroupedTransactions[] {
     return groups.sort((a, b) => {
         if (a.groupKey === '' && b.groupKey !== '') {
             return 1;
@@ -54,7 +54,7 @@ function calculateGroupTotal(transactionList: Transaction[], reportCurrency: str
 /**
  * Groups transactions by category
  */
-function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextValue['localeCompare']): GroupedTransactions[] {
+function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleActionsContextValue['localeCompare']): GroupedTransactions[] {
     if (!report) {
         return [];
     }
@@ -89,7 +89,7 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
 /**
  * Groups transactions by tag
  */
-function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextValue['localeCompare']): GroupedTransactions[] {
+function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleActionsContextValue['localeCompare']): GroupedTransactions[] {
     if (!report) {
         return [];
     }

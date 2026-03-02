@@ -5,7 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,24 +24,24 @@ const STEP_FIELDS = [
 ];
 
 function IsAuthorizedToUseBankAccountLabel() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     return <Text>{translate('completeVerificationStep.isAuthorizedToUseBankAccount')}</Text>;
 }
 
 function CertifyTrueAndAccurateLabel() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     return <Text>{translate('completeVerificationStep.certifyTrueAndAccurate')}</Text>;
 }
 
 function TermsAndConditionsLabel() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     return <RenderHTML html={translate('common.acceptTermsAndConditions')} />;
 }
 
 function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const confirmAgreementsValues = useMemo(
         () => getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount),

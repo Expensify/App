@@ -1,11 +1,11 @@
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 /** Formats the title for requiredFields menu item based on which fields are enabled in the policy category */
-function formatRequiredFieldsTitle(translate: LocaleContextValue['translate'], policyCategory: PolicyCategory, isAttendeeTrackingEnabled = false): string {
+function formatRequiredFieldsTitle(translate: LocaleActionsContextValue['translate'], policyCategory: PolicyCategory, isAttendeeTrackingEnabled = false): string {
     const enabledFields: string[] = [];
 
     // Attendees field should show first when both are selected and attendee tracking is enabled

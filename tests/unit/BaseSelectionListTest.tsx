@@ -29,12 +29,12 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@hooks/useLocalize', () =>
-    jest.fn(() => ({
+jest.mock('@hooks/useLocalize', () => ({
+    useActionsLocalize: () => ({
         translate: jest.fn((key: string) => key),
         numberFormat: jest.fn((num: number) => num.toString()),
-    })),
-);
+    }),
+}));
 
 let arrowUpCallback = () => {};
 let arrowDownCallback = () => {};

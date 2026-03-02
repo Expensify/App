@@ -3,7 +3,7 @@ import React, {useEffect, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {completePaymentOnboarding} from '@libs/actions/IOU';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
@@ -58,7 +58,7 @@ function AddPaymentMethodMenu({
     shouldShowPersonalBankAccountOption = false,
 }: AddPaymentMethodMenuProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Bank']);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected, introSelectedStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);

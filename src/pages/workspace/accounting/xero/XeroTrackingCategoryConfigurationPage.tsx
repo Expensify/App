@@ -5,7 +5,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTrackingCategories, updateXeroImportTrackingCategories} from '@libs/actions/connections/Xero';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -23,7 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type {XeroTrackingCategory} from '@src/types/onyx/Policy';
 
 function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
     const xeroConfig = policy?.connections?.xero?.config;

@@ -12,7 +12,7 @@ import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {extractFirstAndLastNameFromAvailableDetails} from '@libs/PersonalDetailsUtils';
@@ -67,7 +67,7 @@ const STEP_FIELDS = [
     INPUT_IDS.SSN,
 ];
 function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsStepProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const [walletAdditionalDetails = DEFAULT_WALLET_ADDITIONAL_DETAILS] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const currentDate = new Date();

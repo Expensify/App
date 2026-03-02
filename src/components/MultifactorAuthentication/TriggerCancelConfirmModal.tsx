@@ -1,6 +1,6 @@
 import React from 'react';
 import ConfirmModal from '@components/ConfirmModal';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI} from './config';
 import type {MultifactorAuthenticationScenarioConfig} from './config/types';
 
@@ -12,7 +12,7 @@ type MultifactorAuthenticationTriggerCancelConfirmModalProps = {
 };
 
 function MultifactorAuthenticationTriggerCancelConfirmModal({isVisible, onConfirm, onCancel, scenario}: MultifactorAuthenticationTriggerCancelConfirmModalProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const defaults = MULTIFACTOR_AUTHENTICATION_DEFAULT_UI.MODALS.cancelConfirmation;
     const cancelConfirmation = scenario?.MODALS.cancelConfirmation;

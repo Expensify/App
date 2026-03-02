@@ -1,11 +1,11 @@
 import React from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Banner from './Banner';
 
 function BlockedReportFooter() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const text = translate('youHaveBeenBanned');
 

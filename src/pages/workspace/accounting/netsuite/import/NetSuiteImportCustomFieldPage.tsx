@@ -5,14 +5,14 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -38,7 +38,7 @@ type HelpLinkComponentProps = {
     importCustomField: ImportCustomFieldsKeys;
 
     /** Callback to localize content */
-    translate: LocaleContextValue['translate'];
+    translate: LocaleActionsContextValue['translate'];
 
     /** Theme styles to apply to the component */
     styles: ThemeStyles;
@@ -70,7 +70,7 @@ function NetSuiteImportCustomFieldPage({
     // eslint-disable-next-line rulesdir/no-default-id-values
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
 
     const config = policy?.connections?.netsuite?.options?.config;

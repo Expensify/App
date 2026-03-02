@@ -4,7 +4,7 @@ import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import TextPicker from '@components/TextPicker';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getSamlSettings, setSamlIdentity} from '@libs/actions/Domain';
@@ -28,7 +28,7 @@ type SamlConfigurationDetailsSectionContentProps = {
 };
 
 function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldShowScimToken}: SamlConfigurationDetailsSectionContentProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const [samlMetadata, samlMetadataResults] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`);

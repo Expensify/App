@@ -8,7 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -27,7 +27,7 @@ type RejectReasonFormViewProps = {
 };
 
 function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormViewProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
 

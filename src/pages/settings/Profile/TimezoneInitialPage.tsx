@@ -7,7 +7,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {updateAutomaticTimezone} from '@userActions/PersonalDetails';
@@ -22,7 +22,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
     const styles = useThemeStyles();
     const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
 

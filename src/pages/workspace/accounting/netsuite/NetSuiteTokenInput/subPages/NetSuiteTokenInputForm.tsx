@@ -7,7 +7,7 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
 import {isMobileSafari} from '@libs/Browser';
@@ -20,7 +20,7 @@ import INPUT_IDS from '@src/types/form/NetSuiteTokenInputForm';
 
 function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const formInputs = Object.values(INPUT_IDS);

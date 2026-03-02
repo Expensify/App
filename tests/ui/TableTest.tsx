@@ -17,14 +17,13 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-// Mock useLocalize hook
-jest.mock('@hooks/useLocalize', () =>
-    jest.fn(() => ({
+jest.mock('@hooks/useLocalize', () => ({
+    useActionsLocalize: () => ({
         translate: jest.fn((key: string) => key),
         numberFormat: jest.fn((num: number) => num.toString()),
         localeCompare: jest.fn((a: string, b: string) => a.localeCompare(b)),
-    })),
-);
+    }),
+}));
 
 // Mock useThemeStyles hook
 jest.mock('@hooks/useThemeStyles', () =>

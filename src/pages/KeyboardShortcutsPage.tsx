@@ -6,7 +6,7 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +25,7 @@ type KeyboardShortcutsPageProps = {
 
 function KeyboardShortcutsPage({route}: KeyboardShortcutsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const backTo = route.params.backTo;
     const shortcuts = Object.values(CONST.KEYBOARD_SHORTCUTS)
         .map((shortcut) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import type {ListItem, TransactionCategoryGroupListItemType} from '@components/SelectionListWithSections/types';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {BaseListItemHeaderProps} from './BaseListItemHeader';
 import BaseListItemHeader from './BaseListItemHeader';
@@ -21,7 +21,7 @@ function CategoryListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     columns,
 }: CategoryListItemHeaderProps<TItem>) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     // formattedCategory is pre-decoded in SearchUIUtils, just translate empty values
     const rawCategory = categoryItem.formattedCategory ?? categoryItem.category;

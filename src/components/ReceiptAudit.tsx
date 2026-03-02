@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Icon from './Icon';
@@ -19,7 +19,7 @@ type ReceiptAuditProps = {
 function ReceiptAudit({notes, shouldShowAuditResult}: ReceiptAuditProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'DotIndicator'] as const);
 
     let auditText = '';

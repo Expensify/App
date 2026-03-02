@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -20,7 +20,7 @@ function BrokenCardFeedConnectionPage({route, policy}: BrokenCardFeedConnectionP
     const feed = route.params?.feed;
     const policyID = policy?.id;
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const currentStep = assignCard?.currentStep;

@@ -1,6 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {LoginList} from '@src/types/onyx';
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
@@ -52,7 +52,7 @@ type GetOptionsConfig = {
 type GetUserToInviteConfig = {
     searchValue: string;
     countryCode: number;
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'];
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'];
     loginList: OnyxEntry<LoginList>;
     loginsToExclude?: Record<string, boolean>;
     shouldAcceptName?: boolean;

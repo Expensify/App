@@ -1,10 +1,10 @@
 import {NativeModules} from 'react-native';
 import Button from '@components/Button';
 import TestToolRow from '@components/TestToolRow';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 
 export default function SoftKillTestToolRow() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <TestToolRow title={translate('initialSettingsPage.troubleshoot.softKillTheApp')}>

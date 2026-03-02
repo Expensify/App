@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useStateLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +23,7 @@ function SilentCommentUpdater({
     const [comment = '', commentResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const prevCommentProp = usePrevious(comment);
     const prevReportId = usePrevious(reportID);
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale} = useStateLocalize();
     const prevPreferredLocale = usePrevious(preferredLocale);
 
     useEffect(() => {

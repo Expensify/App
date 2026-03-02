@@ -7,7 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -28,7 +28,7 @@ type CardListItem = ListItem & {
 
 function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
     const {config} = policy?.connections?.xero ?? {};
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
     const exporters = getAdminEmployees(policy);

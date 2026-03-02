@@ -4,7 +4,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import type {ReportFieldItemType} from '@pages/workspace/reports/ReportFieldTypePicker';
 import CONST from '@src/CONST';
@@ -29,7 +29,7 @@ type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'error
 };
 
 function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText = '', onInputChange, onTypeSelected, ref}: TypeSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 

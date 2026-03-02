@@ -6,7 +6,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateXeroTenantID} from '@libs/actions/connections/Xero';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -29,7 +29,7 @@ function XeroOrganizationConfigurationPage({
         params: {organizationID},
     },
 }: XeroOrganizationConfigurationPageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const tenants = useMemo(() => getXeroTenants(policy ?? undefined), [policy]);
     const xeroConfig = policy?.connections?.xero?.config;

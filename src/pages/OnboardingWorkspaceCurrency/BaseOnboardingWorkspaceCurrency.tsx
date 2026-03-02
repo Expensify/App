@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +19,7 @@ import type {BaseOnboardingWorkspaceCurrencyProps} from './types';
 
 function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnboardingWorkspaceCurrencyProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

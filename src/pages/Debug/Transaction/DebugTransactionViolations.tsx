@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,7 +18,7 @@ type DebugTransactionViolationsProps = {
 function DebugTransactionViolations({transactionID}: DebugTransactionViolationsProps) {
     const transactionViolations = useTransactionViolations(transactionID);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const renderItem = (item: TransactionViolation, index: number) => (
         <PressableWithFeedback

@@ -3,7 +3,7 @@ import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OverlayStylesParams} from '@styles/index';
 import variables from '@styles/variables';
@@ -27,7 +27,7 @@ type BaseOverlayProps = {
 function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.sideBarWidth, positionRightValue = 0}: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <Animated.View

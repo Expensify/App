@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +18,7 @@ type LocalePickerProps = {
 function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 

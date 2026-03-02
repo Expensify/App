@@ -1,7 +1,7 @@
 import {useCallback} from 'react';
 import {Keyboard} from 'react-native';
 import {useSession} from '@components/OnyxListItemProvider';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
 import {getFileName} from '@libs/fileDownload/FileUtils';
@@ -15,7 +15,7 @@ type UseDownloadAttachmentProps = {
 };
 
 function useDownloadAttachment({isAuthTokenRequired, type, draftTransactionID}: UseDownloadAttachmentProps = {}) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const session = useSession();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     /**

@@ -3,7 +3,7 @@ import personalDetailsSelector from '@selectors/PersonalDetails';
 import React from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -20,7 +20,7 @@ type DomainMemberVacationDelegatePageProps = PlatformStackScreenProps<SettingsNa
 
 function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegatePageProps) {
     const {domainAccountID, accountID} = route.params;
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const currentUserEmail = getCurrentUserEmail();
 

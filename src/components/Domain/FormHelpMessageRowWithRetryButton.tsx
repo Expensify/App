@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,7 +18,7 @@ type FormHelpMessageRowWithRetryButtonProps = {
 };
 
 function FormHelpMessageRowWithRetryButton({message, isButtonSmall = false, onRetry}: FormHelpMessageRowWithRetryButtonProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 

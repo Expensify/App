@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,7 +15,7 @@ function SignInHeroCopy({customHeadline, customHeroBody}: SignInHeroCopyProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>

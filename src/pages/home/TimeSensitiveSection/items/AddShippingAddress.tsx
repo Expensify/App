@@ -1,7 +1,7 @@
 import React from 'react';
 import ExpensifyCardIcon from '@assets/images/expensify-card-icon.svg';
 import BaseWidgetItem from '@components/BaseWidgetItem';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
@@ -13,7 +13,7 @@ type AddShippingAddressProps = {
 
 function AddShippingAddress({card}: AddShippingAddressProps) {
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <BaseWidgetItem

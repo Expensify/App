@@ -8,7 +8,7 @@ import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -230,7 +230,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldHideToolTip} = useSidePanelState();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb'] as const);
 
     if (!context) {

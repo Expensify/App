@@ -140,7 +140,7 @@ function translate<TPath extends TranslationPaths>(locale: Locale | undefined, p
 
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
- * @deprecated This function uses imperative Onyx data access patterns, similar to `Onyx.connect`. Use `useLocalize` hook instead for reactive data access in React components.
+ * @deprecated This function uses imperative Onyx data access patterns, similar to `Onyx.connect`. Use `useActionsLocalize` or `useStateLocalize` hooks instead for reactive data access in React components.
  */
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parameters: TranslationParameters<TPath>) {

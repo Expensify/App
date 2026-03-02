@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -92,7 +92,7 @@ const handleUnvalidatedUserNavigation = (chatReportID: string, reportID?: string
 /**
  * Retrieves SettlementButton payment methods.
  */
-const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translate: LocaleContextValue['translate']) => {
+const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translate: LocaleActionsContextValue['translate']) => {
     const icons = useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle'] as const);
 
     const paymentMethods = useMemo(() => {

@@ -1,12 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearSupportalPermissionDenied} from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ConfirmModal from './ConfirmModal';
 
 function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChildren) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [payload] = useOnyx(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED);
     const isVisible = !!payload;
 

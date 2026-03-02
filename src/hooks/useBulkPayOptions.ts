@@ -22,7 +22,7 @@ import type {AccountData} from '@src/types/onyx';
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
-import useLocalize from './useLocalize';
+import {useActionsLocalize} from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
@@ -57,7 +57,7 @@ function useBulkPayOptions({
     onlyShowPayElsewhere,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet']);
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare} = useActionsLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);

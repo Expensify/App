@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -14,7 +14,7 @@ type ChangeExpensifyLoginLinkProps = {
 
 function ChangeExpensifyLoginLink({onPress}: ChangeExpensifyLoginLinkProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber} = useActionsLocalize();
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
 
     return (

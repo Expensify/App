@@ -1,4 +1,4 @@
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import {getCorrectedAutoReportingFrequency, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
 import {getAutoReportingFrequencyDisplayNames} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
 import {isAuthenticationError} from '@userActions/connections';
@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextValue['translate']) {
+function getWorkspaceRules(policy: Policy | undefined, translate: LocaleActionsContextValue['translate']) {
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable =
         !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !policy?.achAccount?.bankAccountID;
@@ -48,7 +48,7 @@ function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextV
     return total.length > 0 ? total : null;
 }
 
-function getWorkflowRules(policy: Policy | undefined, translate: LocaleContextValue['translate']) {
+function getWorkflowRules(policy: Policy | undefined, translate: LocaleActionsContextValue['translate']) {
     const total: string[] = [];
     const {bankAccountID} = policy?.achAccount ?? {};
     const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);

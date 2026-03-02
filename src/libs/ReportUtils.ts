@@ -19,7 +19,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
-import type {LocaleContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import type PolicyData from '@hooks/usePolicyData/types';
@@ -951,7 +951,7 @@ type GetReportNameParams = {
 type GetReportStatusParams = {
     stateNum?: number;
     statusNum?: number;
-    translate: LocaleContextValue['translate'];
+    translate: LocaleActionsContextValue['translate'];
 };
 
 type BuildOptimisticExpenseReportParams = {
@@ -3368,7 +3368,7 @@ function getDisplayNameForParticipant({
     shouldAddCurrentUserPostfix?: boolean;
     personalDetailsData?: Partial<PersonalDetailsList>;
     shouldRemoveDomain?: boolean;
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'];
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'];
 }): string {
     if (!accountID) {
         return '';
@@ -3614,7 +3614,7 @@ function getIconsForChatThread(
     report: OnyxInputOrEntry<Report>,
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'],
 ): Icon[] {
     if (!report || !report?.parentReportID || !report?.parentReportActionID) {
         return [];
@@ -3746,7 +3746,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
 /**
  * Helper function to get the icons for a group chat. Only to be used in getIcons().
  */
-function getIconsForGroupChat(report: OnyxInputOrEntry<Report>, formatPhoneNumber: LocaleContextValue['formatPhoneNumber']): Icon[] {
+function getIconsForGroupChat(report: OnyxInputOrEntry<Report>, formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber']): Icon[] {
     if (!report) {
         return [];
     }
@@ -3823,7 +3823,7 @@ function getIconsForUserCreatedPolicyRoom(report: OnyxInputOrEntry<Report>, poli
  */
 function getIcons(
     report: OnyxInputOrEntry<Report>,
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'],
     personalDetails: OnyxInputOrEntry<PersonalDetailsList> = allPersonalDetails,
     defaultIcon: AvatarSource | null = null,
     defaultName = '',
@@ -3894,7 +3894,7 @@ function getIcons(
 const getIconDisplayName = (icon: Icon, personalDetails: OnyxInputOrEntry<PersonalDetailsList>) =>
     icon.id ? (personalDetails?.[icon.id]?.displayName ?? personalDetails?.[icon.id]?.login ?? '') : '';
 
-function sortIconsByName(icons: Icon[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>, localeCompare: LocaleContextValue['localeCompare']) {
+function sortIconsByName(icons: Icon[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>, localeCompare: LocaleActionsContextValue['localeCompare']) {
     return icons.sort((first, second) => {
         // First sort by displayName/login
         const displayNameLoginOrder = localeCompare(getIconDisplayName(first, personalDetails), getIconDisplayName(second, personalDetails));
@@ -3912,8 +3912,8 @@ function sortIconsByName(icons: Icon[], personalDetails: OnyxInputOrEntry<Person
 function getDisplayNamesWithTooltips(
     personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
     shouldUseShortForm: boolean,
-    localeCompare: LocaleContextValue['localeCompare'],
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'],
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
 ): DisplayNameWithTooltips {
@@ -3960,7 +3960,7 @@ function getDisplayNamesWithTooltips(
 /**
  * Returns the the display names of the given user accountIDs
  */
-function getUserDetailTooltipText(accountID: number, formatPhoneNumber: LocaleContextValue['formatPhoneNumber'], fallbackUserDisplayName = ''): string {
+function getUserDetailTooltipText(accountID: number, formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'], fallbackUserDisplayName = ''): string {
     const displayNameForParticipant = getDisplayNameForParticipant({accountID, formatPhoneNumber});
     return displayNameForParticipant || fallbackUserDisplayName;
 }
@@ -3997,7 +3997,7 @@ function getReimbursementQueuedActionMessage({
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>;
     report: OnyxEntry<Report>;
     translate: LocalizedTranslate;
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'];
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'];
     shouldUseShortDisplayName?: boolean;
     personalDetails?: Partial<PersonalDetailsList>;
 }): string {
@@ -5643,7 +5643,7 @@ function getReportActionMessage({
 }: {
     reportAction: OnyxEntry<ReportAction>;
     translate: LocalizedTranslate;
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'];
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'];
     reportID?: string;
     childReportID?: string;
     reports?: Report[];
@@ -9933,7 +9933,7 @@ function isCurrentUserTheOnlyParticipant(participantAccountIDs?: number[]): bool
  * Returns display names for those that can see the whisper.
  * However, it returns "you" if the current user is the only one who can see it besides the person that sent it.
  */
-function getWhisperDisplayNames(translate: LocalizedTranslate, formatPhoneNumber: LocaleContextValue['formatPhoneNumber'], participantAccountIDs?: number[]): string | undefined {
+function getWhisperDisplayNames(translate: LocalizedTranslate, formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'], participantAccountIDs?: number[]): string | undefined {
     const isWhisperOnlyVisibleToCurrentUser = isCurrentUserTheOnlyParticipant(participantAccountIDs);
 
     // When the current user is the only participant, the display name needs to be "you" because that's the only person reading it
@@ -11315,7 +11315,7 @@ function sortOutstandingReportsBySelected(
     report1: OnyxEntry<Report>,
     report2: OnyxEntry<Report>,
     selectedReportID: string | undefined,
-    localeCompare: LocaleContextValue['localeCompare'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
 ): number {
     if (report1?.reportID === selectedReportID) {
         return -1;

@@ -6,7 +6,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {updateQuickbooksOnlineAutoCreateVendor, updateQuickbooksOnlineSyncPeople, updateQuickbooksOnlineSyncReimbursedReports} from '@libs/actions/connections/QuickbooksOnline';
@@ -27,7 +27,7 @@ const collectionAccountIDs = [CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID];
 function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;

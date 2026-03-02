@@ -2,7 +2,7 @@ import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -13,7 +13,7 @@ import ROUTES from '@src/ROUTES';
 import {policyTimeTrackingSelector} from '@src/selectors/Policy';
 
 function WorkspaceTimeTrackingDefaultRateSection({policyID}: {policyID: string}) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: policyTimeTrackingSelector,

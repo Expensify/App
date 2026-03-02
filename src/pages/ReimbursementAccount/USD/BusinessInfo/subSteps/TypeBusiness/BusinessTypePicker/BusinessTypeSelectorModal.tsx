@@ -4,7 +4,7 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -29,7 +29,7 @@ type BusinessTypeSelectorModalProps = {
 
 function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTypeSelected, onClose, label}: BusinessTypeSelectorModalProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const incorporationTypes = useMemo(
         () =>

@@ -1,7 +1,7 @@
 import React from 'react';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {AuthTypeName} from '@libs/MultifactorAuthentication/Biometrics/types';
@@ -21,7 +21,7 @@ const AUTH_TYPE_TRANSLATION_KEY = {
 
 function AuthenticationMethodDescription() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {authenticationMethod} = useMultifactorAuthenticationState();
 
     const authType = translate(AUTH_TYPE_TRANSLATION_KEY[authenticationMethod?.name ?? SECURE_STORE_VALUES.AUTH_TYPE.UNKNOWN.NAME]);

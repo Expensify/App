@@ -1,6 +1,6 @@
 import React from 'react';
 import RenderHTML from '@components/RenderHTML';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Parser from '@libs/Parser';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -19,7 +19,7 @@ type MovedTransactionActionProps = {
 };
 
 function MovedTransactionAction({action, emptyHTML}: MovedTransactionActionProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const movedTransactionOriginalMessage = getOriginalMessage(action);
     const toReportID = movedTransactionOriginalMessage?.toReportID;
     const fromReportID = movedTransactionOriginalMessage?.fromReportID;

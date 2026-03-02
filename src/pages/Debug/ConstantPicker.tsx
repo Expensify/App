@@ -3,7 +3,7 @@ import React, {useMemo, useState} from 'react';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {DebugForms} from './const';
 import {DETAILS_CONSTANT_FIELDS} from './const';
@@ -23,7 +23,7 @@ type ConstantPickerProps = {
 };
 
 function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPickerProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [searchValue, setSearchValue] = useState('');
     const sections: ListItem[] = useMemo(
         () =>

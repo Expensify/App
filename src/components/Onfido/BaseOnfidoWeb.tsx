@@ -1,7 +1,7 @@
 import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
 import React, {useEffect} from 'react';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
-import useLocalize from '@hooks/useLocalize';
+import type {LocaleActionsContextValue, LocaleStateContextValue} from '@components/LocaleContextProvider';
+import {useActionsLocalize, useStateLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import Log from '@libs/Log';
 import type {ThemeColors} from '@styles/theme/types';
@@ -14,7 +14,8 @@ import './index.css';
 import type {OnfidoProps} from './types';
 
 type InitializeOnfidoProps = OnfidoProps &
-    Pick<LocaleContextValue, 'translate' | 'preferredLocale'> & {
+    Pick<LocaleActionsContextValue, 'translate'> &
+    Pick<LocaleStateContextValue, 'preferredLocale'> & {
         theme: ThemeColors;
     };
 
@@ -137,7 +138,8 @@ function logOnFidoEvent(event: OnfidoEvent) {
 }
 
 function Onfido({sdkToken, onSuccess, onError, onUserExit, ref}: OnfidoProps) {
-    const {preferredLocale, translate} = useLocalize();
+    const {translate} = useActionsLocalize();
+    const {preferredLocale} = useStateLocalize();
     const theme = useTheme();
 
     useEffect(() => {

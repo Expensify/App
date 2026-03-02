@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {revealVirtualCardDetails} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
@@ -17,7 +17,7 @@ import {useTravelCVV} from './TravelCVVContextProvider';
  * This is a separate page following the pattern used by ExpensifyCardVerifyAccountPage.
  */
 function TravelCVVVerifyAccountPage() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [cardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
 

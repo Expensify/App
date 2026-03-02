@@ -3,7 +3,7 @@ import React from 'react';
 import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useHover from '@hooks/useHover';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useRootNavigationState from '@hooks/useRootNavigationState';
@@ -85,7 +85,7 @@ function ParentNavigationSubtitle({
     } = useHover();
 
     const {workspaceName, reportName} = parentNavigationSubtitleData;
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);

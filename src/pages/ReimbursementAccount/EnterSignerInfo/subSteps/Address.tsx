@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import AddressStep from '@components/SubStepForms/AddressStep';
 import useEnterSignerInfoStepFormSubmit from '@hooks/useEnterSignerInfoStepFormSubmit';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 
 function Address({onNext, isEditing, onMove}: SubStepProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
 
     const inputKeys = {

@@ -9,7 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import useLocalize from './useLocalize';
+import {useActionsLocalize} from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 
 type UseCreateEmptyReportConfirmationParams = {
@@ -51,7 +51,7 @@ type UseCreateEmptyReportConfirmationResult = {
  *
  */
 export default function useCreateEmptyReportConfirmation({policyName, onConfirm, onCancel}: UseCreateEmptyReportConfirmationParams): UseCreateEmptyReportConfirmationResult {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const workspaceDisplayName = useMemo(() => (policyName?.trim().length ? policyName : translate('report.newReport.genericWorkspaceName')), [policyName, translate]);
     const [isVisible, setIsVisible] = useState(false);

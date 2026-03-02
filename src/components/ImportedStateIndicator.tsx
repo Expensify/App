@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearOnyxAndResetApp} from '@libs/actions/App';
@@ -9,7 +9,7 @@ import Button from './Button';
 
 function ImportedStateIndicator() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
 
     if (!isUsingImportedState) {

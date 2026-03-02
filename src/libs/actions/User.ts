@@ -5,7 +5,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {OnyxKey} from 'react-native-onyx/dist/types';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -501,7 +501,7 @@ function validateSecondaryLogin(
     loginList: OnyxEntry<LoginList>,
     contactMethod: string,
     validateCode: string,
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'],
     shouldResetActionCode?: boolean,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT>> = [
@@ -1149,7 +1149,7 @@ function generateStatementPDF(period: string) {
 function setContactMethodAsDefault(
     currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
     newDefaultContactMethod: string,
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'],
     backTo?: string,
 ) {
     const oldDefaultContactMethod = currentEmail;

@@ -6,7 +6,7 @@ import type PressableProps from '@components/Pressable/GenericPressable/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
@@ -38,7 +38,7 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const isFocused = useIsFocused();
     const icons = useMemoizedLazyExpensifyIcons(['Emoji']);
 

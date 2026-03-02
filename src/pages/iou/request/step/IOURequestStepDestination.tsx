@@ -12,7 +12,7 @@ import type {ListItem, SelectionListWithSectionsHandle} from '@components/Select
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -81,7 +81,7 @@ function IOURequestStepDestination({
 
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const destinationSelectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
 

@@ -3,7 +3,7 @@ import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
-import useLocalize from '@hooks/useLocalize';
+import {useStateLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getEmojiCodeForInsertion, isPositionInsideCodeBlock, suggestEmojis} from '@libs/EmojiUtils';
 import {trimLeadingSpace} from '@libs/SuggestionUtils';
@@ -61,7 +61,7 @@ function SuggestionEmoji({
         shouldExcludeTextAreaNodes: false,
     });
 
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale} = useStateLocalize();
 
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);

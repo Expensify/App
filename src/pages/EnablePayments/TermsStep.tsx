@@ -5,7 +5,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -22,12 +22,12 @@ type TermsStepProps = {
 };
 
 function HaveReadAndAgreeLabel() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     return <RenderHTML html={`${translate('termsStep.haveReadAndAgree')}`} />;
 }
 
 function AgreeToTheLabel() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
 
     const walletAgreementUrl =
@@ -43,7 +43,7 @@ function TermsStep(props: TermsStepProps) {
     const [hasAcceptedDisclosure, setHasAcceptedDisclosure] = useState(false);
     const [hasAcceptedPrivacyPolicyAndWalletAgreement, setHasAcceptedPrivacyPolicyAndWalletAgreement] = useState(false);
     const [error, setError] = useState(false);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const errorMessage = error ? translate('common.error.acceptTerms') : (getLatestErrorMessage(walletTerms ?? {}) ?? '');
 

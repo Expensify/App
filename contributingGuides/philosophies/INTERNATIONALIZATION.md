@@ -20,8 +20,8 @@ The following types of data MUST always be localized when presented to the user 
 - **Numbers and amounts**: Use [NumberFormatUtils](https://github.com/Expensify/App/blob/55b2372d1344e3b61854139806a53f8a3d7c2b8b/src/libs/NumberFormatUtils.js) and [LocaleDigitUtils](https://github.com/Expensify/App/blob/55b2372d1344e3b61854139806a53f8a3d7c2b8b/src/libs/LocaleDigitUtils.js)
 - **Phone numbers**: Use [LocalPhoneNumber](https://github.com/Expensify/App/blob/bdfbafe18ee2d60f766c697744f23fad64b62cad/src/libs/LocalePhoneNumber.js#L51-L52)
 
-### - Components MUST use the `useLocalize` hook for translations
-In most cases, you will need to localize data used in a component. Use the [useLocalize](https://github.com/Expensify/App/blob/4510fc76bbf5df699a2575bfb49a276af90f3ed7/src/hooks/useLocalize.ts) hook, which abstracts most of the logic you need (primarily subscribing to the [NVP_PREFERRED_LOCALE](https://github.com/Expensify/App/blob/6cf1a56df670a11bf61aa67eeb64c1f87161dea1/src/ONYXKEYS.js#L88) Onyx key).
+### - Components MUST use the `useActionsLocalize` and `useStateLocalize` hooks for translations
+In most cases, you will need to localize data used in a component. Use the `useActionsLocalize` hook for translation functions (translate, formatPhoneNumber, localeCompare, etc.) and `useStateLocalize` for reactive state like `preferredLocale` [NVP_PREFERRED_LOCALE](https://github.com/Expensify/App/blob/6cf1a56df670a11bf61aa67eeb64c1f87161dea1/src/ONYXKEYS.js#L88) Onyx key). Both are exported from [@hooks/useLocalize](https://github.com/Expensify/App/blob/4510fc76bbf5df699a2575bfb49a276af90f3ed7/src/hooks/useLocalize.ts).
 
 ### - Translations MUST be organized by feature and stored in language files
 All translations are stored in language files in [src/languages](https://github.com/Expensify/App/tree/b114bc86ff38e3feca764e75b3f5bf4f60fcd6fe/src/languages). Translations SHOULD be grouped by their pages/components for better organization.

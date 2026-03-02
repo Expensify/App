@@ -1,6 +1,6 @@
 import React from 'react';
 import Button from '@components/Button';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -40,7 +40,7 @@ function ActionCell({
     extraSmall = false,
     shouldDisablePointerEvents,
 }: ActionCellProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 

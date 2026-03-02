@@ -9,7 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,7 +36,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
     const styles = useThemeStyles();
     const roomNameInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const reportID = report?.reportID;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const isReportArchived = useReportIsArchived(report?.reportID);

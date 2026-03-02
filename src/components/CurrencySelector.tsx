@@ -3,7 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -51,7 +51,7 @@ function CurrencySelector({
     ref,
 }: CurrencySelectorProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
 
     const currencyTitleDescStyle = currency && !shouldShowCurrencySymbol ? styles.textNormal : null;

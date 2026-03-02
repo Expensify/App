@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -25,7 +25,7 @@ function ReportVirtualCardFraudVerifyAccountPage({
 }: ReportVirtualCardFraudVerifyAccountPageProps) {
     const cardList = useNonPersonalCardList();
     const virtualCard = cardList?.[cardID];
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD);

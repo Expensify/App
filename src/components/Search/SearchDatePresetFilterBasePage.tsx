@@ -1,6 +1,6 @@
 import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,7 +19,7 @@ type SearchDatePresetFilterBasePageProps = {
 
 function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFilterBasePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const goBack = () => {
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());

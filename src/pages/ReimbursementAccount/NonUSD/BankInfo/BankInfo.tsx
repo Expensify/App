@@ -1,7 +1,7 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import type {ComponentType} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
@@ -37,7 +37,7 @@ type BankInfoProps = {
 };
 
 function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);

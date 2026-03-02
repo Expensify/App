@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -14,7 +14,7 @@ const COMPANY_NAME_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_NAME;
 const STEP_FIELDS = [COMPANY_NAME_KEY];
 
 function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import variables from '@styles/variables';
@@ -19,7 +19,7 @@ type ChangeWorkspaceMenuSection = {
 };
 
 function ChangeWorkspaceMenuSectionList() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Workflows']);
 

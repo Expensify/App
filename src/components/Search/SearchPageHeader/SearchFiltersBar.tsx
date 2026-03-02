@@ -28,7 +28,7 @@ import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyLi
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -94,7 +94,7 @@ type DatePickerFilterPopupProps = PopoverComponentProps & {
 };
 
 function DatePickerFilterPopup({closeOverlay, filterKey, value, translationKey, updateFilterForm}: DatePickerFilterPopupProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const onChange = (selectedDates: SearchDateValues) => {
         const dateFormValues: Record<string, string | undefined> = {};
         dateFormValues[`${filterKey}On`] = selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON];
@@ -122,7 +122,7 @@ type MultiSelectFilterPopupProps<T extends string> = PopoverComponentProps & {
 };
 
 function MultiSelectFilterPopup<T extends string>({closeOverlay, translationKey, items, value, onChangeCallback, isSearchable}: MultiSelectFilterPopupProps<T>) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     return (
         <MultiSelectPopup
             label={translate(translationKey)}
@@ -154,7 +154,7 @@ function SearchFiltersBar({
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const kycWallRef = useContext(KYCWallContext);
 
     const {isOffline} = useNetwork();

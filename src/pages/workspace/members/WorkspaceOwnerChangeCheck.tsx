@@ -6,7 +6,7 @@ import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {getOwnershipChecksDisplayText} from '@libs/WorkspacesSettingsUtils';
@@ -28,7 +28,7 @@ type WorkspaceOwnerChangeCheckProps = {
 
 function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerChangeCheckProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [displayTexts, setDisplayTexts] = useState({
         title: '',

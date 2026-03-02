@@ -19,8 +19,8 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@hooks/useLocalize', () =>
-    jest.fn(() => ({
+jest.mock('@hooks/useLocalize', () => ({
+    useActionsLocalize: () => ({
         translate: jest.fn((key: string) => {
             switch (key) {
                 case 'recoveryCodeForm.useRecoveryCode':
@@ -42,8 +42,8 @@ jest.mock('@hooks/useLocalize', () =>
             }
         }),
         numberFormat: jest.fn(),
-    })),
-);
+    }),
+}));
 
 jest.mock('@userActions/Session', () => ({
     toggleTwoFactorAuth: jest.fn(),

@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
@@ -22,7 +22,7 @@ import type SCREENS from '@src/SCREENS';
 type ExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS>;
 
 function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
-    const {translate, datetimeToRelative} = useLocalize();
+    const {translate, datetimeToRelative} = useActionsLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy'] as const);
     const policiesConnectedToSageIntacct = getAdminPoliciesConnectedToSageIntacct();

@@ -2,14 +2,14 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import TestToolRow from '@components/TestToolRow';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import testCrash from '@libs/testCrash';
 
 /**
  * Adds a button in native builds to test the Sentry crash reporting integration.
  */
 function TestCrash() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const toolRowTitle = translate('initialSettingsPage.troubleshoot.testCrash');
 

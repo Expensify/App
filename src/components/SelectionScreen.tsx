@@ -1,7 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -140,7 +140,7 @@ function SelectionScreen<T = string>({
     textInputOptions,
     shouldUpdateFocusedIndex = false,
 }: SelectionScreenProps<T>) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);

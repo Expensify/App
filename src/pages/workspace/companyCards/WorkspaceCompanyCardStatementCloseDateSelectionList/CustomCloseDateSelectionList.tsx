@@ -4,7 +4,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -18,7 +18,7 @@ type CustomCloseDateSelectionListProps = {
 };
 
 function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDay}: CustomCloseDateSelectionListProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const [selectedDay, setSelectedDay] = useState(initiallySelectedDay);

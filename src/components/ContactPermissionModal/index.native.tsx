@@ -3,7 +3,7 @@ import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setHasDeniedContactImportPrompt} from '@libs/actions/ContactPermissions';
@@ -16,7 +16,7 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
 
     useEffect(() => {

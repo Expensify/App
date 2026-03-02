@@ -11,7 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
@@ -38,7 +38,7 @@ type BaseDomainMemberDetailsComponentProps = {
 
 function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children, avatarButton}: BaseDomainMemberDetailsComponentProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber} = useActionsLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info']);
 
     // The selector depends on the dynamic `accountID`, so it cannot be extracted

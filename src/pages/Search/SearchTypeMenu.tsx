@@ -17,7 +17,7 @@ import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -49,7 +49,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const {typeMenuSections, CreateReportConfirmationModal, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
     const isFocused = useIsFocused();

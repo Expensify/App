@@ -4,7 +4,7 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,12 +13,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function HaveReadAndAgreeLabel() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     return <RenderHTML html={`${translate('termsStep.haveReadAndAgree')}`} />;
 }
 
 function AgreeToTheLabel() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
 
     const walletAgreementUrl =
@@ -34,7 +34,7 @@ function TermsStep({onNext}: SubStepProps) {
     const [hasAcceptedDisclosure, setHasAcceptedDisclosure] = useState(false);
     const [hasAcceptedPrivacyPolicyAndWalletAgreement, setHasAcceptedPrivacyPolicyAndWalletAgreement] = useState(false);
     const [error, setError] = useState(false);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
 

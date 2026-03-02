@@ -2,7 +2,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FormHelpMessage from './FormHelpMessage';
@@ -47,7 +47,7 @@ function FormAlertWrapper({
     onFixTheErrorsLinkPressed = () => {},
 }: FormAlertWrapperProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {isOffline} = useNetwork();
 
     let content;

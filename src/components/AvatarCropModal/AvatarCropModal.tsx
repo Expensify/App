@@ -16,7 +16,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,7 +70,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     const translateSlider = useSharedValue(0);
     const isPressableEnabled = useSharedValue(true);
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const buttonText = buttonLabel ?? translate('common.save');
 
     // Check if image cropping, saving or uploading is in progress

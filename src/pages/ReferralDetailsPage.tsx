@@ -5,7 +5,7 @@ import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
@@ -28,7 +28,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['PaymentHands']);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();

@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -15,7 +15,7 @@ type MultifactorAuthenticationPromptContentProps = {
 
 function MultifactorAuthenticationPromptContent({title, subtitle, animation}: MultifactorAuthenticationPromptContentProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <View

@@ -6,7 +6,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearIssueNewCardFlow, setIssueNewCardStepAndData} from '@libs/actions/Card';
@@ -29,7 +29,7 @@ type CardTypeStepProps = {
 };
 
 function CardTypeStep({policy, stepNames, startStepIndex}: CardTypeStepProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['HandCard', 'VirtualCard']);
     const policyID = policy?.id;

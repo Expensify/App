@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +14,7 @@ function Disclaimer() {
     const icons = useMemoizedLazyExpensifyIcons(['Crosshair']);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     if (gpsDraftDetails?.isTracking || (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0) {
         return null;

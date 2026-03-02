@@ -4,7 +4,7 @@
  */
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
@@ -16,7 +16,7 @@ type AutoUpdateTimeProps = {
 };
 
 function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
-    const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {translate, getLocalDateFromDatetime} = useActionsLocalize();
     const styles = useThemeStyles();
     /** @returns Returns the locale Date object */
     const getCurrentUserLocalTime = useCallback(() => getLocalDateFromDatetime(undefined, timezone.selected), [getLocalDateFromDatetime, timezone.selected]);

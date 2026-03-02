@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef, FormValue} from '@components/Form/types';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -115,7 +115,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldShowPatriotActLink = false,
     forwardedFSClass,
 }: AddressStepProps<TFormID>) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const formRef = useRef<FormRef | null>(null);

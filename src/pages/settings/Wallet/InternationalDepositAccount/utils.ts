@@ -2,7 +2,7 @@ import lodashSortBy from 'lodash/sortBy';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
@@ -129,7 +129,7 @@ function getInitialSubstep(values: InternationalBankAccountForm, fieldsMap: Reco
     return CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION;
 }
 
-function getValidationErrors(values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>, fieldsMap: CorpayFieldsMap, translate: LocaleContextValue['translate']) {
+function getValidationErrors(values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>, fieldsMap: CorpayFieldsMap, translate: LocaleActionsContextValue['translate']) {
     const errors = {};
     for (const [fieldName, field] of Object.entries(fieldsMap)) {
         if (field.isRequired && values[fieldName] === '') {

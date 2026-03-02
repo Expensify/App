@@ -1,7 +1,7 @@
 import React from 'react';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import WorkspaceRowSkeleton from '@components/Skeletons/WorkspaceRowSkeleton';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +14,7 @@ import useWorkspacesEmptyStateIllustration from './useWorkspacesEmptyStateIllust
 
 function WorkspacesEmptyStateComponent() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const StyleUtils = useStyleUtils();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const illustration = useWorkspacesEmptyStateIllustration();

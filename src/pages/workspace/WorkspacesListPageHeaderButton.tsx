@@ -2,7 +2,7 @@ import React from 'react';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -21,7 +21,7 @@ type WorkspacesListPageHeaderButtonProps = {
 function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldShowNewDomainButton}: WorkspacesListPageHeaderButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Globe', 'Plus']);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     if (shouldShowNewWorkspaceButton && shouldShowNewDomainButton) {

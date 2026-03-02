@@ -1,7 +1,7 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import React from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {setTravelProvisioningNextStep} from '@libs/actions/Travel';
@@ -19,7 +19,7 @@ import type SCREENS from '@src/SCREENS';
 type WorkspaceAddressForTravelPageProps = PlatformStackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.WORKSPACE_ADDRESS>;
 
 function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});

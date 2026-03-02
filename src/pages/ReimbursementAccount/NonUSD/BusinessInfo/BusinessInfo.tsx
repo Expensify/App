@@ -3,7 +3,7 @@ import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -73,7 +73,7 @@ const INPUT_KEYS = {
 };
 
 function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {isProduction} = useEnvironment();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);

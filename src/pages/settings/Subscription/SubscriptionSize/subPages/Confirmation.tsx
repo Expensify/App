@@ -4,7 +4,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import type {SubPageProps} from '@hooks/useSubPage/types';
@@ -16,7 +16,7 @@ import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
 type ConfirmationProps = SubPageProps;
 
 function Confirmation({onNext}: ConfirmationProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const privateSubscription = usePrivateSubscription();
     const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);

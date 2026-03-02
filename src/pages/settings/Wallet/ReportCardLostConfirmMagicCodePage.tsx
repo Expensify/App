@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import {clearCardListErrors, requestReplacementExpensifyCard} from '@libs/actions/Card';
@@ -25,7 +25,7 @@ function ReportCardLostConfirmMagicCodePage({
         params: {cardID = '', reason = 'damaged'},
     },
 }: ReportCardLostConfirmMagicCodePageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
 

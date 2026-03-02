@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemList from '@components/MenuItemList';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
@@ -17,7 +17,7 @@ import type SCREENS from '@src/SCREENS';
 type ExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_REUSE_EXISTING_CONNECTIONS>;
 
 function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
-    const {translate, datetimeToRelative} = useLocalize();
+    const {translate, datetimeToRelative} = useActionsLocalize();
     const styles = useThemeStyles();
     const policiesConnectedToSageNetSuite = getAdminPoliciesConnectedToNetSuite();
     const policyID: string = route.params.policyID;

@@ -6,7 +6,7 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteExportReportsTo} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -23,7 +23,7 @@ type MenuListItem = ListItem & {
 };
 
 function NetSuiteExpenseReportApprovalLevelSelectPage({policy}: WithPolicyConnectionsProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const config = policy?.connections?.netsuite?.options.config;

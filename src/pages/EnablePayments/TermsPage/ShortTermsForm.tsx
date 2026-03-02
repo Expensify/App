@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
@@ -16,7 +16,7 @@ type ShortTermsFormProps = {
 
 function ShortTermsForm(props: ShortTermsFormProps) {
     const styles = useThemeStyles();
-    const {translate, numberFormat} = useLocalize();
+    const {translate, numberFormat} = useActionsLocalize();
     return (
         <>
             <Text style={[styles.mb5, styles.textSupporting]}>

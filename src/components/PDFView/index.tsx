@@ -6,7 +6,7 @@ import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
 import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,7 +30,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const prevWindowHeight = usePrevious(windowHeight);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [maxCanvasArea] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA);
     const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);

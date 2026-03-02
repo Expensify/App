@@ -1,6 +1,6 @@
 import React from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 
@@ -12,7 +12,7 @@ type TotalCellProps = {
 
 function TotalCell({total, currency, isScanning = false}: TotalCellProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const displayText = isScanning ? translate('iou.receiptStatusTitle') : convertToDisplayString(total, currency);
     return (
         <TextWithTooltip

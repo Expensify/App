@@ -1,13 +1,13 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import {convertToDisplayString} from './CurrencyUtils';
 
-function formatDefaultTaxRateText(translate: LocaleContextValue['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
+function formatDefaultTaxRateText(translate: LocaleActionsContextValue['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
     const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
 
     if (!policyTaxRates) {
@@ -27,7 +27,7 @@ function formatDefaultTaxRateText(translate: LocaleContextValue['translate'], ta
     return `${taxRateText}${suffix ? ` ${CONST.DOT_SEPARATOR} ${suffix}` : ``}`;
 }
 
-function formatRequireReceiptsOverText(translate: LocaleContextValue['translate'], policy: Policy, categoryMaxAmountNoReceipt?: number | null) {
+function formatRequireReceiptsOverText(translate: LocaleActionsContextValue['translate'], policy: Policy, categoryMaxAmountNoReceipt?: number | null) {
     const isAlwaysSelected = categoryMaxAmountNoReceipt === 0;
     const isNeverSelected = categoryMaxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
 
@@ -46,7 +46,7 @@ function formatRequireReceiptsOverText(translate: LocaleContextValue['translate'
     return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD));
 }
 
-function formatRequireItemizedReceiptsOverText(translate: LocaleContextValue['translate'], policy: Policy, categoryMaxAmountNoItemizedReceipt?: number | null) {
+function formatRequireItemizedReceiptsOverText(translate: LocaleActionsContextValue['translate'], policy: Policy, categoryMaxAmountNoItemizedReceipt?: number | null) {
     const isAlwaysSelected = categoryMaxAmountNoItemizedReceipt === 0;
     const isNeverSelected = categoryMaxAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
 

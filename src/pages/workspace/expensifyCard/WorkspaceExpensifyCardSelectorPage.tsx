@@ -8,7 +8,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,7 +34,7 @@ type WorkspaceExpensifyCardSelectorPageProps = PlatformStackScreenProps<Settings
 
 function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelectorPageProps) {
     const {policyID} = route.params;
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);

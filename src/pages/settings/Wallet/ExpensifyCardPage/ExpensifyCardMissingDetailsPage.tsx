@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -16,7 +16,7 @@ function ExpensifyCardMissingDetailsPage({
         params: {cardID = ''},
     },
 }: ExpensifyCardMissingDetailsPageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
 

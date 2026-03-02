@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import {findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect, getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -19,7 +19,7 @@ type ExportIntegration = {
 function getExportMenuItem(
     connectionName: PolicyConnectionName | undefined,
     policyID: string,
-    translate: LocaleContextValue['translate'],
+    translate: LocaleActionsContextValue['translate'],
     policy?: Policy,
     companyCard?: Card,
     backTo?: string | undefined,

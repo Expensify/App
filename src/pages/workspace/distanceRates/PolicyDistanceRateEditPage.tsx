@@ -7,7 +7,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,7 +27,7 @@ type PolicyDistanceRateEditPageProps = PlatformStackScreenProps<SettingsNavigato
 
 function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit} = useActionsLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const policyID = route.params.policyID;

@@ -6,7 +6,7 @@ import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -17,7 +17,7 @@ import type IOURequestStepDistanceGPSProps from './types';
 function IOURequestStepDistanceGPS(props: IOURequestStepDistanceGPSProps) {
     const {asset: ToddInCar} = useMemoizedLazyAsset(() => loadIllustration('ToddInCar'));
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <View style={[styles.ph5, styles.pv10, styles.alignItemsCenter, styles.justifyContentCenter, styles.h100]}>

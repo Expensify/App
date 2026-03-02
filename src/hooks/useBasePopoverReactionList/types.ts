@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleStateContextValue} from '@components/LocaleContextProvider';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type {ReactionListAnchor, ReactionListEvent, ReactionListRef} from '@pages/inbox/ReportScreenContext';
 import type {ReportActionReactions} from '@src/types/onyx';
@@ -23,7 +23,7 @@ type BasePopoverReactionListHookProps = Omit<BasePopoverReactionListProps, 'ref'
     /** The current user's account ID */
     accountID: WithCurrentUserPersonalDetailsProps['currentUserPersonalDetails']['accountID'];
 
-    preferredLocale: LocaleContextValue['preferredLocale'];
+    preferredLocale: LocaleStateContextValue['preferredLocale'];
 };
 
 type ShowReactionList = (event: ReactionListEvent | undefined, reactionListAnchor: ReactionListAnchor) => void;

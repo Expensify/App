@@ -7,7 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyTaxCode, validateTaxCode} from '@libs/actions/TaxRate';
@@ -26,7 +26,7 @@ type WorkspaceTaxCodePageProps = PlatformStackScreenProps<SettingsNavigatorParam
 
 function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const policyID = route.params.policyID;
     const currentTaxCode = route.params.taxID;
 

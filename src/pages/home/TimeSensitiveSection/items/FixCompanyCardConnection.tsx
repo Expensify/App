@@ -1,7 +1,7 @@
 import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getCustomOrFormattedFeedName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,7 +23,7 @@ type FixCompanyCardConnectionProps = {
 };
 
 function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardConnectionProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Connect']);
 
     // Get the card feeds data to access custom nicknames

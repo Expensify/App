@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
 import useDefaultSearchQuery from '@hooks/useDefaultSearchQuery';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
@@ -29,7 +29,7 @@ type SearchTabButtonProps = {
 
 function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch']);
     const defaultSearchQuery = useDefaultSearchQuery();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);

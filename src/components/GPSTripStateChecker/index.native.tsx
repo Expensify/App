@@ -2,7 +2,7 @@ import {hasStartedLocationUpdatesAsync, startLocationUpdatesAsync, stopLocationU
 import React, {useEffect, useState} from 'react';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import ConfirmModal from '@components/ConfirmModal';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
@@ -16,7 +16,7 @@ import {useSplashScreenState} from '@src/SplashScreenStateContext';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
 function GPSTripStateChecker() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [showContinueTripModal, setShowContinueTripModal] = useState(false);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {isOffline} = useNetwork();

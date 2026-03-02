@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,7 +21,7 @@ type WorkspaceUserRestrictedActionProps = {
 
 function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedActionProps) {
     const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
 

@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from '
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {validateAvatarImage} from '@libs/AvatarUtils';
@@ -116,7 +116,7 @@ function AvatarWithImagePicker({
     });
     const {calculatePopoverPosition} = usePopoverPosition();
     const anchorRef = useRef<View>(null);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({

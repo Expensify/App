@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize, useStateLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,7 +27,8 @@ type WorkspacesTabButtonProps = {
 
 function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonProps) {
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useActionsLocalize();
+    const {preferredLocale} = useStateLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Buildings']);
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

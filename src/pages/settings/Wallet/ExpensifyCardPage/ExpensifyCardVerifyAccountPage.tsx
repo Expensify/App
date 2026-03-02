@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {revealVirtualCardDetails} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
@@ -22,7 +22,7 @@ type ExpensifyCardVerifyAccountPageProps =
 
 function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageProps) {
     const {cardID} = route.params;
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [validateError, setValidateError] = useState<Errors>({});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const primaryLogin = account?.primaryLogin ?? '';

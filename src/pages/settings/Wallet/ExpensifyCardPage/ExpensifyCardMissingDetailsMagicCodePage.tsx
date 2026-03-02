@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearPersonalDetailsErrors, setPersonalDetailsAndRevealExpensifyCard} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
@@ -25,7 +25,7 @@ function ExpensifyCardMissingDetailsMagicCodePage({
         params: {cardID = ''},
     },
 }: ExpensifyCardMissingDetailsMagicCodePageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
 

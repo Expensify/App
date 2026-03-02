@@ -30,8 +30,10 @@ const mockTranslate = jest.fn((key: string, params?: Record<string, string>) => 
 
 let mockTextLinkProps: MockTextLinkProps | undefined;
 
-jest.mock('@hooks/useLocalize', () => () => ({
-    translate: mockTranslate,
+jest.mock('@hooks/useLocalize', () => ({
+    useActionsLocalize: () => ({
+        translate: mockTranslate,
+    }),
 }));
 
 jest.mock('@components/ConfirmModal', () => {

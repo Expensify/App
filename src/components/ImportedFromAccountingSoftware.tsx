@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIntegrationIcon} from '@libs/ReportUtils';
@@ -39,7 +39,7 @@ type ImportedFromAccountingSoftwareProps = {
 function ImportedFromAccountingSoftware({policyID, currentConnectionName, translatedText, connectedIntegration, customTagName, shouldShow = false}: ImportedFromAccountingSoftwareProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare']);
     const icon = getIntegrationIcon(connectedIntegration, expensifyIcons);

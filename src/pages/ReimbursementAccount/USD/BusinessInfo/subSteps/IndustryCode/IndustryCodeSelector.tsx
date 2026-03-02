@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {ALL_NAICS, NAICS, NAICS_MAPPING_WITH_ID} from '@src/NAICS';
 
@@ -17,7 +17,7 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
     const [searchValue, setSearchValue] = useState<string | undefined>(value);
 
     const [shouldDisplayChildItems, setShouldDisplayChildItems] = useState(false);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const codeOptions = useMemo(() => {
         if (!searchValue) {

@@ -13,7 +13,7 @@ import Text from '@components/Text';
 import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
 import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -112,7 +112,7 @@ function BaseValidateCodeForm({
     handleSkipButtonPress,
     isInPageModal = false,
 }: ValidateCodeFormProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {isOffline} = useNetwork();
     const {wideRHPRouteKeys} = useWideRHPState();
     const theme = useTheme();

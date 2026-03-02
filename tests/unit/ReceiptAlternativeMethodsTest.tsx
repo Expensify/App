@@ -38,8 +38,8 @@ jest.mock('@hooks/useThemeStyles', () =>
         mb0: {},
     })),
 );
-jest.mock('@hooks/useLocalize', () =>
-    jest.fn(() => ({
+jest.mock('@hooks/useLocalize', () => ({
+    useActionsLocalize: () => ({
         translate: (key: string, params?: Record<string, string>) => {
             const translations: Record<string, string | ((args?: Record<string, string>) => string)> = {};
             translations['receipt.alternativeMethodsTitle'] = 'Other ways to add receipts:';
@@ -58,8 +58,8 @@ jest.mock('@hooks/useLocalize', () =>
 
             return key;
         },
-    })),
-);
+    }),
+}));
 const mockUseHasLoggedIntoMobileApp = useHasLoggedIntoMobileApp as jest.MockedFunction<typeof useHasLoggedIntoMobileApp>;
 const mockUseHasPhoneNumberLogin = useHasPhoneNumberLogin as jest.MockedFunction<typeof useHasPhoneNumberLogin>;
 

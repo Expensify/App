@@ -6,7 +6,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -31,7 +31,7 @@ function BaseTwoFactorAuthForm({
     onFocus,
     ref,
 }: BaseTwoFactorAuthFormProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');

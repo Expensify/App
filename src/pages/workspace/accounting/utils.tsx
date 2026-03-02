@@ -5,7 +5,7 @@ import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDeskt
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
 import ConnectToXeroFlow from '@components/ConnectToXeroFlow';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {isAuthenticationError} from '@libs/actions/connections';
@@ -46,7 +46,7 @@ const isMobile = [CONST.PLATFORM.MOBILE_WEB, CONST.PLATFORM.IOS, CONST.PLATFORM.
 function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
-    translate: LocaleContextValue['translate'],
+    translate: LocaleActionsContextValue['translate'],
     policy?: Policy,
     key?: number,
     integrationToDisconnect?: ConnectionName,
@@ -318,7 +318,7 @@ function getSynchronizationErrorMessage(
     policy: OnyxEntry<Policy>,
     connectionName: PolicyConnectionName,
     isSyncInProgress: boolean,
-    translate: LocaleContextValue['translate'],
+    translate: LocaleActionsContextValue['translate'],
     styles?: ThemeStyles,
 ): React.ReactNode | undefined {
     if (isAuthenticationError(policy, connectionName)) {

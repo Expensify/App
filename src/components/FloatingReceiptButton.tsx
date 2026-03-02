@@ -3,7 +3,7 @@ import React, {useRef} from 'react';
 import type {GestureResponderEvent, Role, Text, View as ViewType} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -30,7 +30,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}:
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | ViewType | Text | null>(null);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         // Drop focus to avoid blue focus ring.

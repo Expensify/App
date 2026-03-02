@@ -1,14 +1,14 @@
 import React, {useState} from 'react';
 import type {TextInputChangeEvent} from 'react-native';
 import TextInput from '@components/TextInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import type {Selection} from '@libs/ComposerUtils';
 import {modifyRoomName} from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
 import type RoomNameInputProps from './types';
 
 function RoomNameInput({disabled = false, autoFocus = false, isFocused, value = '', onBlur, onChangeText, onInputChange, ref, ...props}: RoomNameInputProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [selection, setSelection] = useState<Selection>({start: value.length - 1, end: value.length - 1});
 
     /**

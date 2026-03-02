@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -28,7 +28,7 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const translateY = useSharedValue(MARKER_INACTIVE_TRANSLATE_Y);
 
     const show = useCallback(() => {

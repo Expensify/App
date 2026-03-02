@@ -9,7 +9,7 @@ import Hoverable from '@components/Hoverable';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clamp, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import CONST from '@src/CONST';
@@ -35,7 +35,7 @@ const getVolumeIcon = (icons: Record<'Mute' | 'VolumeHigh' | 'VolumeLow', IconAs
 
 function VolumeButton({style, small = false}: VolumeButtonProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Mute', 'VolumeHigh', 'VolumeLow']);
     const {updateVolume, volume, toggleMute} = useVolumeContext();
     const [sliderHeight, setSliderHeight] = useState(1);

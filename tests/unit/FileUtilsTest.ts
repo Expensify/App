@@ -1,6 +1,6 @@
 import {Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
 import {
     ANDROID_SAFE_FILE_NAME_LENGTH,
@@ -518,7 +518,7 @@ describe('FileUtils', () => {
     });
 
     describe('getFileValidationErrorText', () => {
-        const mockTranslate = ((path: string) => path) as LocaleContextValue['translate'];
+        const mockTranslate = ((path: string) => path) as LocaleActionsContextValue['translate'];
 
         it('should return correct error text for IMAGE_DIMENSIONS_TOO_LARGE', () => {
             const result = getFileValidationErrorText(mockTranslate, CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);

@@ -33,7 +33,7 @@ import {
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import throttle from 'lodash/throttle';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
 import type Locale from '@src/types/onyx/Locale';
@@ -820,7 +820,7 @@ function getFormattedCancellationDate(date: Date): string {
 /**
  * Returns a formatted layover duration in format "2h 30m".
  */
-function getFormattedDurationBetweenDates(translateParam: LocaleContextValue['translate'], start: Date, end: Date): string | undefined {
+function getFormattedDurationBetweenDates(translateParam: LocaleActionsContextValue['translate'], start: Date, end: Date): string | undefined {
     const {days, hours, minutes} = intervalToDuration({start, end});
 
     if (days && days > 0) {
@@ -830,7 +830,7 @@ function getFormattedDurationBetweenDates(translateParam: LocaleContextValue['tr
     return `${hours ? `${hours}${translateParam('common.hourAbbreviation')} ` : ''}${minutes}${translateParam('common.minuteAbbreviation')}`;
 }
 
-function getFormattedDuration(translateParam: LocaleContextValue['translate'], durationInSeconds: number): string {
+function getFormattedDuration(translateParam: LocaleActionsContextValue['translate'], durationInSeconds: number): string {
     const hours = Math.floor(durationInSeconds / 3600);
     const minutes = Math.floor((durationInSeconds % 3600) / 60);
 
@@ -842,7 +842,7 @@ const TIME_UNIT_PADDING = 2; // Pad time units to 2 digits (e.g., "09" instead o
 /**
  * Formats a countdown timer with hours, minutes, and seconds (e.g., "23h 59m 59s").
  */
-function formatCountdownTimer(translateParam: LocaleContextValue['translate'], hours: number, minutes: number, seconds: number): string {
+function formatCountdownTimer(translateParam: LocaleActionsContextValue['translate'], hours: number, minutes: number, seconds: number): string {
     const paddedMinutes = minutes.toString().padStart(TIME_UNIT_PADDING, '0');
     const paddedSeconds = seconds.toString().padStart(TIME_UNIT_PADDING, '0');
 
@@ -894,7 +894,7 @@ function getFormattedDateRangeForPerDiem(date1: Date, date2: Date): string {
  * Returns a formatted date range with the number of days in the range.
  * Format: "YYYY-MM-DD to YYYY-MM-DD (X days)"
  */
-function getFormattedSplitDateRange(translateParam: LocaleContextValue['translate'], startDate: string | undefined, endDate: string | undefined): string {
+function getFormattedSplitDateRange(translateParam: LocaleActionsContextValue['translate'], startDate: string | undefined, endDate: string | undefined): string {
     if (!startDate || !endDate) {
         return '';
     }

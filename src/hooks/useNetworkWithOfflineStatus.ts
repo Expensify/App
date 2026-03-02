@@ -1,6 +1,6 @@
 import type {RefObject} from 'react';
 import {useEffect, useRef} from 'react';
-import useLocalize from './useLocalize';
+import {useActionsLocalize} from './useLocalize';
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 
@@ -9,7 +9,7 @@ type UseNetworkWithOfflineStatus = {isOffline: boolean; lastOfflineAt: RefObject
 export default function useNetworkWithOfflineStatus(): UseNetworkWithOfflineStatus {
     const {isOffline, lastOfflineAt: lastOfflineAtFromOnyx} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const {getLocalDateFromDatetime} = useLocalize();
+    const {getLocalDateFromDatetime} = useActionsLocalize();
 
     // The last time/date the user went/was offline. If the user was never offline, it is set to undefined.
     const lastOfflineAt = useRef(isOffline ? getLocalDateFromDatetime(lastOfflineAtFromOnyx) : undefined);

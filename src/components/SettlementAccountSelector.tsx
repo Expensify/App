@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {BankName} from '@src/types/onyx/Bank';
 import Icon from './Icon';
@@ -64,7 +64,7 @@ function SettlementAccountSelector({
     initiallyFocusedItemKey,
 }: SettlementAccountSelectorProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const handleSelectRow = ({value}: BankAccountListItem) => {

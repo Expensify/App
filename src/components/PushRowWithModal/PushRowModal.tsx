@@ -5,7 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
@@ -41,7 +41,7 @@ type ListItemType = {
 };
 
 function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optionsList, headerTitle, searchInputTitle}: PushRowModalProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 

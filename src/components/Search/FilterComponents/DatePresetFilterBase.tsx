@@ -5,7 +5,7 @@ import MenuItem from '@components/MenuItem';
 import type {SearchDatePreset} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import SpacerView from '@components/SpacerView';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,7 +63,7 @@ function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelect
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const shouldShowHorizontalRule = !!presets?.length;
 

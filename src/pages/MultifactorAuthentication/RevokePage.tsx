@@ -7,7 +7,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {hasBiometricsRegisteredSelector, isAccountLoadingSelector} from '@src/selectors/Account';
 
 function MultifactorAuthenticationRevokePage() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | undefined>();

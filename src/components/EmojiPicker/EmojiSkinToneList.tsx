@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import * as Emojis from '@assets/emojis';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -18,7 +18,7 @@ function EmojiSkinToneList() {
     const styles = useThemeStyles();
     const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
     const [isSkinToneListVisible, setIsSkinToneListVisible] = useState(false);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [preferredSkinTone, setPreferredSkinTone] = usePreferredEmojiSkinTone();
 
     const toggleIsSkinToneListVisible = useCallback(() => {

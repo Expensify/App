@@ -13,9 +13,7 @@ jest.mock('@hooks/useActiveAdminPolicies', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: () => ({
+    useActionsLocalize: () => ({
         localeCompare: (a: string, b: string) => a.localeCompare(b),
     }),
 }));

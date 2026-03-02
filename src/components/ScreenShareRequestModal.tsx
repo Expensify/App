@@ -1,5 +1,5 @@
 import React from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearScreenShareRequest, joinScreenShare} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,7 +10,7 @@ import ConfirmModal from './ConfirmModal';
  * the screen-share confirmation modal when a GuidesPlus agent requests it.
  */
 function ScreenShareRequestModal() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
 
     if (!screenShareRequest) {

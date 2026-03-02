@@ -2,7 +2,7 @@ import React from 'react';
 import BookTravelButton from '@components/BookTravelButton';
 import FeatureList from '@components/FeatureList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
@@ -14,7 +14,7 @@ type GetStartedTravelProps = {
 function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const handleCtaPress = () => {};
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['PendingTravel'] as const);
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -14,7 +14,7 @@ type DateOfBirthProps = SubStepProps;
 const {SIGNER_DATE_OF_BIRTH} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
 function DateOfBirth({onNext, onMove, isEditing}: DateOfBirthProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const inputID = SIGNER_DATE_OF_BIRTH;

@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
@@ -24,7 +24,7 @@ type RouteParams = {
 
 function StateSelectionPage() {
     const route = useRoute();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [searchValue, setSearchValue] = useState('');
     const params = route.params as RouteParams | undefined;

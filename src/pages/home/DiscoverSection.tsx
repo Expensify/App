@@ -6,7 +6,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import WidgetContainer from '@components/WidgetContainer';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
@@ -22,7 +22,7 @@ import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 const MAX_NUMBER_OF_LINES_TITLE = 4;
 
 function DiscoverSection() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);

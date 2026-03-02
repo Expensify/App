@@ -1,5 +1,5 @@
 import type {TupleToUnion} from 'type-fest';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
@@ -30,7 +30,7 @@ const MEMOIZED_LAZY_TAB_SELECTOR_ICONS = [
 function getIconTitleAndTestID(
     icons: Record<TupleToUnion<typeof MEMOIZED_LAZY_TAB_SELECTOR_ICONS>, IconAsset>,
     route: string,
-    translate: LocaleContextValue['translate'],
+    translate: LocaleActionsContextValue['translate'],
 ): IconTitleAndTestID {
     switch (route) {
         case CONST.TAB.RECEIPT_PARTNERS.ALL:

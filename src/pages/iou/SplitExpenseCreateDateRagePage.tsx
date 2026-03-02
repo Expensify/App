@@ -11,7 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,7 +32,7 @@ type SplitExpenseCreateDateRagePageProps = PlatformStackScreenProps<SplitExpense
 
 function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {currentSearchResults} = useSearchStateContext();
 
     const {reportID, transactionID, backTo} = route.params;

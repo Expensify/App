@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import type {FormOnyxValues} from '@components/Form/types';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -17,7 +17,7 @@ type WorkspaceOverviewAddressPagePolicyProps = WithPolicyProps;
 type WorkspaceOverviewAddressPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ADDRESS> & WorkspaceOverviewAddressPagePolicyProps;
 
 function WorkspaceOverviewAddressPage({policy, route}: WorkspaceOverviewAddressPageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const backTo = route.params.backTo;
     const address: Address = useMemo(() => {
         const tempAddress = policy?.address;

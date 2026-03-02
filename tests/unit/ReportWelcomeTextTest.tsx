@@ -8,8 +8,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@hooks/useLocalize', () =>
-    jest.fn(() => ({
+jest.mock('@hooks/useLocalize', () => ({
+    useActionsLocalize: () => ({
         translate: jest.fn((key: string) => key),
         localeCompare: jest.fn((a: string, b: string) => a.localeCompare(b)),
         numberFormat: jest.fn((num: number) => num.toString()),
@@ -18,9 +18,11 @@ jest.mock('@hooks/useLocalize', () =>
         formatPhoneNumber: jest.fn(),
         toLocaleDigit: jest.fn(),
         fromLocaleDigit: jest.fn(),
+    }),
+    useStateLocalize: () => ({
         preferredLocale: 'en',
-    })),
-);
+    }),
+}));
 
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({

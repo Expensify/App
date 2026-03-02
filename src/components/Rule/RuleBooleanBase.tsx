@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -44,7 +44,7 @@ type RuleBooleanBaseProps = {
 const booleanValues = Object.values(CONST.SEARCH.BOOLEAN);
 
 function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash, useStringValues = false}: RuleBooleanBaseProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [form] = useOnyx(formID);
     const styles = useThemeStyles();
 

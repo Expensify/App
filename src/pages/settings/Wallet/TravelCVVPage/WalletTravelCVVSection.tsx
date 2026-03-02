@@ -1,7 +1,7 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +18,7 @@ import ROUTES from '@src/ROUTES';
  * Only renders when user is eligible (has TRAVEL_INVOICING beta and a travel card).
  */
 function WalletTravelCVVSection() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines']);
     const {isBetaEnabled} = usePermissions();

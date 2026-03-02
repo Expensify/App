@@ -1,6 +1,6 @@
 import React from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
@@ -8,7 +8,7 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 const PAGE_INDEXES = CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING;
 
 function Confirmation({personalDetailsValues: values, onNext, onMove, isEditing}: CustomSubPageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const summaryItems = [
         {

@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +16,7 @@ import ROUTES from '@src/ROUTES';
 
 function FloatingGpsButton() {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const icons = useMemoizedLazyExpensifyIcons(['Location'] as const);
     const {textMutedReversed} = useTheme();

@@ -4,7 +4,7 @@ import Icon from '@components/Icon';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
@@ -49,7 +49,7 @@ const socialList: Social[] = [
 function Socials() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Podcast', 'Twitter', 'Instagram', 'Facebook', 'Linkedin']);
 
     return (

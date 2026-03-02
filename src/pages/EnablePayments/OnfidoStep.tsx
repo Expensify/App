@@ -3,7 +3,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import OnfidoPrivacy from './OnfidoPrivacy';
 
 function OnfidoStep() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [walletOnfidoData] = useOnyx(ONYXKEYS.WALLET_ONFIDO, {
         // Let's get a new onfido token each time the user hits this flow (as it should only be once)
         initWithStoredValues: false,

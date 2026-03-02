@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -34,7 +34,7 @@ type NetSuiteCustomListSelectorModalProps = {
 };
 
 function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onCustomListSelected, onClose, label, policy, onBackdropPress}: NetSuiteCustomListSelectorModalProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const rawCustomLists = policy?.connections?.netsuite?.options?.data?.customLists;

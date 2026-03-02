@@ -5,7 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize, useStateLocalize} from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {setLocale} from '@userActions/App';
 import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
@@ -16,7 +16,8 @@ type LanguageEntry = ListItem & {
 };
 
 function LanguagePage() {
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useActionsLocalize();
+    const {preferredLocale} = useStateLocalize();
     const isOptionSelected = useRef(false);
 
     const locales = useMemo(() => {

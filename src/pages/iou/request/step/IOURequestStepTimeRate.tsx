@@ -2,7 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestTimeRate} from '@libs/actions/IOU';
@@ -32,7 +32,7 @@ function IOURequestStepTimeRate({
     transaction,
     report,
 }: IOURequestStepTimeRateProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);

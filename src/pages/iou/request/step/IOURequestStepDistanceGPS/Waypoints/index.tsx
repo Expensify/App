@@ -4,7 +4,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -15,7 +15,7 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 function Waypoints() {
     const styles = useThemeStyles();
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const icons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled']);
 

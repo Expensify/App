@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -24,7 +24,7 @@ type ExpenseLimitTypeSelectorProps = {
 
 function ExpenseLimitTypeSelector({defaultValue, wrapperStyle, label, setNewExpenseLimitType}: ExpenseLimitTypeSelectorProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 

@@ -3,7 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
@@ -65,7 +65,7 @@ function UploadFile({
     fileLimit = 0,
 }: UploadFileProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip'] as const);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const handleFileUpload = (files: FileObject[]) => {

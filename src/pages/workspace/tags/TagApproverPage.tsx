@@ -2,7 +2,7 @@ import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMembersSelectionList from '@components/WorkspaceMembersSelectionList';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyTagApprover} from '@libs/actions/Policy/Tag';
@@ -23,7 +23,7 @@ function TagApproverPage({route}: TagApproverPageProps) {
     const {policyID, tagName, orderWeight, backTo} = route.params;
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const policy = usePolicy(policyID);
 
     const tagApprover = getTagApproverRule(policy, tagName)?.approver;

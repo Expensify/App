@@ -6,7 +6,7 @@ import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import Tooltip from '@components/Tooltip';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import ControlSelection from '@libs/ControlSelection';
@@ -27,7 +27,7 @@ type SliderProps = {
 function Slider({sliderValue, gestureCallbacks}: SliderProps) {
     const styles = useThemeStyles();
     const [tooltipIsVisible, setTooltipIsVisible] = useState(true);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     // A reanimated memoized style, which tracks
     // a translateX shared value and updates the slider position.

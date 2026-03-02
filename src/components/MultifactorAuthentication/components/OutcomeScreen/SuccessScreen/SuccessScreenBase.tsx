@@ -1,7 +1,7 @@
 import React from 'react';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import OutcomeScreenBase from '@components/MultifactorAuthentication/components/OutcomeScreen/OutcomeScreenBase';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 // Spacing is needed for icon padding configuration
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
@@ -18,7 +18,7 @@ type SuccessScreenBaseProps = {
 };
 
 function SuccessScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle}: SuccessScreenBaseProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <OutcomeScreenBase

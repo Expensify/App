@@ -6,7 +6,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,7 +20,7 @@ type ThemeEntry = ListItem & {
 
 function ThemePage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
     const isOptionSelected = useRef(false);
     const {DEFAULT, FALLBACK, ...themes} = CONST.THEME;

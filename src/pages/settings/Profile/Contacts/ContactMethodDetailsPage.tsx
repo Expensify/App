@@ -18,7 +18,7 @@ import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/V
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -65,7 +65,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {showLockedAccountModal} = useLockedAccountActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {formatPhoneNumber, translate} = useActionsLocalize();
     const themeStyles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
 

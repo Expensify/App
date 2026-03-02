@@ -4,7 +4,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubStep from '@hooks/useSubStep';
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -60,7 +60,7 @@ function InternationalDepositAccountContent({
     isAccountLoading,
     backTo,
 }: InternationalDepositAccountContentProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const fieldsMap = useMemo(() => getFieldsMap(corpayFields), [corpayFields]);
 

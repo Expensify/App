@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 
 type ReportFieldsInitialListValuePickerProps = {
     /** Options to select from if field is of type list */
@@ -18,7 +18,7 @@ type ReportFieldsInitialListValuePickerProps = {
 };
 
 function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value, onValueChange}: ReportFieldsInitialListValuePickerProps) {
-    const {localeCompare} = useLocalize();
+    const {localeCompare} = useActionsLocalize();
     const listValueOptions = useMemo(
         () =>
             Object.values(listValues ?? {})

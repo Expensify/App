@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import getAmountInputKeyboard from '@libs/getAmountInputKeyboard';
 import {handleNegativeAmountFlipping, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
@@ -38,7 +38,7 @@ function AmountWithoutCurrencyInput({
     ref,
     ...rest
 }: AmountFormProps) {
-    const {toLocaleDigit} = useLocalize();
+    const {toLocaleDigit} = useActionsLocalize();
     const separator = useMemo(
         () =>
             replaceAllDigits('1.1', toLocaleDigit)

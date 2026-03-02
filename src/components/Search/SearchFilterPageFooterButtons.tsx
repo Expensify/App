@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -15,7 +15,7 @@ type SearchFilterPageFooterButtonsProps = {
 
 function SearchFilterPageFooterButtons({resetChanges, applyChanges}: SearchFilterPageFooterButtonsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <View>

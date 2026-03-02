@@ -7,7 +7,7 @@ import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-nati
 import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize, useStateLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import {isSafari} from '@libs/Browser';
@@ -124,7 +124,8 @@ function FormProvider({
     const [network] = useOnyx(ONYXKEYS.NETWORK);
     const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
     const [draftValues, draftValuesMetadata] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`);
-    const {preferredLocale, translate} = useLocalize();
+    const {translate} = useActionsLocalize();
+    const {preferredLocale} = useStateLocalize();
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));

@@ -1,5 +1,5 @@
 import ConfirmModal from '@components/ConfirmModal';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function GPSInProgressModal() {
     const [isGPSInProgressModalOpen] = useOnyx(ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {isOffline} = useNetwork();
 
     const stopGpsAndSwitchToOD = async () => {

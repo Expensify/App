@@ -4,7 +4,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
@@ -13,7 +13,7 @@ import type {TranslationPaths} from '@src/languages/types';
 
 function NetSuiteTokenSetupContent({onNext, currentPageName}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const stepKeys = CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_KEYS;
     const currentStepKey = stepKeys[currentPageName as keyof typeof stepKeys];

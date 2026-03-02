@@ -1,14 +1,14 @@
 import React from 'react';
 import type {TextInputChangeEvent} from 'react-native';
 import TextInput from '@components/TextInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import {modifyRoomName} from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
 import type RoomNameInputProps from './types';
 
 function RoomNameInput({disabled = false, autoFocus = false, isFocused, value, onBlur, onChangeText, onInputChange, ref, ...props}: RoomNameInputProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     /**
      * Calls the onChangeText callback with a modified room name

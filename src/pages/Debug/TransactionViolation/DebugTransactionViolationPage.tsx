@@ -2,7 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import Debug from '@libs/actions/Debug';
@@ -28,7 +28,7 @@ function DebugTransactionViolationPage({
         params: {transactionID, index},
     },
 }: DebugTransactionViolationPageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
     const transactionViolation = useMemo(() => transactionViolations?.[Number(index)], [index, transactionViolations]);
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
@@ -9,7 +9,7 @@ import type TransactionDataCellProps from './TransactionDataCellProps';
 
 function TotalCell({shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const currency = getTransactionCurrency(transactionItem);
 
     const amount = getTransactionDetails(transactionItem)?.amount;

@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePageRefresh from '@hooks/usePageRefresh';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -23,7 +23,7 @@ function GenericErrorPage({error}: {error?: Error}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const isAuthenticated = useIsAuthenticated();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const isChunkLoadError = error?.name === CONST.CHUNK_LOAD_ERROR || /Loading chunk [\d]+ failed/.test(error?.message ?? '');
     const refreshPage = usePageRefresh();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark', 'Bug']);

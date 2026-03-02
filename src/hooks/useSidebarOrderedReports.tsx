@@ -10,7 +10,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {useCurrentReportIDState} from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDeepCompareRef from './useDeepCompareRef';
-import useLocalize from './useLocalize';
+import {useActionsLocalize} from './useLocalize';
 import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
@@ -64,7 +64,7 @@ function SidebarOrderedReportsContextProvider({
      */
     currentReportIDForTests,
 }: SidebarOrderedReportsContextProviderProps) {
-    const {localeCompare} = useLocalize();
+    const {localeCompare} = useActionsLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [chatReports, {sourceValue: reportUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies, {sourceValue: policiesUpdates}] = useMappedPolicies(policyMapper);

@@ -9,7 +9,7 @@ import SpendCategorySelectorListItem from '@components/SelectionList/ListItem/Sp
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {ListItem as SelectionListWithSectionsListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -36,7 +36,7 @@ type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps &
 function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSettingsPageProps) {
     const {policyID, backTo} = route.params;
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const policyData = usePolicyData(policyID);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = getCurrentConnectionName(policy);

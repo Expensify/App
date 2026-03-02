@@ -1,6 +1,6 @@
 import React from 'react';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -9,7 +9,7 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 const STEP_FIELDS = [INPUT_IDS.DATE_OF_BIRTH];
 
 function DateOfBirth({isEditing, onNext, onMove, personalDetailsValues}: CustomSubPageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const handleSubmit = usePersonalDetailsFormSubmit({
         fieldIds: STEP_FIELDS,

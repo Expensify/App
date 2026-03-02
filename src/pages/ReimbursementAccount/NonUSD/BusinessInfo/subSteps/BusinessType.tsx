@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import PushRowFieldsStep from '@components/SubStepForms/PushRowFieldsStep';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -17,7 +17,7 @@ const STEP_FIELDS_WITHOUT_BUSINESS_TYPE = [BUSINESS_CATEGORY, APPLICANT_TYPE_ID]
 const STEP_FIELDS = [BUSINESS_CATEGORY, APPLICANT_TYPE_ID, BUSINESS_TYPE_ID];
 
 function BusinessType({onNext, isEditing, onMove}: BusinessTypeProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);

@@ -7,7 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteExporter} from '@libs/actions/connections/NetSuiteCommands';
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
@@ -28,7 +28,7 @@ type CardListItem = ListItem & {
 
 function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
     const config = policy?.connections?.netsuite?.options.config;
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
     const exporters = getAdminEmployees(policy);

@@ -2,7 +2,7 @@
 import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startOfDay, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
 import {translate} from '@libs/Localize';
 import CONST from '@src/CONST';
@@ -445,7 +445,7 @@ describe('DateUtils', () => {
     });
 
     describe('formatCountdownTimer', () => {
-        const mockTranslate: LocaleContextValue['translate'] = (path, ...params) => translate(LOCALE, path, ...params);
+        const mockTranslate: LocaleActionsContextValue['translate'] = (path, ...params) => translate(LOCALE, path, ...params);
 
         it('should format hours, minutes, and seconds correctly', () => {
             const result = DateUtils.formatCountdownTimer(mockTranslate, 5, 30, 45);

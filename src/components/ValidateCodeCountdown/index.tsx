@@ -1,11 +1,11 @@
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import RenderHTML from '@components/RenderHTML';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {ValidateCodeCountdownProps} from './types';
 
 function ValidateCodeCountdown({onCountdownFinish, ref}: ValidateCodeCountdownProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [timeRemaining, setTimeRemaining] = useState<number>(CONST.REQUEST_CODE_DELAY);
     const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);

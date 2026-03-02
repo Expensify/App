@@ -5,7 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -40,7 +40,7 @@ const STATES_LIST_OPTIONS = (Object.keys(COMMON_CONST.STATES) as Array<keyof typ
 const isCountryWithSelectableState = (countryCode: string) => countryCode === CONST.COUNTRY.US || countryCode === CONST.COUNTRY.CA;
 
 function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);

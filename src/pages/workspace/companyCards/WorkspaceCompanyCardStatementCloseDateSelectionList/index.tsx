@@ -12,7 +12,7 @@ import ScrollView from '@components/ScrollView';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
@@ -48,7 +48,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
     errors,
     onCloseError,
 }: WorkspaceCompanyCardStatementCloseDateSelectionListProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const [selectedDate, setSelectedDate] = useState<CompanyCardStatementCloseDate | undefined>(() => {

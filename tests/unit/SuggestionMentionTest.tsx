@@ -9,7 +9,7 @@ import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import SuggestionMention from '@pages/inbox/report/ReportActionCompose/SuggestionMention';
@@ -63,7 +63,9 @@ jest.mock('@hooks/useDebounce', () => jest.fn());
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(),
 }));
-jest.mock('@hooks/useLocalize', () => jest.fn());
+jest.mock('@hooks/useLocalize', () => ({
+    useActionsLocalize: jest.fn(),
+}));
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/usePolicy', () => jest.fn());
 
@@ -73,7 +75,7 @@ const mockUseCurrentReportIDState = jest.mocked(useCurrentReportIDState);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const mockUseDebounce = jest.mocked(useDebounce);
 const mockUseMemoizedLazyExpensifyIcons = jest.mocked(useMemoizedLazyExpensifyIcons);
-const mockUseLocalize = jest.mocked(useLocalize);
+const mockUseLocalize = jest.mocked(useActionsLocalize);
 const mockUseOnyx = jest.mocked(useOnyx);
 const mockUsePolicy = jest.mocked(usePolicy);
 
@@ -122,7 +124,7 @@ describe('SuggestionMention', () => {
             return React.useCallback((...args: unknown[]) => callbackRef.current(...args), []) as typeof callback;
         });
         mockUseMemoizedLazyExpensifyIcons.mockImplementation((() => mockIcons) as unknown as typeof useMemoizedLazyExpensifyIcons);
-        mockUseLocalize.mockImplementation(() => mockLocalize as ReturnType<typeof useLocalize>);
+        mockUseLocalize.mockImplementation(() => mockLocalize as ReturnType<typeof useActionsLocalize>);
         mockUseOnyx.mockImplementation(((...args: Parameters<typeof useOnyx>) => {
             const key = args[0];
             if (key === ONYXKEYS.COLLECTION.REPORT) {

@@ -1,7 +1,7 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
 import {shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -11,7 +11,7 @@ import ROUTES from '@src/ROUTES';
 import BaseTestDriveModal from './BaseTestDriveModal';
 
 function AdminTestDriveModal() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`);
 

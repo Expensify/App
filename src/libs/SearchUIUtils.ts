@@ -6,7 +6,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
-import type {LocaleContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
@@ -185,7 +185,7 @@ type GetReportSectionsParams = {
     currentAccountID: number;
     currentUserEmail: string;
     translate: LocalizedTranslate;
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'];
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'];
     isActionLoadingSet: ReadonlySet<string> | undefined;
     isOffline: boolean | undefined;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
@@ -199,7 +199,7 @@ type GetTransactionSectionsParams = {
     currentSearch: SearchKey;
     currentAccountID: number;
     currentUserEmail: string;
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'];
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'];
     isActionLoadingSet: ReadonlySet<string> | undefined;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
@@ -472,7 +472,7 @@ type GetSectionsParams = {
     currentAccountID: number;
     currentUserEmail: string;
     translate: LocalizedTranslate;
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'];
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'];
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     groupBy?: SearchGroupBy;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
@@ -1026,7 +1026,7 @@ function getTransactionItemCommonFormattedProperties(
     from: OnyxTypes.PersonalDetails,
     to: OnyxTypes.PersonalDetails,
     policy: OnyxTypes.Policy,
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'],
     report: OnyxTypes.Report | undefined,
 ): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'submitted' | 'approved' | 'posted'> {
     const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
@@ -1908,7 +1908,7 @@ function getActions(
  */
 function getTaskSections(
     data: OnyxTypes.SearchResults['data'],
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'],
     archivedReportsIDList?: ArchivedReportsIDSet,
 ): [TaskListItemType[], number] {
     const tasks = Object.keys(data)
@@ -2328,7 +2328,7 @@ function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start:
 function getMemberSections(
     data: OnyxTypes.SearchResults['data'],
     queryJSON: SearchQueryJSON | undefined,
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'],
 ): [TransactionMemberGroupListItemType[], number] {
     const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
 
@@ -2803,14 +2803,14 @@ function getSections({
 
 type GroupBySortFunction = (
     data: TransactionGroupListItemType[],
-    localeCompare: LocaleContextValue['localeCompare'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
     sortBy?: SearchColumnType,
     sortOrder?: SortOrder,
 ) => TransactionGroupListItemType[];
 
 function createGroupSortFunction<T extends TransactionGroupListItemType>(
     columnMapping: ColumnSortMapping<T>,
-    defaultComparator: (a: T, b: T, localeCompare: LocaleContextValue['localeCompare']) => number,
+    defaultComparator: (a: T, b: T, localeCompare: LocaleActionsContextValue['localeCompare']) => number,
 ): GroupBySortFunction {
     return (data, localeCompare, sortBy, sortOrder) => getSortedData(data as T[], localeCompare, columnMapping, (a, b) => defaultComparator(a, b, localeCompare), sortBy, sortOrder);
 }
@@ -2860,8 +2860,8 @@ function getSortedSections(
     type: SearchDataTypes,
     status: SearchStatus,
     data: ListItemDataType<typeof type, typeof status>,
-    localeCompare: LocaleContextValue['localeCompare'],
-    translate: LocaleContextValue['translate'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
+    translate: LocaleActionsContextValue['translate'],
     sortBy?: SearchColumnType,
     sortOrder?: SortOrder,
     groupBy?: SearchGroupBy,
@@ -2890,7 +2890,7 @@ function getSortedSections(
  * Compares two values based on a specified sorting order and column.
  * Handles both string and numeric comparisons.
  */
-function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string, localeCompare: LocaleContextValue['localeCompare'], shouldCompareOriginalValue = false): number {
+function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string, localeCompare: LocaleActionsContextValue['localeCompare'], shouldCompareOriginalValue = false): number {
     const isAsc = sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
     const aIsEmpty = a === undefined || a === null || a === '';
     const bIsEmpty = b === undefined || b === null || b === '';
@@ -2946,8 +2946,8 @@ function getTransactionSortValue(transaction: TransactionListItemType, sortingPr
  */
 function getSortedTransactionData(
     data: TransactionListItemType[],
-    localeCompare: LocaleContextValue['localeCompare'],
-    translate: LocaleContextValue['translate'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
+    translate: LocaleActionsContextValue['translate'],
     sortBy?: SearchColumnType,
     sortOrder?: SortOrder,
 ) {
@@ -3060,7 +3060,7 @@ function getSortedTransactionData(
     });
 }
 
-function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContextValue['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleActionsContextValue['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
     }
@@ -3085,8 +3085,8 @@ function getSortedTaskData(data: TaskListItemType[], localeCompare: LocaleContex
  */
 function getSortedReportData(
     data: TransactionReportGroupListItemType[],
-    localeCompare: LocaleContextValue['localeCompare'],
-    translate: LocaleContextValue['translate'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
+    translate: LocaleActionsContextValue['translate'],
     sortBy?: SearchColumnType,
     sortOrder?: SortOrder,
 ) {
@@ -3181,7 +3181,7 @@ function getSortedReportData(
  */
 function getSortedData<T extends TransactionGroupListItemType>(
     data: T[],
-    localeCompare: LocaleContextValue['localeCompare'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
     columnNamesToSortingProperty: ColumnSortMapping<T>,
     defaultComparator: (a: T, b: T) => number,
     sortBy?: SearchColumnType,
@@ -3209,7 +3209,7 @@ function getSortedData<T extends TransactionGroupListItemType>(
  * @private
  * Sorts report actions sections based on a specified column and sort order.
  */
-function getSortedReportActionData(data: ReportActionListItemType[], localeCompare: LocaleContextValue['localeCompare']) {
+function getSortedReportActionData(data: ReportActionListItemType[], localeCompare: LocaleActionsContextValue['localeCompare']) {
     return data.sort((a, b) => {
         const aValue = a?.created;
         const bValue = b?.created;
@@ -3958,11 +3958,11 @@ function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, d
     };
 }
 
-function getWithdrawalTypeOptions(translate: LocaleContextValue['translate']) {
+function getWithdrawalTypeOptions(translate: LocaleActionsContextValue['translate']) {
     return Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).map<SingleSelectItem<SearchWithdrawalType>>((value) => ({text: translate(`search.filters.withdrawalType.${value}`), value}));
 }
 
-function getActionOptions(translate: LocaleContextValue['translate']) {
+function getActionOptions(translate: LocaleActionsContextValue['translate']) {
     return Object.values(CONST.SEARCH.ACTION_FILTERS).map<SingleSelectItem<SearchAction>>((value) => ({text: translate(`search.filters.action.${value}`), value}));
 }
 
@@ -4241,7 +4241,7 @@ function getSettlementStatus(state: number | undefined): ValueOf<typeof CONST.SE
  */
 function getSettlementStatusBadgeProps(
     state: number | undefined,
-    translate: LocaleContextValue['translate'],
+    translate: LocaleActionsContextValue['translate'],
     theme: ThemeColors,
 ): {
     text: string;

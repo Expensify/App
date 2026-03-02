@@ -3,7 +3,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {BankAccountMenuItem, SearchQueryJSON} from '@components/Search/types';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {getTypeOptions} from '@libs/SearchUIUtils';
@@ -45,7 +45,7 @@ function SearchPageHeader({
 }: SearchPageHeaderProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions} = useSearchStateContext();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 

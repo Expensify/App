@@ -9,7 +9,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
-import useLocalize from './useLocalize';
+import {useActionsLocalize} from './useLocalize';
 import useOnyx from './useOnyx';
 import useWorkspaceList from './useWorkspaceList';
 
@@ -204,7 +204,7 @@ const availablePolicyCategoriesSelector = (policyCategories: OnyxCollection<Poli
     );
 
 function useAdvancedSearchFilters() {
-    const {localeCompare} = useLocalize();
+    const {localeCompare} = useActionsLocalize();
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const policyID = searchAdvancedFilters.policyID;
     const [allSearchCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);

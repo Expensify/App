@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSageIntacctAutoSync} from '@libs/actions/connections/SageIntacct';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -25,7 +25,7 @@ type SageIntacctAutoSyncPageBaseParams = {
 
 function SageIntacctAutoSyncPageBase({policy, navigateBackTo}: SageIntacctAutoSyncPageBaseParams) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const policyID = policy?.id;
     const config = policy?.connections?.intacct?.config;
     const {autoSync, pendingFields} = config ?? {};

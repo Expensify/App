@@ -6,7 +6,7 @@ import DevLogo from '@assets/images/expensify-logo--dev.svg';
 import ProductionLogo from '@assets/images/expensify-logo--prod.svg';
 import StagingLogo from '@assets/images/expensify-logo--staging.svg';
 import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,7 +29,7 @@ const logoComponents = {
 function ExpensifyWordmark({style}: ExpensifyWordmarkProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {environment} = useEnvironment();
     // PascalCase is required for React components, so capitalize the const here
     const LogoComponent = logoComponents[environment];

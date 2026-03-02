@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +19,7 @@ function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndica
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     // We don't want to show the offline indicator when the attachment is a cached one, so
     // we delay the display by 200 ms to ensure it is not a cached one.

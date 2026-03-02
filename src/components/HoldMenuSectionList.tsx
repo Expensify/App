@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
@@ -18,7 +18,7 @@ type HoldMenuSection = {
 };
 
 function HoldMenuSectionList() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['RealtimeReport', 'Stopwatch']);
     const holdMenuSections: HoldMenuSection[] = [

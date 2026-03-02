@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import type UpdateAppModalProps from './types';
 
 function BaseUpdateAppModal({onSubmit}: UpdateAppModalProps) {
     const [isModalOpen, setIsModalOpen] = useState(true);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     /**
      * Execute the onSubmit callback and close the modal.

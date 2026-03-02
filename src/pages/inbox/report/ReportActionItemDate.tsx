@@ -1,6 +1,6 @@
 import React, {memo} from 'react';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,7 +10,7 @@ type ReportActionItemDateProps = {
 };
 
 function ReportActionItemDate({created}: ReportActionItemDateProps) {
-    const {datetimeToCalendarTime} = useLocalize();
+    const {datetimeToCalendarTime} = useActionsLocalize();
     const styles = useThemeStyles();
 
     // It is used to force re-render of component that display relative time, ensuring they update correctly when the date changes (e.g., at midnight).

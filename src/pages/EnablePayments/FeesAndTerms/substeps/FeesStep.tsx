@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function FeesStep({onNext}: SubStepProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
 
     return (

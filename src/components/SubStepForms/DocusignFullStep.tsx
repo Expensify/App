@@ -7,7 +7,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
 import useEnvironment from '@hooks/useEnvironment';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -57,7 +57,7 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     startStepIndex,
     stepNames,
 }: DocusignFullStepProps<TFormID>) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
 

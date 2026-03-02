@@ -9,7 +9,7 @@ import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useLocalize from './useLocalize';
+import {useActionsLocalize} from './useLocalize';
 import useOnyx from './useOnyx';
 
 type UseFilteredOptionsConfig = {
@@ -123,7 +123,7 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
     const {enabled = true, shouldStoreReportErrors = false, shouldShowBrickRoadIndicator = false} = config;
 
     const {accountID} = useCurrentUserPersonalDetails();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber} = useActionsLocalize();
     const [reports, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const reportIDsSet = (() => {
         if (!reports) {

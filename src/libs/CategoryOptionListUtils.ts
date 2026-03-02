@@ -1,7 +1,7 @@
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
 import lodashSet from 'lodash/set';
-import type {LocaleContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import type {PolicyCategories} from '@src/types/onyx';
@@ -100,7 +100,7 @@ function getCategoryListSections({
     translate,
 }: {
     categories: PolicyCategories;
-    localeCompare: LocaleContextValue['localeCompare'];
+    localeCompare: LocaleActionsContextValue['localeCompare'];
     selectedOptions?: Category[];
     searchValue?: string;
     recentlyUsedCategories?: string[];
@@ -217,7 +217,7 @@ function getCategoryListSections({
  * It builds an hierarchy (based on an object), where each category has a name and other keys as subcategories.
  * Via the hierarchy we avoid duplicating and sort categories one by one. Subcategories are being sorted alphabetically.
  */
-function sortCategories(categories: Record<string, Category>, localeCompare: LocaleContextValue['localeCompare']): Category[] {
+function sortCategories(categories: Record<string, Category>, localeCompare: LocaleActionsContextValue['localeCompare']): Category[] {
     // Sorts categories alphabetically by name.
     const sortedCategories = Object.values(categories).sort((a, b) => localeCompare(a.name, b.name));
 

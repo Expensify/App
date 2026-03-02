@@ -2,7 +2,7 @@ import {activeAdminPoliciesSelector} from '@selectors/Policy';
 import React, {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {setMoneyRequestAccountant} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,7 +24,7 @@ function IOURequestStepAccountant({
         params: {transactionID, reportID, iouType, backTo, action},
     },
 }: IOURequestStepAccountantProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {login} = useCurrentUserPersonalDetails();
     const selector = useCallback(
         (policies: OnyxCollection<Policy>) => {

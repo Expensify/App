@@ -8,7 +8,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import TextInput from '@components/TextInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidSecurityCode} from '@libs/ValidationUtils';
@@ -28,7 +28,7 @@ const REQUIRED_FIELDS = [INPUT_IDS.SECURITY_CODE];
 
 function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeRequired, initialCurrency}: PaymentCardFormProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {isBetaEnabled} = usePermissions();
 
     const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);

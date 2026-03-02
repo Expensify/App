@@ -9,7 +9,7 @@ import FormScrollView from '@components/FormScrollView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {openOnfidoFlow} from '@userActions/BankAccounts';
@@ -32,7 +32,7 @@ type OnfidoPrivacyProps = {
 };
 
 function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPrivacyProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const formRef = useRef<ScrollView>(null);
     const styles = useThemeStyles();
     if (!walletOnfidoData) {

@@ -1,6 +1,6 @@
 import React from 'react';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -13,7 +13,7 @@ type DateOfBirthProps = SubStepProps & {isUserEnteringHisOwnData: boolean; owner
 const {DOB, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
 function DateOfBirth({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID}: DateOfBirthProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const dobInputID = `${PREFIX}_${ownerBeingModifiedID}_${DOB}` as const;

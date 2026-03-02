@@ -5,7 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 function MultifactorAuthenticationBiometricsTestPage() {
     const {executeScenario} = useMultifactorAuthentication();
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     useEffect(() => {
         if (isOffline) {

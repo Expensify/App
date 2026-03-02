@@ -4,7 +4,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import MapView from '@components/MapView';
 import PendingMapView from '@components/MapView/PendingMapView';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -15,7 +15,7 @@ function DistanceMapView({overlayStyle, requireRouteToDisplayMap, ...rest}: Dist
     const styles = useThemeStyles();
     const [isMapReady, setIsMapReady] = useState(false);
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['EmptyStateRoutePending']);

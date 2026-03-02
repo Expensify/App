@@ -1,7 +1,7 @@
 import React, {lazy, Suspense, useEffect, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import ActivityIndicator from '@components/ActivityIndicator';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,7 +12,7 @@ const MapViewImpl = lazy(() => import('./MapViewImpl.website'));
 
 function MapView({ref, ...props}: MapViewProps) {
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const [errorResetKey, setErrorResetKey] = useState(0);
 

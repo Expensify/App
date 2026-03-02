@@ -3,7 +3,7 @@ import type {TextInputSelectionChangeEvent} from 'react-native';
 import AmountTextInput from '@components/AmountTextInput';
 import SymbolButton from '@components/SymbolButton';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addLeadingZero, replaceAllDigits} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
@@ -28,7 +28,7 @@ function BaseTextInputWithSymbol({
     disabled,
     ...rest
 }: BaseTextInputWithSymbolProps) {
-    const {fromLocaleDigit} = useLocalize();
+    const {fromLocaleDigit} = useActionsLocalize();
     const styles = useThemeStyles();
 
     /**

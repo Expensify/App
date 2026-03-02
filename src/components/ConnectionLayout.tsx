@@ -2,7 +2,7 @@ import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -75,7 +75,7 @@ type ConnectionLayoutProps = {
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
 
 function ConnectionLayoutContent({title, titleStyle, children, titleAlreadyTranslated}: ConnectionLayoutContentProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     return (
         <>
@@ -105,7 +105,7 @@ function ConnectionLayout({
     onBackButtonPress = () => Navigation.goBack(),
     shouldBeBlocked = false,
 }: ConnectionLayoutProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);

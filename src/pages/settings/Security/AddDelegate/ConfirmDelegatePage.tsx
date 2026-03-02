@@ -7,7 +7,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,7 +22,7 @@ type ConfirmDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 
 function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber} = useActionsLocalize();
 
     const styles = useThemeStyles();
     const login = route.params.login;

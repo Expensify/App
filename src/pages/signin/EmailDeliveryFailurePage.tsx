@@ -4,7 +4,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {normalizeLogin} from '@libs/LoginUtils';
@@ -16,7 +16,7 @@ function EmailDeliveryFailurePage() {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const login = normalizeLogin(credentials?.login);
 

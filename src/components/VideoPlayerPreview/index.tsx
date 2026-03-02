@@ -9,7 +9,7 @@ import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useCheckIfRouteHasRemainedUnchanged from '@hooks/useCheckIfRouteHasRemainedUnchanged';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
@@ -51,7 +51,7 @@ const isOnAttachmentRoute = () => Navigation.getActiveRouteWithoutParams() === `
 function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress, isDeleted}: VideoPlayerPreviewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {currentlyPlayingURL, currentRouteReportID} = usePlaybackStateContext();
     const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
 

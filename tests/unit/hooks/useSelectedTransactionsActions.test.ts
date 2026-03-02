@@ -51,8 +51,7 @@ const mockTranslate = jest.fn((key: string) => key);
 const mockLocalCompare = jest.fn((a: string, b: string) => a && b);
 
 jest.mock('@hooks/useLocalize', () => ({
-    __esModule: true,
-    default: () => ({
+    useActionsLocalize: () => ({
         translate: mockTranslate,
         localeCompare: mockLocalCompare,
     }),

@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1370,7 +1370,7 @@ function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedB
     }));
 }
 
-function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: LocaleContextValue['translate']): string | undefined {
+function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: LocaleActionsContextValue['translate']): string | undefined {
     const importMapping = policy?.connections?.netsuite?.options?.config?.syncOptions?.mapping;
     if (!importMapping?.customers && !importMapping?.jobs) {
         return undefined;
@@ -1400,8 +1400,8 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
 function getNetSuiteImportCustomFieldLabel(
     policy: Policy | undefined,
     importField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>,
-    translate: LocaleContextValue['translate'],
-    localeCompare: LocaleContextValue['localeCompare'],
+    translate: LocaleActionsContextValue['translate'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
 ): string | undefined {
     const fieldData = policy?.connections?.netsuite?.options?.config.syncOptions?.[importField] ?? [];
     if (fieldData.length === 0) {
@@ -1430,7 +1430,7 @@ function isNetSuiteCustomFieldPropertyEditable(customField: NetSuiteCustomList |
 }
 
 function getIntegrationLastSuccessfulDate(
-    getLocalDateFromDatetime: LocaleContextValue['getLocalDateFromDatetime'],
+    getLocalDateFromDatetime: LocaleActionsContextValue['getLocalDateFromDatetime'],
     connection?: Connections[keyof Connections],
     connectionSyncProgress?: PolicyConnectionSyncProgress,
 ) {
@@ -1516,7 +1516,7 @@ const sortWorkspacesBySelected = (
     workspace1: WorkspaceDetails,
     workspace2: WorkspaceDetails,
     selectedWorkspaceIDs: string[] | undefined,
-    localeCompare: LocaleContextValue['localeCompare'],
+    localeCompare: LocaleActionsContextValue['localeCompare'],
 ): number => {
     if (workspace1.policyID && selectedWorkspaceIDs?.includes(workspace1?.policyID) && workspace2.policyID && selectedWorkspaceIDs?.includes(workspace2.policyID)) {
         return localeCompare(workspace1.name?.toLowerCase() ?? '', workspace2.name?.toLowerCase() ?? '');

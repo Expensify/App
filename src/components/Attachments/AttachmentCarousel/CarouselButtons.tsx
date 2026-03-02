@@ -4,7 +4,7 @@ import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
 import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,7 +39,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
     const styles = useThemeStyles();
     const isBackDisabled = page === 0;
     const isForwardDisabled = page === attachments.length - 1;
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return shouldShowArrows ? (

@@ -13,7 +13,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,7 +47,7 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     const [description, setDescription] = useState(() => Parser.htmlToMarkdown(getReportDescription(report)));
     const reportDescriptionInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const reportIsArchived = useReportIsArchived(report?.reportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const handleReportDescriptionChange = useCallback((value: string) => {

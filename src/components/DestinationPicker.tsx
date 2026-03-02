@@ -1,7 +1,7 @@
 import React from 'react';
 import type {ForwardedRef} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
@@ -26,7 +26,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
     const customUnit = getPerDiemCustomUnit(policy);
     const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const getSelectedOptions = (): Destination[] => {

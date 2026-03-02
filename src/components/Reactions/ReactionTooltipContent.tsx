@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 
@@ -25,7 +25,7 @@ type ReactionTooltipContentProps = Pick<WithCurrentUserPersonalDetailsProps, 'cu
 
 function ReactionTooltipContent({accountIDs, currentUserPersonalDetails, emojiCodes, emojiName}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const users = useMemo(
         () => getPersonalDetailsByIDs({accountIDs, currentUserAccountID: currentUserPersonalDetails.accountID, shouldChangeUserDisplayName: true}),
         [currentUserPersonalDetails.accountID, accountIDs],

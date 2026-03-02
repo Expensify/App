@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import TextInput from '@components/TextInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import {useTableContext} from './TableContext';
 
 /**
@@ -33,7 +33,7 @@ import {useTableContext} from './TableContext';
  * ```
  */
 function TableSearchBar() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
     const {
         activeSearchString,

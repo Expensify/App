@@ -4,7 +4,7 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
@@ -28,7 +28,7 @@ type ExpenseLimitTypeSelectorModalProps = {
 
 function ExpenseLimitTypeSelectorModal({isVisible, currentExpenseLimitType, onExpenseLimitTypeSelected, onClose, label}: ExpenseLimitTypeSelectorModalProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const expenseLimitTypes = Object.values(CONST.POLICY.EXPENSE_LIMIT_TYPES).map((value) => ({
         value,

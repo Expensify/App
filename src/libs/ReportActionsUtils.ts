@@ -6,7 +6,7 @@ import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias
 import {doesReportContainRequestsFromMultipleUsers, getReportOrDraftReport} from '@libs/ReportUtils';
@@ -417,7 +417,7 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     return reportAction.originalMessage;
 }
 
-function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName: string | undefined, translate: LocaleContextValue['translate'], connectionLink?: string) {
+function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName: string | undefined, translate: LocaleActionsContextValue['translate'], connectionLink?: string) {
     const personalCardName = originalCardName ?? card?.cardName ?? getBankName(card?.bank as CompanyCardFeed);
     return translate('personalCard.conciergeBrokenConnection', {cardName: personalCardName, connectionLink});
 }
@@ -3603,7 +3603,7 @@ function getRemovedFromApprovalChainMessage(translate: LocalizedTranslate, repor
 function getActionableCardFraudAlertMessage(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT>>,
-    getLocalDateFromDatetime: LocaleContextValue['getLocalDateFromDatetime'],
+    getLocalDateFromDatetime: LocaleActionsContextValue['getLocalDateFromDatetime'],
 ) {
     const fraudMessage = getOriginalMessage(reportAction);
     const cardLastFour = fraudMessage?.maskedCardNumber?.slice(-4) ?? '';
@@ -3961,7 +3961,7 @@ function getCreatedReportForUnapprovedTransactionsMessage(reportID: string | und
 
 function getDynamicExternalWorkflowRoutedMessage(
     action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED>>,
-    translate: LocaleContextValue['translate'],
+    translate: LocaleActionsContextValue['translate'],
 ) {
     return translate('iou.routedDueToDEW', getOriginalMessage(action)?.to ?? '');
 }
@@ -4030,7 +4030,7 @@ function getCardIssuedMessage({
     policyID?: string;
     expensifyCard?: Card;
     companyCard?: Card;
-    translate: LocaleContextValue['translate'];
+    translate: LocaleActionsContextValue['translate'];
 }) {
     const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
 
@@ -4090,7 +4090,7 @@ function wasActionCreatedWhileOffline(
     isOffline: boolean,
     lastOfflineAt: Date | undefined,
     lastOnlineAt: Date | undefined,
-    getLocalDateFromDatetime: LocaleContextValue['getLocalDateFromDatetime'],
+    getLocalDateFromDatetime: LocaleActionsContextValue['getLocalDateFromDatetime'],
 ): boolean {
     // The user has never gone offline or never come back online
     if (!lastOfflineAt || !lastOnlineAt) {
@@ -4121,7 +4121,7 @@ function wasMessageReceivedWhileOffline(
     isOffline: boolean,
     lastOfflineAt: Date | undefined,
     lastOnlineAt: Date | undefined,
-    getLocalDateFromDatetime: LocaleContextValue['getLocalDateFromDatetime'],
+    getLocalDateFromDatetime: LocaleActionsContextValue['getLocalDateFromDatetime'],
 ) {
     const wasByCurrentUser = wasActionTakenByCurrentUser(action);
     const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, getLocalDateFromDatetime);

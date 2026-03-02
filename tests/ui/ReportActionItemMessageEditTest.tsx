@@ -25,12 +25,15 @@ jest.mock('@libs/actions/Report', () => {
     };
 });
 
-jest.mock('@hooks/useLocalize', () =>
-    jest.fn(() => ({
+jest.mock('@hooks/useLocalize', () => ({
+    useActionsLocalize: () => ({
         translate: jest.fn((key: string) => key),
         numberFormat: jest.fn((num: number) => num.toString()),
-    })),
-);
+    }),
+    useStateLocalize: () => ({
+        preferredLocale: 'en',
+    }),
+}));
 
 jest.mock('@react-navigation/native', () => ({
     ...((): typeof NativeNavigation => {

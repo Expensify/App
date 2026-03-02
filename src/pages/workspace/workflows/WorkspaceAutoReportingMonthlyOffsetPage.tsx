@@ -5,7 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -34,7 +34,7 @@ type WorkspaceAutoReportingMonthlyOffsetPageItem = {
 };
 
 function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoReportingMonthlyOffsetProps) {
-    const {translate, toLocaleOrdinal} = useLocalize();
+    const {translate, toLocaleOrdinal} = useActionsLocalize();
     const offset = policy?.autoReportingOffset ?? 0;
     const [searchText, setSearchText] = useState('');
     const trimmedText = searchText.trim().toLowerCase();

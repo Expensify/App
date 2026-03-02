@@ -1,6 +1,6 @@
 import React from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -16,7 +16,7 @@ import TermsStep from './substeps/TermsStep';
 const termsAndFeesSubsteps: Array<React.ComponentType<SubStepProps>> = [FeesStep, TermsStep];
 
 function FeesAndTerms() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
 
     const submit = () => {

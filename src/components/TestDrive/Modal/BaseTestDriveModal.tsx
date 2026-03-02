@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import TestDrive from '@assets/images/test-drive.svg';
 import type {FeatureTrainingModalProps} from '@components/FeatureTrainingModal';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setOnboardingTestDriveModalDismissed} from '@libs/actions/Welcome';
@@ -36,7 +36,7 @@ function BaseTestDriveModal({
     shouldCallOnHelpWhenModalHidden,
 }: BaseTestDriveModalProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(

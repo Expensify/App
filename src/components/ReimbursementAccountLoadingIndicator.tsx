@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -16,7 +16,7 @@ type ReimbursementAccountLoadingIndicatorProps = {
 
 function ReimbursementAccountLoadingIndicator({onBackButtonPress}: ReimbursementAccountLoadingIndicatorProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <ScreenWrapper

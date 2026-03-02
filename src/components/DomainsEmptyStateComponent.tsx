@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
@@ -12,7 +12,7 @@ import {loadIllustration} from './Icon/IllustrationLoader';
 function DomainsEmptyStateComponent() {
     const {asset: BlueShield} = useMemoizedLazyAsset(() => loadIllustration('BlueShield'));
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <View style={styles.ph5}>

@@ -17,12 +17,12 @@ type SelectionListWrapperProps = {
 
 jest.mock('@components/Icon/Expensicons');
 
-jest.mock('@hooks/useLocalize', () =>
-    jest.fn(() => ({
+jest.mock('@hooks/useLocalize', () => ({
+    useActionsLocalize: () => ({
         translate: jest.fn(),
         numberFormat: jest.fn(),
-    })),
-);
+    }),
+}));
 
 jest.mock('@hooks/useNetwork', () =>
     jest.fn(() => ({

@@ -12,7 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useBeforeRemove from '@hooks/useBeforeRemove';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -35,7 +35,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const isInputInitializedRef = useRef(false);
     const RULE_EXAMPLE_BULLET_POINTS = [

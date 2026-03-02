@@ -6,10 +6,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
 import useConfirmModal from './useConfirmModal';
-import useLocalize from './useLocalize';
+import {useActionsLocalize} from './useLocalize';
 
 export default function useDeleteSavedSearch() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {currentSearchHash} = useSearchStateContext();
     const {showConfirmModal} = useConfirmModal();
 

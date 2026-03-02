@@ -5,11 +5,11 @@ import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/C
 
 let mockNumberFormat = (n: number) => n.toLocaleString('en-US');
 
-jest.mock('@hooks/useLocalize', () =>
-    jest.fn(() => ({
+jest.mock('@hooks/useLocalize', () => ({
+    useActionsLocalize: () => ({
         numberFormat: mockNumberFormat,
-    })),
-);
+    }),
+}));
 
 const mockFont = (supported: string) => ({getGlyphIDs: (text: string) => [...text].map((ch) => (supported.includes(ch) ? 1 : 0))}) as unknown as SkFont;
 

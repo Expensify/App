@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +14,7 @@ import ROUTES from '@src/ROUTES';
 function CountrySelection() {
     const [country] = useOnyx(ONYXKEYS.COUNTRY);
     const personalPolicy = usePersonalPolicy();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const initialCountry = useMemo(() => {

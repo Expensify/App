@@ -1,7 +1,7 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -33,7 +33,7 @@ type SingleOptionSelectorProps<TKey extends string> = {
 
 function SingleOptionSelector<TKey extends string>({options = [], selectedOptionKey, onSelectOption = () => {}, optionRowStyles, selectCircleStyles}: SingleOptionSelectorProps<TKey>) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     return (
         <View style={styles.pt4}>
             {options.map((option) => (

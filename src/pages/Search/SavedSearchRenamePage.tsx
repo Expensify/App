@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -17,7 +17,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SearchSavedSearchRenameForm';
 
 function SavedSearchRenamePage({route}: {route: {params: {q: string; name: string}}}) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const {q, name} = route.params;
     const [newName, setNewName] = useState(name);

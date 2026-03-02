@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -22,7 +22,7 @@ type UnitPickerProps = {
 const units = [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES];
 
 function UnitPicker({defaultValue, onOptionSelected}: UnitPickerProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const unitOptions = useMemo(
         () =>

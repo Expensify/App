@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import AddressForm from '@components/AddressForm';
 import type {FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,7 +43,7 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
         bankAccountPersonalDetails?.country,
         privatePersonalDetails,
     ]);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     // Check if country is valid
     const {street} = address ?? {};

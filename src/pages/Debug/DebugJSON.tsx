@@ -5,7 +5,7 @@ import ScrollView from '@components/ScrollView';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import Clipboard from '@libs/Clipboard';
@@ -18,7 +18,7 @@ type DebugJSONProps = {
 
 function DebugJSON({data}: DebugJSONProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
     const json = useMemo(() => DebugUtils.stringifyJSON(data), [data]);

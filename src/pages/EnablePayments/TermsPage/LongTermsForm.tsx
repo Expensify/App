@@ -5,7 +5,7 @@ import Icon from '@components/Icon';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -15,7 +15,7 @@ function LongTermsForm() {
     const icons = useMemoizedLazyExpensifyIcons(['Printer']);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, numberFormat} = useLocalize();
+    const {translate, numberFormat} = useActionsLocalize();
 
     const termsData = [
         {

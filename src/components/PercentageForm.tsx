@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useRef} from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import {replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
@@ -30,7 +30,7 @@ type PercentageFormProps = BaseTextInputProps & {
 };
 
 function PercentageForm({value: amount, errorText, onInputChange, label, allowExceedingHundred = false, allowDecimal = false, ref, ...rest}: PercentageFormProps) {
-    const {toLocaleDigit, numberFormat} = useLocalize();
+    const {toLocaleDigit, numberFormat} = useActionsLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
 

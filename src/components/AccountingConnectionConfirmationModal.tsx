@@ -1,5 +1,5 @@
 import React from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import ConfirmModal from './ConfirmModal';
 
@@ -10,7 +10,7 @@ type AccountingConnectionConfirmationModalProps = {
 };
 
 function AccountingConnectionConfirmationModal({integrationToConnect, onCancel, onConfirm}: AccountingConnectionConfirmationModalProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <ConfirmModal

@@ -5,7 +5,7 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type CalendarPickerListItem from './types';
@@ -29,7 +29,7 @@ type YearPickerModalProps = {
 
 function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear(), onYearChange, onClose}: YearPickerModalProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [searchText, setSearchText] = useState('');
     const {data, headerMessage} = useMemo(() => {
         const yearsList = searchText === '' ? years : years.filter((year) => year.text?.includes(searchText));

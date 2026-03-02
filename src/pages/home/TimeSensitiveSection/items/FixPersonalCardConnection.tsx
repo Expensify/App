@@ -1,7 +1,7 @@
 import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import ROUTES from '@src/ROUTES';
@@ -13,7 +13,7 @@ type FixPersonalCardConnectionProps = {
 };
 
 function FixPersonalCardConnection({card}: FixPersonalCardConnectionProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Connect']);
 
     return (

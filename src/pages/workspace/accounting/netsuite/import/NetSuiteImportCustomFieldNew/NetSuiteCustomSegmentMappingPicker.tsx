@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -19,7 +19,7 @@ type NetSuiteCustomListPickerProps = {
 };
 
 function NetSuiteCustomSegmentMappingPicker({value, errorText, onInputChange}: NetSuiteCustomListPickerProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     const selectionData = [

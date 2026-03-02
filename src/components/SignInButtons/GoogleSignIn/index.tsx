@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {beginGoogleSignIn} from '@userActions/Session';
@@ -32,7 +32,7 @@ const signIn = (response: Response, preferredLocale?: Locale) => {
  */
 
 function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const loadScript = useCallback(() => {

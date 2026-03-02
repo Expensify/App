@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
 import CONST from '@src/CONST';
@@ -11,9 +11,7 @@ jest.mock('@libs/Navigation/Navigation');
 const mockTranslate = jest.fn((key: string) => key);
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: () => ({
+    useActionsLocalize: () => ({
         translate: mockTranslate,
     }),
 }));
@@ -114,7 +112,7 @@ describe('handleUnvalidatedUserNavigation', () => {
 });
 
 describe('useSettlementButtonPaymentMethods', () => {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle'] as const));
 
     beforeEach(() => {

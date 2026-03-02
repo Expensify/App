@@ -3,7 +3,7 @@ import AttachmentView from '@components/Attachments/AttachmentView';
 import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +30,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
     const session = useSession();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();

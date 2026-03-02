@@ -8,7 +8,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftMerchantRule} from '@libs/actions/User';
@@ -25,7 +25,7 @@ type AddMerchantToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorPar
 
 function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
     const {policyID, ruleID} = route.params;
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const isEditing = ruleID !== ROUTES.NEW;
 

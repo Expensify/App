@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import RenderHTML from '@components/RenderHTML';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
@@ -18,7 +18,7 @@ const DelegateNoAccessStateContext = createContext<DelegateNoAccessStateContextT
 const DelegateNoAccessActionsContext = createContext<DelegateNoAccessActionsContextType>(defaultDelegateNoAccessActionsContextValue);
 
 function DelegateNoAccessModalProvider({children}: PropsWithChildren) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const currentUserDetails = useCurrentUserPersonalDetails();

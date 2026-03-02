@@ -2,7 +2,7 @@
 /* eslint-disable react/jsx-no-constructed-context-values */
 import React, {createContext, useContext, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultLockedAccountActionsContextValue, defaultLockedAccountStateContextValue} from './default';
@@ -12,7 +12,7 @@ const LockedAccountStateContext = createContext<LockedAccountStateContextType>(d
 const LockedAccountActionsContext = createContext<LockedAccountActionsContextType>(defaultLockedAccountActionsContextValue);
 
 function LockedAccountModalProvider({children}: React.PropsWithChildren) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS);
     const isAccountLocked = lockAccountDetails?.isLocked ?? false;
     const [isModalOpen, setIsModalOpen] = useState(false);

@@ -1,6 +1,6 @@
 import React from 'react';
 import {Image} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
+import {useStateLocalize} from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 function ExampleCheckImage() {
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale} = useStateLocalize();
     const isSpanish = (preferredLocale ?? CONST.LOCALES.DEFAULT) === CONST.LOCALES.ES;
 
     return (

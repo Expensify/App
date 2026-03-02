@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {optionsOrderBy, personalDetailsComparator, processSearchString} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
@@ -21,7 +21,7 @@ import type {GetOptionsConfig, GetUserToInviteConfig, OptionData, Options, Previ
 function createOption(
     personalDetail: PersonalDetails,
     report: OnyxInputOrEntry<Report>,
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'],
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributes,
     isReportArchived?: string,
@@ -207,7 +207,7 @@ function filterOption(option: OptionData | undefined, searchValue: string | unde
 function getValidOptions(
     options: OptionData[],
     currentUserLogin: string,
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'],
     countryCode: number,
     loginList?: OnyxEntry<LoginList>,
     {
@@ -374,7 +374,7 @@ function createOptionList(
     reports: OnyxCollection<Report>,
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     privateIsArchivedMap: PrivateIsArchivedMap,
-    formatPhoneNumber: LocaleContextValue['formatPhoneNumber'],
+    formatPhoneNumber: LocaleActionsContextValue['formatPhoneNumber'],
     config?: PreviewConfig,
 ) {
     if (isEmptyObject(personalDetails)) {
@@ -412,7 +412,7 @@ function createOptionList(
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessage(translate: LocaleContextValue['translate'], searchValue: string, countryCode: number, hasMatchedParticipant = false): string {
+function getHeaderMessage(translate: LocaleActionsContextValue['translate'], searchValue: string, countryCode: number, hasMatchedParticipant = false): string {
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (!searchValue) {

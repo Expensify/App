@@ -7,7 +7,7 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     const icons = useMemoizedLazyExpensifyIcons(['Document', 'GalleryNotFound']);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     // Re-render this component when account.shouldUseStagingServer changes
     useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);

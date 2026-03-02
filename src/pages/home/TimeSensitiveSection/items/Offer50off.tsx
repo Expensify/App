@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,7 +16,7 @@ type Offer50offProps = {
 
 function Offer50off({firstDayFreeTrial}: Offer50offProps) {
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['TreasureChest'] as const);
 
     const [discountInfo, setDiscountInfo] = useState(() => getEarlyDiscountInfo(firstDayFreeTrial));

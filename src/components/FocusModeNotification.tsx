@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
@@ -18,7 +18,7 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['ThreeLeggedLaptopWoman']);
     const {environmentURL} = useEnvironment();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const priorityModePageUrl = `${environmentURL}/settings/preferences/priority-mode`;
 
     return (

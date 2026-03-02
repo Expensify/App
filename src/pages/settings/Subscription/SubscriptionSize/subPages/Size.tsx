@@ -6,7 +6,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useStepFormSubmit from '@hooks/useStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
@@ -19,7 +19,7 @@ import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
 type SizeProps = SubPageProps;
 
 function Size({onNext}: SizeProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const privateSubscription = usePrivateSubscription();
     const {inputCallbackRef} = useAutoFocusInput();

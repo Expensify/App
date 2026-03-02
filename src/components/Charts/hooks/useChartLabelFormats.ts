@@ -1,6 +1,6 @@
 import type {SkFont} from '@shopify/react-native-skia';
 import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/Charts/types';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import {LABEL_ROTATIONS} from './useChartLabelLayout';
 
 type UseChartLabelFormatsProps = {
@@ -40,7 +40,7 @@ function resolveDisplayUnit(font: SkFont | null | undefined, unit: UnitWithFallb
 }
 
 export default function useChartLabelFormats({data, font, unit, unitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels}: UseChartLabelFormatsProps) {
-    const {numberFormat} = useLocalize();
+    const {numberFormat} = useActionsLocalize();
 
     const displayUnit = resolveDisplayUnit(font, unit);
 

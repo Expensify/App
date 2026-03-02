@@ -24,7 +24,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
@@ -134,7 +134,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const popoverAnchor = useRef(null);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);

@@ -2,7 +2,7 @@ import type {FlashListRef} from '@shopify/flash-list';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import emojis from '@assets/emojis';
 import useKeyboardState from '@hooks/useKeyboardState';
-import useLocalize from '@hooks/useLocalize';
+import {useStateLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -22,7 +22,7 @@ const useEmojiPickerMenu = () => {
     const [filteredEmojis, setFilteredEmojis] = useState<EmojiPickerList>(allEmojis);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
     const isListFiltered = allEmojis.length !== filteredEmojis.length;
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale} = useStateLocalize();
     const [preferredSkinTone] = usePreferredEmojiSkinTone();
     const {windowHeight} = useWindowDimensions();
     const StyleUtils = useStyleUtils();

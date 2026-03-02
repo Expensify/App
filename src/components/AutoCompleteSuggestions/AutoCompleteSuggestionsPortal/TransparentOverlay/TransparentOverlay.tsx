@@ -4,7 +4,7 @@ import type {PointerEvent} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useDragAndDrop from '@hooks/useDragAndDrop';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
@@ -17,7 +17,7 @@ type TransparentOverlayProps = {
 type OnPressHandler = PressableProps['onPress'];
 
 function TransparentOverlay({onPress: onPressProp}: TransparentOverlayProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const dropZone = useRef<HTMLDivElement | View>(null);
 

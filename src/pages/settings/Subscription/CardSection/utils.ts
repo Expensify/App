@@ -1,6 +1,6 @@
 import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
@@ -24,7 +24,7 @@ type BillingStatusResult = {
 };
 
 type GetBillingStatusProps = {
-    translate: LocaleContextValue['translate'];
+    translate: LocaleActionsContextValue['translate'];
     stripeCustomerId: OnyxEntry<StripeCustomerID>;
     accountData?: AccountData;
     purchase?: Purchase;

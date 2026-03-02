@@ -5,7 +5,7 @@ import {checkLocationAccuracy} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import type BackgroundLocationPermissionsFlowProps from './types';
 
 async function requestPermissions({
@@ -85,7 +85,7 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
     const [showFirstAskModal, setShowFirstAskModal] = useState(false);
     const [showPreciseLocationModal, setShowPreciseLocationModal] = useState(false);
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const onModalHide = useRef<(() => void) | null>(null);
 

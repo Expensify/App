@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import TagPicker from '@components/TagPicker';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
@@ -29,7 +29,7 @@ const policyHasMultipleTagListsSelector = (policy: OnyxEntry<Policy>) => policy?
 
 function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [newTagName, setNewTagName] = useState(tagName);
     const selectedTags = useMemo(() => getTagArrayFromName(newTagName), [newTagName]);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);

@@ -1,6 +1,6 @@
 import React from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
@@ -11,7 +11,7 @@ import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 type ConfirmationProps = SubStepProps & {policyID: string};
 
 function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const [enterSignerInfoForm] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
     const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);

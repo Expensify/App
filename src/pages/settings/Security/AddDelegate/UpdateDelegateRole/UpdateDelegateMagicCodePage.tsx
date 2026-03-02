@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import type {ValueOf} from 'type-fest';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
@@ -17,7 +17,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type UpdateDelegateMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE>;
 
 function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const login = route.params.login;
     const newRole = route.params.newRole as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);

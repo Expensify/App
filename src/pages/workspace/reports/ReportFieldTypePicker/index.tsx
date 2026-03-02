@@ -1,7 +1,7 @@
 import React from 'react';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import {getReportFieldAlternativeTextTranslationKey, getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
@@ -29,7 +29,7 @@ type ReportFieldTypePickerProps = {
 };
 
 function ReportFieldTypePicker({defaultValue, onOptionSelected}: ReportFieldTypePickerProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const typeOptions = Object.values(CONST.REPORT_FIELD_TYPES).map((reportFieldType) => ({
         keyForList: reportFieldType,

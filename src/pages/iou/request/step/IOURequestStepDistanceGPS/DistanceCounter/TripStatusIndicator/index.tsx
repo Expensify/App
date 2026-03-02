@@ -1,6 +1,6 @@
 import React from 'react';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,7 +13,7 @@ function TripStatusIndicatorWrapper({children}: React.PropsWithChildren) {
 
 function TripStatusIndicator() {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const isTrackingInProgress = !!gpsDraftDetails?.isTracking;
 

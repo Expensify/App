@@ -3,12 +3,12 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import getBackgroundColor from '@components/TabSelector/getBackground';
 import getOpacity from '@components/TabSelector/getOpacity';
 import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -19,7 +19,7 @@ type IconAndTitle = {
     title: string;
 };
 
-function getIconAndTitle(icons: Record<'Document' | 'Exclamation' | 'Eye' | 'Info', IconAsset>, route: string, translate: LocaleContextValue['translate']): IconAndTitle {
+function getIconAndTitle(icons: Record<'Document' | 'Exclamation' | 'Eye' | 'Info', IconAsset>, route: string, translate: LocaleActionsContextValue['translate']): IconAndTitle {
     switch (route) {
         case CONST.DEBUG.DETAILS:
             return {icon: icons.Info, title: translate('debug.details')};
@@ -55,7 +55,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const navigation = useNavigation<NavigationProp<Record<string, unknown>>>();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [currentTab, setCurrentTab] = useState(routes.at(0)?.name);
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: routes.length}, (v, i) => i), [routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);

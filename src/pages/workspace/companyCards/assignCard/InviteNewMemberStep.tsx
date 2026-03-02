@@ -4,7 +4,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {setDraftInviteAccountID} from '@libs/actions/Card';
 import {getCardAssignmentDateOption, getCardAssignmentStartDate, getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
@@ -24,7 +24,7 @@ type InviteeNewMemberStepProps = PlatformStackScreenProps<SettingsNavigatorParam
     WithCurrentUserPersonalDetailsProps;
 
 function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemberStepProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const policyID = route.params.policyID;

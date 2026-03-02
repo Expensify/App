@@ -2,7 +2,7 @@ import {addMonths, format, isPast, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
@@ -43,7 +43,7 @@ type BuildNextStepNewParams = {
     bypassNextApproverID?: number;
 };
 
-function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextValue['translate'], currentUserAccountID: number): string {
+function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleActionsContextValue['translate'], currentUserAccountID: number): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
     const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '');
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;

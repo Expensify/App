@@ -4,7 +4,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/QuickbooksOnline';
 import {enablePolicyTaxes} from '@userActions/Policy/Policy';
@@ -15,7 +15,7 @@ import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 const renderLoading = () => <FullScreenLoadingIndicator />;
 
 function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlowProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setIsWebViewOpen] = useState(false);
     const [session] = useOnyx(ONYXKEYS.SESSION);

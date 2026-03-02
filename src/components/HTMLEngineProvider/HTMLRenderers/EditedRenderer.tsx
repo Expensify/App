@@ -1,7 +1,7 @@
 import React from 'react';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -9,7 +9,7 @@ import variables from '@styles/variables';
 function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps}: CustomRendererProps<TBlock>) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const isPendingDelete = !!(tnode.attributes.deleted !== undefined);
     return (
         <Text fontSize={variables.fontSizeSmall}>

@@ -1,4 +1,4 @@
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
@@ -35,7 +35,7 @@ function getDisplayName(details: PersonalDetails) {
 /**
  * Function to sort users. It compares weights, display names, and accountIDs in that order
  */
-function getSortedPersonalDetails(personalDetails: Array<PersonalDetails & {weight: number}>, localeCompare: LocaleContextValue['localeCompare']) {
+function getSortedPersonalDetails(personalDetails: Array<PersonalDetails & {weight: number}>, localeCompare: LocaleActionsContextValue['localeCompare']) {
     return personalDetails.sort((first, second) => {
         if (first.weight !== second.weight) {
             return first.weight - second.weight;

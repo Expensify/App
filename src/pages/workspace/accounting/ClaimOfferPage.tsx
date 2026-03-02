@@ -10,7 +10,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,7 +46,7 @@ type ClaimOfferPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps
 function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const {integration, policyID} = route.params;
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {isOffline} = useNetwork();
     const {startIntegrationFlow} = useAccountingContext();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['TreasureChestGreenWithSparkle'] as const);

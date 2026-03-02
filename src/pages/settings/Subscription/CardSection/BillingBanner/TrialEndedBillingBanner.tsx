@@ -2,14 +2,14 @@ import React from 'react';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BillingBanner from './BillingBanner';
 
 function TrialEndedBillingBanner() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const {asset: Tire} = useMemoizedLazyAsset(() => loadIllustration('Tire' as IllustrationName));
     if (doesUserHavePaymentCardAdded(userBillingFundID)) {

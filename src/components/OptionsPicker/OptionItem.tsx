@@ -5,7 +5,7 @@ import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -34,7 +34,7 @@ type OptionItemProps = {
 
 function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style}: OptionItemProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <PressableWithFeedback

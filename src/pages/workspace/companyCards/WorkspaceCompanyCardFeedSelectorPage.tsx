@@ -14,7 +14,7 @@ import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useCompanyCards from '@hooks/useCompanyCards';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -47,7 +47,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();

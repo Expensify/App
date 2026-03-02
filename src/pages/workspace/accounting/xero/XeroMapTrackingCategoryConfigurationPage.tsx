@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import {clearXeroErrorField, enablePolicyReportFields} from '@libs/actions/Policy/Policy';
@@ -24,7 +24,7 @@ type RouteParams = {
 };
 
 function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const route = useRoute();
     const params = route.params as RouteParams;
     const styles = useThemeStyles();

@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
@@ -18,7 +18,7 @@ type BaseDomainSettingsPageProps = {
 
 function BaseDomainSettingsPage({domainAccountID, children}: BaseDomainSettingsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>

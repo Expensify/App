@@ -1,7 +1,7 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Badge from '@components/Badge';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -13,7 +13,7 @@ type MemberRightIconProps = {
 };
 
 export default function MemberRightIcon({role, owner, login, badgeStyles}: MemberRightIconProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     let badgeText: TranslationPaths | undefined;
     if (owner && owner === login) {

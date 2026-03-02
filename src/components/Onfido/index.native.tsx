@@ -3,7 +3,7 @@ import React, {useEffect} from 'react';
 import {Alert, NativeModules} from 'react-native';
 import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
 import Log from '@libs/Log';
@@ -14,7 +14,7 @@ import type {OnfidoError, OnfidoProps} from './types';
 const {AppStateTracker} = NativeModules;
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     useEffect(() => {
         OnfidoSDK.start({

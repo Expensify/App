@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {LocaleContextValue} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue} from '@components/LocaleContextProvider';
 import type {WorkspaceListItemType as WorkspaceListItem} from '@components/SelectionList/ListItem/types';
 import type {SectionListDataType} from '@components/SelectionListWithSections/types';
 import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
@@ -17,7 +17,7 @@ type UseWorkspaceListParams = {
     shouldShowPendingDeletePolicy: boolean;
     selectedPolicyIDs: string[] | undefined;
     searchTerm: string;
-    localeCompare: LocaleContextValue['localeCompare'];
+    localeCompare: LocaleActionsContextValue['localeCompare'];
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
 };
 

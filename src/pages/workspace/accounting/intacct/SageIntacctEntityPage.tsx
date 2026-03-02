@@ -2,7 +2,7 @@ import React from 'react';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField, updateSageIntacctEntity} from '@libs/actions/connections/SageIntacct';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -16,7 +16,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const config = policy?.connections?.intacct?.config;
     const entityID = config?.entity ?? '';
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const policyID = policy?.id;
 
     const options = [

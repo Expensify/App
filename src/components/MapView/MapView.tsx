@@ -16,7 +16,7 @@ import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrent
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
-import useLocalize from '@src/hooks/useLocalize';
+import {useActionsLocalize} from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Direction from './Direction';
@@ -44,7 +44,7 @@ function MapView({
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const navigation = useNavigation();
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair']);

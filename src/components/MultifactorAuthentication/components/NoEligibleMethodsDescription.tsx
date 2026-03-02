@@ -1,7 +1,7 @@
 import React from 'react';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
@@ -17,7 +17,7 @@ const translationPaths = {
 
 function NoEligibleMethodsDescription() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const start = translate(translationPaths.start);
     const link = translate(translationPaths.link);

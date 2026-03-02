@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import type {AccessibilityRole, StyleProp, TextStyle} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import CONST from '@src/CONST';
 import PressableWithDelayToggle from './Pressable/PressableWithDelayToggle';
@@ -31,7 +31,7 @@ function CopyTextToClipboard({
     shouldUseButtonBackground,
     styles,
 }: CopyTextToClipboardProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Copy'] as const);
 
     const copyToClipboard = useCallback(() => {

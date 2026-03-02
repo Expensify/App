@@ -13,7 +13,7 @@ import RenderHTML from '@components/RenderHTML';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import StateSelector from '@components/StateSelector';
 import TextInput from '@components/TextInput';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidAddress, isValidDebitCard, isValidExpirationDate, isValidLegalName, isValidPaymentZipCode, isValidSecurityCode} from '@libs/ValidationUtils';
@@ -43,7 +43,7 @@ type PaymentCardFormProps = {
 };
 
 function IAcceptTheLabel() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return <RenderHTML html={translate('common.acceptTermsAndPrivacy')} />;
 }
@@ -128,7 +128,7 @@ function PaymentCardForm({
     const styles = useThemeStyles();
     const [data, metadata] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
 
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const route = useRoute();
     const label = CARD_LABELS[isDebitCard ? CARD_TYPES.DEBIT_CARD : CARD_TYPES.PAYMENT_CARD];
 

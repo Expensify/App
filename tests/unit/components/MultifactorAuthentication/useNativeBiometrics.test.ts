@@ -14,9 +14,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: () => ({
+    useActionsLocalize: () => ({
         translate: (key: string) => `translated_${key}`,
     }),
 }));

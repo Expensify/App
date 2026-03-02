@@ -23,7 +23,7 @@ import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrent
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {clearUserLocation, setUserLocation} from '@userActions/UserLocation';
 import CONST from '@src/CONST';
-import useLocalize from '@src/hooks/useLocalize';
+import {useActionsLocalize} from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import getCurrentPosition from '@src/libs/getCurrentPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,7 +50,7 @@ function MapViewImpl({
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [distanceUnit, setDistanceUnit] = useState(unit);
     useEffect(() => {
         if (!unit || distanceUnit) {

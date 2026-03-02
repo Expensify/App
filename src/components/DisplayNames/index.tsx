@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
 import DisplayNamesWithoutTooltip from './DisplayNamesWithoutTooltip';
@@ -18,7 +18,7 @@ function DisplayNames({
     forwardedFSClass,
     shouldParseFullTitle = true,
 }: DisplayNamesProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const title = useMemo(() => {
         const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle;
         return StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');

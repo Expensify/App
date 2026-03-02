@@ -1,7 +1,7 @@
 import type {ComponentType} from 'react';
 import React from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {clearErrors} from '@userActions/FormActions';
@@ -33,7 +33,7 @@ type BusinessInfoSubStepProps = SubStepProps & {currency: string; country: Count
 const bodyContent: Array<ComponentType<BusinessInfoSubStepProps>> = [RegistrationNumber, BusinessType, PaymentVolume, AverageReimbursement, Confirmation];
 
 function BusinessInfo({onBackButtonPress, onSubmit, currency, country}: BusinessInfoProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const {
         componentToRender: SubStep,

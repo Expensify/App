@@ -101,7 +101,7 @@ In this example:
 ```tsx
 function ForYouSection() {
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {submitCount, approveCount} = useTodos();
 
     // ❌ Internal render helper — closes over everything, hides structure

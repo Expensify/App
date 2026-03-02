@@ -9,7 +9,7 @@ import SelectionList from '@components/SelectionList';
 import TravelDomainListItem from '@components/SelectionList/ListItem/TravelDomainListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,7 +33,7 @@ type DomainSelectorPageProps = StackScreenProps<TravelNavigatorParamList, typeof
 
 function DomainSelectorPage({route}: DomainSelectorPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const {policyID} = route.params;
     const policy = usePolicy(policyID);

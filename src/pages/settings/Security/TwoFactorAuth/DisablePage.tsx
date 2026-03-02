@@ -6,7 +6,7 @@ import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDisableTwoFactorAuthErrors} from '@libs/actions/Session';
@@ -19,7 +19,7 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function DisablePage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);

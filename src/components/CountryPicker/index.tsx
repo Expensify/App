@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import type {Option} from '@libs/searchOptions';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -18,7 +18,7 @@ type CountryPickerProps = {
 };
 
 function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPickerProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const hidePickerModal = () => {

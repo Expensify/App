@@ -7,7 +7,7 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
-import useLocalize from './useLocalize';
+import {useActionsLocalize} from './useLocalize';
 
 type OpenPicker = (options: {onPicked: (files: FileObject[]) => void}) => void;
 
@@ -33,7 +33,7 @@ type UseAvatarMenuParams = {
  */
 function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAvatarCropModal, clearError, source, originalFileName}: UseAvatarMenuParams) {
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const attachmentContext = useContext(AttachmentModalContext);
 
     /**

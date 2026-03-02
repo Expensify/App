@@ -1,7 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
 import TextInput from './TextInput';
@@ -67,7 +67,7 @@ function AmountTextInput({
     ...rest
 }: AmountTextInputProps) {
     const navigation = useNavigation();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     return (
         <TextInput

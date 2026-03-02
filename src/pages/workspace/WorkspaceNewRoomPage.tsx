@@ -15,7 +15,7 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,7 +34,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 function EmptyWorkspaceView() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, additionalPaddingBottom: styles.mb5.marginBottom, styleProperty: 'marginBottom'});
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
@@ -71,7 +71,7 @@ type WorkspaceNewRoomPageProps = {
 function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare} = useActionsLocalize();
     const [shouldEnableValidation, setShouldEnableValidation] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);

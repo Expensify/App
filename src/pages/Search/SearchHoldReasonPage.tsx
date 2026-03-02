@@ -3,7 +3,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {putTransactionsOnHold} from '@libs/actions/IOU/Hold';
@@ -22,7 +22,7 @@ type SearchHoldReasonPageProps =
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
 
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const {backTo = '', reportID} = route.params ?? {};
     const {selectedTransactionIDs, selectedTransactions, currentSearchHash} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();

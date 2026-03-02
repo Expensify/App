@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChat} from '@libs/actions/Report';
@@ -13,7 +13,7 @@ import ROUTES from '@src/ROUTES';
 import BillingBanner from './BillingBanner';
 
 function PreTrialBillingBanner() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['TreasureChest']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);

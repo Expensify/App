@@ -1,5 +1,5 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import type {LocaleContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleActionsContextValue, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionListWithSections/Search/CardListItem';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
@@ -35,7 +35,7 @@ type CardFeedNamesWithType = Record<string, {name: string; type: 'domain' | 'wor
 type CardFeedData = {cardName: string; bank: CardFeedWithNumber; label?: string; type: 'domain' | 'workspace'};
 type GetCardFeedData = {
     workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined;
-    translate: LocaleContextValue['translate'];
+    translate: LocaleActionsContextValue['translate'];
     policies: OnyxCollection<Policy>;
 };
 type CardFeedForDisplay = {
@@ -197,7 +197,7 @@ function getWorkspaceCardFeedData(
     cardFeed: WorkspaceCardsList | undefined,
     policies: OnyxCollection<Policy>,
     repeatingBanks: string[],
-    translate: LocaleContextValue['translate'],
+    translate: LocaleActionsContextValue['translate'],
 ): CardFeedData | undefined {
     const cardFeedArray = Object.values(cardFeed ?? {});
     const representativeCard = cardFeedArray.find((cardFeedItem) => isCard(cardFeedItem));
@@ -226,7 +226,7 @@ function getWorkspaceCardFeedData(
     };
 }
 
-function getDomainCardFeedData(domainFeed: DomainFeedData, policies: OnyxCollection<Policy>, repeatingBanks: string[], translate: LocaleContextValue['translate']): CardFeedData {
+function getDomainCardFeedData(domainFeed: DomainFeedData, policies: OnyxCollection<Policy>, repeatingBanks: string[], translate: LocaleActionsContextValue['translate']): CardFeedData {
     const {domainName, bank} = domainFeed;
     const isBankRepeating = repeatingBanks.includes(bank);
     const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : getBankName(bank);
@@ -336,7 +336,7 @@ function buildCardFeedsData(
     domainFeedsData: Record<string, DomainFeedData>,
     policies: OnyxCollection<Policy>,
     selectedCards: string[],
-    translate: LocaleContextValue['translate'],
+    translate: LocaleActionsContextValue['translate'],
     illustrations: IllustrationsType,
     companyCardIcons: CompanyCardFeedIcons,
 ): ItemsGroupedBySelection {

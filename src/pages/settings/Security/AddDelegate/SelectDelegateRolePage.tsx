@@ -6,7 +6,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -18,7 +18,7 @@ import type SCREENS from '@src/SCREENS';
 type SelectDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE>;
 
 function DelegateRoleSelectionListHeader() {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const styles = useThemeStyles();
 
     return (
@@ -38,7 +38,7 @@ function DelegateRoleSelectionListHeader() {
 }
 
 function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
     const login = route.params.login;
 
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({

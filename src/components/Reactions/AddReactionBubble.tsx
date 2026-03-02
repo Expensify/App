@@ -6,7 +6,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
@@ -54,7 +54,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const ref = useRef<View | HTMLDivElement>(null);
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     useEffect(() => resetEmojiPopoverAnchor, []);
 

@@ -5,7 +5,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import {useActionsLocalize} from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
@@ -26,7 +26,7 @@ type RejectReasonPageProps =
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
 
 function RejectReasonPage({route}: RejectReasonPageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useActionsLocalize();
 
     const {transactionID, reportID, backTo} = route.params;
     const {removeTransaction} = useSearchActionsContext();
