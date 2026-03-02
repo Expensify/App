@@ -4,7 +4,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getCreatedReportForUnapprovedTransactionsMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isReportDeleted} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +19,7 @@ function CreatedReportForUnapprovedTransactionsAction({action}: CreatedReportFor
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalID}`);
     const reportName = getReportName(report);
-    const htmlContent = `<comment><muted-text>${getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isReportDeleted(report), translate)}</muted-text></comment>`;
+    const htmlContent = `<comment><muted-text>${getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, !!action.isOriginalReportDeleted, translate)}</muted-text></comment>`;
 
     return (
         <ReportActionItemBasicMessage>

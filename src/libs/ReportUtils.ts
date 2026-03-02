@@ -5744,11 +5744,11 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
         const {originalID} = getOriginalMessage(parentReportAction) ?? {};
-        const originalReportOfUnapprovedTransactions = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
+        const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- temporarily disabling rule for deprecated functions out of issue scope
-        const reportName = getReportName({report: originalReportOfUnapprovedTransactions});
+        const reportName = getReportName({report: originalReport});
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- temporarily disabling rule for deprecated functions out of issue scope
-        return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isReportDeleted(originalReportOfUnapprovedTransactions), translateLocal);
+        return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, !!parentReportAction.isOriginalReportDeleted, translateLocal);
     }
 
     if (isTaskReport(report)) {
@@ -10500,13 +10500,6 @@ function isReportParticipant(accountID: number | undefined, report: OnyxEntry<Re
 }
 
 /**
- * Checks if a report is deleted or pending deletion
- */
-function isReportDeleted(report: OnyxEntry<Report>): boolean {
-    return !report || !report.reportID || report.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-}
-
-/**
  * Check to see if the current user has access to view the report.
  */
 function canCurrentUserOpenReport(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>, isReportArchived = false): boolean {
@@ -13312,7 +13305,6 @@ export {
     getBillableAndTaxTotal,
     getReportForHeader,
     isReportOpenOrUnsubmitted,
-    isReportDeleted,
     getIconsForExpenseReport,
 };
 
