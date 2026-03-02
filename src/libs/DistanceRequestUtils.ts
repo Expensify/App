@@ -1,13 +1,15 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getCurrencySymbol} from './CurrencyUtils';
+// This will be fixed as part of https://github.com/Expensify/App/issues/66397
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
-import {getCurrency, getRateID, isCustomUnitRateIDForP2P} from './TransactionUtils';
+import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -140,6 +142,7 @@ function getRateForDisplay(
     currency: string | undefined,
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     isOffline?: boolean,
     useShortFormUnit?: boolean,
 ): string {
@@ -174,9 +177,14 @@ function getDistanceForDisplay(
     rate: number | undefined,
     translate: LocaleContextProps['translate'],
     useShortFormUnit?: boolean,
+    isZeroDistanceAllowed?: boolean,
 ): string {
-    if (!hasRoute || !unit || !distanceInMeters) {
+    if (!hasRoute || !unit) {
         return translate('iou.fieldPending');
+    }
+
+    if (!distanceInMeters && !isZeroDistanceAllowed) {
+        return '';
     }
 
     const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
@@ -214,13 +222,19 @@ function getDistanceMerchant(
     currency: string,
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
+    isZeroDistanceAllowed?: boolean,
 ): string {
     if (!hasRoute || !rate) {
         return translate('iou.fieldPending');
     }
 
-    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true);
-    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, undefined, true);
+    if (!distanceInMeters && !isZeroDistanceAllowed) {
+        return '';
+    }
+
+    const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isZeroDistanceAllowed);
+    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
 
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
 }
@@ -289,12 +303,14 @@ function getCustomUnitRateID({
     reportID,
     isPolicyExpenseChat,
     policy,
+    isTrackDistanceExpense = false,
     lastSelectedDistanceRates,
 }: {
     reportID: string | undefined;
     isPolicyExpenseChat: boolean;
     policy: OnyxEntry<Policy> | undefined;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
+    isTrackDistanceExpense?: boolean;
 }): string {
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
@@ -310,11 +326,12 @@ function getCustomUnitRateID({
         return customUnitRateID;
     }
 
-    if (isPolicyExpenseChat) {
+    // For TrackDistanceExpense we will return the default rate of the policyForMovingExpenses.
+    if (isPolicyExpenseChat || isTrackDistanceExpense) {
         const distanceUnit = Object.values(policy.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
         const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;
-        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+        if (!isTrackDistanceExpense && lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
             customUnitRateID = lastSelectedDistanceRateID;
         } else {
             const defaultMileageRate = getDefaultMileageRate(policy);
@@ -359,27 +376,39 @@ function getRate({
     policy,
     policyDraft,
     useTransactionDistanceUnit = true,
+    policyForMovingExpenses,
 }: {
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     policyDraft?: OnyxEntry<Policy>;
+    policyForMovingExpenses?: OnyxEntry<Policy>;
     useTransactionDistanceUnit?: boolean;
 }): MileageRate {
     let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
     if (isEmptyObject(mileageRates) && policyDraft) {
         mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
     }
+    const mileageRatesForMovingExpenses = getMileageRates(policyForMovingExpenses, true, transaction?.comment?.customUnit?.customUnitRateID);
+    // This will be fixed as part of https://github.com/Expensify/App/issues/66397
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+    const transactionCurrency = getCurrency(transaction);
+
+    // getRateForP2P returns the stored rate only if passed currency is same as the transaction's currency
+    // For unreported transactions (and possibly for all existing transactions?), we always want to use the stored rate.
+    const currency = isExpenseUnreported(transaction) ? transactionCurrency : policyCurrency;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
+    const isUnreportedExpense = isExpenseUnreported(transaction);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const customMileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
-    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency, transaction) : customMileageRate;
+    const customMileageRate =
+        (customUnitRateID && (mileageRates?.[customUnitRateID] ?? mileageRatesForMovingExpenses?.[customUnitRateID])) || (isUnreportedExpense ? undefined : defaultMileageRate);
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(currency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
         ...mileageRate,
         unit,
-        currency: mileageRate?.currency ?? policyCurrency,
+        currency: mileageRate?.currency ?? currency,
     };
 }
 

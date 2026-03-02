@@ -68,20 +68,11 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ONYXKEYS.COLLECTION.TRANSACTION,
         ONYXKEYS.PERSONAL_DETAILS_LIST,
+        ONYXKEYS.SESSION,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
-    compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, policies],
-        {currentValue, sourceValues, areAllConnectionsSet},
-    ) => {
-        if (!areAllConnectionsSet) {
-            return {
-                reports: {},
-                locale: null,
-            };
-        }
-
+    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies], {currentValue, sourceValues}) => {
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
@@ -200,7 +191,7 @@ export default createOnyxDerivedValueConfig({
             const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
             const isReportArchived = isArchivedReport(reportNameValuePair);
-            const {hasAnyViolations, requiresAttention, reportErrors} = generateReportAttributes({
+            const {hasAnyViolations, requiresAttention, reportErrors, oneTransactionThreadReportID} = generateReportAttributes({
                 report,
                 chatReport,
                 reportActions,
@@ -219,11 +210,14 @@ export default createOnyxDerivedValueConfig({
             }
 
             acc[report.reportID] = {
-                reportName: report ? computeReportName(report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions) : '',
+                reportName: report
+                    ? computeReportName(report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)
+                    : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
                 requiresAttention,
                 reportErrors,
+                oneTransactionThreadReportID,
             };
 
             return acc;

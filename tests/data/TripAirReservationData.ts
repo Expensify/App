@@ -167,7 +167,7 @@ const airReservationPnrData: Pnr = {
                             {
                                 legIdx: 0,
                                 flightIdx: 0,
-                                number: 12,
+                                number: '12A',
                                 amount: 0,
                             },
                         ],

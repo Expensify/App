@@ -14,9 +14,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {isScanning as isTransactionScanning} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, ReportAction} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import ExportedIconCell from './ExportedIconCell';
@@ -28,9 +29,9 @@ import UserInfoCell from './UserInfoCell';
 import WorkspaceCell from './WorkspaceCell';
 
 type ExpenseReportListItemRowProps = {
-    hash: number;
     item: ExpenseReportListItemType;
     policy?: Policy;
+    reportActions?: ReportAction[];
     showTooltip: boolean;
     canSelectMultiple?: boolean;
     isActionLoading?: boolean;
@@ -46,9 +47,9 @@ type ExpenseReportListItemRowProps = {
 };
 
 function ExpenseReportListItemRow({
-    hash,
     item,
     policy,
+    reportActions,
     onCheckboxPress = () => {},
     onButtonPress = () => {},
     isActionLoading,
@@ -70,6 +71,16 @@ function ExpenseReportListItemRow({
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(item);
+
+    const isScanning = (() => {
+        if (!item.transactions || item.transactions.length === 0) {
+            return false;
+        }
+
+        const allScanning = item.transactions.every((transaction) => isTransactionScanning(transaction as Parameters<typeof isTransactionScanning>[0]));
+
+        return allScanning;
+    })();
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
@@ -113,6 +124,7 @@ function ExpenseReportListItemRow({
                 <StatusCell
                     stateNum={item.stateNum}
                     statusNum={item.statusNum}
+                    isPending={item.shouldShowStatusAsPending}
                 />
             </View>
         ),
@@ -151,6 +163,7 @@ function ExpenseReportListItemRow({
                 <TotalCell
                     total={reimbursableSpend}
                     currency={currency}
+                    isScanning={isScanning}
                 />
             </View>
         ),
@@ -159,6 +172,7 @@ function ExpenseReportListItemRow({
                 <TotalCell
                     total={nonReimbursableSpend}
                     currency={currency}
+                    isScanning={isScanning}
                 />
             </View>
         ),
@@ -167,6 +181,7 @@ function ExpenseReportListItemRow({
                 <TotalCell
                     total={totalDisplaySpend}
                     currency={currency}
+                    isScanning={isScanning}
                 />
             </View>
         ),
@@ -182,10 +197,7 @@ function ExpenseReportListItemRow({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
-                <ExportedIconCell
-                    reportID={item.reportID}
-                    hash={hash}
-                />
+                <ExportedIconCell reportActions={reportActions} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
@@ -242,6 +254,7 @@ function ExpenseReportListItemRow({
                                 accessibilityLabel={item.text ?? ''}
                                 shouldStopMouseDownPropagation
                                 style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
+                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                             />
                         )}
                         <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.mr2]}>
@@ -257,6 +270,7 @@ function ExpenseReportListItemRow({
                         <TotalCell
                             total={totalDisplaySpend}
                             currency={currency}
+                            isScanning={isScanning}
                         />
                     </View>
                 </View>
@@ -277,6 +291,7 @@ function ExpenseReportListItemRow({
                         accessibilityLabel={item.text ?? ''}
                         shouldStopMouseDownPropagation
                         style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                     />
                 )}
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), {alignItems: 'stretch'}]}>

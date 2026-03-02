@@ -8,22 +8,21 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Report, TransactionViolation} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
     /** The transaction that is being displayed */
     transaction: TransactionWithOptionalHighlight;
-
-    /** Transaction violations */
-    violations?: TransactionViolation[];
 
     /** Report to which the transaction belongs */
     report: Report;
@@ -60,11 +59,13 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Callback function that navigates to the transaction thread */
     onArrowRightPress?: (transactionID: string) => void;
+
+    /** Whether this transaction should be highlighted as newly added */
+    shouldBeHighlighted: boolean;
 };
 
 function MoneyRequestReportTransactionItem({
     transaction,
-    violations,
     report,
     isSelectionModeEnabled,
     toggleTransaction,
@@ -77,30 +78,34 @@ function MoneyRequestReportTransactionItem({
     taxAmountColumnSize,
     scrollToNewTransaction,
     onArrowRightPress,
+    shouldBeHighlighted,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const theme = useTheme();
     const isPendingDelete = isTransactionPendingDelete(transaction);
     const pendingAction = getTransactionPendingAction(transaction);
+    // Filter violations based on user visibility and dismissal state at the row level.
+    const filteredViolations = useTransactionViolations(transaction.transactionID);
 
     const viewRef = useRef<View>(null);
 
     // This useEffect scrolls to this transaction when it is newly added to the report
     useEffect(() => {
-        if (!transaction.shouldBeHighlighted || !scrollToNewTransaction) {
+        if (!shouldBeHighlighted || !scrollToNewTransaction) {
             return;
         }
         viewRef?.current?.measure((x, y, width, height, pageX, pageY) => {
             scrollToNewTransaction?.(pageY);
         });
-    }, [scrollToNewTransaction, transaction.shouldBeHighlighted]);
+    }, [scrollToNewTransaction, shouldBeHighlighted]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
-        shouldHighlight: transaction.shouldBeHighlighted ?? false,
+        shouldHighlight: shouldBeHighlighted,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
@@ -113,6 +118,7 @@ function MoneyRequestReportTransactionItem({
                     handleOnPress(transaction.transactionID);
                 }}
                 accessibilityLabel={translate('iou.viewDetails')}
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_TRANSACTION_ITEM}
                 role={getButtonRole(true)}
                 isNested
                 id={transaction.transactionID}
@@ -131,7 +137,7 @@ function MoneyRequestReportTransactionItem({
                 {({hovered}) => (
                     <TransactionItemRow
                         transactionItem={transaction}
-                        violations={violations}
+                        violations={filteredViolations}
                         report={report}
                         isSelected={isSelected}
                         dateColumnSize={dateColumnSize}

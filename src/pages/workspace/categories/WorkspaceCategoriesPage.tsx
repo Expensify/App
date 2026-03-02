@@ -8,8 +8,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
@@ -47,7 +45,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
-import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -79,7 +77,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyData = usePolicyData(policyId);
     const {policy, categories: policyCategories} = policyData;
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
@@ -91,7 +89,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Gear', 'Table']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan'] as const);
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen']);
 
     const {
@@ -101,6 +99,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         hasOutstandingChildTask,
         parentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
+
+    const {
+        taskReport: setupCategoriesAndTagsTaskReport,
+        taskParentReport: setupCategoriesAndTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoriesAndTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
+        parentReportAction: setupCategoriesAndTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
+
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyId}`);
+
+    const policyHasTags = hasTags(policyTags);
 
     const fetchCategories = useCallback(() => {
         openPolicyCategoriesPage(policyId);
@@ -151,16 +161,22 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
-            setWorkspaceCategoryEnabled(
+            setWorkspaceCategoryEnabled({
                 policyData,
-                {[categoryName]: {name: categoryName, enabled: value}},
-                isSetupCategoryTaskParentReportArchived,
+                categoriesToUpdate: {[categoryName]: {name: categoryName, enabled: value}},
+                isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
-                currentUserPersonalDetails.accountID,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
                 hasOutstandingChildTask,
                 parentReportAction,
-            );
+                setupCategoriesAndTagsTaskReport,
+                setupCategoriesAndTagsTaskParentReport,
+                isSetupCategoriesAndTagsTaskParentReportArchived,
+                setupCategoriesAndTagsHasOutstandingChildTask,
+                setupCategoriesAndTagsParentReportAction,
+                policyHasTags,
+            });
         },
         [
             policyData,
@@ -170,6 +186,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             currentUserPersonalDetails.accountID,
             hasOutstandingChildTask,
             parentReportAction,
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived,
+            setupCategoriesAndTagsHasOutstandingChildTask,
+            setupCategoriesAndTagsParentReportAction,
+            policyHasTags,
         ],
     );
 
@@ -206,7 +228,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             <Switch
                                 isOn={value.enabled}
                                 disabled={isDisabled}
-                                accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                                 onToggle={(newValue: boolean) => {
                                     if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
                                         setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
@@ -222,7 +244,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <Switch
                         isOn={value.enabled}
                         disabled={isDisabled}
-                        accessibilityLabel={translate('workspace.categories.enableCategory')}
+                        accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
                                 setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
@@ -424,7 +446,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         if (isSmallScreenWidth ? canSelectMultiple : selectedCategories.length > 0) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
-                    icon: Expensicons.Trashcan,
+                    icon: icons.Trashcan,
                     text: translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: () => {
@@ -450,7 +472,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         return acc;
                     }, {});
                 options.push({
-                    icon: Expensicons.Close,
+                    icon: icons.Close,
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
@@ -459,16 +481,22 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(
+                        setWorkspaceCategoryEnabled({
                             policyData,
-                            categoriesToDisable,
-                            isSetupCategoryTaskParentReportArchived,
+                            categoriesToUpdate: categoriesToDisable,
+                            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
-                            currentUserPersonalDetails.accountID,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
                             hasOutstandingChildTask,
                             parentReportAction,
-                        );
+                            setupCategoriesAndTagsTaskReport,
+                            setupCategoriesAndTagsTaskParentReport,
+                            isSetupCategoriesAndTagsTaskParentReportArchived,
+                            setupCategoriesAndTagsHasOutstandingChildTask,
+                            setupCategoriesAndTagsParentReportAction,
+                            policyHasTags,
+                        });
                     },
                 });
             }
@@ -485,21 +513,27 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         return acc;
                     }, {});
                 options.push({
-                    icon: Expensicons.Checkmark,
+                    icon: icons.Checkmark,
                     text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(
+                        setWorkspaceCategoryEnabled({
                             policyData,
-                            categoriesToEnable,
-                            isSetupCategoryTaskParentReportArchived,
+                            categoriesToUpdate: categoriesToEnable,
+                            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
-                            currentUserPersonalDetails.accountID,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
                             hasOutstandingChildTask,
                             parentReportAction,
-                        );
+                            setupCategoriesAndTagsTaskReport,
+                            setupCategoriesAndTagsTaskParentReport,
+                            isSetupCategoriesAndTagsTaskParentReportArchived,
+                            setupCategoriesAndTagsHasOutstandingChildTask,
+                            setupCategoriesAndTagsParentReportAction,
+                            policyHasTags,
+                        });
                     },
                 });
             }
@@ -514,6 +548,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                     isDisabled={!selectedCategories.length}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_DROPDOWN}
                     testID="WorkspaceCategoriesPage-header-dropdown-menu-button"
                 />
             );
@@ -525,7 +560,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <Button
                         success
                         onPress={navigateToCreateCategoryPage}
-                        icon={Expensicons.Plus}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ADD_BUTTON}
+                        icon={icons.Plus}
                         text={translate('workspace.categories.addCategory')}
                         style={[shouldUseNarrowLayout && styles.flex1]}
                     />
@@ -535,6 +571,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_DROPDOWN}
                     options={secondaryActions}
                     isSplitButton={false}
                     wrapperStyle={shouldShowAddCategory ? styles.flexGrow0 : styles.flexGrow1}
@@ -607,6 +644,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
                     icon={!selectionModeHeader ? illustrations.FolderOpen : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
+                    shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             setSelectedCategories([]);
@@ -619,7 +657,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
 
-                        Navigation.popToSidebar();
+                        Navigation.goBack();
                     }}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
@@ -651,7 +689,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onSelectRow={navigateToCategorySettings}
                         onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
                         onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
-                        style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         turnOnSelectionModeOnLongPress={isSmallScreenWidth}
                         shouldUseDefaultRightHandSideCheckmark={false}
@@ -680,7 +717,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                                 !policyHasAccountingConnections
                                     ? [
                                           {
-                                              icon: Expensicons.Plus,
+                                              icon: icons.Plus,
                                               buttonText: translate('workspace.categories.addCategory'),
                                               buttonAction: navigateToCreateCategoryPage,
                                               success: true,

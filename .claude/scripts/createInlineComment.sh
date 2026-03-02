@@ -25,7 +25,7 @@ validate_rule() {
 
     [[ -f "$ALLOWED_RULES_FILE" ]] || die "Comment rejected: allowed rules file missing at $ALLOWED_RULES_FILE"
 
-    rule=$(echo "$body" | grep -oE '[A-Z]+-[0-9]+' | head -1 || true)
+    rule=$(echo "$body" | grep -oE '[A-Z]+(-[A-Z]+)*-[0-9]+' | head -1 || true)
     [[ -n "$rule" ]] || die "Comment rejected: missing allowed rule reference (e.g. PERF-1)"
 
     if grep -qF "$rule" "$ALLOWED_RULES_FILE"; then
@@ -47,11 +47,14 @@ readonly LINE_ARG="${3:-}"
 validate_rule "$BODY_ARG"
 echo "Comment approved: $COMMENT_STATUS_REASON"
 
+readonly FOOTER=$'\n\n---\n\nPlease rate this suggestion with 👍 or 👎 to help us improve! Reactions are used to monitor reviewer efficiency.'
+readonly COMMENT_BODY="${BODY_ARG}${FOOTER}"
+
 COMMIT_ID=$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.head.sha')
 readonly COMMIT_ID
 
 PAYLOAD=$(jq -n \
-    --arg body "$BODY_ARG" \
+    --arg body "$COMMENT_BODY" \
     --arg path "$PATH_ARG" \
     --argjson line "$LINE_ARG" \
     --arg commit_id "$COMMIT_ID" \

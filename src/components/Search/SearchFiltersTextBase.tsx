@@ -26,9 +26,12 @@ type SearchFiltersTextBaseProps = {
 
     /** The character limit for the input */
     characterLimit?: number;
+
+    /** The translation key for the description text shown above the input */
+    descriptionKey?: TranslationPaths;
 };
 
-function SearchFiltersTextBase({filterKey, titleKey, testID, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: SearchFiltersTextBaseProps) {
+function SearchFiltersTextBase({filterKey, titleKey, testID, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES, descriptionKey}: SearchFiltersTextBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -56,6 +59,7 @@ function SearchFiltersTextBase({filterKey, titleKey, testID, characterLimit = CO
                 onSubmit={updateFilter}
                 title={translate(titleKey)}
                 characterLimit={characterLimit}
+                description={descriptionKey ? translate(descriptionKey) : undefined}
             />
         </ScreenWrapper>
     );

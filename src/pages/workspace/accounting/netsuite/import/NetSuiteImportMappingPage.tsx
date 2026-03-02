@@ -53,7 +53,7 @@ function NetSuiteImportMappingPage({
     const listFooterContent = useMemo(
         () => (
             <View style={[styles.ph5, styles.mt3, styles.mb4]}>
-                <Text>{translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent`, {importField})}</Text>
+                <Text>{translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent`, importField)}</Text>
             </View>
         ),
         [importField, importValue, styles.mb4, styles.mt3, styles.ph5, translate],

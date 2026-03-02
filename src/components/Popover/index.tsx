@@ -1,10 +1,10 @@
 import React, {useRef} from 'react';
 import {createPortal} from 'react-dom';
 import Modal from '@components/Modal';
-import {PopoverContext} from '@components/PopoverProvider';
+import {usePopoverActions, usePopoverState} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanel from '@hooks/useSidePanel';
+import useSidePanelState from '@hooks/useSidePanelState';
 import TooltipRefManager from '@libs/TooltipRefManager';
 import CONST from '@src/CONST';
 import type PopoverProps from './types';
@@ -37,8 +37,9 @@ function Popover(props: PopoverProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const withoutOverlayRef = useRef(null);
-    const {close, popover} = React.useContext(PopoverContext);
-    const {isSidePanelTransitionEnded} = useSidePanel();
+    const {popover} = usePopoverState();
+    const {close} = usePopoverActions();
+    const {isSidePanelTransitionEnded} = useSidePanelState();
 
     // This useEffect handles hiding popovers when SidePanel is animating.
     React.useEffect(() => {

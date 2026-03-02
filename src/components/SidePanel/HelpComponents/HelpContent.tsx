@@ -52,9 +52,10 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         };
     });
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`, {canBeMissing: true});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: true});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`);
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
 
     const getParentIOUReportActionSelector = useCallback(
         (actions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> => {
@@ -68,7 +69,6 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const [parentIOUReportAction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`,
         {
-            canBeMissing: true,
             selector: getParentIOUReportActionSelector,
         },
         [getParentIOUReportActionSelector],
@@ -78,7 +78,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
         return getOriginalMessage(parentIOUReportAction ?? transactionThreadReportAction)?.IOUTransactionID;
     }, [report, chatReport, reportActions, parentIOUReportAction]);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const route = useMemo(() => {
         const path = normalizedConfigs[routeName]?.path;
@@ -89,7 +89,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
         const cleanedPath = path.replaceAll('?', '');
         const expenseType = getExpenseType(transaction);
-        const reportType = getHelpPaneReportType(report);
+        const reportType = getHelpPaneReportType(report, conciergeReportID);
 
         if (expenseType && reportType !== CONST.REPORT.HELP_TYPE.EXPENSE_REPORT) {
             return cleanedPath.replaceAll(':reportID', `:${CONST.REPORT.HELP_TYPE.EXPENSE}/:${expenseType}`);
@@ -100,7 +100,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         }
 
         return cleanedPath;
-    }, [routeName, transaction, report]);
+    }, [routeName, transaction, report, conciergeReportID]);
 
     const wasPreviousNarrowScreen = useRef(!isExtraLargeScreenWidth);
     useEffect(() => {

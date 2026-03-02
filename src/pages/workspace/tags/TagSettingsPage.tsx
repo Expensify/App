@@ -1,8 +1,7 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -44,28 +43,23 @@ type TagSettingsPageProps =
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {orderWeight, policyID, tagName, backTo, parentTagsFilter} = route.params;
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Trashcan'] as const);
     const {translate} = useLocalize();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
-    const policyTag = useMemo(() => getTagListByOrderWeight(policyTags, orderWeight), [policyTags, orderWeight]);
+    const policyTag = getTagListByOrderWeight(policyTags, orderWeight);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
     const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS;
-    const approverText = useMemo(() => {
-        const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
-        const approver = getPersonalDetailByEmail(tagApprover);
-        return approver?.displayName ?? tagApprover;
-    }, [route.params?.tagName, policy]);
-    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
-    const currentPolicyTag = useMemo(() => {
-        if (hasDependentTags) {
-            return Object.values(policyTag.tags ?? {}).find((tag) => tag?.name === tagName && tag.rules?.parentTagsFilter === parentTagsFilter);
-        }
-        return policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
-    }, [policyTag, tagName, parentTagsFilter, hasDependentTags]);
+    const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
+    const approver = getPersonalDetailByEmail(tagApprover);
+    const approverText = approver?.displayName ?? tagApprover;
+    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
+    const currentPolicyTag = hasDependentTags
+        ? Object.values(policyTag.tags ?? {}).find((tag) => tag?.name === tagName && tag.rules?.parentTagsFilter === parentTagsFilter)
+        : (policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName));
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledTag(policyTag, [currentPolicyTag]);
 
@@ -184,7 +178,12 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                         >
                             <View style={[styles.mt2, styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Text>{translate('workspace.tags.enableTag')}</Text>
+                                    <Text
+                                        accessible={false}
+                                        aria-hidden
+                                    >
+                                        {translate('workspace.tags.enableTag')}
+                                    </Text>
                                     <Switch
                                         isOn={currentPolicyTag.enabled}
                                         accessibilityLabel={translate('workspace.tags.enableTag')}
@@ -230,9 +229,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 disabled={approverDisabled}
                                 helperText={
                                     approverDisabled
-                                        ? translate('workspace.rules.categoryRules.enableWorkflows', {
-                                              moreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`,
-                                          })
+                                        ? translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`)
                                         : undefined
                                 }
                                 shouldParseHelperText
@@ -242,7 +239,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
 
                     {shouldShowDeleteMenuItem && (
                         <MenuItem
-                            icon={Expensicons.Trashcan}
+                            icon={expensifyIcons.Trashcan}
                             title={translate('common.delete')}
                             onPress={() => {
                                 if (shouldPreventDisableOrDelete) {

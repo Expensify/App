@@ -1,3 +1,4 @@
+import type {OnyxKey} from 'react-native-onyx';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
@@ -19,7 +20,10 @@ type ApplyOnyxUpdatesReliablyOptions = {
  * @param shouldRunSync
  * @returns
  */
-export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer, {shouldRunSync = false, clientLastUpdateID}: ApplyOnyxUpdatesReliablyOptions = {}): Promise<void> {
+export default function applyOnyxUpdatesReliably<TKey extends OnyxKey>(
+    updates: OnyxUpdatesFromServer<TKey>,
+    {shouldRunSync = false, clientLastUpdateID}: ApplyOnyxUpdatesReliablyOptions = {},
+): Promise<void> {
     const fetchMissingUpdates = () => {
         Log.info('[applyOnyxUpdatesReliably] Fetching missing updates');
         // If we got here, that means we are missing some updates on our local storage. To

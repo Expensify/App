@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -31,46 +31,41 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type NewTaskPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
 
 function NewTaskPage({route}: NewTaskPageProps) {
-    const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [task] = useOnyx(ONYXKEYS.TASK);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
-    const assignee = useMemo(() => getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails), [task?.assigneeAccountID, personalDetails]);
+    const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails);
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(
         getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
         false,
         localeCompare,
         formatPhoneNumber,
     );
-    const shareDestination = useMemo(
-        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined),
-        [task?.shareDestination, reports, personalDetails, localeCompare],
-    );
-    const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
+    const shareDestination = task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined;
+    const parentReport = task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined;
     const ancestors = useAncestors(parentReport);
     const [errorMessage, setErrorMessage] = useState('');
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
-    const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || isAllowedToComment(parentReport), [parentReport]);
+    const isAllowedToCreateTask = isEmptyObject(parentReport) || isAllowedToComment(parentReport);
 
     const {paddingBottom} = useSafeAreaPaddings();
 
     const backTo = route.params?.backTo;
     const confirmButtonRef = useRef<View>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    blurActiveElement();
-                });
-            }, CONST.ANIMATED_TRANSITION);
-            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, []),
-    );
+    useFocusEffect(() => {
+        focusTimeoutRef.current = setTimeout(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                blurActiveElement();
+            });
+        }, CONST.ANIMATED_TRANSITION);
+        return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+    });
 
     useEffect(() => {
         setErrorMessage('');

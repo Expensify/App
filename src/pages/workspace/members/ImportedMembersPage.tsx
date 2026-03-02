@@ -27,7 +27,7 @@ type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 
 function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const {setIsClosing} = useCloseImportPage();
@@ -56,11 +56,11 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         let errors: Record<string, string | null> = {};
         const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
         if (missingRequiredColumns) {
-            errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: missingRequiredColumns.text});
+            errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
         } else {
             const duplicate = findDuplicate(columns);
             if (duplicate) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicate});
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
             } else {
                 errors = {};
             }
@@ -158,7 +158,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
         } else {
             setIsImporting(true);
-            importPolicyMembers(policyID, allMembers);
+            importPolicyMembers(policy, allMembers);
         }
     }, [validate, spreadsheet?.columns, spreadsheet?.data, policy, containsHeader, route.params.policyID, policyID]);
 

@@ -1,11 +1,10 @@
-import {useContext, useRef} from 'react';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useRef} from 'react';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {importPlaidAccounts} from '@libs/actions/Plaid';
 import {
-    checkIfFeedConnectionIsBroken,
-    filterInactiveCards,
     getCompanyCardFeed,
     getCompanyFeeds,
+    getDefaultCardName,
     getDomainOrWorkspaceAccountID,
     getPlaidCountry,
     getPlaidInstitutionId,
@@ -14,17 +13,19 @@ import {
 } from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDomainNameForPolicy, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {getDomainNameForPolicy, getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import useCardFeedErrors from './useCardFeedErrors';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed} from './useCardFeeds';
+import {useCurrencyListState} from './useCurrencyList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
+import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
@@ -41,10 +42,10 @@ type UseAssignCardProps = {
 };
 
 function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssignCardProps) {
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : ({} as CombinedCardFeed);
+    const {translate} = useLocalize();
 
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -54,25 +55,31 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
 
     const fetchCompanyCards = () => {
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
+        const emailList = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
     };
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
 
-    const cardList = allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${feedName}`];
+    const {cardFeedErrors} = useCardFeedErrors();
+    const feedErrors = feedName ? cardFeedErrors[feedName] : undefined;
+    const isSelectedFeedConnectionBroken = !!feedErrors?.isFeedConnectionBroken || !!feedErrors?.hasFeedErrors;
 
-    const filteredFeedCards = filterInactiveCards(cardList);
-    const hasFeedError = feedName ? !!cardFeeds?.[feedName]?.errors : false;
-    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
 
     const getInitialAssignCardStep = useInitialAssignCardStep({policyID, selectedFeed: feedName});
 
-    const assignCard = (cardID?: string) => {
+    /**
+     * Initiates the card assignment flow.
+     * @param cardName - The masked card number displayed to users (e.g., "XXXX1234")
+     * @param cardID - The identifier sent to backend (equals cardName for direct feeds)
+     */
+    const assignCard = (cardName?: string, cardID?: string) => {
         if (isAssigningCardDisabled) {
             return;
         }
@@ -98,7 +105,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
         clearAddNewCardFlow();
         clearAssignCardStepAndData();
 
-        const initialAssignCardStep = getInitialAssignCardStep(cardID);
+        const initialAssignCardStep = getInitialAssignCardStep(cardName, cardID);
 
         if (!initialAssignCardStep) {
             return;
@@ -137,9 +144,9 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const {isOffline} = useNetwork();
 
     const policy = usePolicy(policyID);
+    const {currencyList} = useCurrencyListState();
 
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyCards = getCompanyFeeds(cardFeeds);
@@ -149,14 +156,19 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const plaidAccessToken = feedData?.plaidAccessToken;
     const hasImportedPlaidAccounts = useRef(false);
 
-    const getInitialAssignCardStep = (cardID: string | undefined): {initialStep: AssignCardStep; cardToAssign: Partial<AssignCardData>} | undefined => {
+    /**
+     * Gets the initial step and card data for the assignment flow.
+     * @param cardName - The masked card number displayed to users
+     * @param cardID - The identifier sent to backend (equals cardName for direct feeds)
+     */
+    const getInitialAssignCardStep = (cardName: string | undefined, cardID?: string): {initialStep: AssignCardStep; cardToAssign: Partial<AssignCardData>} | undefined => {
         if (!selectedFeed) {
             return;
         }
 
         const cardToAssign: Partial<AssignCardData> = {
             bankName,
-            cardNumber: cardID,
+            cardName,
             encryptedCardNumber: cardID,
         };
 
@@ -195,7 +207,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
             cardToAssign.email = userEmail;
             const personalDetails = getPersonalDetailByEmail(userEmail);
             const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;
-            cardToAssign.cardName = `${memberName}'s card`;
+            cardToAssign.customCardName = getDefaultCardName(memberName);
 
             return {
                 initialStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,

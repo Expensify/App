@@ -4,7 +4,6 @@ import Onyx from 'react-native-onyx';
 import {getReceiverType, getSendInvoiceInformation, sendInvoice} from '@libs/actions/IOU/SendInvoice';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {rand64} from '@libs/NumberUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -511,6 +510,124 @@ describe('actions/SendInvoice', () => {
             expect(result.receiver).toBeDefined();
             expect(result.onyxData).toBeDefined();
         });
+
+        it('should use provided invoiceChatReportID when creating new invoice chat', () => {
+            const preGeneratedReportID = 'pre_generated_invoice_chat_123';
+            const mockTransaction = {
+                transactionID: 'transaction_with_report_id',
+                reportID: 'report_with_id',
+                amount: 500,
+                currency: 'USD',
+                created: '2024-02-01',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Invoice with pre-generated report ID',
+                },
+                participants: [
+                    {
+                        accountID: 123,
+                        isSender: true,
+                        policyID: 'workspace_test',
+                    },
+                    {
+                        accountID: 456,
+                        isSender: false,
+                    },
+                ],
+            };
+
+            const currentUserAccountID = 123;
+
+            const result = getSendInvoiceInformation({
+                transaction: mockTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: undefined,
+                invoiceChatReportID: preGeneratedReportID,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: [],
+            });
+
+            expect(result.invoiceRoom).toBeDefined();
+            expect(result.invoiceRoom.reportID).toBe(preGeneratedReportID);
+            expect(result.invoiceRoom.chatType).toBe(CONST.REPORT.CHAT_TYPE.INVOICE);
+        });
+
+        it('should ignore invoiceChatReportID when existing invoiceChatReport matches receiver', () => {
+            const preGeneratedReportID = 'should_be_ignored';
+            const existingReportID = 'existing_invoice_chat';
+            const receiverAccountID = 456;
+
+            const existingInvoiceChatReport = {
+                reportID: existingReportID,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '123': {
+                        accountID: 123,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '456': {
+                        accountID: receiverAccountID,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                    accountID: receiverAccountID,
+                },
+            };
+
+            const mockTransaction = {
+                transactionID: 'transaction_existing_chat',
+                reportID: 'report_existing',
+                amount: 300,
+                currency: 'USD',
+                created: '2024-02-01',
+                merchant: 'Existing Chat Test',
+                participants: [
+                    {
+                        accountID: 123,
+                        isSender: true,
+                        policyID: 'workspace_existing',
+                    },
+                    {
+                        accountID: receiverAccountID,
+                        isSender: false,
+                    },
+                ],
+            };
+
+            const currentUserAccountID = 123;
+
+            const result = getSendInvoiceInformation({
+                transaction: mockTransaction as OnyxEntry<Transaction>,
+                currentUserAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: existingInvoiceChatReport as OnyxEntry<Report>,
+                invoiceChatReportID: preGeneratedReportID,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: [],
+            });
+
+            expect(result.invoiceRoom).toBeDefined();
+            expect(result.invoiceRoom.reportID).toBe(existingReportID);
+            expect(result.invoiceRoom.reportID).not.toBe(preGeneratedReportID);
+        });
     });
     describe('sendInvoice', () => {
         it('creates a new invoice chat when one has been converted from individual to business', async () => {
@@ -655,138 +772,43 @@ describe('actions/SendInvoice', () => {
             expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
             expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
         });
-    });
-    describe('Invoice recipient change while offline', () => {
-        const userAAccountID = 1;
-        const userBAccountID = 2;
-        const senderAccountID = 3;
-        const senderWorkspaceID = 'workspace123';
-        const amount = 10000;
-        const currency = 'USD';
 
-        let transactionID: string;
-        let userAInvoiceReport: Report;
-
-        beforeEach(async () => {
-            initOnyxDerivedValues();
-            await Onyx.clear();
-            await waitForBatchedUpdates();
-
-            // Set up current user as sender
-            await Onyx.set(ONYXKEYS.SESSION, {
-                email: 'sender@test.com',
-                accountID: senderAccountID,
-            });
-
-            // Set up personal details for both recipients
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [userAAccountID]: {
-                    accountID: userAAccountID,
-                    login: 'userA@test.com',
-                    displayName: 'User A',
-                },
-                [userBAccountID]: {
-                    accountID: userBAccountID,
-                    login: 'userB@test.com',
-                    displayName: 'User B',
-                },
-                [senderAccountID]: {
-                    accountID: senderAccountID,
-                    login: 'sender@test.com',
-                    displayName: 'Sender',
-                },
-            });
-
-            // Create a draft transaction with User A as initial recipient
-            transactionID = rand64();
+        it('should use invoiceChatReportID when creating new invoice chat via sendInvoice', () => {
+            const preGeneratedReportID = 'pre_generated_report_id_456';
             const transaction = {
-                transactionID,
-                reportID: undefined,
-                amount,
-                currency,
-                merchant: 'Test Merchant',
-                created: '2024-01-01',
+                ...createRandomTransaction(1),
                 participants: [
                     {
-                        accountID: userAAccountID,
-                        login: 'userA@test.com',
-                        selected: true,
+                        accountID: 123,
+                        isSender: true,
+                        policyID: 'workspace_test',
                     },
                     {
-                        policyID: senderWorkspaceID,
-                        isSender: true,
-                        selected: false,
+                        accountID: 456,
+                        isSender: false,
                     },
                 ],
-            } as Transaction;
+            } as unknown as OnyxEntry<Transaction>;
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            // Create invoice report for User A
-            userAInvoiceReport = {
-                reportID: 'invoiceReportA',
-                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
-                policyID: senderWorkspaceID,
-                invoiceReceiver: {
-                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
-                    accountID: userAAccountID,
-                },
-            } as Report;
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${userAInvoiceReport.reportID}`, userAInvoiceReport);
-        });
-
-        it('should send invoice to correct recipient when recipient is changed while offline', async () => {
-            // Step 1: Verify initial state - transaction has User A as recipient
-            const initialTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(initialTransaction?.participants?.[0]?.accountID).toBe(userAAccountID);
-
-            // Step 2: User changes recipient to User B while offline
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-                participants: [
-                    {
-                        accountID: userBAccountID,
-                        login: 'userB@test.com',
-                        selected: true,
-                    },
-                    {
-                        policyID: senderWorkspaceID,
-                        isSender: true,
-                        selected: false,
-                    },
-                ],
-            });
-            await waitForBatchedUpdates();
-
-            // Step 3: Get the updated transaction with User B as recipient
-            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(updatedTransaction?.participants?.[0]?.accountID).toBe(userBAccountID);
-
-            // Step 4: Call getSendInvoiceInformation with stale User A report
-            // This simulates the bug scenario where the report from route params is stale
-            const invoiceInfo = getSendInvoiceInformation({
-                transaction: updatedTransaction,
-                currentUserAccountID: senderAccountID,
+            sendInvoice({
+                currentUserAccountID: 123,
+                transaction,
                 policyRecentlyUsedCurrencies: [],
-                invoiceChatReport: userAInvoiceReport,
-                receiptFile: undefined,
-                policy: undefined,
-                policyTagList: undefined,
-                policyCategories: undefined,
-                companyName: undefined,
-                companyWebsite: undefined,
-                policyRecentlyUsedCategories: undefined,
+                invoiceChatReportID: preGeneratedReportID,
             });
 
-            // Step 5: Verify that the invoice is created for User B, not User A
-            // The doesReportReceiverMatchParticipant utility should detect the mismatch
-            // and create a new chat report for User B instead of using the stale User A report
-            expect(invoiceInfo.receiver.accountID).toBe(userBAccountID);
-            expect(invoiceInfo.invoiceRoom.reportID).not.toBe(userAInvoiceReport.reportID);
-            expect(invoiceInfo.invoiceRoom.invoiceReceiver?.type).toBe(CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL);
-            if (invoiceInfo.invoiceRoom.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-                expect(invoiceInfo.invoiceRoom.invoiceReceiver.accountID).toBe(userBAccountID);
-            }
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SEND_INVOICE,
+                expect.objectContaining({
+                    invoiceRoomReportID: preGeneratedReportID,
+                }),
+                expect.anything(),
+            );
+
+            writeSpy.mockRestore();
         });
     });
 });

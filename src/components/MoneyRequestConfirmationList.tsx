@@ -1,8 +1,9 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -10,17 +11,15 @@ import {MouseProvider} from '@hooks/useMouseContext';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
-    adjustRemainingSplitShares,
     computePerDiemExpenseAmount,
     isValidPerDiemExpenseAmount,
-    resetSplitShares,
     setCustomUnitRateID,
-    setIndividualShare,
     setMoneyRequestAmount,
     setMoneyRequestCategory,
     setMoneyRequestMerchant,
@@ -28,10 +27,11 @@ import {
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
-    setSplitShares,
 } from '@libs/actions/IOU';
+import {adjustRemainingSplitShares, resetSplitShares, setIndividualShare, setSplitShares} from '@libs/actions/IOU/Split';
+import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
-import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -42,6 +42,7 @@ import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
+import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
@@ -52,9 +53,11 @@ import {
     getTaxValue,
     hasMissingSmartscanFields,
     hasRoute as hasRouteUtil,
+    hasTaxRateWithMatchingValue,
     isMerchantMissing,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
+import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import {hasInvoicingDetails} from '@userActions/Policy/Policy';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -68,16 +71,15 @@ import type {SplitShares} from '@src/types/onyx/Transaction';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
-import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import FormHelpMessage from './FormHelpMessage';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from './SelectionListWithSections';
-import type {SectionListDataType} from './SelectionListWithSections/types';
-import UserListItem from './SelectionListWithSections/UserListItem';
+import UserListItem from './SelectionList/ListItem/UserListItem';
+import SelectionListWithSections from './SelectionList/SelectionListWithSections';
+import type {Section} from './SelectionList/SelectionListWithSections/types';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -115,6 +117,12 @@ type MoneyRequestConfirmationListProps = {
 
     /** IOU isBillable */
     iouIsBillable?: boolean;
+
+    /** Time expense's hour count */
+    iouTimeCount?: number;
+
+    /** Time expense's hourly rate */
+    iouTimeRate?: number;
 
     /** Callback to toggle the billable state */
     onToggleBillable?: (isOn: boolean) => void;
@@ -154,6 +162,9 @@ type MoneyRequestConfirmationListProps = {
 
     /** Whether the expense is an odometer distance expense */
     isOdometerDistanceRequest?: boolean;
+
+    /** Whether the expense is a GPS distance expense */
+    isGPSDistanceRequest: boolean;
 
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
@@ -207,7 +218,7 @@ type MoneyRequestConfirmationListProps = {
     showRemoveExpenseConfirmModal?: () => void;
 };
 
-type MoneyRequestConfirmationListItem = Participant | OptionData;
+type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
 
 const mileageRateSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getDefaultMileageRate(policy);
 
@@ -220,6 +231,7 @@ function MoneyRequestConfirmationList({
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
+    isGPSDistanceRequest,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     iouCategory = '',
@@ -253,24 +265,27 @@ function MoneyRequestConfirmationList({
     onToggleReimbursable,
     showRemoveExpenseConfirmModal,
     isTimeRequest = false,
+    iouTimeCount,
+    iouTimeRate,
 }: MoneyRequestConfirmationListProps) {
-    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
     const [defaultMileageRateDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {
         selector: mileageRateSelector,
-        canBeMissing: true,
     });
+    const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const [defaultMileageRateReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: mileageRateSelector,
-        canBeMissing: true,
     });
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const isTestReceipt = useMemo(() => {
         return transaction?.receipt?.isTestReceipt ?? false;
@@ -289,9 +304,15 @@ function MoneyRequestConfirmationList({
         isTestDriveReceipt || isManagerMcTestReceipt,
     );
 
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const policy = isTrackExpense ? policyForMovingExpenses : (policyReal ?? policyDraft);
+    const {policy} = usePolicyForTransaction({
+        transaction,
+        reportPolicyID: policyID,
+        action,
+        iouType,
+        isPerDiemRequest,
+    });
+
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
 
@@ -306,8 +327,7 @@ function MoneyRequestConfirmationList({
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => isScanRequestUtil(transaction), [transaction]);
-    const isCreateExpenseFlow = !!transaction?.isFromGlobalCreate && !isPerDiemRequest;
-    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
+    const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
 
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
@@ -316,22 +336,12 @@ function MoneyRequestConfirmationList({
     const defaultRate = defaultMileageRate?.customUnitRateID;
     const lastSelectedRate = policy?.id ? (lastSelectedDistanceRates?.[policy.id] ?? defaultRate) : defaultRate;
 
-    useEffect(() => {
-        if (
-            !['-1', CONST.CUSTOM_UNITS.FAKE_P2P_ID].includes(customUnitRateID) ||
-            !isDistanceRequest ||
-            !isPolicyExpenseChat ||
-            !transactionID ||
-            !lastSelectedRate ||
-            isMovingTransactionFromTrackExpense
-        ) {
-            return;
-        }
-
-        setCustomUnitRateID(transactionID, lastSelectedRate);
-    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense]);
-
-    const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
+    const mileageRate = DistanceRequestUtils.getRate({
+        transaction,
+        policy,
+        ...(isMovingTransactionFromTrackExpense && {policyForMovingExpenses}),
+        policyDraft,
+    });
     const rate = mileageRate.rate;
     const prevRate = usePrevious(rate);
     const unit = mileageRate.unit;
@@ -340,27 +350,27 @@ function MoneyRequestConfirmationList({
     const prevCurrency = usePrevious(currency);
     const prevSubRates = usePrevious(subRates);
 
-    const {shouldSelectPolicy} = usePolicyForMovingExpenses();
-
     // A flag for showing the categories field
     const shouldShowCategories = isTrackExpense
         ? !policy || shouldSelectPolicy || hasEnabledOptions(Object.values(policyCategories ?? {}))
         : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
-    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest;
+    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && (!isTimeRequest || action !== CONST.IOU.ACTION.CREATE);
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
+
     useEffect(() => {
-        if (!transactionID || isReadOnly || !shouldShowTax) {
+        if (!transactionID || isReadOnly || !shouldShowTax || isMovingTransactionFromTrackExpense) {
             return;
         }
         setMoneyRequestTaxRate(transactionID, defaultTaxCode);
-    }, [defaultTaxCode, transactionID, isReadOnly, shouldShowTax]);
+        // trigger this useEffect also when policyID changes - the defaultTaxCode may stay the same
+    }, [defaultTaxCode, isMovingTransactionFromTrackExpense, isReadOnly, transactionID, policyID, shouldShowTax]);
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
@@ -393,6 +403,11 @@ function MoneyRequestConfirmationList({
 
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
+    const [showMoreFields, setShowMoreFields] = useState(false);
+
+    useEffect(() => {
+        setShowMoreFields(false);
+    }, [transactionID]);
 
     // Clear the form error if it's set to one among the list passed as an argument
     const clearFormErrors = useCallback(
@@ -411,8 +426,8 @@ function MoneyRequestConfirmationList({
             return false;
         }
 
-        return (!!hasSmartScanFailed && hasMissingSmartscanFields(transaction)) || (didConfirmSplit && areRequiredFieldsEmpty(transaction));
-    }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
+        return (!!hasSmartScanFailed && hasMissingSmartscanFields(transaction, transactionReport)) || (didConfirmSplit && areRequiredFieldsEmpty(transaction, transactionReport));
+    }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit, transactionReport]);
 
     const isMerchantEmpty = useMemo(() => !iouMerchant || isMerchantMissing(transaction), [transaction, iouMerchant]);
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
@@ -424,6 +439,20 @@ function MoneyRequestConfirmationList({
         [iouCategory, policyCategories, policy?.areRulesEnabled],
     );
 
+    const isViolationFixed = getIsViolationFixed(formError, {
+        category: iouCategory,
+        tag: getTag(transaction),
+        taxCode: transaction?.taxCode,
+        taxValue: transaction?.taxValue,
+        policyCategories,
+        policyTagLists: policyTags,
+        policyTaxRates: policy?.taxRates?.taxes,
+        iouAttendees,
+        currentUserPersonalDetails,
+        isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
+        isControlPolicy: policy?.type === CONST.POLICY.TYPE.CORPORATE,
+    });
+
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
@@ -433,11 +462,21 @@ function MoneyRequestConfirmationList({
             setFormError('iou.receiptScanningFailed');
             return;
         }
-        // reset the form error whenever the screen gains or loses focus
-        setFormError('');
-
+        // Check 1: If formError does NOT start with "violations.", clear it and return
+        // Reset the form error whenever the screen gains or loses focus
+        // but preserve violation-related errors since those represent real validation issues
+        // that can only be resolved by fixing the underlying issue
+        if (!formError.startsWith(CONST.VIOLATIONS_PREFIX)) {
+            setFormError('');
+            return;
+        }
+        // Check 2: Only reached if formError STARTS with "violations."
+        // Clear any violation error if the user has fixed the underlying issue
+        if (isViolationFixed) {
+            setFormError('');
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
-    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
+    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isViolationFixed]);
 
     useEffect(() => {
         // We want this effect to run only when the transaction is moving from Self DM to a expense chat
@@ -457,7 +496,7 @@ function MoneyRequestConfirmationList({
         // If there is a distance rate in the policy that matches the rate and unit of the currently selected mileage rate, select it automatically
         const matchingRate = Object.values(policyRates).find((policyRate) => policyRate.rate === mileageRate.rate && policyRate.unit === mileageRate.unit);
         if (matchingRate?.customUnitRateID) {
-            setCustomUnitRateID(transactionID, matchingRate.customUnitRateID);
+            setCustomUnitRateID(transactionID, matchingRate.customUnitRateID, transaction, policy);
             return;
         }
 
@@ -474,6 +513,7 @@ function MoneyRequestConfirmationList({
         isMovingTransactionFromTrackExpense,
         setFormError,
         clearFormErrors,
+        transaction,
     ]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
@@ -510,16 +550,21 @@ function MoneyRequestConfirmationList({
     }, [shouldCalculateDistanceAmount, isReadOnly, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
 
     // Calculate and set tax amount in transaction draft
-    const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : (transaction?.amount ?? 0);
-    const taxPercentage = getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
-    const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
+    const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : Math.abs(transaction?.amount ?? 0);
+    // First we'll try to get the tax value from the chosen policy and if not found, we'll try to get it from the policy for moving expenses (only if the transaction is moving from track expense)
+    const taxPercentage =
+        getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ??
+        (isMovingTransactionFromTrackExpense ? getTaxValue(policyForMovingExpenses, transaction, transaction?.taxCode ?? defaultTaxCode) : '');
+    const taxDecimals = getCurrencyDecimals(transaction?.currency ?? CONST.CURRENCY.USD);
+    const taxAmount = isMovingTransactionFromTrackExpense && transaction?.taxAmount ? Math.abs(transaction?.taxAmount ?? 0) : calculateTaxAmount(taxPercentage, taxableAmount, taxDecimals);
+
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
     useEffect(() => {
-        if (!transactionID || isReadOnly || !shouldShowTax) {
+        if (!transactionID || isReadOnly || !shouldShowTax || isMovingTransactionFromTrackExpense) {
             return;
         }
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly, shouldShowTax]);
+    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly, shouldShowTax, isMovingTransactionFromTrackExpense]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -536,7 +581,7 @@ function MoneyRequestConfirmationList({
             text = translate('iou.createExpenses', expensesNumber);
         } else if (isTypeInvoice) {
             if (hasInvoicingDetails(policy)) {
-                text = translate('iou.sendInvoice', {amount: formattedAmount});
+                text = translate('iou.sendInvoice', formattedAmount);
             } else {
                 text = translate('common.next');
             }
@@ -552,9 +597,12 @@ function MoneyRequestConfirmationList({
             if (iouAmount !== 0) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
+        } else if (isTypeSplit) {
+            text = translate('iou.splitAmount', formattedAmount);
+        } else if (iouAmount === 0) {
+            text = translate('iou.createExpense');
         } else {
-            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.createExpenseWithAmount';
-            text = translate(translationKey, {amount: formattedAmount});
+            text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
         }
         return [
             {
@@ -632,6 +680,22 @@ function MoneyRequestConfirmationList({
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
     const shouldShowReadOnlySplits = useMemo(() => isPolicyExpenseChat || isReadOnly || isScanRequest, [isPolicyExpenseChat, isReadOnly, isScanRequest]);
 
+    useEffect(() => {
+        if (
+            !['-1', CONST.CUSTOM_UNITS.FAKE_P2P_ID].includes(customUnitRateID) ||
+            !isDistanceRequest ||
+            !isPolicyExpenseChat ||
+            !transactionID ||
+            !lastSelectedRate ||
+            isMovingTransactionFromTrackExpense ||
+            !selectedParticipants.some((participant) => participant.policyID === policy?.id)
+        ) {
+            return;
+        }
+
+        setCustomUnitRateID(transactionID, lastSelectedRate, transaction, policy);
+    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, transaction, policy, selectedParticipants]);
+
     const splitParticipants = useMemo(() => {
         if (!isTypeSplit) {
             return [];
@@ -649,6 +713,7 @@ function MoneyRequestConfirmationList({
                 }
                 return {
                     ...participantOption,
+                    keyForList: `${participantOption.keyForList ?? participantOption.accountID ?? participantOption.reportID}`,
                     isSelected: false,
                     isInteractive: false,
                     rightElement: (
@@ -660,7 +725,7 @@ function MoneyRequestConfirmationList({
             });
         }
 
-        const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
+        const currencySymbol = getCurrencySymbol(iouCurrencyCode ?? '') ?? iouCurrencyCode;
         const formattedTotalAmount = convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
 
         return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
@@ -668,6 +733,7 @@ function MoneyRequestConfirmationList({
             tabIndex: -1,
             isSelected: false,
             isInteractive: false,
+            keyForList: `${participantOption.keyForList ?? participantOption.accountID ?? participantOption.reportID}`,
             rightElement: (
                 <MoneyRequestAmountInput
                     autoGrow={false}
@@ -698,7 +764,6 @@ function MoneyRequestConfirmationList({
         isTypeSplit,
         payeePersonalDetails,
         shouldShowReadOnlySplits,
-        currencyList,
         iouCurrencyCode,
         iouAmount,
         selectedParticipants,
@@ -715,6 +780,7 @@ function MoneyRequestConfirmationList({
         transaction?.comment?.splits,
         transaction?.splitShares,
         onSplitShareChange,
+        getCurrencySymbol,
     ]);
 
     const isSplitModified = useMemo(() => {
@@ -736,6 +802,7 @@ function MoneyRequestConfirmationList({
                         accessibilityLabel={CONST.ROLE.BUTTON}
                         role={CONST.ROLE.BUTTON}
                         shouldUseAutoHitSlop
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RESET_SPLIT_SHARES}
                     >
                         <Text style={[styles.pr5, styles.textLabelSupporting, styles.link]}>{translate('common.reset')}</Text>
                     </PressableWithFeedback>
@@ -759,34 +826,33 @@ function MoneyRequestConfirmationList({
     );
 
     const sections = useMemo(() => {
-        const options: Array<SectionListDataType<MoneyRequestConfirmationListItem>> = [];
+        const options: Array<Section<MoneyRequestConfirmationListItem>> = [];
         if (isTypeSplit) {
             options.push(
-                ...[
-                    {
-                        title: translate('moneyRequestConfirmationList.paidBy'),
-                        data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)],
-                        shouldShow: true,
-                    },
-                    {
-                        CustomSectionHeader: getSplitSectionHeader,
-                        data: splitParticipants,
-                        shouldShow: true,
-                    },
-                ],
+                {
+                    title: translate('moneyRequestConfirmationList.paidBy'),
+                    data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)],
+                    sectionIndex: 0,
+                },
+                {
+                    customHeader: getSplitSectionHeader(),
+                    data: splitParticipants,
+                    sectionIndex: 1,
+                },
             );
-            options.push();
         } else {
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
+                isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                shouldShowRightCaret: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
             }));
+
             options.push({
                 title: translate('common.to'),
                 data: formattedSelectedParticipants,
-                shouldShow: true,
+                sectionIndex: 0,
             });
         }
 
@@ -798,7 +864,7 @@ function MoneyRequestConfirmationList({
         getSplitSectionHeader,
         splitParticipants,
         selectedParticipants,
-        isCreateExpenseFlow,
+        isFromGlobalCreateAndCanEditParticipant,
         isTestReceipt,
         isRestrictedToPreferredPolicy,
         isTypeInvoice,
@@ -818,7 +884,17 @@ function MoneyRequestConfirmationList({
         */
         setMoneyRequestPendingFields(transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
-        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? CONST.CURRENCY.USD, translate, toLocaleDigit);
+        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(
+            hasRoute,
+            distance,
+            unit,
+            rate ?? 0,
+            currency ?? CONST.CURRENCY.USD,
+            translate,
+            toLocaleDigit,
+            getCurrencySymbol,
+            isManualDistanceRequest,
+        );
         setMoneyRequestMerchant(transactionID, distanceMerchant, true);
     }, [
         isDistanceRequestWithPendingRoute,
@@ -836,6 +912,8 @@ function MoneyRequestConfirmationList({
         action,
         isReadOnly,
         isMovingTransactionFromTrackExpense,
+        getCurrencySymbol,
+        isManualDistanceRequest,
     ]);
 
     // Auto select the category if there is only one enabled category and it is required
@@ -844,7 +922,7 @@ function MoneyRequestConfirmationList({
         if (!transactionID || iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy);
+        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy, isMovingTransactionFromTrackExpense);
         // Keep 'transaction' out to ensure that we auto select the option only once
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
@@ -878,7 +956,7 @@ function MoneyRequestConfirmationList({
      * Navigate to the participant step
      */
     const navigateToParticipantPage = () => {
-        if (!isCreateExpenseFlow) {
+        if (!isFromGlobalCreateAndCanEditParticipant) {
             return;
         }
 
@@ -928,6 +1006,27 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
+            // Since invoices are not expense reports that need attendee tracking, this validation should not apply to invoices
+            const isMissingAttendeesViolation =
+                iouType !== CONST.IOU.TYPE.INVOICE &&
+                getIsMissingAttendeesViolation(
+                    policyCategories,
+                    iouCategory,
+                    iouAttendees,
+                    currentUserPersonalDetails,
+                    policy?.isAttendeeTrackingEnabled,
+                    policy?.type === CONST.POLICY.TYPE.CORPORATE,
+                );
+            if (isMissingAttendeesViolation) {
+                setFormError('violations.missingAttendees');
+                return;
+            }
+
+            if (shouldShowTax && !!transaction.taxCode && !hasTaxRateWithMatchingValue(policy, transaction)) {
+                setFormError('violations.taxOutOfPolicy');
+                return;
+            }
+
             if (isPerDiemRequest && (transaction.comment?.customUnit?.subRates ?? []).length === 0) {
                 setFormError('iou.error.invalidSubrateLength');
                 return;
@@ -941,16 +1040,26 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
+                if (isTimeRequest && !isValidTimeExpenseAmount(iouAmount, iouCurrencyCode, decimals)) {
+                    setFormError('iou.timeTracking.amountTooLargeError');
+                    return;
+                }
+
                 if (isPerDiemRequest) {
-                    if (!isValidPerDiemExpenseAmount(transaction.comment?.customUnit ?? {}, iouCurrencyCode)) {
+                    if (!isValidPerDiemExpenseAmount(transaction.comment?.customUnit ?? {}, iouCurrencyCode, decimals)) {
                         setFormError('iou.error.invalidQuantity');
                         return;
                     }
                 }
 
-                if (isEditingSplitBill && areRequiredFieldsEmpty(transaction)) {
+                if (isEditingSplitBill && areRequiredFieldsEmpty(transaction, transactionReport)) {
                     setDidConfirmSplit(true);
                     setFormError('iou.error.genericSmartscanFailureMessage');
+                    return;
+                }
+
+                if (isEditingSplitBill && iouAmount === 0) {
+                    setFormError('iou.error.invalidAmount');
                     return;
                 }
 
@@ -985,6 +1094,7 @@ function MoneyRequestConfirmationList({
             isMerchantRequired,
             isMerchantEmpty,
             shouldDisplayFieldError,
+            shouldShowTax,
             transaction,
             policyTags,
             isPerDiemRequest,
@@ -1001,6 +1111,11 @@ function MoneyRequestConfirmationList({
             showDelegateNoAccessModal,
             iouCategory,
             policyCategories,
+            transactionReport,
+            iouAttendees,
+            currentUserPersonalDetails,
+            isTimeRequest,
+            getCurrencyDecimals,
         ],
     );
 
@@ -1023,6 +1138,10 @@ function MoneyRequestConfirmationList({
         }
         if (isTypeSplit && !shouldShowReadOnlySplits) {
             return debouncedFormError && translate(debouncedFormError);
+        }
+        // Don't show error at the bottom of the form for missing attendees
+        if (formError === 'violations.missingAttendees') {
+            return;
         }
         return formError && translate(formError);
     }, [routeError, isTypeSplit, shouldShowReadOnlySplits, debouncedFormError, formError, translate]);
@@ -1056,6 +1175,7 @@ function MoneyRequestConfirmationList({
                 useKeyboardShortcuts
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 isLoading={isConfirmed || isConfirming}
+                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_PAY_BUTTON}
             />
         ) : (
             <>
@@ -1065,6 +1185,7 @@ function MoneyRequestConfirmationList({
                         text={translate('iou.removeThisExpense')}
                         onPress={showRemoveExpenseConfirmModal}
                         style={styles.mb3}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_REMOVE_EXPENSE_BUTTON}
                     />
                 )}
                 <EducationalTooltip
@@ -1088,6 +1209,7 @@ function MoneyRequestConfirmationList({
                             useKeyboardShortcuts
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             isLoading={isConfirmed || isConfirming}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.CONFIRMATION_SUBMIT_BUTTON}
                         />
                     </View>
                 </EducationalTooltip>
@@ -1128,77 +1250,93 @@ function MoneyRequestConfirmationList({
         reportID,
     ]);
 
+    const isCompactMode = useMemo(() => !showMoreFields && isScanRequest, [isScanRequest, showMoreFields]);
+    const selectionListStyle = useMemo(
+        () => ({
+            containerStyle: [styles.flexBasisAuto],
+            contentContainerStyle: isCompactMode ? [styles.flexGrow1] : undefined,
+            listFooterContentStyle: isCompactMode ? [styles.flex1, styles.mv3] : [styles.mv3],
+        }),
+        [isCompactMode, styles.flexBasisAuto, styles.flexGrow1, styles.mv3, styles.flex1],
+    );
+
     const listFooterContent = (
-        <MoneyRequestConfirmationListFooter
-            action={action}
-            currency={currency}
-            didConfirm={!!didConfirm}
-            distance={distance}
-            formattedAmount={formattedAmount}
-            formattedAmountPerAttendee={formattedAmountPerAttendee}
-            formError={formError}
-            hasRoute={hasRoute}
-            iouAttendees={iouAttendees}
-            iouCategory={iouCategory}
-            iouComment={iouComment}
-            iouCreated={iouCreated}
-            iouCurrencyCode={iouCurrencyCode}
-            iouIsBillable={iouIsBillable}
-            iouMerchant={iouMerchant}
-            iouType={iouType}
-            isCategoryRequired={isCategoryRequired}
-            isDistanceRequest={isDistanceRequest}
-            isManualDistanceRequest={isManualDistanceRequest}
-            isOdometerDistanceRequest={isOdometerDistanceRequest}
-            isPerDiemRequest={isPerDiemRequest}
-            isMerchantEmpty={isMerchantEmpty}
-            isMerchantRequired={isMerchantRequired}
-            isPolicyExpenseChat={isPolicyExpenseChat}
-            isReadOnly={isReadOnly}
-            isTypeInvoice={isTypeInvoice}
-            onToggleBillable={onToggleBillable}
-            policy={policy}
-            policyTags={policyTags}
-            policyTagLists={policyTagLists}
-            rate={rate}
-            receiptFilename={receiptFilename}
-            receiptPath={receiptPath}
-            reportActionID={reportActionID}
-            reportID={reportID}
-            selectedParticipants={selectedParticipantsProp}
-            shouldDisplayFieldError={shouldDisplayFieldError}
-            shouldDisplayReceipt={shouldDisplayReceipt}
-            shouldShowCategories={shouldShowCategories}
-            shouldShowMerchant={shouldShowMerchant}
-            shouldShowSmartScanFields={shouldShowSmartScanFields}
-            shouldShowAmountField={!isPerDiemRequest}
-            shouldShowTax={shouldShowTax}
-            transaction={transaction}
-            transactionID={transactionID}
-            unit={unit}
-            onPDFLoadError={onPDFLoadError}
-            onPDFPassword={onPDFPassword}
-            iouIsReimbursable={iouIsReimbursable}
-            onToggleReimbursable={onToggleReimbursable}
-            isReceiptEditable={isReceiptEditable}
-            isDescriptionRequired={isDescriptionRequired}
-        />
+        <View style={isCompactMode ? styles.flex1 : undefined}>
+            <MoneyRequestConfirmationListFooter
+                action={action}
+                currency={currency}
+                didConfirm={!!didConfirm}
+                distance={distance}
+                formattedAmount={formattedAmount}
+                formattedAmountPerAttendee={formattedAmountPerAttendee}
+                formError={formError}
+                hasRoute={hasRoute}
+                iouAttendees={iouAttendees}
+                iouCategory={iouCategory}
+                iouComment={iouComment}
+                iouCreated={iouCreated}
+                iouCurrencyCode={iouCurrencyCode}
+                iouIsBillable={iouIsBillable}
+                iouMerchant={iouMerchant}
+                iouType={iouType}
+                iouTimeCount={iouTimeCount}
+                iouTimeRate={iouTimeRate}
+                isCategoryRequired={isCategoryRequired}
+                isDistanceRequest={isDistanceRequest}
+                isManualDistanceRequest={isManualDistanceRequest}
+                isOdometerDistanceRequest={isOdometerDistanceRequest}
+                isGPSDistanceRequest={isGPSDistanceRequest}
+                isPerDiemRequest={isPerDiemRequest}
+                isTimeRequest={isTimeRequest}
+                isMerchantEmpty={isMerchantEmpty}
+                isMerchantRequired={isMerchantRequired}
+                isPolicyExpenseChat={isPolicyExpenseChat}
+                isReadOnly={isReadOnly}
+                isTypeInvoice={isTypeInvoice}
+                onToggleBillable={onToggleBillable}
+                policy={policy}
+                policyTags={policyTags}
+                policyTagLists={policyTagLists}
+                rate={rate}
+                receiptFilename={receiptFilename}
+                receiptPath={receiptPath}
+                reportActionID={reportActionID}
+                reportID={reportID}
+                selectedParticipants={selectedParticipantsProp}
+                shouldDisplayFieldError={shouldDisplayFieldError}
+                shouldDisplayReceipt={shouldDisplayReceipt}
+                shouldShowCategories={shouldShowCategories}
+                shouldShowMerchant={shouldShowMerchant}
+                shouldShowSmartScanFields={shouldShowSmartScanFields}
+                shouldShowAmountField={!isPerDiemRequest}
+                shouldShowTax={shouldShowTax}
+                transaction={transaction}
+                transactionID={transactionID}
+                unit={unit}
+                onPDFLoadError={onPDFLoadError}
+                onPDFPassword={onPDFPassword}
+                iouIsReimbursable={iouIsReimbursable}
+                onToggleReimbursable={onToggleReimbursable}
+                isReceiptEditable={isReceiptEditable}
+                isDescriptionRequired={isDescriptionRequired}
+                showMoreFields={showMoreFields}
+                setShowMoreFields={setShowMoreFields}
+            />
+        </View>
     );
 
     return (
         <MouseProvider>
-            <SelectionList<MoneyRequestConfirmationListItem>
+            <SelectionListWithSections<MoneyRequestConfirmationListItem>
                 sections={sections}
                 ListItem={UserListItem}
                 onSelectRow={navigateToParticipantPage}
                 shouldSingleExecuteRowSelect
-                canSelectMultiple={false}
                 shouldPreventDefaultFocusOnSelectRow
-                shouldShowListEmptyContent={false}
+                showListEmptyContent={false}
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
-                containerStyle={[styles.flexBasisAuto]}
-                removeClippedSubviews={false}
+                style={selectionListStyle}
                 disableKeyboardShortcuts
             />
         </MouseProvider>
@@ -1238,5 +1376,7 @@ export default memo(
         prevProps.reportActionID === nextProps.reportActionID &&
         prevProps.action === nextProps.action &&
         prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
-        prevProps.isTimeRequest === nextProps.isTimeRequest,
+        prevProps.isTimeRequest === nextProps.isTimeRequest &&
+        prevProps.iouTimeCount === nextProps.iouTimeCount &&
+        prevProps.iouTimeRate === nextProps.iouTimeRate,
 );

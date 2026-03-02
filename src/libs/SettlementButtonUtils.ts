@@ -43,6 +43,10 @@ const getRouteMappings = (chatReportID: string, reportID?: string): RouteMapping
             check: (activeRoute: string) => activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: chatReportID})),
             navigate: () => Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(chatReportID)),
         },
+        {
+            check: (activeRoute: string) => activeRoute.includes(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: chatReportID})),
+            navigate: () => Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(chatReportID)),
+        },
     ];
 
     if (reportID === undefined) {
@@ -61,6 +65,10 @@ const getRouteMappings = (chatReportID: string, reportID?: string): RouteMapping
         {
             check: (activeRoute: string) => activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(reportID)),
             navigate: () => Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(reportID)),
+        },
+        {
+            check: (activeRoute: string) => activeRoute.includes(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID})),
+            navigate: () => Navigation.navigate(ROUTES.EXPENSE_REPORT_VERIFY_ACCOUNT.getRoute(reportID)),
         },
     ];
 
@@ -90,19 +98,19 @@ const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translat
     const paymentMethods = useMemo(() => {
         return {
             [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
-                text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
+                text: hasActivatedWallet ? translate('iou.settleWallet', '') : translate('iou.settlePersonal', ''),
                 icon: icons.User,
                 value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
             },
             [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
-                text: translate('iou.settleBusiness', {formattedAmount: ''}),
+                text: translate('iou.settleBusiness', ''),
                 icon: icons.Building,
                 value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                 key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                text: translate('iou.payElsewhere', ''),
                 icon: icons.CheckCircle,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 shouldUpdateSelectedIndex: false,

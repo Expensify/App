@@ -43,7 +43,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
 
     const currency = useCurrencyForExpensifyCard({policyID});
 
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards, canBeMissing: true});
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const card = cardsList?.[cardID];
 
     const getPromptTextKey = useMemo((): ConfirmationWarningTranslationPaths => {
@@ -108,7 +108,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT], translate);
 
             // We only want integers to be sent as the limit
             if (!Number(values.limit)) {

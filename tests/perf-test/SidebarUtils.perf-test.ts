@@ -82,7 +82,9 @@ describe('SidebarUtils', () => {
                 reportNameValuePairs,
                 personalDetails,
                 policy,
+                invoiceReceiverPolicy: undefined,
                 parentReportAction,
+                conciergeReportID: '',
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 lastAction: undefined,
@@ -90,17 +92,18 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 1,
             }),
         );
     });
 
     test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for default priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, {}, transactionViolations));
+        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.DEFAULT, {}, transactionViolations, {}));
     });
 
     test('[SidebarUtils] getReportsToDisplayInLHN on 15k reports for GSD priorityMode', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, {}, transactionViolations));
+        await measureFunction(() => SidebarUtils.getReportsToDisplayInLHN(currentReportId, allReports, mockedBetas, policies, CONST.PRIORITY_MODE.GSD, {}, transactionViolations, {}));
     });
 });
