@@ -21,7 +21,7 @@ type PublicDomainErrorPageProps = StackScreenProps<TravelNavigatorParamList, typ
 function PublicDomainErrorPage({route}: PublicDomainErrorPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     return (
         <AccessOrNotFoundWrapper

@@ -22,7 +22,7 @@ function TransactionStartDateStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [assignCard, assignCardMeta] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
+    const [assignCard, assignCardMeta] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const isEditing = assignCard?.isEditing;
     const cardToAssign = assignCard?.cardToAssign;
 

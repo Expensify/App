@@ -4,7 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 
 function useTimeSensitiveCards() {
-    const [cards] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cards] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const cardsNeedingShippingAddress: Card[] = [];
     const cardsNeedingActivation: Card[] = [];

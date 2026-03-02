@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,7 +10,6 @@ import CONST from '@src/CONST';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import Icon from './Icon';
-import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
 import RenderHTML from './RenderHTML';
 import Tooltip from './Tooltip';
@@ -25,6 +25,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isDismissed, setAsDismissed} = useDismissedReferralBanners({referralContentType});
+    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
 
     const handleDismissCallToAction = () => {
         setAsDismissed();
@@ -47,7 +48,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
     return (
         <View style={[styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5, style]}>
             <PressableWithoutFeedback
-                sentryLabel={CONST.SENTRY_LABEL.REFERRAL_CTA.NAVIGATE}
+                sentryLabel={CONST.SENTRY_LABEL.REFERRAL_PROGRAM.CTA}
                 onPress={() => {
                     Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType, Navigation.getActiveRouteWithoutParams()));
                 }}
@@ -59,7 +60,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
             </PressableWithoutFeedback>
             <Tooltip text={translate('common.close')}>
                 <PressableWithoutFeedback
-                    sentryLabel={CONST.SENTRY_LABEL.REFERRAL_CTA.CLOSE}
+                    sentryLabel={CONST.SENTRY_LABEL.REFERRAL_PROGRAM.DISMISS_BUTTON}
                     onPress={handleDismissCallToAction}
                     onMouseDown={(e) => {
                         e.preventDefault();
@@ -69,7 +70,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                     accessibilityLabel={translate('common.close')}
                 >
                     <Icon
-                        src={Close}
+                        src={icons.Close}
                         height={20}
                         width={20}
                         fill={theme.icon}

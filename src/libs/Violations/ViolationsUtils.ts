@@ -247,7 +247,7 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
  * Returns true if the violation should be cleared, false if it should persist.
  */
 function getIsViolationFixed(violationError: string, params: ViolationFixParams): boolean {
-    const {category, tag, taxCode, policyCategories, policyTagLists, policyTaxRates, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy} = params;
+    const {category, tag, taxCode, taxValue, policyCategories, policyTagLists, policyTaxRates, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy} = params;
 
     const violationValidators: Record<string, () => boolean> = {
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY}`]: () => {
@@ -267,8 +267,15 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             return hasEnabledTags && hasMatchingTag;
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.TAX_OUT_OF_POLICY}`]: () => {
-            // Tax is fixed if it's empty or exists in policy tax rates
-            return !taxCode || Object.keys(policyTaxRates ?? {}).some((key) => key === taxCode);
+            if (!taxCode || !policyTaxRates) {
+                return !taxCode;
+            }
+            const matchingTaxRate = policyTaxRates[taxCode];
+            if (!matchingTaxRate) {
+                return false;
+            }
+            // If taxValue is provided, check that it matches the policy tax rate. If taxValue is not provided, just check that the tax code exists in the policy.
+            return taxValue !== undefined ? matchingTaxRate.value === taxValue : true;
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.MISSING_ATTENDEES}`]: () => {
             // Attendees violation is fixed if getIsMissingAttendeesViolation returns false
@@ -395,8 +402,7 @@ const ViolationsUtils = {
         const hasCategoryReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && !violation.data);
         const hasItemizedReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
         const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
-        // TODO: Uncomment when the OVER_TRIP_LIMIT violation is implemented
-        // const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
+        const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
         const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
         const hasMissingAttendeesViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
@@ -464,6 +470,10 @@ const ViolationsUtils = {
             isMaxExpenseAmountRuleEnabled(overLimitAmount) &&
             expenseAmount > overLimitAmount &&
             isControlPolicy;
+        // Ensure we are comparing amounts in the same currency
+        const isSameCurrency = updatedTransaction.currency === currency;
+        const shouldShowOverTripLimitViolation =
+            canCalculateAmountViolations && !isInvoiceTransaction && TransactionUtils.hasReservationList(updatedTransaction) && isSameCurrency && expenseAmount > -updatedTransaction.amount;
         const shouldCategoryShowOverLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment =
@@ -574,21 +584,20 @@ const ViolationsUtils = {
             });
         }
 
-        // TODO: Uncomment when the OVER_TRIP_LIMIT violation is implemented
-        // if (canCalculateAmountViolations && !hasOverTripLimitViolation && Math.abs(updatedTransaction.amount) < Math.abs(amount) && TransactionUtils.hasReservationList(updatedTransaction)) {
-        //     newTransactionViolations.push({
-        //         name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
-        //         data: {
-        //             formattedLimit: CurrencyUtils.convertAmountToDisplayString(updatedTransaction.amount, updatedTransaction.currency),
-        //         },
-        //         type: CONST.VIOLATION_TYPES.VIOLATION,
-        //         showInReview: true,
-        //     });
-        // }
+        if (canCalculateAmountViolations && !hasOverTripLimitViolation && shouldShowOverTripLimitViolation) {
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
+                data: {
+                    formattedLimit: CurrencyUtils.convertAmountToDisplayString(-updatedTransaction.amount, updatedTransaction.currency),
+                },
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
+        }
 
-        // if (canCalculateAmountViolations && hasOverTripLimitViolation && Math.abs(updatedTransaction.amount) >= Math.abs(amount) && TransactionUtils.hasReservationList(updatedTransaction)) {
-        //     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_TRIP_LIMIT});
-        // }
+        if (canCalculateAmountViolations && hasOverTripLimitViolation && !shouldShowOverTripLimitViolation) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_TRIP_LIMIT});
+        }
 
         if (!hasMissingCommentViolation && shouldShowMissingComment) {
             newTransactionViolations.push({

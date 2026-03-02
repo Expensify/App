@@ -12,6 +12,7 @@ import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 type SearchMultipleSelectionPickerItem = {
     name: string;
     value: string | string[];
+    leftElement?: React.ReactNode;
 };
 
 type SearchMultipleSelectionPickerProps = {
@@ -40,6 +41,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             keyForList: item.name,
             isSelected: true,
             value: item.value,
+            leftElement: item.leftElement,
         }));
 
     const remainingItemsSection = items
@@ -53,6 +55,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             keyForList: item.name,
             isSelected: false,
             value: item.value,
+            leftElement: item.leftElement,
         }));
 
     const noResultsFound = !selectedItemsSection.length && !remainingItemsSection.length;
@@ -78,7 +81,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         if (item.isSelected) {
             setSelectedItems(selectedItems?.filter((selectedItem) => selectedItem.name !== item.keyForList));
         } else {
-            setSelectedItems([...(selectedItems ?? []), {name: item.text, value: item.value}]);
+            setSelectedItems([...(selectedItems ?? []), {name: item.text, value: item.value, leftElement: item.leftElement}]);
         }
     };
 
