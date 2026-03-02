@@ -1050,6 +1050,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         badgeDefaultActive: {
             backgroundColor: theme.buttonHoveredBG,
+            borderColor: theme.buttonHoveredBG,
         },
 
         condensedBadge: {

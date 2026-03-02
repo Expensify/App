@@ -8827,9 +8827,6 @@ const CONST = {
                 APPROVAL_SECTION_EXPENSES_FROM: 'WorkspaceWorkflows-ApprovalSectionExpensesFrom',
                 APPROVAL_SECTION_APPROVER: 'WorkspaceWorkflows-ApprovalSectionApprover',
             },
-            RECEIPT_PARTNERS: {
-                INVITE_OR_RESEND: 'WorkspaceReceiptPartners-InviteOrResend',
-            },
             ACCOUNTING: {
                 SETUP_BUTTON: 'WorkspaceAccounting-SetupButton',
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
