@@ -24,7 +24,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
 import {openExternalLink} from '@userActions/Link';
-import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed} from '@userActions/ReimbursementAccount';
+import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed, updateReimbursementAccount} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -111,6 +111,7 @@ function VerifiedBankAccountFlowEntryPoint({
             [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: '',
         };
         updateReimbursementAccountDraft(bankAccountData);
+        updateReimbursementAccount({bankAccountID: 0});
     };
 
     /**
