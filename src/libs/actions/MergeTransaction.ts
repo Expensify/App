@@ -410,13 +410,13 @@ function mergeTransactionRequest({
         };
 
         const transactionToDelete = mergeTransaction.reportID === targetTransaction.reportID ? sourceTransaction : targetTransaction;
-        const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
+        const transactionsOfDeletableReport = getReportTransactions(transactionToDelete.reportID);
         const optimisticSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> =
-            transactionsOfSourceReport.length === 1
+            transactionsOfDeletableReport.length === 1
                 ? [
                       {
                           onyxMethod: Onyx.METHOD.SET,
-                          key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
+                          key: `${ONYXKEYS.COLLECTION.REPORT}${transactionToDelete.reportID}`,
                           value: null,
                       },
                   ]
@@ -424,12 +424,12 @@ function mergeTransactionRequest({
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         const failureSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> =
-            transactionsOfSourceReport.length === 1
+            transactionsOfDeletableReport.length === 1
                 ? [
                       {
                           onyxMethod: Onyx.METHOD.SET,
-                          key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
-                          value: getReportOrDraftReport(sourceTransaction.reportID),
+                          key: `${ONYXKEYS.COLLECTION.REPORT}${transactionToDelete.reportID}`,
+                          value: getReportOrDraftReport(transactionToDelete.reportID),
                       },
                   ]
                 : [];
@@ -438,7 +438,7 @@ function mergeTransactionRequest({
             ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionToDelete.reportID}`,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceTransaction.reportID}`,
                       value: {
                           [iouActionOfSourceTransaction.reportActionID]: {
                               pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -451,7 +451,7 @@ function mergeTransactionRequest({
             ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionToDelete.reportID}`,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceTransaction.reportID}`,
                       value: {
                           [iouActionOfSourceTransaction.reportActionID]: {
                               pendingAction: null,
@@ -465,7 +465,7 @@ function mergeTransactionRequest({
             ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionToDelete.reportID}`,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceTransaction.reportID}`,
                       value: {
                           [iouActionOfSourceTransaction.reportActionID]: {
                               pendingAction: null,
@@ -475,17 +475,20 @@ function mergeTransactionRequest({
               ]
             : [];
 
-        const sourceIouAction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
-        const sourceTransactionThreadReportID = sourceIouAction?.childReportID;
-        const shouldDeleteTransactionThread = !!sourceTransactionThreadReportID;
-        const cleanUpSourceTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
-            transactionThreadID: sourceTransactionThreadReportID,
-            shouldDeleteTransactionThread,
-            reportAction: sourceIouAction,
-        });
-        optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
-        successSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.successData);
-        failureSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.failureData);
+        // Only clear the transaction thread report if we select the target report for merging
+        if (mergeTransaction.reportID === targetTransaction.reportID) {
+            const sourceIouAction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
+            const sourceTransactionThreadReportID = sourceIouAction?.childReportID;
+            const shouldDeleteTransactionThread = !!sourceTransactionThreadReportID;
+            const cleanUpSourceTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
+                transactionThreadID: sourceTransactionThreadReportID,
+                shouldDeleteTransactionThread,
+                reportAction: sourceIouAction,
+            });
+            optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
+            successSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.successData);
+            failureSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.failureData);
+        }
 
         // Optimistic data
         sourceTransactionOptimisticData.push(optimisticSourceTransactionData, ...optimisticSourceReportData, ...optimisticSourceReportActionData);
@@ -607,7 +610,7 @@ function mergeTransactionRequest({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mergeTransaction.reportID}`,
                 value: {
-                    [oldIOUAction.reportActionID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    [oldIOUAction.reportActionID]: null,
                 },
             });
 

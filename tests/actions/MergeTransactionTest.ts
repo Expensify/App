@@ -839,6 +839,7 @@ describe('mergeTransactionRequest', () => {
                 ...createRandomMergeTransaction(1),
                 targetTransactionID: 'target123',
                 sourceTransactionID: 'source456',
+                reportID: 'target-report-456',
             };
             const mergeTransactionID = 'merge789';
 
@@ -1010,6 +1011,7 @@ describe('mergeTransactionRequest', () => {
                 ...createRandomMergeTransaction(1),
                 targetTransactionID: 'target123',
                 sourceTransactionID: 'source456',
+                reportID: 'target-report-456',
             };
             const mergeTransactionID = 'merge789';
 
