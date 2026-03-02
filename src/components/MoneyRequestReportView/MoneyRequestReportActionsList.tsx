@@ -882,7 +882,7 @@ function MoneyRequestReportActionsList({
                         }
                         keyboardShouldPersistTaps="handled"
                         onScroll={trackVerticalScrolling}
-                        contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt2]}
+                        contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3]}
                         ref={reportScrollManager.ref}
                         ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
                         removeClippedSubviews={false}
