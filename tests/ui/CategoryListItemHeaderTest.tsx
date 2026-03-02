@@ -50,7 +50,6 @@ const mockSearchActionsContext = {
     setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
-    setSearchQueryJSON: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createCategoryListItem = (category: string, options: Partial<TransactionCategoryGroupListItemType> = {}): TransactionCategoryGroupListItemType => ({

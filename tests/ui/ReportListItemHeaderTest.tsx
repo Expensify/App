@@ -45,7 +45,6 @@ const mockSearchActionsContext = {
     setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
-    setSearchQueryJSON: jest.fn(),
 } satisfies Partial<SearchActionsContextValue>;
 
 const mockPersonalDetails: Record<string, PersonalDetails> = {
