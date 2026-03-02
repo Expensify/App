@@ -1,8 +1,9 @@
-import {useNavigationState} from '@react-navigation/native';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import splitPathAndQuery from '@libs/Navigation/helpers/splitPathAndQuery';
+import type {State} from '@libs/Navigation/types';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import useRootNavigationState from './useRootNavigationState';
 
 /**
  * Returns the back path for a dynamic route by removing the dynamic suffix from the current URL.
@@ -11,7 +12,13 @@ import ROUTES from '@src/ROUTES';
  * @returns The back path without the dynamic route suffix, or HOME if path is null/undefined
  */
 function useDynamicBackPath(dynamicRouteSuffix: DynamicRouteSuffix): Route {
-    const path = useNavigationState((state) => getPathFromState(state));
+    const path = useRootNavigationState((state) => {
+        if (!state) {
+            return undefined;
+        }
+
+        return getPathFromState(state as State);
+    });
 
     if (!path) {
         return ROUTES.HOME;

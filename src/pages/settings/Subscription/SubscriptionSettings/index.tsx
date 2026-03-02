@@ -1,7 +1,7 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -48,9 +48,9 @@ function SubscriptionSettings() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const isActivePolicyAdmin = isPolicyAdmin(activePolicy);
     const subscriptionPlan = useSubscriptionPlan();
@@ -58,10 +58,13 @@ function SubscriptionSettings() {
     const preferredCurrency = usePreferredCurrency();
     const themeIllustrations = useThemeIllustrations();
     const possibleCostSavings = useSubscriptionPossibleCostSavings();
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT, {canBeMissing: true});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const isExpensifyCodeApplied = !!privateSubscription?.expensifyCode;
+    const shouldShowExpensifyCodeSection = !privateSubscription?.isSecretPromoCode;
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type, hasTeam2025Pricing);
     const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
@@ -75,7 +78,7 @@ function SubscriptionSettings() {
             return;
         }
         if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && option === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE && !account?.canDowngrade) {
-            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(0));
+            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.route);
             return;
         }
 
@@ -87,7 +90,19 @@ function SubscriptionSettings() {
             showDelegateNoAccessModal();
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(1));
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(CONST.SUBSCRIPTION_SIZE.PAGE_NAME.SIZE));
+    };
+
+    const onExpensifyCodePress = () => {
+        if (isExpensifyCodeApplied) {
+            return;
+        }
+        if (isActingAsDelegate) {
+            showDelegateNoAccessModal();
+            return;
+        }
+
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE);
     };
     const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual', 'SubscriptionPPU']);
 
@@ -159,9 +174,7 @@ function SubscriptionSettings() {
         <Text>
             <Text style={[styles.mr1, styles.textNormalThemeText]}>{translate('subscription.subscriptionSettings.autoIncrease')}</Text>
             <Text style={customTitleSecondSentenceStyles}>
-                {translate('subscription.subscriptionSettings.saveUpTo', {
-                    amountWithCurrency: convertToShortDisplayString(possibleCostSavings, preferredCurrency),
-                })}
+                {translate('subscription.subscriptionSettings.saveUpTo', convertToShortDisplayString(possibleCostSavings, preferredCurrency))}
             </Text>
         </Text>
     );
@@ -201,7 +214,7 @@ function SubscriptionSettings() {
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
                 <View style={[styles.renderHTML, styles.mb5]}>
                     <RenderHTML
-                        html={translate('subscription.subscriptionSettings.learnMore', {hasAdminsRoom: !!adminsChatReportID})}
+                        html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
                         onLinkPress={(_evt, href) => handleLinkPress(href)}
                     />
                 </View>
@@ -238,9 +251,7 @@ function SubscriptionSettings() {
                                     onToggle={handleAutoRenewToggle}
                                     isActive={privateSubscription?.autoRenew}
                                 />
-                                {!!autoRenewalDate && (
-                                    <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>
-                                )}
+                                {!!autoRenewalDate && <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', autoRenewalDate)}</Text>}
                             </View>
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.addNewUsersAutomatically}>
@@ -256,6 +267,18 @@ function SubscriptionSettings() {
                         </OfflineWithFeedback>
                     </>
                 ) : null}
+
+                {shouldShowExpensifyCodeSection && (
+                    <MenuItemWithTopDescription
+                        description={translate('subscription.expensifyCode.title')}
+                        shouldShowRightIcon={!isExpensifyCodeApplied}
+                        onPress={onExpensifyCodePress}
+                        interactive={!isExpensifyCodeApplied}
+                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                        style={styles.mt5}
+                        title={privateSubscription?.expensifyCode}
+                    />
+                )}
                 <MenuItemWithTopDescription
                     description={privateTaxExempt ? translate('subscription.details.taxExemptStatus') : undefined}
                     shouldShowRightIcon
@@ -265,7 +288,7 @@ function SubscriptionSettings() {
                     }}
                     icon={icons.Coins}
                     wrapperStyle={styles.sectionMenuItemTopDescription}
-                    style={styles.mv5}
+                    style={styles.mb5}
                     titleStyle={privateTaxExempt ? undefined : styles.textBold}
                     title={privateTaxExempt ? translate('subscription.details.taxExemptEnabled') : translate('subscription.details.taxExempt')}
                 />

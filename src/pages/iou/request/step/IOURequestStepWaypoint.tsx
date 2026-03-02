@@ -72,7 +72,7 @@ function IOURequestStepWaypoint({
     const textInput = useRef<TextInput | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -85,9 +85,9 @@ function IOURequestStepWaypoint({
     const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => !isEmptyObject(waypoint)).length;
     const [caretHidden, setCaretHidden] = useState(false);
 
-    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector, canBeMissing: true});
-    const [allRecentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector});
+    const [allRecentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {

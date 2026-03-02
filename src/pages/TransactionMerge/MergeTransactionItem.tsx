@@ -6,17 +6,20 @@ import {PressableWithFeedback} from '@components/Pressable';
 import type {ListItem, ListItemProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onFocus, shouldSyncFocus, onSelectRow}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const transactionItem = item as unknown as TransactionListItemType;
     const theme = useTheme();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -33,6 +36,7 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
+                sentryLabel={CONST.SENTRY_LABEL.MERGE_EXPENSE.MERGE_TRANSACTION_ITEM}
                 onPress={() => {
                     onSelectRow(item);
                 }}
@@ -53,6 +57,7 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
             >
                 <TransactionItemRow
                     transactionItem={transactionItem}
+                    report={report}
                     shouldUseNarrowLayout
                     isSelected={!!item.isSelected}
                     shouldShowTooltip={showTooltip}

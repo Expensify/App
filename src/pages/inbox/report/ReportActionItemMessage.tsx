@@ -51,8 +51,8 @@ type ReportActionItemMessageProps = {
 function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(action))}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getLinkedTransactionID(action))}`);
 
     const fragments = getReportActionMessageFragments(translate, action);
     const isIOUReport = isMoneyRequestAction(action);
@@ -104,7 +104,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
 
         return (
             <View style={[styles.chatItemMessage, style]}>
-                <Text>{translate('signerInfoStep.isConnecting', {bankAccountLastFour, currency})}</Text>
+                <Text>{translate('signerInfoStep.isConnecting', bankAccountLastFour, currency)}</Text>
                 <Button
                     style={[styles.mt2, styles.alignSelfStart]}
                     success

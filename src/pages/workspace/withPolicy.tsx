@@ -84,9 +84,9 @@ const policyDefaultProps: WithPolicyOnyxProps = {
 export default function <TProps extends WithPolicyProps>(WrappedComponent: ComponentType<TProps>): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps>> {
     function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>) {
         const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
-        const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
-        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-        const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
+        const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
         /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
         const isLoadingPolicy = !hasLoadedApp || isLoadingOnyxValue(policyResults, policyDraftResults);
 

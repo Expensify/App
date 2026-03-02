@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
 import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
@@ -29,6 +30,7 @@ function SelectionListWithModal<TItem extends ListItem>({
     data,
     isSelected,
     selectedItems: selectedItemsProp,
+    style: styleProp,
     ref,
     ...rest
 }: SelectionListWithModalProps<TItem>) {
@@ -36,6 +38,7 @@ function SelectionListWithModal<TItem extends ListItem>({
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const styles = useThemeStyles();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -78,6 +81,11 @@ function SelectionListWithModal<TItem extends ListItem>({
 
     useHandleSelectionMode(selectedItems);
 
+    const style = {
+        ...styleProp,
+        listHeaderWrapperStyle: [styles.baseListHeaderWrapperStyle, styleProp?.listHeaderWrapperStyle],
+    };
+
     const handleLongPressRow = (item: TItem) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
@@ -115,6 +123,7 @@ function SelectionListWithModal<TItem extends ListItem>({
                 onLongPressRow={handleLongPressRow}
                 isSmallScreenWidth={isSmallScreenWidth}
                 disableMaintainingScrollPosition
+                style={style}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />

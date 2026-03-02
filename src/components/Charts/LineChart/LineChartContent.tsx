@@ -2,12 +2,13 @@ import {Group, Text as SkiaText, useFont, vec} from '@shopify/react-native-skia'
 import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
 import type {CartesianChartRenderArg, ChartBounds} from 'victory-native';
-import {CartesianChart, Line, Scatter} from 'victory-native';
+import {CartesianChart, Line} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
+import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
+import ScatterPoints from '@components/Charts/components/ScatterPoints';
 import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
@@ -24,6 +25,9 @@ const DOT_RADIUS = 6;
 
 /** Extra hover area beyond the dot radius for easier touch targeting */
 const DOT_HOVER_EXTRA_RADIUS = 2;
+
+/** Minimum safe padding to avoid clipping labels/points */
+const MIN_SAFE_PADDING = DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
 
 /** Base domain padding applied to all sides */
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
@@ -42,7 +46,6 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     const [plotAreaWidth, setPlotAreaWidth] = useState(0);
 
     const yAxisDomain = useDynamicYDomain(data);
-
     const chartData = useMemo(() => {
         return data.map((point, index) => ({
             x: index,
@@ -96,13 +99,15 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         // How much space is wasted on each side
         const wastedLeft = geometricPadding - firstLabelNeeds;
         const wastedRight = geometricPadding - lastLabelNeeds;
-        const canReduce = Math.min(wastedLeft, wastedRight);
+        const reclaimablePadding = Math.min(wastedLeft, wastedRight);
 
         // Only reduce if both sides have excess space (labels short enough for 0°)
-        // If canReduce <= 0, labels are too long and hook will use rotation/truncation
-        const horizontalPadding = canReduce > 0 ? geometricPadding - canReduce : geometricPadding;
+        // If reclaimablePadding <= 0, labels are too long and hook will use rotation/truncation
+        const shouldUseExtraPadding = reclaimablePadding > 0;
+        const horizontalPadding = Math.max(shouldUseExtraPadding ? geometricPadding - reclaimablePadding : geometricPadding, MIN_SAFE_PADDING);
 
-        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
+        // If shouldUseExtraPadding is true then we have to add the extra padding to the right so the label is not clipped
+        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding + (shouldUseExtraPadding ? MIN_SAFE_PADDING : 0)};
     }, [chartWidth, data, font]);
 
     // For centered labels, tick spacing is evenly distributed across the plot area (same as BarChart)
@@ -127,10 +132,11 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     // Convert hook's degree rotation to radians for Skia rendering
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
 
-    const {formatYAxisLabel} = useChartLabelFormats({
+    const {formatValue} = useChartLabelFormats({
         data,
-        yAxisUnit,
-        yAxisUnitPosition,
+        font,
+        unit: yAxisUnit,
+        unitPosition: yAxisUnitPosition,
     });
 
     const checkIsOverDot = useCallback((args: HitTestArgs) => {
@@ -141,75 +147,90 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
     }, []);
 
-    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle} = useChartInteractions({
+    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handlePointPress,
         checkIsOver: checkIsOverDot,
     });
 
-    const tooltipData = useTooltipData(activeDataIndex, data, yAxisUnit, yAxisUnitPosition);
+    const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
 
     // Custom x-axis labels with hybrid positioning:
     // - At 0° (horizontal): center label under the point (like bar chart)
     // - At 45° (rotated): right-align so the last character is under the point
-    const renderCustomXLabels = useCallback(
+    const renderOutsideComponents = useCallback(
         (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
-            if (!font) {
-                return null;
-            }
+            const fontMetrics = font?.getMetrics();
+            const ascent = fontMetrics ? Math.abs(fontMetrics.ascent) : 0;
+            const descent = fontMetrics ? Math.abs(fontMetrics.descent) : 0;
+            const labelY = fontMetrics ? args.chartBounds.bottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) : 0;
 
-            const fontMetrics = font.getMetrics();
-            const ascent = Math.abs(fontMetrics.ascent);
-            const descent = Math.abs(fontMetrics.descent);
-            const labelY = args.chartBounds.bottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad);
+            const xLabels = font
+                ? truncatedLabels.map((label, i) => {
+                      if (i % labelSkipInterval !== 0) {
+                          return null;
+                      }
 
-            return truncatedLabels.map((label, i) => {
-                if (i % labelSkipInterval !== 0) {
-                    return null;
-                }
+                      const tickX = args.xScale(i);
+                      const labelWidth = labelWidths.at(i) ?? 0;
 
-                const tickX = args.xScale(i);
-                const labelWidth = labelWidths.at(i) ?? 0;
+                      // At 0°: center the label under the point (like bar chart)
+                      // At 45°: right-align so the last character is under the point
+                      if (angleRad === 0) {
+                          return (
+                              <SkiaText
+                                  key={`x-label-${label}`}
+                                  x={tickX - labelWidth / 2}
+                                  y={labelY}
+                                  text={label}
+                                  font={font}
+                                  color={theme.textSupporting}
+                              />
+                          );
+                      }
 
-                // At 0°: center the label under the point (like bar chart)
-                // At 45°: right-align so the last character is under the point
-                if (angleRad === 0) {
-                    return (
-                        <SkiaText
-                            key={`x-label-${label}`}
-                            x={tickX - labelWidth / 2}
-                            y={labelY}
-                            text={label}
-                            font={font}
-                            color={theme.textSupporting}
-                        />
-                    );
-                }
+                      const textX = tickX - labelWidth; // right-aligned for rotated labels
+                      const origin = vec(tickX, labelY);
 
-                const textX = tickX - labelWidth; // right-aligned for rotated labels
-                const origin = vec(tickX, labelY);
+                      // Rotate around the anchor, then translate to correct for ascent/descent
+                      // asymmetry (ascent > descent shifts the visual center left of the anchor).
+                      const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
 
-                // Rotate around the anchor, then translate to correct for ascent/descent
-                // asymmetry (ascent > descent shifts the visual center left of the anchor).
-                const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
+                      return (
+                          <Group
+                              key={`x-label-${label}`}
+                              origin={origin}
+                              transform={[{translateX: correction}, {rotate: -angleRad}]}
+                          >
+                              <SkiaText
+                                  x={textX}
+                                  y={labelY}
+                                  text={label}
+                                  font={font}
+                                  color={theme.textSupporting}
+                              />
+                          </Group>
+                      );
+                  })
+                : null;
 
-                return (
-                    <Group
-                        key={`x-label-${label}`}
-                        origin={origin}
-                        transform={[{translateX: correction}, {rotate: -angleRad}]}
-                    >
-                        <SkiaText
-                            x={textX}
-                            y={labelY}
-                            text={label}
-                            font={font}
-                            color={theme.textSupporting}
-                        />
-                    </Group>
-                );
-            });
+            return (
+                <>
+                    <LeftFrameLine
+                        chartBounds={args.chartBounds}
+                        yTicks={args.yTicks}
+                        yScale={args.yScale}
+                        color={theme.border}
+                    />
+                    <ScatterPoints
+                        points={args.points.y}
+                        radius={DOT_RADIUS}
+                        color={DEFAULT_CHART_COLOR}
+                    />
+                    {xLabels}
+                </>
+            );
         },
-        [font, truncatedLabels, labelSkipInterval, labelWidths, angleRad, theme.textSupporting],
+        [font, truncatedLabels, labelSkipInterval, labelWidths, angleRad, theme.textSupporting, theme.border],
     );
 
     const dynamicChartStyle = useMemo(
@@ -250,7 +271,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                         actionsRef={actionsRef}
                         customGestures={customGestures}
                         onChartBoundsChange={handleChartBoundsChange}
-                        renderOutside={renderCustomXLabels}
+                        renderOutside={renderOutsideComponents}
                         xAxis={{
                             tickCount: data.length,
                             lineWidth: X_AXIS_LINE_WIDTH,
@@ -259,7 +280,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                             {
                                 font,
                                 labelColor: theme.textSupporting,
-                                formatYLabel: formatYAxisLabel,
+                                formatYLabel: formatValue,
                                 tickCount: Y_AXIS_TICK_COUNT,
                                 lineWidth: Y_AXIS_LINE_WIDTH,
                                 lineColor: theme.border,
@@ -267,34 +288,27 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                                 domain: yAxisDomain,
                             },
                         ]}
-                        frame={{lineWidth: {left: 1, bottom: 1, top: 0, right: 0}, lineColor: theme.border}}
+                        frame={{lineWidth: 0}}
                         data={chartData}
                     >
                         {({points}) => (
-                            <>
-                                <Line
-                                    points={points.y}
-                                    color={DEFAULT_CHART_COLOR}
-                                    strokeWidth={2}
-                                    curveType="linear"
-                                />
-                                <Scatter
-                                    points={points.y}
-                                    radius={DOT_RADIUS}
-                                    color={DEFAULT_CHART_COLOR}
-                                />
-                            </>
+                            <Line
+                                points={points.y}
+                                color={DEFAULT_CHART_COLOR}
+                                strokeWidth={2}
+                                curveType="linear"
+                            />
                         )}
                     </CartesianChart>
                 )}
                 {isTooltipActive && !!tooltipData && (
-                    <Animated.View style={tooltipStyle}>
-                        <ChartTooltip
-                            label={tooltipData.label}
-                            amount={tooltipData.amount}
-                            percentage={tooltipData.percentage}
-                        />
-                    </Animated.View>
+                    <ChartTooltip
+                        label={tooltipData.label}
+                        amount={tooltipData.amount}
+                        percentage={tooltipData.percentage}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
                 )}
             </View>
         </View>
