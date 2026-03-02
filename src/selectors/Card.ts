@@ -62,7 +62,10 @@ const filterOutPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
  * This selector keeps personal cards (fundID === '0').
  */
 const filterOutNonPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
-    return filterObject(cards ?? {}, (key, card) => isPersonalCard(card));
+    return filterObject(
+        cards ?? {},
+        (key, card) => card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && card?.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV && (!card?.fundID || card.fundID === '0'),
+    );
 };
 
 /**

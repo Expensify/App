@@ -2132,7 +2132,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsCompanyCard: 'Dies ist eine Firmenkarte',
         askAdmin: 'Fragen Sie Ihren Administrator',
         warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
-            `Wenn ja, super! Aber wenn es eine Firmenkarte ist, weisen Sie sie bitte ${isAdmin ? 'stattdessen über Ihren Workspace zu.' : 'bitten Sie Ihren Administrator, sie Ihnen stattdessen über den Workspace zuzuweisen.'}`,
+            `Wenn ja, super! Aber wenn es eine <strong>Firmen</strong>karte ist, weisen Sie sie bitte ${isAdmin ? 'stattdessen über Ihren Workspace zu.' : 'bitten Sie Ihren Administrator, sie Ihnen stattdessen über den Workspace zuzuweisen.'}`,
         bankConnectionError: 'Bankverbindungsproblem',
         bankConnectionDescription: 'Bitte versuchen Sie, Ihre Karten erneut hinzuzufügen. Andernfalls können Sie',
         connectWithPlaid: 'eine Verbindung über Plaid herstellen.',

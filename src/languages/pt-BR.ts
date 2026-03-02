@@ -2123,7 +2123,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsCompanyCard: 'Este é um cartão corporativo',
         askAdmin: 'Pergunte ao administrador',
         warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
-            `Se sim, ótimo! Mas se for um cartão corporativo, ${isAdmin ? 'atribua-o no seu espaço de trabalho.' : 'peça ao administrador para atribuí-lo a você no espaço de trabalho.'}`,
+            `Se sim, ótimo! Mas se for um cartão <strong>corporativo</strong>, ${isAdmin ? 'atribua-o no seu espaço de trabalho.' : 'peça ao administrador para atribuí-lo a você no espaço de trabalho.'}`,
         bankConnectionError: 'Problema de conexão com o banco',
         bankConnectionDescription: 'Tente adicionar seus cartões novamente. Caso contrário, você pode',
         connectWithPlaid: 'conectar via Plaid.',

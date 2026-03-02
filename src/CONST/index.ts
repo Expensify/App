@@ -3648,13 +3648,8 @@ const CONST = {
         LARGE_NORMAL: 'large-normal',
     },
 
-    PERSONAL_CARD: {
-        BANK_NAME: {
-            CSV: 'upload',
-        },
-    },
-
     COMPANY_CARD: {
+        // Mostly used for feed details
         FEED_BANK_NAME: {
             MASTER_CARD: 'cdf',
             VISA: 'vcf',
@@ -3760,6 +3755,7 @@ const CONST = {
             PLAID_CONNECTION: 'PlaidConnection',
             SUCCESS: 'Success',
         },
+        // Mostly used for get bank details
         BANKS: {
             AMEX: 'American Express',
             BANK_OF_AMERICA: 'Bank of America',
@@ -3767,8 +3763,10 @@ const CONST = {
             CHASE: 'Chase',
             CITI_BANK: 'Citibank',
             WELLS_FARGO: 'Wells Fargo',
+            MOCK_BANK: 'Mock Bank',
             OTHER: 'Other',
         },
+        // Mostly used for API calls
         BANK_CONNECTIONS: {
             WELLS_FARGO: 'wellsfargo',
             BANK_OF_AMERICA: 'bankofamerica',
@@ -3776,10 +3774,10 @@ const CONST = {
             CAPITAL_ONE: 'capitalone',
             CITI_BANK: 'citibank',
             AMEX: 'americanexpressfdx',
+            MOCK_BANK: 'mockbank',
         },
-        FEED_BANK_NAME: {
-            AMEX: 'gl1025',
-            AMEX_1205: 'gl1205',
+        // Mostly used for feed details
+        BANK_NAME: {
             CITIBANK: 'oauth.citibank.com',
             CAPITAL_ONE: 'oauth.capitalone.com',
             BANK_OF_AMERICA: 'oauth.bankofamerica.com',
@@ -3788,7 +3786,7 @@ const CONST = {
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
             AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
-            CSV: 'ccupload',
+            CSV: 'upload',
         },
     },
     COMPANY_CARDS: {
@@ -3828,6 +3826,7 @@ const CONST = {
             CUSTOM: 'customFeed',
             DIRECT: 'directFeed',
         },
+        // Mostly used for get bank details
         BANKS: {
             AMEX: 'American Express',
             BANK_OF_AMERICA: 'Bank of America',
@@ -3843,6 +3842,7 @@ const CONST = {
         NON_CONNECTABLE_BANKS: {
             PEX: 'PEX',
         },
+        // Mostly used for API calls
         BANK_CONNECTIONS: {
             WELLS_FARGO: 'wellsfargo',
             BANK_OF_AMERICA: 'bankofamerica',

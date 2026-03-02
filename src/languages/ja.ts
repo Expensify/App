@@ -2117,7 +2117,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsCompanyCard: 'これは会社カードです。',
         askAdmin: '管理者にお問い合わせください。',
         warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
-            `その場合、問題ありません。ただし、会社カードの場合は、${isAdmin ? 'ワークスペースから割り当ててください。' : '管理者にワークスペースから割り当ててもらってください。'}`,
+            `その場合、問題ありません。ただし、<strong>会社</strong>カードの場合は、${isAdmin ? 'ワークスペースから割り当ててください。' : '管理者にワークスペースから割り当ててもらってください。'}`,
         bankConnectionError: '銀行情報の接続に関する問題',
         bankConnectionDescription: 'カードの追加を再度お試しください。または、',
         connectWithPlaid: 'Plaid で接続できます。',

@@ -2092,7 +2092,8 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsPersonalCard: '这是个人卡',
         thisIsCompanyCard: '这是公司卡',
         askAdmin: '请咨询您的管理员',
-        warningDescription: ({isAdmin}: {isAdmin?: boolean}) => `如果是，那就太好了！但如果是公司卡，请 ${isAdmin ? '请从您的工作区分配。' : '请您的管理员从工作区将其分配给您。'}`,
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `如果是，那就太好了！但如果是<strong>公司</strong>卡，请 ${isAdmin ? '请从您的工作区分配。' : '请您的管理员从工作区将其分配给您。'}`,
         bankConnectionError: '银行连接问题',
         bankConnectionDescription: '请尝试重新添加您的银行卡。否则，您将无法',
         connectWithPlaid: '通过 Plaid 连接。',

@@ -2126,7 +2126,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsCompanyCard: 'To jest karta firmowa',
         askAdmin: 'Zapytaj administratora.',
         warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
-            `Jeśli tak, świetnie! Ale jeśli to karta firmowa, ${isAdmin ? 'przypisz ją z poziomu obszaru roboczego.' : 'poproś administratora o przypisanie jej z poziomu obszaru roboczego.'}`,
+            `Jeśli tak, świetnie! Ale jeśli to karta <strong>firmowa</strong>, ${isAdmin ? 'przypisz ją z poziomu obszaru roboczego.' : 'poproś administratora o przypisanie jej z poziomu obszaru roboczego.'}`,
         bankConnectionError: 'Problem z połączeniem z bankiem',
         bankConnectionDescription: 'Spróbuj ponownie dodać karty. W przeciwnym razie możesz',
         connectWithPlaid: 'połączyć się przez Plaid.',

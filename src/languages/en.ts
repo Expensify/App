@@ -2170,10 +2170,10 @@ const translations = {
         personalCardAddedDescription: 'Congrats, we’ll begin importing transactions from your card.',
         isPersonalCard: 'Is this a personal card?',
         thisIsPersonalCard: 'This is a personal card',
-        thisIsCompanyCard: 'This is a company card ',
+        thisIsCompanyCard: 'This is a company card',
         askAdmin: 'Ask your admin',
         warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
-            `If so, great! But if it's a company card, please ${isAdmin ? 'assign it from your workspace instead.' : 'ask your admin to assign it to you from the workspace instead.'}`,
+            `If so, great! But if it's a <strong>company</strong> card, please ${isAdmin ? 'assign it from your workspace instead.' : 'ask your admin to assign it to you from the workspace instead.'}`,
         bankConnectionError: 'Bank connection issue',
         bankConnectionDescription: 'Please try adding your cards again. Otherwise, you can',
         connectWithPlaid: 'connect via Plaid.',

@@ -198,7 +198,7 @@ function buildOptimisticCard(cardDisplayName: string): {card: Card; cardID: numb
             cardID,
             state: CONST.EXPENSIFY_CARD.STATE.OPEN,
             // Use the CSV bank name constant so the card shows up in the Assigned Cards section
-            bank: CONST.PERSONAL_CARD.BANK_NAME.CSV,
+            bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
             domainName: '',
             lastFourPAN: '',
             availableSpend: 0,

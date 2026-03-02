@@ -80,11 +80,11 @@ function WalletPage() {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const {login: currentUserLogin, accountID, email} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, email} = useCurrentUserPersonalDetails();
     const {translate, localeCompare} = useLocalize();
     const {cardFeedsByPolicy} = useCardFeedsForDisplay();
 
-    const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, currentUserLogin).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const hasSinglePolicy = activeAdminPolicies.length === 1;
 
     const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Table', 'Plus']);
@@ -478,11 +478,11 @@ function WalletPage() {
     );
 
     const onAddPersonalCardPress = () => {
-        if (!paidGroupPolicy && Object.keys(personalCardList).length > 2) {
+        if (!paidGroupPolicy && Object.keys(personalCardList).length >= 2) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_UPGRADE);
             return;
         }
-        const hasDirectFeed = Object.values(cardFeedsByPolicy).some((feeds) => feeds.some((feed) => isDirectFeed(feed.name)));
+        const hasDirectFeed = Object.values(cardFeedsByPolicy).some((feeds) => feeds.some((feed) => isDirectFeed(feed.feed)));
         if (hasDirectFeed) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING);
             // return;
@@ -608,53 +608,55 @@ function WalletPage() {
                             />
                         </Section>
 
-                        <Section
-                            subtitle={translate('walletPage.assignedCardsDescription')}
-                            title={translate('walletPage.assignedCards')}
-                            isCentralPane
-                            subtitleMuted
-                            centralPaneContainerStyle={hasAssignedCard ? styles.pb0 : undefined}
-                            titleStyles={styles.accountSettingsSectionTitle}
-                        >
-                            <>
-                                <PaymentMethodList
-                                    shouldShowAddBankAccount={false}
-                                    shouldShowAssignedCards
-                                    onPress={assignedCardPressed}
-                                    onAddPersonalCardPress={onAddPersonalCardPress}
-                                    threeDotsMenuItems={cardThreeDotsMenuItems}
-                                    style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                    listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                                />
-                                <WalletTravelCVVSection />
-                            </>
-                            {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
-                                <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
-                                    <MenuItem
-                                        title={translate('workspace.companyCards.importTransactions.importButton')}
-                                        icon={icons.Table}
-                                        shouldShowRightIcon
-                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
-                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
-                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
+                        {(hasAssignedCard || isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT)) && (
+                            <Section
+                                subtitle={translate('walletPage.assignedCardsDescription')}
+                                title={translate('walletPage.assignedCards')}
+                                isCentralPane
+                                subtitleMuted
+                                centralPaneContainerStyle={!hasAssignedCard ? styles.pb0 : undefined}
+                                titleStyles={styles.accountSettingsSectionTitle}
+                            >
+                                <>
+                                    <PaymentMethodList
+                                        shouldShowAddBankAccount={false}
+                                        shouldShowAssignedCards
+                                        onPress={assignedCardPressed}
+                                        onAddPersonalCardPress={isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) ? onAddPersonalCardPress : undefined}
+                                        threeDotsMenuItems={cardThreeDotsMenuItems}
+                                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                     />
-                                </View>
-                            )}
-                            {!hasAssignedCard ? (
-                                <MenuItem
-                                    iconHeight={48}
-                                    iconWidth={48}
-                                    containerStyle={styles.hoveredComponentBG}
-                                    shouldShowRightIcon
-                                    icon={illustrations.VerticalCreditCards}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    title={translate('personalCard.lookingForCompanyCards')}
-                                    description={translate('personalCard.lookingForCompanyCardsDescription')}
-                                    titleStyle={styles.textStrong}
-                                    onPress={openCompanyCardFlow}
-                                />
-                            ) : null}
-                        </Section>
+                                    <WalletTravelCVVSection />
+                                </>
+                                {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
+                                    <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                        <MenuItem
+                                            title={translate('workspace.companyCards.importTransactions.importButton')}
+                                            icon={icons.Table}
+                                            shouldShowRightIcon
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
+                                            wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
+                                        />
+                                    </View>
+                                )}
+                                {!hasAssignedCard ? (
+                                    <MenuItem
+                                        iconHeight={48}
+                                        iconWidth={48}
+                                        containerStyle={styles.hoveredComponentBG}
+                                        shouldShowRightIcon
+                                        icon={illustrations.VerticalCreditCards}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        title={translate('personalCard.lookingForCompanyCards')}
+                                        description={translate('personalCard.lookingForCompanyCardsDescription')}
+                                        titleStyle={styles.textStrong}
+                                        onPress={openCompanyCardFlow}
+                                    />
+                                ) : null}
+                            </Section>
+                        )}
 
                         {hasWallet && (
                             <Section

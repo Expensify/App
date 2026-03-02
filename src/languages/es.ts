@@ -1997,7 +1997,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsCompanyCard: 'Esta es una tarjeta de empresa',
         askAdmin: 'Pregunta a tu administrador',
         warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
-            `Si es así, ¡genial! Pero si es una tarjeta de empresa, ${isAdmin ? 'asígnala desde tu espacio de trabajo.' : 'pide a tu administrador que te la asigne desde el espacio de trabajo.'}`,
+            `Si es así, ¡genial! Pero si es una tarjeta de <strong>empresa</strong>, ${isAdmin ? 'asígnala desde tu espacio de trabajo.' : 'pide a tu administrador que te la asigne desde el espacio de trabajo.'}`,
         bankConnectionError: 'Problema de conexión bancaria',
         bankConnectionDescription: 'Intenta añadir tus tarjetas de nuevo. De lo contrario, puedes',
         connectWithPlaid: 'conectar a través de Plaid.',

@@ -2127,7 +2127,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsCompanyCard: 'Dit is een bedrijfskaart',
         askAdmin: 'Vraag uw beheerder',
         warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
-            `Zo ja, prima! Maar als het een bedrijfskaart is, ${isAdmin ? 'wijs deze dan toe vanuit je werkruimte.' : 'vraag je beheerder om deze vanuit de werkruimte aan je toe te wijzen.'}`,
+            `Zo ja, prima! Maar als het een <strong>bedrijfs</strong>kaart is, ${isAdmin ? 'wijs deze dan toe vanuit je werkruimte.' : 'vraag je beheerder om deze vanuit de werkruimte aan je toe te wijzen.'}`,
         bankConnectionError: 'Probleem met bankverbinding',
         bankConnectionDescription: 'Probeer je kaarten opnieuw toe te voegen. Anders kun je',
         connectWithPlaid: 'verbinden via Plaid.',
