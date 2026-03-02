@@ -102,7 +102,7 @@ function OptionRowLHN({
 
     const delegateAccountID = useMemo(
         () => getDelegateAccountIDFromReportAction(optionItem?.parentReportAction),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- getDelegateAccountIDFromReportAction is a stable import; only parentReportAction determines the result
         [optionItem?.parentReportAction],
     );
 
