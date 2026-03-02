@@ -1,7 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {
     ASTNode,
     QueryFilter,
@@ -21,6 +21,7 @@ import type {
     UserFriendlyKey,
     UserFriendlyValue,
 } from '@components/Search/types';
+import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS';
@@ -35,8 +36,6 @@ import arraysEqual from '@src/utils/arraysEqual';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -55,6 +54,7 @@ type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 // This map contains chars that match each operator
 const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS]: '*:' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: '<' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: '<=' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: '>' as const,
@@ -354,7 +354,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
 
     // Certain filters' values are significant in deciding which search we are on, so we want to include
     // their value when computing the similarSearchHash
-    const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]);
+    const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE]);
 
     const flatFilters = query.flatFilters
         .map((filter) => {
@@ -403,10 +403,45 @@ function isSearchDatePreset(date: string | undefined): date is SearchDatePreset 
  * Returns whether a given search filter is supported in a given search data type
  */
 function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTypes) {
-    return ALLOWED_TYPE_FILTERS[type].some((supportedFilter) => {
-        const isReportFieldSupported = supportedFilter === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD && filter.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
-        return supportedFilter === filter || isReportFieldSupported;
-    });
+    const supportedTypeFilters = ALLOWED_TYPE_FILTERS[type];
+    if (!supportedTypeFilters) {
+        return false;
+    }
+    if (supportedTypeFilters.has(filter)) {
+        return true;
+    }
+    if (filter.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+        return supportedTypeFilters.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD);
+    }
+    return false;
+}
+
+/**
+ * Returns default values for chart views (non-table views).
+ * - Sets default groupBy based on view type (month for line charts, category for others)
+ * - Sets default sortOrder to ASC for line charts (time-based graphs show chronologically oldest to newest)
+ */
+function getChartViewDefaults(queryJSON: SearchQueryJSON): Partial<SearchQueryJSON> {
+    if (queryJSON.view === CONST.SEARCH.VIEW.TABLE) {
+        return {};
+    }
+
+    const defaults: Partial<SearchQueryJSON> = {};
+
+    // Default groupBy when not explicitly set
+    if (!queryJSON.groupBy) {
+        defaults.groupBy = queryJSON.view === CONST.SEARCH.VIEW.LINE ? CONST.SEARCH.GROUP_BY.MONTH : CONST.SEARCH.GROUP_BY.CATEGORY;
+    }
+
+    // Default sortOrder to ASC for LINE view, only if not explicitly set by the user
+    if (queryJSON.view === CONST.SEARCH.VIEW.LINE) {
+        const wasSortOrderExplicitlySet = queryJSON.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER) ?? false;
+        if (!wasSortOrderExplicitlySet) {
+            defaults.sortOrder = CONST.SEARCH.SORT_ORDER.ASC;
+        }
+    }
+
+    return defaults;
 }
 
 /**
@@ -427,7 +462,20 @@ function getRawFilterListFromQuery(rawQuery: SearchQueryString) {
     return undefined;
 }
 
+// Cache for buildSearchQueryJSON to avoid re-running the PEG parser for identical queries.
+// This is a pure function called from 64+ sites — many fire during the same render cycle
+// with identical query strings, each running the full parser from scratch.
+const buildSearchQueryJSONCache = new Map<string, SearchQueryJSON | undefined>();
+const BUILD_SEARCH_QUERY_JSON_CACHE_MAX_SIZE = 50;
+const BUILD_SEARCH_QUERY_JSON_CACHE_KEY_SEPARATOR = '\x00'; // Null byte prevents collisions if query/rawQuery contain arbitrary strings
+
 function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString) {
+    const cacheKey = rawQuery ? `${query}${BUILD_SEARCH_QUERY_JSON_CACHE_KEY_SEPARATOR}${rawQuery}` : query;
+    if (buildSearchQueryJSONCache.has(cacheKey)) {
+        const cached = buildSearchQueryJSONCache.get(cacheKey);
+        return cached ? {...cached} : cached;
+    }
+
     try {
         const result = parseSearchQuery(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
@@ -440,6 +488,8 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
             // Ensure policyID is always an array for consistency
             result.policyID = [result.policyID];
         }
+
+        Object.assign(result, getChartViewDefaults(result));
 
         // Normalize limit before computing hashes to ensure invalid values don't affect hash
         if (result.limit !== undefined) {
@@ -457,7 +507,15 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
             result.rawFilterList = getRawFilterListFromQuery(rawQuery);
         }
 
-        return result;
+        if (buildSearchQueryJSONCache.size >= BUILD_SEARCH_QUERY_JSON_CACHE_MAX_SIZE) {
+            const firstKey = buildSearchQueryJSONCache.keys().next().value;
+            if (firstKey !== undefined) {
+                buildSearchQueryJSONCache.delete(firstKey);
+            }
+        }
+        buildSearchQueryJSONCache.set(cacheKey, result);
+
+        return {...result};
     } catch (e) {
         console.error(`Error when parsing SearchQuery: "${query}"`, e);
     }
@@ -473,8 +531,9 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
 
-    // Check if view was explicitly set by the user (exists in rawFilterList)
-    const wasViewExplicitlySet = queryJSON?.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW);
+    // Check if view was explicitly set by the user (exists in rawFilterList or differs from default)
+    const wasViewExplicitlySet =
+        (queryJSON?.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false) || (queryJSON?.view && queryJSON.view !== defaultQueryJSON?.view);
 
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
         // Skip view if it wasn't explicitly set by the user
@@ -592,7 +651,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, groupBy, columns, limit, ...otherFilters} = supportedFilterValues;
+    const {type, status, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${options?.sortBy ?? CONST.SEARCH.TABLE_COLUMNS.DATE}`);
@@ -606,6 +665,12 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (groupBy) {
         const sanitizedGroupBy = sanitizeSearchValue(groupBy);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
+    }
+
+    // View is only valid when groupBy is set
+    if (view && groupBy) {
+        const sanitizedView = sanitizeSearchValue(view);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW}:${sanitizedView}`);
     }
 
     if (status && typeof status === 'string') {
@@ -715,6 +780,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.HAS ||
                     filterKey === FILTER_KEYS.IS ||
                     filterKey === FILTER_KEYS.EXPORTER ||
+                    filterKey === FILTER_KEYS.EXPORTED_TO ||
                     filterKey === FILTER_KEYS.ATTENDEE ||
                     filterKey === FILTER_KEYS.COLUMNS) &&
                 Array.isArray(filterValue) &&
@@ -745,8 +811,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     const limitValue = limit ?? options?.limit;
-    if (limitValue !== undefined) {
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${limitValue}`);
+    if (limitValue) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${sanitizeSearchValue(limitValue.toString())}`);
     }
 
     return filtersString.filter(Boolean).join(' ').trim();
@@ -779,6 +845,7 @@ function buildFilterFormValuesFromQuery(
     cardList: OnyxTypes.CardList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
+    exportedToFilterOptions?: string[],
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -796,10 +863,10 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.join(',');
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
-            filtersForm[key as typeof filterKey] = filterValues.at(0);
+            filtersForm[key as typeof filterKey] = filterValues.join(',');
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
-            const actionValue = filterValues.at(0);
+            const actionValue = filterValues.join(',');
             filtersForm[key as typeof filterKey] =
                 actionValue && Object.values(CONST.SEARCH.ACTION_FILTERS).includes(actionValue as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>) ? actionValue : undefined;
         }
@@ -838,10 +905,17 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
         ) {
             filtersForm[key as typeof filterKey] = filterValues.filter((id) => personalDetails?.[id]);
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE) {
+            // Don't filter attendee values by personalDetails - they can be accountIDs OR display names for name-only attendees
+            filtersForm[key as typeof filterKey] = filterValues;
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
+            const allowedValues = new Set<string>(exportedToFilterOptions ?? []);
+            filtersForm[key as typeof filterKey] = filterValues.filter((value) => allowedValues.has(value));
         }
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
@@ -1005,6 +1079,11 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.groupBy) {
         filtersForm[FILTER_KEYS.GROUP_BY] = queryJSON.groupBy;
+
+        // View is only allowed when groupBy is set
+        if (queryJSON.view) {
+            filtersForm[FILTER_KEYS.VIEW] = queryJSON.view;
+        }
     }
 
     if (queryJSON.columns) {
@@ -1054,6 +1133,8 @@ function getFilterDisplayValue(
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
+    translate: LocalizedTranslate,
+    feedKeysWithCards?: FeedKeysWithAssignedCards,
 ) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -1070,12 +1151,11 @@ function getFilterDisplayValue(
         if (Number.isNaN(cardID)) {
             return filterValue;
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getCardDescription(cardList?.[cardID], translateLocal) || filterValue;
+        return getCardDescription(cardList?.[cardID], translate) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
+        return getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]}) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
@@ -1085,15 +1165,25 @@ function getFilterDisplayValue(
         return getCleanedTagName(filterValue);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList);
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate, feedKeysWithCards);
         return cardFeedsForDisplay[filterValue]?.name ?? filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         return getPolicyNameWithFallback(filterValue, policies, reports);
     }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
+        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT) {
+            return CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT;
+        }
+        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT) {
+            return CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT;
+        }
+        return filterValue;
+    }
     return filterValue;
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function getDisplayQueryFiltersForKey(
     key: string,
     queryFilter: QueryFilter[],
@@ -1104,6 +1194,8 @@ function getDisplayQueryFiltersForKey(
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
+    translate: LocalizedTranslate,
+    feedKeysWithCards?: FeedKeysWithAssignedCards,
 ) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
@@ -1125,9 +1217,9 @@ function getDisplayQueryFiltersForKey(
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate, feedKeysWithCards);
         return queryFilter.reduce((acc, filter) => {
             const feedKey = filter.value.toString();
-            const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList);
             const plaidFeedName = feedKey?.split(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)?.at(1);
             const regularBank = feedKey?.split('_')?.at(1) ?? CONST.DEFAULT_NUMBER_ID;
             const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
@@ -1149,22 +1241,16 @@ function getDisplayQueryFiltersForKey(
         return queryFilter.reduce((acc, filter) => {
             const cardValue = filter.value.toString();
             const cardID = parseInt(cardValue, 10);
-
-            if (cardList?.[cardID]) {
-                if (Number.isNaN(cardID)) {
-                    acc.push({operator: filter.operator, value: cardID});
-                } else {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID], translateLocal) || cardID});
-                }
-            }
+            const descriptionCandidate = Number.isNaN(cardID) ? undefined : getCardDescription(cardList?.[cardID], translate);
+            const cardDescription = descriptionCandidate === '' ? undefined : descriptionCandidate;
+            acc.push({operator: filter.operator, value: cardDescription ?? cardValue});
             return acc;
         }, [] as QueryFilter[]);
     }
 
     return queryFilter.map((filter) => ({
         operator: filter.operator,
-        value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
+        value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, translate),
     }));
 }
 
@@ -1230,17 +1316,31 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
  * We try to replace every numeric id value with a display version of this value,
  * So: user IDs get turned into emails, report ids into report names etc.
  */
-function buildUserReadableQueryString(
-    queryJSON: SearchQueryJSON,
-    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    taxRates: Record<string, string[]>,
-    cardList: OnyxTypes.CardList | undefined,
-    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
-    policies: OnyxCollection<OnyxTypes.Policy>,
-    currentUserAccountID: number,
+function buildUserReadableQueryString({
+    queryJSON,
+    PersonalDetails,
+    reports,
+    taxRates,
+    cardList,
+    cardFeeds,
+    policies,
+    currentUserAccountID,
     autoCompleteWithSpace = false,
-) {
+    translate,
+    feedKeysWithCards,
+}: {
+    queryJSON: SearchQueryJSON;
+    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
+    reports: OnyxCollection<OnyxTypes.Report>;
+    taxRates: Record<string, string[]>;
+    cardList: OnyxTypes.CardList | undefined;
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserAccountID: number;
+    autoCompleteWithSpace: boolean;
+    translate: LocalizedTranslate;
+    feedKeysWithCards?: FeedKeysWithAssignedCards;
+}) {
     const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
@@ -1272,7 +1372,19 @@ function buildUserReadableQueryString(
                 continue;
             }
 
-            const displayQueryFilters = getDisplayQueryFiltersForKey(rawFilter.key, queryFilters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
+            const displayQueryFilters = getDisplayQueryFiltersForKey(
+                rawFilter.key,
+                queryFilters,
+                PersonalDetails,
+                reports,
+                taxRates,
+                cardList,
+                cardFeeds,
+                policies,
+                currentUserAccountID,
+                translate,
+                feedKeysWithCards,
+            );
 
             if (!displayQueryFilters.length) {
                 continue;
@@ -1309,7 +1421,19 @@ function buildUserReadableQueryString(
 
     for (const filterObject of filters) {
         const key = filterObject.key;
-        const displayQueryFilters = getDisplayQueryFiltersForKey(key, filterObject.filters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
+        const displayQueryFilters = getDisplayQueryFiltersForKey(
+            key,
+            filterObject.filters,
+            PersonalDetails,
+            reports,
+            taxRates,
+            cardList,
+            cardFeeds,
+            policies,
+            currentUserAccountID,
+            translate,
+            feedKeysWithCards,
+        );
 
         if (!displayQueryFilters.length) {
             continue;
@@ -1375,7 +1499,7 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     const selectedColumns = [queryJSON.columns ?? []].flat();
     const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
     const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
-    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !hasCustomColumns;
+    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !queryJSON.groupBy && !hasCustomColumns;
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {

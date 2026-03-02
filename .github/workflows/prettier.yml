@@ -15,7 +15,7 @@ jobs:
   prettier:
     name: Prettier check
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
         # v4

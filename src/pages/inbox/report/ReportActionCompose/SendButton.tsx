@@ -2,9 +2,9 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -26,6 +26,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to manage GestureDetector correctly
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['Send'] as const);
     const Tap = Gesture.Tap()
         .onEnd(() => {
             handleSendMessage();
@@ -44,7 +45,13 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                 key={`send-button-${isSmallScreenWidth ? 'small-screen' : 'normal-screen'}`}
                 gesture={Tap}
             >
-                <View collapsable={false}>
+                <View
+                    // In order to make buttons accessible, we have to wrap children in a View with accessible and accessibilityRole="button" props based on the docs: https://docs.swmansion.com/react-native-gesture-handler/docs/components/buttons/
+                    accessible
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.send')}
+                    collapsable={false}
+                >
                     <Tooltip text={translate('common.send')}>
                         <PressableWithFeedback
                             style={({pressed, isDisabled}) => [
@@ -52,13 +59,15 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                                 isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
                                 isDisabledProp ? styles.cursorDisabled : undefined,
                             ]}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('common.send')}
+                            // Since the parent View has accessible, we need to set accessible to false here to avoid duplicate accessibility elements.
+                            // On Android when TalkBack is enabled, only the parent element should be accessible, otherwise the button will not work.
+                            accessible={false}
+                            focusable={false}
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.SEND_BUTTON}
                         >
                             {({pressed}) => (
                                 <Icon
-                                    src={Expensicons.Send}
+                                    src={icons.Send}
                                     fill={isDisabledProp || pressed ? theme.icon : theme.textLight}
                                 />
                             )}

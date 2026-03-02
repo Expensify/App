@@ -1,7 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -38,7 +37,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [isInvitationSent, setIsInvitationSent] = useState(false);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const policyID = route.params?.policyID;
@@ -47,7 +46,6 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
     const workspaceMembers: MemberForList[] = [];
     if (policy?.employeeList) {
-        // Get the list of employees from the U4B organization
         const uberEmployees = policy?.receiptPartners?.uber?.employees ?? {};
 
         for (const [email, policyEmployee] of Object.entries(policy.employeeList)) {
@@ -67,25 +65,25 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
 
             const personalDetail = getPersonalDetailByEmail(email);
             if (personalDetail) {
-                const memberForList = formatMemberForList({
-                    text: personalDetail?.displayName ?? email,
-                    alternateText: email,
-                    login: email,
-                    accountID: personalDetail?.accountID,
-                    icons: [
-                        {
-                            source: personalDetail?.avatar ?? icons.FallbackAvatar,
-                            name: formatPhoneNumber(email),
-                            type: CONST.ICON_TYPE_AVATAR,
-                            id: personalDetail?.accountID,
-                        },
-                    ],
-                    reportID: '',
-                    keyForList: email,
-                    isSelected: true,
-                });
-
-                workspaceMembers.push(memberForList);
+                workspaceMembers.push(
+                    formatMemberForList({
+                        text: personalDetail?.displayName ?? email,
+                        alternateText: email,
+                        login: email,
+                        accountID: personalDetail?.accountID,
+                        icons: [
+                            {
+                                source: personalDetail?.avatar ?? icons.FallbackAvatar,
+                                name: formatPhoneNumber(email),
+                                type: CONST.ICON_TYPE_AVATAR,
+                                id: personalDetail?.accountID,
+                            },
+                        ],
+                        reportID: '',
+                        keyForList: email,
+                        isSelected: true,
+                    }),
+                );
             }
         }
 
@@ -124,18 +122,11 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         }
     }
 
-    // Pre-select all members only once on first load.
-    useEffect(() => {
-        if (workspaceMembers.length === 0) {
-            return;
-        }
-        setSelectedOptions((prev) => {
-            if (prev.length > 0) {
-                return prev;
-            }
-            return workspaceMembers.map((member) => ({...member, isSelected: true}));
-        });
-    }, [workspaceMembers]);
+    const [hasPreselected, setHasPreselected] = useState(false);
+    if (!hasPreselected && workspaceMembers.length > 0) {
+        setHasPreselected(true);
+        setSelectedOptions(workspaceMembers.map((member) => ({...member, isSelected: true})));
+    }
 
     const toggleOption = (option: MemberForList) => {
         clearErrors(policyID);
@@ -166,10 +157,6 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         setIsInvitationSent(true);
     };
 
-    const handleGotIt = () => {
-        Navigation.dismissModal();
-    };
-
     // Check if we should skip to "All set" page immediately
     const shouldSkipToAllSet = workspaceMembers.length === 0;
 
@@ -197,12 +184,12 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                 />
                 <ConfirmationPage
                     illustration={illustrations.ToddInCar}
-                    illustrationStyle={styles.uberConfirmationIllustrationContainer}
+                    illustrationStyle={styles.toddInCarIllustrationContainer}
                     heading={translate('workspace.receiptPartners.uber.readyToRoll')}
                     description={translate('workspace.receiptPartners.uber.takeBusinessRideMessage')}
                     shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
-                    onButtonPress={handleGotIt}
+                    onButtonPress={() => Navigation.dismissModal()}
                     descriptionStyle={styles.colorMuted}
                 />
             </ScreenWrapper>

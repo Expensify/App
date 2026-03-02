@@ -5,7 +5,6 @@ import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
@@ -34,14 +33,12 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionSelector});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const reportID = useMemo(() => generateReportID(), []);
-
-    const {isBetaEnabled} = usePermissions();
-    const isNewDotHomeEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_HOME);
 
     const policyChatForActivePolicySelector = useCallback(
         (reports: OnyxCollection<OnyxTypes.Report>) => {
@@ -53,18 +50,18 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
         },
         [activePolicy, activePolicyID, session?.accountID],
     );
-    const [policyChatForActivePolicy] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: policyChatForActivePolicySelector}, [policyChatForActivePolicySelector]);
+    const [policyChatForActivePolicy] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyChatForActivePolicySelector}, [policyChatForActivePolicySelector]);
 
     const onPress = () => {
         interceptAnonymousUser(() => {
-            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, userBillingGraceEndPeriods)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                 return;
             }
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
-            startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts);
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts, true);
         });
     };
 
@@ -75,12 +72,13 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
                 styles.ph0,
                 // Prevent text selection on touch devices (e.g. on long press)
                 canUseTouchScreen() && styles.userSelectNone,
-                isNewDotHomeEnabled ? styles.floatingCameraButtonAboveFab : styles.floatingCameraButton,
+                styles.floatingCameraButton,
             ]}
             accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
             onPress={onPress}
             role={CONST.ROLE.BUTTON}
             testID="floating-camera-button"
+            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_CAMERA_BUTTON}
         >
             <View
                 style={styles.floatingActionButton}

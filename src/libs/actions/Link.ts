@@ -9,7 +9,6 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
-import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -28,12 +27,11 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Account, Report} from '@src/types/onyx';
+import SCREENS from '@src/SCREENS';
+import type {IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
-import {isOnboardingFlowCompleted, setOnboardingErrorMessage} from './Welcome';
-import {startOnboardingFlow} from './Welcome/OnboardingFlow';
-import type {OnboardingCompanySize, OnboardingPurpose} from './Welcome/OnboardingFlow';
+import {setOnboardingErrorMessage} from './Welcome';
 
 let isNetworkOffline = false;
 let networkStatus: NetworkStatus;
@@ -52,15 +50,6 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
-    },
-});
-
-let account: OnyxEntry<Account>;
-// Use connectWithoutView to subscribe to account data without affecting UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value;
     },
 });
 
@@ -188,23 +177,6 @@ function getInternalExpensifyPath(href: string) {
     return attrPath;
 }
 
-/**
- * Normalizes a route by replacing route path variables with a generic placeholder(:id). For example /report/12345 becomes /report/:id
- */
-function getNormalizedRoute(route: string) {
-    const routeWithoutParams = route.split('?').at(0) ?? '';
-    const segments = routeWithoutParams.split('/').filter((segment) => segment !== '');
-    const normalizedSegments = segments.map((segment) => {
-        // Check if segment is a number, UUID, or likely a dynamic ID and return :id for that
-        if (/^[\d]+$/.test(segment) || /^[a-f0-9-]{20,}$/i.test(segment) || /^[A-Z0-9]{8,}$/i.test(segment)) {
-            return ':id';
-        }
-        return segment;
-    });
-
-    return normalizedSegments.join('/');
-}
-
 function openLink(href: string, environmentURL: string, isAttachment = false) {
     const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
@@ -216,10 +188,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
     let shouldCloseRHP = false;
     if (!isNarrowLayout && isRHPOpen) {
-        const willOpenInRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
-        const currentRoute = Navigation.getActiveRoute();
-        const willOpenSameRoute = getNormalizedRoute(currentRoute) === getNormalizedRoute(internalNewExpensifyPath);
-        shouldCloseRHP = !willOpenInRHP || !willOpenSameRoute;
+        shouldCloseRHP = !willRouteNavigateToRHP(internalNewExpensifyPath as Route);
     }
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
@@ -261,15 +230,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
-function openReportFromDeepLink(
-    url: string,
-    currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>,
-    currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
-    onboardingInitialPath: OnyxEntry<string>,
-    reports: OnyxCollection<Report>,
-    isAuthenticated: boolean,
-    conciergeReportID: string | undefined,
-) {
+function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, isAuthenticated: boolean, conciergeReportID: string | undefined, introSelected: OnyxEntry<IntroSelected>) {
     const reportID = getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
@@ -281,7 +242,7 @@ function openReportFromDeepLink(
         });
 
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport(reportID, '', [], undefined, '0', true);
+        openReport(reportID, introSelected, undefined, [], undefined, '0', true);
 
         // Show the sign-in page if the app is offline
         if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
@@ -352,6 +313,10 @@ function openReportFromDeepLink(
                                 return;
                             }
 
+                            if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
+                                return;
+                            }
+
                             // Navigation for signed users is handled by react-navigation.
                             if (isAuthenticated) {
                                 return;
@@ -362,7 +327,7 @@ function openReportFromDeepLink(
                                 const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                                 // If the report does not exist, navigate to the last accessed report or Concierge chat
                                 if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
-                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
+                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), reportID)?.reportID;
                                     if (lastAccessedReportID) {
                                         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
@@ -401,25 +366,7 @@ function openReportFromDeepLink(
 
                         if (isAnonymousUser()) {
                             handleDeeplinkNavigation();
-                            return;
                         }
-                        // We need skip deeplinking if the user hasn't completed the guided setup flow.
-                        isOnboardingFlowCompleted({
-                            onNotCompleted: () => {
-                                Log.info('[Onboarding] User has not completed the guided setup flow, starting onboarding flow from deep link');
-                                startOnboardingFlow({
-                                    onboardingValuesParam: val,
-                                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
-                                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
-                                    currentOnboardingPurposeSelected,
-                                    currentOnboardingCompanySize,
-                                    onboardingInitialPath,
-                                    onboardingValues: val,
-                                });
-                            },
-                            onCompleted: handleDeeplinkNavigation,
-                            onCanceled: handleDeeplinkNavigation,
-                        });
                     });
                 },
             });

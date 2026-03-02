@@ -27,7 +27,7 @@ type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 
 function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const {setIsClosing} = useCloseImportPage();
@@ -158,7 +158,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
         } else {
             setIsImporting(true);
-            importPolicyMembers(policyID, allMembers);
+            importPolicyMembers(policy, allMembers);
         }
     }, [validate, spreadsheet?.columns, spreadsheet?.data, policy, containsHeader, route.params.policyID, policyID]);
 

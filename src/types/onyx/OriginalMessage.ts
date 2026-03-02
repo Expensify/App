@@ -7,6 +7,7 @@ import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
 import type {Reservation} from './Transaction';
+import type TransactionPending3DSReview from './TransactionPending3DSReview';
 
 /** Types of join workspace resolutions */
 type JoinWorkspaceResolution = ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION>;
@@ -337,6 +338,24 @@ type OriginalMessageReportPreview = {
     whisperedTo?: number[];
 };
 
+/** Possible values of policy budget frequency */
+type PolicyBudgetFrequencyValues = 'yearly' | 'monthly';
+
+/** Model of policy budget frequency action data */
+type PolicyBudgetFrequency = {
+    /** Values of policy budget frequency */
+    frequency: PolicyBudgetFrequencyValues;
+
+    /** Shared value of the entity budget */
+    shared?: number;
+
+    /** Individual value of the entity budget */
+    individual?: number;
+
+    /** Notification threshold */
+    notificationThreshold: number;
+};
+
 /** Model of change log */
 type OriginalMessageChangeLog = {
     /** Account IDs of users that either got invited or removed from the room */
@@ -514,6 +533,12 @@ type OriginalMessagePolicyChangeLog = {
     /** Rate name of the custom unit */
     customUnitRateName?: string;
 
+    /** Name of the custom unit sub rate */
+    customUnitSubRateName?: string;
+
+    /** Name of the removed sub rate */
+    removedSubRateName?: string;
+
     /** Custom unit name */
     rateName?: string;
 
@@ -529,8 +554,14 @@ type OriginalMessagePolicyChangeLog = {
     /** Updated tag list name */
     tagListName?: string;
 
+    /** Updated tag lists name */
+    tagListsName?: string;
+
+    /** Is tag list is required */
+    isRequired?: boolean;
+
     /** Count of elements updated */
-    count?: string;
+    count?: string | number;
 
     /** Updated tag enabled/disabled value */
     enabled?: boolean;
@@ -545,10 +576,13 @@ type OriginalMessagePolicyChangeLog = {
     updateType?: string;
 
     /** New role of user or new value of the category/tag field */
-    newValue?: boolean | string;
+    newValue?: boolean | string | number | PolicyBudgetFrequency;
 
     /** Old role of user or old value of the category/tag field */
-    oldValue?: boolean | string;
+    oldValue?: boolean | string | number | PolicyBudgetFrequency;
+
+    /** category/tag field */
+    entityType?: string;
 
     /** Old approval audit rate */
     oldAuditRate?: number;
@@ -604,6 +638,65 @@ type OriginalMessagePolicyChangeLog = {
     /** The ID of the transaction thread report */
     transactionThreadReportID?: string;
 
+    /** Old rate of the time enabled */
+    oldRate?: number;
+
+    /** New rate of the time enabled */
+    newRate?: number;
+
+    /** Old prohibited expenses */
+    oldProhibitedExpenses?: Record<ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>, boolean>;
+
+    /** New prohibited expenses */
+    newProhibitedExpenses?: Record<ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>, boolean>;
+
+    /** Old reimbursement choice */
+    oldChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+    /** New reimbursement choice */
+    newChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+    /** Old owner email */
+    oldOwnerEmail?: string;
+
+    /** Old owner name */
+    oldOwnerName?: string;
+
+    /** Budget amount */
+    budgetAmount?: string;
+
+    /** Budget frequency */
+    budgetFrequency?: string;
+
+    /** Budget name */
+    budgetName?: string;
+
+    /** Budget type for notification message */
+    budgetTypeForNotificationMessage?: string;
+
+    /** Is new DOT */
+    isNewDot?: boolean;
+
+    /** Summary link message */
+    summaryLinkMessage?: string;
+
+    /** Threshold percentage */
+    thresholdPercentage?: number;
+
+    /** Total spend */
+    totalSpend?: number;
+
+    /** Unsubmitted spend */
+    unsubmittedSpend?: number;
+
+    /** User email */
+    userEmail?: string;
+
+    /** Approved reimbursed closed spend */
+    approvedReimbursedClosedSpend?: number;
+
+    /** Awaiting approval spend */
+    awaitingApprovalSpend?: number;
     /** The name of the enabled/disabled feature */
     featureName?: string;
 
@@ -738,6 +831,9 @@ type OriginalMessageModifiedExpense = {
     /** The fields that were modified by policy rules */
     policyRulesModifiedFields?: PolicyRulesModifiedFields;
 
+    /** The fields that were modified by personal rules */
+    personalRulesModifiedFields?: PersonalRulesModifiedFields;
+
     /** The Concierge reasoning for the action */
     reasoning?: string;
 };
@@ -753,7 +849,10 @@ type PolicyRulesModifiedFields = {
     /** The value that the tag was changed to */
     tag?: string;
 
-    /** The value that the description was changed to */
+    /** The value that the description was changed to (backend uses "comment" key) */
+    comment?: string;
+
+    /** The value that the description was changed to (display key, mapped from "comment") */
     description?: string;
 
     /** The value that the billable status was changed to */
@@ -768,6 +867,40 @@ type PolicyRulesModifiedFields = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         field_id_TAX: PolicyRuleTaxRate;
     };
+};
+
+/** Personal rules modified fields */
+type PersonalRulesModifiedFields = {
+    /** The value that the merchant was changed to */
+    merchant?: string;
+
+    /** The value that the amount was changed to */
+    category?: string;
+
+    /** The value that the tag was changed to */
+    tag?: string;
+
+    /** The value that the description was changed to (backend uses "comment" key) */
+    comment?: string;
+
+    /** The value that the description was changed to (display key, mapped from "comment") */
+    description?: string;
+
+    /** The value that the billable status was changed to */
+    billable?: boolean;
+
+    /** The value that the reimbursable status was changed to */
+    reimbursable?: boolean;
+
+    /** The value that the tax was changed to */
+    tax?: {
+        /** The tax rate being used  */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        field_id_TAX: PolicyRuleTaxRate;
+    };
+
+    /** The value that the report name was set to */
+    reportName?: string;
 };
 
 /** Model of a `travel update` report action */
@@ -986,7 +1119,7 @@ type OriginalMessageExportIntegration = {
     /**
      * Whether the export was done via an automation
      */
-    automaticAction: false;
+    automaticAction?: boolean;
 
     /**
      * The integration that was exported to (display text)
@@ -1001,7 +1134,7 @@ type OriginalMessageExportIntegration = {
     /**
      * Whether the report was manually marked as exported
      */
-    markedManually: boolean;
+    markedManually?: boolean;
 
     /**
      * An list of URLs to the report in the integration for company card expenses
@@ -1083,6 +1216,20 @@ type OriginalMessageCompanyCardConnectionBroken = {
 };
 
 /**
+ * Original message for Plaid balance failure
+ */
+type OriginalMessagePlaidBalanceFailure = {
+    /** The policy ID for which the Plaid balance failure occurred */
+    policyID: string;
+
+    /** The masked bank account number */
+    maskedAccountNumber: string;
+
+    /** The reasoning for the failure (for AgentZero) */
+    reasoning?: string;
+};
+
+/**
  * Original message for DEW_SUBMIT_FAILED and DEW_APPROVE_FAILED actions
  */
 type OriginalMessageDEWFailed = {
@@ -1108,6 +1255,20 @@ type OriginalMessageCard = {
 };
 
 /**
+ * Model of PERSONAL_CARD_CONNECTION_BROKEN action
+ */
+type OriginalPersonalCard = {
+    /** The id of the user the card was assigned to */
+    assigneeAccountID: number;
+
+    /** The id of the card */
+    cardID: number;
+
+    /** The name of the card */
+    cardName?: string;
+};
+
+/**
  * Model of INTEGRATIONS_MESSAGE report action
  */
 type OriginalMessageIntegrationMessage = {
@@ -1126,6 +1287,22 @@ type OriginalMessageTakeControl = {
     lastModified: string;
     /** Tagged account IDs of new approvers */
     mentionedAccountIDs: number[];
+};
+
+/**
+ * Minimal transaction data needed to render the MFA authorize transaction preview.
+ */
+type OriginalMessageActionableCard3DSTransactionApproval = TransactionPending3DSReview;
+
+/**
+ * Model of settlement account locked report action
+ */
+type OriginalMessageSettlementAccountLocked = {
+    /** The masked bank account number that was locked */
+    maskedBankAccountNumber: string;
+
+    /** The policy the bank account is connected to and is being notified */
+    policyID: string;
 };
 
 /**
@@ -1164,6 +1341,7 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
 /* eslint-disable jsdoc/require-jsdoc */
 type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD]: OriginalMessageAddPaymentCard;
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL]: OriginalMessageActionableCard3DSTransactionApproval;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT]: OriginalMessageCardFraudAlert;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicy;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER]: OriginalMessageActionableMentionWhisper;
@@ -1244,18 +1422,22 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
+    [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN]: OriginalPersonalCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED]: OriginalMessageDEWFailed;
+    [CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED]: OriginalMessageDEWFailed;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
+    [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
+    [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
 } & OldDotOriginalMessageMap &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
@@ -1272,7 +1454,9 @@ export type {
     OriginalMessageSource,
     Decision,
     PolicyRulesModifiedFields,
+    PersonalRulesModifiedFields,
     OriginalMessageChangeLog,
+    OriginalMessagePolicyChangeLog,
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
@@ -1280,8 +1464,12 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
+    PolicyBudgetFrequencyValues,
+    PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,
     OriginalMessageConciergeAutoMapMccGroups,
     OriginalMessageCompanyCardConnectionBroken,
+    OriginalMessagePlaidBalanceFailure,
     OriginalMessageReimbursementDirectorInformationRequired,
+    OriginalMessageSettlementAccountLocked,
 };

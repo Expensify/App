@@ -1,10 +1,11 @@
-import {filterPersonalCards} from '@selectors/Card';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import useCurrencyList from '@hooks/useCurrencyList';
+import type {SvgProps} from 'react-native-svg';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEReceipt from '@hooks/useEReceipt';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -17,10 +18,35 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
+import type IconAsset from '@src/types/utils/IconAsset';
+import EReceiptBody from './EReceiptBody';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
 import type {TransactionListItemType} from './SelectionListWithSections/types';
 import Text from './Text';
+
+type OverrideThemeProps = {
+    /** Overrides primary color set by default by useReceipt */
+    primaryColor?: string;
+
+    /** Overrides secondary color set by default by useReceipt */
+    secondaryColor?: string;
+
+    /** Overrides title color set by default by useReceipt */
+    titleColor?: string;
+
+    /** Overrides MCC icon set by default by useReceipt */
+    MCCIcon?: IconAsset;
+
+    /** Overrides trip icon set by default by useReceipt */
+    tripIcon?: IconAsset;
+
+    /** Overrides background image set by default by useReceipt */
+    backgroundImage?: React.FC<SvgProps>;
+
+    /** Overrides title text */
+    titleText?: string;
+};
 
 type EReceiptProps = {
     /* TransactionID of the transaction this EReceipt corresponds to */
@@ -34,21 +60,30 @@ type EReceiptProps = {
 
     /** Callback to be called when the image loads */
     onLoad?: () => void;
+
+    /** Overrides theme props set by default by useReceipt */
+    overrideTheme?: OverrideThemeProps;
 };
 
 const receiptMCCSize: number = variables.eReceiptMCCHeightWidthMedium;
 const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
-function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}: EReceiptProps) {
+function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false, overrideTheme}: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyList();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody', 'ExpensifyWordmark']);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
+    const cardList = useNonPersonalCardList();
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
-    const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
+    const defaultTheme = useEReceipt(transactionItem ?? transaction);
+
+    const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage, titleText} = {
+        ...defaultTheme,
+        titleText: translate('eReceipt.guaranteed'),
+        ...(overrideTheme ?? {}),
+    };
 
     const isLoadedRef = useRef(false);
 
@@ -87,21 +122,11 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
         >
             <View style={[styles.flex1, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {}, styles.overflowHidden, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
-                    <ImageSVG
-                        src={backgroundImage}
-                        // Temporary solution only, since other cache policies are causing memory leaks on iOS
-                        cachePolicy="none"
-                    />
+                    <ImageSVG src={backgroundImage} />
                 </View>
                 <View style={styles.eReceiptContentContainer}>
                     <View>
-                        <ImageSVG
-                            src={icons.ReceiptBody}
-                            fill={theme.textColorfulBackground}
-                            contentFit="fill"
-                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
-                            cachePolicy="none"
-                        />
+                        <EReceiptBody />
                         <View style={styles.eReceiptContentWrapper}>
                             <View style={[StyleUtils.getBackgroundColorStyle(theme.textColorfulBackground), styles.alignItemsCenter, styles.justifyContentCenter, styles.h100]}>
                                 <View
@@ -121,8 +146,6 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                                                 height={receiptMCCSize}
                                                 width={receiptMCCSize}
                                                 fill={primaryColor}
-                                                // Temporary solution only, since other cache policies are causing memory leaks on iOS
-                                                cachePolicy="none"
                                             />
                                         ) : null}
                                         {!MCCIcon && tripIcon ? (
@@ -131,13 +154,11 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                                                 height={receiptMCCSize}
                                                 width={receiptMCCSize}
                                                 fill={primaryColor}
-                                                // Temporary solution only, since other cache policies are causing memory leaks on iOS
-                                                cachePolicy="none"
                                             />
                                         ) : null}
                                     </View>
                                 </View>
-                                <Text style={[styles.eReceiptGuaranteed, primaryTextColorStyle]}>{translate('eReceipt.guaranteed')}</Text>
+                                <Text style={[styles.eReceiptGuaranteed, primaryTextColorStyle]}>{titleText}</Text>
                                 <View style={[styles.alignItemsCenter]}>
                                     <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.h40)]} />
                                 </View>
@@ -173,8 +194,6 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                                                 height={variables.eReceiptWordmarkHeight}
                                                 fill={secondaryColor}
                                                 src={icons.ExpensifyWordmark}
-                                                // Temporary solution only, since other cache policies are causing memory leaks on iOS
-                                                cachePolicy="none"
                                             />
                                         </View>
                                     </View>
@@ -189,4 +208,4 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
 }
 
 export default EReceipt;
-export type {EReceiptProps};
+export type {EReceiptProps, OverrideThemeProps};

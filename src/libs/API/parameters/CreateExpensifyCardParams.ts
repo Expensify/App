@@ -6,6 +6,8 @@ type CreateExpensifyCardParams = {
     feedCountry: string;
     domainAccountID: number;
     policyID?: string;
+    validFrom?: string;
+    validThru?: string;
 };
 
 export default CreateExpensifyCardParams;

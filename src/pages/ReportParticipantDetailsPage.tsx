@@ -37,7 +37,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
@@ -53,7 +53,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = () => {
         setIsRemoveMemberConfirmModalVisible(false);
-        removeFromGroupChat(report?.reportID, [accountID]);
+        removeFromGroupChat(report, [accountID]);
         Navigation.goBack(backTo);
     };
 
@@ -110,7 +110,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                                 isVisible={isRemoveMemberConfirmModalVisible}
                                 onConfirm={removeUser}
                                 onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                                prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
+                                prompt={translate('workspace.people.removeMemberPrompt', displayName)}
                                 confirmText={translate('common.remove')}
                                 cancelText={translate('common.cancel')}
                             />

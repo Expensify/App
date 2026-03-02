@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -88,7 +88,7 @@ function triggerListLayout(reportID?: string) {
 function getReportActions(reportID?: string) {
     const report = getReportScreen(reportID);
     return [
-        ...within(report).queryAllByLabelText(TestHelper.translateLocal('accessibilityHints.chatMessage')),
+        ...within(report).queryAllByAccessibilityHint(TestHelper.translateLocal('accessibilityHints.chatMessage')),
         // Created action has a different accessibility label.
         ...within(report).queryAllByLabelText(TestHelper.translateLocal('accessibilityHints.chatWelcomeMessage')),
     ];
@@ -227,7 +227,7 @@ async function signInAndGetApp(): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 
     // Start listening for pusher events after navigation settles.
-    subscribeToUserEvents();
+    subscribeToUserEvents(USER_A_ACCOUNT_ID);
     await waitForBatchedUpdates();
 
     await act(async () => {
@@ -286,6 +286,7 @@ async function signInAndGetApp(): Promise<void> {
 describe('Pagination', () => {
     afterEach(async () => {
         await waitForIdle();
+        cleanup();
         await act(async () => {
             await Onyx.clear();
 
