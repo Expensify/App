@@ -4,8 +4,8 @@ const Y_AXIS_TICK_COUNT = 5;
 /** Desired visual gap (px) between axis labels and the chart edge, used for both axes */
 const AXIS_LABEL_GAP = 12;
 
-/** Chart padding */
-const CHART_PADDING = 5;
+/** Base chart padding applied to all sides */
+const CHART_PADDING = {top: 5, left: 5, right: 5, bottom: 5};
 
 /** Minimum height for the chart content area (bars, Y-axis, grid lines) */
 const CHART_CONTENT_MIN_HEIGHT = 250;

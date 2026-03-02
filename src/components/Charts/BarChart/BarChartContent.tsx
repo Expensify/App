@@ -175,9 +175,9 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         );
     };
 
-    const dynamicChartStyle = {
-        height: CHART_CONTENT_MIN_HEIGHT + (xAxisLabelHeight ?? 0),
-    };
+    const labelSpace = AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0);
+    const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
+    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom};
 
     if (isLoading || !font) {
         return (
@@ -204,7 +204,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 {chartWidth > 0 && (
                     <CartesianChart
                         xKey="x"
-                        padding={{top: CHART_PADDING, left: CHART_PADDING, right: CHART_PADDING, bottom: AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0) + CHART_PADDING}}
+                        padding={chartPadding}
                         yKeys={['y']}
                         domainPadding={domainPadding}
                         actionsRef={actionsRef}

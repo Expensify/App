@@ -52,7 +52,7 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTick
     const firstMinTrunc = firstLabel.length <= MIN_TRUNCATED_CHARS ? firstLabelWidth : measureTextWidth(firstLabel.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, font);
     const lastMinTrunc = lastLabel.length <= MIN_TRUNCATED_CHARS ? lastLabelWidth : measureTextWidth(lastLabel.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, font);
 
-    // --- 1. Pick rotation (prefer 0° → 45° → 90°) ---
+    // Pick rotation (prefer 0° → 45° → 90°)
     let rotation: number = LABEL_ROTATIONS.VERTICAL;
 
     const hWidth = effectiveWidth(maxLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL);
@@ -75,7 +75,7 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTick
         }
     }
 
-    // --- 2. Truncate labels ---
+    // Truncate labels
     const truncDiagonalOverlap = allowTightDiagonalPacking ? lineHeight : 0;
     const tickMaxWidth = rotation === LABEL_ROTATIONS.DIAGONAL ? (tickSpacing - LABEL_PADDING) / SIN_45 + truncDiagonalOverlap : Infinity;
 
@@ -94,7 +94,7 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTick
         return truncateLabel(point.label, labelWidths.at(index) ?? 0, maxWidth, ellipsisWidth);
     });
 
-    // --- 3. Compute skip interval (only at 90°) ---
+    // Compute skip interval (only at 90°)
     const finalWidths = finalLabels.map((label) => measureTextWidth(label, font));
     const finalMaxWidth = Math.max(...finalWidths);
     let skipInterval = 1;
@@ -104,7 +104,7 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTick
         skipInterval = visibleCount >= data.length ? 1 : Math.ceil(data.length / Math.max(1, visibleCount));
     }
 
-    // --- 4. Compute vertical space needed for x-axis labels ---
+    // Compute vertical space needed for x-axis labels
     const xAxisLabelHeight = effectiveHeight(finalMaxWidth, lineHeight, rotation);
 
     return {
