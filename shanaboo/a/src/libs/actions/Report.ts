@@ -1,11 +1,13 @@
-import {escape} from 'lodash';
+import {isEmpty} from 'lodash';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-                        reportAction: {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                            actorAccountID: conciergeAccountID,
-                            message: [{type: CONST.REPORT.ACTIONS.MESSAGE.TYPE.TEXT, text: onboardingValues?.onboardingPolicyID ? escape(taskMessage) : ''}],
-                            originalMessage: {
-                                html: taskMessage,
-                            },
+import {Str} from 'expensify-common';
+import * as API from '@libs/API';
+import type {AddCommentOrAttachementParams, OpenReportParams, UpdateReportParams} from '@libs/API/parameters';
+import type {ConnectPolicyParams} from '@libs/API/parameters/ConnectPolicyParams';
+        reportID: taskReportID,
+        reportName: title,
+        type: CONST.REPORT.TYPE.TASK,
+        description: Str.htmlEncode(description),
+        ownerAccountID: currentUserAccountID,
+        managerID: assigneeAccountID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
