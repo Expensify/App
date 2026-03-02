@@ -4930,6 +4930,10 @@ function canEditFieldOfMoneyRequest(
             return true;
         }
 
+        if (shouldTreatAsForwardedForMoveExpense(moneyRequestReport)) {
+            return false;
+        }
+
         if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
             return false;
         }
@@ -11390,6 +11394,14 @@ function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>): boole
     return getSubmitToAccountID(policy, iouReport) !== iouReport.managerID;
 }
 
+function shouldTreatAsForwardedForMoveExpense(iouReport: OnyxInputOrEntry<Report>): boolean {
+    if (!iouReport || !isExpenseReport(iouReport) || !iouReport.reportID) {
+        return false;
+    }
+
+    return hasForwardedAction(iouReport.reportID) || hasForwardedByManagerChange(iouReport);
+}
+
 function isReportOutstanding(
     iouReport: OnyxInputOrEntry<Report>,
     policyID: string | undefined,
@@ -11403,8 +11415,7 @@ function isReportOutstanding(
         iouReport?.stateNum === undefined ||
         iouReport?.statusNum === undefined ||
         iouReport?.policyID !== policyID ||
-        hasForwardedAction(iouReport.reportID) ||
-        hasForwardedByManagerChange(iouReport)
+        hasForwardedAction(iouReport.reportID)
     ) {
         return false;
     }
