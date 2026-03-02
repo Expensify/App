@@ -121,7 +121,6 @@ type PaymentData = {
 };
 type BulkPaySelectionData = {
     bankAccountID?: number;
-    methodID?: number;
     payAsBusiness?: boolean;
     paymentMethod?: string;
 };

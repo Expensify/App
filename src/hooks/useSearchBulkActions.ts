@@ -523,7 +523,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const activeRoute = Navigation.getActiveRoute();
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
-            const expenseReportBankAccountID = additionalData?.bankAccountID ?? additionalData?.methodID;
+            const expenseReportBankAccountID = additionalData?.bankAccountID;
 
             for (const item of selectedOptions) {
                 const itemPolicyID = item.policyID;

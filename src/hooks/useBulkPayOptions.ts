@@ -101,7 +101,7 @@ function useBulkPayOptions({
                 key: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
                 additionalData: {
                     payAsBusiness,
-                    methodID: formattedPaymentMethod.methodID,
+                    bankAccountID: formattedPaymentMethod.methodID,
                     paymentMethod: formattedPaymentMethod.accountType,
                 },
             }));
@@ -140,7 +140,7 @@ function useBulkPayOptions({
                     description: account.description,
                     icon: account.icon,
                     additionalData: {
-                        methodID: account.methodID,
+                        bankAccountID: account.methodID,
                         paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                     },
                 });
@@ -158,7 +158,7 @@ function useBulkPayOptions({
                         iconWidth: account.iconSize,
                         key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                         additionalData: {
-                            methodID: account.methodID,
+                            bankAccountID: account.methodID,
                             paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                         },
                     })),
