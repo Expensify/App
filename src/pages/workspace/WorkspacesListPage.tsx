@@ -4,7 +4,6 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import ConfirmModal from '@components/ConfirmModal';
 import type {DomainItem} from '@components/Domain/DomainMenuItem';
 import DomainMenuItem from '@components/Domain/DomainMenuItem';
 import DomainsEmptyStateComponent from '@components/DomainsEmptyStateComponent';
@@ -194,8 +193,6 @@ function WorkspacesListPage() {
             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID);
 
     const personalDetails = usePersonalDetails();
-    const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
-    const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
     const [policyIDToLeave, setPolicyIDToLeave] = useState<string>();
     const policyToLeave = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToLeave}`];
 
@@ -272,7 +269,6 @@ function WorkspacesListPage() {
         }
 
         leaveWorkspace(currentUserPersonalDetails.accountID, policyToLeave);
-        setIsLeaveModalOpen(false);
     };
 
     const showDeleteWorkspaceModal = useCallback(async () => {
@@ -294,7 +290,16 @@ function WorkspacesListPage() {
         setPrevIsPendingDelete(isPendingDelete);
         if (prevIsPendingDelete && !isPendingDelete && policyIDToDelete) {
             if (isFocused && policyToDeleteLatestErrorMessage) {
-                showDeleteWorkspaceModal(true);
+                showConfirmModal({
+                    title: translate('workspace.common.delete'),
+                    prompt: policyToDeleteLatestErrorMessage,
+                    confirmText: translate('common.buttonConfirm'),
+                    cancelText: translate('common.cancel'),
+                    success: true,
+                    shouldShowCancelButton: false,
+                }).then(() => {
+                    hideDeleteWorkspaceErrorModal();
+                });
             }
         }
     }
@@ -391,11 +396,28 @@ function WorkspacesListPage() {
                         setPolicyIDToLeave(item.policyID);
 
                         if (isReimburser) {
-                            setIsCannotLeaveWorkspaceModalOpen(true);
+                            showConfirmModal({
+                                title: translate('common.leaveWorkspace'),
+                                prompt: confirmModalPrompt(),
+                                confirmText: translate('common.buttonConfirm'),
+                                success: true,
+                                shouldShowCancelButton: false,
+                            });
                             return;
                         }
 
-                        setIsLeaveModalOpen(true);
+                        showConfirmModal({
+                            title: translate('common.leaveWorkspace'),
+                            prompt: confirmModalPrompt(),
+                            confirmText: translate('common.leaveWorkspace'),
+                            cancelText: translate('common.cancel'),
+                            danger: true,
+                        }).then((result) => {
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
+                            }
+                            confirmLeaveAndHideModal();
+                        });
                     });
                 }),
             });
