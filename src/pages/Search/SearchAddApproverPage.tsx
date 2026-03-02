@@ -6,7 +6,7 @@ import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -33,7 +33,8 @@ function SearchAddApproverPage() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
-    const {clearSelectedTransactions, selectedReports} = useSearchContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedReports} = useSearchStateContext();
     const [isSaving, setIsSaving] = useState(false);
 
     const currentUserDetails = useCurrentUserPersonalDetails();

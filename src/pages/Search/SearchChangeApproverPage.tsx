@@ -7,7 +7,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -43,7 +43,8 @@ function SearchChangeApproverPage() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
-    const {clearSelectedTransactions, selectedReports} = useSearchContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedReports} = useSearchStateContext();
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const {isOffline} = useNetwork();
     const [isSaving, setIsSaving] = useState(false);

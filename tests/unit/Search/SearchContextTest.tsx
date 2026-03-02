@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import React, {act} from 'react';
-import {SearchContextProvider, useSearchContext} from '@components/Search/SearchContext';
+import {SearchContextProvider, useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SelectedTransactionInfo} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 
@@ -130,11 +130,12 @@ const wrapper = ({children}: {children: React.ReactNode}) => <SearchContextProvi
 
 describe('SearchContext', () => {
     it('returns selectedReports for TransactionReportGroupListItem', () => {
-        const {result} = renderHook(() => useSearchContext(), {wrapper});
+        const {result: searchActionsContext} = renderHook(() => useSearchActionsContext(), {wrapper});
+        const {result: searchStateContext} = renderHook(() => useSearchStateContext(), {wrapper});
         act(() => {
-            result.current.setSelectedTransactions({[mockTransaction.keyForList]: mockSelectedTransaction}, [mockReport]);
+            searchActionsContext.current.setSelectedTransactions({[mockTransaction.keyForList]: mockSelectedTransaction}, [mockReport]);
         });
-        const selectedReport = result.current.selectedReports.at(0);
+        const selectedReport = searchStateContext.current.selectedReports.at(0);
 
         expect(selectedReport?.managerID).toEqual(1);
         expect(selectedReport?.ownerAccountID).toBe(1);
@@ -143,11 +144,12 @@ describe('SearchContext', () => {
     });
 
     it('returns selectedReports for TransactionListItemType', () => {
-        const {result} = renderHook(() => useSearchContext(), {wrapper});
+        const {result: searchActionsContext} = renderHook(() => useSearchActionsContext(), {wrapper});
+        const {result: searchStateContext} = renderHook(() => useSearchStateContext(), {wrapper});
         act(() => {
-            result.current.setSelectedTransactions({[mockTransaction.keyForList]: mockSelectedTransaction}, [mockTransaction]);
+            searchActionsContext.current.setSelectedTransactions({[mockTransaction.keyForList]: mockSelectedTransaction}, [mockTransaction]);
         });
-        const selectedReport = result.current.selectedReports.at(0);
+        const selectedReport = searchStateContext.current.selectedReports.at(0);
 
         expect(selectedReport?.managerID).toEqual(1);
         expect(selectedReport?.ownerAccountID).toBe(1);
