@@ -8,7 +8,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, ReportAttributesDerivedValue} from '@src/types/onyx';
 
-let isFullyComputed = false;
+let isFullyComputed = true;
+let previousLocale: string | undefined;
 let previousDisplayNames: Record<string, string | undefined> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 
@@ -57,7 +58,6 @@ const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList
 /**
  * This derived value is used to get the report attributes for the report.
  */
-
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     dependencies: [
@@ -87,9 +87,17 @@ export default createOnyxDerivedValueConfig({
         }
 
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
-        // we need to recompute all report attributes on locale change because the report names are locale dependent
-        if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || displayNamesChanged) {
+        // we need to recompute all report attributes on locale change because the report names are locale dependent.
+        // We skip the reset on the very first locale load (previousLocale undefined) because the locale is already
+        // set correctly before any data batch arrives — report names will be computed in the right locale regardless.
+        if ((hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && !!previousLocale) || displayNamesChanged) {
             isFullyComputed = false;
+        }
+
+        // Only update previousLocale when we have an actual value, to avoid a null overwrite
+        // masking a subsequent real locale change.
+        if (preferredLocale) {
+            previousLocale = preferredLocale;
         }
 
         // if we already computed the report attributes and there is no new reports data, return the current value
