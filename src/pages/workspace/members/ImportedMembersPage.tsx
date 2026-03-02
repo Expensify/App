@@ -148,7 +148,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         const allMembers = [...(members ?? [])];
 
-        // Add submitsTo and forwardsTo members if they are not in the workspace
+        // Add submitsTo, forwardsTo, and overLimitForwardsTo members if they are not in the workspace
         if (members) {
             for (const member of members) {
                 if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policy)) {
@@ -170,6 +170,24 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                     allMembers.push({
                         email: member.forwardsTo,
                         role: policy?.employeeList?.[member.forwardsTo]?.role ?? '',
+                        submitsTo: '',
+                        forwardsTo: '',
+                        customField1: undefined,
+                        customField2: undefined,
+                        approvalLimit: undefined,
+                        overLimitForwardsTo: undefined,
+                    });
+                }
+
+                if (
+                    member.overLimitForwardsTo &&
+                    !allMembers.some((m) => m.email === member.overLimitForwardsTo) &&
+                    !isPolicyMemberWithoutPendingDelete(member.overLimitForwardsTo, policy)
+                ) {
+                    isRoleMissing = true;
+                    allMembers.push({
+                        email: member.overLimitForwardsTo,
+                        role: policy?.employeeList?.[member.overLimitForwardsTo]?.role ?? '',
                         submitsTo: '',
                         forwardsTo: '',
                         customField1: undefined,
