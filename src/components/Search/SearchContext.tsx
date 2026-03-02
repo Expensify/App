@@ -1,3 +1,4 @@
+import {useNavigationState} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext

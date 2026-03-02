@@ -39,7 +39,7 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation, {getDeepestFocusedScreenName, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
@@ -164,12 +164,11 @@ function AuthScreens() {
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
         useWideRHPState();
 
-    // Check if the user is currently on a 2FA setup screen
     // We can't rely on useRoute in this component because we're not a child of a Navigator, so we must sift through nav state by hand
-    const isIn2FASetupFlow = useNavigationState((state) => {
-        const focusedScreenName = getDeepestFocusedScreenName(state);
-        return isTwoFactorSetupScreen(focusedScreenName);
-    });
+    const focusedScreen = useNavigationState((state) => getDeepestFocusedScreen(state));
+
+    // Check if the user is currently on a 2FA setup screen
+    const isIn2FASetupFlow = isTwoFactorSetupScreen(focusedScreen?.name);
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
