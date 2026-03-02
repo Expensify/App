@@ -3971,6 +3971,7 @@ ${
             workspaceOwner: 'Responsable',
             workspaceType: 'Type d’espace de travail',
             workspaceAvatar: "Avatar de l'espace de travail",
+            keepMeAsAdmin: 'Me garder comme administrateur',
             clientID: 'ID client',
             clientIDInputHint: "Entrez l'identifiant unique du client",
             mustBeOnlineToViewMembers: 'Vous devez être en ligne pour voir les membres de cet espace de travail.',
@@ -7672,7 +7673,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         },
     },
     gps: {
-        disclaimer: 'Utilisez le GPS pour créer une dépense à partir de votre trajet. Appuyez sur Démarrer ci-dessous pour commencer le suivi.',
         error: {
             failedToStart: 'Échec du démarrage du suivi de la localisation.',
             failedToGetPermissions: 'Échec de l’obtention des autorisations de localisation requises.',

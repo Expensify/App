@@ -1707,6 +1707,9 @@ type ReportSettingsNavigatorParamList = {
     [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: {
         reportID: string;
     };
+    [SCREENS.REPORT_SETTINGS.COLUMNS]: {
+        reportID: string;
+    };
 };
 
 type ReportDescriptionNavigatorParamList = {
@@ -2148,6 +2151,7 @@ type WorkspaceConfirmationNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: undefined;
     [SCREENS.CURRENCY.SELECTION]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
