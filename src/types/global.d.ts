@@ -59,7 +59,7 @@ type MetroRuntime = {
 
 // Standalone declarations so these globals are also accessible without `global.` prefix
 // eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
-declare var __moduleInitTimes: Record<number, number> | undefined;
+declare var __moduleInitTimes: Record<number | string, number> | undefined;
 // eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
 declare var __moduleNames: Record<number, string> | undefined;
 

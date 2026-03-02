@@ -18,6 +18,9 @@ import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 // eslint-disable-next-line import/extensions
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // eslint-disable-next-line import/extensions
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import ModuleInitTimingPlugin from './ModuleInitTimingPlugin.ts';
+// eslint-disable-next-line import/extensions
 import type Environment from './types.ts';
 
 const require = createRequire(import.meta.url);
@@ -174,6 +177,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     {from: 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm'},
                 ],
             }),
+            new ModuleInitTimingPlugin(),
             new webpack.EnvironmentPlugin({JEST_WORKER_ID: ''}),
             new webpack.IgnorePlugin({
                 resourceRegExp: /^\.\/locale$/,
