@@ -1310,7 +1310,7 @@ function canActionTask(
     return sessionAccountID === taskReport?.ownerAccountID || sessionAccountID === getTaskAssigneeAccountID(taskReport, parentReportAction);
 }
 
-function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined) {
+function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, currentUserAccountID: number) {
     const reportID = report?.reportID;
     if (!reportID) {
         return;
@@ -1320,7 +1320,7 @@ function clearTaskErrors(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID:
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 
-        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID);
+        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID);
         return;
     }
 

@@ -3211,6 +3211,7 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
  */
 function navigateToConciergeChat(
     conciergeReportID: string | undefined,
+    currentUserAccountID: number,
     shouldDismissModal = false,
     checkIfCurrentPageActive = () => true,
     linkToOptions?: LinkToOptions,
@@ -3226,7 +3227,7 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], deprecatedCurrentUserAccountID, shouldDismissModal);
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], currentUserAccountID, shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});
@@ -3677,21 +3678,27 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, conciergeReportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
+function navigateToConciergeChatAndDeleteReport(
+    reportID: string | undefined,
+    conciergeReportID: string | undefined,
+    currentUserAccountID: number,
+    shouldPopToTop = false,
+    shouldDeleteChildReports = false,
+) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
         Navigation.popToSidebar();
     } else {
         Navigation.goBack();
     }
-    navigateToConciergeChat(conciergeReportID, false);
+    navigateToConciergeChat(conciergeReportID, currentUserAccountID, false);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
     });
 }
 
-function clearCreateChatError(report: OnyxEntry<Report>, conciergeReportID: string | undefined) {
+function clearCreateChatError(report: OnyxEntry<Report>, conciergeReportID: string | undefined, currentUserAccountID: number) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
     if (report?.errorFields?.createChat && !isOptimisticReport) {
@@ -3699,7 +3706,7 @@ function clearCreateChatError(report: OnyxEntry<Report>, conciergeReportID: stri
         return;
     }
 
-    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, undefined, true);
+    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, undefined, true);
 }
 
 /**
@@ -4033,7 +4040,7 @@ function doneCheckingPublicRoom() {
     Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
 }
 
-function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined) {
+function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined, currentUserAccountID: number) {
     const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
@@ -4054,7 +4061,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeR
             Navigation.goBack();
         }
 
-        navigateToConciergeChat(conciergeReportID, false, () => true, {forceReplace: true});
+        navigateToConciergeChat(conciergeReportID, currentUserAccountID, false, () => true, {forceReplace: true});
     }
 }
 
@@ -4124,7 +4131,7 @@ function leaveGroupChat(report: Report, shouldClearQuickAction: boolean, current
         },
     ];
 
-    navigateToMostRecentReport(report, conciergeReportID);
+    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID);
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
@@ -4233,7 +4240,7 @@ function leaveRoom(report: Report, currentUserAccountID: number, conciergeReport
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, conciergeReportID);
+    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID);
 }
 
 function buildInviteToRoomOnyxData(report: Report, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
