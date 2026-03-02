@@ -156,10 +156,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     } else if (!isApprover) {
         confirmModalPrompt = translate('workspace.people.removeMemberPrompt', displayName);
     } else if (isApprover) {
-        confirmModalPrompt = translate('workspace.people.removeMemberPromptApprover', {
-            approver: displayName,
-            workspaceOwner: policyOwnerDisplayName,
-        });
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptApprover', displayName, policyOwnerDisplayName);
     }
 
     useEffect(() => {

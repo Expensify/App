@@ -49,7 +49,6 @@ import type {
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
-    ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
@@ -92,9 +91,7 @@ import type {
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
-    UsePlusButtonParams,
     UserIsAlreadyMemberParams,
-    UserSplitParams,
     VacationDelegateParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -111,11 +108,8 @@ import type {
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
-    WaitingOnBankAccountParams,
     WalletAgreementParams,
     WalletProgramParams,
-    WelcomeEnterMagicCodeParams,
-    WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
@@ -131,7 +125,6 @@ import type {
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
-    ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -350,7 +343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verify: 'Verificar',
         yesContinue: 'Sim, continuar',
         websiteExample: 'por exemplo, https://www.expensify.com',
-        zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `por exemplo, ${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: (zipSampleFormat: string) => (zipSampleFormat ? `por exemplo, ${zipSampleFormat}` : ''),
         description: 'Descrição',
         title: 'Título',
         assignee: 'Responsável',
@@ -482,11 +475,11 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceConfirmation: 'Se você sair deste workspace, não poderá enviar despesas para ele.',
         leaveWorkspaceConfirmationAuditor: 'Se você sair deste espaço de trabalho, não poderá visualizar seus relatórios e configurações.',
         leaveWorkspaceConfirmationAdmin: 'Se você sair deste workspace, não poderá mais gerenciar as configurações dele.',
-        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationApprover: (workspaceOwner: string) =>
             `Se você sair deste workspace, você será substituído no fluxo de aprovação por ${workspaceOwner}, o proprietário do workspace.`,
-        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationExporter: (workspaceOwner: string) =>
             `Se você sair deste espaço de trabalho, você será substituído como exportador preferencial por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
-        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
             `Se você sair deste workspace, você será substituído como contato técnico por ${workspaceOwner}, o proprietário do workspace.`,
         leaveWorkspaceReimburser: 'Você não pode sair deste workspace sendo o reembolsador. Defina um novo reembolsador em Workspaces > Fazer ou acompanhar pagamentos e tente novamente.',
         reimbursable: 'Reembolsável',
@@ -551,11 +544,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalNoAccess: {
         title: 'Calma aí',
-        descriptionWithCommand: ({
-            command,
-        }: {
-            command?: string;
-        } = {}) =>
+        descriptionWithCommand: (command?: string) =>
             `Você não tem autorização para realizar esta ação quando o suporte estiver conectado (comando: ${command ?? ''}). Se você acha que o time de Success deveria poder realizar esta ação, inicie uma conversa no Slack.`,
     },
     lockedAccount: {
@@ -765,7 +754,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Seus pagamentos chegam tão rápido quanto você consegue transmitir seu ponto.',
         enterPassword: 'Insira sua senha',
         welcomeNewFace: (login: string) => `${login}, é sempre ótimo ver um novo rosto por aqui!`,
-        welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Insira o código mágico enviado para ${login}. Ele deve chegar em um ou dois minutos.`,
+        welcomeEnterMagicCode: (login: string) => `Insira o código mágico enviado para ${login}. Ele deve chegar em um ou dois minutos.`,
     },
     login: {
         hero: {
@@ -856,8 +845,8 @@ const translations: TranslationDeepObject<typeof en> = {
         askMeAnything: 'Pergunte-me qualquer coisa!',
         sayHello: 'Diga olá!',
         yourSpace: 'Seu espaço',
-        welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bem-vindo(a) a ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Use o botão + para ${additionalText} uma despesa.`,
+        welcomeToRoom: (roomName: string) => `Bem-vindo(a) a ${roomName}!`,
+        usePlusButton: (additionalText: string) => `Use o botão + para ${additionalText} uma despesa.`,
         askConcierge: 'Este é o seu chat com o Concierge, seu agente pessoal de IA. Posso fazer quase tudo, experimente!',
         conciergeSupport: 'Seu agente de IA pessoal',
         create: 'criar',
@@ -890,7 +879,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Esta sala de chat foi arquivada.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) => `Este chat não está mais ativo porque ${displayName} encerrou a conta.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `Este chat não está mais ativo porque ${displayName} encerrou a conta.`,
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: ReportArchiveReasonsMergedParams) =>
             `Este chat não está mais ativo porque ${oldDisplayName} uniu a conta a ${displayName}.`,
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: ReportArchiveReasonsRemovedFromPolicyParams) =>
@@ -1261,7 +1250,7 @@ const translations: TranslationDeepObject<typeof en> = {
         trackedAmount: (formattedAmount: string, comment?: string) => `rastreamento de ${formattedAmount}${comment ? `para ${comment}` : ''}`,
         splitAmount: (amount: string) => `dividir ${amount}`,
         didSplitAmount: (formattedAmount: string, comment?: string) => `dividir ${formattedAmount}${comment ? `para ${comment}` : ''}`,
-        yourSplit: ({amount}: UserSplitParams) => `Sua parte ${amount}`,
+        yourSplit: (amount: string) => `Sua parte ${amount}`,
         payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} deve ${amount}${comment ? `para ${comment}` : ''}`,
         payerOwes: (payer: string) => `${payer} deve:`,
         payerPaidAmount: (amount: number | string, payer?: string) => `${payer ? `${payer} ` : ''}pagou ${amount}`,
@@ -1279,7 +1268,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `aprovado por meio das <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
         forwarded: `aprovado`,
         rejectedThisReport: 'rejeitou este relatório',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `iniciou o pagamento, mas está aguardando ${submitterDisplayName} adicionar uma conta bancária.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `iniciou o pagamento, mas está aguardando ${submitterDisplayName} adicionar uma conta bancária.`,
         adminCanceledRequest: 'cancelou o pagamento',
         canceledRequest: (amount: string, submitterDisplayName: string) => `cancelou o pagamento de ${amount} porque ${submitterDisplayName} não ativou a Carteira Expensify em 30 dias`,
         settledAfterAddedBankAccount: (submitterDisplayName: string, amount: string) => `${submitterDisplayName} adicionou uma conta bancária. O pagamento de ${amount} foi efetuado.`,
@@ -1344,7 +1333,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         dismissReceiptError: 'Dispensar erro',
         dismissReceiptErrorConfirmation: 'Atenção! Ignorar este erro removerá completamente o comprovante que você enviou. Tem certeza?',
-        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
+        waitingOnEnabledWallet: (submitterDisplayName: string) =>
             `começou a acertar as contas. O pagamento está em espera até ${submitterDisplayName} ativar a carteira.`,
         enableWallet: 'Ativar carteira',
         hold: 'Reter',
@@ -2493,7 +2482,7 @@ ${amount} para ${merchant} - ${date}`,
     groupChat: {
         lastMemberTitle: 'Atenção!',
         lastMemberWarning: 'Como você é a última pessoa aqui, sair tornará este chat inacessível para todos os membros. Tem certeza de que deseja sair?',
-        defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `Chat em grupo de ${displayName}`,
+        defaultReportName: (displayName: string) => `Chat em grupo de ${displayName}`,
     },
     languagePage: {
         language: 'Idioma',
@@ -5572,9 +5561,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             invitedBySecondaryLogin: (secondaryLogin: string) => `Adicionado pelo login secundário ${secondaryLogin}.`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Total de membros no workspace: ${count}`,
             importMembers: 'Importar membros',
-            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+            removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `Se você remover ${approver} deste workspace, nós o substituiremos no fluxo de aprovação por ${workspaceOwner}, o proprietário do workspace.`,
-            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+            removeMemberPromptPendingApproval: (memberName: string) =>
                 `${memberName} tem relatórios de despesas pendentes de aprovação. Peça para que os aprove ou assuma o controle dos relatórios antes de removê-lo(a) do espaço de trabalho.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `Você não pode remover ${memberName} deste workspace. Defina um novo reembolsador em Fluxos de trabalho > Fazer ou acompanhar pagamentos e tente novamente.`,

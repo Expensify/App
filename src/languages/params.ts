@@ -10,14 +10,6 @@ type MultifactorAuthenticationTranslationParams = {
     registered?: boolean;
 };
 
-type ZipCodeExampleFormatParams = {
-    zipSampleFormat: string;
-};
-
-type WelcomeEnterMagicCodeParams = {
-    login: string;
-};
-
 type EditActionParams = {
     action: OnyxInputOrEntry<ReportAction>;
 };
@@ -444,9 +436,7 @@ export type {
     WaitingOnBankAccountParams,
     WalletProgramParams,
     WeSentYouMagicSignInLinkParams,
-    WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
-    ZipCodeExampleFormatParams,
     ChangeFieldParams,
     ExportedToIntegrationParams,
     IntegrationsMessageParams,

@@ -37,7 +37,6 @@ import type {
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
-    ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
@@ -80,9 +79,7 @@ import type {
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
-    UsePlusButtonParams,
     UserIsAlreadyMemberParams,
-    UserSplitParams,
     VacationDelegateParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -99,11 +96,8 @@ import type {
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
-    WaitingOnBankAccountParams,
     WalletAgreementParams,
     WalletProgramParams,
-    WelcomeEnterMagicCodeParams,
-    WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
@@ -119,7 +113,6 @@ import type {
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
-    ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -359,7 +352,7 @@ const translations = {
         // @context Provides an example format for a website URL.
         websiteExample: 'e.g. https://www.expensify.com',
         // @context Provides an example format for a ZIP/postal code.
-        zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: (zipSampleFormat: string) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
         title: 'Title',
         assignee: 'Assignee',
@@ -503,11 +496,11 @@ const translations = {
         leaveWorkspaceConfirmation: "If you leave this workspace, you won't be able to submit expenses to it.",
         leaveWorkspaceConfirmationAuditor: "If you leave this workspace, you won't be able to view its reports and settings.",
         leaveWorkspaceConfirmationAdmin: "If you leave this workspace, you won't be able to manage its settings.",
-        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationApprover: (workspaceOwner: string) =>
             `If you leave this workspace, you'll be replaced in the approval workflow by ${workspaceOwner}, the workspace owner.`,
-        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationExporter: (workspaceOwner: string) =>
             `If you leave this workspace, you'll be replaced as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
-        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
             `If you leave this workspace, you'll be replaced as the technical contact with ${workspaceOwner}, the workspace owner.`,
         leaveWorkspaceReimburser: "You can't leave this workspace as the reimburser. Please set a new reimburser in Workspaces > Make or track payments, then try again.",
         reimbursable: 'Reimbursable',
@@ -572,7 +565,7 @@ const translations = {
     },
     supportalNoAccess: {
         title: 'Not so fast',
-        descriptionWithCommand: ({command}: {command?: string} = {}) =>
+        descriptionWithCommand: (command?: string) =>
             `You are not authorized to take this action when support logged in (command: ${command ?? ''}). If you think that Success should be able to take this action, please start a conversation in Slack.`,
     },
     lockedAccount: {
@@ -781,7 +774,7 @@ const translations = {
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         enterPassword: 'Please enter your password',
         welcomeNewFace: (login: string) => `${login}, it's always great to see a new face around here!`,
-        welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
+        welcomeEnterMagicCode: (login: string) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
     },
     login: {
         hero: {
@@ -871,8 +864,8 @@ const translations = {
         askMeAnything: 'Ask me anything!',
         sayHello: 'Say hello!',
         yourSpace: 'Your space',
-        welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the + button to ${additionalText} an expense.`,
+        welcomeToRoom: (roomName: string) => `Welcome to ${roomName}!`,
+        usePlusButton: (additionalText: string) => ` Use the + button to ${additionalText} an expense.`,
         askConcierge: 'This is your chat with Concierge, your personal AI agent. I can do almost anything, try me!',
         conciergeSupport: 'Your personal AI agent',
         create: 'create',
@@ -905,7 +898,7 @@ const translations = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) => `This chat is no longer active because ${displayName} closed their account.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `This chat is no longer active because ${displayName} closed their account.`,
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: ReportArchiveReasonsMergedParams) =>
             `This chat is no longer active because ${oldDisplayName} has merged their account with ${displayName}.`,
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: ReportArchiveReasonsRemovedFromPolicyParams) =>
@@ -1283,7 +1276,7 @@ const translations = {
         trackedAmount: (formattedAmount: string, comment?: string) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: (amount: string) => `split ${amount}`,
         didSplitAmount: (formattedAmount: string, comment?: string) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
-        yourSplit: ({amount}: UserSplitParams) => `Your split ${amount}`,
+        yourSplit: (amount: string) => `Your split ${amount}`,
         payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} owes ${amount}${comment ? ` for ${comment}` : ''}`,
         payerOwes: (payer: string) => `${payer} owes: `,
         payerPaidAmount: (amount: number | string, payer?: string) => `${payer ? `${payer} ` : ''}paid ${amount}`,
@@ -1301,7 +1294,7 @@ const translations = {
         automaticallyForwarded: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
         forwarded: `approved`,
         rejectedThisReport: 'rejected this report',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started payment, but is waiting for ${submitterDisplayName} to add a bank account.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a bank account.`,
         adminCanceledRequest: 'canceled the payment',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
@@ -1367,7 +1360,7 @@ const translations = {
         },
         dismissReceiptError: 'Dismiss error',
         dismissReceiptErrorConfirmation: 'Heads up! Dismissing this error will remove your uploaded receipt entirely. Are you sure?',
-        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
+        waitingOnEnabledWallet: (submitterDisplayName: string) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
         hold: 'Hold',
         unhold: 'Remove hold',
@@ -2526,7 +2519,7 @@ const translations = {
     groupChat: {
         lastMemberTitle: 'Heads up!',
         lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all members. Are you sure you want to leave?",
-        defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `${displayName}'s group chat`,
+        defaultReportName: (displayName: string) => `${displayName}'s group chat`,
     },
     languagePage: {
         language: 'Language',
@@ -5571,9 +5564,9 @@ const translations = {
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Total workspace members: ${count}`,
             importMembers: 'Import members',
-            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+            removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `If you remove ${approver} from this workspace, we'll replace them in the approval workflow with ${workspaceOwner}, the workspace owner.`,
-            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+            removeMemberPromptPendingApproval: (memberName: string) =>
                 `${memberName} has outstanding expense reports to approve. Please ask them to approve, or take control of their reports before removing them from the workspace.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `You can't remove ${memberName} from this workspace. Please set a new reimburser in Workflows > Make or track payments, then try again.`,

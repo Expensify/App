@@ -49,7 +49,6 @@ import type {
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
-    ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
@@ -92,9 +91,7 @@ import type {
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
-    UsePlusButtonParams,
     UserIsAlreadyMemberParams,
-    UserSplitParams,
     VacationDelegateParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -111,11 +108,8 @@ import type {
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
-    WaitingOnBankAccountParams,
     WalletAgreementParams,
     WalletProgramParams,
-    WelcomeEnterMagicCodeParams,
-    WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
@@ -131,7 +125,6 @@ import type {
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
-    ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -350,7 +343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verify: '验证',
         yesContinue: '是，继续',
         websiteExample: '例如：https://www.expensify.com',
-        zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `例如：${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: (zipSampleFormat: string) => (zipSampleFormat ? `例如：${zipSampleFormat}` : ''),
         description: '描述',
         title: '标题',
         assignee: '受托人',
@@ -482,9 +475,9 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceConfirmation: '如果你离开此工作区，将无法再向其提交报销。',
         leaveWorkspaceConfirmationAuditor: '如果你离开此工作区，将无法查看其报表和设置。',
         leaveWorkspaceConfirmationAdmin: '如果你离开此工作区，将无法管理其设置。',
-        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) => `如果你离开此工作区，你在审批流程中的角色将由工作区所有者 ${workspaceOwner} 接替。`,
-        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) => `如果你离开此工作区，你将被工作区所有者 ${workspaceOwner} 取代，成为首选导出人。`,
-        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) => `如果你离开此工作区，你将由工作区所有者 ${workspaceOwner} 接任技术联系人。`,
+        leaveWorkspaceConfirmationApprover: (workspaceOwner: string) => `如果你离开此工作区，你在审批流程中的角色将由工作区所有者 ${workspaceOwner} 接替。`,
+        leaveWorkspaceConfirmationExporter: (workspaceOwner: string) => `如果你离开此工作区，你将被工作区所有者 ${workspaceOwner} 取代，成为首选导出人。`,
+        leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) => `如果你离开此工作区，你将由工作区所有者 ${workspaceOwner} 接任技术联系人。`,
         leaveWorkspaceReimburser: '作为报销人，您无法离开此工作区。请前往“工作区”>“进行或跟踪付款”中设置新的报销人，然后重试。',
         reimbursable: '可报销',
         editYourProfile: '编辑个人资料',
@@ -548,11 +541,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalNoAccess: {
         title: '先别急',
-        descriptionWithCommand: ({
-            command,
-        }: {
-            command?: string;
-        } = {}) => `当以支持身份登录时，你无权执行此操作（命令：${command ?? ''}）。如果你认为 Success 应该能够执行此操作，请在 Slack 中发起一次会话。`,
+        descriptionWithCommand: (command?: string) => `当以支持身份登录时，你无权执行此操作（命令：${command ?? ''}）。如果你认为 Success 应该能够执行此操作，请在 Slack 中发起一次会话。`,
     },
     lockedAccount: {
         title: '账户已锁定',
@@ -757,7 +746,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: '只要你把理由说清楚，款项就能同样快地到你手中。',
         enterPassword: '请输入您的密码',
         welcomeNewFace: (login: string) => `${login}，很高兴在这里见到新面孔！`,
-        welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `请输入发送到 ${login} 的魔法验证码。它应会在一两分钟内送达。`,
+        welcomeEnterMagicCode: (login: string) => `请输入发送到 ${login} 的魔法验证码。它应会在一两分钟内送达。`,
     },
     login: {
         hero: {
@@ -846,8 +835,8 @@ const translations: TranslationDeepObject<typeof en> = {
         askMeAnything: '尽管问我任何问题！',
         sayHello: '打个招呼！',
         yourSpace: '你的空间',
-        welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到 ${roomName}！`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用 + 按钮来${additionalText}一笔费用。`,
+        welcomeToRoom: (roomName: string) => `欢迎来到 ${roomName}！`,
+        usePlusButton: (additionalText: string) => `使用 + 按钮来${additionalText}一笔费用。`,
         askConcierge: '这是您与 Concierge（您的个人 AI 代理）的聊天。我几乎什么都能做，来试试吧！',
         conciergeSupport: '您的专属AI助手',
         create: '创建',
@@ -879,7 +868,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: '此聊天室已被归档。',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) => `此聊天已不再活动，因为 ${displayName} 已关闭其账户。`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `此聊天已不再活动，因为 ${displayName} 已关闭其账户。`,
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: ReportArchiveReasonsMergedParams) =>
             `此聊天已不再活跃，因为${oldDisplayName}已将其账户与${displayName}合并。`,
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: ReportArchiveReasonsRemovedFromPolicyParams) =>
@@ -1239,7 +1228,7 @@ const translations: TranslationDeepObject<typeof en> = {
         trackedAmount: (formattedAmount: string, comment?: string) => `跟踪 ${formattedAmount}${comment ? `用于 ${comment}` : ''}`,
         splitAmount: (amount: string) => `拆分 ${amount}`,
         didSplitAmount: (formattedAmount: string, comment?: string) => `拆分 ${formattedAmount}${comment ? `用于 ${comment}` : ''}`,
-        yourSplit: ({amount}: UserSplitParams) => `您分摊的${amount}`,
+        yourSplit: (amount: string) => `您分摊的${amount}`,
         payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} 欠款 ${amount}${comment ? `用于 ${comment}` : ''}`,
         payerOwes: (payer: string) => `${payer} 应付：`,
         payerPaidAmount: (amount: number | string, payer?: string) => `${payer ? `${payer} ` : ''}已支付 ${amount}`,
@@ -1257,7 +1246,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
         forwarded: `已批准`,
         rejectedThisReport: '已拒绝此报表',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `已开始付款，但正在等待${submitterDisplayName}添加银行账户。`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `已开始付款，但正在等待${submitterDisplayName}添加银行账户。`,
         adminCanceledRequest: '已取消付款',
         canceledRequest: (amount: string, submitterDisplayName: string) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify 钱包`,
         settledAfterAddedBankAccount: (submitterDisplayName: string, amount: string) => `${submitterDisplayName} 已添加了一个银行账户。已完成 ${amount} 付款。`,
@@ -1321,7 +1310,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒：关闭此错误将彻底删除你上传的收据。确定要继续吗？',
-        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `已开始结算。在 ${submitterDisplayName} 启用其钱包之前，付款将被暂挂。`,
+        waitingOnEnabledWallet: (submitterDisplayName: string) => `已开始结算。在 ${submitterDisplayName} 启用其钱包之前，付款将被暂挂。`,
         enableWallet: '启用钱包',
         hold: '暂挂',
         unhold: '解除保留',
@@ -2447,7 +2436,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     groupChat: {
         lastMemberTitle: '注意！',
         lastMemberWarning: '由于你是这里的最后一位成员，一旦离开，所有成员都将无法再访问此聊天。确定要离开吗？',
-        defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `${displayName} 的群聊`,
+        defaultReportName: (displayName: string) => `${displayName} 的群聊`,
     },
     languagePage: {
         language: '语言',
@@ -5456,9 +5445,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             invitedBySecondaryLogin: (secondaryLogin: string) => `由次要登录账号 ${secondaryLogin} 添加。`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `工作区成员总数：${count}`,
             importMembers: '导入成员',
-            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+            removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `如果你将 ${approver} 从此工作区中移除，我们会在审批流程中用工作区所有者 ${workspaceOwner} 替换 TA。`,
-            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) => `${memberName} 还有待审批的报销报告。请先让 TA 审批，或在将其从工作区中移除之前接管 TA 的报告。`,
+            removeMemberPromptPendingApproval: (memberName: string) => `${memberName} 还有待审批的报销报告。请先让 TA 审批，或在将其从工作区中移除之前接管 TA 的报告。`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) => `您无法将${memberName}从此工作区中移除。请在“工作流”>“进行或跟踪付款”中设置新的报销人，然后重试。`,
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `如果您将 ${memberName} 从此工作区中移除，我们会将其首选导出人替换为工作区所有者 ${workspaceOwner}。`,

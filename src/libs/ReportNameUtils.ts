@@ -245,7 +245,7 @@ function getGroupChatName(
             .concat(shouldAddEllipsis ? '...' : '');
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber})});
+    return translateLocal('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber}));
 }
 
 /**

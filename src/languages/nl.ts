@@ -49,7 +49,6 @@ import type {
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
-    ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
@@ -92,9 +91,7 @@ import type {
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
-    UsePlusButtonParams,
     UserIsAlreadyMemberParams,
-    UserSplitParams,
     VacationDelegateParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -111,11 +108,8 @@ import type {
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
-    WaitingOnBankAccountParams,
     WalletAgreementParams,
     WalletProgramParams,
-    WelcomeEnterMagicCodeParams,
-    WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
@@ -131,7 +125,6 @@ import type {
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
-    ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -350,7 +343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verify: 'Verifiëren',
         yesContinue: 'Ja, ga door',
         websiteExample: 'bijv. https://www.expensify.com',
-        zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `bijv. ${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: (zipSampleFormat: string) => (zipSampleFormat ? `bijv. ${zipSampleFormat}` : ''),
         description: 'Beschrijving',
         title: 'Titel',
         assignee: 'Toegewezene',
@@ -482,12 +475,12 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceConfirmation: 'Als je deze workspace verlaat, kun je er geen declaraties meer naartoe indienen.',
         leaveWorkspaceConfirmationAuditor: 'Als je deze workspace verlaat, kun je de bijbehorende rapporten en instellingen niet meer bekijken.',
         leaveWorkspaceConfirmationAdmin: 'Als je deze workspace verlaat, kun je de instellingen ervan niet meer beheren.',
-        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationApprover: (workspaceOwner: string) =>
             `Als je deze workspace verlaat, word je in de goedkeuringsworkflow vervangen door ${workspaceOwner}, de eigenaar van de workspace.`,
-        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationExporter: (workspaceOwner: string) =>
             `Als je deze workspace verlaat, word je als voorkeurs-exporteur vervangen door ${workspaceOwner}, de eigenaar van de workspace.`,
-        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
-            `Als je deze workspace verlaat, word je als technisch contactpersoon vervangen door ${workspaceOwner}, de eigenaar van de workspace.`,
+        leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
+            `Als je deze workfspace verlaat, word je als technisch contactpersoon vervangen door ${workspaceOwner}, de eigenaar van de workspace.`,
         leaveWorkspaceReimburser:
             'Je kunt deze workspace niet verlaten als terugbetaler. Stel een nieuwe terugbetaler in via Workspaces > Betalingen doen of volgen en probeer het dan opnieuw.',
         reimbursable: 'Vergoedbaar',
@@ -552,11 +545,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
-        descriptionWithCommand: ({
-            command,
-        }: {
-            command?: string;
-        } = {}) =>
+        descriptionWithCommand: (command?: string) =>
             `Je bent niet gemachtigd om deze actie uit te voeren wanneer support is ingelogd (opdracht: ${command ?? ''}). Als je denkt dat Success deze actie zou moeten kunnen uitvoeren, start dan een gesprek in Slack.`,
     },
     lockedAccount: {
@@ -765,7 +754,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Je betalingen komen net zo snel bij je aan als jij je punt kunt maken.',
         enterPassword: 'Voer uw wachtwoord in',
         welcomeNewFace: (login: string) => `${login}, het is altijd leuk om een nieuw gezicht hier te zien!`,
-        welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Voer de magische code in die naar ${login} is gestuurd. Deze zou binnen een tot twee minuten moeten aankomen.`,
+        welcomeEnterMagicCode: (login: string) => `Voer de magische code in die naar ${login} is gestuurd. Deze zou binnen een tot twee minuten moeten aankomen.`,
     },
     login: {
         hero: {
@@ -856,8 +845,8 @@ const translations: TranslationDeepObject<typeof en> = {
         askMeAnything: 'Vraag me alles!',
         sayHello: 'Zeg hallo!',
         yourSpace: 'Jouw ruimte',
-        welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welkom bij ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Gebruik de +-knop om een uitgave te ${additionalText}.`,
+        welcomeToRoom: (roomName: string) => `Welkom bij ${roomName}!`,
+        usePlusButton: (additionalText: string) => `Gebruik de +-knop om een uitgave te ${additionalText}.`,
         askConcierge: 'Dit is je chat met Concierge, je persoonlijke AI-agent. Ik kan bijna alles, probeer het maar!',
         conciergeSupport: 'Jouw persoonlijke AI-agent',
         create: 'maken',
@@ -890,7 +879,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Deze chatruimte is gearchiveerd.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) => `Deze chat is niet meer actief omdat ${displayName} de account heeft gesloten.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `Deze chat is niet meer actief omdat ${displayName} de account heeft gesloten.`,
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: ReportArchiveReasonsMergedParams) =>
             `Deze chat is niet langer actief omdat ${oldDisplayName} zijn of haar account heeft samengevoegd met ${displayName}.`,
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: ReportArchiveReasonsRemovedFromPolicyParams) =>
@@ -1262,7 +1251,7 @@ const translations: TranslationDeepObject<typeof en> = {
         trackedAmount: (formattedAmount: string, comment?: string) => `volgt ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         splitAmount: (amount: string) => `verdeel ${amount}`,
         didSplitAmount: (formattedAmount: string, comment?: string) => `splitsen ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
-        yourSplit: ({amount}: UserSplitParams) => `Jouw deel ${amount}`,
+        yourSplit: (amount: string) => `Jouw deel ${amount}`,
         payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} is ${amount}${comment ? `voor ${comment}` : ''} verschuldigd`,
         payerOwes: (payer: string) => `${payer} is nog verschuldigd:`,
         payerPaidAmount: (amount: number | string, payer?: string) => `${payer ? `${payer} ` : ''}heeft ${amount} betaald`,
@@ -1280,7 +1269,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `goedgekeurd via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimteregels</a>`,
         forwarded: `goedgekeurd`,
         rejectedThisReport: 'heeft dit rapport afgekeurd',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `is een betaling gestart, maar wacht tot ${submitterDisplayName} een bankrekening toevoegt.`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `is een betaling gestart, maar wacht tot ${submitterDisplayName} een bankrekening toevoegt.`,
         adminCanceledRequest: 'heeft de betaling geannuleerd',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `heeft de betaling van ${amount} geannuleerd, omdat ${submitterDisplayName} hun Expensify Wallet niet binnen 30 dagen heeft geactiveerd`,
@@ -1347,7 +1336,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         dismissReceiptError: 'Foutmelding sluiten',
         dismissReceiptErrorConfirmation: 'Let op! Dit foutbericht negeren verwijdert je geüploade bon volledig. Weet je het zeker?',
-        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
+        waitingOnEnabledWallet: (submitterDisplayName: string) =>
             `is begonnen met afrekenen. Betaling wordt vastgehouden totdat ${submitterDisplayName} hun wallet inschakelt.`,
         enableWallet: 'Portemonnee inschakelen',
         hold: 'Vasthouden',
@@ -2500,7 +2489,7 @@ ${amount} voor ${merchant} - ${date}`,
     groupChat: {
         lastMemberTitle: 'Let op!',
         lastMemberWarning: 'Omdat jij de laatste persoon hier bent, wordt deze chat ontoegankelijk voor alle leden als je vertrekt. Weet je zeker dat je wilt vertrekken?',
-        defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `Groepschat van ${displayName}`,
+        defaultReportName: (displayName: string) => `Groepschat van ${displayName}`,
     },
     languagePage: {
         language: 'Taal',
@@ -5572,9 +5561,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             invitedBySecondaryLogin: (secondaryLogin: string) => `Toegevoegd door secundair login ${secondaryLogin}.`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Totaal aantal werkruimteleden: ${count}`,
             importMembers: 'Leden importeren',
-            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+            removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `Als je ${approver} uit deze workspace verwijdert, vervangen we diegene in de goedkeuringsworkflow door ${workspaceOwner}, de eigenaar van de workspace.`,
-            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+            removeMemberPromptPendingApproval: (memberName: string) =>
                 `${memberName} heeft openstaande onkostendeclaraties om goed te keuren. Vraag hen deze goed te keuren, of neem de controle over hun declaraties voordat je hen uit de workspace verwijdert.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `Je kunt ${memberName} niet uit deze werkruimte verwijderen. Stel eerst een nieuwe terugbetaler in via Workflows > Betalingen doen of volgen en probeer het dan opnieuw.`,

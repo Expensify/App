@@ -75,7 +75,7 @@ function AddressForm({
 
     const zipSampleFormat = (country && (CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
 
-    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
+    const zipFormat = translate('common.zipCodeExampleFormat', zipSampleFormat);
 
     const isUSAForm = country === CONST.COUNTRY.US;
 

@@ -216,7 +216,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verify: 'Verifique',
         yesContinue: 'Sí, continuar',
         websiteExample: 'p. ej. https://www.expensify.com',
-        zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: (zipSampleFormat: string) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
         description: 'Descripción',
         title: 'Título',
         assignee: 'Asignado a',
@@ -347,11 +347,11 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceConfirmation: 'Si sales de este espacio de trabajo, no podrás enviar gastos en él.',
         leaveWorkspaceConfirmationAuditor: 'Si sales de este espacio de trabajo, no podrás ver sus informes y configuraciones.',
         leaveWorkspaceConfirmationAdmin: 'Si sales de este espacio de trabajo, no podrás gestionar su configuración.',
-        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationApprover: (workspaceOwner: string) =>
             `Si sales de este espacio de trabajo, serás reemplazado en el flujo de aprobación por ${workspaceOwner}, el propietario del espacio de trabajo.`,
-        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationExporter: (workspaceOwner: string) =>
             `Si sales de este espacio de trabajo, serás reemplazado como el exportador preferido por ${workspaceOwner}, el propietario del espacio de trabajo.`,
-        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
             `Si dejas este espacio de trabajo, serás reemplazado como el contacto técnico por ${workspaceOwner}, el propietario del espacio de trabajo.`,
         leaveWorkspaceReimburser:
             'No puedes salir de este espacio de trabajo como reembolsador. Por favor, establece un nuevo reembolsador en Espacios de trabajo > Realizar o rastrear pagos y luego inténtalo de nuevo.',
@@ -417,7 +417,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalNoAccess: {
         title: 'No tan rápido',
-        descriptionWithCommand: ({command} = {}) =>
+        descriptionWithCommand: (command?) =>
             `No estás autorizado para realizar esta acción cuando el soporte ha iniciado sesión (comando: ${command ?? ''}). Si crees que Success debería poder realizar esta acción, inicia una conversación en Slack.`,
     },
     lockedAccount: {
@@ -613,7 +613,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         enterPassword: 'Por favor, introduce tu contraseña',
         welcomeNewFace: (login) => `${login}, siempre es genial ver una cara nueva por aquí!`,
-        welcomeEnterMagicCode: ({login}) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
+        welcomeEnterMagicCode: (login) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
     },
     login: {
         hero: {
@@ -705,8 +705,8 @@ const translations: TranslationDeepObject<typeof en> = {
         askMeAnything: '¡Pregúntame lo que quieras!',
         sayHello: '¡Saluda!',
         yourSpace: 'Tu espacio',
-        welcomeToRoom: ({roomName}) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: ({additionalText}) => ` Usa el botón + para ${additionalText} un gasto`,
+        welcomeToRoom: (roomName) => `¡Bienvenido a ${roomName}!`,
+        usePlusButton: (additionalText) => ` Usa el botón + para ${additionalText} un gasto`,
         askConcierge: 'Este es tu chat con Concierge, tu agente personal de IA. Puedo hacer casi cualquier cosa, ¡pruébame!',
         conciergeSupport: 'Tu agente personal de IA',
         create: 'crear',
@@ -739,7 +739,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Esta sala de chat ha sido eliminada.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}) => `Este chat está desactivado porque ${displayName} ha cerrado tu cuenta.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName) => `Este chat está desactivado porque ${displayName} ha cerrado tu cuenta.`,
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) => `Este chat está desactivado porque ${oldDisplayName} ha combinado tu cuenta con ${displayName}`,
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}) =>
             shouldUseYou
@@ -1114,7 +1114,7 @@ const translations: TranslationDeepObject<typeof en> = {
         trackedAmount: (formattedAmount, comment) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: (amount) => `dividir ${amount}`,
         didSplitAmount: (formattedAmount, comment) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
-        yourSplit: ({amount}) => `Tu parte ${amount}`,
+        yourSplit: (amount) => `Tu parte ${amount}`,
         payerOwesAmount: (amount, payer, comment) => `${payer} debe ${amount}${comment ? ` para ${comment}` : ''}`,
         payerOwes: (payer) => `${payer} debe: `,
         payerPaidAmount: (amount, payer) => `${payer ? `${payer} ` : ''}pagó ${amount}`,
@@ -1132,7 +1132,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `aprobó mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
         forwarded: `aprobó`,
         rejectedThisReport: 'rechazó este informe',
-        waitingOnBankAccount: ({submitterDisplayName}) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria.`,
+        waitingOnBankAccount: (submitterDisplayName) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: 'canceló el pago',
         canceledRequest: (amount, submitterDisplayName) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: (submitterDisplayName, amount) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
@@ -1200,7 +1200,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         dismissReceiptError: 'Descartar error',
         dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',
-        waitingOnEnabledWallet: ({submitterDisplayName}) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
+        waitingOnEnabledWallet: (submitterDisplayName) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
         enableWallet: 'Habilitar billetera',
         holdExpense: () => ({
             one: 'Retener gasto',
@@ -2346,7 +2346,7 @@ ${amount} para ${merchant} - ${date}`,
     groupChat: {
         lastMemberTitle: '¡Atención!',
         lastMemberWarning: 'Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los miembros. ¿Estás seguro de que quieres salir del chat?',
-        defaultReportName: ({displayName}) => `Chat de grupo de ${displayName}`,
+        defaultReportName: (displayName) => `Chat de grupo de ${displayName}`,
     },
     languagePage: {
         language: 'Idioma',
@@ -5417,7 +5417,7 @@ ${amount} para ${merchant} - ${date}`,
             invitedBySecondaryLogin: (secondaryLogin) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             workspaceMembersCount: ({count}) => `Total de miembros del espacio de trabajo: ${count}`,
             importMembers: 'Importar miembros',
-            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+            removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `Si eliminas a ${approver} de este espacio de trabajo, lo reemplazaremos en el flujo de aprobación por ${workspaceOwner}, el propietario del espacio de trabajo.`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `No puedes eliminar a ${memberName} de este espacio de trabajo. Por favor, establece un nuevo reembolsador en Flujos de trabajo > Realizar o rastrear pagos y vuelve a intentarlo.`,
@@ -5425,7 +5425,7 @@ ${amount} para ${merchant} - ${date}`,
                 `Si eliminas a ${memberName} de este espacio de trabajo, lo reemplazaremos como el exportador preferido por ${workspaceOwner}, el propietario del espacio de trabajo.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `Si eliminas a ${memberName} de este espacio de trabajo, lo reemplazaremos como contacto técnico por ${workspaceOwner}, el propietario del espacio de trabajo.`,
-            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+            removeMemberPromptPendingApproval: (memberName: string) =>
                 `${memberName} tiene gastos pendientes por aprobar. Por favor, pídeles que aprueben o tomen el control de sus informes antes de eliminarlos del espacio de trabajo.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} tiene un informe en proceso pendiente de acción. Pídele que complete la acción requerida antes de eliminarlo del espacio de trabajo.`,

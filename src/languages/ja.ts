@@ -49,7 +49,6 @@ import type {
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
-    ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
@@ -92,9 +91,7 @@ import type {
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
-    UsePlusButtonParams,
     UserIsAlreadyMemberParams,
-    UserSplitParams,
     VacationDelegateParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -111,11 +108,8 @@ import type {
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
-    WaitingOnBankAccountParams,
     WalletAgreementParams,
     WalletProgramParams,
-    WelcomeEnterMagicCodeParams,
-    WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
@@ -131,7 +125,6 @@ import type {
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
-    ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -350,7 +343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         verify: '確認',
         yesContinue: 'はい、続行',
         websiteExample: '例：https://www.expensify.com',
-        zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `例：${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: (zipSampleFormat: string) => (zipSampleFormat ? `例：${zipSampleFormat}` : ''),
         description: '説明',
         title: 'タイトル',
         assignee: '担当者',
@@ -482,11 +475,11 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceConfirmation: 'このワークスペースを退出すると、そこへ経費を提出できなくなります。',
         leaveWorkspaceConfirmationAuditor: 'このワークスペースを退出すると、そのレポートや設定を表示できなくなります。',
         leaveWorkspaceConfirmationAdmin: 'このワークスペースを退出すると、その設定を管理できなくなります。',
-        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationApprover: (workspaceOwner: string) =>
             `このワークスペースを退出すると、あなたの承認ワークフロー上での役割はワークスペースのオーナーである${workspaceOwner}に引き継がれます。`,
-        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationExporter: (workspaceOwner: string) =>
             `このワークスペースを退出すると、優先エクスポーターとしてあなたの代わりにワークスペースのオーナーである${workspaceOwner}が設定されます。`,
-        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationTechContact: (workspaceOwner: string) =>
             `このワークスペースを退出すると、あなたに代わってワークスペースのオーナーである${workspaceOwner}が技術連絡先になります。`,
         leaveWorkspaceReimburser:
             '支払担当者であるため、このワークスペースを退出することはできません。［ワークスペース］＞［支払いの作成または追跡］で新しい支払担当者を設定してから、もう一度お試しください。',
@@ -552,11 +545,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
-        descriptionWithCommand: ({
-            command,
-        }: {
-            command?: string;
-        } = {}) =>
+        descriptionWithCommand: (command?: string) =>
             `サポートとしてログインしている場合、この操作を行う権限がありません（コマンド: ${command ?? ''}）。Success がこの操作を行えるようにすべきだと思われる場合は、Slack で会話を開始してください。`,
     },
     lockedAccount: {
@@ -762,7 +751,7 @@ const translations: TranslationDeepObject<typeof en> = {
         phrase3: 'あなたが要点を伝える速さで、支払いもあなたのもとに届きます。',
         enterPassword: 'パスワードを入力してください',
         welcomeNewFace: (login: string) => `${login} さん、ここで新しい顔にお会いできるのはいつでもうれしいです！`,
-        welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `${login} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
+        welcomeEnterMagicCode: (login: string) => `${login} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
     },
     login: {
         hero: {
@@ -853,8 +842,8 @@ const translations: TranslationDeepObject<typeof en> = {
         askMeAnything: '何でも聞いてください！',
         sayHello: '挨拶しよう！',
         yourSpace: 'あなたのスペース',
-        welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName} へようこそ！`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `+ ボタンを使って経費を${additionalText}します。`,
+        welcomeToRoom: (roomName: string) => `${roomName} へようこそ！`,
+        usePlusButton: (additionalText: string) => `+ ボタンを使って経費を${additionalText}します。`,
         askConcierge: 'こちらはあなた専属のAIエージェント、Conciergeとのチャットです。ほぼ何でもできますので、お試しください！',
         conciergeSupport: 'あなた専用のAIエージェント',
         create: '作成',
@@ -887,7 +876,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'このチャットルームはアーカイブされました。',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) => `${displayName} がアカウントを閉鎖したため、このチャットは現在利用できません。`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `${displayName} がアカウントを閉鎖したため、このチャットは現在利用できません。`,
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: ReportArchiveReasonsMergedParams) =>
             `このチャットは、${oldDisplayName} が自分のアカウントを ${displayName} と統合したため、現在はアクティブではありません。`,
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: ReportArchiveReasonsRemovedFromPolicyParams) =>
@@ -1258,7 +1247,7 @@ const translations: TranslationDeepObject<typeof en> = {
         trackedAmount: (formattedAmount: string, comment?: string) => `追跡中 ${formattedAmount}${comment ? `${comment}用` : ''}`,
         splitAmount: (amount: string) => `${amount} を分割`,
         didSplitAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `${comment}用` : ''} を分割`,
-        yourSplit: ({amount}: UserSplitParams) => `あなたの分担額 ${amount}`,
+        yourSplit: (amount: string) => `あなたの分担額 ${amount}`,
         payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} は ${amount}${comment ? `${comment}用` : ''} を支払う必要があります`,
         payerOwes: (payer: string) => `${payer} の負担額：`,
         payerPaidAmount: (amount: number | string, payer?: string) => `${payer ? `${payer} ` : ''}が${amount}を支払いました`,
@@ -1276,7 +1265,7 @@ const translations: TranslationDeepObject<typeof en> = {
         automaticallyForwarded: `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>により承認済み`,
         forwarded: `承認済み`,
         rejectedThisReport: 'このレポートを却下しました',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `支払いを開始しましたが、${submitterDisplayName}が銀行口座を追加するのを待っています。`,
+        waitingOnBankAccount: (submitterDisplayName: string) => `支払いを開始しましたが、${submitterDisplayName}が銀行口座を追加するのを待っています。`,
         adminCanceledRequest: '支払いをキャンセルしました',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${submitterDisplayName} が30日以内に Expensify Wallet を有効化しなかったため、${amount} の支払いをキャンセルしました`,
@@ -1343,7 +1332,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         dismissReceiptError: 'エラーを閉じる',
         dismissReceiptErrorConfirmation: 'ご注意ください！このエラーを閉じると、アップロード済みのレシートが完全に削除されます。本当に続行しますか？',
-        waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `清算を開始しました。${submitterDisplayName} がウォレットを有効にするまで、支払いは保留されます。`,
+        waitingOnEnabledWallet: (submitterDisplayName: string) => `清算を開始しました。${submitterDisplayName} がウォレットを有効にするまで、支払いは保留されます。`,
         enableWallet: 'ウォレットを有効にする',
         hold: '保留',
         unhold: '保留を解除',
@@ -2484,7 +2473,7 @@ ${date} の ${merchant} への ${amount}`,
     groupChat: {
         lastMemberTitle: 'ご注意ください！',
         lastMemberWarning: 'ここにいる最後のメンバーのため、退出するとこのチャットには誰もアクセスできなくなります。本当に退出してもよろしいですか？',
-        defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `${displayName}のグループチャット`,
+        defaultReportName: (displayName: string) => `${displayName}のグループチャット`,
     },
     languagePage: {
         language: '言語',
@@ -5537,9 +5526,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             invitedBySecondaryLogin: (secondaryLogin: string) => `セカンダリログイン${secondaryLogin}によって追加されました。`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `ワークスペースメンバー合計：${count}`,
             importMembers: 'メンバーをインポート',
-            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+            removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `このワークスペースから${approver}を削除すると、承認ワークフロー内ではワークスペースのオーナーである${workspaceOwner}に置き換えられます。`,
-            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+            removeMemberPromptPendingApproval: (memberName: string) =>
                 `${memberName} には未承認の経費精算書があります。ワークスペースから削除する前に、承認してもらうか、その精算書の管理を引き継いでください。`,
             removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `このワークスペースから${memberName}を削除することはできません。ワークフロー ＞ 支払いの作成または追跡 で新しい払い戻し担当者を設定してから、もう一度お試しください。`,

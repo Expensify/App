@@ -1274,7 +1274,7 @@ function PureReportActionItem({
 
             children = (
                 <ReportActionItemBasicMessage
-                    message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
+                    message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', submitterDisplayName)}
                 >
                     <>
                         {missingPaymentMethod === 'bankAccount' && (
