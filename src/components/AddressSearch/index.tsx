@@ -15,13 +15,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setUserLocation} from '@libs/actions/UserLocation';
 import {getCommandURL} from '@libs/ApiUtils';
-import * as Browser from '@libs/Browser';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlacesUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+import { getBrowser } from '@libs/Browser';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 import type {AddressSearchProps, PredefinedPlace} from './types';
@@ -99,7 +99,7 @@ function AddressSearch({
     const containerRef = useRef<View>(null);
     const [suggestionsAnnouncement, setSuggestionsAnnouncement] = useState({id: 0, text: ''});
     const lastAnnouncementKeyRef = useRef('');
-    const isMacOSChromeWeb = Platform.OS === CONST.PLATFORM.WEB && Browser.getBrowser() === CONST.BROWSER.CHROME && /Macintosh|Mac OS X/i.test(navigator.userAgent);
+    const isMacOSChromeWeb = Platform.OS === CONST.PLATFORM.WEB && getBrowser() === CONST.BROWSER.CHROME && /Macintosh|Mac OS X/i.test(navigator.userAgent);
     const query = useMemo(
         () => ({
             language: preferredLocale,

@@ -19,9 +19,9 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import {getBrowser} from '@libs/Browser/index.website';
 import Footer from './components/Footer';
 import ListHeader from './components/ListHeader';
 import TextInput from './components/TextInput';
@@ -112,7 +112,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [suggestionsAnnouncement, setSuggestionsAnnouncement] = useState({id: 0, text: ''});
     const lastAnnouncementKeyRef = useRef('');
-    const isMacOSChromeWeb = Platform.OS === CONST.PLATFORM.WEB && Browser.getBrowser() === CONST.BROWSER.CHROME && /Macintosh|Mac OS X/i.test(navigator.userAgent);
+    const isMacOSChromeWeb = Platform.OS === CONST.PLATFORM.WEB && getBrowser() === CONST.BROWSER.CHROME && /Macintosh|Mac OS X/i.test(navigator.userAgent);
 
     const initialFocusedIndex = useMemo(() => data.findIndex((i) => i.keyForList === initiallyFocusedItemKey), [data, initiallyFocusedItemKey]);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);

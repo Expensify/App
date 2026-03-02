@@ -26,8 +26,8 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
 import Log from '@libs/Log';
+import {getBrowser} from '@libs/Browser';
 import CONST from '@src/CONST';
 import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
 
@@ -83,7 +83,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const hasKeyBeenPressed = useRef(false);
     const [suggestionsAnnouncement, setSuggestionsAnnouncement] = useState({id: 0, text: ''});
     const lastAnnouncementKeyRef = useRef('');
-    const isMacOSChromeWeb = Platform.OS === CONST.PLATFORM.WEB && Browser.getBrowser() === CONST.BROWSER.CHROME && /Macintosh|Mac OS X/i.test(navigator.userAgent);
+    const isMacOSChromeWeb = Platform.OS === CONST.PLATFORM.WEB && getBrowser() === CONST.BROWSER.CHROME && /Macintosh|Mac OS X/i.test(navigator.userAgent);
     const activeElementRole = useActiveElementRole();
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
