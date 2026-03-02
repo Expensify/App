@@ -2,7 +2,9 @@ import {deepEqual} from 'fast-equals';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
+import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
+import {isOneTransactionReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,21 +28,27 @@ type SidebarOrderedReportsContextProviderProps = {
     currentReportIDForTests?: string;
 };
 
-type SidebarOrderedReportsContextValue = {
+type SidebarOrderedReportsStateContextValue = {
     orderedReports: OnyxTypes.Report[];
     orderedReportIDs: string[];
     currentReportID: string | undefined;
     policyMemberAccountIDs: number[];
+};
+
+type SidebarOrderedReportsActionsContextValue = {
     clearLHNCache: () => void;
 };
 
 type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean}>;
 
-const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextValue>({
+const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsStateContextValue>({
     orderedReports: [],
     orderedReportIDs: [],
     currentReportID: '',
     policyMemberAccountIDs: [],
+});
+
+const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
     clearLHNCache: () => {},
 });
 
@@ -117,7 +125,13 @@ function SidebarOrderedReportsContextProvider({
             }
         }
         if (transactionsUpdates) {
-            for (const key of Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`)) {
+            // We need to select the report linked to a transaction, to properly recalculate getReceiptUploadErrorReason, which is the expense report if it is isOneTransactionReport
+            // or the transaction thread report if it is otherwise.
+            for (const key of Object.values(transactionsUpdates ?? {}).map((transaction) =>
+                transaction?.reportID && isOneTransactionReport(chatReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`])
+                    ? `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`
+                    : `${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(transaction)}`,
+            )) {
                 reportsToUpdate.add(key);
             }
         }
@@ -188,6 +202,7 @@ function SidebarOrderedReportsContextProvider({
                 reportNameValuePairs,
                 reportAttributes,
                 draftComments: reportsDrafts,
+                transactions,
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
@@ -199,6 +214,7 @@ function SidebarOrderedReportsContextProvider({
                 priorityMode,
                 reportsDrafts,
                 transactionViolations,
+                transactions,
                 reportNameValuePairs,
                 reportAttributes,
             );
@@ -259,7 +275,7 @@ function SidebarOrderedReportsContextProvider({
         setClearCacheDummyCounter((current) => current + 1);
     }, []);
 
-    const contextValue: SidebarOrderedReportsContextValue = useMemo(() => {
+    const stateValue: SidebarOrderedReportsStateContextValue = useMemo(() => {
         // We need to make sure the current report is in the list of reports, but we do not want
         // to have to re-generate the list every time the currentReportID changes. To do that
         // we first generate the list as if there was no current report, then we check if
@@ -283,7 +299,6 @@ function SidebarOrderedReportsContextProvider({
                 orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
                 policyMemberAccountIDs,
-                clearLHNCache,
             };
         }
 
@@ -292,9 +307,10 @@ function SidebarOrderedReportsContextProvider({
             orderedReportIDs,
             currentReportID: derivedCurrentReportID,
             policyMemberAccountIDs,
-            clearLHNCache,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports, clearLHNCache]);
+    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
+
+    const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache}), [clearLHNCache]);
 
     const currentDeps = {
         priorityMode,
@@ -318,42 +334,56 @@ function SidebarOrderedReportsContextProvider({
         orderedReportIDs,
         orderedReports,
     };
-    const prevContextValue = usePrevious(contextValue);
+    const prevContextValue = usePrevious(stateValue);
     const previousDeps = usePrevious(currentDeps);
     const firstRender = useRef(true);
 
     useEffect(() => {
         const hookExecutionDuration = performance.now() - hookStartTime.current;
         perfRef.current.hookDuration = hookExecutionDuration;
-    }, [contextValue]);
+    }, [stateValue]);
 
     useEffect(() => {
         // Cases below ensure we only log when the edge case (empty -> non-empty or non-empty -> empty) happens.
         // This is done to avoid excessive logging when the orderedReports array is updated, but does not impact LHN.
 
         // Case 1: orderedReports goes from empty to non-empty
-        if (contextValue.orderedReports.length > 0 && prevContextValue?.orderedReports.length === 0) {
+        if (stateValue.orderedReports.length > 0 && prevContextValue?.orderedReports.length === 0) {
             logChangedDeps('[useSidebarOrderedReports] Ordered reports went from empty to non-empty', currentDeps, previousDeps, perfRef);
         }
         // Case 2: orderedReports goes from non-empty to empty
-        if (contextValue.orderedReports.length === 0 && prevContextValue?.orderedReports.length > 0) {
+        if (stateValue.orderedReports.length === 0 && prevContextValue?.orderedReports.length > 0) {
             logChangedDeps('[useSidebarOrderedReports] Ordered reports went from non-empty to empty', currentDeps, previousDeps, perfRef);
         }
 
         // Case 3: orderedReports are empty from the beginning
-        if (firstRender.current && contextValue.orderedReports.length === 0) {
+        if (firstRender.current && stateValue.orderedReports.length === 0) {
             logChangedDeps('[useSidebarOrderedReports] Ordered reports initialized empty', currentDeps, previousDeps, perfRef);
         }
 
         firstRender.current = false;
     });
 
-    return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
+    return (
+        <SidebarOrderedReportsStateContext.Provider value={stateValue}>
+            <SidebarOrderedReportsActionsContext.Provider value={actionsValue}>{children}</SidebarOrderedReportsActionsContext.Provider>
+        </SidebarOrderedReportsStateContext.Provider>
+    );
+}
+
+function useSidebarOrderedReportsState(componentName?: string) {
+    useSidebarOrderedReportsPerformance(componentName);
+    return useContext(SidebarOrderedReportsStateContext);
+}
+
+function useSidebarOrderedReportsActions() {
+    return useContext(SidebarOrderedReportsActionsContext);
 }
 
 function useSidebarOrderedReports(componentName?: string) {
-    useSidebarOrderedReportsPerformance(componentName);
-    return useContext(SidebarOrderedReportsContext);
+    const state = useSidebarOrderedReportsState(componentName);
+    const actions = useSidebarOrderedReportsActions();
+    return {...state, ...actions};
 }
 
 function useSidebarOrderedReportsPerformance(componentName?: string) {
@@ -390,7 +420,7 @@ function useSidebarOrderedReportsPerformance(componentName?: string) {
     }, [componentName]);
 }
 
-export {SidebarOrderedReportsContext, SidebarOrderedReportsContextProvider, useSidebarOrderedReports};
+export {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
 export type {PartialPolicyForSidebar, ReportsToDisplayInLHN};
 
 function getChangedKeys<T extends Record<string, unknown>>(deps: T, prevDeps: T) {
