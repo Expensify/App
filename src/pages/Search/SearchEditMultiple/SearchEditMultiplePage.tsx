@@ -19,7 +19,7 @@ import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPoli
 import {canEditFieldOfMoneyRequest, isIOUReport} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
-import {getTagArrayFromName, getTaxName, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getTagArrayFromName, getTaxName, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -48,6 +48,8 @@ function SearchEditMultiplePage() {
 
     const hasCustomUnitTransaction = selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction) || isPerDiemRequest(transaction));
 
+    const hasPerDiemOrTimeTransaction = selectedTransactionContexts.some(({transaction}) => isPerDiemRequest(transaction) || isTimeRequest(transaction));
+
     const isFieldDisabledForAnyTransaction = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) =>
         selectedTransactionContexts.some(({transaction, report, reportAction, transactionPolicy}) => {
             // Unreported expenses have no report actions yet but are always editable
@@ -61,7 +63,8 @@ function SearchEditMultiplePage() {
 
     const hasPartiallyEditableMerchantTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.MERCHANT);
 
-    const hasPartiallyEditableTaxRateTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.TAX_RATE);
+    const hasPartiallyEditableTaxRateTransaction =
+        isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.TAX_RATE) || selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction));
 
     const hasPartiallyEditableDateTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.DATE);
 
@@ -80,7 +83,7 @@ function SearchEditMultiplePage() {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTagLists = getTagLists(policyTags);
 
-    const isTaxTrackingEnabled = !!policy?.tax?.trackingEnabled;
+    const isTaxTrackingEnabled = !hasPerDiemOrTimeTransaction && !!policy?.tax?.trackingEnabled;
     const areCategoriesEnabled = !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
     const areTagsEnabled = !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
 
