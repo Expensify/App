@@ -1425,6 +1425,7 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPolicyRules: (fragments: string, route: string) => `${fragments} vía <a href="${route}">reglas del espacio de trabajo</a>`,
         },
         duplicateNonDefaultWorkspacePerDiemError: 'No puedes duplicar gastos de viáticos entre espacios de trabajo porque las tarifas pueden variar entre ellos.',
+        cannotDuplicateDistanceExpense: 'No puedes duplicar gastos de distancia entre espacios de trabajo porque las tasas pueden diferir entre espacios de trabajo.',
     },
     transactionMerge: {
         listPage: {
