@@ -20,14 +20,12 @@ import {getGPSConvertedDistance, getGPSCoordinates, getGPSWaypoints} from '@libs
 import Navigation from '@libs/Navigation/Navigation';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
-import {getRateID} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import Disclaimer from './Disclaimer';
 import DistanceCounter from './DistanceCounter';
 import GPSButtons from './GPSButtons';
 import type IOURequestStepDistanceGPSProps from './types';
@@ -75,7 +73,6 @@ function IOURequestStepDistanceGPS({
 
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy);
 
-    const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
     const shouldSkipConfirmation = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
@@ -99,7 +96,6 @@ function IOURequestStepDistanceGPS({
             reportAttributesDerived,
             personalDetails,
             waypoints,
-            customUnitRateID,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
             backToReport,
@@ -154,7 +150,6 @@ function IOURequestStepDistanceGPS({
             />
             <View style={[styles.w100, styles.pAbsolute, styles.b0, styles.r0, styles.l0]}>
                 <Waypoints />
-                <Disclaimer />
                 <DotIndicatorMessage
                     style={[styles.ph5, styles.pb3]}
                     messages={getError()}

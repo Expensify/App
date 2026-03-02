@@ -1863,6 +1863,7 @@ function getActions(
     }
 
     const transaction = isTransaction ? data[key] : undefined;
+
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
@@ -2064,9 +2065,15 @@ function createAndOpenSearchTransactionThread(
         // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
         const isFromOneTransactionReport = isOneTransactionReport(item.report);
         const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
-        const targetReportID = shouldNavigateToTransactionThread ? transactionThreadReport?.reportID : item.reportID;
+        // When we have an actual transaction thread (childReportID from Onyx) but the report isn't in Onyx yet
+        // (e.g. Search didn't return the IOU action for deleted items), use childReportID directly so we don't navigate with undefined
+        const targetReportID = shouldNavigateToTransactionThread
+            ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? iouReportAction.childReportID : undefined))
+            : item.reportID;
 
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo})));
+        if (targetReportID) {
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo})));
+        }
     }
 }
 
