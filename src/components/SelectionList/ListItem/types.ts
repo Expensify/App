@@ -2,6 +2,7 @@ import type {ReactElement, ReactNode} from 'react';
 import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
@@ -286,6 +287,7 @@ type ValidListItem =
     | typeof InviteMemberListItem
     | typeof MultiSelectListItem
     | typeof RadioListItem
+    | typeof SearchRouterItem
     | typeof SingleSelectListItem
     | typeof SpendCategorySelectorListItem
     | typeof SplitListItem
@@ -324,6 +326,12 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
+
+    /**
+     * Whether the pressable should be accessible as a single element.
+     * When false, allows child elements (like TextInput) to be independently focusable by screen readers.
+     */
+    accessible?: boolean;
 };
 
 type SplitListItemType = ListItem &

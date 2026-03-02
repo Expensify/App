@@ -1,0 +1,9 @@
+name: 'Process failed workflow jobs'
+description: 'Creates GitHub issues for newly failed jobs in a workflow run, correctly identifying the merged PR that caused the failure.'
+inputs:
+  GITHUB_TOKEN:
+    description: Auth token for GitHub API access.
+    required: true
+runs:
+  using: 'node20'
+  main: './index.js'

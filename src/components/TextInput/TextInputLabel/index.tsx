@@ -27,10 +27,6 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, 
             ellipsizeMode={!isMultiline ? 'tail' : undefined}
             ref={textRef(labelRef)}
             role={CONST.ROLE.PRESENTATION}
-            accessible={false}
-            accessibilityElementsHidden
-            importantForAccessibility="no"
-            aria-hidden
             style={[styles.textInputLabelContainer, styles.textInputLabel, animatedStyle, styles.pointerEventsNone]}
         >
             {label}

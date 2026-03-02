@@ -3,6 +3,123 @@ home:
   title: Welcome to ExpensifyHelp!
   description: Find answers using the search bar or click on the version of Expensify you're using to access the relevant resources.
 
+# "Getting Started" and "Topics" cards shown on the homepage
+getting-started:
+  - title: For employees
+    icon: /assets/images/simple-illustration__approval-members.svg
+    description: Join a workspace, submit expenses and enable 2FA.
+    href: /articles/new-expensify/getting-started/Join-your-company's-workspace
+
+  - title: For admins
+    icon: /assets/images/simple-illustration__company-share-alt.svg
+    description: Create a workspace, connect accounting and configure approvals.
+    href: /articles/new-expensify/getting-started/Create-a-company-workspace
+
+  - title: With payments
+    icon: /assets/images/simple-illustration__cardreader-alt2-alt.svg
+    description: Link a business bank account to enable reimbursements and the Expensify Card.
+    href: /articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account
+
+topics:
+  - title: Expense management
+    icon: /assets/images/simple-illustration__money-receipt.svg
+    hub: /new-expensify/hubs/reports-and-expenses/
+    links:
+      - label: Create expenses
+        href: /articles/new-expensify/reports-and-expenses/Create-an-Expense
+      - label: Submit expense reports
+        href: /articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports
+      - label: Pay expenses
+        href: /articles/new-expensify/wallet-and-payments/Pay-Expenses
+
+  - title: Expensify Card
+    icon: /assets/images/simple-illustration__creditcards--green.svg
+    hub: /new-expensify/hubs/expensify-card/
+    links:
+      - label: Enable Expensify Cards
+        href: /articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card
+      - label: Activate and use cards
+        href: /articles/new-expensify/expensify-card/Cardholder-Settings-and-Features
+      - label: Reconcile transactions
+        href: /articles/new-expensify/expensify-card/View-and-Reconcile-Expensify-Card-Expenses
+
+  - title: Company cards
+    icon: /assets/images/simple-illustration__twocards-horizontal.svg
+    hub: /new-expensify/hubs/connect-credit-cards/
+    links:
+      - label: Connect commercial feed
+        href: /articles/new-expensify/connect-credit-cards/Commercial-feeds
+      - label: Connect directly
+        href: /articles/new-expensify/connect-credit-cards/Direct-feeds
+      - label: Map cards to GL
+        href: /articles/new-expensify/connect-credit-cards/Company-Card-Settings
+
+  - title: Accounting
+    icon: /assets/images/simple-illustration__monitor-remotesync.svg
+    hub: /new-expensify/hubs/connections/
+    links:
+      - label: Connect to NetSuite
+        href: /articles/new-expensify/connections/netsuite/Connect-To-NetSuite
+      - label: Connect to QuickBooks Online
+        href: /articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online
+      - label: Connect to Xero
+        href: /articles/new-expensify/connections/xero/Connect-to-Xero
+
+  - title: Workflows
+    icon: /assets/images/workflow.svg
+    hub: /new-expensify/hubs/workspaces/
+    links:
+      - label: Configure rules
+        href: /articles/new-expensify/workspaces/Workspace-Rules
+      - label: Automation and approvals
+        href: /articles/new-expensify/workspaces/Workspace-Workflows
+      - label: Prohibited expense detection
+        href: /articles/new-expensify/workspaces/Prohibited-Expense-Rule
+
+  - title: Back-office
+    icon: /assets/images/simple-illustration__buildings.svg
+    hub: /new-expensify/hubs/settings/
+    links:
+      - label: Reporting
+        href: /articles/new-expensify/reports-and-expenses/Getting-Started-with-the-Reports-Page
+      - label: Configure taxes
+        href: /articles/new-expensify/workspaces/Track-Taxes
+      - label: Nominate vacation delegate
+        href: /articles/new-expensify/settings/Delegate-when-out-of-office
+
+  - title: Travel
+    icon: /assets/images/simple-illustration__luggage.svg
+    hub: /travel/hubs/
+    links:
+      - label: Use Expensify Travel
+        href: /travel/hubs/getting-started/
+      - label: Set up Per Diems
+        href: /articles/new-expensify/workspaces/Configure-Per-Diem-in-a-workspace
+      - label: Configure mileage
+        href: /articles/new-expensify/workspaces/Set-distance-rates
+
+  - title: Chat
+    icon: /assets/images/simple-illustration__commentbubbles-alt.svg
+    hub: /new-expensify/hubs/chat/
+    links:
+      - label: Chat with people
+        href: /articles/new-expensify/chat/Create-a-New-Chat
+      - label: Chat basics
+        href: /articles/new-expensify/chat/Chat-Features-and-Moderation-Tools
+      - label: Organize your Inbox
+        href: /articles/new-expensify/chat/Prioritize-and-Pin-Chats
+
+  - title: Reporting
+    icon: /assets/images/envelope-receipt.svg
+    hub: /new-expensify/hubs/reports-and-expenses/
+    links:
+      - label: Search and filter
+        href: /articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify
+      - label: Export data
+        href: /articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses
+      - label: Reconciliation
+        href: /articles/new-expensify/reports-and-expenses/Statement-Matching-and-Reconciliation
+
 platforms:
   - href: expensify-classic
     title: Expensify Classic

@@ -18,6 +18,7 @@ const WRITE_COMMANDS = {
     SET_WORKSPACE_AUTO_REPORTING_FREQUENCY: 'SetWorkspaceAutoReportingFrequency',
     SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET: 'SetWorkspaceAutoReportingOffset',
     SET_WORKSPACE_APPROVAL_MODE: 'SetWorkspaceApprovalMode',
+    DISABLE_POLICY_APPROVALS: 'DisablePolicyApprovals',
     SET_WORKSPACE_PAYER: 'SetWorkspacePayer',
     SET_WORKSPACE_REIMBURSEMENT: 'SetWorkspaceReimbursement',
     SET_POLICY_DEFAULT_REPORT_TITLE: 'SetPolicyDefaultReportTitle',
@@ -50,6 +51,8 @@ const WRITE_COMMANDS = {
     UPDATE_EXPENSIFY_CARD_LIMIT: 'UpdateExpensifyCardLimit',
     UPDATE_EXPENSIFY_CARD_TITLE: 'UpdateExpensifyCardTitle',
     UPDATE_EXPENSIFY_CARD_LIMIT_TYPE: 'UpdateExpensifyCardLimitType',
+    FREEZE_CARD: 'FreezeCard',
+    UNFREEZE_CARD: 'UnfreezeCard',
     CARD_DEACTIVATE: 'Card_Deactivate',
     DELETE_PERSONAL_CARD: 'DeleteCard',
     CHRONOS_REMOVE_OOO_EVENT: 'Chronos_RemoveOOOEvent',
@@ -151,6 +154,7 @@ const WRITE_COMMANDS = {
     DELETE_WORKSPACE_AVATAR: 'DeleteWorkspaceAvatar',
     UPDATE_WORKSPACE_GENERAL_SETTINGS: 'UpdateWorkspaceGeneralSettings',
     UPDATE_WORKSPACE_DESCRIPTION: 'UpdateWorkspaceDescription',
+    UPDATE_WORKSPACE_CLIENT_ID: 'UpdateWorkspaceClientID',
     UPDATE_WORKSPACE_MEMBERS_ROLE: 'UpdateWorkspaceMembersRole',
     CREATE_WORKSPACE: 'CreateWorkspace',
     DUPLICATE_POLICY: 'DuplicatePolicy',
@@ -247,6 +251,7 @@ const WRITE_COMMANDS = {
     INVITE_WORKSPACE_EMPLOYEES_TO_UBER: 'InviteWorkspaceEmployeesToUber',
     ENABLE_POLICY_DISTANCE_RATES: 'EnablePolicyDistanceRates',
     ENABLE_POLICY_TRAVEL: 'EnablePolicyTravel',
+    SET_POLICY_TRAVEL_SETTINGS: 'SetPolicyTravelSettings',
     ENABLE_POLICY_TAGS: 'EnablePolicyTags',
     ENABLE_POLICY_TAXES: 'EnablePolicyTaxes',
     ENABLE_POLICY_WORKFLOWS: 'EnablePolicyWorkflows',
@@ -303,6 +308,7 @@ const WRITE_COMMANDS = {
     UPDATE_QUICKBOOKS_ONLINE_SYNC_LOCATIONS: 'UpdateQuickbooksOnlineSyncLocations',
     UPDATE_QUICKBOOKS_ONLINE_SYNC_CUSTOMERS: 'UpdateQuickbooksOnlineSyncCustomers',
     UPDATE_QUICKBOOKS_ONLINE_SYNC_CLASSES: 'UpdateQuickbooksOnlineSyncClasses',
+    UPDATE_QUICKBOOKS_ONLINE_MAPPING: 'UpdateQuickbooksOnlineMapping',
     UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'UpdateQuickbooksOnlineNonReimbursableBillDefaultVendor',
     UPDATE_QUICKBOOKS_ONLINE_AUTO_SYNC: 'UpdateQuickbooksOnlineAutoSync',
     UPDATE_QUICKBOOKS_ONLINE_SYNC_PEOPLE: 'UpdateQuickbooksOnlineSyncPeople',
@@ -449,6 +455,7 @@ const WRITE_COMMANDS = {
     UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_CREDIT_CARD_CHARGE_EXPORT_DEFAULT_VENDOR: 'UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendor',
     UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_ACCOUNT: 'UpdateSageIntacctNonreimbursableExpensesExportAccount',
     UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR: 'UpdateSageIntacctNonreimbursableExpensesExportVendor',
+    SET_PROMO_CODE: 'User_SetPromoCode',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
     EXPORT_SEARCH_ITEMS_TO_CSV: 'ExportSearchToCSV',
     QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV: 'QueueExportSearchToCSV',
@@ -469,6 +476,7 @@ const WRITE_COMMANDS = {
     DELETE_SAVED_SEARCH: 'DeleteSavedSearch',
     UPDATE_CARD_SETTLEMENT_FREQUENCY: 'UpdateCardSettlementFrequency',
     UPDATE_CARD_SETTLEMENT_ACCOUNT: 'UpdateCardSettlementAccount',
+    TOGGLE_TRAVEL_INVOICING: 'ToggleTravelInvoicing',
     SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: 'SetTravelInvoicingSettlementAccount',
     UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY: 'UpdateTravelInvoiceSettlementFrequency',
     UPDATE_XERO_IMPORT_TRACKING_CATEGORIES: 'UpdateXeroImportTrackingCategories',
@@ -550,6 +558,9 @@ const WRITE_COMMANDS = {
     REMOVE_DOMAIN_ADMIN: 'RemoveDomainAdmin',
     DELETE_DOMAIN: 'DeleteDomain',
     DELETE_DOMAIN_MEMBER: 'DeleteDomainMember',
+    TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN: 'ToggleTwoFactorAuthRequiredForDomain',
+    SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN: 'SetTwoFactorAuthExemptEmailForDomain',
+    RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH: 'ResetDomainMemberTwoFactorAuth',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -579,6 +590,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT]: Parameters.UpdateExpensifyCardLimitParams;
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE]: Parameters.UpdateExpensifyCardTitleParams;
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT_TYPE]: Parameters.UpdateExpensifyCardLimitTypeParams;
+    [WRITE_COMMANDS.FREEZE_CARD]: Parameters.FreezeCardParams;
+    [WRITE_COMMANDS.UNFREEZE_CARD]: Parameters.FreezeCardParams;
     [WRITE_COMMANDS.CARD_DEACTIVATE]: Parameters.CardDeactivateParams;
     [WRITE_COMMANDS.DELETE_PERSONAL_CARD]: Parameters.DeletePersonalCardParams;
     [WRITE_COMMANDS.MAKE_DEFAULT_PAYMENT_METHOD]: Parameters.MakeDefaultPaymentMethodParams;
@@ -693,6 +706,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_WORKSPACE_AVATAR]: Parameters.DeleteWorkspaceAvatarParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS]: Parameters.UpdateWorkspaceGeneralSettingsParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION]: Parameters.UpdateWorkspaceDescriptionParams;
+    [WRITE_COMMANDS.UPDATE_WORKSPACE_CLIENT_ID]: Parameters.UpdateWorkspaceClientIDParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE]: Parameters.UpdateWorkspaceMembersRoleParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE]: Parameters.CreateWorkspaceParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT]: Parameters.CreateWorkspaceFromIOUPaymentParams;
@@ -778,11 +792,11 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.PAY_MONEY_REQUEST]: Parameters.PayMoneyRequestParams;
     [WRITE_COMMANDS.CANCEL_PAYMENT]: Parameters.CancelPaymentParams;
     [WRITE_COMMANDS.ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT]: Parameters.AcceptACHContractForBankAccount;
-    [WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION]: Parameters.UpdateWorkspaceDescriptionParams;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_HARVESTING]: Parameters.SetWorkspaceAutoHarvestingParams;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY]: Parameters.SetWorkspaceAutoReportingFrequencyParams;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET]: Parameters.SetWorkspaceAutoReportingMonthlyOffsetParams;
     [WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE]: Parameters.SetWorkspaceApprovalModeParams;
+    [WRITE_COMMANDS.DISABLE_POLICY_APPROVALS]: Parameters.DisablePolicyApprovalsParams;
     [WRITE_COMMANDS.SET_WORKSPACE_PAYER]: Parameters.SetWorkspacePayerParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT]: Parameters.SetWorkspaceReimbursementParams;
     [WRITE_COMMANDS.SET_POLICY_DEFAULT_REPORT_TITLE]: Parameters.SetPolicyDefaultReportTitleParams;
@@ -802,6 +816,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.INVITE_WORKSPACE_EMPLOYEES_TO_UBER]: Parameters.InviteWorkspaceEmployeesToUberParams;
     [WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES]: Parameters.EnablePolicyDistanceRatesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_TRAVEL]: Parameters.EnablePolicyTravelParams;
+    [WRITE_COMMANDS.SET_POLICY_TRAVEL_SETTINGS]: Parameters.SetPolicyTravelSettingsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_TAGS]: Parameters.EnablePolicyTagsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_TAXES]: Parameters.EnablePolicyTaxesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS]: Parameters.EnablePolicyWorkflowsParams;
@@ -850,8 +865,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE]: Parameters.RequestExpensifyCardLimitIncreaseParams;
     [WRITE_COMMANDS.CLEAR_OUTSTANDING_BALANCE]: null;
     [WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION]: Parameters.CancelBillingSubscriptionParams;
-    [WRITE_COMMANDS.SET_POLICY_RULES_ENABLED]: Parameters.SetPolicyRulesEnabledParams;
-    [WRITE_COMMANDS.SET_POLICY_CODING_RULE]: Parameters.SetPolicyCodingRuleParams;
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT]: Parameters.SetPolicyExpenseMaxAmountNoReceipt;
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_ITEMIZED_RECEIPT]: Parameters.SetPolicyExpenseMaxAmountNoItemizedReceipt;
     [WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT]: Parameters.SetPolicyExpenseMaxAmount;
@@ -880,6 +893,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD]: Parameters.UpdateQuickbooksOnlineAccountingMethodParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_MAPPING]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_ACCOUNTING_METHOD]: Parameters.UpdateXeroAccountingMethodParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD]: Parameters.UpdateQuickbooksDesktopAccountingMethodParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT_DATE]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
@@ -926,6 +940,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_AUTO_RENEW]: Parameters.UpdateSubscriptionAutoRenewParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY]: Parameters.UpdateSubscriptionAddNewUsersAutomaticallyParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_SIZE]: Parameters.UpdateSubscriptionSizeParams;
+    [WRITE_COMMANDS.SET_PROMO_CODE]: Parameters.SetPromoCodeParams;
     [WRITE_COMMANDS.REQUEST_TAX_EXEMPTION]: null;
     [WRITE_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS]: Parameters.GetCorpayBankAccountFieldsParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER]: Parameters.SaveCorpayOnboardingBeneficialOwnerParams;
@@ -935,12 +950,11 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT]: Parameters.UpdateWorkspaceCustomUnitParams;
     [WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE_STATUS]: Parameters.ResetSMSDeliveryFailureStatusParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS]: Parameters.SaveCorpayOnboardingCompanyDetailsParams;
-    [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER]: Parameters.SaveCorpayOnboardingBeneficialOwnerParams;
     [WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES]: Parameters.SetPolicyProhibitedExpensesParams;
     [WRITE_COMMANDS.RETRACT_REPORT]: Parameters.RetractReportParams;
     [WRITE_COMMANDS.COMPLETE_CONCIERGE_CALL]: Parameters.CompleteConciergeCallParams;
     [WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING]: Parameters.FinishCorpayBankAccountOnboardingParams;
-    [WRITE_COMMANDS.DELETE_VACATION_DELEGATE]: null;
+    [WRITE_COMMANDS.DELETE_VACATION_DELEGATE]: Parameters.DeleteVacationDelegateParams | null;
     [WRITE_COMMANDS.ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT]: Parameters.EnableGlobalReimbursementsForUSDBankAccountParams;
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
     [WRITE_COMMANDS.SEND_SCHEDULE_CALL_NUDGE]: Parameters.SendScheduleCallNudgeParams;
@@ -1056,6 +1070,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_SAVED_SEARCH]: Parameters.DeleteSavedSearchParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY]: Parameters.UpdateCardSettlementFrequencyParams;
     [WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT]: Parameters.UpdateCardSettlementAccountParams;
+    [WRITE_COMMANDS.TOGGLE_TRAVEL_INVOICING]: Parameters.ToggleTravelInvoicingParams;
     [WRITE_COMMANDS.SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT]: Parameters.SetTravelInvoicingSettlementAccountParams;
     [WRITE_COMMANDS.UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY]: Parameters.UpdateTravelInvoicingSettlementFrequencyParams;
     [WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS]: Parameters.SetPersonalDetailsAndShipExpensifyCardsParams;
@@ -1068,7 +1083,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_XERO_IMPORT_TRACKING_CATEGORIES]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_IMPORT_CUSTOMERS]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_ENABLE_NEW_CATEGORIES]: Parameters.UpdateXeroGenericTypeParams;
-    [WRITE_COMMANDS.UPDATE_XERO_AUTO_SYNC]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_AUTO_SYNC]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_EXPORT_BILL_STATUS]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_EXPORT_BILL_DATE]: Parameters.UpdateXeroGenericTypeParams;
@@ -1122,6 +1136,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_DOMAIN]: Parameters.DeleteDomainParams;
     [WRITE_COMMANDS.ADD_DOMAIN_ADMIN]: Parameters.AddAdminToDomainParams;
     [WRITE_COMMANDS.ADD_DOMAIN_MEMBER]: Parameters.AddMemberToDomainParams;
+    [WRITE_COMMANDS.TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN]: Parameters.ToggleTwoFactorAuthRequiredForDomainParams;
+    [WRITE_COMMANDS.SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN]: Parameters.SetTwoFactorAuthExemptEmailForDomainParams;
+    [WRITE_COMMANDS.RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH]: Parameters.ResetDomainMemberTwoFactorAuthParams;
 };
 
 const READ_COMMANDS = {
@@ -1152,6 +1169,7 @@ const READ_COMMANDS = {
     OPEN_ROOM_MEMBERS_PAGE: 'OpenRoomMembersPage',
     SEARCH_FOR_REPORTS: 'SearchForReports',
     SEARCH_FOR_ROOMS_TO_MENTION: 'SearchForRoomsToMention',
+    SEARCH_FOR_USERS: 'SearchForUsers',
     GRAPHITE: 'Graphite',
     GET_ROUTE: 'GetRoute',
     GET_ROUTE_FOR_DRAFT: 'GetRouteForDraft',
@@ -1237,6 +1255,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE]: Parameters.OpenRoomMembersPageParams;
     [READ_COMMANDS.SEARCH_FOR_REPORTS]: Parameters.SearchForReportsParams;
     [READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION]: Parameters.SearchForRoomsToMentionParams;
+    [READ_COMMANDS.SEARCH_FOR_USERS]: Parameters.SearchForUsersParams;
     [READ_COMMANDS.GRAPHITE]: Parameters.GraphiteParams;
     [READ_COMMANDS.GET_ROUTE]: Parameters.GetRouteParams;
     [READ_COMMANDS.GET_ROUTE_FOR_DRAFT]: Parameters.GetRouteParams;
@@ -1292,7 +1311,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_SAML_SETTINGS]: Parameters.DomainParams;
     [READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE]: Parameters.DomainParams;
     [READ_COMMANDS.OPEN_DOMAIN_INITIAL_PAGE]: Parameters.DomainParams;
-    [READ_COMMANDS.GET_SAML_SETTINGS]: Parameters.DomainParams;
     [READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS]: Parameters.GetDuplicateTransactionDetailsParams;
     [READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE]: Parameters.GetTransactionsMatchingCodingRuleParams;
 };
@@ -1330,6 +1348,9 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION: 'TroubleshootMultifactorAuthentication',
     REQUEST_AUTHENTICATION_CHALLENGE: 'RequestAuthenticationChallenge',
     REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS: 'RevokeMultifactorAuthenticationCredentials',
+    AUTHORIZE_TRANSACTION: 'AuthorizeTransaction',
+    DENY_TRANSACTION: 'DenyTransaction',
+    GET_TRANSACTIONS_PENDING_3DS_REVIEW: 'GetTransactionsPending3DSReview',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1362,6 +1383,9 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION]: Parameters.TroubleshootMultifactorAuthenticationParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_AUTHENTICATION_CHALLENGE]: Parameters.RequestAuthenticationChallengeParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS]: EmptyObject;
+    [SIDE_EFFECT_REQUEST_COMMANDS.AUTHORIZE_TRANSACTION]: Parameters.AuthorizeTransactionParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION]: Parameters.DenyTransactionParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW]: null;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;

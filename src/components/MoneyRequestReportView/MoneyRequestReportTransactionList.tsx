@@ -8,13 +8,12 @@ import Checkbox from '@components/Checkbox';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -33,11 +32,13 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import {
     canAddTransaction,
     getAddExpenseDropdownOptions,
+    getBillableAndTaxTotal,
     getMoneyRequestSpendBreakdown,
     getReportOfflinePendingActionAndErrors,
     isCurrentUserSubmitter,
@@ -45,18 +46,7 @@ import {
     isIOUReport,
 } from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {
-    getAmount,
-    getCategory,
-    getCreated,
-    getMerchant,
-    getTag,
-    getTransactionPendingAction,
-    isTransactionPendingDelete,
-    mergeProhibitedViolations,
-    shouldShowExpenseBreakdown,
-    shouldShowViolation,
-} from '@libs/TransactionUtils';
+import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -94,9 +84,6 @@ type MoneyRequestReportTransactionListProps = {
 
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
-
-    /** Violations indexed by transaction ID */
-    violations?: Record<string, OnyxTypes.TransactionViolation[]>;
 
     /** scrollToNewTransaction callback used for scrolling to new transaction when it is created */
     scrollToNewTransaction: (offset: number) => void;
@@ -157,7 +144,6 @@ function MoneyRequestReportTransactionList({
     transactions,
     newTransactions,
     reportActions,
-    violations,
     hasPendingDeletionTransaction = false,
     scrollToNewTransaction,
     policy,
@@ -177,55 +163,39 @@ function MoneyRequestReportTransactionList({
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
 
+    const isTaxEnabled = isPolicyTaxEnabled(policy);
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactions);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
-    const shouldShowBreakdown = useMemo(() => shouldShowExpenseBreakdown(transactions), [transactions]);
+    const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
+    const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
+    const shouldShowExpenseReportBreakDown = shouldShowExpenseBreakdown(transactions);
+    const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || (!!taxTotal && isTaxEnabled);
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
-    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
-    const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
+    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(translate, expensifyIcons, report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [translate, expensifyIcons, report?.reportID, policy, lastDistanceExpenseType],
+        () => getAddExpenseDropdownOptions(translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, undefined, undefined, lastDistanceExpenseType),
+        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, lastDistanceExpenseType],
     );
 
     const hasPendingAction = useMemo(() => {
         return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
     }, [hasPendingDeletionTransaction, transactions]);
 
-    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs} = useSearchStateContext();
+    const {setSelectedTransactions, clearSelectedTransactions} = useSearchActionsContext();
     useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-
-    // Filter violations based on user visibility
-    const filteredViolations = useMemo(() => {
-        if (!violations || !report || !policy || !transactions) {
-            return violations;
-        }
-
-        const filtered: Record<string, OnyxTypes.TransactionViolation[]> = {};
-
-        for (const transaction of transactions) {
-            const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
-            if (transactionViolations) {
-                const filteredTransactionViolations = mergeProhibitedViolations(
-                    transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails.email ?? '', true, transaction)),
-                );
-
-                if (filteredTransactionViolations.length > 0) {
-                    filtered[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = filteredTransactionViolations;
-                }
-            }
-        }
-
-        return filtered;
-    }, [violations, report, policy, transactions, currentUserDetails.email]);
 
     const toggleTransaction = useCallback(
         (transactionID: string) => {
@@ -269,15 +239,14 @@ function MoneyRequestReportTransactionList({
     const {sortBy, sortOrder} = sortConfig;
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
-        return [...transactions]
-            .sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true))
-            .map((transaction) => ({
-                ...transaction,
-                shouldBeHighlighted: newTransactions?.includes(transaction),
-            }));
-    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, report]);
+        return [...transactions].sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true));
+    }, [sortBy, sortOrder, transactions, localeCompare, report]);
+
+    const highlightedTransactionIDs = useMemo(() => new Set(newTransactions.map(({transactionID}) => transactionID)), [newTransactions]);
 
     // Always use default columns for money request report view (don't use user-customized search columns)
+    const isExpenseReportViewFromIOUReport = isIOUReport(report);
+    const shouldShowBillableColumn = isBillableEnabledOnPolicy(policy);
     const columnsToShow = useMemo(() => {
         return getColumnsToShow(
             currentUserDetails?.accountID,
@@ -286,11 +255,11 @@ function MoneyRequestReportTransactionList({
             true,
             undefined,
             undefined,
-            isIOUReport(report),
-            isBillableEnabledOnPolicy(policy),
+            isExpenseReportViewFromIOUReport,
+            shouldShowBillableColumn,
             hasNonReimbursableTransactions(transactions),
         );
-    }, [transactions, currentUserDetails?.accountID, report, policy]);
+    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn]);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 
@@ -302,8 +271,10 @@ function MoneyRequestReportTransactionList({
             return groupTransactionsByTag(sortedTransactions, report, localeCompare);
         }
         return groupTransactionsByCategory(sortedTransactions, report, localeCompare);
+        // groupTransactionsByTag() and groupTransactionsByCategory() use the full report object to perform a null check.
+        // We skip including the report as a dependency to avoid unnecessary re-renders as it changes often and we only need to recalculate when currency changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedTransactions, currentGroupBy, report?.reportID, localeCompare, shouldShowGroupedTransactions]);
+    }, [sortedTransactions, currentGroupBy, report?.reportID, report?.currency, localeCompare, shouldShowGroupedTransactions]);
 
     const visualOrderTransactionIDs = useMemo(() => {
         if (!shouldShowGroupedTransactions || groupedTransactions.length === 0) {
@@ -312,25 +283,19 @@ function MoneyRequestReportTransactionList({
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldShowGroupedTransactions]);
 
-    const visualOrderTransactionIDsDeepCompare = useDeepCompareRef(visualOrderTransactionIDs);
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
-        setActiveTransactionIDs(visualOrderTransactionIDsDeepCompare ?? []);
+        setActiveTransactionIDs(visualOrderTransactionIDs);
+    }, [visualOrderTransactionIDs]);
+
+    useEffect(() => {
         return () => {
             clearActiveTransactionIDs();
         };
-    }, [visualOrderTransactionIDsDeepCompare]);
-
-    const sortedTransactionsMap = useMemo(() => {
-        const map = new Map<string, OnyxTypes.Transaction>();
-        for (const transaction of sortedTransactions) {
-            map.set(transaction.transactionID, transaction);
-        }
-        return map;
-    }, [sortedTransactions]);
+    }, []);
 
     const groupSelectionState = useMemo(() => {
         const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();
@@ -392,7 +357,7 @@ function MoneyRequestReportTransactionList({
 
             if (!reportIDToNavigate) {
                 const transaction = sortedTransactions.find((t) => t.transactionID === activeTransactionID);
-                const transactionThreadReport = createTransactionThreadReport(report, iouAction, transaction);
+                const transactionThreadReport = createTransactionThreadReport(introSelected, report, iouAction, transaction);
                 if (transactionThreadReport) {
                     reportIDToNavigate = transactionThreadReport.reportID;
                     routeParams.reportID = reportIDToNavigate;
@@ -410,7 +375,7 @@ function MoneyRequestReportTransactionList({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
-        [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportIDAsExpense],
+        [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportIDAsExpense, introSelected],
     );
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
@@ -495,7 +460,7 @@ function MoneyRequestReportTransactionList({
                                         setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
                                     }
                                 }}
-                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
                                 isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
                                 isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
                             />
@@ -545,12 +510,11 @@ function MoneyRequestReportTransactionList({
                                       pendingAction={selectionState.pendingAction}
                                   />
                                   {group.transactions.map((transaction) => {
-                                      const originalTransaction = sortedTransactionsMap.get(transaction.transactionID) ?? transaction;
                                       return (
                                           <MoneyRequestReportTransactionItem
                                               key={transaction.transactionID}
-                                              transaction={originalTransaction}
-                                              violations={filteredViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
+                                              transaction={transaction}
+                                              shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
                                               columns={columnsToShow}
                                               report={report}
                                               isSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -573,7 +537,7 @@ function MoneyRequestReportTransactionList({
                           <MoneyRequestReportTransactionItem
                               key={transaction.transactionID}
                               transaction={transaction}
-                              violations={filteredViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
+                              shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
                               columns={columnsToShow}
                               report={report}
                               isSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -623,34 +587,44 @@ function MoneyRequestReportTransactionList({
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
                             {[
-                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount},
-                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount},
-                            ].map(({text, value}) => (
-                                <View
-                                    key={text}
-                                    style={[
-                                        styles.dFlex,
-                                        styles.flexRow,
-                                        styles.alignItemsCenter,
-                                        styles.pr3,
-                                        styles.mw100,
-                                        shouldUseNarrowLayout && [styles.justifyContentBetween, styles.w100],
-                                    ]}
-                                >
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mr3]}
-                                        numberOfLines={1}
+                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, shouldShow: shouldShowExpenseReportBreakDown},
+                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, shouldShow: shouldShowExpenseReportBreakDown},
+                                {text: 'common.billable', value: formattedBillableAmount, shouldShow: !!billableTotal},
+                                {text: 'common.tax', value: formattedTaxAmount, shouldShow: !!taxTotal && isTaxEnabled},
+                            ]
+                                .filter(({shouldShow}) => shouldShow)
+                                .map(({text, value}) => (
+                                    <View
+                                        key={text}
+                                        style={[
+                                            styles.dFlex,
+                                            styles.flexRow,
+                                            styles.alignItemsCenter,
+                                            styles.pr3,
+                                            styles.mw100,
+                                            shouldUseNarrowLayout && [styles.justifyContentBetween, styles.w100],
+                                        ]}
                                     >
-                                        {translate(text as TranslationPaths)}
-                                    </Text>
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
-                                    >
-                                        {value}
-                                    </Text>
-                                </View>
-                            ))}
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.mr3, hasPendingAction && styles.opacitySemiTransparent]}
+                                            numberOfLines={1}
+                                        >
+                                            {translate(text as TranslationPaths)}
+                                        </Text>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[
+                                                styles.textLabelSupporting,
+                                                styles.textNormal,
+                                                shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p,
+                                                styles.textAlignRight,
+                                                hasPendingAction && styles.opacitySemiTransparent,
+                                            ]}
+                                        >
+                                            {value}
+                                        </Text>
+                                    </View>
+                                ))}
                         </View>
                     )}
 

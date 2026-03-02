@@ -19,7 +19,7 @@ type DirectStatementCloseDateStepProps = {
 };
 function DirectStatementCloseDateStep({policyID}: DirectStatementCloseDateStepProps) {
     const {translate} = useLocalize();
-    const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+    const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
