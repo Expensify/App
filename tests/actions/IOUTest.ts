@@ -11381,11 +11381,72 @@ describe('actions/IOU', () => {
                     });
                 });
                 expect(updatedTransaction?.receipt?.source).toBe(source);
+                expect(updatedTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
 
                 // Then the snapshot should have the new receipt source
                 const updatedSnapshot = (await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as OnyxKey)) as OnyxEntry<SearchResults>;
 
                 expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+                expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
+            } finally {
+                getCurrentSearchQueryJSONSpy.mockRestore();
+            }
+        });
+
+        it('should preserve receipt state when state is provided', async () => {
+            const transactionID = rand64().toString();
+            const snapshotHash = 918273647;
+            const file = new File([new Blob(['test'])], 'test.jpg', {type: 'image/jpeg'});
+            file.source = 'test';
+            const source = 'test';
+            const getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue({hash: snapshotHash} as SearchQueryJSON);
+
+            const transaction = {
+                transactionID,
+                receipt: {
+                    source: 'test1',
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                },
+            };
+
+            // Given a transaction with a receipt in SCANREADY state
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            // Given a snapshot of the transaction
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, {
+                // @ts-expect-error: Allow partial record in snapshot update
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            try {
+                // When the receipt is replaced with the state preserved (e.g. rotating receipt)
+                replaceReceipt({transactionID, file, source, state: CONST.IOU.RECEIPT_STATE.SCAN_READY, transactionPolicy: undefined});
+                await waitForBatchedUpdates();
+
+                // Then the transaction should have the new receipt source but preserve the state
+                const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.TRANSACTION,
+                        waitForCollectionCallback: true,
+                        callback: (transactions) => {
+                            Onyx.disconnect(connection);
+                            const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                            resolve(newTransaction);
+                        },
+                    });
+                });
+                expect(updatedTransaction?.receipt?.source).toBe(source);
+                expect(updatedTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
+
+                // Then the snapshot should also preserve the state
+                const updatedSnapshot = (await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as OnyxKey)) as OnyxEntry<SearchResults>;
+
+                expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+                expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
             } finally {
                 getCurrentSearchQueryJSONSpy.mockRestore();
             }
