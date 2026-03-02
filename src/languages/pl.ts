@@ -543,6 +543,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Zastępca urlopowy',
         expensifyLogo: 'Logo Expensify',
         duplicateReport: 'Zduplikowany raport',
+        explain: 'Wyjaśnij',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
@@ -646,6 +647,30 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Zaloguj się ponownie.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Sprawdź transakcję',
+            pleaseReview: 'Proszę przejrzeć tę transakcję',
+            requiresYourReview: 'Transakcja kartą Expensify wymaga Twojej weryfikacji poniżej.',
+            transactionDetails: 'Szczegóły transakcji',
+            deny: 'Odrzuć',
+            approve: 'Zatwierdź',
+            denyTransaction: 'Odrzuć transakcję',
+            transactionDenied: 'Transakcja odrzucona',
+            transactionApproved: 'Transakcja zatwierdzona!',
+            areYouSureToDeny: 'Na pewno? Transakcja zostanie odrzucona, jeśli zamkniesz ten ekran.',
+            youCanTryAgainAtMerchantOrReachOut:
+                'Możesz spróbować ponownie u sprzedawcy. Jeśli nie próbowałeś(-aś) wykonać tej transakcji, <concierge-link>skontaktuj się z Concierge</concierge-link>, aby zgłosić potencjalne oszustwo.',
+            youNeedToTryAgainAtMerchant: 'Ta transakcja nie została zweryfikowana, więc ją odrzuciliśmy. Musisz spróbować ponownie u sprzedawcy.',
+            goBackToTheMerchant: 'Wróć do strony sprzedawcy, aby kontynuować transakcję.',
+            attemptedTransaction: 'Próbowana transakcja',
+            transactionFailed: 'Transakcja nie powiodła się',
+            transactionCouldNotBeCompleted: 'Twoja transakcja nie mogła zostać zrealizowana. Spróbuj ponownie u sprzedawcy.',
+            transactionCouldNotBeCompletedReachOut:
+                'Nie można było sfinalizować Twojej transakcji. Jeśli nie próbowałeś(-aś) wykonać tej transakcji, <concierge-link>skontaktuj się z Concierge</concierge-link>, aby zgłosić potencjalne oszustwo.',
+            reviewFailed: 'Recenzja nie powiodła się',
+            alreadyReviewedSubtitle:
+                'Ta transakcja została już przez Ciebie sprawdzona. Sprawdź swoją <transaction-history-link>historię transakcji</transaction-history-link> lub skontaktuj się z <concierge-link>Concierge</concierge-link>, aby zgłosić wszelkie problemy.',
+        },
         biometricsTest: {
             biometricsTest: 'Test biometrii',
             authenticationSuccessful: 'Uwierzytelnianie powiodło się',
@@ -698,7 +723,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nieobsługiwane urządzenie',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> Ta akcja nie jest obsługiwana na Twoim urządzeniu. Pobierz aplikację Expensify z <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> lub <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Sklepu Google Play</a> i spróbuj ponownie.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `Ta akcja nie jest obsługiwana na Twoim urządzeniu. Pobierz aplikację Expensify z <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> lub <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Sklepu Google Play</a> i spróbuj ponownie.`,
         },
         verificationFailed: 'Weryfikacja nie powiodła się',
     },
@@ -1415,6 +1440,8 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Niektóre z tych duplikatów zostały już zatwierdzone lub opłacone.',
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystko',
+        noDuplicatesTitle: 'Wszystko gotowe!',
+        noDuplicatesDescription: 'Nie ma tutaj zduplikowanych transakcji do sprawdzenia.',
         confirmApprove: 'Potwierdź kwotę zatwierdzenia',
         confirmApprovalAmount: 'Zatwierdź tylko zgodne wydatki lub zatwierdź cały raport.',
         confirmApprovalAllHoldAmount: () => ({
@@ -1528,7 +1555,6 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Łączna kwota jest zbyt wysoka. Zmniejsz liczbę godzin lub obniż stawkę.',
         },
         correctRateError: 'Napraw błąd stawki i spróbuj ponownie.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Wyjaśnij</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Nie możesz duplikować wydatków z tytułu diet między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
         rulesModifiedFields: {
@@ -1543,6 +1569,11 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} przez <a href="${route}">zasady wydatków prywatnych</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} przez <a href="${route}">zasady workspace’u</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `nie udało się przesłać raportu przez <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnianie wysyłki</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `nie udało się wysłać raportu. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) =>
+            `nie udało się zatwierdzić przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady w przestrzeni roboczej</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `nie udało się zaakceptować. ${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -3909,6 +3940,7 @@ ${
             clearFilter: 'Wyczyść filtr',
             workspaceName: 'Nazwa przestrzeni roboczej',
             workspaceOwner: 'Właściciel',
+            keepMeAsAdmin: 'Zachowaj mnie jako administratora',
             workspaceType: 'Typ przestrzeni roboczej',
             workspaceAvatar: 'Awatar przestrzeni roboczej',
             clientID: 'ID klienta',
@@ -7392,6 +7424,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `firmowe konto bankowe ${maskedBankAccountNumber} zostało automatycznie zablokowane z powodu problemu z rozliczeniami zwrotów lub Karty Expensify. Napraw problem w <a href="${linkURL}">ustawieniach przestrzeni roboczej</a>.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} opuścił czat`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Otwórz aplikację mobilną Expensify, aby przejrzeć transakcję${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
+                },
             },
             error: {
                 invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację swojego połączenia.',
@@ -7570,7 +7606,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
     },
     gps: {
-        disclaimer: 'Użyj GPS, aby utworzyć wydatek z podróży. Stuknij przycisk „Start” poniżej, aby rozpocząć śledzenie.',
         error: {
             failedToStart: 'Nie udało się uruchomić śledzenia lokalizacji.',
             failedToGetPermissions: 'Nie udało się uzyskać wymaganych uprawnień lokalizacji.',
