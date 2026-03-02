@@ -46,7 +46,6 @@ const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearch
                 transactionItem={transactionItem}
                 violations={transactionItem.violations}
                 report={transactionItem.report}
-                policy={transactionItem.policy}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
             />

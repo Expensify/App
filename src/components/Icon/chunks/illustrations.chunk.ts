@@ -44,6 +44,9 @@ import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-secon
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Multifactor Authentication Illustrations
+import ApprovedTransactionHand from '@assets/images/multifactorAuthentication/approved-transaction-hand.svg';
+import DeniedTransactionHand from '@assets/images/multifactorAuthentication/denied-transaction-hand.svg';
+import EncryptionMan from '@assets/images/multifactorAuthentication/encryption-man.svg';
 import HumptyDumpty from '@assets/images/multifactorAuthentication/humpty-dumpty.svg';
 import MagnifyingGlassSpyMouthClosed from '@assets/images/multifactorAuthentication/magnifying-glass-spy-mouth-closed.svg';
 import OpenPadlock from '@assets/images/multifactorAuthentication/open-padlock.svg';
@@ -382,8 +385,11 @@ const Illustrations = {
     // Multifactor Authentication Illustrations
     MagnifyingGlassSpyMouthClosed,
     OpenPadlock,
+    ApprovedTransactionHand,
+    DeniedTransactionHand,
     RunOutOfTime,
     HumptyDumpty,
+    EncryptionMan,
 };
 
 /**
