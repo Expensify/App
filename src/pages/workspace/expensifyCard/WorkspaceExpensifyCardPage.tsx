@@ -37,7 +37,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     }, [fetchExpensifyCards]);
 
     const paymentBankAccountID = settings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const isLoading = !isOffline && (!cardSettings || settings?.isLoading) && !settings?.hasOnceLoaded;
+    const isLoading = !isOffline && (!cardSettings || settings?.isLoading) && !cardSettings?.hasOnceLoaded;
 
     const renderContent = () => {
         if (isLoading) {
