@@ -1,6 +1,6 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import Text from '@components/Text';
@@ -28,14 +28,22 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
 
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(workspaceAccountID, allWorkspaceCards);
 
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew', 'HandCard', 'MagnifyingGlassMoney', 'CompanyCardsEmptyState']);
+    const illustrations = useMemoizedLazyIllustrations([
+        'CreditCardsNew',
+        'HandCard',
+        'MagnifyingGlassMoney',
+        'CompanyCardsEmptyStateUSCA',
+        'CompanyCardsEmptyStateUKEU',
+        'CompanyCardsEmptyStateGeneric',
+    ]);
 
     const features = [
         {
@@ -60,6 +68,20 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
             translationKey: feature.translationKey,
         }));
 
+    const getCompanyCardIllustration = () => {
+        const currency = policy?.outputCurrency ?? '';
+
+        if (currency === CONST.CURRENCY.USD || currency === CONST.CURRENCY.CAD) {
+            return illustrations.CompanyCardsEmptyStateUSCA;
+        }
+
+        if (currency === CONST.CURRENCY.GBP || currency === CONST.CURRENCY.EUR) {
+            return illustrations.CompanyCardsEmptyStateUKEU;
+        }
+
+        return illustrations.CompanyCardsEmptyStateGeneric;
+    };
+
     const handleCtaPress = () => {
         if (!policy?.id) {
             return;
@@ -82,10 +104,10 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
                 ctaText={translate('workspace.companyCards.addCards')}
                 ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
                 onCtaPress={handleCtaPress}
-                illustrationBackgroundColor={colors.blue700}
-                illustration={illustrations.CompanyCardsEmptyState}
-                illustrationStyle={styles.emptyStateCardIllustration}
-                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
+                illustrationBackgroundColor={colors.blue800}
+                illustration={getCompanyCardIllustration()}
+                illustrationStyle={styles.getEmptyStateCompanyCardsIllustration(shouldUseNarrowLayout)}
+                illustrationContainerStyle={styles.getEmptyStateCompanyCardsIllustrationContainer(shouldUseNarrowLayout)}
                 titleStyles={styles.textHeadlineH1}
                 isButtonDisabled={workspaceAccountID === CONST.DEFAULT_NUMBER_ID}
             />

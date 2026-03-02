@@ -53,6 +53,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     icon={icons.LuggageWithLines}
                     onPress={handleManageTravel}
                     shouldShowRightIcon
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BOOK_TRAVEL_BUTTON}
                     iconRight={icons.NewWindow}
                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                 />

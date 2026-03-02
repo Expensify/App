@@ -21,8 +21,9 @@ function AddTagPage({route}: AddTagPageProps) {
     const {policyID, ruleID, orderWeight} = route.params;
     const isEditing = ruleID !== ROUTES.NEW;
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
-    const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true, selector: getTagLists});
+    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
+    const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {selector: getTagLists});
+    const hasDependentTags = policyTags.some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
     const tagList = policyTags.find((item) => item.orderWeight === orderWeight);
     const formTags = getTagArrayFromName(form?.tag ?? '');
     const formTag = formTags.at(orderWeight);
@@ -46,7 +47,11 @@ function AddTagPage({route}: AddTagPageProps) {
 
     const onSave = (value?: string) => {
         const newTags = [...formTags];
-        newTags[orderWeight] = value ?? '';
+        if (hasDependentTags) {
+            newTags.splice(orderWeight, newTags.length - orderWeight, value ?? '');
+        } else {
+            newTags[orderWeight] = value ?? '';
+        }
         updateDraftMerchantRule({tag: trimTag(newTags.join(':'))});
     };
 

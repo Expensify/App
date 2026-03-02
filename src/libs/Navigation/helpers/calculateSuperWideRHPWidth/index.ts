@@ -9,10 +9,10 @@ import variables from '@styles/variables';
  * @returns Calculated super wide RHP width with constraints applied
  */
 function calculateSuperWideRHPWidth(windowWidth: number) {
-    const superWideRHPWidth = windowWidth - variables.navigationTabBarSize - variables.sideBarWithLHBWidth;
+    const superWideRHPWidth = windowWidth - (variables.navigationTabBarSize + variables.sideBarWithLHBWidth);
     const wideRHPWidth = calculateReceiptPaneRHPWidth(windowWidth) + variables.sideBarWidth;
 
-    return Math.max(Math.min(superWideRHPWidth, variables.superWideRHPMaxWidth), wideRHPWidth);
+    return Math.max(superWideRHPWidth, wideRHPWidth);
 }
 
 export default calculateSuperWideRHPWidth;

@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import {getMissingOnyxUpdates} from '@libs/actions/App';
 import Log from '@libs/Log';
-import type {DeferredUpdatesDictionary, DetectGapAndSplitResult} from '@userActions/OnyxUpdateManager/types';
+import type {AnyDeferredUpdatesDictionary, AnyDetectGapAndSplitResult} from '@userActions/OnyxUpdateManager/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {applyUpdates} from './applyUpdates';
@@ -26,7 +26,7 @@ Onyx.connectWithoutView({
  * @param lastUpdateIDFromClient An optional lastUpdateID passed to use instead of the lastUpdateIDAppliedToClient
  * @returns
  */
-function detectGapsAndSplit(lastUpdateIDFromClient: number): DetectGapAndSplitResult {
+function detectGapsAndSplit(lastUpdateIDFromClient: number): AnyDetectGapAndSplitResult {
     // We only want to apply deferred updates that are newer than the last update that was applied to the client.
     // At this point, the missing updates from "GetMissingOnyxUpdates" have been applied already,
     // so we can safely filter out any outdated deferred updates.
@@ -39,7 +39,7 @@ function detectGapsAndSplit(lastUpdateIDFromClient: number): DetectGapAndSplitRe
     }
 
     const updateValues = Object.values(pendingDeferredUpdates);
-    const applicableUpdates: DeferredUpdatesDictionary = {};
+    const applicableUpdates: AnyDeferredUpdatesDictionary = {};
 
     let gapExists = false;
     let firstUpdateIDAfterGaps: number | undefined;
@@ -91,7 +91,7 @@ function detectGapsAndSplit(lastUpdateIDFromClient: number): DetectGapAndSplitRe
         }
     }
 
-    const updatesAfterGaps: DeferredUpdatesDictionary = {};
+    const updatesAfterGaps: AnyDeferredUpdatesDictionary = {};
     if (gapExists) {
         // If there is a gap and we didn't detect two chained updates, "firstUpdateToBeAppliedAfterGap" will always be the the last deferred update.
         // We will fetch all missing updates up to the previous update and can always apply the last deferred update.

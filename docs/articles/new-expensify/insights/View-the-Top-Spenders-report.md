@@ -15,6 +15,8 @@ The **Top Spenders** report shows which employees submitted the highest total ex
 
 This report is a pre-built suggested search so you can review spending activity at a glance.
 
+![Viewing the Top Spenders report]({{site.url}}/assets/images/top-spender-2.png{:width="100%"}
+
 ---
 
 ## Who can use the Top Spenders report 
