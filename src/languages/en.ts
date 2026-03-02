@@ -563,7 +563,6 @@ const translations = {
         quarter: 'Quarter',
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
-        explain: 'Explain',
     },
     socials: {
         podcast: 'Follow us on Podcast',
@@ -1583,6 +1582,7 @@ const translations = {
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
         correctRateError: 'Fix the rate error and try again.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"'),
             billable: (value: boolean) => (value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"'),

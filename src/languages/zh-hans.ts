@@ -539,7 +539,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: '休假代理',
         expensifyLogo: 'Expensify徽标',
         duplicateReport: '重复报销单',
-        explain: '说明',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -1525,6 +1524,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '总金额过大。请减少工时或降低费率。',
         },
         correctRateError: '修复费率错误后请重试。',
+        AskToExplain: `。<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>说明</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError: '您无法在不同工作区之间复制每日津贴报销，因为各工作区的补贴标准可能不同。',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? '将该报销单标记为“可报销”' : '将该报销单标记为“不可报销”'),
