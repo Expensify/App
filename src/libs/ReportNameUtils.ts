@@ -895,7 +895,7 @@ function getReportName(
         const originalReportName = originalReport ? getReportName(originalReport, reportAttributesDerivedValue) : '';
         const currentLocale = IntlStore.getCurrentLocale();
         const translateInCurrentLocale: LocalizedTranslate = (path, ...parameters) => translateWithLocale(currentLocale, path, ...parameters);
-        return getCreatedReportForUnapprovedTransactionsMessage(originalID, originalReportName, translateInCurrentLocale);
+        return getCreatedReportForUnapprovedTransactionsMessage(originalID, originalReportName, !!parentReportAction.isOriginalReportDeleted, translateInCurrentLocale);
     }
 
     if (isInvoiceRoom(report)) {
