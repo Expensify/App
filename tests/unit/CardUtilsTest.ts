@@ -16,6 +16,7 @@ import {
     filterInactiveCards,
     flattenWorkspaceCardsList,
     formatCardExpiration,
+    formatMaskedCardName,
     getAllCardsForWorkspace,
     getAssignedCardSortKey,
     getBankCardDetailsImage,
@@ -1736,6 +1737,57 @@ describe('CardUtils', () => {
             const filteredCards = getFilteredCardList(undefined, accountList, mockAllWorkspaceCards);
             expect(filteredCards).toStrictEqual([{cardName: unassignedCard, cardID: unassignedCard}]);
         });
+
+        it('Should filter parent cards only when a child card has matching digits for Amex Direct (FDX) feeds', () => {
+            const amexDirectFeedName = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT}11111#domain123` as CompanyCardFeedWithDomainID;
+            const accountList = ['Platinum Card - 11111', 'Platinum Card - JANE DOE - 11111', 'Platinum Card - JOHN SMITH - 33333'];
+            const cardsList = getFilteredCardList(undefined, accountList, undefined, amexDirectFeedName);
+            expect(cardsList).toStrictEqual([
+                {cardName: 'Platinum Card - JANE DOE - 11111', cardID: 'Platinum Card - JANE DOE - 11111'},
+                {cardName: 'Platinum Card - JOHN SMITH - 33333', cardID: 'Platinum Card - JOHN SMITH - 33333'},
+            ]);
+        });
+
+        it('Should not filter parent cards when no child card has matching digits for Amex Direct feeds', () => {
+            const amexDirectFeedName = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT}11111#domain123` as CompanyCardFeedWithDomainID;
+            const accountList = ['Platinum Card - 11111', 'Platinum Card - JANE DOE - 22222', 'Platinum Card - JOHN SMITH - 33333'];
+            const cardsList = getFilteredCardList(undefined, accountList, undefined, amexDirectFeedName);
+            expect(cardsList).toStrictEqual([
+                {cardName: 'Platinum Card - 11111', cardID: 'Platinum Card - 11111'},
+                {cardName: 'Platinum Card - JANE DOE - 22222', cardID: 'Platinum Card - JANE DOE - 22222'},
+                {cardName: 'Platinum Card - JOHN SMITH - 33333', cardID: 'Platinum Card - JOHN SMITH - 33333'},
+            ]);
+        });
+
+        it('Should filter multiple parent cards across card programs for Amex Direct feeds', () => {
+            const amexDirectFeedName = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT}11111#domain123` as CompanyCardFeedWithDomainID;
+            const accountList = ['Platinum Card - 11111', 'Platinum Card - JANE DOE - 11111', 'Gold Card - 44444', 'Gold Card - JOHN SMITH - 44444'];
+            const cardsList = getFilteredCardList(undefined, accountList, undefined, amexDirectFeedName);
+            expect(cardsList).toStrictEqual([
+                {cardName: 'Platinum Card - JANE DOE - 11111', cardID: 'Platinum Card - JANE DOE - 11111'},
+                {cardName: 'Gold Card - JOHN SMITH - 44444', cardID: 'Gold Card - JOHN SMITH - 44444'},
+            ]);
+        });
+
+        it('Should not filter cards for non-Amex Direct feeds', () => {
+            const chaseFeedName = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#domain123` as CompanyCardFeedWithDomainID;
+            const accountList = ['CREDIT CARD...6607', 'CREDIT CARD...5501'];
+            const cardsList = getFilteredCardList(undefined, accountList, undefined, chaseFeedName);
+            expect(cardsList).toStrictEqual([
+                {cardName: 'CREDIT CARD...6607', cardID: 'CREDIT CARD...6607'},
+                {cardName: 'CREDIT CARD...5501', cardID: 'CREDIT CARD...5501'},
+            ]);
+        });
+
+        it('Should not filter cards when feedName is not provided', () => {
+            const accountList = ['Card 1', 'Card 2', 'Card 3'];
+            const cardsList = getFilteredCardList(undefined, accountList, undefined);
+            expect(cardsList).toStrictEqual([
+                {cardName: 'Card 1', cardID: 'Card 1'},
+                {cardName: 'Card 2', cardID: 'Card 2'},
+                {cardName: 'Card 3', cardID: 'Card 3'},
+            ]);
+        });
     });
 
     describe('hasOnlyOneCardToAssign', () => {
@@ -3181,5 +3233,19 @@ describe('CardUtils', () => {
             const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
             expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/99999`);
         });
+    });
+});
+
+describe('formatMaskedCardName', () => {
+    it('pads a 4-digit card name with leading Xs and groups into 4-char segments', () => {
+        expect(formatMaskedCardName('3191')).toBe('XXXX-XXXX-XXXX-3191');
+    });
+
+    it('groups a full 16-char masked card name into 4-char segments', () => {
+        expect(formatMaskedCardName('553312XXXXXX3223')).toBe('5533-12XX-XXXX-3223');
+    });
+
+    it('returns non-commercial card names unchanged', () => {
+        expect(formatMaskedCardName('J. SMITH...4306')).toBe('J. SMITH...4306');
     });
 });

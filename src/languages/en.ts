@@ -6,7 +6,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type {
     AddBudgetParams,
     AddedOrDeletedPolicyReportFieldParams,
@@ -564,6 +564,7 @@ const translations = {
         quarter: 'Quarter',
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
+        explain: 'Explain',
     },
     socials: {
         podcast: 'Follow us on Podcast',
@@ -663,9 +664,33 @@ const translations = {
         signIn: 'Please sign in again.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Review transaction',
+            pleaseReview: 'Please review this transaction',
+            requiresYourReview: 'An Expensify Card transaction requires your review.',
+            transactionDetails: 'Transaction details',
+            attemptedTransaction: 'Attempted transaction',
+            deny: 'Deny',
+            approve: 'Approve',
+            denyTransaction: 'Deny transaction',
+            transactionDenied: 'Transaction denied',
+            transactionApproved: 'Transaction approved!',
+            areYouSureToDeny: 'Are you sure? The transaction will be denied if you close this screen.',
+            youCanTryAgainAtMerchantOrReachOut:
+                "You can try again at the merchant. If you didn't attempt this transaction, <concierge-link>reach out to Concierge</concierge-link> to report potential fraud.",
+            youNeedToTryAgainAtMerchant: "This transaction was not verified, so we denied it. You'll need to try again at the merchant.",
+            goBackToTheMerchant: 'Return to the merchant site to continue the transaction.',
+            transactionFailed: 'Transaction failed',
+            transactionCouldNotBeCompleted: 'Your transaction could not be completed. Please try again at the merchant.',
+            transactionCouldNotBeCompletedReachOut:
+                "Your transaction could not be completed. If you didn't attempt this transaction, <concierge-link>reach out to Concierge</concierge-link> to report potential fraud.",
+            reviewFailed: 'Review failed',
+            alreadyReviewedSubtitle:
+                'You already reviewed this transaction. Please check your <transaction-history-link>transaction history</transaction-history-link> or contact <concierge-link>Concierge</concierge-link> to report any issues.',
+        },
         unsupportedDevice: {
             unsupportedDevice: 'Unsupported device',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> This action is not supported on your device. Please download the Expensify app from the <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> or <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> and try again.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `This action is not supported on your device. Please download the Expensify app from the <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> or <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> and try again.`,
         },
         biometricsTest: {
             biometricsTest: 'Biometrics test',
@@ -994,7 +1019,7 @@ const translations = {
                 cta: 'Review',
             },
         },
-        assignedCards: 'Assigned cards',
+        assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
         announcements: 'Announcements',
         discoverSection: {
@@ -1315,6 +1340,10 @@ const translations = {
         submitted: (memo?: string) => `submitted${memo ? `, saying ${memo}` : ''}`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
         queuedToSubmitViaDEW: 'queued to submit via custom approval workflow',
+        failedToAutoSubmitViaDEW: (reason: string) => `failed to submit the report via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `failed to submit the report. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `failed to approve via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `failed to approve. ${reason}`,
         queuedToApproveViaDEW: 'queued to approve via custom approval workflow',
         trackedAmount: (formattedAmount: string, comment?: string) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: (amount: string) => `split ${amount}`,
@@ -1440,6 +1469,8 @@ const translations = {
         someDuplicatesArePaid: 'Some of these duplicates have been approved or paid already.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
+        noDuplicatesTitle: 'All set!',
+        noDuplicatesDescription: 'There are no duplicate transactions for review here.',
         confirmApprove: 'Confirm approval amount',
         confirmApprovalAmount: 'Approve only compliant expenses, or approve the entire report.',
         confirmApprovalAllHoldAmount: () => ({
@@ -1553,16 +1584,17 @@ const translations = {
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
         correctRateError: 'Fix the rate error and try again.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
+        rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"'),
             billable: (value: boolean) => (value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `set the tax rate to "${value}"` : `tax rate to "${value}"`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `moved this expense to report "${value}"`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `set the ${field} to "${value}"` : `${field} to "${value}"`;
             },
-            format: (fragments: string, route: string) => `${fragments} via <a href="${route}">workspace rules</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">personal expense rules</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">workspace rules</a>`,
         },
         duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per diem expenses across workspaces because the rates may differ between workspaces.",
     },
@@ -3963,6 +3995,7 @@ const translations = {
             clearFilter: 'Clear filter',
             workspaceName: 'Workspace name',
             workspaceOwner: 'Owner',
+            keepMeAsAdmin: 'Keep me as an admin',
             workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
             clientID: 'Client ID',
@@ -7369,6 +7402,10 @@ const translations = {
                 unshare: ({to}: UnshareParams) => `removed member ${to}`,
                 stripePaid: (amount: string, currency: string) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Open the Expensify mobile app to review your ${amountAndMerchantText ? `${amountAndMerchantText} ` : ''}transaction`;
+                },
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `there was a problem syncing with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Please fix the issue in <a href="${workspaceAccountingLink}">workspace settings</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
@@ -7577,7 +7614,6 @@ const translations = {
         },
     },
     gps: {
-        disclaimer: 'Use GPS to create an expense from your journey. Tap Start below to begin tracking.',
         error: {
             failedToStart: 'Failed to start location tracking.',
             failedToGetPermissions: 'Failed to get required location permissions.',
