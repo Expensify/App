@@ -5,45 +5,49 @@ import { isFullScreenName } from '@libs/Navigation/helpers/isNavigatorName';
 type StateRoutes = StackNavigationState<ParamListBase>['routes'];
 
 /**
- * For each fullscreen navigator in routesToRender, checks if a route with the same name
- * already exists in the full state (with a different key). If so, replaces the new route
- * with the existing one updated with the new params — exactly mirroring what
- * handlePushFullscreenAction did at the router level.
- * This causes React to reuse the already-mounted navigator component (same key),
- * while the new params tell the navigator which screen to show.
- * The real navigation state is untouched.
+ * For each fullscreen navigator in routesToRender, checks whether a navigator
+ * with the same name is already mounted in the current navigation state.
+ *
+ * If such a route exists (with a different key), the new route is replaced
+ * with the existing one while applying the new params.
+ *
+ * This preserves the original route key so React can reuse the already-mounted
+ * navigator instance, while the updated params instruct it which screen to display.
+ *
+ * The actual navigation state is not mutated — this only affects what gets rendered.
  */
-
-
-
 function reuseNavigatorKey(routesToRender: StateRoutes, fullState: StackNavigationState<ParamListBase>): StateRoutes {
     return routesToRender.map((route) => {
-        if (!isFullScreenName(route.name) || fullState.routes.at(fullState.routes.length - 1)?.name === route.name) {
+        const previousRoute = fullState.routes.at(-2);
+
+        // Skip if this is not a fullscreen navigator or if we're already inside the same navigator
+        if (!isFullScreenName(route.name) || previousRoute?.name === route.name) {
             return route;
         }
 
-        // Find an already mounted route with the same navigator name
+        // Look for an already mounted navigator with the same name but a different key
         const existingRoute = fullState.routes.find((r) => r.name === route.name && r.key !== route.key);
 
         if (!existingRoute) {
             return route;
         }
 
-        // Avoid duplicate keys in the rendered list.
+        // Prevent rendering two routes with the same key
         if (routesToRender.some((r) => r.key === existingRoute.key)) {
             return route;
         }
 
-        // Transfer animation marker so the entering animation fires on the reused component.
+        // Move the entering-animation marker to the reused route key
+        // so the animation runs on the existing navigator instance
         if (screensWithEnteringAnimation.has(route.key)) {
             screensWithEnteringAnimation.delete(route.key);
             screensWithEnteringAnimation.add(existingRoute.key);
         }
 
         return {
-            ...existingRoute, // Preserve key and internal navigator state
+            ...existingRoute, // Reuse the mounted navigator (preserve key and internal state)
             params: {
-                ...route.params, // Apply params from the new navigation action
+                ...route.params, // Apply params from the incoming navigation action
             },
         };
     });
