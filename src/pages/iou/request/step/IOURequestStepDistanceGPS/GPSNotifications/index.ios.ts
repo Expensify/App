@@ -17,10 +17,7 @@ function startGpsTripNotification(translate: LocalizedTranslate, reportID: strin
 
     const deepLink = ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID);
 
-    let distance = 0;
-    if (distanceInMeters !== undefined && distanceInMeters !== 0) {
-        distance = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
-    }
+    const distance = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
 
     Airship.iOS.liveActivityManager
         .start({
