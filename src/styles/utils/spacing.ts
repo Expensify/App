@@ -183,6 +183,10 @@ export default {
         marginRight: 40,
     },
 
+    mr13: {
+        marginRight: 52,
+    },
+
     mrn1: {
         marginRight: -4,
     },
@@ -639,6 +643,10 @@ export default {
         paddingRight: 20,
     },
 
+    pr6: {
+        paddingRight: 24,
+    },
+
     pr7: {
         paddingRight: 28,
     },
@@ -849,6 +857,10 @@ export default {
 
     gap12: {
         gap: 48,
+    },
+
+    gap13: {
+        gap: 52,
     },
 
     rowGap4: {

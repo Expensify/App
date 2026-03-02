@@ -2,6 +2,7 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -12,6 +13,8 @@ type CustomListHeaderProps = {
     rightHeaderMinimumWidth?: number;
     shouldDivideEqualWidth?: boolean;
     shouldShowRightCaret?: boolean;
+    /** Adjusts for fixed width avatar component in the first column */
+    shouldAdjustForAvatar?: boolean;
     containerStyles?: StyleProp<ViewStyle>;
 };
 
@@ -22,10 +25,12 @@ function CustomListHeader({
     rightHeaderMinimumWidth = 60,
     shouldDivideEqualWidth = false,
     shouldShowRightCaret = false,
+    shouldAdjustForAvatar = false,
     containerStyles,
 }: CustomListHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const header = (
         <View
@@ -38,7 +43,9 @@ function CustomListHeader({
                 containerStyles,
             ]}
         >
-            <Text style={[styles.textMicroSupporting, shouldDivideEqualWidth && styles.flex1]}>{leftHeaderText}</Text>
+            <Text style={[styles.textMicroSupporting, shouldDivideEqualWidth && styles.flex1, shouldAdjustForAvatar && [!shouldUseNarrowLayout && styles.pr3, styles.mr13]]}>
+                {leftHeaderText}
+            </Text>
             <View style={[shouldDivideEqualWidth ? styles.flex1 : StyleUtils.getMinimumWidth(rightHeaderMinimumWidth), shouldShowRightCaret && styles.mr6]}>
                 <Text style={[styles.textMicroSupporting, !shouldDivideEqualWidth && styles.textAlignCenter]}>{rightHeaderText}</Text>
             </View>

@@ -110,7 +110,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 rightHeaderText={translate('common.group')}
                 shouldDivideEqualWidth
                 shouldShowRightCaret
-                containerStyles={styles.gap12}
+                shouldAdjustForAvatar
             />
         );
     };
