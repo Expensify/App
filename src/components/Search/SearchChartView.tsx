@@ -30,6 +30,138 @@ import SearchLineChart from './SearchLineChart';
 import SearchPieChart from './SearchPieChart';
 import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQueryJSON} from './types';
 
+// --- DEBUG MOCK DATA (set MOCK_DATA_INDEX to -1 to disable) ---
+const MOCK_DATA_INDEX = -1;
+
+function mockMonthItems(entries: Array<[string, number]>): GroupedItem[] {
+    return entries.map(([label, total]) => ({formattedMonth: label, total: total * 100, currency: 'USD', month: 1, year: 2025}) as unknown as GroupedItem);
+}
+
+const MOCK_DATASETS: Array<{label: string; groupBy: SearchGroupBy; data: GroupedItem[]}> = [
+    {
+        label: '0: 3 short labels',
+        groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+        data: mockMonthItems([
+            ['Jan', 1200],
+            ['Feb', 3400],
+            ['Mar', 2100],
+        ]),
+    },
+    {
+        label: '1: 12 short labels (full year)',
+        groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+        data: mockMonthItems([
+            ['Jan', 1200],
+            ['Feb', 3400],
+            ['Mar', 2100],
+            ['Apr', 800],
+            ['May', 4500],
+            ['Jun', 3200],
+            ['Jul', 2900],
+            ['Aug', 1100],
+            ['Sep', 5600],
+            ['Oct', 4100],
+            ['Nov', 2700],
+            ['Dec', 3800],
+        ]),
+    },
+    {
+        label: '2: 6 long labels (full month names)',
+        groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+        data: mockMonthItems([
+            ['January', 1200],
+            ['February', 3400],
+            ['March', 2100],
+            ['April', 800],
+            ['May', 4500],
+            ['June', 3200],
+        ]),
+    },
+    {
+        label: '3: 12 long labels (month + year)',
+        groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+        data: mockMonthItems([
+            ['January 2024', 1200],
+            ['February 2024', 3400],
+            ['March 2024', 2100],
+            ['April 2024', 800],
+            ['May 2024', 4500],
+            ['June 2024', 3200],
+            ['July 2024', 2900],
+            ['August 2024', 1100],
+            ['September 2024', 5600],
+            ['October 2024', 4100],
+            ['November 2024', 2700],
+            ['December 2024', 3800],
+        ]),
+    },
+    {
+        label: '4: mixed lengths (long edges)',
+        groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+        data: mockMonthItems([
+            ['January 2024', 1200],
+            ['Feb', 3400],
+            ['Mar', 2100],
+            ['Apr', 800],
+            ['December 2024', 3800],
+        ]),
+    },
+    {
+        label: '5: very long labels (categories)',
+        groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+        data: mockMonthItems([
+            ['Office Supplies & Equipment', 4200],
+            ['Travel & Transportation', 3100],
+            ['Software Subscriptions', 2800],
+            ['Professional Services', 1900],
+        ]),
+    },
+    {
+        label: '6: 2 data points',
+        groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+        data: mockMonthItems([
+            ['January 2024', 5000],
+            ['February 2024', 3200],
+        ]),
+    },
+    {
+        label: '7: 24 data points (2 years monthly)',
+        groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+        data: mockMonthItems([
+            ['Jan 24', 12],
+            ['Feb 24', 34],
+            ['Mar 24', 21],
+            ['Apr 24', 8],
+            ['May 24', 45],
+            ['Jun 24', 32],
+            ['Jul 24', 29],
+            ['Aug 24', 11],
+            ['Sep 24', 56],
+            ['Oct 24', 41],
+            ['Nov 24', 27],
+            ['Dec 24', 38],
+            ['Jan 25', 15],
+            ['Feb 25', 42],
+            ['Mar 25', 19],
+            ['Apr 25', 33],
+            ['May 25', 51],
+            ['Jun 25', 22],
+            ['Jul 25', 37],
+            ['Aug 25', 14],
+            ['Sep 25', 48],
+            ['Oct 25', 30],
+            ['Nov 25', 25],
+            ['Dec 25', 44],
+        ]),
+    },
+    {
+        label: '8: single data point',
+        groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+        data: mockMonthItems([['September 2024', 4200]]),
+    },
+];
+// --- END DEBUG MOCK DATA ---
+
 type ChartGroupByConfig = {
     titleIconName: 'Users' | 'CreditCard' | 'Send' | 'Folder' | 'Basket' | 'Tag' | 'Calendar';
     getLabel: (item: GroupedItem) => string;
@@ -146,11 +278,18 @@ const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChart
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, title}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy: groupByProp, data: dataProp, isLoading, onScroll, title}: SearchChartViewProps) {
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Basket', 'Tag', 'Calendar']);
+
+    // --- DEBUG: override data with mock when MOCK_DATA_INDEX >= 0 ---
+    const mockDataset = MOCK_DATA_INDEX >= 0 ? MOCK_DATASETS.at(MOCK_DATA_INDEX) : undefined;
+    const data = mockDataset?.data ?? dataProp;
+    const groupBy = mockDataset?.groupBy ?? groupByProp;
+    // --- END DEBUG ---
+
     const {titleIconName, getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const titleIcon = icons[titleIconName];
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];

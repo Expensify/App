@@ -9,10 +9,11 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {QuickAction, RecentWaypoint} from '@src/types/onyx';
+import type {Policy, QuickAction, RecentWaypoint} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
 import * as Split from '../../../src/libs/actions/IOU/Split';
+import DistanceRequestUtils from '../../../src/libs/DistanceRequestUtils';
 import * as ReportUtils from '../../../src/libs/ReportUtils';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
@@ -91,6 +92,7 @@ describe('MoneyRequest', () => {
             files: [fakeReceiptFile],
             participant: {accountID: 222, login: 'test@test.com'},
             quickAction: fakeQuickAction,
+            allTransactionDrafts: {},
             selfDMReport,
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
@@ -254,6 +256,39 @@ describe('MoneyRequest', () => {
             );
         });
 
+        it('should pass existingTransactionDraft and draftTransactionIDs to requestMoney when allTransactionDrafts is provided', () => {
+            const draftTransaction = createRandomTransaction(99);
+            const linkedAction = {
+                reportActionID: 'action1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '',
+                originalMessage: {
+                    IOUTransactionID: draftTransaction.transactionID,
+                    IOUReportID: 'report456',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const transactionWithLinkedAction = {
+                ...fakeTransaction,
+                linkedTrackedExpenseReportAction: linkedAction,
+            };
+
+            createTransaction({
+                ...baseParams,
+                transactions: [transactionWithLinkedAction],
+                allTransactionDrafts: {
+                    [draftTransaction.transactionID]: draftTransaction,
+                },
+            });
+
+            expect(IOU.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    existingTransactionDraft: draftTransaction,
+                    draftTransactionIDs: [draftTransaction.transactionID],
+                }),
+            );
+        });
+
         it('should pass billable and reimbursable flags to trackExpense', () => {
             createTransaction({
                 ...baseParams,
@@ -268,6 +303,39 @@ describe('MoneyRequest', () => {
                         billable: true,
                         reimbursable: false,
                     }),
+                }),
+            );
+        });
+
+        it('should pass undefined existingTransactionDraft when no matching draft exists', () => {
+            createTransaction({
+                ...baseParams,
+                allTransactionDrafts: {},
+            });
+
+            expect(IOU.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    existingTransactionDraft: undefined,
+                    draftTransactionIDs: [],
+                }),
+            );
+        });
+
+        it('should compute draftTransactionIDs from allTransactionDrafts', () => {
+            const draft1 = createRandomTransaction(101);
+            const draft2 = createRandomTransaction(102);
+
+            createTransaction({
+                ...baseParams,
+                allTransactionDrafts: {
+                    [draft1.transactionID]: draft1,
+                    [draft2.transactionID]: draft2,
+                },
+            });
+
+            expect(IOU.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    draftTransactionIDs: expect.arrayContaining([draft1.transactionID, draft2.transactionID]),
                 }),
             );
         });
@@ -343,6 +411,8 @@ describe('MoneyRequest', () => {
             selfDMReport,
             isSelfTourViewed: false,
             betas: [],
+            recentWaypoints: [] as RecentWaypoint[],
+            allTransactionDrafts: {},
         };
 
         beforeEach(async () => {
@@ -355,6 +425,7 @@ describe('MoneyRequest', () => {
                     },
                 },
             });
+            baseParams.recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
         });
 
         afterEach(async () => {
@@ -761,7 +832,6 @@ describe('MoneyRequest', () => {
             reportAttributesDerived: {},
             personalDetails: {},
             waypoints: {},
-            customUnitRateID: 'rate1',
             currentUserLogin: 'test@test.com',
             currentUserAccountID: 1,
             backToReport: undefined,
@@ -858,7 +928,7 @@ describe('MoneyRequest', () => {
                     }),
                 },
                 policyParams: {
-                    policy: baseParams.policy,
+                    policy: undefined,
                 },
                 transactionParams: {
                     amount: 0,
@@ -870,7 +940,7 @@ describe('MoneyRequest', () => {
                     billable: false,
                     reimbursable: fakePolicy?.defaultReimbursable ?? true,
                     validWaypoints: undefined,
-                    customUnitRateID: baseParams.customUnitRateID,
+                    customUnitRateID: '_FAKE_P2P_ID_',
                     attendees: fakeTransaction?.comment?.attendees,
                 },
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
@@ -886,8 +956,34 @@ describe('MoneyRequest', () => {
         });
 
         it('should call trackExpense for TRACK iouType with valid waypoints when not from manual distance step and skipping confirmation', async () => {
+            const policyForMovingExpenses: Policy = {
+                ...fakePolicy,
+                customUnits: {
+                    C3745400EBD18: {
+                        attributes: {
+                            unit: 'mi',
+                        },
+                        customUnitID: 'C3745400EBD18',
+                        defaultCategory: 'Car',
+                        enabled: true,
+                        name: 'Distance',
+                        rates: {
+                            // eslint-disable-next-line camelcase, @typescript-eslint/naming-convention
+                            '4542B77F7C3F8': {
+                                currency: 'ETB',
+                                customUnitRateID: '4542B77F7C3F8',
+                                enabled: true,
+                                index: 0,
+                                name: 'Default Rate',
+                                rate: 70,
+                            },
+                        },
+                    },
+                },
+            };
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
+                policyForMovingExpenses,
                 manualDistance: undefined,
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
@@ -922,7 +1018,7 @@ describe('MoneyRequest', () => {
                         }),
                     }),
                     policyParams: expect.objectContaining({
-                        policy: baseParams.policy,
+                        policy: policyForMovingExpenses,
                     }),
                     transactionParams: expect.objectContaining({
                         amount: 0,
@@ -934,7 +1030,12 @@ describe('MoneyRequest', () => {
                         billable: false,
                         reimbursable: true,
                         validWaypoints: {},
-                        customUnitRateID: baseParams.customUnitRateID,
+                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({
+                            reportID: baseParams.report.reportID,
+                            isTrackDistanceExpense: true,
+                            policy: policyForMovingExpenses,
+                            isPolicyExpenseChat: false,
+                        }),
                     }),
                     isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: baseParams.currentUserAccountID,

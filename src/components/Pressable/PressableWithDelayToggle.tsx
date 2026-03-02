@@ -2,14 +2,15 @@
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {PressableRef} from './GenericPressable/types';
 import type PressableProps from './GenericPressable/types';
@@ -70,7 +71,7 @@ type PressableWithDelayToggleProps = PressableProps & {
 };
 
 function PressableWithDelayToggle({
-    iconChecked = Expensicons.Checkmark,
+    iconChecked,
     inline = true,
     onPress,
     text,
@@ -87,10 +88,13 @@ function PressableWithDelayToggle({
     iconWidth = variables.iconSizeSmall,
     iconHeight = variables.iconSizeSmall,
     shouldUseButtonBackground = false,
+    sentryLabel,
 }: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const resolvedIconChecked = iconChecked ?? lazyIcons.Checkmark;
 
     const updatePressState = () => {
         if (!isActive) {
@@ -105,7 +109,7 @@ function PressableWithDelayToggle({
     // of a Pressable
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
-    const shouldShowIcon = !!icon || (!isActive && !!iconChecked);
+    const shouldShowIcon = !!icon || (!isActive && !!resolvedIconChecked);
     const labelText =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
         text || textChecked ? (
@@ -119,7 +123,7 @@ function PressableWithDelayToggle({
         ) : null;
 
     // Hide text when showing iconChecked and no icon prop is provided
-    const shouldShowText = !(iconChecked && !icon && !isActive);
+    const shouldShowText = !(resolvedIconChecked && !icon && !isActive);
     const displayLabelText = shouldShowText ? labelText : null;
 
     return (
@@ -142,6 +146,7 @@ function PressableWithDelayToggle({
                         tabIndex={-1}
                         accessible={false}
                         onPress={updatePressState}
+                        sentryLabel={sentryLabel ?? CONST.SENTRY_LABEL.PRESSABLE_WITH_DELAY_TOGGLE.BUTTON}
                         style={({hovered, pressed}) => [
                             styles.flexRow,
                             pressableStyle,
@@ -158,7 +163,7 @@ function PressableWithDelayToggle({
                                 {!inline && displayLabelText}
                                 {shouldShowIcon && (
                                     <Icon
-                                        src={!isActive ? iconChecked : (icon ?? iconChecked)}
+                                        src={!isActive ? resolvedIconChecked : (icon ?? resolvedIconChecked)}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
                                         additionalStyles={iconStyles}
                                         width={iconWidth}

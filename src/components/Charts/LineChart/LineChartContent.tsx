@@ -3,11 +3,13 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {CartesianChartRenderArg, ChartBounds} from 'victory-native';
-import {CartesianChart, Line, Scatter} from 'victory-native';
+import {CartesianChart, Line} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
+import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
+import ScatterPoints from '@components/Charts/components/ScatterPoints';
 import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
@@ -47,7 +49,6 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     const [boundsRight, setBoundsRight] = useState(0);
 
     const yAxisDomain = useDynamicYDomain(data);
-
     const chartData = useMemo(() => {
         return data.map((point, index) => ({
             x: index,
@@ -144,24 +145,36 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
 
     const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
 
-    const renderCustomXLabels = useCallback(
+    const renderOutsideComponents = useCallback(
         (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
-            if (!font) {
-                return null;
-            }
             return (
-                <ChartXAxisLabels
-                    labels={truncatedLabels}
-                    labelRotation={labelRotation}
-                    labelSkipInterval={labelSkipInterval}
-                    font={font}
-                    labelColor={theme.textSupporting}
-                    xScale={args.xScale}
-                    chartBoundsBottom={args.chartBounds.bottom}
-                />
+                <>
+                    <LeftFrameLine
+                        chartBounds={args.chartBounds}
+                        yTicks={args.yTicks}
+                        yScale={args.yScale}
+                        color={theme.border}
+                    />
+                    <ScatterPoints
+                        points={args.points.y}
+                        radius={DOT_RADIUS}
+                        color={DEFAULT_CHART_COLOR}
+                    />
+                    {!!font && (
+                        <ChartXAxisLabels
+                            labels={truncatedLabels}
+                            labelRotation={labelRotation}
+                            labelSkipInterval={labelSkipInterval}
+                            font={font}
+                            labelColor={theme.textSupporting}
+                            xScale={args.xScale}
+                            chartBoundsBottom={args.chartBounds.bottom}
+                        />
+                    )}
+                </>
             );
         },
-        [font, truncatedLabels, labelRotation, labelSkipInterval, theme.textSupporting],
+        [font, truncatedLabels, labelRotation, labelSkipInterval, theme.textSupporting, theme.border],
     );
 
     const dynamicChartStyle = useMemo(
@@ -202,7 +215,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                         actionsRef={actionsRef}
                         customGestures={customGestures}
                         onChartBoundsChange={handleChartBoundsChange}
-                        renderOutside={renderCustomXLabels}
+                        renderOutside={renderOutsideComponents}
                         xAxis={{
                             tickCount: data.length,
                             lineWidth: X_AXIS_LINE_WIDTH,
@@ -219,23 +232,16 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                                 domain: yAxisDomain,
                             },
                         ]}
-                        frame={{lineWidth: {left: 1, bottom: 1, top: 0, right: 0}, lineColor: theme.border}}
+                        frame={{lineWidth: 0}}
                         data={chartData}
                     >
                         {({points}) => (
-                            <>
-                                <Line
-                                    points={points.y}
-                                    color={DEFAULT_CHART_COLOR}
-                                    strokeWidth={2}
-                                    curveType="linear"
-                                />
-                                <Scatter
-                                    points={points.y}
-                                    radius={DOT_RADIUS}
-                                    color={DEFAULT_CHART_COLOR}
-                                />
-                            </>
+                            <Line
+                                points={points.y}
+                                color={DEFAULT_CHART_COLOR}
+                                strokeWidth={2}
+                                curveType="linear"
+                            />
                         )}
                     </CartesianChart>
                 )}
