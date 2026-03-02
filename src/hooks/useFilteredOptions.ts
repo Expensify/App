@@ -90,7 +90,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
               })
             : null;
 
-    const hasMore = options ? options.reports.length < totalReports : false;
+    const hasMore = options ? reportsLimit < totalReports : false;
 
     const loadMore = () => {
         if (!hasMore) {

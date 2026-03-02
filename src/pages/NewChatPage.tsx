@@ -1,19 +1,19 @@
-import {useFocusEffect} from '@react-navigation/native';
-import isEmpty from 'lodash/isEmpty';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import reportsSelector from '@selectors/Attributes';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {Keyboard} from 'react-native';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {Keyboard, Platform} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectCircle from '@components/SelectCircle';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/types';
 import useContactImport from '@hooks/useContactImport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -29,17 +29,16 @@ import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/acti
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {Option, Section} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,
     filterSelectedOptions,
     formatSectionsFromSearchTerm,
-    getFirstKeyForList,
     getHeaderMessage,
     getPersonalDetailSearchTerms,
     getUserToInviteOption,
     getValidOptions,
 } from '@libs/OptionsListUtils';
+import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -47,6 +46,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import KeyboardUtils from '@src/utils/keyboard';
 
 const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
@@ -71,6 +71,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const {contacts} = useContactImport();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const allPersonalDetails = usePersonalDetails();
+    const isScreenFocused = useIsFocused();
 
     const {
         options: listOptions,
@@ -201,7 +202,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     }, [draftSelectedOptions, setSelectedOptions]);
 
     const handleEndReached = () => {
-        if (!hasMore || !areOptionsInitialized) {
+        if (!hasMore || !areOptionsInitialized || !isScreenFocused) {
             return;
         }
         loadMore();
@@ -238,9 +239,10 @@ function NewChatPage({ref}: NewChatPageProps) {
     const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
-    const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
-    const reportAttributesDerived = reportAttributesDerivedFull?.reports;
-    const selectionListRef = useRef<SelectionListHandle | null>(null);
+    const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: reportsSelector,
+    });
 
     const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
@@ -248,6 +250,25 @@ function NewChatPage({ref}: NewChatPageProps) {
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
     }));
+
+    // Opacity toggle to fix FlashList layout issue when navigating back.
+    // FlashList compacts its layout when the screen is hidden but still mounted.
+    // Briefly setting opacity to 0 when the screen regains focus triggers a re-render
+    // that forces FlashList to recalculate its layout without a full remount.
+    const [listOpacity, setListOpacity] = useState(1);
+    const isFirstRender = useRef(true);
+    useFocusEffect(
+        useCallback(() => {
+            if (isFirstRender.current || Platform.OS !== 'web') {
+                isFirstRender.current = false;
+                return;
+            }
+            setListOpacity(0);
+            requestAnimationFrame(() => {
+                setListOpacity(1);
+            });
+        }, []),
+    );
 
     const {
         headerMessage,
@@ -263,8 +284,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         areOptionsInitialized,
     } = useOptions(reportAttributesDerived);
 
-    const sections: Section[] = [];
-    let firstKeyForList = '';
+    const sections: Array<Section<OptionWithKey>> = [];
 
     const formatResults = formatSectionsFromSearchTerm(
         debouncedSearchTerm,
@@ -277,41 +297,26 @@ function NewChatPage({ref}: NewChatPageProps) {
         undefined,
         reportAttributesDerived,
     );
-    // Just a temporary fix to satisfy the type checker
-    // Will be fixed when migrating to use new SelectionListWithSections
-    sections.push({...formatResults.section, title: undefined, shouldShow: true});
-
-    if (!firstKeyForList) {
-        firstKeyForList = getFirstKeyForList(formatResults.section.data);
-    }
+    sections.push({...formatResults.section, title: undefined, sectionIndex: 0});
 
     sections.push({
         title: translate('common.recents'),
         data: selectedOptions.length ? recentReports.filter((option) => !option.isSelfDM) : recentReports,
-        shouldShow: !isEmpty(recentReports),
+        sectionIndex: 1,
     });
-    if (!firstKeyForList) {
-        firstKeyForList = getFirstKeyForList(recentReports);
-    }
 
     sections.push({
         title: translate('common.contacts'),
         data: personalDetails,
-        shouldShow: !isEmpty(personalDetails),
+        sectionIndex: 2,
     });
-    if (!firstKeyForList) {
-        firstKeyForList = getFirstKeyForList(personalDetails);
-    }
 
     if (userToInvite) {
         sections.push({
             title: undefined,
             data: [userToInvite],
-            shouldShow: true,
+            sectionIndex: 3,
         });
-        if (!firstKeyForList) {
-            firstKeyForList = getFirstKeyForList([userToInvite]);
-        }
     }
 
     /**
@@ -326,10 +331,10 @@ function NewChatPage({ref}: NewChatPageProps) {
             newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
         } else {
             newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID, keyForList: `${option.keyForList ?? option.reportID}`}];
-            selectionListRef?.current?.scrollToIndex(0, true);
+            selectionListRef?.current?.scrollToIndex(0);
         }
 
-        selectionListRef?.current?.clearInputAfterSelect?.();
+        selectionListRef.current?.clearInputAfterSelect();
         if (!canUseTouchScreen()) {
             selectionListRef.current?.focusTextInput();
         }
@@ -355,7 +360,7 @@ function NewChatPage({ref}: NewChatPageProps) {
      * creates a new 1:1 chat with the option and the current user,
      * or navigates to the existing chat if one with those participants already exists.
      */
-    const selectOption = (option?: Option) => {
+    const selectOption = (option?: OptionWithKey) => {
         if (option?.isSelfDM) {
             if (!option.reportID) {
                 Navigation.dismissModal();
@@ -399,7 +404,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         });
     };
 
-    const itemRightSideComponent = (item: ListItem & Option, isFocused?: boolean) => {
+    const itemRightSideComponent = (item: OptionWithKey, isFocused?: boolean) => {
         if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login)) || !item.login) {
             return null;
         }
@@ -468,6 +473,16 @@ function NewChatPage({ref}: NewChatPageProps) {
         </>
     );
 
+    const textInputOptions = {
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        hint: isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '',
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage,
+        disableAutoFocus: true,
+        shouldInterceptSwipe: true,
+    };
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -480,18 +495,17 @@ function NewChatPage({ref}: NewChatPageProps) {
             focusTrapSettings={{active: false}}
             testID="NewChatPage"
         >
-            <SelectionList<Option & ListItem>
+            <SelectionListWithSections<OptionWithKey>
                 ref={selectionListRef}
                 ListItem={UserListItem}
-                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-                textInputValue={searchTerm}
-                textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
-                onChangeText={setSearchTerm}
-                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                headerMessage={headerMessage}
+                sections={areOptionsInitialized ? sections : getEmptyArray<Section<OptionWithKey>>()}
                 onSelectRow={selectOption}
+                shouldShowTextInput
+                textInputOptions={textInputOptions}
                 shouldSingleExecuteRowSelect
-                onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option))}
+                confirmButtonOptions={{
+                    onConfirm: (e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option)),
+                }}
                 rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}
                 showLoadingPlaceholder={!areOptionsInitialized}
@@ -499,10 +513,9 @@ function NewChatPage({ref}: NewChatPageProps) {
                 isLoadingNewOptions={!!isSearchingForReports}
                 onEndReached={handleEndReached}
                 onEndReachedThreshold={0.75}
-                initiallyFocusedOptionKey={firstKeyForList}
-                shouldTextInputInterceptSwipe
+                disableMaintainingScrollPosition
                 addBottomSafeAreaPadding
-                textInputAutoFocus={false}
+                style={{listStyle: {opacity: listOpacity}}}
             />
         </ScreenWrapper>
     );
