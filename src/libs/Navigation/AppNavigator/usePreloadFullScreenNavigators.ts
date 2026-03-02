@@ -147,6 +147,14 @@ function usePreloadFullScreenNavigators() {
                         continue;
                     }
 
+                    // Don't preload tabs whose navigator is already in the regular routes stack
+                    const currentRoutes = navigation.getState().routes;
+                    const isRouteInStack = currentRoutes.some((r) => TAB_TO_FULLSCREEN[tabName].includes(r.name as FullScreenName));
+                    
+                    if (isRouteInStack) {
+                        continue;
+                    }
+
                     // Preload everything else
                     preloadTab(tabName, navigation, subscriptionPlan);
                 }
