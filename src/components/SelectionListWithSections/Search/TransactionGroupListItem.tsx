@@ -116,6 +116,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     let transactions: TransactionListItemType[];
     if (isExpenseReportType) {
@@ -135,6 +136,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             allReportMetadata,
             cardFeeds,
             cardList,
+            conciergeReportID,
         }) as [TransactionListItemType[], number];
         transactions = sectionData.map((transactionItem) => ({
             ...transactionItem,
