@@ -145,7 +145,7 @@ To delete expenses:
 
 1. Tap **Expenses**.
 2. Select the expense you want to delete.
-3. Tap **More Options**.
+If you need to edit an expense on a submitted report, ask an approver or Workspace Admin to Unapprove the report.
 4. Tap **Delete**. 
 5. Tap **Delete** again to confirm the deletion. 
 
