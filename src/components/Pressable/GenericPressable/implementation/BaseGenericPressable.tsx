@@ -200,6 +200,7 @@ function GenericPressable({
                 ...accessibilityState,
             }}
             aria-disabled={isDisabled}
+            aria-checked={accessibilityState?.checked}
             aria-selected={accessibilityState?.selected}
             aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers.join('')}+${keyboardShortcut.shortcutKey}`}
             // ios-only form of inputs

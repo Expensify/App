@@ -45,7 +45,6 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     const shouldFetchData = !isOptimisticReportPreview;
 
     const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.reportID : undefined)}`, {
-        canBeMissing: true,
         selector: getIOUActionsSelector,
     });
 
@@ -58,13 +57,10 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     }, [reportTransactions, iouActions, shouldFetchData]);
 
     const [splits] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? chatReport?.reportID : undefined)}`, {
-        canBeMissing: true,
         selector: getSplitsSelector,
     });
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.policyID : undefined)}`, {
-        canBeMissing: true,
-    });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.policyID : undefined)}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     if (isOptimisticReportPreview) {

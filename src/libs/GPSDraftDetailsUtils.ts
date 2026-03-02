@@ -62,7 +62,7 @@ function getGPSCoordinates(gpsDraftDetails: GpsDraftDetails | undefined): string
 }
 
 function calculateGPSDistance(distanceInMeters: number, unit: Unit): number {
-    return roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit));
+    return DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
 }
 
 function getGPSConvertedDistance(gpsDraftDetails: GpsDraftDetails | undefined, unit: Unit): number {
@@ -91,7 +91,7 @@ function coordinatesToString(gpsPoint: {lat: number; long: number}): string {
     return `${gpsPoint.lat},${gpsPoint.long}`;
 }
 
-async function stopGpsTrip() {
+async function stopGpsTrip(isOffline: boolean) {
     const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
 
     if (isBackgroundTaskRunning) {
@@ -108,15 +108,17 @@ async function stopGpsTrip() {
         return;
     }
 
-    const endAddress = await addressFromGpsPoint(lastPoint);
+    if (!isOffline) {
+        const endAddress = await addressFromGpsPoint(lastPoint);
 
-    if (endAddress === null) {
-        const formattedCoordinates = coordinatesToString(lastPoint);
-        setEndAddress({value: formattedCoordinates, type: 'coordinates'});
-        return;
+        if (endAddress !== null) {
+            setEndAddress({value: endAddress, type: 'address'});
+            return;
+        }
     }
 
-    setEndAddress({value: endAddress, type: 'address'});
+    const formattedCoordinates = coordinatesToString(lastPoint);
+    setEndAddress({value: formattedCoordinates, type: 'coordinates'});
 }
 
 export {getGPSRoutes, getGPSWaypoints, stopGpsTrip, getGPSConvertedDistance, getGPSCoordinates, addressFromGpsPoint, coordinatesToString, calculateGPSDistance};

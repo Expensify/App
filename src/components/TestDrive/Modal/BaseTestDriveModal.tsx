@@ -71,6 +71,8 @@ function BaseTestDriveModal({
             shouldUseScrollView
             canConfirmWhileOffline={canConfirmWhileOffline}
             shouldCallOnHelpWhenModalHidden={shouldCallOnHelpWhenModalHidden}
+            helpSentryLabel={CONST.SENTRY_LABEL.TEST_DRIVE_MODAL.SKIP}
+            confirmSentryLabel={CONST.SENTRY_LABEL.TEST_DRIVE_MODAL.START}
         >
             {children}
         </FeatureTrainingModal>
