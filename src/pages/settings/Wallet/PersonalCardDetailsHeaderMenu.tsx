@@ -57,7 +57,7 @@ function PersonalCardDetailsHeaderMenu({
 
     return (
         <>
-            {!cardholder?.validated && (
+            {!cardholder?.validated && !isCSVImportedPersonalCard && (
                 <MenuItem
                     icon={icons.Hourglass}
                     iconStyles={styles.mln2}
@@ -67,25 +67,33 @@ function PersonalCardDetailsHeaderMenu({
                 />
             )}
 
-            <OfflineWithFeedback
-                pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
-                errorRowStyles={[styles.ph5, styles.mb3]}
-                errors={getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
-                onClose={() => {
-                    if (!card) {
-                        return;
-                    }
-                    clearCardNameValuePairsErrorField(card.cardID, 'cardTitle');
-                }}
-            >
+            {isCSVImportedPersonalCard ? (
                 <MenuItemWithTopDescription
-                    description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                    title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME.getRoute(cardID))}
+                    description={translate('workspace.moreFeatures.companyCards.cardName')}
+                    title={card?.nameValuePairs?.cardTitle ?? card?.cardName ?? ''}
+                    interactive={false}
                 />
-            </OfflineWithFeedback>
+            ) : (
+                <OfflineWithFeedback
+                    pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
+                    errorRowStyles={[styles.ph5, styles.mb3]}
+                    errors={getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
+                    onClose={() => {
+                        if (!card) {
+                            return;
+                        }
+                        clearCardNameValuePairsErrorField(card.cardID, 'cardTitle');
+                    }}
+                >
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.moreFeatures.companyCards.cardNumber')}
+                        title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
+                        shouldShowRightIcon
+                        brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME.getRoute(cardID))}
+                    />
+                </OfflineWithFeedback>
+            )}
 
             <ToggleSettingOptionRow
                 title={translate('cardPage.markTransactionsAsReimbursable')}
@@ -133,13 +141,28 @@ function PersonalCardDetailsHeaderMenu({
                 title={translate('workspace.common.viewTransactions')}
                 style={styles.mt3}
                 onPress={() => {
+                    // Use card.cardID (from Onyx) as source of truth, same as three-dot menu which uses
+                    // the card passed to assignedCardPressed. Route param cardID can be undefined in some
+                    // navigation/RHP setups, which would otherwise produce a search query with card:undefined.
+                    const searchCardID = card?.cardID != null ? String(card.cardID) : cardID;
                     Navigation.navigate(
                         ROUTES.SEARCH_ROOT.getRoute({
-                            query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
+                            query: buildCannedSearchQuery({
+                                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                                cardID: searchCardID,
+                            }),
                         }),
                     );
                 }}
             />
+            {isCSVImportedPersonalCard && (
+                <MenuItem
+                    icon={expensifyIcons.Table}
+                    title={translate('spreadsheet.importSpreadsheet')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(cardID)))}
+                />
+            )}
             {!isCSVImportedPersonalCard && (
                 <OfflineWithFeedback
                     pendingAction={card?.pendingFields?.lastScrape}

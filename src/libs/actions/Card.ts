@@ -5,7 +5,6 @@ import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
     CardDeactivateParams,
-    DeletePersonalCardParams,
     FreezeCardParams,
     OpenCardDetailsPageParams,
     ReportVirtualExpensifyCardFraudParams,
@@ -1152,72 +1151,94 @@ function deactivateCard(workspaceAccountID: number, card?: Card) {
     API.write(WRITE_COMMANDS.CARD_DEACTIVATE, parameters, {optimisticData, failureData});
 }
 
-type DeletePersonalCardData = {
-    cardID: number;
-    card?: Card;
-    allTransactions: OnyxCollection<Transaction>;
-    allReports: OnyxCollection<Report>;
-};
-
 /**
  * Deletes a personal card (CSV-imported card) and its associated transactions.
- * The backend will handle deleting transactions on unsubmitted/open reports.
+ * Reads transactions and reports from Onyx inside the action so callers do not need to subscribe to those collections.
  */
-function deletePersonalCard({cardID, card, allTransactions, allReports}: DeletePersonalCardData) {
-    // Find all transactions associated with this card that are on open/unsubmitted reports
-    // This matches the backend logic which only deletes transactions on open reports
-    const transactionsToDelete: Transaction[] = [];
-    for (const transaction of Object.values(allTransactions ?? {})) {
-        if (transaction?.cardID === cardID && isReportOpenOrUnsubmitted(transaction.reportID, allReports)) {
-            transactionsToDelete.push(transaction);
+function deletePersonalCard({cardID, card}: {cardID: number; card?: Card}) {
+    let transactionsData: OnyxCollection<Transaction> | undefined;
+    let reportsData: OnyxCollection<Report> | undefined;
+    let done = false;
+    let connTransactions: ReturnType<typeof Onyx.connectWithoutView>;
+    let connReports: ReturnType<typeof Onyx.connectWithoutView>;
+
+    const runDelete = () => {
+        if (transactionsData === undefined || reportsData === undefined || done) {
+            return;
         }
-    }
+        done = true;
+        Onyx.disconnect(connTransactions);
+        Onyx.disconnect(connReports);
 
-    // Optimistically remove the card immediately for instant UI feedback
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: null,
-            },
-        },
-    ];
+        const allTransactions = transactionsData;
+        const allReports = reportsData;
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    ...card,
-                    pendingAction: null,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+        const transactionsToDelete: Transaction[] = [];
+        for (const transaction of Object.values(allTransactions ?? {})) {
+            if (transaction?.cardID === cardID && isReportOpenOrUnsubmitted(transaction.reportID, allReports)) {
+                transactionsToDelete.push(transaction);
+            }
+        }
+
+        // Optimistic: mark card as pending delete so it shows greyed out when offline
+        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {
+                    [cardID]: card != null ? {...card, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE} : null,
                 },
             },
-        },
-    ];
-
-    // Optimistically delete transactions and prepare failure data to restore them
-    for (const transaction of transactionsToDelete) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: null,
-        });
-
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: transaction,
-        });
-    }
-
-    const parameters: DeletePersonalCardParams = {
-        cardID,
+        ];
+        const successData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {[cardID]: null},
+            },
+        ];
+        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CARD_LIST,
+                value: {
+                    [cardID]: {
+                        ...card,
+                        pendingAction: null,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        ];
+        for (const transaction of transactionsToDelete) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: null,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: transaction,
+            });
+        }
+        API.write(WRITE_COMMANDS.DELETE_PERSONAL_CARD, {cardID}, {optimisticData, successData, failureData});
     };
 
-    API.write(WRITE_COMMANDS.DELETE_PERSONAL_CARD, parameters, {optimisticData, failureData});
+    connTransactions = Onyx.connectWithoutView({
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
+        callback: (data) => {
+            transactionsData = (data ?? {}) as OnyxCollection<Transaction>;
+            runDelete();
+        },
+    });
+    connReports = Onyx.connectWithoutView({
+        key: ONYXKEYS.COLLECTION.REPORT,
+        callback: (data) => {
+            reportsData = (data ?? {}) as OnyxCollection<Report>;
+            runDelete();
+        },
+    });
 }
 
 function startIssueNewCardFlow(policyID: string | undefined) {

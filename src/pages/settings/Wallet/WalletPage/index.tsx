@@ -64,8 +64,6 @@ function WalletPage() {
         selector: fundListSelector,
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
@@ -276,10 +274,10 @@ function WalletPage() {
         });
 
         if (result.action === ModalActions.CONFIRM) {
-            deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard, allTransactions, allReports});
+            deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard});
         }
         setSelectedCard(undefined);
-    }, [selectedCard, showConfirmModal, translate, allTransactions, allReports]);
+    }, [selectedCard, showConfirmModal, translate]);
 
     useEffect(() => {
         // If the user was previously offline, skip debouncing showing the loader

@@ -24,7 +24,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
-import {clearCardErrorField, syncCard, unassignCard} from '@userActions/Card';
+import {clearCardErrorField, deletePersonalCard, syncCard, unassignCard} from '@userActions/Card';
 import {openOldDotLink} from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -46,7 +46,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MoneySearch', 'RemoveMembers', 'Sync']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MoneySearch', 'RemoveMembers', 'Sync', 'Table']);
 
     const {isOffline} = useNetwork();
 
@@ -68,7 +68,11 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             Navigation.goBack();
             return;
         }
-        unassignCard(card);
+        if (isCSVImportedPersonalCard) {
+            deletePersonalCard({cardID: card.cardID, card});
+        } else {
+            unassignCard(card);
+        }
         Navigation.goBack();
     };
 
