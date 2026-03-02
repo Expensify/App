@@ -83,6 +83,4 @@ function ForYouSkeleton() {
     );
 }
 
-ForYouSkeleton.displayName = 'ForYouSkeleton';
-
 export default ForYouSkeleton;

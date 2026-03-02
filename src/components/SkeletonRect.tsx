@@ -32,6 +32,4 @@ function SkeletonRect({borderRadius, height, ...rest}: SkeletonRectProps) {
     );
 }
 
-SkeletonRect.displayName = 'SkeletonRect';
-
 export default SkeletonRect;
