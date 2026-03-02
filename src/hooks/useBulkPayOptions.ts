@@ -5,7 +5,7 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getBusinessBankAccountMenu, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
@@ -129,28 +129,27 @@ function useBulkPayOptions({
         bulkPayButtonOptions = [];
 
         if (shouldShowBusinessBankAccountOptions) {
-            if (businessBankAccountOptionList.length === 0) {
+            const businessBankAccountMenu = getBusinessBankAccountMenu(businessBankAccountOptionList);
+            if (businessBankAccountMenu.type === CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.NONE) {
                 bulkPayButtonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
-            } else if (businessBankAccountOptionList.length === 1) {
-                const account = businessBankAccountOptionList.at(0);
-                if (account) {
-                    bulkPayButtonOptions.push({
-                        ...paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT],
-                        text: account.text,
-                        description: account.description,
-                        icon: account.icon,
-                        additionalData: {
-                            methodID: account.methodID,
-                            paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-                        },
-                    });
-                }
+            } else if (businessBankAccountMenu.type === CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.SINGLE_VBBA) {
+                const {account} = businessBankAccountMenu;
+                bulkPayButtonOptions.push({
+                    ...paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT],
+                    text: account.text,
+                    description: account.description,
+                    icon: account.icon,
+                    additionalData: {
+                        methodID: account.methodID,
+                        paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                    },
+                });
             } else {
                 bulkPayButtonOptions.push({
                     text: translate('iou.settleBusiness', formattedAmount),
                     icon: icons.Building,
                     key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-                    subMenuItems: businessBankAccountOptionList.map((account) => ({
+                    subMenuItems: businessBankAccountMenu.accounts.map((account) => ({
                         text: account.text,
                         description: account.description,
                         icon: account.icon,
