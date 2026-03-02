@@ -2253,6 +2253,7 @@ function getReportSections({
                         allReportTransactions,
                     );
 
+                const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(reportItem);
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
                     action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
@@ -2273,6 +2274,10 @@ function getReportSections({
                     shouldShowYearApproved: shouldShowYearApprovedReport,
                     shouldShowYearExported: shouldShowYearExportedReport,
                     hasVisibleViolations: hasVisibleViolationsForReport,
+                    totalDisplaySpend,
+                    nonReimbursableSpend,
+                    reimbursableSpend,
+                    isAllScanning: false,
                 };
 
                 if (isIOUReport) {
@@ -2331,26 +2336,17 @@ function getReportSections({
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 category: isIOUReport ? '' : transactionItem?.category,
             };
-            if (reportIDToTransactions[reportKey]?.transactions) {
-                reportIDToTransactions[reportKey].transactions.push(transaction);
-                reportIDToTransactions[reportKey].from = data?.personalDetailsList?.[data?.[reportKey as ReportKey]?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails;
-            } else if (reportIDToTransactions[reportKey]) {
-                reportIDToTransactions[reportKey].transactions = [transaction];
-                reportIDToTransactions[reportKey].from = data?.personalDetailsList?.[data?.[reportKey as ReportKey]?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails;
+            if (reportIDToTransactions[reportKey]) {
+                const reportSection = reportIDToTransactions[reportKey];
+                const hadTransactions = reportSection.transactions.length > 0;
+                reportSection.transactions.push(transaction);
+                reportSection.from = data?.personalDetailsList?.[data?.[reportKey as ReportKey]?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails;
+                reportSection.isAllScanning = hadTransactions ? !!reportSection.isAllScanning && isScanning(transaction) : isScanning(transaction);
             }
         }
     }
 
-    const reportIDToTransactionsValues = Object.values(reportIDToTransactions).map((reportItem) => {
-        const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(reportItem);
-        return {
-            ...reportItem,
-            totalDisplaySpend,
-            nonReimbursableSpend,
-            reimbursableSpend,
-            isAllScanning: reportItem.transactions.length > 0 && reportItem.transactions.every(isScanning),
-        };
-    });
+    const reportIDToTransactionsValues = Object.values(reportIDToTransactions);
 
     return [reportIDToTransactionsValues, reportIDToTransactionsValues.length];
 }
