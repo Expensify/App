@@ -1209,7 +1209,8 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
  * @param currentUserPersonalDetails - personal details of current user
  */
 function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
-    const attendees = transaction?.comment?.attendees ?? [];
+    const rawAttendees = transaction?.comment?.attendees;
+    const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
     const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
         attendees.push(reportOwnerAsAttendee);
