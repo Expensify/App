@@ -311,11 +311,13 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
 
     switch (type) {
         case CONST.API_REQUEST_TYPE.WRITE:
-            return processRequest(request, type);
+            processRequest(request, type);
+            return;
         case CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS:
             return processRequest(request, type);
         case CONST.API_REQUEST_TYPE.READ:
-            return waitForWrites(command as ReadCommand).then(() => processRequest(request, type));
+            waitForWrites(command as ReadCommand).then(() => processRequest(request, type));
+            return;
         default:
             throw new Error('Unknown API request type');
     }
