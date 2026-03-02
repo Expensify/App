@@ -1,26 +1,18 @@
-import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import Text from '../Text';
-import styles from '../../styles/styles';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as TaskUtils from '../../libs/TaskUtils';
-import ONYXKEYS from '../../ONYXKEYS';
-
-const propTypes = {
-        return null;
     }
 
-    // Ensure we display the full task description
-    const fullDescription = TaskUtils.getTaskDescription(props.taskReport);
-    const descriptionLines = _.isString(fullDescription) ? fullDescription.split('\n') : [];
-
     return (
-        <View style={[styles.p5, styles.borderRadiusNormal, styles.overflowHidden]}>
-            {descriptionLines.map((line, index) => (
-                <Text key={`taskDescription-${index}`} style={[styles.textSupporting, styles.mb1]}>
-                    {line}
+        <ScrollView style={[styles.p5, styles.borderRadiusNormal]} nestedScrollEnabled>
+            <View style={[styles.overflowHidden]}>
+                <Text style={[styles.textSupporting, styles.mb1]} selectable>
+                    {props.taskReport.description}
                 </Text>
-            ))}
-        </View>
+            </View>
+        </ScrollView>
+    );
+};
