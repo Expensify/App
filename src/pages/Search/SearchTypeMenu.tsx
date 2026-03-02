@@ -3,7 +3,6 @@ import React, {useCallback, useContext, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
-import MenuItem from '@components/MenuItem';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
@@ -18,11 +17,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getItemBadgeText} from '@libs/SearchUIUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import todosReportCountsSelector from '@src/selectors/Todos';
+import SearchTypeMenuItem from './SearchTypeMenuItem';
 import SavedSearchList from './SavedSearchList';
 import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
@@ -121,21 +120,13 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                             const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
                                             return (
-                                                <MenuItem
+                                                <SearchTypeMenuItem
                                                     key={item.key}
-                                                    disabled={false}
-                                                    interactive
                                                     title={translate(item.translationPath)}
-                                                    badgeStyle={styles.todoBadge}
                                                     icon={icon}
-                                                    iconWidth={variables.iconSizeNormal}
-                                                    iconHeight={variables.iconSizeNormal}
-                                                    wrapperStyle={styles.sectionMenuItem}
                                                     badgeText={getItemBadgeText(item.key, reportCounts)}
                                                     focused={focused}
                                                     onPress={() => handleTypeMenuItemPress(item.searchQuery)}
-                                                    shouldIconUseAutoWidthStyle
-                                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
                                                 />
                                             );
                                         })}
