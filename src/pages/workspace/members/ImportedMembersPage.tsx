@@ -158,6 +158,10 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                         role: '',
                         submitsTo: '',
                         forwardsTo: '',
+                        customField1: undefined,
+                        customField2: undefined,
+                        approvalLimit: undefined,
+                        overLimitForwardsTo: undefined,
                     });
                 }
 
@@ -168,6 +172,10 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                         role: policy?.employeeList?.[member.forwardsTo]?.role ?? '',
                         submitsTo: '',
                         forwardsTo: '',
+                        customField1: undefined,
+                        customField2: undefined,
+                        approvalLimit: undefined,
+                        overLimitForwardsTo: undefined,
                     });
                 }
             }
