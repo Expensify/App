@@ -71,6 +71,7 @@ function SearchPage({route}: SearchPageProps) {
     const {resetVideoPlayerData} = usePlaybackActionsContext();
 
     const [isSorting, setIsSorting] = useState(false);
+
     let searchResults: SearchResults | undefined;
     if (currentSearchResults?.data) {
         searchResults = currentSearchResults;

@@ -4,6 +4,7 @@ import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import usePrevious from '@hooks/usePrevious';
 import useTodos from '@hooks/useTodos';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -86,12 +87,21 @@ function SearchContextProvider({children, params}: SearchContextProps) {
     const [shouldShowSelectAllMatchingItems, setShouldShowSelectAllMatchingItems] = useState(false);
     const [searchContextData, setSearchContextData] = useState({...defaultSearchContextData});
 
+    const queryParam = params?.q ?? '';
+    const rawQueryParam = params?.rawQuery ?? '';
+
+    const currentSearchQueryJSON = useMemo(() => {
+        return queryParam ? buildSearchQueryJSON(queryParam, rawQueryParam) : undefined;
+    }, [queryParam, rawQueryParam]);
+    const previousSearchQueryJSON = usePrevious(currentSearchQueryJSON);
+    const searchQueryJSON = currentSearchQueryJSON ?? previousSearchQueryJSON;
+
     const selectedReports = searchContextData.selectedReports;
     const selectedTransactions = searchContextData.selectedTransactions;
     const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
-    const currentSearchHash = searchContextData.currentSearchQueryJSON?.hash ?? -1;
-    const currentRecentSearchHash = searchContextData.currentSearchQueryJSON?.recentSearchHash ?? -1;
-    const currentSimilarSearchHash = searchContextData.currentSearchQueryJSON?.similarSearchHash ?? -1;
+    const currentSearchHash = searchQueryJSON?.hash ?? -1;
+    const currentRecentSearchHash = searchQueryJSON?.recentSearchHash ?? -1;
+    const currentSimilarSearchHash = searchQueryJSON?.similarSearchHash ?? -1;
 
     const todoSearchResultsData = useTodos();
     const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`);
@@ -99,16 +109,6 @@ function SearchContextProvider({children, params}: SearchContextProps) {
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const {accountID} = useCurrentUserPersonalDetails();
     const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeed?.id);
-
-    const query = params?.q ?? '';
-    const rawQuery = params?.rawQuery ?? '';
-    const currentSearchQueryJSON = useMemo(() => {
-        if (!query) {
-            return undefined;
-        }
-
-        return buildSearchQueryJSON(query, rawQuery);
-    }, [query, rawQuery]);
 
     const currentSearchKey = useMemo(() => {
         return Object.values(suggestedSearches).find((search) => search.similarSearchHash === currentSimilarSearchHash)?.key;
@@ -272,12 +272,12 @@ function SearchContextProvider({children, params}: SearchContextProps) {
         currentSearchHash,
         currentSimilarSearchHash,
         currentSearchResults,
-        currentSearchQueryJSON,
         shouldUseLiveData,
         shouldShowFiltersBarLoading,
         lastSearchType,
         shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
+        currentSearchQueryJSON: searchQueryJSON,
     };
 
     const searchActionsContextValue: SearchActionsContextValue = {
