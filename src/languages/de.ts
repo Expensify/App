@@ -3959,6 +3959,7 @@ ${
             clearFilter: 'Filter zurücksetzen',
             workspaceName: 'Arbeitsbereichsname',
             workspaceOwner: 'Inhaber',
+            keepMeAsAdmin: 'Behalte mich als Administrator',
             workspaceType: 'Arbeitsbereichstyp',
             workspaceAvatar: 'Workspace-Avatar',
             clientID: 'Kunden-ID',
@@ -7647,7 +7648,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         },
     },
     gps: {
-        disclaimer: 'Verwende GPS, um aus deiner Fahrt eine Ausgabe zu erstellen. Tippe unten auf „Start“, um die Aufzeichnung zu beginnen.',
         error: {
             failedToStart: 'Standortverfolgung konnte nicht gestartet werden.',
             failedToGetPermissions: 'Erforderliche Standortberechtigungen konnten nicht abgerufen werden.',
