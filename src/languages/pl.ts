@@ -955,7 +955,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Napraw połączenie karty firmowej ${feedName}` : 'Napraw połączenie karty firmowej'),
                 defaultSubtitle: 'Workspace > Karty firmowe',
-                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Karty firmowe`,
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Firmowe karty`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Napraw połączenie ${integrationName}`,
@@ -5138,6 +5138,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         body: 'Masz nadal zaległe saldo za podróż. Najpierw ureguluj swoje saldo.',
                         confirm: 'Rozumiem',
                     },
+                    enabled: 'Centralne fakturowanie włączone!',
+                    enabledDescription: 'Wszystkie wydatki podróżne w tym obszarze roboczym będą teraz rozliczane na scentralizowanej, miesięcznej fakturze.',
                 },
             },
             expensifyCard: {

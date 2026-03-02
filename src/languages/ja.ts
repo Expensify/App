@@ -949,7 +949,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: '修正',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `${feedName} 会社カード接続を修正` : '法人クレジットカードの接続を修正'),
-                defaultSubtitle: 'ワークスペース > 会社カード',
+                defaultSubtitle: 'ワークスペース ＞ 会社カード',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会社カード`,
             },
             fixAccountingConnection: {
@@ -959,7 +959,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'),
-                subtitle: 'ウォレット > 割り当てられたカード',
+                subtitle: 'ウォレット ＞ 割り当てられたカード',
             },
         },
         assignedCards: '割り当て済みカード',
@@ -5108,6 +5108,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         confirm: 'オフにする',
                     },
                     outstandingBalanceModal: {title: 'トラベル請求書作成をオフにできません', body: '未清算の出張残高があります。先に残高を精算してください。', confirm: '了解しました'},
+                    enabled: '集中請求が有効になりました！',
+                    enabledDescription: 'このワークスペースのすべての出張費は、今後、月次請求書で一元管理されます。',
                 },
             },
             expensifyCard: {

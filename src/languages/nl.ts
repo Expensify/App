@@ -953,7 +953,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: 'Repareren',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Verbinding bedrijfskaart ${feedName} herstellen` : 'Verbinding van bedrijfskaart repareren'),
-                defaultSubtitle: 'Werkruimte > Bedrijfspassen',
+                defaultSubtitle: 'Workspace > Bedrijfskaarten',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Bedrijfspassen`,
             },
             fixAccountingConnection: {
@@ -963,7 +963,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             fixPersonalCardConnection: {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Verbinding van persoonlijke kaart ${cardName} herstellen` : 'Verbinding persoonlijke kaart herstellen'),
-                subtitle: 'Wallet > Toegewezen kaarten',
+                subtitle: 'Portemonnee > Toegewezen kaarten',
             },
         },
         assignedCards: 'Toegewezen kaarten',
@@ -5144,6 +5144,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         confirm: 'Uitschakelen',
                     },
                     outstandingBalanceModal: {title: 'Kan Reiskostenfacturatie niet uitschakelen', body: 'Je hebt nog een openstaand reissaldo. Betaal eerst je saldo.', confirm: 'Begrepen'},
+                    enabled: 'Centraal factureren ingeschakeld!',
+                    enabledDescription: 'Alle reiskosten in deze workspace worden nu gebundeld op één maandelijkse factuur.',
                 },
             },
             expensifyCard: {

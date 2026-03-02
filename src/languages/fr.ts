@@ -959,7 +959,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Corriger la connexion de la carte d'entreprise ${feedName}` : 'Corriger la connexion de la carte entreprise'),
                 defaultSubtitle: 'Espace de travail > Cartes d’entreprise',
-                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Cartes d'entreprise`,
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > Cartes d’entreprise`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Corriger la connexion ${integrationName}`,
@@ -5190,6 +5190,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         body: 'Vous avez encore un solde de voyage impayé. Veuillez d’abord régler ce solde.',
                         confirm: 'Compris',
                     },
+                    enabled: 'Facturation centralisée activée !',
+                    enabledDescription: 'Toutes les dépenses de voyage sur cet espace de travail seront désormais centralisées dans une facture mensuelle.',
                 },
             },
             expensifyCard: {

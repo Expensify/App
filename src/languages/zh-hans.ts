@@ -940,13 +940,13 @@ const translations: TranslationDeepObject<typeof en> = {
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `修复 ${feedName} 公司卡连接` : '修复公司卡连接'),
                 defaultSubtitle: '工作区 > 公司卡片',
-                subtitle: ({policyName}: {policyName: string}) => `${policyName} > 公司卡片`,
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} > 公司卡`,
             },
-            fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `修复 ${cardName} 个人卡连接` : '修复个人银行卡连接'), subtitle: '钱包 > 已分配的卡片'},
+            fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `修复 ${cardName} 个人卡连接` : '修复个人银行卡连接'), subtitle: '钱包 ＞ 已分配的卡片'},
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `修复 ${integrationName} 连接`,
                 defaultSubtitle: '工作区 > 会计',
-                subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
+                subtitle: ({policyName}: {policyName: string}) => `${policyName} ＞ 会计`,
             },
         },
         assignedCards: '已分配的卡片',
@@ -5030,6 +5030,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     },
                     disableModal: {title: '关闭差旅开票？', body: '即将到来的酒店和汽车租赁预订可能需要使用不同的付款方式重新预订，以避免被取消。', confirm: '关闭'},
                     outstandingBalanceModal: {title: '无法关闭差旅开票', body: '你仍有未结清的差旅余额。请先支付该余额。', confirm: '明白了'},
+                    enabled: '中央开票已启用！',
+                    enabledDescription: '此工作区的所有差旅支出现在将集中在一张月度发票中。',
                 },
             },
             expensifyCard: {
