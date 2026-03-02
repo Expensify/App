@@ -1,7 +1,7 @@
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {OptionsListContext, useOptionsList} from '@components/OptionListContextProvider';
+import {OptionsListStateContext, useOptionsList} from '@components/OptionListContextProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
@@ -184,7 +184,7 @@ function SearchAutocompleteList({
         };
     }, []);
 
-    const {areOptionsInitialized: contextAreOptionsInitialized} = useContext(OptionsListContext);
+    const {areOptionsInitialized: contextAreOptionsInitialized} = useContext(OptionsListStateContext);
     const coldStartAttributeSet = useRef(false);
     useEffect(() => {
         if (coldStartAttributeSet.current) {
