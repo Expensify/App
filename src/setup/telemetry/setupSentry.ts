@@ -1,12 +1,16 @@
 import * as Sentry from '@sentry/react-native';
+import {getBundleStartTimestampMs} from '@sentry/react-native/dist/js/tracing/utils';
 import {Platform} from 'react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
+import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
 import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
+
+const bundleEndMs = Date.now();
 
 function setupSentry(): void {
     // With Sentry enabled in dev mode, profiling on iOS and Android does not work
@@ -35,6 +39,18 @@ function setupSentry(): void {
     });
 
     Sentry.setTag(CONST.TELEMETRY.TAG_BUILD_TYPE, CONFIG.IS_HYBRID_APP ? CONST.TELEMETRY.BUILD_TYPE_HYBRID_APP : CONST.TELEMETRY.BUILD_TYPE_STANDALONE);
+
+    const bundleStartMs = getBundleStartTimestampMs();
+    if (bundleStartMs) {
+        const durationMs = bundleEndMs - bundleStartMs;
+        console.debug(`[Telemetry] JS parse time: ${durationMs}ms`);
+        startSpan(CONST.TELEMETRY.SPAN_JS_PARSE_TIME, {
+            name: CONST.TELEMETRY.SPAN_JS_PARSE_TIME,
+            op: CONST.TELEMETRY.SPAN_JS_PARSE_TIME,
+            startTime: bundleStartMs / 1000,
+        });
+        endSpan(CONST.TELEMETRY.SPAN_JS_PARSE_TIME, bundleEndMs / 1000);
+    }
 }
 
 export default setupSentry;
