@@ -2,6 +2,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -415,6 +416,16 @@ function SearchAutocompleteList({
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
     const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
 
+    if (isLoading) {
+        return (
+            <OptionsListSkeletonView
+                fixedNumItems={4}
+                shouldStyleAsTable
+                speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+            />
+        );
+    }
+
     return (
         <SelectionListWithSections<AutocompleteListItem>
             showLoadingPlaceholder
@@ -431,7 +442,6 @@ function SearchAutocompleteList({
             shouldSingleExecuteRowSelect
             ref={setListRef}
             initialScrollIndex={0}
-            isLoadingNewOptions={isLoading}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
             shouldScrollToFocusedIndex={!isInitialRender}
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
