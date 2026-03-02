@@ -131,6 +131,7 @@ import {
     isMoneyRequestAction,
     isMovedAction,
     isOldDotReportAction,
+    isOriginalReportDeleted,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
@@ -1061,8 +1062,14 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(displayMessage);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
                     const {originalID} = getOriginalMessage(reportAction) ?? {};
-                    const reportName = getReportName(getReportOrDraftReport(originalID));
-                    const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, !!reportAction.isOriginalReportDeleted, translate);
+                    const originalReportOfUnapprovedTransaction = getReportOrDraftReport(originalID);
+                    const reportName = getReportName(originalReportOfUnapprovedTransaction);
+                    const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(
+                        originalID,
+                        reportName,
+                        isOriginalReportDeleted(reportAction, originalReportOfUnapprovedTransaction),
+                        translate,
+                    );
                     setClipboardMessage(displayMessage);
                 } else if (content) {
                     setClipboardMessage(

@@ -3726,4 +3726,53 @@ describe('ReportActionsUtils', () => {
             expect(withoutWrite.lastVisibleAction?.reportActionID).toBe(normalAction.reportActionID);
         });
     });
+
+    describe('isOriginalReportDeleted', () => {
+        it('should return true when action.isOriginalReportDeleted is true', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: true,
+            };
+            const originalReport = createRandomReport(1, undefined);
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(true);
+        });
+
+        it('should return true when originalReport.pendingFields.preview is DELETE', () => {
+            const action = createRandomReportAction(1);
+            const originalReport = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            };
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(true);
+        });
+
+        it('should return false when both conditions are not met', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: false,
+            };
+            const originalReport = createRandomReport(1, undefined);
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
+        });
+
+        it('should return false when originalReport.pendingFields.preview is not DELETE', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: false,
+            };
+            const originalReport = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            };
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
+        });
+    });
 });

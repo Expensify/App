@@ -92,6 +92,7 @@ import {
     isMoneyRequestAction,
     isMovedAction,
     isOldDotReportAction,
+    isOriginalReportDeleted,
     isRenamedAction,
     isReportActionAttachment,
     isTagModificationAction,
@@ -895,7 +896,7 @@ function getReportName(
         const originalReportName = originalReport ? getReportName(originalReport, reportAttributesDerivedValue) : '';
         const currentLocale = IntlStore.getCurrentLocale();
         const translateInCurrentLocale: LocalizedTranslate = (path, ...parameters) => translateWithLocale(currentLocale, path, ...parameters);
-        return getCreatedReportForUnapprovedTransactionsMessage(originalID, originalReportName, !!parentReportAction.isOriginalReportDeleted, translateInCurrentLocale);
+        return getCreatedReportForUnapprovedTransactionsMessage(originalID, originalReportName, isOriginalReportDeleted(parentReportAction, originalReport), translateInCurrentLocale);
     }
 
     if (isInvoiceRoom(report)) {
