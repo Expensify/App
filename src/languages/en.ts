@@ -1592,6 +1592,7 @@ const translations = {
             formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">workspace rules</a>`,
         },
         duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per diem expenses across workspaces because the rates may differ between workspaces.",
+        cannotDuplicateDistanceExpense: "You can't duplicate distance expenses across workspaces because the rates may differ between workspaces.",
     },
     transactionMerge: {
         listPage: {
