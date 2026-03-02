@@ -241,7 +241,7 @@ describe('PaymentUtils', () => {
             expect(result).toEqual({type: CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.NONE});
         });
 
-        it('returns SINGLE_VBBA with account when one option availble', () => {
+        it('returns SINGLE_VBBA with account when one option available', () => {
             const methods: PaymentMethod[] = [createMockPaymentMethod({title: 'Only Account', methodID: 1})];
             const options = getBusinessBankAccountOptions(methods);
             const result = getBusinessBankAccountMenu(options);
@@ -252,7 +252,7 @@ describe('PaymentUtils', () => {
             });
         });
 
-        it('returns MULTIPLE_VBBA with accounts array when two or more options availble', () => {
+        it('returns MULTIPLE_VBBA with accounts array when two or more options available', () => {
             const methods: PaymentMethod[] = [createMockPaymentMethod({title: 'A', methodID: 1}), createMockPaymentMethod({title: 'B', methodID: 2})];
             const options = getBusinessBankAccountOptions(methods);
             const result = getBusinessBankAccountMenu(options);
