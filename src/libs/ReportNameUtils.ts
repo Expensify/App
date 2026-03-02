@@ -739,6 +739,7 @@ function computeChatThreadReportName(
                   movedFromReport,
                   movedToReport,
                   policyTags,
+                  currentUserLogin: '',
               })
             : getForReportAction({
                   reportAction: parentReportAction,
