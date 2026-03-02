@@ -289,6 +289,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         state: transaction.receipt?.state,
                         transactionPolicyCategories: policyCategories,
                         transactionPolicy: policy,
+                        isSameReceipt: true,
                     });
                 }
                 setIsRotating(false);

@@ -844,6 +844,7 @@ type ReplaceReceipt = {
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     transactionPolicy: OnyxEntry<OnyxTypes.Policy>;
+    isSameReceipt?: boolean;
 };
 
 type GetSearchOnyxUpdateParams = {
@@ -12217,7 +12218,7 @@ function detachReceipt(transactionID: string | undefined, transactionPolicy: Ony
     API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
 
-function replaceReceipt({transactionID, file, source, state, transactionPolicy, transactionPolicyCategories}: ReplaceReceipt) {
+function replaceReceipt({transactionID, file, source, state, transactionPolicy, transactionPolicyCategories, isSameReceipt}: ReplaceReceipt) {
     if (!file) {
         return;
     }
@@ -12327,6 +12328,7 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
         transactionID,
         receipt: file,
         receiptState: state,
+        isSameReceipt,
     };
 
     API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, successData, failureData});
