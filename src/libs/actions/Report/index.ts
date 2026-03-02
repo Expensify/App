@@ -4037,11 +4037,8 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeR
         if (lastAccessedReportID === topmostSuperWideRHP && !getIsNarrowLayout()) {
             Navigation.dismissToSuperWideRHP();
         } else {
-            Navigation.dismissModal();
-            Navigation.isNavigationReady().then(() => {
-                const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                Navigation.goBack(lastAccessedReportRoute);
-            });
+            const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+            Navigation.goBack(lastAccessedReportRoute);
         }
     } else {
         const isChatThread = isChatThreadReportUtils(currentReport);
