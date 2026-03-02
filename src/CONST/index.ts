@@ -3166,6 +3166,8 @@ const CONST = {
         },
         AMOUNT_MAX_LENGTH: 10,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
+        ODOMETER_MAX_VALUE: 9999999.9,
+        MAX_SAFE_AMOUNT: 999999999999,
         RECEIPT_STATE: {
             SCAN_READY: 'SCANREADY',
             OPEN: 'OPEN',
