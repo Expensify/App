@@ -27,9 +27,6 @@ import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
 
 type ReportActionItemParentActionProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<Report>;
-
     /** All the data of the policy collection */
     policies: OnyxCollection<Policy>;
 
@@ -90,7 +87,6 @@ type ReportActionItemParentActionProps = {
 };
 
 function ReportActionItemParentAction({
-    allReports,
     policies,
     report,
     action,
@@ -115,6 +111,7 @@ function ReportActionItemParentAction({
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
 
     const getLinkedTransactionRouteError = useCallback((transaction: OnyxEntry<Transaction>) => {
         return transaction?.errorFields?.route;
@@ -201,14 +198,13 @@ function ReportActionItemParentAction({
                             {shouldDisplayThreadDivider && (
                                 <ThreadDivider
                                     ancestor={ancestor}
-                                    isLinkDisabled={!canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)}
+                                    isLinkDisabled={!canCurrentUserOpenReport(ancestorReport, allBetas, isAncestorReportArchived)}
                                 />
                             )}
                             <ReportActionItem
-                                allReports={allReports}
                                 policies={policies}
                                 onPress={
-                                    canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)
+                                    canCurrentUserOpenReport(ancestorReport, allBetas, isAncestorReportArchived)
                                         ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)
                                         : undefined
                                 }

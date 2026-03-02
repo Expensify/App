@@ -1,4 +1,3 @@
-import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import {endSpan, getSpan} from './activeSpans';
 
@@ -11,7 +10,6 @@ function markSubmitExpenseEnd() {
         return;
     }
     endSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
-    Performance.markEnd(CONST.TIMING.SUBMIT_EXPENSE);
 }
 
 export default markSubmitExpenseEnd;
