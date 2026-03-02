@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import type {FlatList as FlatListType} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
-import FlatList from '@components/FlatList';
+import FlatList from '@components/FlatList/FlatList';
 import Image from '@components/Image';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';

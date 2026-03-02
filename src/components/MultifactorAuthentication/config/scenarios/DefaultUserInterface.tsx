@@ -1,4 +1,5 @@
 import React from 'react';
+import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {
     DefaultClientFailureScreen,
     DefaultServerFailureScreen,
@@ -11,14 +12,6 @@ import type {MultifactorAuthenticationCallbackResponse} from '@libs/MultifactorA
 import CONST from '@src/CONST';
 
 const DEFAULT_CONFIG = {
-    MODALS: {
-        cancelConfirmation: {
-            title: 'common.areYouSure',
-            description: 'multifactorAuthentication.biometricsTest.areYouSureToReject',
-            confirmButtonText: 'multifactorAuthentication.biometricsTest.rejectAuthentication',
-            cancelButtonText: 'common.cancel',
-        },
-    },
     successScreen: <DefaultSuccessScreen />,
     defaultClientFailureScreen: <DefaultClientFailureScreen />,
     defaultServerFailureScreen: <DefaultServerFailureScreen />,
@@ -26,24 +19,18 @@ const DEFAULT_CONFIG = {
         [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS]: <NoEligibleMethodsFailureScreen />,
         [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE]: <UnsupportedDeviceFailureScreen />,
     },
+    modals: {
+        cancelConfirmation: DefaultCancelConfirmModal,
+    },
 } as const satisfies MultifactorAuthenticationDefaultUIConfig;
 
 const defaultCallback = (): Promise<MultifactorAuthenticationCallbackResponse> => Promise.resolve(CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN);
 
 function customConfig<const T extends MultifactorAuthenticationScenarioCustomConfig<never>>(config: T) {
-    const MODALS = {
-        ...DEFAULT_CONFIG.MODALS,
-        ...config.MODALS,
-        cancelConfirmation: {
-            ...DEFAULT_CONFIG.MODALS.cancelConfirmation,
-            ...config.MODALS?.cancelConfirmation,
-        },
-    } as const;
-
     return {
         ...DEFAULT_CONFIG,
         ...config,
-        MODALS,
+        modals: {...DEFAULT_CONFIG.modals, ...config.modals},
         callback: config.callback ?? defaultCallback,
         successScreen: config.successScreen ?? DEFAULT_CONFIG.successScreen,
         defaultClientFailureScreen: config.defaultClientFailureScreen ?? DEFAULT_CONFIG.defaultClientFailureScreen,
