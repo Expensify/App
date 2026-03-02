@@ -57,7 +57,7 @@ describe('PolicyUtils', () => {
             await measureFunction(() => getSubmitToAccountID(policy, expenseReport), {runs: 100});
         });
 
-        describe('not a submit and close policy', async () => {
+        test('not a submit and close policy', async () => {
             const category = 'Car';
             const policy: Policy = {
                 ...createRandomPolicy(0),
