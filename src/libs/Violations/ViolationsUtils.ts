@@ -145,13 +145,13 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
             },
         });
     } else {
+        const hasEnabledTagsInPolicy = Object.values(policyTagList).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.enabled));
         let hasInvalidTag = false;
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags.at(i);
             const tags = policyTagList[policyTagKeys[i]].tags;
-            const hasEnabledTagsInLevel = Object.values(tags).some((tag) => !!tag.enabled);
             const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && !!tag.enabled);
-            if (!isTagInPolicy && selectedTag && hasEnabledTagsInLevel) {
+            if (!isTagInPolicy && selectedTag && hasEnabledTagsInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,

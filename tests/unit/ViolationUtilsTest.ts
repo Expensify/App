@@ -1586,11 +1586,30 @@ describe('getIsViolationFixed', () => {
             expect(result).toBe(false);
         });
 
-        it('should return false when tag exists but is disabled', () => {
+        it('should return true when tag exists but no tags are enabled', () => {
             const result = getIsViolationFixed('violations.tagOutOfPolicy', {
                 ...defaultParams,
                 tag: 'Lunch',
                 policyTagLists: createPolicyTagList('Lunch', false),
+            });
+            expect(result).toBe(true);
+        });
+
+        it('should return false when tag exists but is disabled while other tags are enabled', () => {
+            const result = getIsViolationFixed('violations.tagOutOfPolicy', {
+                ...defaultParams,
+                tag: 'Lunch',
+                policyTagLists: {
+                    Meals: {
+                        name: 'Meals',
+                        required: true,
+                        orderWeight: 1,
+                        tags: {
+                            Lunch: {name: 'Lunch', enabled: false},
+                            Dinner: {name: 'Dinner', enabled: true},
+                        },
+                    },
+                },
             });
             expect(result).toBe(false);
         });
