@@ -12,6 +12,7 @@ import type {
     PersonalDetails,
     PersonalDetailsList,
     Policy,
+    PolicyTagLists,
     Report,
     ReportAction,
     ReportActions,
@@ -27,7 +28,7 @@ import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNum
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal, translate as translateWithLocale} from './Localize';
 // eslint-disable-next-line import/no-cycle
-import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
+import {getForReportAction, getForReportActionTemp, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
@@ -384,6 +385,7 @@ function computeReportNameBasedOnReportAction(
     report: Report | undefined,
     reportPolicy: Policy | undefined,
     parentReport: Report | undefined,
+    policyTags?: OnyxEntry<PolicyTagLists>,
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -671,6 +673,7 @@ function computeChatThreadReportName(
     report: Report,
     reports: OnyxCollection<Report>,
     parentReportAction?: ReportAction,
+    policyTags?: OnyxEntry<PolicyTagLists>,
 ): string | undefined {
     if (!isChatThread(report)) {
         return undefined;
@@ -732,12 +735,20 @@ function computeChatThreadReportName(
 
         const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        const modifiedMessage = getForReportAction({
-            reportAction: parentReportAction,
-            policyID,
-            movedFromReport,
-            movedToReport,
-        });
+        const modifiedMessage = policyTags
+            ? getForReportActionTemp({
+                  translate,
+                  reportAction: parentReportAction,
+                  movedFromReport,
+                  movedToReport,
+                  policyTags,
+              })
+            : getForReportAction({
+                  reportAction: parentReportAction,
+                  policyID,
+                  movedFromReport,
+                  movedToReport,
+              });
         return formatReportLastMessageText(modifiedMessage);
     }
     if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
@@ -763,6 +774,7 @@ function computeReportName(
     reportActions?: OnyxCollection<ReportActions>,
     currentUserAccountID?: number,
     privateIsArchived?: string,
+    allPolicyTags?: OnyxCollection<PolicyTagLists>,
 ): string {
     if (!report || !report.reportID) {
         return '';
@@ -792,7 +804,8 @@ function computeReportName(
     const privateIsArchivedValue = privateIsArchived ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const chatThreadReportName = computeChatThreadReportName(translateLocal, !!privateIsArchivedValue, report, reports ?? {}, parentReportAction);
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`];
+    const chatThreadReportName = computeChatThreadReportName(translateLocal, !!privateIsArchivedValue, report, reports ?? {}, parentReportAction, policyTags);
     if (chatThreadReportName) {
         return chatThreadReportName;
     }
