@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -21,6 +22,7 @@ function TaxExemptActions() {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Coins']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -30,11 +32,11 @@ function TaxExemptActions() {
                 text: translate('subscription.details.taxExempt'),
                 onSelected: () => {
                     requestTaxExempt();
-                    navigateToConciergeChat(conciergeReportID, false);
+                    navigateToConciergeChat(conciergeReportID, currentUserAccountID, false);
                 },
             },
         ],
-        [translate, icons.Coins, conciergeReportID],
+        [translate, icons.Coins, conciergeReportID, currentUserAccountID],
     );
 
     return (
