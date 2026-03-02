@@ -22,11 +22,15 @@ class GpsLiveUpdateHandler : SuspendLiveUpdateNotificationHandler() {
         update: LiveUpdate
     ): LiveUpdateResult<NotificationCompat.Builder> {
         if (event == LiveUpdateEvent.END) {
-            context.stopService(Intent(context, GpsTripService::class.java))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.stopService(Intent(context, GpsTripService::class.java))
+            }
             return LiveUpdateResult.cancel()
         }
 
-        context.startService(Intent(context, GpsTripService::class.java))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startService(Intent(context, GpsTripService::class.java))
+        }
         ensureNotificationChannel(context)
 
         val title = update.content.opt("title").optString() ?: "GPS tracking in progress"
