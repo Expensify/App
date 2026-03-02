@@ -1,12 +1,14 @@
 import {format} from 'date-fns';
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -18,11 +20,14 @@ import {
     buildTransactionThread,
     getTransactionDetails,
 } from '@libs/ReportUtils';
-import {getRequestType, getTransactionType} from '@libs/TransactionUtils';
+import {getRequestType, getTransactionType, isFromCreditCardImport, isPartialTransaction, isScanning} from '@libs/TransactionUtils';
+import {createNewReport, updateReportName} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, PerDiemExpenseInformation, RequestMoneyInformation} from '.';
 import {
@@ -669,5 +674,128 @@ function duplicateExpenseTransaction({
     }
 }
 
-export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction};
-export type {DuplicateExpenseTransactionParams};
+type DuplicateReportParams = {
+    sourceReportTransactions: OnyxTypes.Transaction[];
+    sourceReportName: string;
+    targetPolicy: OnyxEntry<OnyxTypes.Policy>;
+    targetPolicyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    ownerPersonalDetails: CurrentUserPersonalDetails;
+    isASAPSubmitBetaEnabled: boolean;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
+    draftTransactionIDs: string[];
+    isSelfTourViewed: boolean;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    translate: LocalizedTranslate;
+};
+
+function duplicateReport({
+    sourceReportTransactions,
+    sourceReportName,
+    targetPolicy,
+    targetPolicyCategories,
+    ownerPersonalDetails,
+    isASAPSubmitBetaEnabled,
+    betas,
+    personalDetails,
+    quickAction,
+    policyRecentlyUsedCurrencies,
+    draftTransactionIDs,
+    isSelfTourViewed,
+    transactionViolations,
+    translate,
+}: DuplicateReportParams) {
+    const newReport = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas);
+
+    const newReportName = translate('common.copyOfReportName', sourceReportName);
+    updateReportName(newReport.reportID, newReportName, newReport.reportName ?? '');
+
+    const eligibleTransactions = sourceReportTransactions.filter((transaction) => {
+        if (isFromCreditCardImport(transaction)) {
+            return false;
+        }
+        if (transaction.accountant) {
+            return false;
+        }
+        if (isPartialTransaction(transaction) || isScanning(transaction)) {
+            return false;
+        }
+        return true;
+    });
+
+    const userAccountID = getUserAccountID();
+    const currentUserEmailValue = getCurrentUserEmail();
+    const parentChatReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${newReport.chatReportID}`];
+    const participants = getMoneyRequestParticipantsFromReport(parentChatReport, userAccountID);
+
+    const policyParams = targetPolicy
+        ? {
+              policy: targetPolicy,
+              // eslint-disable-next-line @typescript-eslint/no-deprecated
+              policyTagList: getPolicyTagsData(targetPolicy.id) ?? {},
+              policyCategories: targetPolicyCategories ?? {},
+          }
+        : undefined;
+
+    for (const transaction of eligibleTransactions) {
+        const transactionDetails = getTransactionDetails(transaction);
+        if (!transactionDetails) {
+            continue;
+        }
+
+        const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
+
+        const params: RequestMoneyInformation = {
+            report: parentChatReport,
+            existingIOUReport: newReport as OnyxEntry<OnyxTypes.Report>,
+            participantParams: {
+                payeeAccountID: userAccountID,
+                payeeEmail: currentUserEmailValue,
+                participant: participants.at(0) ?? {},
+            },
+            policyParams,
+            gpsPoint: undefined,
+            action: CONST.IOU.ACTION.CREATE,
+            transactionParams: {
+                ...transactionWithoutLinkedAction,
+                ...transactionDetails,
+                attendees: transactionDetails.attendees as Attendee[] | undefined,
+                comment: Parser.htmlToMarkdown(transactionDetails.comment ?? ''),
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                customUnitRateID: transaction.comment?.customUnit?.customUnitRateID,
+                merchant: transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? ''),
+                modifiedAmount: undefined,
+                originalTransactionID: undefined,
+                receipt: undefined,
+                source: undefined,
+                waypoints: transactionDetails.waypoints as WaypointCollection | undefined,
+                type: transaction.comment?.type,
+                count: transaction.comment?.units?.count,
+                rate: transaction.comment?.units?.rate,
+                unit: transaction.comment?.units?.unit,
+            },
+            shouldHandleNavigation: false,
+            shouldGenerateTransactionThreadReport: true,
+            isASAPSubmitBetaEnabled,
+            currentUserAccountIDParam: userAccountID,
+            currentUserEmailParam: currentUserEmailValue,
+            transactionViolations: transactionViolations ?? {},
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            existingTransactionDraft: undefined,
+            draftTransactionIDs,
+            isSelfTourViewed,
+            betas,
+            personalDetails,
+        };
+
+        requestMoney(params);
+    }
+
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newReport.reportID));
+}
+
+export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, duplicateReport};
+export type {DuplicateExpenseTransactionParams, DuplicateReportParams};

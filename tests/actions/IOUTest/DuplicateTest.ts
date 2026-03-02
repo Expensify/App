@@ -3,10 +3,12 @@
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU';
-import {duplicateExpenseTransaction, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
+import {duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
+import type {DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import Navigation from '@libs/Navigation/Navigation';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
@@ -1712,6 +1714,168 @@ describe('actions/Duplicate', () => {
                         });
                     });
                 });
+        });
+    });
+
+    describe('duplicateReport', () => {
+        let writeSpy: jest.SpyInstance;
+
+        const mockPolicy = createRandomPolicy(1);
+        const mockPolicyCategories = createRandomPolicyCategories(3);
+        const mockPersonalDetails = {
+            [RORY_ACCOUNT_ID]: {
+                accountID: RORY_ACCOUNT_ID,
+                login: RORY_EMAIL,
+                displayName: 'Rory',
+            },
+        };
+        const mockOwnerPersonalDetails = {
+            accountID: RORY_ACCOUNT_ID,
+            login: RORY_EMAIL,
+            displayName: 'Rory',
+        };
+
+        const mockTranslate = ((path: string, ...args: string[]) => {
+            if (path === 'common.copyOfReportName') {
+                return `Copy of ${args.at(0)}`;
+            }
+            return path;
+        }) as DuplicateReportParams['translate'];
+
+        const createCashTransaction = (id: string, overrides: Partial<Transaction> = {}): Transaction => ({
+            ...createRandomTransaction(Number(id)),
+            transactionID: id,
+            amount: -500,
+            merchant: 'Test Merchant',
+            modifiedMerchant: '',
+            currency: CONST.CURRENCY.USD,
+            cardNumber: '',
+            cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+            managedCard: false,
+            bank: '',
+            receipt: {},
+            ...overrides,
+        });
+
+        const getDefaultParams = (sourceTransactions: Transaction[]): DuplicateReportParams => ({
+            sourceReportTransactions: sourceTransactions,
+            sourceReportName: 'Original Report',
+            targetPolicy: mockPolicy,
+            targetPolicyCategories: mockPolicyCategories,
+            ownerPersonalDetails: mockOwnerPersonalDetails,
+            isASAPSubmitBetaEnabled: false,
+            betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            draftTransactionIDs: [],
+            isSelfTourViewed: false,
+            transactionViolations: {},
+            translate: mockTranslate,
+        });
+
+        const countWriteCommandCalls = (command: string) => writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === command).length;
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            global.fetch = getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+                if (options?.optimisticData) {
+                    for (const update of options.optimisticData) {
+                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
+                            Onyx.merge(update.key, update.value);
+                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
+                            Onyx.set(update.key, update.value);
+                        }
+                    }
+                }
+                return Promise.resolve();
+            });
+            return Onyx.clear();
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        it('should create a new report and duplicate all eligible transactions', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2', {merchant: 'Coffee Shop'});
+
+            duplicateReport(getDefaultParams([tx1, tx2]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.SET_REPORT_NAME)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+
+            const setReportNameCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.SET_REPORT_NAME) as unknown[] | undefined;
+            expect(setReportNameCall?.at(1)).toEqual(expect.objectContaining({reportName: 'Copy of Original Report'}));
+
+            expect(Navigation.navigate).toHaveBeenCalled();
+        });
+
+        it('should filter out credit card import transactions', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const cardTx = createCashTransaction('card1', {
+                transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD,
+            });
+            const cashTx2 = createCashTransaction('cash2');
+
+            duplicateReport(getDefaultParams([cashTx, cardTx, cashTx2]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+        });
+
+        it('should filter out accountant (Expensiworks) transactions', async () => {
+            const normalTx = createCashTransaction('normal1');
+            const accountantTx = createCashTransaction('acct1', {
+                accountant: {accountID: 999, login: 'accountant@test.com'},
+            });
+
+            duplicateReport(getDefaultParams([normalTx, accountantTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+        });
+
+        it('should filter out scanning transactions', async () => {
+            const normalTx = createCashTransaction('normal1');
+            const scanningTx = createCashTransaction('scan1', {
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {
+                    source: 'receipt.jpg',
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                },
+            });
+
+            duplicateReport(getDefaultParams([normalTx, scanningTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+        });
+
+        it('should still create the report when all transactions are ineligible', async () => {
+            const cardTx = createCashTransaction('card1', {
+                transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD,
+            });
+            const accountantTx = createCashTransaction('acct1', {
+                accountant: {accountID: 999, login: 'accountant@test.com'},
+            });
+
+            duplicateReport(getDefaultParams([cardTx, accountantTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.SET_REPORT_NAME)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(0);
+
+            expect(Navigation.navigate).toHaveBeenCalled();
         });
     });
 });

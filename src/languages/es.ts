@@ -397,6 +397,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicated: 'Duplicado',
         duplicateExpense: 'Duplicar gasto',
         duplicateReport: 'Duplicar informe',
+        copyOfReportName: (reportName: string) => `Copia de ${reportName}`,
         exchangeRate: 'Tipo de cambio',
         reimbursableTotal: 'Total reembolsable',
         nonReimbursableTotal: 'Total no reembolsable',
