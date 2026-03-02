@@ -159,6 +159,7 @@ import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participant, Participants} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
@@ -232,13 +233,11 @@ jest.mock('@libs/PolicyUtils', () => ({
 const mockedPolicyUtils = PolicyUtils as jest.Mocked<typeof PolicyUtils>;
 
 jest.mock('@libs/actions/IOU', () => ({
-    ...jest.requireActual<typeof import('@libs/actions/IOU')>('@libs/actions/IOU'),
     startMoneyRequest: jest.fn(),
     startDistanceRequest: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Report', () => ({
-    ...jest.requireActual<typeof import('@libs/actions/Report')>('@libs/actions/Report'),
     openUnreportedExpense: jest.fn(),
 }));
 
@@ -13171,7 +13170,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return 3 dropdown options with correct values', () => {
-            const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, null, undefined, undefined);
+            const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, undefined, undefined, undefined);
 
             expect(options).toHaveLength(3);
             expect(options.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
@@ -13181,7 +13180,7 @@ describe('ReportUtils', () => {
 
         describe('CREATE_NEW_EXPENSE', () => {
             it('should return early when iouReportID is undefined', () => {
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, null, undefined, undefined);
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, undefined, undefined, undefined);
                 options.at(0)?.onSelected?.();
 
                 expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -13189,13 +13188,13 @@ describe('ReportUtils', () => {
             });
 
             it('should navigate to restricted action when non-personal policy owner is past due', async () => {
-                const policy = {
+                const testPolicy = {
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
                     ownerAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 } as Policy;
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
                 await waitForBatchedUpdates();
 
                 const pastDueCollection = {
@@ -13204,7 +13203,7 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, pastDueCollection, undefined);
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, pastDueCollection, undefined);
                 options.at(0)?.onSelected?.();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
@@ -13212,13 +13211,13 @@ describe('ReportUtils', () => {
             });
 
             it('should not restrict for personal policy type even when owner is past due', async () => {
-                const policy = {
+                const testPolicy = {
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
                     ownerAccountID,
                     type: CONST.POLICY.TYPE.PERSONAL,
                 } as Policy;
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
                 await waitForBatchedUpdates();
 
                 const pastDueCollection = {
@@ -13227,7 +13226,7 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, pastDueCollection, undefined);
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, pastDueCollection, undefined);
                 options.at(0)?.onSelected?.();
 
                 expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
@@ -13235,16 +13234,16 @@ describe('ReportUtils', () => {
             });
 
             it('should start money request when policy owner is not past due', async () => {
-                const policy = {
+                const testPolicy = {
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
                     ownerAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 } as Policy;
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
                 await waitForBatchedUpdates();
 
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, undefined, undefined);
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, undefined, undefined);
                 options.at(0)?.onSelected?.();
 
                 expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
@@ -13254,7 +13253,7 @@ describe('ReportUtils', () => {
 
         describe('TRACK_DISTANCE_EXPENSE', () => {
             it('should return early when iouReportID is undefined', () => {
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, null, undefined, undefined);
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, undefined, undefined, undefined);
                 options.at(1)?.onSelected?.();
 
                 expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -13262,12 +13261,12 @@ describe('ReportUtils', () => {
             });
 
             it('should navigate to restricted action when policy owner is past due', async () => {
-                const policy = {
+                const testPolicy = {
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
                     ownerAccountID,
                 } as Policy;
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
                 await waitForBatchedUpdates();
 
                 const pastDueCollection = {
@@ -13276,7 +13275,7 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, pastDueCollection, undefined);
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, pastDueCollection, undefined);
                 options.at(1)?.onSelected?.();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
@@ -13284,15 +13283,15 @@ describe('ReportUtils', () => {
             });
 
             it('should start distance request when policy owner is not restricted', async () => {
-                const policy = {
+                const testPolicy = {
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
                     ownerAccountID,
                 } as Policy;
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
                 await waitForBatchedUpdates();
 
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, undefined, undefined);
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, undefined, undefined);
                 options.at(1)?.onSelected?.();
 
                 expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
@@ -13302,12 +13301,12 @@ describe('ReportUtils', () => {
 
         describe('ADD_UNREPORTED_EXPENSE', () => {
             it('should navigate to restricted action when policy owner is past due', async () => {
-                const policy = {
+                const testPolicy = {
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
                     ownerAccountID,
                 } as Policy;
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
                 await waitForBatchedUpdates();
 
                 const pastDueCollection = {
@@ -13316,7 +13315,7 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, pastDueCollection, undefined);
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, pastDueCollection, undefined);
                 options.at(2)?.onSelected?.();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
@@ -13324,7 +13323,7 @@ describe('ReportUtils', () => {
             });
 
             it('should open unreported expense when policy owner is not restricted', () => {
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, null, undefined, undefined);
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, undefined, undefined, undefined);
                 options.at(2)?.onSelected?.();
 
                 expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -13333,16 +13332,16 @@ describe('ReportUtils', () => {
 
             it('should pass ownerBillingGraceEndPeriod to restrict owner with past-due billing', async () => {
                 const gracePeriodEnd = Math.floor(Date.now() / 1000) - 3600;
-                const policy = {
+                const testPolicy = {
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
                     ownerAccountID: currentUserAccountID,
                 } as Policy;
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
                 await waitForBatchedUpdates();
 
-                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, policy, undefined, gracePeriodEnd);
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, undefined, gracePeriodEnd);
                 options.at(2)?.onSelected?.();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
