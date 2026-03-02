@@ -31,7 +31,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant} from '@src/types/onyx/Report';
@@ -2645,6 +2645,15 @@ describe('updateSplitTransactions', () => {
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, waitForCollectionCallback: true, callback: (v) => (allReports = v)});
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (v) => (allReportNameValuePairs = v)});
 
+        let allPolicyTags: OnyxCollection<PolicyTagLists>;
+        await getOnyxData({
+            waitForCollectionCallback: true,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+            callback: (tags) => {
+                allPolicyTags = tags;
+            },
+        });
+
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
@@ -2670,6 +2679,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            allPolicyTags,
         });
         await waitForBatchedUpdates();
 
@@ -2759,6 +2769,15 @@ describe('updateSplitTransactions', () => {
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, waitForCollectionCallback: true, callback: (v) => (allReports = v)});
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (v) => (allReportNameValuePairs = v)});
 
+        let allPolicyTags: OnyxCollection<PolicyTagLists>;
+        await getOnyxData({
+            waitForCollectionCallback: true,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+            callback: (tags) => {
+                allPolicyTags = tags;
+            },
+        });
+
         updateSplitTransactions({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
@@ -2784,6 +2803,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            allPolicyTags,
         });
         await waitForBatchedUpdates();
 
