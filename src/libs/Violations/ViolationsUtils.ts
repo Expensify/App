@@ -5,6 +5,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -17,7 +18,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
@@ -246,7 +247,7 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
  * Returns true if the violation should be cleared, false if it should persist.
  */
 function getIsViolationFixed(violationError: string, params: ViolationFixParams): boolean {
-    const {category, tag, taxCode, policyCategories, policyTagLists, policyTaxRates, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy} = params;
+    const {category, tag, taxCode, taxValue, policyCategories, policyTagLists, policyTaxRates, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy} = params;
 
     const violationValidators: Record<string, () => boolean> = {
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY}`]: () => {
@@ -266,8 +267,15 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             return hasEnabledTags && hasMatchingTag;
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.TAX_OUT_OF_POLICY}`]: () => {
-            // Tax is fixed if it's empty or exists in policy tax rates
-            return !taxCode || Object.keys(policyTaxRates ?? {}).some((key) => key === taxCode);
+            if (!taxCode || !policyTaxRates) {
+                return !taxCode;
+            }
+            const matchingTaxRate = policyTaxRates[taxCode];
+            if (!matchingTaxRate) {
+                return false;
+            }
+            // If taxValue is provided, check that it matches the policy tax rate. If taxValue is not provided, just check that the tax code exists in the policy.
+            return taxValue !== undefined ? matchingTaxRate.value === taxValue : true;
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.MISSING_ATTENDEES}`]: () => {
             // Attendees violation is fixed if getIsMissingAttendeesViolation returns false
@@ -394,8 +402,7 @@ const ViolationsUtils = {
         const hasCategoryReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && !violation.data);
         const hasItemizedReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
         const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
-        // TODO: Uncomment when the OVER_TRIP_LIMIT violation is implemented
-        // const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
+        const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
         const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
         const hasMissingAttendeesViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
@@ -463,6 +470,10 @@ const ViolationsUtils = {
             isMaxExpenseAmountRuleEnabled(overLimitAmount) &&
             expenseAmount > overLimitAmount &&
             isControlPolicy;
+        // Ensure we are comparing amounts in the same currency
+        const isSameCurrency = updatedTransaction.currency === currency;
+        const shouldShowOverTripLimitViolation =
+            canCalculateAmountViolations && !isInvoiceTransaction && TransactionUtils.hasReservationList(updatedTransaction) && isSameCurrency && expenseAmount > -updatedTransaction.amount;
         const shouldCategoryShowOverLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment =
@@ -573,21 +584,20 @@ const ViolationsUtils = {
             });
         }
 
-        // TODO: Uncomment when the OVER_TRIP_LIMIT violation is implemented
-        // if (canCalculateAmountViolations && !hasOverTripLimitViolation && Math.abs(updatedTransaction.amount) < Math.abs(amount) && TransactionUtils.hasReservationList(updatedTransaction)) {
-        //     newTransactionViolations.push({
-        //         name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
-        //         data: {
-        //             formattedLimit: CurrencyUtils.convertAmountToDisplayString(updatedTransaction.amount, updatedTransaction.currency),
-        //         },
-        //         type: CONST.VIOLATION_TYPES.VIOLATION,
-        //         showInReview: true,
-        //     });
-        // }
+        if (canCalculateAmountViolations && !hasOverTripLimitViolation && shouldShowOverTripLimitViolation) {
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.OVER_TRIP_LIMIT,
+                data: {
+                    formattedLimit: CurrencyUtils.convertAmountToDisplayString(-updatedTransaction.amount, updatedTransaction.currency),
+                },
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
+        }
 
-        // if (canCalculateAmountViolations && hasOverTripLimitViolation && Math.abs(updatedTransaction.amount) >= Math.abs(amount) && TransactionUtils.hasReservationList(updatedTransaction)) {
-        //     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_TRIP_LIMIT});
-        // }
+        if (canCalculateAmountViolations && hasOverTripLimitViolation && !shouldShowOverTripLimitViolation) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_TRIP_LIMIT});
+        }
 
         if (!hasMissingCommentViolation && shouldShowMissingComment) {
             newTransactionViolations.push({
@@ -634,7 +644,16 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true, tags?: PolicyTagLists, companyCardPageURL?: string): string {
+    getViolationTranslation(
+        violation: TransactionViolation,
+        translate: LocaleContextProps['translate'],
+        canEdit = true,
+        tags?: PolicyTagLists,
+        companyCardPageURL?: string,
+        connectionLink?: string,
+        card?: Card,
+        isMarkAsCash?: boolean,
+    ): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -649,6 +668,7 @@ const ViolationsUtils = {
             taxName,
             type,
             rterType,
+            cardID,
             message = '',
             errorIndexes = [],
         } = violation.data ?? {};
@@ -712,7 +732,11 @@ const ViolationsUtils = {
                 return translate('violations.itemizedReceiptRequired', {formattedLimit});
             case 'customRules':
                 return translate('violations.customRules', {message});
-            case 'rter':
+            case 'rter': {
+                let isPersonalCardViolation = false;
+                if (cardID !== undefined && cardID !== null && card) {
+                    isPersonalCardViolation = !!isPersonalCard(card);
+                }
                 return translate('violations.rter', {
                     brokenBankConnection,
                     isAdmin,
@@ -720,7 +744,11 @@ const ViolationsUtils = {
                     member,
                     rterType,
                     companyCardPageURL,
+                    connectionLink,
+                    isPersonalCard: isPersonalCardViolation,
+                    isMarkAsCash,
                 });
+            }
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed', {canEdit});
             case 'someTagLevelsRequired':
@@ -769,6 +797,9 @@ const ViolationsUtils = {
         transactionThreadActions?: ReportAction[],
         tags?: PolicyTagLists,
         companyCardPageURL?: string,
+        connectionLink?: string,
+        cardList?: CardList,
+        isMarkAsCash?: boolean,
     ): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
         const filteredViolations = filterReceiptViolations(transactionViolations);
@@ -779,7 +810,9 @@ const ViolationsUtils = {
             // Some violations end with a period already so lets make sure the connected messages have only single period between them
             // and end with a single dot.
             ...filteredViolations.map((violation) => {
-                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL);
+                const cardID = violation?.data?.cardID;
+                const card = cardID ? cardList?.[cardID] : undefined;
+                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash);
                 if (!message) {
                     return;
                 }

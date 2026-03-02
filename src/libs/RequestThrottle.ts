@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import CONST from '@src/CONST';
 import SafeString from '@src/utils/SafeString';
 import {WRITE_COMMANDS} from './API/types';
@@ -48,10 +49,23 @@ class RequestThrottle {
             const maxRequestRetries = command === WRITE_COMMANDS.OPEN_APP ? CONST.NETWORK.MAX_OPEN_APP_REQUEST_RETRIES : CONST.NETWORK.MAX_REQUEST_RETRIES;
             if (this.requestRetryCount <= maxRequestRetries) {
                 const currentRequestWaitTime = this.getRequestWaitTime();
+                const span = Sentry.startInactiveSpan({
+                    name: CONST.TELEMETRY.SPAN_REQUEST_THROTTLE_SLEEP,
+                    op: CONST.TELEMETRY.SPAN_REQUEST_THROTTLE_SLEEP,
+                    attributes: {
+                        [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: command,
+                        [CONST.TELEMETRY.ATTRIBUTE_RETRY_COUNT]: this.requestRetryCount,
+                        [CONST.TELEMETRY.ATTRIBUTE_THROTTLE_WAIT_MS]: currentRequestWaitTime,
+                    },
+                });
                 Log.info(
                     `[RequestThrottle - ${this.name}] Retrying request after error: '${error.name}', '${error.message}', '${error.status}'. Command: ${command}. Retry count:  ${this.requestRetryCount}. Wait time: ${currentRequestWaitTime}`,
                 );
-                this.timeoutID = setTimeout(resolve, currentRequestWaitTime);
+                this.timeoutID = setTimeout(() => {
+                    span.setStatus({code: 1});
+                    span.end();
+                    resolve();
+                }, currentRequestWaitTime);
             } else {
                 reject();
             }

@@ -612,7 +612,12 @@ describe('ReportUtils', () => {
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
         });
 
-        it('includes avatar in optimistic Setup Specialist personal detail', () => {
+        it('includes avatar and accountID in optimistic Setup Specialist personal detail', async () => {
+            // Reset personal details to remove any Setup Specialist entry added by previous tests,
+            // so the optimistic creation path (else branch) is exercised.
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+            await waitForBatchedUpdates();
+
             const mergeSpy = jest.spyOn(Onyx, 'merge');
 
             prepareOnboardingOnyxData({
@@ -627,10 +632,12 @@ describe('ReportUtils', () => {
             });
 
             const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
-            const personalDetailsData = personalDetailsCall?.[1] as Record<string, {avatar?: string; login?: string; displayName?: string}>;
+            const personalDetailsData = personalDetailsCall?.[1] as Record<string, {accountID: number; avatar?: string; login?: string; displayName?: string}>;
             const setupSpecialistDetail = Object.values(personalDetailsData ?? {}).at(0);
 
             expect(setupSpecialistDetail).toBeDefined();
+            expect(setupSpecialistDetail?.accountID).toBeDefined();
+            expect(setupSpecialistDetail?.accountID).toBe(515109196);
             expect(setupSpecialistDetail?.avatar).toBeDefined();
             expect(setupSpecialistDetail?.avatar).toContain('images/avatars/');
 
@@ -1446,7 +1453,7 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated(transactionThread, undefined, unreportedTransactionAction);
+                const reportName = getReportNameDeprecated({report: transactionThread, parentReportActionParam: unreportedTransactionAction});
 
                 // Should NOT contain HTML tags
                 expect(reportName).not.toContain('<a href');
@@ -1651,7 +1658,16 @@ describe('ReportUtils', () => {
                 };
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated(report, policy, undefined, participantsPersonalDetails, undefined, undefined, [], false, [], [], explicitConciergeReportID);
+                const reportName = getReportNameDeprecated({
+                    report,
+                    policy,
+                    personalDetails: participantsPersonalDetails,
+                    transactions: [],
+                    isReportArchived: false,
+                    reports: [],
+                    policies: [],
+                    conciergeReportID: explicitConciergeReportID,
+                });
                 expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
             });
 
@@ -1663,7 +1679,16 @@ describe('ReportUtils', () => {
                 };
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated(report, policy, undefined, participantsPersonalDetails, undefined, undefined, [], false, [], [], explicitConciergeReportID);
+                const reportName = getReportNameDeprecated({
+                    report,
+                    policy,
+                    personalDetails: participantsPersonalDetails,
+                    transactions: [],
+                    isReportArchived: false,
+                    reports: [],
+                    policies: [],
+                    conciergeReportID: explicitConciergeReportID,
+                });
                 expect(reportName).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
                 // Should generate name from participants instead
                 expect(reportName).toBe('Ragnar Lothbrok');
@@ -1677,7 +1702,7 @@ describe('ReportUtils', () => {
                 };
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated(report, policy, undefined, participantsPersonalDetails);
+                const reportName = getReportNameDeprecated({report, policy, personalDetails: participantsPersonalDetails});
                 expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
             });
         });
@@ -1863,6 +1888,81 @@ describe('ReportUtils', () => {
                             const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
 
                             expect(reportName).toBe('updated the name of this workspace to "New Workspace" (previously "Old Workspace")');
+                        });
+
+                        test('should handle add tax action', () => {
+                            const action: ReportAction = {
+                                ...baseParentReportAction,
+                                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX,
+                                originalMessage: {taxName: 'Sales Tax (10%)'},
+                            };
+
+                            const reportActions = {
+                                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]: {[action.reportActionID]: action},
+                            };
+                            const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                            expect(reportName).toBe('added the tax "Sales Tax (10%)"');
+                        });
+
+                        test('should handle delete tax action', () => {
+                            const action: ReportAction = {
+                                ...baseParentReportAction,
+                                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX,
+                                originalMessage: {taxName: 'Old Tax (5%)'},
+                            };
+
+                            const reportActions = {
+                                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]: {[action.reportActionID]: action},
+                            };
+                            const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                            expect(reportName).toBe('removed the tax "Old Tax (5%)"');
+                        });
+
+                        test('should handle custom tax name update action', () => {
+                            const action: ReportAction = {
+                                ...baseParentReportAction,
+                                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME,
+                                originalMessage: {oldName: 'Sales Tax', newName: 'VAT'},
+                            };
+
+                            const reportActions = {
+                                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]: {[action.reportActionID]: action},
+                            };
+                            const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                            expect(reportName).toBe('changed the custom tax name to "VAT" (previously "Sales Tax")');
+                        });
+
+                        test('should handle currency default tax update action', () => {
+                            const action: ReportAction = {
+                                ...baseParentReportAction,
+                                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX,
+                                originalMessage: {oldName: 'Standard Rate', newName: 'Reduced Rate'},
+                            };
+
+                            const reportActions = {
+                                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]: {[action.reportActionID]: action},
+                            };
+                            const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                            expect(reportName).toBe('changed the workspace currency default tax rate to "Reduced Rate" (previously "Standard Rate")');
+                        });
+
+                        test('should handle foreign currency default tax update action', () => {
+                            const action: ReportAction = {
+                                ...baseParentReportAction,
+                                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX,
+                                originalMessage: {oldName: 'Foreign Tax (15%)', newName: 'Foreign Tax (10%)'},
+                            };
+
+                            const reportActions = {
+                                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]: {[action.reportActionID]: action},
+                            };
+                            const reportName = computeReportName(report, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                            expect(reportName).toBe('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")');
                         });
 
                         test('should handle corporate force upgrade action', () => {
@@ -4003,6 +4103,20 @@ describe('ReportUtils', () => {
             expect(isChatUsedForOnboarding(report, onboardingValue, undefined, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)).toBeTruthy();
         });
 
+        it('should return false for admins room when engagement choice is TRACK_WORKSPACE (Concierge is used for onboarding)', async () => {
+            const onboardingValue = {hasCompletedGuidedSetupFlow: true} as Onboarding;
+
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
+            });
+
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            };
+            expect(isChatUsedForOnboarding(report, onboardingValue, undefined, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE)).toBeFalsy();
+        });
+
         it('should return true for concierge chat when conciergeReportID matches report ID', async () => {
             const conciergeReportID = '12345';
             const report: Report = {
@@ -4902,6 +5016,34 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                 }),
             ).toBeFalsy();
+        });
+
+        it('should return DEFAULT for an empty concierge chat when excludeEmptyChats is true', async () => {
+            const conciergeReportID = 'concierge-report-123';
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: conciergeReportID,
+            };
+            const currentReportId = '';
+            const isInFocusMode = false;
+            const betas = [CONST.BETAS.DEFAULT_ROOMS];
+
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+            await waitForBatchedUpdates();
+
+            expect(
+                reasonForReportToBeInOptionList({
+                    report,
+                    chatReport: mockedChatReport,
+                    currentReportId,
+                    isInFocusMode,
+                    betas,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: true,
+                    draftComment: '',
+                    isReportArchived: undefined,
+                }),
+            ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
 
         it('should return false when the users email is domain-based and the includeDomainEmail is false', () => {
@@ -10733,6 +10875,107 @@ describe('ReportUtils', () => {
         await Onyx.clear();
     });
 
+    it('should not display RBR in LHN for processing report with violations when current user is submitter', async () => {
+        await Onyx.clear();
+
+        const policyID = 'policy-rbr-processing';
+        const chatReportID = 'chat-rbr-processing';
+        const expenseReportID = 'expense-rbr-processing';
+        const transactionID = 'transaction-rbr-processing';
+        const holdReportActionID = 'hold-action-rbr';
+
+        const policy1: Policy = {
+            id: policyID,
+            name: 'RBR Processing Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            outputCurrency: CONST.CURRENCY.USD,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            employeeList: {
+                [currentUserEmail]: {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                },
+            },
+            owner: currentUserEmail,
+            isPolicyExpenseChatEnabled: true,
+        };
+
+        const chatReport: Report = {
+            ...LHNTestUtils.getFakeReportWithPolicy([currentUserAccountID, 42]),
+            reportID: chatReportID,
+            ownerAccountID: currentUserAccountID,
+            policyID,
+            iouReportID: expenseReportID,
+            hasOutstandingChildRequest: true,
+        };
+
+        const expenseReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, 42]),
+            reportID: expenseReportID,
+            chatReportID,
+            ownerAccountID: currentUserAccountID,
+            managerID: 42,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            currency: CONST.CURRENCY.USD,
+            total: 12345,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+
+        const baseTransaction = createRandomTransaction(701);
+        const transaction: Transaction = {
+            ...baseTransaction,
+            transactionID,
+            reportID: expenseReportID,
+            amount: 12345,
+            currency: CONST.CURRENCY.USD,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            reimbursable: true,
+            comment: {
+                ...(baseTransaction.comment ?? {}),
+                hold: holdReportActionID,
+            },
+        };
+
+        const reportPreviewAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            reportActionID: 'report-preview-action-rbr',
+            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            childReportID: expenseReportID,
+        };
+
+        const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}` as OnyxKey;
+        const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
+            [transactionViolationsKey]: [
+                {
+                    name: CONST.VIOLATIONS.HOLD,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+            ],
+        };
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+        await waitForBatchedUpdates();
+
+        await Promise.all([
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy1),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            }),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
+            Onyx.merge(transactionViolationsKey, transactionViolationsCollection[transactionViolationsKey]),
+        ]);
+        await waitForBatchedUpdates();
+
+        const shouldShowRBR = shouldDisplayViolationsRBRInLHN(chatReport, transactionViolationsCollection);
+        expect(shouldShowRBR).toBe(false);
+        await Onyx.clear();
+    });
+
     it('should not surface a GBR when bank account is added, but reimbursement is disabled on the policy', async () => {
         await Onyx.clear();
 
@@ -11651,6 +11894,7 @@ describe('ReportUtils', () => {
         it('should return error for DEW_SUBMIT_FAILED action on OPEN report', () => {
             const report = {
                 reportID: '1',
+                ownerAccountID: currentUserAccountID,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             };
@@ -11680,6 +11924,34 @@ describe('ReportUtils', () => {
 
             expect(errors?.dewSubmitFailed).toBeDefined();
             expect(reportAction).toEqual(dewSubmitFailedAction);
+        });
+
+        it('should NOT return error for DEW_SUBMIT_FAILED when current user is not the report owner', () => {
+            const report = {
+                reportID: '1',
+                ownerAccountID: 999,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const dewSubmitFailedAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
         });
 
         it('should NOT return error for DEW_SUBMIT_FAILED if there is a more recent SUBMITTED action', () => {
@@ -11720,6 +11992,7 @@ describe('ReportUtils', () => {
         it('should return error for DEW_SUBMIT_FAILED if it is more recent than SUBMITTED action', () => {
             const report = {
                 reportID: '1',
+                ownerAccountID: currentUserAccountID,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             };
@@ -12121,7 +12394,7 @@ describe('ReportUtils', () => {
                 await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
             });
 
-            it("should navigate to the restricted action page if the active policy's billable actions are restricted", async () => {
+            it("should navigate to the restricted action page if the policy owner's billable actions are restricted", async () => {
                 // Given a transaction and an active policy where billable actions are restricted
                 const transaction = createRandomTransaction(1);
                 const activePolicy: Policy = {
@@ -12136,7 +12409,41 @@ describe('ReportUtils', () => {
                 await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, Math.floor(Date.now() / 1000) - 3600);
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with the restricted policy
-                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy);
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy, undefined);
+
+                // Then it should navigate to the restricted action page
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
+            });
+
+            it("should navigate to the restricted action page if the policy non-owner's billable actions are restricted", async () => {
+                // Given a transaction and an active policy where billable actions are restricted for non-owner
+                const transaction = createRandomTransaction(3);
+                const ownerAccountID = 123;
+                const activePolicy: Policy = {
+                    ...createRandomPolicy(102),
+                    ownerAccountID,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
+                const userBillingGraceEndPeriodCollection = {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
+                        value: 1,
+                    },
+                };
+
+                // When we call createDraftTransactionAndNavigateToParticipantSelector
+                createDraftTransactionAndNavigateToParticipantSelector(
+                    transaction.transactionID,
+                    '1',
+                    CONST.IOU.ACTION.CATEGORIZE,
+                    '1',
+                    undefined,
+                    undefined,
+                    activePolicy,
+                    userBillingGraceEndPeriodCollection,
+                );
 
                 // Then it should navigate to the restricted action page
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
@@ -12164,7 +12471,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseReport.reportID}`, policyExpenseReport);
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
-                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy);
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy, undefined);
 
                 // Then it should navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -12194,7 +12501,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseReport.reportID}`, policyExpenseReport);
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
-                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '2', CONST.IOU.ACTION.CATEGORIZE, '2', undefined, undefined, undefined);
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '2', CONST.IOU.ACTION.CATEGORIZE, '2', undefined, undefined, undefined, undefined);
 
                 // Then it should automatically pick the available policy and navigate to the category step
                 expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -12211,7 +12518,7 @@ describe('ReportUtils', () => {
                 await Onyx.setCollection(ONYXKEYS.COLLECTION.POLICY, {});
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
-                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, undefined);
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, undefined, undefined);
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
                 expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -12249,7 +12556,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy2.id}`, policy2);
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector with undefined activePolicy
-                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, undefined);
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, undefined, undefined);
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
                 expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -12283,7 +12590,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
 
                 // When we call createDraftTransactionAndNavigateToParticipantSelector
-                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy);
+                createDraftTransactionAndNavigateToParticipantSelector(transaction.transactionID, '1', CONST.IOU.ACTION.CATEGORIZE, '1', undefined, undefined, activePolicy, undefined);
 
                 // Then it should log a warning and not navigate
                 expect(logWarnSpy).toHaveBeenCalledWith('policyExpenseReportID is not valid during expense categorizing');

@@ -1,6 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
@@ -72,6 +71,7 @@ describe('getNextBillingDate', () => {
 
 describe('CardSectionUtils', () => {
     let creditCardEyesIcon: IconAsset;
+    let closeIcon: IconAsset;
 
     afterEach(() => {
         jest.restoreAllMocks();
@@ -81,6 +81,9 @@ describe('CardSectionUtils', () => {
         // Get illustrations using renderHook BEFORE fake timers to avoid timing issues
         const {result} = renderHook(() => useMemoizedLazyIllustrations(['CreditCardEyes']));
         creditCardEyesIcon = result.current.CreditCardEyes;
+
+        const {result: iconsResult} = renderHook(() => useMemoizedLazyExpensifyIcons(['Close']));
+        closeIcon = iconsResult.current.Close;
 
         mockGetSubscriptionStatus.mockReturnValue('');
 
@@ -105,6 +108,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: undefined,
             }),
         ).toBeUndefined();
@@ -125,6 +129,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -163,6 +168,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -189,6 +195,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -215,6 +222,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -241,6 +249,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -267,6 +276,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -293,6 +303,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -319,6 +330,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -345,6 +357,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -365,6 +378,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -391,6 +405,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
@@ -415,15 +430,17 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                closeIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.retryBillingSuccess.title',
             subtitle: 'subscription.billingBanner.retryBillingSuccess.subtitle',
             isError: false,
-            rightIcon: Expensicons.Close,
+            rightIcon: closeIcon,
         });
     });
 
@@ -443,6 +460,7 @@ describe('CardSectionUtils', () => {
                 creditCardEyesIcon,
                 fundList: undefined,
                 billingStatus: undefined,
+                amountOwed: AMOUNT_OWED,
                 ownerBillingGraceEndPeriod: GRACE_PERIOD_DATE,
             }),
         ).toEqual({

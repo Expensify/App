@@ -10,7 +10,7 @@ const CurrencyListStateContext = createContext<CurrencyListStateContextType>(def
 const CurrencyListActionsContext = createContext<CurrencyListActionsContextType>(defaultCurrencyListActionsContextValue);
 
 function CurrencyListContextProvider({children}: React.PropsWithChildren) {
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST);
 
     const currencyListRef = useRef(currencyList);
     currencyListRef.current = currencyList;

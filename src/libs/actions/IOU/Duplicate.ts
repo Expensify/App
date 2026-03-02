@@ -35,7 +35,6 @@ import {
     getCurrentUserEmail,
     getMoneyRequestParticipantsFromReport,
     getPolicyTags,
-    getRecentWaypoints,
     getUserAccountID,
     requestMoney,
     submitPerDiemExpense,
@@ -503,8 +502,11 @@ type DuplicateExpenseTransactionParams = {
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
+    existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
+    draftTransactionIDs: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
 };
 
 function duplicateExpenseTransaction({
@@ -521,8 +523,11 @@ function duplicateExpenseTransaction({
     targetPolicy,
     targetPolicyCategories,
     targetReport,
+    existingTransactionDraft,
+    draftTransactionIDs,
     betas,
     personalDetails,
+    recentWaypoints,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -530,7 +535,6 @@ function duplicateExpenseTransaction({
 
     const userAccountID = getUserAccountID();
     const currentUserEmail = getCurrentUserEmail();
-    const recentWaypoints = getRecentWaypoints();
 
     const participants = getMoneyRequestParticipantsFromReport(targetReport, userAccountID);
     const transactionDetails = getTransactionDetails(transaction);
@@ -581,6 +585,8 @@ function duplicateExpenseTransaction({
         transactionViolations: {},
         policyRecentlyUsedCurrencies,
         quickAction,
+        existingTransactionDraft,
+        draftTransactionIDs,
         isSelfTourViewed,
         betas,
         personalDetails,
@@ -640,6 +646,7 @@ function duplicateExpenseTransaction({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 customUnitPolicyID,
+                personalDetails,
                 recentWaypoints,
             };
             return createDistanceRequest(distanceParams);

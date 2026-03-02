@@ -9,10 +9,11 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {normalizeLogin} from '@libs/LoginUtils';
 import {clearSignInData} from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function EmailDeliveryFailurePage() {
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
@@ -51,6 +52,7 @@ function EmailDeliveryFailurePage() {
                     // disable hover dim for switch
                     hoverDimmingValue={1}
                     pressDimmingValue={0.2}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.GO_BACK}
                 >
                     <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>

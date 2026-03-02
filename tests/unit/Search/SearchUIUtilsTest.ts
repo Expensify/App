@@ -1562,7 +1562,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         count: 4,
         currency: 'USD',
         displayName: 'Zara',
-        formattedCardName: ' - 1234',
+        formattedCardName: ' • 1234',
         formattedFeedName: 'chase',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1580,7 +1580,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         count: 6,
         currency: 'USD',
         displayName: 'Andrew',
-        formattedCardName: ' - 1234',
+        formattedCardName: ' • 1234',
         formattedFeedName: 'americanexpress',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1601,7 +1601,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         count: 4,
         currency: 'USD',
         displayName: 'Zara',
-        formattedCardName: ' - 1234',
+        formattedCardName: ' • 1234',
         formattedFeedName: 'chase',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -1619,7 +1619,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         count: 6,
         currency: 'USD',
         displayName: 'Andrew',
-        formattedCardName: ' - 1234',
+        formattedCardName: ' • 1234',
         formattedFeedName: 'americanexpress',
         groupedBy: 'card',
         lastFourPAN: '1234',
@@ -3124,58 +3124,71 @@ describe('SearchUIUtils', () => {
             expect(result.end).toBe('2025-06-20');
         });
 
-        it('should intersect date preset with additional constraints instead of overwriting', () => {
-            // Test that when combining a date preset (EQUAL_TO) with additional constraints,
-            // we intersect the ranges (take max for start, min for end) rather than overwriting
-            const yearDateRange = DateUtils.getYearDateRange(2026);
-            const dateFilter = {
-                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                filters: [
-                    {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                        value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // e.g., January 2026: 2026-01-01 to 2026-01-31
-                    },
-                    {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
-                        value: '2025-04-01', // Earlier than preset start
-                    },
-                ],
-            };
+        // These tests use LAST_MONTH date preset which resolves relative to the current date,
+        // so we freeze the clock to February 2026 to ensure LAST_MONTH always means January 2026.
+        describe('date preset intersection with frozen clock', () => {
+            beforeEach(() => {
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-02-15T12:00:00Z'));
+            });
 
-            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
+            afterEach(() => {
+                jest.useRealTimers();
+            });
 
-            // Should intersect: max(preset start, constraint start) = max(2026-01-01, 2025-04-01) = 2026-01-01
-            // The preset start should be preserved, not overwritten by the earlier constraint
-            expect(result.start).toBe('2026-01-01');
-            // End should remain the preset end (2026-01-31)
-            expect(result.end).toBe('2026-01-31');
-        });
+            it('should intersect date preset with additional constraints instead of overwriting', () => {
+                // Test that when combining a date preset (EQUAL_TO) with additional constraints,
+                // we intersect the ranges (take max for start, min for end) rather than overwriting
+                const yearDateRange = DateUtils.getYearDateRange(2026);
+                const dateFilter = {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                            value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // January 2026: 2026-01-01 to 2026-01-31
+                        },
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                            value: '2025-04-01', // Earlier than preset start
+                        },
+                    ],
+                };
 
-        it('should intersect date preset end limit with additional constraints', () => {
-            // Test that when combining a date preset with an end constraint,
-            // we take the minimum (earliest) end date to intersect ranges
-            const yearDateRange = DateUtils.getYearDateRange(2026);
-            const dateFilter = {
-                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                filters: [
-                    {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                        value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // e.g., January 2026: 2026-01-01 to 2026-01-31
-                    },
-                    {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
-                        value: '2026-01-15', // Earlier than preset end
-                    },
-                ],
-            };
+                const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
 
-            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
+                // Should intersect: max(preset start, constraint start) = max(2026-01-01, 2025-04-01) = 2026-01-01
+                // The preset start should be preserved, not overwritten by the earlier constraint
+                expect(result.start).toBe('2026-01-01');
+                // End should remain the preset end (2026-01-31)
+                expect(result.end).toBe('2026-01-31');
+            });
 
-            // Start should remain the preset start (2026-01-01)
-            expect(result.start).toBe('2026-01-01');
-            // Should intersect: min(preset end, constraint end) = min(2026-01-31, 2026-01-15) = 2026-01-15
-            // The constraint end should be used (earlier date)
-            expect(result.end).toBe('2026-01-15');
+            it('should intersect date preset end limit with additional constraints', () => {
+                // Test that when combining a date preset with an end constraint,
+                // we take the minimum (earliest) end date to intersect ranges
+                const yearDateRange = DateUtils.getYearDateRange(2026);
+                const dateFilter = {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                            value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // January 2026: 2026-01-01 to 2026-01-31
+                        },
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                            value: '2026-01-15', // Earlier than preset end
+                        },
+                    ],
+                };
+
+                const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
+
+                // Start should remain the preset start (2026-01-01)
+                expect(result.start).toBe('2026-01-01');
+                // Should intersect: min(preset end, constraint end) = min(2026-01-31, 2026-01-15) = 2026-01-15
+                // The constraint end should be used (earlier date)
+                expect(result.end).toBe('2026-01-15');
+            });
         });
 
         it('should correctly intersect multiple date filters (GREATER_THAN and LOWER_THAN) when expanding quarter groups', () => {
@@ -4693,17 +4706,48 @@ describe('SearchUIUtils', () => {
         });
     });
 
-    describe('Test createTypeMenuItems', () => {
-        const reportCounts = {
-            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: 0,
-            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: 0,
-            [CONST.SEARCH.SEARCH_KEYS.PAY]: 0,
-            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 0,
-        };
+    describe('formatBadgeText', () => {
+        it('should return empty string for 0', () => {
+            expect(SearchUIUtils.formatBadgeText(0)).toBe('');
+        });
 
+        it('should return count as string for values between 1 and max', () => {
+            expect(SearchUIUtils.formatBadgeText(1)).toBe('1');
+            expect(SearchUIUtils.formatBadgeText(25)).toBe('25');
+            expect(SearchUIUtils.formatBadgeText(50)).toBe('50');
+        });
+
+        it('should return max+ for values above max count', () => {
+            expect(SearchUIUtils.formatBadgeText(51)).toBe('50+');
+            expect(SearchUIUtils.formatBadgeText(100)).toBe('50+');
+        });
+    });
+
+    describe('getItemBadgeText', () => {
+        const reportCounts = {submit: 5, approve: 0, pay: 51, export: 1};
+
+        it('should return formatted badge text for a matching key', () => {
+            expect(SearchUIUtils.getItemBadgeText('submit', reportCounts)).toBe('5');
+            expect(SearchUIUtils.getItemBadgeText('export', reportCounts)).toBe('1');
+        });
+
+        it('should return empty string when count is 0', () => {
+            expect(SearchUIUtils.getItemBadgeText('approve', reportCounts)).toBe('');
+        });
+
+        it('should return max+ when count exceeds max', () => {
+            expect(SearchUIUtils.getItemBadgeText('pay', reportCounts)).toBe('50+');
+        });
+
+        it('should return undefined for non-matching key', () => {
+            expect(SearchUIUtils.getItemBadgeText('unknown', reportCounts)).toBeUndefined();
+        });
+    });
+
+    describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, reportCounts)
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -4793,8 +4837,6 @@ describe('SearchUIUtils', () => {
                 false,
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -4807,7 +4849,7 @@ describe('SearchUIUtils', () => {
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
-        it('should show accounting section with statements, unapproved cash, unapproved card, and reconciliation items', () => {
+        it('should show monthly accrual and reconciliation sections with expected items', () => {
             const mockPolicies = {
                 policy1: {
                     id: 'policy1',
@@ -4857,19 +4899,24 @@ describe('SearchUIUtils', () => {
                 false,
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
-            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
-            expect(accountingSection).toBeDefined();
-            expect(accountingSection?.menuItems.length).toBeGreaterThan(0);
+            const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
+            expect(monthlyAccrualSection).toBeDefined();
+            expect(monthlyAccrualSection?.menuItems.length).toBeGreaterThan(0);
 
-            const menuItemKeys = accountingSection?.menuItems.map((item) => item.key) ?? [];
-            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
-            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH);
-            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD);
-            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+            const monthlyAccrualKeys = monthlyAccrualSection?.menuItems.map((item) => item.key) ?? [];
+            expect(monthlyAccrualKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH);
+            expect(monthlyAccrualKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD);
+
+            const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
+            expect(reconciliationSection).toBeDefined();
+            expect(reconciliationSection?.menuItems.length).toBeGreaterThan(0);
+
+            const reconciliationKeys = reconciliationSection?.menuItems.map((item) => item.key) ?? [];
+            expect(reconciliationKeys).toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
+            expect(reconciliationKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD);
+            expect(reconciliationKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
 
         it('should show saved section when there are saved searches', () => {
@@ -4889,7 +4936,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {}, reportCounts);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -4899,7 +4946,7 @@ describe('SearchUIUtils', () => {
             const mockSavedSearches = {};
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {}, reportCounts);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -4927,8 +4974,6 @@ describe('SearchUIUtils', () => {
                 false, // not offline
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -4957,8 +5002,6 @@ describe('SearchUIUtils', () => {
                 true, // offline
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -4980,13 +5023,13 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, reportCounts);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
         });
 
-        it('should not show accounting section when user has no admin permissions or card feeds', () => {
+        it('should not show monthly accrual or reconciliation sections when user has no admin permissions or card feeds', () => {
             const mockPolicies = {
                 policy1: {
                     id: 'policy1',
@@ -5012,12 +5055,12 @@ describe('SearchUIUtils', () => {
                 false,
                 undefined,
                 false,
-                {},
-                reportCounts,
             );
 
-            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
-            expect(accountingSection).toBeUndefined();
+            const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
+            const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
+            expect(monthlyAccrualSection).toBeUndefined();
+            expect(reconciliationSection).toBeUndefined();
         });
 
         it('should show reconciliation for ACH-only scenario (payments enabled, active VBBA, reimburser set, areExpensifyCardsEnabled = false)', () => {
@@ -5045,16 +5088,17 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, reportCounts);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false);
 
-            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
-            expect(accountingSection).toBeDefined();
+            const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
+            expect(reconciliationSection).toBeDefined();
 
-            const menuItemKeys = accountingSection?.menuItems.map((item) => item.key) ?? [];
+            const menuItemKeys = reconciliationSection?.menuItems.map((item) => item.key) ?? [];
+            expect(menuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD);
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
 
-        it('should not show reconciliation for card-only scenario without card feeds (areExpensifyCardsEnabled = true but no card feeds)', () => {
+        it('should show only expensify card in reconciliation for card-only scenario without card feeds', () => {
             const mockPolicies = {
                 policy1: {
                     id: 'policy1',
@@ -5071,34 +5115,23 @@ describe('SearchUIUtils', () => {
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                mockCardFeedsByPolicy,
-                undefined,
-                mockPolicies,
-                {},
-                false,
-                undefined,
-                false,
-                {},
-                reportCounts,
-            );
-            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false);
+            const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
+            expect(reconciliationSection).toBeDefined();
 
-            expect(accountingSection).toBeDefined();
-            const menuItemKeys = accountingSection?.menuItems.map((item) => item.key) ?? [];
-            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+            const menuItemKeys = reconciliationSection?.menuItems.map((item) => item.key) ?? [];
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD);
+            expect(menuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+            expect(menuItemKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
         });
 
         it('should generate correct routes', () => {
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, reportCounts)
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false)
                 .map((section) => section.menuItems)
                 .flat();
 
-            const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense-report sortBy:date sortOrder:desc', 'type:chat sortBy:date sortOrder:desc'];
+            const expectedQueries = ['type:expense-report sortBy:date sortOrder:desc', 'type:expense sortBy:date sortOrder:desc', 'type:chat sortBy:date sortOrder:desc'];
 
             for (const [index, item] of menuItems.entries()) {
                 expect(item.searchQuery).toStrictEqual(expectedQueries.at(index));
@@ -5157,20 +5190,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                mockCardFeedsByPolicy,
-                undefined,
-                mockPolicies,
-                {},
-                false,
-                undefined,
-                false,
-                {},
-                reportCounts,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false);
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
 
@@ -5179,10 +5199,10 @@ describe('SearchUIUtils', () => {
             const payItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.PAY);
             const exportItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.EXPORT);
 
-            expect(submitItem?.badgeText).toBe('');
-            expect(approveItem?.badgeText).toBe('');
-            expect(payItem?.badgeText).toBe('');
-            expect(exportItem?.badgeText).toBe('');
+            expect(submitItem).toBeDefined();
+            expect(approveItem).toBeDefined();
+            expect(payItem).toBeDefined();
+            expect(exportItem).toBeDefined();
         });
     });
 
@@ -5429,7 +5449,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.export).toBe(false);
+            expect(response.visibility.export).toBe(false);
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastSync = {
@@ -5443,7 +5463,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response2.export).toBe(true);
+            expect(response2.visibility.export).toBe(true);
         });
 
         test('Should show Top Categories when areCategoriesEnabled is true', () => {
@@ -5459,7 +5479,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(true);
+            expect(response.visibility.topCategories).toBe(true);
         });
 
         test('Should hide Top Categories when areCategoriesEnabled is false', () => {
@@ -5475,7 +5495,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(false);
+            expect(response.visibility.topCategories).toBe(false);
         });
 
         test('Should not show Top Categories when areCategoriesEnabled is undefined', () => {
@@ -5491,7 +5511,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(false);
+            expect(response.visibility.topCategories).toBe(false);
         });
 
         test('Should not show Top Categories for free policies even if categories are enabled', () => {
@@ -5507,7 +5527,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(false);
+            expect(response.visibility.topCategories).toBe(false);
         });
 
         test('Should show Top Categories if at least one policy has categories enabled', () => {
@@ -5527,7 +5547,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(true);
+            expect(response.visibility.topCategories).toBe(true);
         });
 
         test('Should hide Top Categories if all policies have categories disabled', () => {
@@ -5547,7 +5567,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(false);
+            expect(response.visibility.topCategories).toBe(false);
         });
 
         test('Should show Spend Over Time for Admin role in paid policy', () => {
@@ -5562,7 +5582,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.spendOverTime).toBe(true);
+            expect(response.visibility.spendOverTime).toBe(true);
         });
 
         test('Should show Spend Over Time for Auditor role in paid policy', () => {
@@ -5577,7 +5597,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility('auditor@policy.com', {}, policies, undefined);
-            expect(response.spendOverTime).toBe(true);
+            expect(response.visibility.spendOverTime).toBe(true);
         });
 
         test('Should show Spend Over Time for Approver role in paid policy', () => {
@@ -5592,7 +5612,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(approverEmail, {}, policies, undefined);
-            expect(response.spendOverTime).toBe(true);
+            expect(response.visibility.spendOverTime).toBe(true);
         });
 
         test('Should hide Spend Over Time for User role in paid policy', () => {
@@ -5607,7 +5627,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility('user@policy.com', {}, policies, undefined);
-            expect(response.spendOverTime).toBe(false);
+            expect(response.visibility.spendOverTime).toBe(false);
         });
 
         test('Should hide Spend Over Time for free policies even with Admin role', () => {
@@ -5622,7 +5642,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.spendOverTime).toBe(false);
+            expect(response.visibility.spendOverTime).toBe(false);
         });
 
         test('Should show Spend Over Time if at least one policy has Admin/Auditor/Approver role', () => {
@@ -5640,7 +5660,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.spendOverTime).toBe(true);
+            expect(response.visibility.spendOverTime).toBe(true);
         });
 
         test('Should hide Spend Over Time if all policies have User role', () => {
@@ -5658,7 +5678,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility('user@policy.com', {}, policies, undefined);
-            expect(response.spendOverTime).toBe(false);
+            expect(response.visibility.spendOverTime).toBe(false);
         });
 
         test('Should return Spend Over Time search with correct properties', () => {
@@ -5710,6 +5730,43 @@ describe('SearchUIUtils', () => {
             expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.LINE}`);
             expect(searchQuery).toContain(`sortBy:${CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH}`);
             expect(searchQuery).toContain(`sortOrder:${CONST.SEARCH.SORT_ORDER.ASC}`);
+        });
+
+        test('Should return Top Merchants search query with pie view', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const topMerchantsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
+
+            expect(topMerchantsSearch).toBeDefined();
+            const searchQueryJSON = topMerchantsSearch.searchQueryJSON;
+
+            expect(searchQueryJSON).toBeDefined();
+            expect(searchQueryJSON?.view).toBe(CONST.SEARCH.VIEW.PIE);
+        });
+
+        test('Should return Top Merchants search query string with pie view', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const topMerchantsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
+
+            expect(topMerchantsSearch).toBeDefined();
+            const searchQuery = topMerchantsSearch.searchQuery;
+
+            expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.PIE}`);
+        });
+    });
+
+    describe('Test getSuggestedSearches sort defaults', () => {
+        test('Should default Top Categories to sortBy groupCategory and sortOrder asc', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
+            const topCategories = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES];
+            expect(topCategories.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
+            expect(topCategories.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+
+        test('Should default Top Merchants to sortBy groupMerchant and sortOrder asc', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
+            const topMerchants = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
+            expect(topMerchants.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
+            expect(topMerchants.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
         });
     });
 
@@ -6087,6 +6144,7 @@ describe('SearchUIUtils', () => {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
         const backTo = '/search/all';
+        const introSelectedData: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
 
         beforeEach(() => {
             jest.clearAllMocks();
@@ -6095,23 +6153,59 @@ describe('SearchUIUtils', () => {
         test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, threadReportID, undefined, false);
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
             // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, reportAction1, undefined, undefined);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, report1, reportAction1, undefined, undefined);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, threadReportID, undefined, false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, true);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, threadReportID, undefined, true);
             // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
             // instead of the transaction thread report
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
+        });
+
+        test('Should fallback to childReportID from IOU action when transaction thread report is not in Onyx', async () => {
+            const childReportID = 'child-thread-456';
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const multiTransactionItem = transactionsListItems.at(2) as TransactionListItemType;
+            const iouActionWithChild = {
+                ...reportAction3,
+                childReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID3}`, {
+                [iouActionWithChild.reportActionID]: iouActionWithChild,
+            });
+            await waitForBatchedUpdates();
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(multiTransactionItem, introSelectedData, backTo, undefined, undefined, true);
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo}));
+        });
+
+        test('Should pass introSelected to createTransactionThreadReport when creating thread', () => {
+            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
+            const customIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND};
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, customIntroSelected, backTo, threadReportID, undefined, false);
+
+            expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toEqual(customIntroSelected);
+        });
+
+        test('Should pass undefined introSelected without bypassing with empty values', () => {
+            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, backTo, threadReportID, undefined, false);
+
+            expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toBeUndefined();
         });
     });
 
@@ -6808,12 +6902,13 @@ describe('SearchUIUtils', () => {
     });
 
     describe('view autocomplete values', () => {
-        test('should include all view values (table, bar, line)', () => {
+        test('should include all view values (table, bar, line, pie)', () => {
             const viewValues = Object.values(CONST.SEARCH.VIEW);
             expect(viewValues).toContain('table');
             expect(viewValues).toContain('bar');
             expect(viewValues).toContain('line');
-            expect(viewValues).toHaveLength(3);
+            expect(viewValues).toContain('pie');
+            expect(viewValues).toHaveLength(4);
         });
 
         test('should correctly map view values to user-friendly values', () => {
@@ -6821,7 +6916,7 @@ describe('SearchUIUtils', () => {
             const userFriendlyValues = viewValues.map((value) => getUserFriendlyValue(value));
 
             // All view values should be mapped (they may be the same or different)
-            expect(userFriendlyValues).toHaveLength(3);
+            expect(userFriendlyValues).toHaveLength(4);
             expect(userFriendlyValues.every((value) => typeof value === 'string')).toBe(true);
         });
     });
