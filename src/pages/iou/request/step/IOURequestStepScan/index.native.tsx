@@ -307,13 +307,6 @@ function IOURequestStepScan({
                 attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
             });
         }
-        startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
-            name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
-            op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
-            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
-        });
-
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
             maybeCancelShutterSpan();
             askForPermissions();
@@ -334,6 +327,14 @@ function IOURequestStepScan({
             maybeCancelShutterSpan();
             return;
         }
+
+        // Start receipt capture span only after all guards pass
+        startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
+            name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
+        });
 
         if (isMultiScanEnabled) {
             showBlink();
@@ -406,6 +407,7 @@ function IOURequestStepScan({
                     })
                     .catch((error: string) => {
                         setDidCapturePhoto(false);
+                        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
                         maybeCancelShutterSpan();
                         showCameraAlert();
                         Log.warn('Error taking photo', error);
