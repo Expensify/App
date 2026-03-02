@@ -813,23 +813,33 @@ function freezeCard(workspaceAccountID: number, card: Card, currentUserAccountID
     };
 
     const optimisticData = buildCardListUpdates(workspaceAccountID, cardID, frozenData, shouldUpdateCardList);
-    const successData = buildCardListUpdates(workspaceAccountID, cardID, {
-        nameValuePairs: {
-            pendingFields: {frozen: null},
+    const successData = buildCardListUpdates(
+        workspaceAccountID,
+        cardID,
+        {
+            nameValuePairs: {
+                pendingFields: {frozen: null},
+            },
+            pendingAction: null,
+            isLoading: false,
         },
-        pendingAction: null,
-        isLoading: false,
-    }, shouldUpdateCardList);
-    const failureData = buildCardListUpdates(workspaceAccountID, cardID, {
-        state: card?.state ?? CONST.EXPENSIFY_CARD.STATE.OPEN,
-        nameValuePairs: {
-            frozen: previousFrozen,
-            pendingFields: {frozen: null},
+        shouldUpdateCardList,
+    );
+    const failureData = buildCardListUpdates(
+        workspaceAccountID,
+        cardID,
+        {
+            state: card?.state ?? CONST.EXPENSIFY_CARD.STATE.OPEN,
+            nameValuePairs: {
+                frozen: previousFrozen,
+                pendingFields: {frozen: null},
+            },
+            pendingAction: null,
+            isLoading: false,
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
         },
-        pendingAction: null,
-        isLoading: false,
-        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-    }, shouldUpdateCardList);
+        shouldUpdateCardList,
+    );
 
     const parameters: FreezeCardParams = {
         cardID,
@@ -859,23 +869,33 @@ function unfreezeCard(workspaceAccountID: number, card: Card, currentUserAccount
     };
 
     const optimisticData = buildCardListUpdates(workspaceAccountID, cardID, unfrozenData, shouldUpdateCardList);
-    const successData = buildCardListUpdates(workspaceAccountID, cardID, {
-        nameValuePairs: {
-            pendingFields: {frozen: null},
+    const successData = buildCardListUpdates(
+        workspaceAccountID,
+        cardID,
+        {
+            nameValuePairs: {
+                pendingFields: {frozen: null},
+            },
+            pendingAction: null,
+            isLoading: false,
         },
-        pendingAction: null,
-        isLoading: false,
-    }, shouldUpdateCardList);
-    const failureData = buildCardListUpdates(workspaceAccountID, cardID, {
-        state: card?.state ?? CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
-        nameValuePairs: {
-            frozen: previousFrozen,
-            pendingFields: {frozen: null},
+        shouldUpdateCardList,
+    );
+    const failureData = buildCardListUpdates(
+        workspaceAccountID,
+        cardID,
+        {
+            state: card?.state ?? CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+            nameValuePairs: {
+                frozen: previousFrozen,
+                pendingFields: {frozen: null},
+            },
+            pendingAction: null,
+            isLoading: false,
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
         },
-        pendingAction: null,
-        isLoading: false,
-        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-    }, shouldUpdateCardList);
+        shouldUpdateCardList,
+    );
 
     const parameters: FreezeCardParams = {
         cardID,
