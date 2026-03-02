@@ -8,6 +8,7 @@ import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -47,6 +48,7 @@ function PreferencesPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(`${translate('common.settings')} - ${translate('common.preferences')}`);
 
     return (
         <ScreenWrapper
