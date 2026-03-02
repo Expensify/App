@@ -1538,6 +1538,10 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} 通过 <a href="${route}">个人报销规则</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} 通过 <a href="${route}">工作区规则</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `通过<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">延迟提交</a>提交报表失败。${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `报表提交失败。${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `未能通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准。${reason}`,
+        failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -3868,6 +3872,7 @@ ${
             clearFilter: '清除筛选器',
             workspaceName: '工作区名称',
             workspaceOwner: '所有者',
+            keepMeAsAdmin: '保留我为管理员',
             workspaceType: '工作区类型',
             workspaceAvatar: '工作区头像',
             clientID: '客户ID',
@@ -7431,7 +7436,6 @@ ${reportName}
         },
     },
     gps: {
-        disclaimer: '使用 GPS 根据您的行程创建报销。点击下方的“开始”以开始跟踪。',
         error: {
             failedToStart: '启动位置跟踪失败。',
             failedToGetPermissions: '获取必要的位置信息权限失败。',

@@ -16,6 +16,7 @@ import {
     filterInactiveCards,
     flattenWorkspaceCardsList,
     formatCardExpiration,
+    formatMaskedCardName,
     getAllCardsForWorkspace,
     getAssignedCardSortKey,
     getBankCardDetailsImage,
@@ -3232,5 +3233,19 @@ describe('CardUtils', () => {
             const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
             expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/99999`);
         });
+    });
+});
+
+describe('formatMaskedCardName', () => {
+    it('pads a 4-digit card name with leading Xs and groups into 4-char segments', () => {
+        expect(formatMaskedCardName('3191')).toBe('XXXX-XXXX-XXXX-3191');
+    });
+
+    it('groups a full 16-char masked card name into 4-char segments', () => {
+        expect(formatMaskedCardName('553312XXXXXX3223')).toBe('5533-12XX-XXXX-3223');
+    });
+
+    it('returns non-commercial card names unchanged', () => {
+        expect(formatMaskedCardName('J. SMITH...4306')).toBe('J. SMITH...4306');
     });
 });

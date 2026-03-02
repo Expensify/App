@@ -83,6 +83,10 @@ const DYNAMIC_ROUTES = {
         path: 'verify-account',
         entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
     },
+    OWNER_SELECTOR: {
+        path: 'owner-selector',
+        entryScreens: [],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -422,10 +426,15 @@ const ROUTES = {
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: {
-        route: 'settings/wallet/add-bank-account',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/wallet/add-bank-account', backTo),
+        route: 'settings/wallet/add-bank-account/:subPage?/:action?',
+        getRoute: (backTo?: string, subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+                return getUrlWithBackToParam('settings/wallet/add-bank-account', backTo);
+            }
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`settings/wallet/add-bank-account/${subPage}${action ? `/${action}` : ''}`, backTo);
+        },
     },
     SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: {
         route: `settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`,
@@ -804,6 +813,10 @@ const ROUTES = {
     REPORT_SETTINGS_REPORT_LAYOUT: {
         route: 'r/:reportID/settings/report-layout',
         getRoute: (reportID: string) => `r/${reportID}/settings/report-layout` as const,
+    },
+    REPORT_SETTINGS_COLUMNS: {
+        route: 'r/:reportID/settings/columns',
+        getRoute: (reportID: string) => `r/${reportID}/settings/columns` as const,
     },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
@@ -3082,6 +3095,7 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
     },
+    WORKSPACE_CONFIRMATION_OWNER_SELECTOR: 'workspace/confirmation/owner-selector',
     MIGRATED_USER_WELCOME_MODAL: {
         route: 'onboarding/migrated-user-welcome',
 

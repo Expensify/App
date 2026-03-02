@@ -3376,6 +3376,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         rate,
         unit,
         customUnit,
+        waypoints,
+        odometerStart,
+        odometerEnd,
     } = transactionParams;
 
     const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
@@ -3535,6 +3538,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             rate,
             unit,
             customUnit,
+            waypoints,
+            odometerStart,
+            odometerEnd,
         },
         isDemoTransactionParam: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt,
     });
@@ -6204,7 +6210,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
  * Move multiple tracked expenses from self-DM to an IOU report
  */
 function convertBulkTrackedExpensesToIOU({
-    transactions,
+    transactionIDs,
     iouReport,
     chatReport,
     isASAPSubmitBetaEnabled,
@@ -6216,7 +6222,7 @@ function convertBulkTrackedExpensesToIOU({
     personalDetails,
     betas,
 }: {
-    transactions: OnyxTypes.Transaction[];
+    transactionIDs: string[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
     chatReport: OnyxEntry<OnyxTypes.Report>;
     isASAPSubmitBetaEnabled: boolean;
@@ -6258,8 +6264,8 @@ function convertBulkTrackedExpensesToIOU({
 
     const selfDMReportActions = getAllReportActions(selfDMReportID);
 
-    for (const transaction of transactions) {
-        const transactionID = transaction.transactionID;
+    for (const transactionID of transactionIDs) {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
             Log.warn('[convertBulkTrackedExpensesToIOU] Transaction not found', {transactionID});
             continue;
@@ -6773,6 +6779,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       onboardingMessage: getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
                       companySize: undefined,
                       isSelfTourViewed,
+                      betas,
                   })?.guidedSetupData
                 : undefined;
 
@@ -8469,6 +8476,9 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 billable,
                 reimbursable,
                 attendees,
+                waypoints: validWaypoints,
+                odometerStart,
+                odometerEnd,
             },
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserAccountID,
@@ -11935,6 +11945,7 @@ function cancelPayment(
 function completePaymentOnboarding(
     paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
 ) {
@@ -11969,6 +11980,7 @@ function completePaymentOnboarding(
         shouldSkipTestDriveModal: true,
         companySize: introSelected?.companySize as OnboardingCompanySize,
         introSelected,
+        betas,
     });
 }
 
@@ -11980,7 +11992,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     }
 
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected);
+    completePaymentOnboarding(paymentSelected, introSelected, betas);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
@@ -12055,7 +12067,7 @@ function payInvoice({
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected);
+    completePaymentOnboarding(paymentSelected, introSelected, betas);
 
     let params: PayInvoiceParams = {
         reportID: invoiceReport?.reportID,
