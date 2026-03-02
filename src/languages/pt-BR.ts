@@ -3935,6 +3935,7 @@ ${
             clearFilter: 'Limpar filtro',
             workspaceName: 'Nome do workspace',
             workspaceOwner: 'Proprietário',
+            keepMeAsAdmin: 'Manter-me como administrador',
             workspaceType: 'Tipo de workspace',
             workspaceAvatar: 'Avatar do workspace',
             clientID: 'ID do cliente',
@@ -7605,7 +7606,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         },
     },
     gps: {
-        disclaimer: 'Use o GPS para criar uma despesa a partir da sua viagem. Toque em Iniciar abaixo para começar a rastrear.',
         error: {
             failedToStart: 'Falha ao iniciar o rastreamento de localização.',
             failedToGetPermissions: 'Falha ao obter as permissões de localização necessárias.',
