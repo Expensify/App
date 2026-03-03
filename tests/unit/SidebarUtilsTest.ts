@@ -3355,7 +3355,6 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-                currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
             });
         }

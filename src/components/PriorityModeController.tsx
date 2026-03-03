@@ -17,23 +17,6 @@ import FocusModeNotification from './FocusModeNotification';
 const isInFocusModeSelector = (priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>) => priorityMode === CONST.PRIORITY_MODE.GSD;
 
 /**
- * A funky but reliable way to subscribe to screen changes.
- */
-function useCurrentRouteName() {
-    const navigation = useNavigation();
-    const [currentRouteName, setCurrentRouteName] = useState<string | undefined>('');
-
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('state', () => {
-            setCurrentRouteName(navigationRef.getCurrentRoute()?.name);
-        });
-        return () => unsubscribe();
-    }, [navigation]);
-
-    return currentRouteName;
-}
-
-/**
  * This component is used to automatically switch a user into #focus mode when they exceed a certain number of reports.
  * We do this primarily for performance reasons. Similar to the "Welcome action" we must wait for a number of things to
  * happen when the user signs in or refreshes the page:
@@ -44,7 +27,9 @@ function useCurrentRouteName() {
  *    user is eligible to be automatically switched.
  *
  */
-const PriorityModeControllerInner = React.memo(({lhnReportCount}: {lhnReportCount: number}) => {
+export default function PriorityModeController() {
+    const {orderedReportIDs} = useSidebarOrderedReportsState();
+    const lhnReportCount = orderedReportIDs.length;
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [isInFocusMode, isInFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: isInFocusModeSelector});
     const [hasTriedFocusMode, hasTriedFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE);
@@ -92,34 +77,34 @@ const PriorityModeControllerInner = React.memo(({lhnReportCount}: {lhnReportCoun
         hasSwitched.current = true;
     }, [currentRouteName, hasTriedFocusMode, hasTriedFocusModeMetadata, isInFocusMode, isInFocusModeMetadata, isLoadingReportData, lhnReportCount]);
 
-    // Derive whether we're navigating to the priority mode page. When the user
-    // taps the settings button on the prompt, we dismiss the modal automatically.
-    const isNavigatingToPriorityModePage = currentRouteName === SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE;
-    const effectiveShouldShowModal = shouldShowModal && !isNavigatingToPriorityModePage;
-
-    // Keep the state in sync so the modal doesn't reappear if the user navigates back.
     useEffect(() => {
-        if (!shouldShowModal || !isNavigatingToPriorityModePage) {
+        if (!shouldShowModal) {
             return;
         }
-        setShouldShowModal(false);
-        // We only want to react when the route changes while the modal is shown.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isNavigatingToPriorityModePage]);
+        const isNavigatingToPriorityModePage = currentRouteName === SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE;
 
-    return effectiveShouldShowModal ? <FocusModeNotification onClose={closeModal} /> : null;
-});
+        // Hide focus modal when settings button is pressed from the prompt.
+        if (isNavigatingToPriorityModePage) {
+            setShouldShowModal(false);
+        }
+    }, [currentRouteName, shouldShowModal]);
 
-PriorityModeControllerInner.displayName = 'PriorityModeControllerInner';
+    return shouldShowModal ? <FocusModeNotification onClose={closeModal} /> : null;
+}
 
 /**
- * Thin wrapper that reads the sidebar context and passes only the LHN report
- * count to the memoized inner component. The sidebar context value changes
- * frequently (new object reference on every provider re-render), so isolating
- * the context read here prevents the heavier inner component from re-rendering
- * unless the count actually changes.
+ * A funky but reliable way to subscribe to screen changes.
  */
-export default function PriorityModeController() {
-    const {orderedReportIDs} = useSidebarOrderedReportsState();
-    return <PriorityModeControllerInner lhnReportCount={orderedReportIDs.length} />;
+function useCurrentRouteName() {
+    const navigation = useNavigation();
+    const [currentRouteName, setCurrentRouteName] = useState<string | undefined>('');
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('state', () => {
+            setCurrentRouteName(navigationRef.getCurrentRoute()?.name);
+        });
+        return () => unsubscribe();
+    }, [navigation]);
+
+    return currentRouteName;
 }
