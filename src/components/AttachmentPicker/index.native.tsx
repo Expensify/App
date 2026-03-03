@@ -450,28 +450,22 @@ function AttachmentPicker({
     const selectItem = useCallback(
         (item: Item) => {
             onOpenPicker?.();
-            /* setTimeout delays execution to the frame after the modal closes
-             * without this on iOS closing the modal closes the gallery/camera as well
-             * We use 500ms to ensure the native UIViewController hierarchy fully settles
-             * on iOS 18+ before presenting PHPickerViewController */
             onModalHide.current = () => {
-                setTimeout(() => {
-                    item.pickAttachment()
-                        .catch((error: Error) => {
-                            if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
-                                return;
-                            }
+                item.pickAttachment()
+                    .catch((error: Error) => {
+                        if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
+                            return;
+                        }
 
-                            showGeneralAlert(error.message);
-                            throw error;
-                        })
-                        .then((result) => pickAttachment(result))
-                        .catch(console.error)
-                        .finally(() => {
-                            onClosed.current();
-                            delete onModalHide.current;
-                        });
-                }, 500);
+                        showGeneralAlert(error.message);
+                        throw error;
+                    })
+                    .then((result) => pickAttachment(result))
+                    .catch(console.error)
+                    .finally(() => {
+                        onClosed.current();
+                        delete onModalHide.current;
+                    });
             };
             close();
         },
