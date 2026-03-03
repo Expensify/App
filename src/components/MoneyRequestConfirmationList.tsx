@@ -1313,6 +1313,7 @@ function MoneyRequestConfirmationList({
                 policyTags={policyTags}
                 policyTagLists={policyTagLists}
                 rate={rate}
+                distanceRateName={mileageRate.name}
                 receiptFilename={receiptFilename}
                 receiptPath={receiptPath}
                 reportActionID={reportActionID}
