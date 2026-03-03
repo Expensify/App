@@ -12,7 +12,6 @@ import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
