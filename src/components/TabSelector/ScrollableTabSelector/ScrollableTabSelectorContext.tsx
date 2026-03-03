@@ -1,4 +1,4 @@
-import React, {createContext, useRef} from 'react';
+import React, {createContext, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, View} from 'react-native';
 import scrollToTabUtil from './scrollToTab';
@@ -32,6 +32,7 @@ function ScrollableTabSelectorContextProvider({children, activeTabKey}: Scrollab
     const containerRef = useRef<RNScrollView>(null);
     const containerLayoutRef = useRef<{x: number; width: number}>({x: 0, width: 0});
     const tabsRef = useRef<Record<string, {ref: HTMLDivElement | View | null; width: number; x: number}>>({});
+    const lastPressedTab = useRef('');
 
     const onContainerLayout = (event: LayoutChangeEvent) => {
         const width = event.nativeEvent.layout.width;
@@ -68,10 +69,30 @@ function ScrollableTabSelectorContextProvider({children, activeTabKey}: Scrollab
             return;
         }
 
+        lastPressedTab.current = tabKey;
+
         const {x: tabX, width: tabWidth, ref: tabRef} = tabData;
 
         scrollToTabUtil({tabX, tabWidth, tabRef, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
     };
+
+    // In case tab is not changed by tapping on a different tab we still
+    // want to scroll to the selected tab to make sure it's in view
+    useEffect(() => {
+        if (activeTabKey === lastPressedTab.current) {
+            return;
+        }
+
+        const tabData = tabsRef.current[activeTabKey];
+
+        if (!tabData) {
+            return;
+        }
+
+        const {x: tabX, width: tabWidth, ref: tabRef} = tabData;
+
+        scrollToTabUtil({tabX, tabWidth, tabRef, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
+    }, [activeTabKey]);
 
     // React Compiler auto-memoization
     // eslint-disable-next-line react/jsx-no-constructed-context-values
