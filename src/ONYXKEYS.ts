@@ -9,6 +9,7 @@ import type * as OnyxTypes from './types/onyx';
 import type {Attendee, DistanceExpenseType, Participant} from './types/onyx/IOU';
 import type Onboarding from './types/onyx/Onboarding';
 import type {AnyOnyxUpdate} from './types/onyx/Request';
+import type {SavedCSVColumnLayoutList} from './types/onyx/SavedCSVColumnLayout';
 import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';
 
@@ -186,6 +187,9 @@ const ONYXKEYS = {
 
     /** This NVP holds to most recent waypoints that a person has used when creating a distance expense */
     NVP_RECENT_WAYPOINTS: 'nvp_expensify_recentWaypoints',
+
+    /** This NVP contains saved CSV column layouts for imported cards */
+    NVP_SAVED_CSV_COLUMN_LAYOUT_LIST: 'nvp_expensify_savedCSVColumnLayoutList',
 
     /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'nvp_introSelected',
@@ -642,6 +646,9 @@ const ONYXKEYS = {
 
     /** Stores the user's report layout group-by preference */
     NVP_REPORT_LAYOUT_GROUP_BY: 'nvp_expensify_groupByOption',
+
+    /** Stores the user's report details columns preference */
+    NVP_REPORT_DETAILS_COLUMNS: 'nvp_reportDetailsColumns',
 
     /** Partial transaction data used for MFA authorize transaction preview */
     TRANSACTIONS_PENDING_3DS_REVIEW: 'transactionsPending3DSReview',
@@ -1288,6 +1295,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT]: string;
     [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
+    [ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST]: SavedCSVColumnLayoutList;
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
     [ONYXKEYS.HAS_NON_PERSONAL_POLICY]: boolean;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
@@ -1431,6 +1439,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_EXPENSE_RULES]: OnyxTypes.ExpenseRule[];
     [ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE]: DistanceExpenseType;
     [ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY]: string;
+    [ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS]: string[];
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
     [ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN]: boolean;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
