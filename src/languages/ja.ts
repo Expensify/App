@@ -8486,5 +8486,13 @@ ${reportName}
         positiveButton: 'やった！',
         negativeButton: 'そうでもありません',
     },
+    trialPaymentReminder: {
+        title: '期限に遅れないようにしましょう',
+        subtitle: 'ぎりぎりまで待たずに、今日お支払い方法を追加して、Expensify での経費への継続的なアクセスを確保しましょう。',
+        trialEndsInDays: ({days}: {days: number}) => `トライアル終了まであと${days}日`,
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `トライアル終了まで ${hours}時間 : ${minutes}分 : ${seconds}秒`,
+        closeButton: '閉じる',
+        addPaymentCardButton: '支払いカードを追加',
+    },
 };
 export default translations;
