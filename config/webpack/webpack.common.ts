@@ -57,6 +57,7 @@ const includeModules = [
     'expo',
     'expo-audio',
     'expo-video',
+    'expo-image',
     'expo-image-manipulator',
     'expo-modules-core',
     'victory-native',
