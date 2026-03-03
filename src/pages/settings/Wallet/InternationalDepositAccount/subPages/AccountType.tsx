@@ -8,20 +8,20 @@ import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAc
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@libs/actions/FormActions';
-import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function AccountType({isEditing, onNext, fieldsMap}: CustomSubStepProps) {
+function AccountType({isEditing, onNext, fieldsMap}: CustomSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const formRef = useRef<FormRef>(null);
 
-    const fieldData = fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE]?.[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY] ?? {};
+    const fieldData = fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE]?.[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY] ?? {};
 
     const handleSubmit = useInternationalBankAccountFormSubmit({
-        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE]),
+        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE]),
         onNext,
         shouldSaveDraft: isEditing,
     });
