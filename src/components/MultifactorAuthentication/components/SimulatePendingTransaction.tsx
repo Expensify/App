@@ -26,13 +26,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 const MERCHANTS = ['Grocery store', 'Restaurant', 'Gas station', 'Online retailer', 'Coffee shop', 'Bookstore', 'Clothing store', 'Pharmacy', 'Electronics store', 'Subscription service'];
 
-const OUTCOME_ITEMS = [
-    {label: 'Approve/Deny (normal)', value: ''},
-    {label: 'Marqeta error on result', value: 'MARQETA_ERROR'},
-    {label: 'Already approved error', value: 'ALREADY_APPROVED'},
-    {label: 'Already denied error', value: 'ALREADY_DENIED'},
-];
-
 type CardListItem = ListItem & {
     cardID: number;
 };
@@ -86,6 +79,7 @@ type CurrentView = 'form' | 'amountPicker' | 'cardPicker';
 
 function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransactionProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [currentView, setCurrentView] = useState<CurrentView>('form');
 
     const [merchant, setMerchant] = useState(() => MERCHANTS[generateRandomInt(0, MERCHANTS.length - 1)]);
@@ -113,27 +107,38 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
         return expensifyCards.at(0)?.cardID;
     }, [selectedCardID, expensifyCards]);
 
+    const outcomeItems = useMemo(
+        () => [
+            {label: translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcomeApproveOrDeny'), value: ''},
+            {label: translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcomeMarqetaError'), value: 'MARQETA_ERROR'},
+            {label: translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcomeAlreadyApproved'), value: 'ALREADY_APPROVED'},
+            {label: translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcomeAlreadyDenied'), value: 'ALREADY_DENIED'},
+        ],
+        [translate],
+    );
+
     const cardSelectionItems: CardListItem[] = useMemo(
         () =>
             expensifyCards.map((card) => ({
-                text: card.nameValuePairs?.cardTitle ?? `Card ending in ${card.lastFourPAN ?? '????'}`,
+                text: card.nameValuePairs?.cardTitle ?? translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.cardEndingIn', card.lastFourPAN ?? '????'),
                 keyForList: String(card.cardID),
                 isSelected: effectiveCardID === card.cardID,
                 cardID: card.cardID,
             })),
-        [expensifyCards, effectiveCardID],
+        [expensifyCards, effectiveCardID, translate],
     );
 
     const selectedCardLabel = useMemo(() => {
+        const noActiveCard = translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.noActiveExpensifyCard');
         if (effectiveCardID === undefined) {
-            return 'No active Expensify card';
+            return noActiveCard;
         }
         const card = expensifyCards.find((c) => c.cardID === effectiveCardID);
         if (!card) {
-            return 'No active Expensify card';
+            return noActiveCard;
         }
-        return card.nameValuePairs?.cardTitle ?? `Card ending in ${card.lastFourPAN ?? '????'}`;
-    }, [effectiveCardID, expensifyCards]);
+        return card.nameValuePairs?.cardTitle ?? translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.cardEndingIn', card.lastFourPAN ?? '????');
+    }, [effectiveCardID, expensifyCards, translate]);
 
     const displayAmount = convertToDisplayString(amount, currency);
 
@@ -182,16 +187,19 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
         onClose();
     };
 
-    const headerTitle = currentView === 'cardPicker' ? 'Select card' : 'Simulate pending 3DS transaction';
+    const headerTitle =
+        currentView === 'cardPicker'
+            ? translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.selectCard')
+            : translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.title');
 
     const FormView = (
         <ScrollView style={[styles.flex1, styles.ph5, styles.pb5]}>
             <View style={styles.gap4}>
                 <View>
-                    <Text>Card</Text>
+                    <Text>{translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.card')}</Text>
                     <View style={styles.mv2}>
                         <TextInput
-                            accessibilityLabel="Selected card"
+                            accessibilityLabel={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.selectedCardAccessibilityLabel')}
                             value={selectedCardLabel}
                             editable={false}
                             onPress={() => setCurrentView('cardPicker')}
@@ -201,39 +209,37 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                 <View style={styles.mv2}>
                     <Button
                         isDisabled={effectiveCardID === undefined}
-                        text="Run scripted QA flows"
+                        text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.runScriptedQAFlows')}
                         onPress={runAllFlows}
                     />
-                    <Text style={[styles.mutedTextLabel, styles.mt2]}>
-                        Press to queue 6 transactions staggered 30s apart: Approval, Denial, Expiry (expires after 1 minute), Marqeta Error, Already Approved, Already Denied.
-                    </Text>
+                    <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.runScriptedQAFlowsDescription')}</Text>
                 </View>
                 <View>
-                    <Text>Outcome</Text>
+                    <Text>{translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcome')}</Text>
                     <RadioButtons
-                        items={OUTCOME_ITEMS}
+                        items={outcomeItems}
                         value={simulatedOutcome}
                         onPress={setSimulatedOutcome}
                     />
                 </View>
 
                 <View>
-                    <Text>Merchant</Text>
+                    <Text>{translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.merchant')}</Text>
                     <View style={styles.mv2}>
                         <TextInput
-                            placeholder="Enter merchant name"
+                            placeholder={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.merchantPlaceholder')}
                             value={merchant}
                             onChangeText={setMerchant}
-                            accessibilityLabel="Merchant name"
+                            accessibilityLabel={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.merchantAccessibilityLabel')}
                         />
                     </View>
                 </View>
 
                 <View>
-                    <Text>Amount & currency</Text>
+                    <Text>{translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.amountAndCurrency')}</Text>
                     <View style={styles.mv2}>
                         <TextInput
-                            accessibilityLabel="Text input field"
+                            accessibilityLabel={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.amountAccessibilityLabel')}
                             value={displayAmount}
                             editable={false}
                             onPress={() => setCurrentView('amountPicker')}
@@ -242,56 +248,56 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                 </View>
 
                 <View>
-                    <Text>Delay before delivery (min)</Text>
+                    <Text>{translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.delayBeforeDelivery')}</Text>
                     <TextInput
                         placeholder="0"
                         value={delayMinutesText}
                         onChangeText={setDelayMinutesText}
                         keyboardType="decimal-pad"
-                        accessibilityLabel="Delay in minutes before delivering challenge"
+                        accessibilityLabel={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.delayAccessibilityLabel')}
                     />
                     <View style={[styles.flexRow, styles.gap2, styles.mv2]}>
                         <Button
                             small
-                            text="Now"
+                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.now')}
                             onPress={() => setDelayMinutesText('0')}
                         />
                         <Button
                             small
-                            text="1 min"
+                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.oneMinute')}
                             onPress={() => setDelayMinutesText('1')}
                         />
                         <Button
                             small
-                            text="5 min"
+                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.fiveMinutes')}
                             onPress={() => setDelayMinutesText('5')}
                         />
                     </View>
                 </View>
 
                 <View>
-                    <Text>Expires after (min)</Text>
+                    <Text>{translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.expiresAfter')}</Text>
                     <TextInput
                         placeholder="8"
                         value={expiryMinutesText}
                         onChangeText={setExpiryMinutesText}
                         keyboardType="decimal-pad"
-                        accessibilityLabel="Challenge expiry in minutes"
+                        accessibilityLabel={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.expiryAccessibilityLabel')}
                     />
                     <View style={[styles.flexRow, styles.gap2, styles.mv2]}>
                         <Button
                             small
-                            text="8 min"
+                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.eightMinutes')}
                             onPress={() => setExpiryMinutesText('8')}
                         />
                         <Button
                             small
-                            text="15 min"
+                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.fifteenMinutes')}
                             onPress={() => setExpiryMinutesText('15')}
                         />
                         <Button
                             small
-                            text="1 hour"
+                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.oneHour')}
                             onPress={() => setExpiryMinutesText('60')}
                         />
                     </View>
@@ -306,13 +312,13 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                 success
                 isDisabled={effectiveCardID === undefined}
                 style={[styles.flex1]}
-                text="Simulate"
+                text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.simulate')}
                 onPress={simulateTransaction}
             />
             <Button
                 danger
                 style={[styles.flex1]}
-                text="Cancel"
+                text={translate('common.cancel')}
                 onPress={onClose}
             />
         </FixedFooter>
