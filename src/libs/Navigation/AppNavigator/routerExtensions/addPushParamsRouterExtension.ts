@@ -146,22 +146,25 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
                 };
             }
 
+            // For all other actions, rebuild history from the updated routes.
+            // @ts-expect-error newState may be partial, but getRehydratedState handles both partial and full states correctly.
+            const rehydratedState = getRehydratedState(newState, configOptions);
+
             // RESET actions (fired by web URL sync after PUSH_PARAMS changes the URL) would
             // normally rebuild history 1:1 from routes via getRehydratedState, wiping all
-            // PUSH_PARAMS snapshots. Preserve history entries for routes that still exist.
+            // PUSH_PARAMS snapshots. Preserve history entries for routes that still exist
+            // in the rehydrated state (which may have added routes, e.g. for wide layout).
             if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET && state.history) {
-                const preservedHistory = preserveHistoryForRoutes(state.history as CustomHistoryEntry[], newState.routes);
+                const preservedHistory = preserveHistoryForRoutes(state.history as CustomHistoryEntry[], rehydratedState.routes);
                 if (preservedHistory.length > 0) {
                     return {
-                        ...newState,
+                        ...rehydratedState,
                         history: preservedHistory,
                     };
                 }
             }
 
-            // For all other actions, rebuild history from the updated routes.
-            // @ts-expect-error newState may be partial, but getRehydratedState handles both partial and full states correctly.
-            return getRehydratedState(newState, configOptions);
+            return rehydratedState;
         };
 
         return {
