@@ -2,19 +2,12 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PrevNextButtons from '@components/PrevNextButtons';
 import Text from '@components/Text';
-import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import useSearchSections from '@hooks/useSearchSections';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {selectFilteredReportActions} from '@libs/ReportUtils';
-import {getSections, getSortedSections} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
@@ -22,55 +15,9 @@ type MoneyRequestReportNavigationProps = {
 };
 
 function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
-    const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`);
-    const currentUserDetails = useCurrentUserPersonalDetails();
-    const {localeCompare, formatPhoneNumber, translate} = useLocalize();
-    const isActionLoadingSet = useActionLoadingReportIDs();
+    const {allReports, isSearchLoading, lastSearchQuery} = useSearchSections();
 
-    const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        canEvict: false,
-
-        selector: selectFilteredReportActions,
-    });
-
-    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-
-    const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
-
-    const searchResultsData = currentSearchResults?.data;
-    const searchResultsSearch = currentSearchResults?.search;
-    const currentAccountID = currentUserDetails.accountID;
-    const currentUserEmail = currentUserDetails.email ?? '';
-    const searchKey = lastSearchQuery?.searchKey;
-
-    let allReports: Array<string | undefined> = [];
-    if (!!type && !!searchResultsData && !!searchResultsSearch) {
-        const [searchData] = getSections({
-            type,
-            data: searchResultsData,
-            currentAccountID,
-            currentUserEmail,
-            translate,
-            formatPhoneNumber,
-            bankAccountList,
-            groupBy,
-            reportActions: exportReportActions,
-            currentSearch: searchKey,
-            archivedReportsIDList: archivedReportsIdSet,
-            isActionLoadingSet,
-            cardFeeds,
-            allReportMetadata,
-            cardList,
-        });
-        allReports = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
-    }
-
+    const type = lastSearchQuery?.queryJSON?.type;
     const currentIndex = allReports.indexOf(reportID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
 
@@ -127,7 +74,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
                 prevReportsLength: allReports.length,
                 shouldCalculateTotals: false,
                 searchKey: lastSearchQuery.searchKey,
-                isLoading: !!currentSearchResults?.search?.isLoading,
+                isLoading: isSearchLoading,
             });
         }
 

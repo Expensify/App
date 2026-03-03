@@ -13,11 +13,11 @@ import Hoverable from '@components/Hoverable';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
+import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import type {PlaybackSpeed} from '@components/VideoPlayerContexts/types';
-import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
-import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
+import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -56,7 +56,7 @@ function BaseVideoPlayer({
     const styles = useThemeStyles();
     const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus} = usePlaybackStateContext();
     const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus} = usePlaybackActionsContext();
-    const {isFullScreenRef} = useFullScreenContext();
+    const {isFullScreenRef} = useFullScreenState();
 
     const isOffline = useNetwork().isOffline;
     const session = useSession();
@@ -136,14 +136,15 @@ function BaseVideoPlayer({
     const shouldShowOfflineIndicator = useMemo(() => {
         return isOffline && currentTime + bufferedPosition <= 0;
     }, [bufferedPosition, currentTime, isOffline]);
-    const {updateVolume, lastNonZeroVolume} = useVolumeContext();
+    const {updateVolume} = useVolumeActions();
+    const {lastNonZeroVolume} = useVolumeState();
     useHandleNativeVideoControls({
         videoViewRef,
         isOffline,
         isLocalFile: isUploading,
     });
 
-    const {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuContext();
+    const {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuActions();
 
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {

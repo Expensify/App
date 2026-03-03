@@ -105,15 +105,16 @@ function IOURequestStepDistanceManual({
 
     const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy), [iouType, defaultExpensePolicy]);
 
-    const customUnitRateID = getRateID(transaction);
     // to make sure the correct distance amount and unit will be shown we use distance unit
     // from defaultExpensePolicy or current report's policy instead of from transaction and
     // then we use transaction data (distanceUnit and quantity) for conversions
-    const unit = DistanceRequestUtils.getRate({
+    const mileageRate = DistanceRequestUtils.getRate({
         transaction,
         policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : (policy ?? policyForMovingExpenses),
         useTransactionDistanceUnit: false,
-    }).unit;
+    });
+    const unit = mileageRate.unit;
+    const rate = mileageRate.rate ?? 0;
     const distanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ? transaction.comment.customUnit.distanceUnit : unit);
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)) : undefined;
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -210,7 +211,6 @@ function IOURequestStepDistanceManual({
                 transactionID,
                 reportAttributesDerived,
                 personalDetails,
-                customUnitRateID,
                 manualDistance: distanceAsFloat,
                 currentUserLogin: currentUserEmailParam,
                 currentUserAccountID: currentUserAccountIDParam,
@@ -248,7 +248,6 @@ function IOURequestStepDistanceManual({
             reportID,
             reportAttributesDerived,
             personalDetails,
-            customUnitRateID,
             currentUserEmailParam,
             currentUserAccountIDParam,
             backTo,
@@ -290,8 +289,14 @@ function IOURequestStepDistanceManual({
             return;
         }
 
+        // Validation: Check that distance * rate doesn't exceed the backend's safe amount limit
+        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(parseFloat(value), rate)) {
+            setFormError(translate('iou.error.distanceAmountTooLargeReduceDistance'));
+            return;
+        }
+
         navigateToNextPage(value);
-    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam]);
+    }, [navigateToNextPage, translate, rate]);
 
     useEffect(() => {
         if (isLoadingSelectedTab) {
