@@ -96,7 +96,6 @@ describe('PureReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <PureReportActionItem
-                                policies={undefined}
                                 personalPolicyID={undefined}
                                 report={undefined}
                                 parentReportAction={undefined}
@@ -302,7 +301,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    policies={{testPolicy: dewPolicy as Policy}}
                                     policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     parentReportAction={undefined}
@@ -361,7 +359,6 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    policies={{testPolicy: basicPolicy as Policy}}
                                     policy={basicPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     parentReportAction={undefined}
@@ -431,7 +428,6 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    policies={undefined}
                                     personalPolicyID={undefined}
                                     report={report}
                                     parentReportAction={undefined}
@@ -496,7 +492,6 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    policies={undefined}
                                     personalPolicyID={undefined}
                                     report={report}
                                     parentReportAction={undefined}
@@ -547,7 +542,6 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    policies={undefined}
                                     personalPolicyID={undefined}
                                     report={report}
                                     parentReportAction={undefined}
