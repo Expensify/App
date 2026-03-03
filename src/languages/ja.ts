@@ -1034,6 +1034,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: '今後のやることがここに表示されます。',
             },
         },
+        upcomingTravel: '今後の出張',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `${destination} 行きのフライト`,
+            trainTo: ({destination}: {destination: string}) => `${destination} 行きの電車`,
+            hotelIn: ({destination}: {destination: string}) => `${destination}のホテル`,
+            carRentalIn: ({destination}: {destination: string}) => `${destination}でのレンタカー`,
+            inOneWeek: '1週間後',
+            inDays: () => ({one: '1日後', other: (count: number) => `${count}日後`}),
+            today: '今日',
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -8269,6 +8279,7 @@ ${reportName}
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
+        hasFilterNegation: '<tooltip><strong>-has:receipt</strong> を使って、レシートのない経費を検索します。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',

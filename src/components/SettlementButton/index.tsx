@@ -342,7 +342,12 @@ function SettlementButton({
                             if (checkForNecessaryAction()) {
                                 return;
                             }
-                            onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType, undefined);
+                            onPress({
+                                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                                payAsBusiness,
+                                methodID: formattedPaymentMethod.methodID,
+                                paymentMethod: formattedPaymentMethod.accountType,
+                            });
                         },
                         iconStyles: formattedPaymentMethod?.iconStyles,
                         iconHeight: formattedPaymentMethod?.iconSize,
@@ -394,7 +399,7 @@ function SettlementButton({
                             if (checkForNecessaryAction()) {
                                 return;
                             }
-                            onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness, undefined);
+                            onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness});
                         },
                     },
                 ];
@@ -449,24 +454,29 @@ function SettlementButton({
             // if user has intent to pay, we should get the only bank account information to pay the invoice.
             if (hasIntentToPay && isPayInvoiceViaExpensifyBetaEnabled) {
                 const currentBankInformation = formattedPaymentMethods.at(0) as BankAccount;
-                onPress(
-                    CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                    currentBankInformation.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS,
-                    currentBankInformation.methodID,
-                    currentBankInformation.accountType,
-                    undefined,
-                );
+                onPress({
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                    payAsBusiness: currentBankInformation.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                    methodID: currentBankInformation.methodID,
+                    paymentMethod: currentBankInformation.accountType,
+                });
                 return;
             }
 
             const isBusinessInvoice = bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS || isBusinessInvoiceRoom(chatReport);
             if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                onPress(iouPaymentType, isBusinessInvoice);
+                onPress({paymentType: iouPaymentType, payAsBusiness: isBusinessInvoice});
                 return;
             }
-            onPress(iouPaymentType, isBusinessInvoice, lastBankAccountID, CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, policyIDKey);
+            onPress({
+                paymentType: iouPaymentType,
+                payAsBusiness: isBusinessInvoice,
+                methodID: lastBankAccountID,
+                paymentMethod: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                policyID: policyIDKey,
+            });
         } else {
-            onPress(iouPaymentType, false);
+            onPress({paymentType: iouPaymentType, payAsBusiness: false});
         }
     };
     const selectPaymentMethod = (event: KYCFlowEvent, paymentType: string, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, selectedPolicy?: Policy) => {
@@ -574,7 +584,7 @@ function SettlementButton({
     return (
         <KYCWall
             ref={kycWallRef}
-            onSuccessfulKYC={(paymentType) => onPress(paymentType, undefined, undefined)}
+            onSuccessfulKYC={(paymentType) => onPress({paymentType})}
             enablePaymentsRoute={enablePaymentsRoute}
             addDebitCardRoute={addDebitCardRoute}
             isDisabled={isOffline}

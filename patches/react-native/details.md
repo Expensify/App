@@ -75,7 +75,7 @@
 ### [react-native+0.81.4+011+Add-onPaste-to-TextInput.patch](react-native+0.81.4+011+Add-onPaste-to-TextInput.patch)
 
 - Reasons:
-    - Adds `onPaste` callback to `TextInput` to support image and file pasting on native
+    - Adds `onPaste` callback to `TextInput` to support image pasting on native
     - Fixes an issue where pasted image displays as binary text on some Android devices where rich clipboard data is stored in binary form
     - Fixes an issue where pasting from WPS Office app crashes the app on Android where its content URI is not recognized by Android `ContentResolver`
     - Fixes an issue where mentions copied from mWeb and pasted on Android are not displayed.
@@ -188,7 +188,7 @@
     ```
     This patch restores the old InteractionManager behavior. React Native 0.80 deprecated InteractionManager and modified
     it to behave like `setImmediate`, more info here - https://github.com/facebook/react-native/blob/d9262c60f4c02d66417008970dc9c34b742aaa75/CHANGELOG.md?plain=1#L597
-
+  
     We need to restore the previous behavior to avoid introducing any bugs in the app.
     Bug example - https://github.com/Expensify/App/pull/69535#issuecomment-3443059319
     ```
@@ -206,7 +206,7 @@
 
 ### [react-native+0.81.4+027+perf-disable-hermes-young-gc-before-tti-reached.patch](react-native+0.81.4+027+perf-disable-hermes-young-gc-before-tti-reached.patch)
 
-- Reason: This patch disables Hermes Young-Gen Garbage Collection (GC), which improves initial TTI and app startup time, by delaying GC for early allocated memory to the first Old-Gen GC run.
+- Reason: This patch disables Hermes Young-Gen Garbage Collection (GC), which improves initial TTI and app startup time, by delaying GC for early allocated memory to the first Old-Gen GC run. 
 - Upstream PR/issue: This is not intended to be upstreamed, since this is a low-level fix very specific to the Expensify app's requirements.
 - E/App issue: [#76859](https://github.com/Expensify/App/issues/76859)
 - PR introducing patch: [#76154](https://github.com/Expensify/App/pull/76154)

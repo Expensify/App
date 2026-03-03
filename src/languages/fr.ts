@@ -1046,6 +1046,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: 'Les prochaines tâches apparaîtront ici.',
             },
         },
+        upcomingTravel: 'Voyages à venir',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Vol vers ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Train pour ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hôtel à ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Location de voiture à ${destination}`,
+            inOneWeek: 'Dans 1 semaine',
+            inDays: () => ({one: 'Dans 1 jour', other: (count: number) => `Dans ${count} jours`}),
+            today: 'Aujourd’hui',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -8398,6 +8408,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         outstandingFilter: '<tooltip>Filtrer les dépenses\nqui <strong>doivent être approuvées</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
+        hasFilterNegation: '<tooltip>Recherchez les dépenses sans reçus à l’aide de <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Ignorer les modifications ?',

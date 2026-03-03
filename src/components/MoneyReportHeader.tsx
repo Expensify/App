@@ -152,7 +152,6 @@ import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
-import type {PaymentMethod} from './KYCWall/types';
 import Modal from './Modal';
 import {ModalActions} from './Modal/Global/ModalContext';
 import MoneyReportHeaderKYCDropdown from './MoneyReportHeaderKYCDropdown';
@@ -168,6 +167,7 @@ import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchActionsContext, useSearchStateContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
+import type {PaymentActionParams} from './SettlementButton/types';
 import Text from './Text';
 
 type MoneyReportHeaderProps = {
@@ -579,7 +579,7 @@ function MoneyReportHeader({
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const confirmPayment = useCallback(
-        (type?: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
+        ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
             if (!type || !chatReport) {
                 return;
             }
@@ -1833,7 +1833,7 @@ function MoneyReportHeader({
                                 chatReportID={chatReport?.reportID}
                                 iouReport={moneyRequestReport}
                                 onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(payment) => confirmPayment(payment)}
+                                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}
@@ -1873,7 +1873,7 @@ function MoneyReportHeader({
                                 chatReportID={chatReport?.reportID}
                                 iouReport={moneyRequestReport}
                                 onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(payment) => confirmPayment(payment)}
+                                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}

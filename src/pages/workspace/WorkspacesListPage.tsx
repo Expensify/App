@@ -54,6 +54,7 @@ import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
+    getUserFriendlyWorkspaceType,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
@@ -430,6 +431,17 @@ function WorkspacesListPage() {
             });
         }
 
+        const ownerDisplayName = personalDetails?.[item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
+        const workspaceType = item.type ? getUserFriendlyWorkspaceType(item.type, translate) : '';
+        const accessibilityLabel = [
+            `${translate('workspace.common.workspace')}: ${item.title}`,
+            isDefault ? translate('common.default') : '',
+            `${translate('workspace.common.workspaceOwner')}: ${ownerDisplayName}`,
+            `${translate('workspace.common.workspaceType')}: ${workspaceType}`,
+        ]
+            .filter(Boolean)
+            .join(', ');
+
         return (
             <OfflineWithFeedback
                 key={`${item.title}_${index}`}
@@ -442,9 +454,11 @@ function WorkspacesListPage() {
                 shouldHideOnDelete={false}
             >
                 <PressableWithoutFeedback
-                    accessible={false}
+                    role={isLessThanMediumScreen ? CONST.ROLE.BUTTON : CONST.ROLE.ROW}
+                    accessibilityLabel={accessibilityLabel}
                     style={[styles.mh5]}
                     disabled={item.disabled}
+                    onPress={item.action}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
                 >
                     {({hovered}) => (
@@ -466,8 +480,6 @@ function WorkspacesListPage() {
                             isLoadingBill={isLoadingBill}
                             resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
                             isHovered={hovered}
-                            disabled={item.disabled}
-                            onPress={item.action}
                         />
                     )}
                 </PressableWithoutFeedback>
