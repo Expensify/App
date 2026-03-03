@@ -7487,8 +7487,8 @@ ${reportName}
             body: '前往应用完成操作',
         },
         liveActivity: {
-            subtitle: 'Tracking distance',
-            button: 'View progress',
+            subtitle: 'Seguimiento de distancia',
+            button: 'Ver progreso',
         },
         continueGpsTripModal: {
             title: '继续记录 GPS 行程？',

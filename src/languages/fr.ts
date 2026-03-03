@@ -7726,10 +7726,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             title: 'Suivi GPS en cours',
             body: 'Allez dans l’application pour terminer',
         },
-        liveActivity: {
-            subtitle: 'Tracking distance',
-            button: 'View progress',
-        },
         continueGpsTripModal: {
             title: 'Continuer l’enregistrement GPS du trajet ?',
             prompt: 'On dirait que l’application s’est fermée pendant votre dernier trajet GPS. Souhaitez-vous continuer l’enregistrement de ce trajet ?',

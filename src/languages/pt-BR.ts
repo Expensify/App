@@ -7660,10 +7660,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             title: 'Rastreamento por GPS em andamento',
             body: 'Vá para o app para concluir',
         },
-        liveActivity: {
-            subtitle: 'Tracking distance',
-            button: 'View progress',
-        },
         continueGpsTripModal: {
             title: 'Continuar gravação de viagem por GPS?',
             prompt: 'Parece que o app foi fechado durante sua última viagem com GPS. Gostaria de continuar a gravação daquela viagem?',

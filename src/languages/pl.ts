@@ -7656,10 +7656,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             title: 'Trwa śledzenie GPS',
             body: 'Przejdź do aplikacji, aby dokończyć',
         },
-        liveActivity: {
-            subtitle: 'Tracking distance',
-            button: 'View progress',
-        },
         continueGpsTripModal: {
             title: 'Kontynuować rejestrowanie trasy GPS?',
             prompt: 'Wygląda na to, że aplikacja została zamknięta podczas Twojej ostatniej trasy GPS. Czy chcesz kontynuować nagrywanie z tamtej trasy?',
