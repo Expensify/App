@@ -31,6 +31,7 @@ import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Navigation from '@libs/Navigation/Navigation';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -78,6 +79,12 @@ function IOURequestStepScan({
     const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan', 'Hand', 'ReceiptStack', 'Shutter']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash', 'ReplaceReceipt', 'SmartScan']);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+
+    // End the create expense span on mount for web (no camera init tracking needed)
+    useEffect(() => {
+        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+    }, []);
+
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
     }, [backTo]);
@@ -306,9 +313,25 @@ function IOURequestStepScan({
             return;
         }
 
+        if (!isMultiScanEnabled) {
+            startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
+                name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+            });
+        }
+        startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
+            name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+        });
+
         const imageBase64 = cameraRef.current.getScreenshot();
 
         if (imageBase64 === null) {
+            cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
             return;
         }
 
@@ -326,6 +349,7 @@ function IOURequestStepScan({
         const viewFinderHeight = viewfinderLayout.current?.height ?? NaN;
         const shouldAlignTop = videoHeight > viewFinderHeight;
         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop).then(({file, filename, source}) => {
+            endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
             const transaction =
                 isMultiScanEnabled && initialTransaction?.receipt?.source
                     ? buildOptimisticTransactionAndCreateDraft({
@@ -401,6 +425,8 @@ function IOURequestStepScan({
 
     useEffect(
         () => () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
             if (!getScreenshotTimeoutRef.current) {
                 return;
             }
