@@ -146,6 +146,7 @@ function MoneyRequestReportPreview({
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
             shouldHighlight={newTransactionIDs?.has(item.transactionID)}
+            shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
         />
     );
 
