@@ -79,10 +79,10 @@ Onyx.connect({
     waitForCollectionCallback: true,
 });
 
-let allPolicies: OnyxCollection<Policy>;
+let deprecatedAllPolicies: OnyxCollection<Policy>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (value) => (allPolicies = value),
+    callback: (value) => (deprecatedAllPolicies = value),
     waitForCollectionCallback: true,
 });
 
@@ -510,7 +510,7 @@ function shouldRestrictUserBillableActions(
 ): boolean {
     const currentDate = new Date();
 
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const policy = deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     // This logic will be executed if the user is a workspace's non-owner (normal user or admin).
     // We should restrict the workspace's non-owner actions if it's member of a workspace where the owner is
@@ -544,7 +544,7 @@ function shouldRestrictUserBillableActions(
 }
 
 function shouldCalculateBillNewDot(canDowngrade: boolean | undefined = false): boolean {
-    return canDowngrade && getOwnedPaidPolicies(allPolicies, currentUserAccountID).length === 1;
+    return canDowngrade && getOwnedPaidPolicies(deprecatedAllPolicies, currentUserAccountID).length === 1;
 }
 
 function getSubscriptionPrice(
