@@ -378,12 +378,9 @@ function computeReportNameBasedOnReportAction(
     report: Report | undefined,
     reportPolicy: Policy | undefined,
     parentReport: Report | undefined,
-    policyTags?: OnyxEntry<PolicyTagLists>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _policyTags?: OnyxEntry<PolicyTagLists>,
 ): string | undefined {
-    if (policyTags && !parentReportAction) {
-        return undefined;
-    }
-
     if (!parentReportAction) {
         return undefined;
     }
