@@ -556,4 +556,5 @@ export {
     isPrimaryMarkAsResolvedAction,
     getAllExpensesToHoldIfApplicable,
     isReviewDuplicatesAction,
+    isMarkAsCashActionForTransaction,
 };

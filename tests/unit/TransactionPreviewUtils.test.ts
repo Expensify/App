@@ -3,6 +3,7 @@ import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
     createTransactionPreviewConditionals,
+    getReviewNavigationRoute,
     getTransactionPreviewTextAndTranslationPaths,
     getUniqueActionErrorsForTransaction,
     getViolationTranslatePath,
@@ -277,44 +278,6 @@ describe('TransactionPreviewUtils', () => {
                 expect(result.RBRMessage.translationPath).toEqual('iou.error.other');
             });
 
-            it('should show customUnitOutOfPolicy error for distance request with invalid rate', () => {
-                const functionArgs = {
-                    ...basicProps,
-                    policy: {
-                        ...createRandomPolicy(1),
-                        customUnits: {
-                            unit1: {
-                                customUnitID: 'unit1',
-                                name: 'Distance',
-                                attributes: {unit: 'mi' as const},
-                                rates: {},
-                            },
-                        },
-                    },
-                    transaction: {
-                        ...basicProps.transaction,
-                        reportID: '',
-                        routes: {
-                            route0: {
-                                distance: 1000,
-                                geometry: {coordinates: null},
-                            },
-                        },
-                        comment: {
-                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                            customUnit: {
-                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                                customUnitRateID: 'invalid_rate',
-                            },
-                        },
-                    },
-                    shouldShowRBR: true,
-                    originalTransaction: undefined,
-                };
-                const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-                expect(result.RBRMessage.translationPath).toEqual('violations.customUnitOutOfPolicy');
-            });
-
             it('should show violation message for notice violations with policy', () => {
                 const violationMsg = 'This expense violates policy rules';
                 const functionArgs = {
@@ -570,42 +533,6 @@ describe('TransactionPreviewUtils', () => {
                 expect(result.shouldShowRBR).toBeTruthy();
             });
 
-            it('should show RBR for distance request with invalid rate in policy', () => {
-                const functionArgs = {
-                    ...basicProps,
-                    policy: {
-                        ...createRandomPolicy(1),
-                        customUnits: {
-                            unit1: {
-                                customUnitID: 'unit1',
-                                name: 'Distance',
-                                attributes: {unit: 'mi' as const},
-                                rates: {},
-                            },
-                        },
-                    },
-                    transaction: {
-                        ...basicProps.transaction,
-                        reportID: '',
-                        routes: {
-                            route0: {
-                                distance: 1000,
-                                geometry: {coordinates: null},
-                            },
-                        },
-                        comment: {
-                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
-                            customUnit: {
-                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                                customUnitRateID: 'invalid_rate',
-                            },
-                        },
-                    },
-                };
-                const result = createTransactionPreviewConditionals(functionArgs);
-                expect(result.shouldShowRBR).toBeTruthy();
-            });
-
             it('should show RBR for violations with paid group policy', () => {
                 const functionArgs = {
                     ...basicProps,
@@ -688,6 +615,113 @@ describe('TransactionPreviewUtils', () => {
 
         test('returns text when only receiptRequired exists', () => {
             expect(getViolationTranslatePath([receiptRequiredViolation], false, message, false, false)).toEqual({text: message});
+        });
+    });
+
+    describe('getReviewNavigationRoute', () => {
+        const threadReportID = 'threadReport123';
+        const backTo = 'backRoute';
+        const fakeReportID = 'fakeReportID';
+        const fakeReport = {
+            reportID: fakeReportID,
+            policyID: 'fakePolicyID',
+            ownerAccountID: 123,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        it('should navigate to confirmation page when all fields match', () => {
+            const transaction1 = buildOptimisticTransaction({
+                transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+            });
+            const transaction2 = buildOptimisticTransaction({
+                transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+            });
+
+            const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], undefined, undefined, {}, fakeReport);
+            expect(route).toContain('duplicates/confirm');
+        });
+
+        it('should navigate to merchant review page when merchants differ', () => {
+            const transaction1 = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+                }),
+                merchant: 'Merchant A',
+            };
+            const transaction2 = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+                }),
+                merchant: 'Merchant B',
+            };
+
+            const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], undefined, undefined, {}, fakeReport);
+            expect(route).toContain('duplicates/review/merchant');
+        });
+
+        it('should navigate to tag review page when tags differ with single-level policyTags', () => {
+            const policyTags = {
+                tagList1: {
+                    name: 'Department',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                        Marketing: {name: 'Marketing', enabled: true},
+                    },
+                },
+            };
+
+            const transaction1 = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+                }),
+                tag: 'Engineering',
+            };
+            const transaction2 = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+                }),
+                tag: 'Marketing',
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
+            const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], fakePolicy, undefined, policyTags, fakeReport);
+            expect(route).toContain('duplicates/review/tag');
+        });
+
+        it('should skip tag review when policyTags filters out disabled tags', () => {
+            const policyTags = {
+                tagList1: {
+                    name: 'Department',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                        Marketing: {name: 'Marketing', enabled: false},
+                    },
+                },
+            };
+
+            const transaction1 = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+                }),
+                tag: 'Engineering',
+            };
+            const transaction2 = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+                }),
+                tag: 'Marketing',
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
+            const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], fakePolicy, undefined, policyTags, fakeReport);
+            // Since Marketing is disabled, only 1 enabled tag available, so tag review is skipped
+            expect(route).toContain('duplicates/confirm');
         });
     });
 

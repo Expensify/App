@@ -13,6 +13,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -48,9 +49,9 @@ function SubscriptionSettings() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const isActivePolicyAdmin = isPolicyAdmin(activePolicy);
     const subscriptionPlan = useSubscriptionPlan();
@@ -60,9 +61,11 @@ function SubscriptionSettings() {
     const possibleCostSavings = useSubscriptionPossibleCostSavings();
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT, {canBeMissing: true});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+
     const isExpensifyCodeApplied = !!privateSubscription?.expensifyCode;
     const shouldShowExpensifyCodeSection = !privateSubscription?.isSecretPromoCode;
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type, hasTeam2025Pricing);
@@ -78,7 +81,7 @@ function SubscriptionSettings() {
             return;
         }
         if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && option === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE && !account?.canDowngrade) {
-            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(0));
+            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.route);
             return;
         }
 
@@ -90,7 +93,7 @@ function SubscriptionSettings() {
             showDelegateNoAccessModal();
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(1));
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(CONST.SUBSCRIPTION_SIZE.PAGE_NAME.SIZE));
     };
 
     const onExpensifyCodePress = () => {
@@ -174,9 +177,7 @@ function SubscriptionSettings() {
         <Text>
             <Text style={[styles.mr1, styles.textNormalThemeText]}>{translate('subscription.subscriptionSettings.autoIncrease')}</Text>
             <Text style={customTitleSecondSentenceStyles}>
-                {translate('subscription.subscriptionSettings.saveUpTo', {
-                    amountWithCurrency: convertToShortDisplayString(possibleCostSavings, preferredCurrency),
-                })}
+                {translate('subscription.subscriptionSettings.saveUpTo', convertToShortDisplayString(possibleCostSavings, preferredCurrency))}
             </Text>
         </Text>
     );
@@ -216,7 +217,7 @@ function SubscriptionSettings() {
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
                 <View style={[styles.renderHTML, styles.mb5]}>
                     <RenderHTML
-                        html={translate('subscription.subscriptionSettings.learnMore', {hasAdminsRoom: !!adminsChatReportID})}
+                        html={translate('subscription.subscriptionSettings.learnMore', !!adminsChatReportID)}
                         onLinkPress={(_evt, href) => handleLinkPress(href)}
                     />
                 </View>
@@ -253,9 +254,7 @@ function SubscriptionSettings() {
                                     onToggle={handleAutoRenewToggle}
                                     isActive={privateSubscription?.autoRenew}
                                 />
-                                {!!autoRenewalDate && (
-                                    <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>
-                                )}
+                                {!!autoRenewalDate && <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', autoRenewalDate)}</Text>}
                             </View>
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.addNewUsersAutomatically}>
@@ -288,7 +287,7 @@ function SubscriptionSettings() {
                     shouldShowRightIcon
                     onPress={() => {
                         requestTaxExempt();
-                        navigateToConciergeChat(conciergeReportID, false);
+                        navigateToConciergeChat(conciergeReportID, currentUserAccountID, false);
                     }}
                     icon={icons.Coins}
                     wrapperStyle={styles.sectionMenuItemTopDescription}

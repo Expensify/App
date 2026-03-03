@@ -69,9 +69,9 @@ function usePaymentOptions({
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID, conciergeReportID) : false;
@@ -92,15 +92,14 @@ function usePaymentOptions({
     const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(
         ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
         {
-            canBeMissing: true,
             selector: lastPaymentMethodSelector,
         },
         [lastPaymentMethodSelector],
     );
 
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
-    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
     const {isBetaEnabled} = usePermissions();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
     const lastPaymentMethodRef = useRef(lastPaymentMethod);

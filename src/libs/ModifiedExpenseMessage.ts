@@ -1,13 +1,13 @@
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {Entries, ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
-import type {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -28,6 +28,7 @@ import {buildReportNameFromParticipantNames, getPolicyExpenseChatName} from './R
 // eslint-disable-next-line import/no-cycle
 import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
+import {isInvalidMerchantValue} from './ValidationUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 // eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
@@ -79,11 +80,11 @@ function buildMessageFragmentForValue(
     const isCategoryField = valueName.includes(translate('common.category').toLowerCase());
 
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
-    const isOldValuePartialMerchant = valueName === translate('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isOldMerchantInvalid = valueName === translate('common.merchant') && isInvalidMerchantValue(oldValue);
     const isOldCategoryMissing = isCategoryField && isCategoryMissing(oldValue);
     const isNewCategoryMissing = isCategoryField && isCategoryMissing(newValue);
 
-    if (!oldValue || isOldValuePartialMerchant || isOldCategoryMissing) {
+    if (!oldValue || isOldMerchantInvalid || isOldCategoryMissing) {
         if (!(isOldCategoryMissing && isNewCategoryMissing)) {
             const fragment = translate('iou.setTheRequest', displayValueName, newValueToDisplay);
             setFragments.push(fragment);
@@ -196,48 +197,69 @@ function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromR
 
     if (movedFromReport) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const originReportName = getReportName(movedFromReport);
+        const originReportName = getReportName({report: movedFromReport});
         return translate('iou.movedFromReport', originReportName ?? '');
     }
 }
 
-function getPolicyRulesModifiedMessage(translate: LocalizedTranslate, fields: PolicyRulesModifiedFields, policyID: string) {
-    const route = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
+function getRulesModifiedMessage(
+    translate: LocalizedTranslate,
+    fields: PolicyRulesModifiedFields | PersonalRulesModifiedFields,
+    isPersonalRules: boolean,
+    policyID?: string,
+    hasPolicyRuleAccess?: boolean,
+) {
     const entries = ObjectUtils.typedEntries(fields);
 
-    const fragments = entries.map(([key, value], i) => {
+    // reportName ("moved to report X"), reimbursable/billable ("marked the expense as reimbursable/billable"), are standalone clauses with their own verb.
+    // They must not be mixed into the "set ... and ..." list produced by the other field fragments.
+    const {standaloneFragments, listEntries} = entries.reduce<{standaloneFragments: string[]; listEntries: Entries<PolicyRulesModifiedFields>}>(
+        (acc, entry) => {
+            const [key, value] = entry;
+            if (key === 'reportName') {
+                acc.standaloneFragments.push(translate('iou.rulesModifiedFields.reportName', value as string));
+            } else if (key === 'reimbursable') {
+                acc.standaloneFragments.push(translate('iou.rulesModifiedFields.reimbursable', value as boolean));
+            } else if (key === 'billable') {
+                acc.standaloneFragments.push(translate('iou.rulesModifiedFields.billable', value as boolean));
+            } else {
+                acc.listEntries.push(entry as Entries<PolicyRulesModifiedFields>[number]);
+            }
+            return acc;
+        },
+        {standaloneFragments: [], listEntries: []},
+    );
+
+    const listFragment = listEntries.map(([key, value], i) => {
         const isFirst = i === 0;
-
-        if (key === 'reimbursable') {
-            return translate('iou.policyRulesModifiedFields.reimbursable', value as boolean);
-        }
-
-        if (key === 'billable') {
-            return translate('iou.policyRulesModifiedFields.billable', value as boolean);
-        }
 
         if (key === 'tax') {
             const taxEntry = value as PolicyRulesModifiedFields['tax'];
             const taxRateName = taxEntry?.field_id_TAX.name ?? '';
-            return translate('iou.policyRulesModifiedFields.tax', taxRateName, isFirst);
+            return translate('iou.rulesModifiedFields.tax', taxRateName, isFirst);
         }
 
         const updatedValue = value as string;
         if (key === 'category') {
-            return translate('iou.policyRulesModifiedFields.common', key, getDecodedCategoryName(updatedValue), isFirst);
+            return translate('iou.rulesModifiedFields.common', key, getDecodedCategoryName(updatedValue), isFirst);
         }
         if (key === 'tag') {
-            return translate('iou.policyRulesModifiedFields.common', key, getCommaSeparatedTagNameWithSanitizedColons(updatedValue), isFirst);
+            return translate('iou.rulesModifiedFields.common', key, getCommaSeparatedTagNameWithSanitizedColons(updatedValue), isFirst);
         }
         // The backend saves the description field as `comment` key, but we need to display it as `description` key.
         if (key === 'comment') {
-            return translate('iou.policyRulesModifiedFields.common', 'description', Parser.htmlToMarkdown(updatedValue), isFirst);
+            return translate('iou.rulesModifiedFields.common', 'description', Parser.htmlToMarkdown(updatedValue), isFirst);
         }
 
-        return translate('iou.policyRulesModifiedFields.common', key, updatedValue, isFirst);
+        return translate('iou.rulesModifiedFields.common', key, updatedValue, isFirst);
     });
 
-    return translate('iou.policyRulesModifiedFields.format', formatList(fragments), route);
+    const fragments = [...standaloneFragments, ...listFragment];
+    let route = policyID && hasPolicyRuleAccess ? `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}` : CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL;
+    if (isPersonalRules) {
+        route = `${environmentURL}/${ROUTES.SETTINGS_RULES}`;
+    }
+    return fragments.length > 0 ? translate(isPersonalRules ? 'iou.rulesModifiedFields.formatPersonalRules' : 'iou.rulesModifiedFields.formatPolicyRules', formatList(fragments), route) : '';
 }
 
 /**
@@ -252,13 +274,21 @@ function getForReportAction({
     movedFromReport,
     movedToReport,
     policyForMovingExpensesID,
+    currentUserLogin: currentUserLoginParam,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     policyID: string | undefined;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     policyForMovingExpensesID?: string;
+    currentUserLogin?: string;
 }): string {
+    // Temporary fallback to storedCurrentUserLogin since currentUserLogin can be empty string.
+    // Remove once all callers pass currentUserLogin explicitly and the migration to getForReportActionTemp is complete.
+    let currentUserLogin = currentUserLoginParam;
+    if (!currentUserLogin) {
+        currentUserLogin = storedCurrentUserLogin;
+    }
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
@@ -370,7 +400,7 @@ function getForReportAction({
         } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const policy = getPolicy(policyID);
-            const isAdmin = isPolicyAdmin(policy, storedCurrentUserLogin);
+            const isAdmin = isPolicyAdmin(policy, currentUserLogin);
 
             // For admins, create a hyperlink to the workspace rules page
             if (isAdmin && policy?.id) {
@@ -509,6 +539,15 @@ function getForReportAction({
         buildMessageFragmentForValue(translateLocal, oldAttendees, attendees, translateLocal('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
+    const hasPersonalRulesModifiedFields = isReportActionOriginalMessageAnObject && 'personalRulesModifiedFields' in reportActionOriginalMessage;
+    if (hasPersonalRulesModifiedFields) {
+        const personalRulesModifiedFields = reportActionOriginalMessage.personalRulesModifiedFields;
+        if (personalRulesModifiedFields) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return getRulesModifiedMessage(translateLocal, personalRulesModifiedFields, true);
+        }
+    }
+
     const hasPolicyRulesModifiedFields = isReportActionOriginalMessageAnObject && 'policyRulesModifiedFields' in reportActionOriginalMessage && 'policyID' in reportActionOriginalMessage;
     if (hasPolicyRulesModifiedFields) {
         const rulePolicyID = reportActionOriginalMessage.policyID;
@@ -516,7 +555,10 @@ function getForReportAction({
 
         if (policyRulesModifiedFields && rulePolicyID) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return getPolicyRulesModifiedMessage(translateLocal, policyRulesModifiedFields, rulePolicyID);
+            const rulePolicy = getPolicy(rulePolicyID);
+            const hasPolicyRuleAccess = !!rulePolicy?.areRulesEnabled && isPolicyAdmin(rulePolicy, storedCurrentUserLogin);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return getRulesModifiedMessage(translateLocal, policyRulesModifiedFields, false, rulePolicyID, hasPolicyRuleAccess);
         }
     }
 
@@ -553,7 +595,7 @@ function getForReportActionTemp({
     movedFromReport,
     movedToReport,
     policyTags,
-    currentUserLogin,
+    currentUserLogin: currentUserLoginParam,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction>;
@@ -563,6 +605,12 @@ function getForReportActionTemp({
     policyTags: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
 }): string {
+    // Temporary fallback to storedCurrentUserLogin since currentUserLogin can be empty string.
+    // Remove once all callers pass currentUserLogin explicitly and the migration to getForReportActionTemp is complete.
+    let currentUserLogin = currentUserLoginParam;
+    if (!currentUserLogin) {
+        currentUserLogin = storedCurrentUserLogin;
+    }
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
@@ -678,16 +726,16 @@ function getForReportActionTemp({
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
+        const policyTagsToUse = policyTags ?? CONST.POLICY.DEFAULT_TAG_LIST;
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = getTagArrayFromName(transactionTag);
         const splittedOldTag = getTagArrayFromName(oldTransactionTag);
         const localizedTagListName = translate('common.tag');
-        const sortedTagKeys = getSortedTagKeys(policyTags);
+        const sortedTagKeys = getSortedTagKeys(policyTagsToUse);
 
         for (const [index, policyTagKey] of sortedTagKeys.entries()) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const policyTagListName = policyTags?.[policyTagKey]?.name || localizedTagListName;
+            const policyTagListName = policyTagsToUse[policyTagKey].name || localizedTagListName;
 
             const newTag = splittedTag.at(index) ?? '';
             const oldTag = splittedOldTag.at(index) ?? '';
@@ -753,12 +801,21 @@ function getForReportActionTemp({
         buildMessageFragmentForValue(translate, oldAttendees, attendees, translate('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
+    const hasPersonalRulesModifiedFields = isReportActionOriginalMessageAnObject && 'personalRulesModifiedFields' in reportActionOriginalMessage;
+    if (hasPersonalRulesModifiedFields) {
+        const personalRulesModifiedFields = reportActionOriginalMessage.personalRulesModifiedFields;
+        if (personalRulesModifiedFields) {
+            return getRulesModifiedMessage(translate, personalRulesModifiedFields, true);
+        }
+    }
+
     const hasPolicyRulesModifiedFields = isReportActionOriginalMessageAnObject && 'policyRulesModifiedFields' in reportActionOriginalMessage && 'policyID' in reportActionOriginalMessage;
     if (hasPolicyRulesModifiedFields) {
-        const {policyRulesModifiedFields, policyID} = reportActionOriginalMessage;
+        const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
-        if (policyRulesModifiedFields && policyID) {
-            return getPolicyRulesModifiedMessage(translate, policyRulesModifiedFields, policyID);
+        if (policyRulesModifiedFields && policy?.id) {
+            const hasPolicyRuleAccess = !!policy?.areRulesEnabled && isPolicyAdmin(policy, currentUserLogin);
+            return getRulesModifiedMessage(translate, policyRulesModifiedFields, false, policy?.id, hasPolicyRuleAccess);
         }
     }
 
