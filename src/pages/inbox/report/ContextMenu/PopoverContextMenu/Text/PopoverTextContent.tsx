@@ -8,12 +8,12 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
-import type {PopoverContentProps} from './PopoverContextMenu';
-import {hideContextMenu} from './ReportActionContextMenu';
+import type {PopoverContentProps} from '..';
 
-function PopoverLinkContent({menuState, contentRef}: PopoverContentProps) {
+function PopoverTextContent({menuState, contentRef}: PopoverContentProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -47,18 +47,17 @@ function PopoverLinkContent({menuState, contentRef}: PopoverContentProps) {
             style={wrapperStyle}
         >
             <ContextMenuItem
-                text={translate('reportActionContextMenu.copyURLToClipboard')}
+                text={translate('common.copyToClipboard')}
                 icon={icons.Copy}
                 onPress={handlePress}
                 wrapperStyle={[styles.pr8]}
-                description={menuState.selection}
                 isAnonymousAction
                 successText={translate('reportActionContextMenu.copied')}
                 successIcon={icons.Checkmark}
-                sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_URL}
+                sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_TO_CLIPBOARD}
             />
         </View>
     );
 }
 
-export default PopoverLinkContent;
+export default PopoverTextContent;

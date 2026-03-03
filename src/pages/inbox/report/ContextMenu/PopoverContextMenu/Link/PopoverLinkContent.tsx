@@ -7,14 +7,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
-import EmailUtils from '@libs/EmailUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
-import type {PopoverContentProps} from './PopoverContextMenu';
-import {hideContextMenu} from './ReportActionContextMenu';
+import type {PopoverContentProps} from '..';
 
-function PopoverEmailContent({menuState, contentRef}: PopoverContentProps) {
+function PopoverLinkContent({menuState, contentRef}: PopoverContentProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -35,13 +34,12 @@ function PopoverEmailContent({menuState, contentRef}: PopoverContentProps) {
 
     const handlePress = () => {
         interceptAnonymousUser(() => {
-            Clipboard.setString(EmailUtils.trimMailTo(menuState.selection));
+            Clipboard.setString(menuState.selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         }, true);
     };
 
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(false, shouldUseNarrowLayout);
-    const description = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(EmailUtils.trimMailTo(menuState.selection ?? ''));
 
     return (
         <View
@@ -49,18 +47,18 @@ function PopoverEmailContent({menuState, contentRef}: PopoverContentProps) {
             style={wrapperStyle}
         >
             <ContextMenuItem
-                text={translate('reportActionContextMenu.copyEmailToClipboard')}
+                text={translate('reportActionContextMenu.copyURLToClipboard')}
                 icon={icons.Copy}
                 onPress={handlePress}
                 wrapperStyle={[styles.pr8]}
-                description={description}
+                description={menuState.selection}
                 isAnonymousAction
                 successText={translate('reportActionContextMenu.copied')}
                 successIcon={icons.Checkmark}
-                sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_EMAIL}
+                sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_URL}
             />
         </View>
     );
 }
 
-export default PopoverEmailContent;
+export default PopoverLinkContent;

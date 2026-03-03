@@ -29,14 +29,14 @@ import {
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
     isTrackExpenseReport as ReportUtilsIsTrackExpenseReport,
 } from '@libs/ReportUtils';
+import {RESTRICTED_READONLY_ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
+import type {ContextMenuAnchor, ContextMenuType} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {RESTRICTED_READONLY_ACTION_IDS} from './actions/actionConfig';
-import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
-import {hideContextMenu} from './ReportActionContextMenu';
 
 const EMPTY_SET = new Set<string>();
 

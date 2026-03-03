@@ -12,15 +12,15 @@ import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ConfirmDeleteReportActionModal from './ConfirmDeleteReportActionModal';
-import PopoverEmailContent from './PopoverEmailContent';
-import PopoverLinkContent from './PopoverLinkContent';
-import PopoverReportActionContent from './PopoverReportActionContent';
-import PopoverReportContent from './PopoverReportContent';
-import PopoverTextContent from './PopoverTextContent';
-import {hideContextMenu} from './ReportActionContextMenu';
-import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
+import PopoverEmailContent from './Email/PopoverEmailContent';
+import PopoverLinkContent from './Link/PopoverLinkContent';
+import PopoverReportContent from './Report/PopoverReportContent';
+import PopoverReportActionContent from './ReportAction/PopoverReportActionContent';
+import PopoverTextContent from './Text/PopoverTextContent';
 
 function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
     if ('nativeEvent' in event) {

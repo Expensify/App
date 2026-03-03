@@ -7,12 +7,12 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {canWriteInReport, chatIncludesChronosWithID, isArchivedNonExpenseReport, isUnread} from '@libs/ReportUtils';
+import {RESTRICTED_READONLY_ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
+import type {ContextMenuAnchor, ContextMenuType} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions, Report as ReportType} from '@src/types/onyx';
-import {RESTRICTED_READONLY_ACTION_IDS} from './actions/actionConfig';
-import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
-import {hideContextMenu} from './ReportActionContextMenu';
 
 const EMPTY_SET = new Set<string>();
 

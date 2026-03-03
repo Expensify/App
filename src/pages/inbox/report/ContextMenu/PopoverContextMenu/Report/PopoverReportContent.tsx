@@ -7,16 +7,16 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {ACTION_IDS} from './actions/actionConfig';
-import {CONTEXT_MENU_ICON_NAMES} from './actions/actionTypes';
-import type {ContextMenuAction} from './actions/actionTypes';
-import createCopyOnyxDataAction, {shouldShowCopyOnyxDataAction} from './actions/copyOnyxDataAction';
-import createDebugAction, {shouldShowDebugAction} from './actions/debugAction';
-import createMarkAsReadAction, {shouldShowMarkAsReadAction} from './actions/markAsReadAction';
-import createMarkAsUnreadAction, {shouldShowMarkAsUnreadForReport} from './actions/markAsUnreadAction';
-import createPinAction, {shouldShowPinAction} from './actions/pinAction';
-import createUnpinAction, {shouldShowUnpinAction} from './actions/unpinAction';
-import type {PopoverContentProps} from './PopoverContextMenu';
+import {ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
+import {CONTEXT_MENU_ICON_NAMES} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
+import type {ContextMenuAction} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
+import createCopyOnyxDataAction, {shouldShowCopyOnyxDataAction} from '@pages/inbox/report/ContextMenu/actions/copyOnyxDataAction';
+import createDebugAction, {shouldShowDebugAction} from '@pages/inbox/report/ContextMenu/actions/debugAction';
+import createMarkAsReadAction, {shouldShowMarkAsReadAction} from '@pages/inbox/report/ContextMenu/actions/markAsReadAction';
+import createMarkAsUnreadAction, {shouldShowMarkAsUnreadForReport} from '@pages/inbox/report/ContextMenu/actions/markAsUnreadAction';
+import createPinAction, {shouldShowPinAction} from '@pages/inbox/report/ContextMenu/actions/pinAction';
+import createUnpinAction, {shouldShowUnpinAction} from '@pages/inbox/report/ContextMenu/actions/unpinAction';
+import type {PopoverContentProps} from '..';
 import useReportContextMenuData from './useReportContextMenuData';
 
 function PopoverReportContent({menuState, hideAndRun, contentRef, shouldEnableArrowNavigation}: PopoverContentProps) {
