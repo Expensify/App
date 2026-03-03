@@ -28,6 +28,8 @@ const MERCHANTS = ['Grocery store', 'Restaurant', 'Gas station', 'Online retaile
 const OUTCOME_ITEMS = [
     {label: 'Approve/Deny (normal)', value: ''},
     {label: 'Marqeta error on result', value: 'MARQETA_ERROR'},
+    {label: 'Already approved error', value: 'ALREADY_APPROVED'},
+    {label: 'Already denied error', value: 'ALREADY_DENIED'},
 ];
 
 type CardListItem = ListItem & {
