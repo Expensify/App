@@ -23,7 +23,6 @@ type SearchMultipleSelectionPickerProps = {
     shouldShowTextInput?: boolean;
 };
 
-// this function needs to be tested.
 function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
     const {translate, localeCompare} = useLocalize();
 
