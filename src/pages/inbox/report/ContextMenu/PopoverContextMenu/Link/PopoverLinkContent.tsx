@@ -1,5 +1,5 @@
 import React from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -7,9 +7,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {PopoverContentProps} from '..';
 
@@ -19,18 +19,6 @@ function PopoverLinkContent({menuState, contentRef}: PopoverContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
-
-    const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
-        if (isAnonymousUser() && !isAnonymousAction) {
-            hideContextMenu(false);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                signOutAndRedirectToSignIn();
-            });
-        } else {
-            callback();
-        }
-    };
 
     const handlePress = () => {
         interceptAnonymousUser(() => {

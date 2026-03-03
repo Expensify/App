@@ -1,5 +1,4 @@
 import type {RefObject} from 'react';
-import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -31,8 +30,6 @@ import {
 } from '@libs/ReportUtils';
 import {RESTRICTED_READONLY_ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
 import type {ContextMenuAnchor, ContextMenuType} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
@@ -146,18 +143,6 @@ function useReportActionContextMenuData({reportID, reportActionID, originalRepor
 
     const card = useGetExpensifyCardFromReportAction({reportAction, policyID});
 
-    const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
-        if (isAnonymousUser() && !isAnonymousAction) {
-            hideContextMenu(false);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                signOutAndRedirectToSignIn();
-            });
-        } else {
-            callback();
-        }
-    };
-
     return {
         report,
         originalReport,
@@ -195,7 +180,6 @@ function useReportActionContextMenuData({reportID, reportActionID, originalRepor
         harvestReport,
         download,
         disabledActionIDs,
-        interceptAnonymousUser,
         showDelegateNoAccessModal,
         translate,
         getLocalDateFromDatetime,

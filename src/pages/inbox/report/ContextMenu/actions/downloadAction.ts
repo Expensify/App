@@ -3,6 +3,7 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isMessageDeleted, isReportActionAttachment} from '@libs/ReportActionsUtils';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -16,7 +17,6 @@ import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes
 type DownloadActionParams = BaseContextMenuActionParams & {
     reportAction: ReportAction;
     encryptedAuthToken: string;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     download: OnyxEntry<DownloadOnyx>;
     downloadIcon: IconAsset;
 };
@@ -28,7 +28,7 @@ function shouldShowDownloadAction({reportAction, isOffline}: {reportAction: Onyx
     return isAttachment && !isUploading && !!reportAction?.reportActionID && !isMessageDeleted(reportAction) && !isOffline;
 }
 
-function createDownloadAction({reportAction, encryptedAuthToken, interceptAnonymousUser, download, translate, downloadIcon}: DownloadActionParams): ContextMenuAction {
+function createDownloadAction({reportAction, encryptedAuthToken, download, translate, downloadIcon}: DownloadActionParams): ContextMenuAction {
     const isDownloading = download?.isDownloading ?? false;
 
     return {

@@ -81,7 +81,7 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
     };
 
     const currentUserAccountID = data.currentUserPersonalDetails?.accountID ?? 0;
-    const {interceptAnonymousUser, translate, disabledActionIDs} = data;
+    const {translate, disabledActionIDs} = data;
 
     const isDisabled = (id: string) => disabledActionIDs.has(id);
 
@@ -149,12 +149,7 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
     /* eslint-disable react-hooks/refs -- factory functions store refs for later use, they don't read .current during render */
     const visibleActions = useMemo(() => {
         if (!data.reportAction) {
-            return [
-                createOverflowMenuAction(
-                    {openOverflowMenu, openContextMenu: () => setLocalShouldKeepOpen(true), interceptAnonymousUser, translate, threeDotsIcon: icons.ThreeDots},
-                    overflowMenuRef,
-                ),
-            ];
+            return [createOverflowMenuAction({openOverflowMenu, openContextMenu: () => setLocalShouldKeepOpen(true), translate, threeDotsIcon: icons.ThreeDots}, overflowMenuRef)];
         }
         const reportAction = data.reportAction;
         const items: ContextMenuAction[] = [];
@@ -165,7 +160,6 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
                     reportAction,
                     originalReport: data.originalReport,
                     currentUserAccountID,
-                    interceptAnonymousUser,
                     hideAndRun,
                     translate,
                     chatBubbleReplyIcon: icons.ChatBubbleReply,
@@ -179,7 +173,6 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
                     reportActions: data.reportActions,
                     reportAction,
                     currentUserAccountID,
-                    interceptAnonymousUser,
                     hideAndRun,
                     translate,
                     chatBubbleUnreadIcon: icons.ChatBubbleUnread,
@@ -194,7 +187,6 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
                     originalReport: data.originalReport,
                     reportAction,
                     currentUserPersonalDetails: data.currentUserPersonalDetails,
-                    interceptAnonymousUser,
                     hideAndRun,
                     translate,
                     conciergeIcon: icons.Concierge,
@@ -209,7 +201,6 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
                     moneyRequestAction: data.moneyRequestAction,
                     draftMessage: data.draftMessage,
                     introSelected: data.introSelected,
-                    interceptAnonymousUser,
                     hideAndRun,
                     translate,
                     pencilIcon: icons.Pencil,
@@ -222,7 +213,6 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
                     moneyRequestAction: data.moneyRequestAction,
                     isDelegateAccessRestricted: data.isDelegateAccessRestricted,
                     showDelegateNoAccessModal: data.showDelegateNoAccessModal,
-                    interceptAnonymousUser,
                     hideAndRun,
                     translate,
                     stopwatchIcon: icons.Stopwatch,
@@ -235,7 +225,6 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
                     moneyRequestAction: data.moneyRequestAction,
                     isDelegateAccessRestricted: data.isDelegateAccessRestricted,
                     showDelegateNoAccessModal: data.showDelegateNoAccessModal,
-                    interceptAnonymousUser,
                     hideAndRun,
                     translate,
                     stopwatchIcon: icons.Stopwatch,
@@ -243,14 +232,10 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
             );
         }
         if (showJoinThread) {
-            items.push(
-                createJoinThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, bellIcon: icons.Bell}),
-            );
+            items.push(createJoinThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, hideAndRun, translate, bellIcon: icons.Bell}));
         }
         if (showLeaveThread) {
-            items.push(
-                createLeaveThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, exitIcon: icons.Exit}),
-            );
+            items.push(createLeaveThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, hideAndRun, translate, exitIcon: icons.Exit}));
         }
         if (showCopyMessage) {
             items.push(
@@ -272,7 +257,6 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
                     translate,
                     harvestReport: data.harvestReport,
                     currentUserPersonalDetails: data.currentUserPersonalDetails,
-                    interceptAnonymousUser,
                     copyIcon: icons.Copy,
                     checkmarkIcon: icons.Checkmark,
                 }),
@@ -283,7 +267,6 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
                 createCopyLinkAction({
                     reportAction,
                     originalReportID: data.originalReportID,
-                    interceptAnonymousUser,
                     translate,
                     linkCopyIcon: icons.LinkCopy,
                     checkmarkIcon: icons.Checkmark,
@@ -294,22 +277,15 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
             items.push(createFlagAsOffensiveAction({reportID: data.reportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}));
         }
         if (showDownload) {
-            items.push(
-                createDownloadAction({reportAction, encryptedAuthToken: data.encryptedAuthToken, interceptAnonymousUser, download: data.download, translate, downloadIcon: icons.Download}),
-            );
+            items.push(createDownloadAction({reportAction, encryptedAuthToken: data.encryptedAuthToken, download: data.download, translate, downloadIcon: icons.Download}));
         }
         if (showDebug) {
-            items.push(createDebugAction({reportID: data.reportID, reportAction, interceptAnonymousUser, translate, bugIcon: icons.Bug}));
+            items.push(createDebugAction({reportID: data.reportID, reportAction, translate, bugIcon: icons.Bug}));
         }
         if (showDelete) {
             items.push(createDeleteAction({reportID: data.reportID, reportAction, moneyRequestAction: data.moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan}));
         }
-        items.push(
-            createOverflowMenuAction(
-                {openOverflowMenu, openContextMenu: () => setLocalShouldKeepOpen(true), interceptAnonymousUser, translate, threeDotsIcon: icons.ThreeDots},
-                overflowMenuRef,
-            ),
-        );
+        items.push(createOverflowMenuAction({openOverflowMenu, openContextMenu: () => setLocalShouldKeepOpen(true), translate, threeDotsIcon: icons.ThreeDots}, overflowMenuRef));
         return items;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
@@ -329,7 +305,6 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
         showDelete,
         data,
         currentUserAccountID,
-        interceptAnonymousUser,
         translate,
         icons,
     ]);
@@ -342,7 +317,6 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
         openContextMenu: () => setLocalShouldKeepOpen(true),
         setIsEmojiPickerActive: menuState.onEmojiPickerToggle,
         hideAndRun,
-        interceptAnonymousUser,
     });
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({

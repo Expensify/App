@@ -1,16 +1,17 @@
-import * as Session from './actions/Session';
+import {InteractionManager} from 'react-native';
+import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import {isAnonymousUser, signOutAndRedirectToSignIn} from './actions/Session';
 
-/**
- * Checks if user is anonymous. If true, shows the sign in modal, else,
- * executes the callback.
- */
-const interceptAnonymousUser = (callback: () => void) => {
-    const isAnonymousUser = Session.isAnonymousUser();
-    if (isAnonymousUser) {
-        Session.signOutAndRedirectToSignIn();
+function interceptAnonymousUser(callback: () => void, isAnonymousAction = false) {
+    if (isAnonymousUser() && !isAnonymousAction) {
+        hideContextMenu(false);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            signOutAndRedirectToSignIn();
+        });
     } else {
         callback();
     }
-};
+}
 
 export default interceptAnonymousUser;

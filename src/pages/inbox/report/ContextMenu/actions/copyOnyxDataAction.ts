@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Clipboard from '@libs/Clipboard';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
@@ -9,7 +10,6 @@ import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes
 
 type CopyOnyxDataActionParams = BaseContextMenuActionParams & {
     report: OnyxEntry<Report>;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     copyIcon: IconAsset;
     checkmarkIcon: IconAsset;
 };
@@ -18,7 +18,7 @@ function shouldShowCopyOnyxDataAction({isProduction}: {isProduction: boolean}): 
     return !isProduction;
 }
 
-function createCopyOnyxDataAction({report, interceptAnonymousUser, translate, copyIcon, checkmarkIcon}: CopyOnyxDataActionParams): ContextMenuAction {
+function createCopyOnyxDataAction({report, translate, copyIcon, checkmarkIcon}: CopyOnyxDataActionParams): ContextMenuAction {
     return {
         id: 'copyOnyxData',
         icon: copyIcon,

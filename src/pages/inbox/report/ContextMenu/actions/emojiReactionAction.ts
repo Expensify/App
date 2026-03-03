@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {isActionOfType, isMessageDeleted} from '@libs/ReportActionsUtils';
 import {toggleEmojiReaction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -23,7 +24,6 @@ type EmojiReactionParams = {
     openContextMenu: () => void;
     setIsEmojiPickerActive: ((state: boolean) => void) | undefined;
     hideAndRun: (callback?: () => void) => void;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
 };
 
 function shouldShowEmojiReaction({reportAction}: {reportAction: OnyxEntry<ReportAction>}): boolean {
@@ -31,15 +31,7 @@ function shouldShowEmojiReaction({reportAction}: {reportAction: OnyxEntry<Report
     return !!reportAction && 'message' in reportAction && !isMessageDeleted(reportAction) && !isDEWRouted;
 }
 
-function createEmojiReactionData({
-    reportID,
-    reportAction,
-    currentUserAccountID,
-    openContextMenu,
-    setIsEmojiPickerActive,
-    hideAndRun,
-    interceptAnonymousUser,
-}: EmojiReactionParams): EmojiReactionData {
+function createEmojiReactionData({reportID, reportAction, currentUserAccountID, openContextMenu, setIsEmojiPickerActive, hideAndRun}: EmojiReactionParams): EmojiReactionData {
     const closeContextMenu = (onHideCallback?: () => void) => {
         hideAndRun(onHideCallback);
     };

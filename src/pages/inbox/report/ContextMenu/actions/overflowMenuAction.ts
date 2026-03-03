@@ -1,5 +1,6 @@
 import type {RefObject} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
@@ -11,11 +12,10 @@ type OverflowMenuDescriptor = ContextMenuAction & {
 type OverflowMenuActionParams = BaseContextMenuActionParams & {
     openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => void;
     openContextMenu: () => void;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     threeDotsIcon: IconAsset;
 };
 
-function createOverflowMenuAction({openOverflowMenu, openContextMenu, interceptAnonymousUser, translate, threeDotsIcon}: OverflowMenuActionParams, threeDotRef: RefObject<View | null>): OverflowMenuDescriptor {
+function createOverflowMenuAction({openOverflowMenu, openContextMenu, translate, threeDotsIcon}: OverflowMenuActionParams, threeDotRef: RefObject<View | null>): OverflowMenuDescriptor {
     return {
         id: 'overflowMenu',
         icon: threeDotsIcon,

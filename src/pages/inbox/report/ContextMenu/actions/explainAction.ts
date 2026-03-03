@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasReasoning} from '@libs/ReportActionsUtils';
 import {explain} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -13,7 +14,6 @@ type ExplainActionParams = BaseContextMenuActionParams & {
     originalReport: OnyxEntry<ReportType>;
     reportAction: ReportAction;
     currentUserPersonalDetails: ReturnType<typeof useCurrentUserPersonalDetails>;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     hideAndRun: (callback?: () => void) => void;
     conciergeIcon: IconAsset;
 };
@@ -25,16 +25,7 @@ function shouldShowExplainAction({reportAction, isArchivedRoom}: {reportAction: 
     return hasReasoning(reportAction);
 }
 
-function createExplainAction({
-    childReport,
-    originalReport,
-    reportAction,
-    currentUserPersonalDetails,
-    interceptAnonymousUser,
-    hideAndRun,
-    translate,
-    conciergeIcon,
-}: ExplainActionParams): ContextMenuAction {
+function createExplainAction({childReport, originalReport, reportAction, currentUserPersonalDetails, hideAndRun, translate, conciergeIcon}: ExplainActionParams): ContextMenuAction {
     return {
         id: 'explain',
         icon: conciergeIcon,

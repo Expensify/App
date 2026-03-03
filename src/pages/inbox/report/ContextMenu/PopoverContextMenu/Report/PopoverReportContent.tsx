@@ -58,20 +58,16 @@ function PopoverReportContent({menuState, hideAndRun, contentRef, shouldEnableAr
                   reportActions: data.reportActions,
                   reportAction: data.reportAction,
                   currentUserAccountID: 0,
-                  interceptAnonymousUser,
                   hideAndRun,
                   translate,
                   chatBubbleUnreadIcon: icons.ChatBubbleUnread,
                   checkmarkIcon: icons.Checkmark,
               })
             : undefined;
-    const pinActionItem = showPin ? createPinAction({reportID: data.reportID, interceptAnonymousUser, hideAndRun, translate, pinIcon: icons.Pin}) : undefined;
-    const unpinActionItem = showUnpin ? createUnpinAction({reportID: data.reportID, interceptAnonymousUser, hideAndRun, translate, pinIcon: icons.Pin}) : undefined;
-    const copyOnyxDataActionItem = showCopyOnyxData
-        ? createCopyOnyxDataAction({report: data.report, interceptAnonymousUser, translate, copyIcon: icons.Copy, checkmarkIcon: icons.Checkmark})
-        : undefined;
-    const debugActionItem =
-        showDebug && data.reportAction ? createDebugAction({reportID: data.reportID, reportAction: data.reportAction, interceptAnonymousUser, translate, bugIcon: icons.Bug}) : undefined;
+    const pinActionItem = showPin ? createPinAction({reportID: data.reportID, hideAndRun, translate, pinIcon: icons.Pin}) : undefined;
+    const unpinActionItem = showUnpin ? createUnpinAction({reportID: data.reportID, hideAndRun, translate, pinIcon: icons.Pin}) : undefined;
+    const copyOnyxDataActionItem = showCopyOnyxData ? createCopyOnyxDataAction({report: data.report, translate, copyIcon: icons.Copy, checkmarkIcon: icons.Checkmark}) : undefined;
+    const debugActionItem = showDebug && data.reportAction ? createDebugAction({reportID: data.reportID, reportAction: data.reportAction, translate, bugIcon: icons.Bug}) : undefined;
 
     const visibleActions = useMemo(() => {
         const items: ContextMenuAction[] = [];

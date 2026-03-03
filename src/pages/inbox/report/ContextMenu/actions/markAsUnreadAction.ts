@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isActionOfType} from '@libs/ReportActionsUtils';
 import {markCommentAsUnread} from '@userActions/Report';
@@ -12,7 +13,6 @@ type MarkAsUnreadActionParams = BaseContextMenuActionParams & {
     reportActions: OnyxEntry<ReportActions>;
     reportAction: ReportAction;
     currentUserAccountID: number;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     hideAndRun: (callback?: () => void) => void;
     chatBubbleUnreadIcon: IconAsset;
     checkmarkIcon: IconAsset;
@@ -31,7 +31,6 @@ function createMarkAsUnreadAction({
     reportActions,
     reportAction,
     currentUserAccountID,
-    interceptAnonymousUser,
     hideAndRun,
     translate,
     chatBubbleUnreadIcon,

@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {shouldDisableThread} from '@libs/ReportUtils';
 import {navigateToAndOpenChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -12,7 +13,6 @@ type ReplyInThreadActionParams = BaseContextMenuActionParams & {
     reportAction: ReportAction;
     originalReport: OnyxEntry<ReportType>;
     currentUserAccountID: number;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     hideAndRun: (callback?: () => void) => void;
     chatBubbleReplyIcon: IconAsset;
 };
@@ -39,7 +39,6 @@ function createReplyInThreadAction({
     reportAction,
     originalReport,
     currentUserAccountID,
-    interceptAnonymousUser,
     hideAndRun,
     translate,
     chatBubbleReplyIcon,

@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -17,7 +18,6 @@ type EditActionParams = BaseContextMenuActionParams & {
     moneyRequestAction: ReportAction | undefined;
     draftMessage: string;
     introSelected: OnyxEntry<IntroSelected>;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     hideAndRun: (callback?: () => void) => void;
     pencilIcon: IconAsset;
 };
@@ -36,17 +36,7 @@ function shouldShowEditAction({
     return (canEditReportAction(reportAction) || canEditReportAction(moneyRequestAction)) && !isArchivedRoom && !isChronosReport;
 }
 
-function createEditAction({
-    reportID,
-    reportAction,
-    moneyRequestAction,
-    draftMessage,
-    introSelected,
-    interceptAnonymousUser,
-    hideAndRun,
-    translate,
-    pencilIcon,
-}: EditActionParams): ContextMenuAction {
+function createEditAction({reportID, reportAction, moneyRequestAction, draftMessage, introSelected, hideAndRun, translate, pencilIcon}: EditActionParams): ContextMenuAction {
     return {
         id: 'edit',
         icon: pencilIcon,

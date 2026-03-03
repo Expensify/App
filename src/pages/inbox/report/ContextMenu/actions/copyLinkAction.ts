@@ -2,6 +2,7 @@ import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Clipboard from '@libs/Clipboard';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isActionOfType, isMessageDeleted, isReportActionAttachment} from '@libs/ReportActionsUtils';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -14,7 +15,6 @@ import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes
 type CopyLinkActionParams = BaseContextMenuActionParams & {
     reportAction: ReportAction;
     originalReportID: string | undefined;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     linkCopyIcon: IconAsset;
     checkmarkIcon: IconAsset;
 };
@@ -26,7 +26,7 @@ function shouldShowCopyLinkAction({reportAction, menuTarget}: {reportAction: Ony
     return !isAttachmentTarget && !isMessageDeleted(reportAction) && !isDEWRouted;
 }
 
-function createCopyLinkAction({reportAction, originalReportID, interceptAnonymousUser, translate, linkCopyIcon, checkmarkIcon}: CopyLinkActionParams): ContextMenuAction {
+function createCopyLinkAction({reportAction, originalReportID, translate, linkCopyIcon, checkmarkIcon}: CopyLinkActionParams): ContextMenuAction {
     return {
         id: 'copyLink',
         icon: linkCopyIcon,

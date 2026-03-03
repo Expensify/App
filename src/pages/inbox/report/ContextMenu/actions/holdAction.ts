@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {canHoldUnholdReportAction, changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -11,7 +12,6 @@ type HoldActionParams = BaseContextMenuActionParams & {
     moneyRequestAction: ReportAction | undefined;
     isDelegateAccessRestricted: boolean;
     showDelegateNoAccessModal: (() => void) | undefined;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     hideAndRun: (callback?: () => void) => void;
     stopwatchIcon: IconAsset;
 };
@@ -36,15 +36,7 @@ function shouldShowHoldAction({
     return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy).canHoldRequest;
 }
 
-function createHoldAction({
-    moneyRequestAction,
-    isDelegateAccessRestricted,
-    showDelegateNoAccessModal,
-    interceptAnonymousUser,
-    hideAndRun,
-    translate,
-    stopwatchIcon,
-}: HoldActionParams): ContextMenuAction {
+function createHoldAction({moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal, hideAndRun, translate, stopwatchIcon}: HoldActionParams): ContextMenuAction {
     return {
         id: 'hold',
         icon: stopwatchIcon,

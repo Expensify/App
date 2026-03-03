@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {isActionableTrackExpense, isCreatedAction, isCreatedTaskReportAction, isDeletedAction, isMoneyRequestAction, isReportPreviewAction, isWhisperAction} from '@libs/ReportActionsUtils';
 import {getChildReportNotificationPreference, shouldDisableThread, shouldDisplayThreadReplies} from '@libs/ReportUtils';
@@ -12,7 +13,6 @@ type JoinThreadActionParams = BaseContextMenuActionParams & {
     reportAction: ReportAction;
     originalReport: OnyxEntry<ReportType>;
     currentUserAccountID: number;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     hideAndRun: (callback?: () => void) => void;
     bellIcon: IconAsset;
 };
@@ -49,7 +49,7 @@ function shouldShowJoinThreadAction({
     );
 }
 
-function createJoinThreadAction({reportAction, originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, bellIcon}: JoinThreadActionParams): ContextMenuAction {
+function createJoinThreadAction({reportAction, originalReport, currentUserAccountID, hideAndRun, translate, bellIcon}: JoinThreadActionParams): ContextMenuAction {
     return {
         id: 'joinThread',
         icon: bellIcon,

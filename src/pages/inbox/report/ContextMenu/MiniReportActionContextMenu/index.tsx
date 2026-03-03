@@ -13,6 +13,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import getButtonState from '@libs/getButtonState';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
 import {CONTEXT_MENU_ICON_NAMES} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
 import createCopyLinkAction, {shouldShowCopyLinkAction} from '@pages/inbox/report/ContextMenu/actions/copyLinkAction';
@@ -145,7 +146,7 @@ function MiniReportActionContextMenu() {
 
     const reportAction = data.reportAction;
     const currentUserAccountID = data.currentUserPersonalDetails?.accountID ?? 0;
-    const {interceptAnonymousUser, translate, disabledActionIDs} = data;
+    const {translate, disabledActionIDs} = data;
 
     const isDisabled = (id: string) => disabledActionIDs.has(id);
 
@@ -249,7 +250,7 @@ function MiniReportActionContextMenu() {
                   reportAction,
                   originalReport: data.originalReport,
                   currentUserAccountID,
-                  interceptAnonymousUser,
+
                   hideAndRun,
                   translate,
                   chatBubbleReplyIcon: icons.ChatBubbleReply,
@@ -262,7 +263,7 @@ function MiniReportActionContextMenu() {
                   reportActions: data.reportActions,
                   reportAction,
                   currentUserAccountID,
-                  interceptAnonymousUser,
+
                   hideAndRun,
                   translate,
                   chatBubbleUnreadIcon: icons.ChatBubbleUnread,
@@ -276,7 +277,7 @@ function MiniReportActionContextMenu() {
                   originalReport: data.originalReport,
                   reportAction,
                   currentUserPersonalDetails: data.currentUserPersonalDetails,
-                  interceptAnonymousUser,
+
                   hideAndRun,
                   translate,
                   conciergeIcon: icons.Concierge,
@@ -290,7 +291,7 @@ function MiniReportActionContextMenu() {
                   moneyRequestAction: data.moneyRequestAction,
                   draftMessage: data.draftMessage,
                   introSelected: data.introSelected,
-                  interceptAnonymousUser,
+
                   hideAndRun,
                   translate,
                   pencilIcon: icons.Pencil,
@@ -301,7 +302,7 @@ function MiniReportActionContextMenu() {
               moneyRequestAction: data.moneyRequestAction,
               isDelegateAccessRestricted: data.isDelegateAccessRestricted,
               showDelegateNoAccessModal: data.showDelegateNoAccessModal,
-              interceptAnonymousUser,
+
               hideAndRun,
               translate,
               stopwatchIcon: icons.Stopwatch,
@@ -312,7 +313,7 @@ function MiniReportActionContextMenu() {
               moneyRequestAction: data.moneyRequestAction,
               isDelegateAccessRestricted: data.isDelegateAccessRestricted,
               showDelegateNoAccessModal: data.showDelegateNoAccessModal,
-              interceptAnonymousUser,
+
               hideAndRun,
               translate,
               stopwatchIcon: icons.Stopwatch,
@@ -320,11 +321,11 @@ function MiniReportActionContextMenu() {
         : null;
     const joinThreadAction =
         displayJoinThread && reportAction
-            ? createJoinThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, bellIcon: icons.Bell})
+            ? createJoinThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, hideAndRun, translate, bellIcon: icons.Bell})
             : null;
     const leaveThreadAction =
         displayLeaveThread && reportAction
-            ? createLeaveThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, exitIcon: icons.Exit})
+            ? createLeaveThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, hideAndRun, translate, exitIcon: icons.Exit})
             : null;
     const copyMessageAction =
         displayCopyMessage && reportAction
@@ -346,20 +347,20 @@ function MiniReportActionContextMenu() {
                   translate,
                   harvestReport: data.harvestReport,
                   currentUserPersonalDetails: data.currentUserPersonalDetails,
-                  interceptAnonymousUser,
+
                   copyIcon: icons.Copy,
                   checkmarkIcon: icons.Checkmark,
               })
             : null;
     const copyLinkAction =
         displayCopyLink && reportAction
-            ? createCopyLinkAction({reportAction, originalReportID: data.originalReportID, interceptAnonymousUser, translate, linkCopyIcon: icons.LinkCopy, checkmarkIcon: icons.Checkmark})
+            ? createCopyLinkAction({reportAction, originalReportID: data.originalReportID, translate, linkCopyIcon: icons.LinkCopy, checkmarkIcon: icons.Checkmark})
             : null;
     const flagAsOffensiveAction =
         displayFlagAsOffensive && reportAction ? createFlagAsOffensiveAction({reportID: data.reportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}) : null;
     const downloadAction =
         displayDownload && reportAction
-            ? createDownloadAction({reportAction, encryptedAuthToken: data.encryptedAuthToken, interceptAnonymousUser, download: data.download, translate, downloadIcon: icons.Download})
+            ? createDownloadAction({reportAction, encryptedAuthToken: data.encryptedAuthToken, download: data.download, translate, downloadIcon: icons.Download})
             : null;
     const deleteAction =
         displayDelete && reportAction
@@ -373,7 +374,6 @@ function MiniReportActionContextMenu() {
         openContextMenu: () => miniActions.keepOpen(),
         setIsEmojiPickerActive,
         hideAndRun,
-        interceptAnonymousUser,
     });
 
     const hasEmoji = shouldShowEmojiReaction({reportAction: data.reportAction}) && !!emojiData.reportAction && !!emojiData.reportActionID;

@@ -4,6 +4,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
 import {getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
 import Parser from '@libs/Parser';
@@ -169,7 +170,6 @@ type CopyMessageClipboardParams = {
 
 type CopyMessageActionParams = BaseContextMenuActionParams &
     CopyMessageClipboardParams & {
-        interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
         copyIcon: IconAsset;
         checkmarkIcon: IconAsset;
     };
@@ -532,7 +532,7 @@ function copyMessageToClipboard(params: CopyMessageClipboardParams) {
     }
 }
 
-function createCopyMessageAction({interceptAnonymousUser, translate, copyIcon, checkmarkIcon, ...clipboardParams}: CopyMessageActionParams): ContextMenuAction {
+function createCopyMessageAction({translate, copyIcon, checkmarkIcon, ...clipboardParams}: CopyMessageActionParams): ContextMenuAction {
     return {
         id: 'copyMessage',
         icon: copyIcon,
