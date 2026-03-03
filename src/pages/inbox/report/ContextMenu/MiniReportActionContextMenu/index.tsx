@@ -31,9 +31,9 @@ import createMarkAsUnreadAction, {shouldShowMarkAsUnreadForReportAction} from '@
 import createReplyInThreadAction, {shouldShowReplyInThreadAction} from '@pages/inbox/report/ContextMenu/actions/replyInThreadAction';
 import createUnholdAction, {shouldShowUnholdAction} from '@pages/inbox/report/ContextMenu/actions/unholdAction';
 import {useMiniContextMenuActions, useMiniContextMenuState} from '@pages/inbox/report/ContextMenu/MiniContextMenuProvider';
-import useReportActionContextMenuData from '@pages/inbox/report/ContextMenu/useReportActionContextMenuData';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import useReportActionContextMenuData from '@pages/inbox/report/ContextMenu/useReportActionContextMenuData';
 import CONST from '@src/CONST';
 
 const SLIDE_DURATION = 200;
@@ -407,7 +407,7 @@ function MiniReportActionContextMenu() {
                     {hasEmoji && !!emojiData.reportAction && !!emojiData.reportActionID && (
                         <MiniQuickEmojiReactions
                             onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
-                                emojiData.interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
+                                interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
                             }
                             onPressOpenPicker={emojiData.onPressOpenPicker}
                             onEmojiPickerClosed={emojiData.onEmojiPickerClosed}

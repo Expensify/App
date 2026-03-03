@@ -1,6 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {isActionOfType, isMessageDeleted} from '@libs/ReportActionsUtils';
 import {toggleEmojiReaction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -14,7 +13,6 @@ type EmojiReactionData = {
     closeContextMenu: (onHideCallback?: () => void) => void;
     onPressOpenPicker: () => void;
     onEmojiPickerClosed: () => void;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
 };
 
 type EmojiReactionParams = {
@@ -62,7 +60,6 @@ function createEmojiReactionData({reportID, reportAction, currentUserAccountID, 
         closeContextMenu,
         onPressOpenPicker,
         onEmojiPickerClosed,
-        interceptAnonymousUser,
     };
 }
 

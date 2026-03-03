@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
 import {CONTEXT_MENU_ICON_NAMES} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
 import type {ContextMenuAction} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
@@ -32,9 +33,9 @@ import createOverflowMenuAction from '@pages/inbox/report/ContextMenu/actions/ov
 import createReplyInThreadAction, {shouldShowReplyInThreadAction} from '@pages/inbox/report/ContextMenu/actions/replyInThreadAction';
 import createUnholdAction, {shouldShowUnholdAction} from '@pages/inbox/report/ContextMenu/actions/unholdAction';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import useReportActionContextMenuData from '@pages/inbox/report/ContextMenu/useReportActionContextMenuData';
 import CONST from '@src/CONST';
 import type {PopoverContentProps} from '.';
-import useReportActionContextMenuData from '@pages/inbox/report/ContextMenu/useReportActionContextMenuData';
 
 function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOpen, contentRef, shouldEnableArrowNavigation}: PopoverContentProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -340,7 +341,7 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
                         <QuickEmojiReactions
                             closeContextMenu={emojiData.closeContextMenu}
                             onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
-                                emojiData.interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
+                                interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
                             }
                             reportActionID={emojiData.reportActionID}
                             reportAction={emojiData.reportAction}

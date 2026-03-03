@@ -1,4 +1,5 @@
 import Clipboard from '@libs/Clipboard';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
@@ -7,12 +8,11 @@ import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes
 
 type CopyURLActionParams = BaseContextMenuActionParams & {
     selection: string;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     copyIcon: IconAsset;
     checkmarkIcon: IconAsset;
 };
 
-function createCopyURLAction({selection, interceptAnonymousUser, translate, copyIcon, checkmarkIcon}: CopyURLActionParams): ContextMenuAction {
+function createCopyURLAction({selection, translate, copyIcon, checkmarkIcon}: CopyURLActionParams): ContextMenuAction {
     return {
         id: 'copyUrl',
         icon: copyIcon,
