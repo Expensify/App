@@ -56,7 +56,7 @@ function WorkspaceConfirmationOwnerSelectorPage() {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
     const currentOwner = draftValues?.owner ?? currentUserLogin ?? '';
     const ownerPersonalDetails = getPersonalDetailByEmail(currentOwner);
