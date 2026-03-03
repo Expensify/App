@@ -179,7 +179,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 const transactionRow = (
                     <TransactionItemRow
                         report={transaction.report}
-                        policy={transaction.policy}
                         transactionItem={transaction}
                         violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, transaction.report, transaction.policy)}
                         isSelected={!!transaction.isSelected}

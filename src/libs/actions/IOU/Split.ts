@@ -1,4 +1,4 @@
-import {eachDayOfInterval, format} from 'date-fns';
+import {eachDayOfInterval, format, parse} from 'date-fns';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -1864,13 +1864,13 @@ function setIndividualShare(transactionID: string, participantAccountID: number,
 /**
  * Calculate merchant for distance transactions based on distance and rate
  */
-function getDistanceMerchantFromDistance(distanceInUnits: number, unit: Unit | undefined, rate: number | undefined, currency: string, transactionCurrency?: string): string {
+function getDistanceMerchantFromDistance(distanceInUnits: number, unit: Unit | undefined, rate: number | undefined, currency: string): string {
     if (!rate || rate <= 0 || !unit) {
         return '';
     }
 
     const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distanceInUnits, unit);
-    const currencyForMerchant = currency ?? transactionCurrency ?? CONST.CURRENCY.USD;
+    const currencyForMerchant = currency;
     const currentLocale = IntlStore.getCurrentLocale();
     return DistanceRequestUtils.getDistanceMerchant(
         true,
@@ -1911,7 +1911,7 @@ function updateSplitExpenseDistanceFromAmount(
         quantity,
     };
 
-    const merchant = getDistanceMerchantFromDistance(distanceInUnits, unit, rate, mileageRate?.currency ?? transactionCurrency ?? CONST.CURRENCY.USD, transactionCurrency);
+    const merchant = getDistanceMerchantFromDistance(distanceInUnits, unit, rate, transactionCurrency ?? mileageRate?.currency ?? CONST.CURRENCY.USD);
 
     return {customUnit, merchant};
 }
@@ -2190,8 +2190,8 @@ function resetSplitExpensesByDateRange(
 
     // Generate all dates in the range
     const dates = eachDayOfInterval({
-        start: new Date(startDate),
-        end: new Date(endDate),
+        start: parse(startDate, CONST.DATE.FNS_FORMAT_STRING, new Date()),
+        end: parse(endDate, CONST.DATE.FNS_FORMAT_STRING, new Date()),
     });
 
     const transactionDetails = getTransactionDetails(transaction);
@@ -2339,8 +2339,8 @@ function updateSplitExpenseField(
                         updatedItem.amount = calculatedAmount;
 
                         // Update merchant for distance transactions
-                        const currency = mileageRate?.currency ?? originalTransaction.currency ?? CONST.CURRENCY.USD;
-                        updatedItem.merchant = getDistanceMerchantFromDistance(distanceInUnits, unit, rate, currency, originalTransaction.currency);
+                        const currency = originalTransaction.currency ?? mileageRate?.currency ?? CONST.CURRENCY.USD;
+                        updatedItem.merchant = getDistanceMerchantFromDistance(distanceInUnits, unit, rate, currency);
                     }
                 }
             }
