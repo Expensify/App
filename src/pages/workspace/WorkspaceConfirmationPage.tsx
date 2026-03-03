@@ -11,6 +11,7 @@ import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LastPaymentMethodType} from '@src/types/onyx';
@@ -45,7 +46,7 @@ function WorkspaceConfirmationPage() {
             activePolicyID,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
-            shouldCreateControlPolicy: isSubscriptionTypeOfInvoicing(privateSubscription?.type),
+            shouldCreateControlPolicy: isSubscriptionTypeOfInvoicing(privateSubscription?.type) || privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL,
             type: params.planType,
             isSelfTourViewed,
         });
