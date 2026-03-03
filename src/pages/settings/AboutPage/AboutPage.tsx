@@ -111,7 +111,6 @@ function AboutPage() {
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.REPORT_A_BUG,
                 action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, currentUserAccountID, false)),
                 shouldRestoreFocusOnReturn: true,
-
             },
         ];
 
