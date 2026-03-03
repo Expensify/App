@@ -87,8 +87,12 @@ function BaseListItem<TItem extends ListItem>({
 
     const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark && !!item.canShowSeveralIndicators;
 
+    // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
+    // For multi-select (checkbox/radio), keep existing role and state.
+    const isSelectableOption = !canSelectMultiple && accessibilityRole !== CONST.ROLE.CHECKBOX && accessibilityRole !== CONST.ROLE.RADIO;
+    const effectiveRole = isSelectableOption ? CONST.ROLE.OPTION : accessibilityRole;
     const accessibilityState =
-        accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
+        accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
 
     return (
         <OfflineWithFeedback
@@ -144,11 +148,10 @@ function BaseListItem<TItem extends ListItem>({
                 wrapperStyle={pressableWrapperStyle}
                 testID={testID}
                 accessible={accessible}
-                role={accessible === false ? CONST.ROLE.PRESENTATION : accessibilityRole}
+                role={accessible === false ? CONST.ROLE.PRESENTATION : effectiveRole}
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={{selected: !!isFocused}}
                     style={[
                         wrapperStyle,
                         isFocused &&
