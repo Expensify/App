@@ -1,7 +1,7 @@
 import type {RefObject} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View as ViewType} from 'react-native';
+import type {GestureResponderEvent, NativeTouchEvent, View as ViewType} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Dimensions} from 'react-native';
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
@@ -79,7 +79,6 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
 
     const contentRef = useRef<ViewType>(null);
     const anchorRef = useRef<ViewType | HTMLDivElement | null>(null);
-    const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
     const contextMenuAnchorRef = useRef<ContextMenuAnchor>(null);
 
     const onPopoverShow = useRef(() => {});
@@ -97,42 +96,42 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
             }
         });
 
-    const measureContextMenuAnchorPosition = () => {
+    useEffect(() => {
         if (!isPopoverVisible) {
             return;
         }
 
-        getContextMenuMeasuredLocation().then(({x, y}) => {
-            if (!x || !y) {
-                return;
-            }
-
-            setMenuState((prev) => {
-                if (!prev) {
-                    return prev;
+        const listener = Dimensions.addEventListener('change', () => {
+            new Promise<{x: number; y: number}>((resolve) => {
+                if (contextMenuAnchorRef.current && 'measureInWindow' in contextMenuAnchorRef.current && typeof contextMenuAnchorRef.current.measureInWindow === 'function') {
+                    contextMenuAnchorRef.current.measureInWindow((x, y) => resolve({x, y}));
+                } else {
+                    resolve({x: 0, y: 0});
                 }
-                return {
-                    ...prev,
-                    position: {
-                        ...prev.position,
-                        anchorHorizontal: cursorRelativePosition.current.horizontal + x,
-                        anchorVertical: cursorRelativePosition.current.vertical + y,
-                    },
-                };
+            }).then(({x, y}) => {
+                if (!x || !y) {
+                    return;
+                }
+
+                setMenuState((prev) => {
+                    if (!prev) {
+                        return prev;
+                    }
+                    return {
+                        ...prev,
+                        position: {
+                            ...prev.position,
+                            anchorHorizontal: cursorRelativePosition.current.horizontal + x,
+                            anchorVertical: cursorRelativePosition.current.vertical + y,
+                        },
+                    };
+                });
             });
         });
-    };
-
-    useEffect(() => {
-        dimensionsEventListener.current = Dimensions.addEventListener('change', measureContextMenuAnchorPosition);
 
         return () => {
-            if (!dimensionsEventListener.current) {
-                return;
-            }
-            dimensionsEventListener.current.remove();
+            listener.remove();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPopoverVisible]);
 
     const isActiveReportAction: ReportActionContextMenu['isActiveReportAction'] = (actionID) => !!actionID && reportActionID === String(actionID);
@@ -343,81 +342,6 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
     const shouldKeepOpen = localShouldKeepOpen;
     const shouldEnableArrowNavigation = isPopoverVisible || shouldKeepOpen;
 
-    const renderContent = () => {
-        if (!menuState) {
-            return null;
-        }
-        const contentProps: PopoverContentProps = {
-            menuState,
-            hideAndRun,
-            setLocalShouldKeepOpen,
-            transitionActionSheetState,
-            contentRef,
-            shouldEnableArrowNavigation,
-        };
-        if (menuState.type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION) {
-            return (
-                <PopoverReportActionContent
-                    menuState={contentProps.menuState}
-                    hideAndRun={contentProps.hideAndRun}
-                    setLocalShouldKeepOpen={contentProps.setLocalShouldKeepOpen}
-                    transitionActionSheetState={contentProps.transitionActionSheetState}
-                    contentRef={contentProps.contentRef}
-                    shouldEnableArrowNavigation={contentProps.shouldEnableArrowNavigation}
-                />
-            );
-        }
-        if (menuState.type === CONST.CONTEXT_MENU_TYPES.REPORT) {
-            return (
-                <PopoverReportContent
-                    menuState={contentProps.menuState}
-                    hideAndRun={contentProps.hideAndRun}
-                    setLocalShouldKeepOpen={contentProps.setLocalShouldKeepOpen}
-                    transitionActionSheetState={contentProps.transitionActionSheetState}
-                    contentRef={contentProps.contentRef}
-                    shouldEnableArrowNavigation={contentProps.shouldEnableArrowNavigation}
-                />
-            );
-        }
-        if (menuState.type === CONST.CONTEXT_MENU_TYPES.LINK) {
-            return (
-                <PopoverLinkContent
-                    menuState={contentProps.menuState}
-                    hideAndRun={contentProps.hideAndRun}
-                    setLocalShouldKeepOpen={contentProps.setLocalShouldKeepOpen}
-                    transitionActionSheetState={contentProps.transitionActionSheetState}
-                    contentRef={contentProps.contentRef}
-                    shouldEnableArrowNavigation={contentProps.shouldEnableArrowNavigation}
-                />
-            );
-        }
-        if (menuState.type === CONST.CONTEXT_MENU_TYPES.EMAIL) {
-            return (
-                <PopoverEmailContent
-                    menuState={contentProps.menuState}
-                    hideAndRun={contentProps.hideAndRun}
-                    setLocalShouldKeepOpen={contentProps.setLocalShouldKeepOpen}
-                    transitionActionSheetState={contentProps.transitionActionSheetState}
-                    contentRef={contentProps.contentRef}
-                    shouldEnableArrowNavigation={contentProps.shouldEnableArrowNavigation}
-                />
-            );
-        }
-        if (menuState.type === CONST.CONTEXT_MENU_TYPES.TEXT) {
-            return (
-                <PopoverTextContent
-                    menuState={contentProps.menuState}
-                    hideAndRun={contentProps.hideAndRun}
-                    setLocalShouldKeepOpen={contentProps.setLocalShouldKeepOpen}
-                    transitionActionSheetState={contentProps.transitionActionSheetState}
-                    contentRef={contentProps.contentRef}
-                    shouldEnableArrowNavigation={contentProps.shouldEnableArrowNavigation}
-                />
-            );
-        }
-        return null;
-    };
-
     return (
         <PopoverWithMeasuredContent
             isVisible={isPopoverVisible}
@@ -440,7 +364,56 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
             anchorRef={anchorRef}
             shouldSwitchPositionIfOverflow={menuState?.isOverflowMenu ?? false}
         >
-            {renderContent()}
+            {menuState?.type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && (
+                <PopoverReportActionContent
+                    menuState={menuState}
+                    hideAndRun={hideAndRun}
+                    setLocalShouldKeepOpen={setLocalShouldKeepOpen}
+                    transitionActionSheetState={transitionActionSheetState}
+                    contentRef={contentRef}
+                    shouldEnableArrowNavigation={shouldEnableArrowNavigation}
+                />
+            )}
+            {menuState?.type === CONST.CONTEXT_MENU_TYPES.REPORT && (
+                <PopoverReportContent
+                    menuState={menuState}
+                    hideAndRun={hideAndRun}
+                    setLocalShouldKeepOpen={setLocalShouldKeepOpen}
+                    transitionActionSheetState={transitionActionSheetState}
+                    contentRef={contentRef}
+                    shouldEnableArrowNavigation={shouldEnableArrowNavigation}
+                />
+            )}
+            {menuState?.type === CONST.CONTEXT_MENU_TYPES.LINK && (
+                <PopoverLinkContent
+                    menuState={menuState}
+                    hideAndRun={hideAndRun}
+                    setLocalShouldKeepOpen={setLocalShouldKeepOpen}
+                    transitionActionSheetState={transitionActionSheetState}
+                    contentRef={contentRef}
+                    shouldEnableArrowNavigation={shouldEnableArrowNavigation}
+                />
+            )}
+            {menuState?.type === CONST.CONTEXT_MENU_TYPES.EMAIL && (
+                <PopoverEmailContent
+                    menuState={menuState}
+                    hideAndRun={hideAndRun}
+                    setLocalShouldKeepOpen={setLocalShouldKeepOpen}
+                    transitionActionSheetState={transitionActionSheetState}
+                    contentRef={contentRef}
+                    shouldEnableArrowNavigation={shouldEnableArrowNavigation}
+                />
+            )}
+            {menuState?.type === CONST.CONTEXT_MENU_TYPES.TEXT && (
+                <PopoverTextContent
+                    menuState={menuState}
+                    hideAndRun={hideAndRun}
+                    setLocalShouldKeepOpen={setLocalShouldKeepOpen}
+                    transitionActionSheetState={transitionActionSheetState}
+                    contentRef={contentRef}
+                    shouldEnableArrowNavigation={shouldEnableArrowNavigation}
+                />
+            )}
         </PopoverWithMeasuredContent>
     );
 }
