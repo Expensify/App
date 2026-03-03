@@ -64,7 +64,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markNavigateAfterExpenseCreateEnd from '@libs/telemetry/markNavigateAfterExpenseCreateEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -684,8 +684,11 @@ function Search({
                     );
                     const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report) : false;
 
-                    const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                    const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                    const itemTransaction = (searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
+                        transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
+                    const originalItemTransaction =
+                        searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
+                        transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
 
                     newTransactionList[transactionItem.transactionID] = {
                         transaction: transactionItem,
@@ -941,8 +944,11 @@ function Search({
                     currentTransactions
                         .filter((t) => !isTransactionPendingDelete(t))
                         .map((transactionItem) => {
-                            const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                            const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                            const itemTransaction = (searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
+                                transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
+                            const originalItemTransaction =
+                                searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
+                                transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                             return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
                         }),
                 ),
@@ -1212,9 +1218,7 @@ function Search({
 
     const onLayout = useCallback(() => {
         hasHadFirstLayout.current = true;
-        const span = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-        span?.setAttributes({[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
-        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
         markNavigateAfterExpenseCreateEnd();
         // Reset the ref after the span is ended so future render-time cancelSpan calls are no longer guarded.
         spanExistedOnMount.current = false;
@@ -1240,9 +1244,12 @@ function Search({
 
     const onLayoutSkeleton = useCallback(() => {
         hasHadFirstLayout.current = true;
-        const span = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-        span?.setAttributes({[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
-        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
+    }, []);
+
+    const onLayoutChart = useCallback(() => {
+        hasHadFirstLayout.current = true;
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
     }, []);
 
     // On re-visits, react-freeze serves the cached layout — onLayout/onLayoutSkeleton never fire.
@@ -1252,11 +1259,9 @@ function Search({
             if (!hasHadFirstLayout.current) {
                 return;
             }
-            const span = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-            span?.setAttributes({
+            endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
                 [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
             });
-            endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
             markNavigateAfterExpenseCreateEnd();
             spanExistedOnMount.current = false;
         }, [shouldShowLoadingState]),
@@ -1360,6 +1365,7 @@ function Search({
                     data={sortedData}
                     isLoading={shouldShowLoadingState}
                     onScroll={onSearchListScroll}
+                    onLayout={onLayoutChart}
                     title={chartTitle}
                 />
             </SearchScopeProvider>

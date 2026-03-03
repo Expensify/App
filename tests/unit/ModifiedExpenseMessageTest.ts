@@ -33,7 +33,7 @@ describe('ModifiedExpenseMessage', () => {
 
     beforeEach(() => {
         // The `getReportName` method is quite complex, and we don't need to test it here
-        jest.spyOn(ReportUtils, 'getReportName').mockImplementation((report) => report?.reportName ?? '');
+        jest.spyOn(ReportUtils, 'getReportName').mockImplementation((reportNameInformation) => reportNameInformation?.report?.reportName ?? '');
     });
 
     afterEach(() => {
