@@ -166,11 +166,11 @@ function AttachmentModalBaseContent({
             return;
         }
 
+        onClose?.();
+
         if (onConfirm) {
             onConfirm(Object.assign(files ?? {}, {source} as FileObject));
         }
-
-        onClose?.();
     }, [isConfirmButtonDisabled, onConfirm, onClose, files, source]);
 
     // Close the modal when the escape key is pressed
