@@ -7,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import SearchDatePickerDay from './SearchDatePickerDay';
 
 type RangeDatePickerProps = {
     /** The "From" date value */
@@ -49,7 +48,6 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
                             onSelected={onFromSelected}
                             minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                             maxDate={fromMaxDate}
-                            DayComponent={SearchDatePickerDay}
                             headerContainerStyle={styles.ph4}
                         />
                     </View>
@@ -63,7 +61,6 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
                             onSelected={onToSelected}
                             minDate={toMinDate}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            DayComponent={SearchDatePickerDay}
                             headerContainerStyle={styles.ph4}
                         />
                     </View>
