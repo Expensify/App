@@ -5,7 +5,6 @@ import {View} from 'react-native';
 // ScrollView type is needed for the horizontal scroll ref; the project ScrollView component is used for rendering.
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
@@ -15,7 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import type {SearchColumnType, SearchCustomColumnIds, SortOrder} from '@components/Search/types';
+import type {SearchCustomColumnIds, SortOrder} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
@@ -41,7 +40,6 @@ import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import Parser from '@libs/Parser';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
@@ -51,25 +49,16 @@ import {
     getBillableAndTaxTotal,
     getMoneyRequestSpendBreakdown,
     getReportOfflinePendingActionAndErrors,
+    getTransactionSortValue,
     isCurrentUserSubmitter,
     isExpenseReport,
     isIOUReport,
+    isSortableColumnName,
+    sortableColumnNames,
 } from '@libs/ReportUtils';
+import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {
-    getAmount,
-    getCategory,
-    getCreated,
-    getExchangeRate,
-    getMerchant,
-    getOriginalAmountForDisplay,
-    getReimbursable,
-    getTag,
-    getTaxAmount,
-    getTransactionPendingAction,
-    isTransactionPendingDelete,
-    shouldShowExpenseBreakdown,
-} from '@libs/TransactionUtils';
+import {getTransactionPendingAction, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -123,61 +112,11 @@ type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     shouldBeHighlighted?: boolean;
 };
 
-const sortableColumnNames = [
-    CONST.SEARCH.TABLE_COLUMNS.DATE,
-    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
-    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
-    CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
-    CONST.SEARCH.TABLE_COLUMNS.TAG,
-    CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-    CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
-    CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
-    CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
-    CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
-    CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
-    CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
-] as const satisfies readonly SearchColumnType[];
-
 type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-
-type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
 
 type SortedTransactions = {
     sortBy: SortableColumnName;
     sortOrder: SortOrder;
-};
-
-const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key);
-
-const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableColumnName, reportToSort: OnyxTypes.Report) => {
-    switch (key) {
-        case CONST.SEARCH.TABLE_COLUMNS.DATE:
-            return getCreated(transaction);
-        case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
-            return getMerchant(transaction);
-        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
-            return getCategory(transaction);
-        case CONST.SEARCH.TABLE_COLUMNS.TAG:
-            return getTag(transaction);
-        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
-            return getAmount(transaction, isExpenseReport(reportToSort), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
-        case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
-            return Parser.htmlToText(transaction.comment?.comment ?? '');
-        case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
-            return getReimbursable(transaction) ? 1 : 0;
-        case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
-            return transaction.billable ? 1 : 0;
-        case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
-            return getExchangeRate(transaction);
-        case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
-            return getOriginalAmountForDisplay(transaction, isExpenseReport(reportToSort));
-        case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
-            return getTaxAmount(transaction, isExpenseReport(reportToSort));
-        case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
-            return transaction.taxRate ?? '';
-        default:
-            return transaction[key];
-    }
 };
 
 function MoneyRequestReportTransactionList({
@@ -282,8 +221,10 @@ function MoneyRequestReportTransactionList({
     const {sortBy, sortOrder} = sortConfig;
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
-        return [...transactions].sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true));
-    }, [sortBy, sortOrder, transactions, localeCompare, report]);
+        return [...transactions].sort((a, b) =>
+            compareValues(getTransactionSortValue(a, sortBy, report, policy), getTransactionSortValue(b, sortBy, report, policy), sortOrder, sortBy, localeCompare, true),
+        );
+    }, [sortBy, sortOrder, transactions, localeCompare, report, policy]);
 
     const highlightedTransactionIDs = useMemo(() => new Set(newTransactions.map(({transactionID}) => transactionID)), [newTransactions]);
 

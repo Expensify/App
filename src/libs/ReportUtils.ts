@@ -272,12 +272,14 @@ import {
     getCurrency,
     getDescription,
     getDistanceInMeters,
+    getExchangeRate,
     getFormattedCreated,
     getFormattedPostedDate,
     getMCCGroup,
     getMerchant,
     getMerchantOrDescription,
     getOriginalAmount,
+    getOriginalAmountForDisplay,
     getOriginalCurrency,
     getRateID,
     getRecentTransactions,
@@ -285,7 +287,9 @@ import {
     getTag,
     getTaxAmount,
     getTaxCode,
+    getTaxName,
     getAmount as getTransactionAmount,
+    getCreated as getTransactionCreated,
     getTransactionID,
     getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
@@ -12903,6 +12907,65 @@ function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string,
     return {fieldValues, fieldsByName};
 }
 
+const sortableColumnNames = [
+    CONST.SEARCH.TABLE_COLUMNS.DATE,
+    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.TAG,
+    CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+    CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
+    CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
+    CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
+    CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+    CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
+    CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
+] as const;
+
+type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
+
+/**
+ * Type guard to check if a column name is sortable
+ */
+function isSortableColumnName(key: unknown): key is SortableColumnName {
+    return !!sortableColumnNames.find((val) => val === key);
+}
+
+/**
+ * Get the sortable value for a transaction based on the column type.
+ * Used for sorting transactions in MoneyRequestReportTransactionList.
+ */
+function getTransactionSortValue(transaction: Transaction, key: SortableColumnName, report: Report, policy: OnyxEntry<Policy>): string | number {
+    switch (key) {
+        case CONST.SEARCH.TABLE_COLUMNS.DATE:
+            return getTransactionCreated(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            return getMerchant(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+            return getCategory(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.TAG:
+            return getTag(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
+            return getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+        case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+            return Parser.htmlToText(transaction.comment?.comment ?? '');
+        case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
+            return getReimbursable(transaction) ? 1 : 0;
+        case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+            return transaction.billable ? 1 : 0;
+        case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
+            return getExchangeRate(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
+            return getOriginalAmountForDisplay(transaction, isExpenseReport(report));
+        case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
+            return getTaxAmount(transaction, isExpenseReport(report));
+        case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
+            return getTaxName(policy, transaction) ?? '';
+        default:
+            return '';
+    }
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
@@ -13310,9 +13373,13 @@ export {
     getReportForHeader,
     isReportOpenOrUnsubmitted,
     getIconsForExpenseReport,
+    getTransactionSortValue,
+    isSortableColumnName,
+    sortableColumnNames,
 };
 
 export type {
+    SortableColumnName,
     Ancestor,
     DisplayNameWithTooltips,
     OptimisticAddCommentReportAction,

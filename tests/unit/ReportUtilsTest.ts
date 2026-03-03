@@ -90,6 +90,7 @@ import {
     getReportPreviewMessage,
     getReportStatusTranslation,
     getReportSubtitlePrefix,
+    getTransactionSortValue,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
     hasActionWithErrorsForTransaction,
@@ -13274,6 +13275,65 @@ describe('ReportUtils', () => {
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
             await Onyx.clear();
+        });
+    });
+
+    describe('getTransactionSortValue', () => {
+        const mockReport: Report = {
+            reportID: 'test-report-id',
+            type: CONST.REPORT.TYPE.EXPENSE,
+        } as Report;
+
+        const mockPolicy = {
+            id: 'test-policy-id',
+            name: 'Test Policy',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            owner: 'test@test.com',
+            outputCurrency: 'USD',
+            isPolicyExpenseChatEnabled: true,
+            taxRates: {
+                taxes: {
+                    TAX_CODE_1: {
+                        name: 'Standard Tax',
+                        value: '10%',
+                    },
+                },
+            },
+        } as unknown as Policy;
+
+        const createMockTransaction = (overrides: Partial<Transaction> = {}): Transaction =>
+            ({
+                transactionID: 'test-transaction-id',
+                reportID: 'test-report-id',
+                amount: 0,
+                created: '',
+                currency: 'USD',
+                merchant: '',
+                category: '',
+                tag: '',
+                billable: false,
+                reimbursable: true,
+                ...overrides,
+            }) as Transaction;
+
+        it('should return created date for DATE column', () => {
+            const transaction = createMockTransaction({created: '2024-01-15'});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.DATE, mockReport, mockPolicy);
+            expect(result).toBe('2024-01-15');
+        });
+
+        it('should return 1 for reimbursable and 0 for non-reimbursable', () => {
+            const reimbursable = createMockTransaction({reimbursable: true});
+            const nonReimbursable = createMockTransaction({reimbursable: false});
+            expect(getTransactionSortValue(reimbursable, CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, mockReport, mockPolicy)).toBe(1);
+            expect(getTransactionSortValue(nonReimbursable, CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, mockReport, mockPolicy)).toBe(0);
+        });
+
+        it('should return empty string for TAX_RATE when policy is undefined', () => {
+            const transaction = createMockTransaction({taxCode: 'TAX_CODE_1'});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, mockReport, undefined);
+            expect(result).toBe('');
         });
     });
 });
