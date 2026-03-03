@@ -308,13 +308,13 @@ function getCustomUnitsForDuplication(
     policy: Policy,
     isDistanceRatesOptionSelected: boolean,
     isPerDiemOptionSelected: boolean,
-    customUnit: {
+    customUnitIDs: {
         distanceCustomUnitID: string;
         perDiemCustomUnitID: string;
     },
 ): Record<string, CustomUnit> | undefined {
     const customUnits = policy?.customUnits;
-    const {distanceCustomUnitID, perDiemCustomUnitID} = customUnit ?? {};
+    const {distanceCustomUnitID, perDiemCustomUnitID} = customUnitIDs ?? {};
 
     if ((!isDistanceRatesOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
         return undefined;
