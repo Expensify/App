@@ -351,11 +351,21 @@ function updateReportsToDisplayInLHN({
     draftComments,
     transactions,
 }: UpdateReportsToDisplayInLHNProps) {
-    const displayedReportsCopy = {...displayedReports};
+    // Use a lazy copy to avoid creating a new object reference when no entries actually change.
+    let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
+    const getMutableCopy = (): ReportsToDisplayInLHN => {
+        if (!displayedReportsCopy) {
+            displayedReportsCopy = {...displayedReports};
+        }
+        return displayedReportsCopy;
+    };
+
     for (const reportID of updatedReportsKeys) {
         const report = reports?.[reportID];
         if (!report) {
-            delete displayedReportsCopy[reportID];
+            if (reportID in displayedReports) {
+                delete getMutableCopy()[reportID];
+            }
             continue;
         }
 
@@ -379,20 +389,32 @@ function updateReportsToDisplayInLHN({
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
             const hasAttentionOrError = requiresAttention || hasErrorsOtherThanFailedReceipt;
-            displayedReportsCopy[reportID] = hasAttentionOrError ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt} : report;
-        } else {
-            delete displayedReportsCopy[reportID];
+            const existingEntry = displayedReports[reportID];
+
+            if (hasAttentionOrError) {
+                if (
+                    existingEntry !== report ||
+                    existingEntry?.requiresAttention !== requiresAttention ||
+                    existingEntry?.hasErrorsOtherThanFailedReceipt !== hasErrorsOtherThanFailedReceipt
+                ) {
+                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt};
+                }
+            } else if (existingEntry !== report) {
+                getMutableCopy()[reportID] = report;
+            }
+        } else if (reportID in displayedReports) {
+            delete getMutableCopy()[reportID];
         }
     }
 
-    return displayedReportsCopy;
+    return displayedReportsCopy ?? displayedReports;
 }
 /**
  * Categorizes reports into their respective LHN groups
  */
 function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
-    reportsDrafts: OnyxCollection<string> | undefined,
+    reportsDrafts: Record<string, boolean> | undefined,
     conciergeReportID: string | undefined,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
 ) {
@@ -430,8 +452,7 @@ function categorizeReportsForLHN(
 
         const isPinned = !!report.isPinned;
         const requiresAttention = !!report?.requiresAttention;
-        const draftComment = reportsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
-        const hasDraft = !!draftComment;
+        const hasDraft = !!reportsDrafts?.[reportID];
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
         const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
         const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
@@ -555,7 +576,7 @@ function sortReportsToDisplayInLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     priorityMode: OnyxEntry<PriorityMode>,
     localeCompare: LocaleContextProps['localeCompare'],
-    reportsDrafts: OnyxCollection<string> | undefined,
+    reportsDrafts: Record<string, boolean> | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
     conciergeReportID: string | undefined,
 ): string[] {
@@ -1008,12 +1029,6 @@ function getOptionData({
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
             result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
-        } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
-            const displayName =
-                (lastMessageTextFromReport.length > 0 &&
-                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
-                lastActorDisplayName;
-            result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else if (lastAction && isOldDotReportAction(lastAction)) {
             result.alternateText = getMessageOfOldDotReportAction(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
@@ -1082,6 +1097,12 @@ function getOptionData({
             result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
+        } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
+            const displayName =
+                (lastMessageTextFromReport.length > 0 &&
+                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
+                lastActorDisplayName;
+            result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
