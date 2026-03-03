@@ -26,7 +26,6 @@ import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableRe
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import Disclaimer from './Disclaimer';
 import DistanceCounter from './DistanceCounter';
 import GPSButtons from './GPSButtons';
 import type IOURequestStepDistanceGPSProps from './types';
@@ -151,7 +150,6 @@ function IOURequestStepDistanceGPS({
             />
             <View style={[styles.w100, styles.pAbsolute, styles.b0, styles.r0, styles.l0]}>
                 <Waypoints />
-                <Disclaimer />
                 <DotIndicatorMessage
                     style={[styles.ph5, styles.pb3]}
                     messages={getError()}
