@@ -6,6 +6,7 @@ import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@sr
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {replaceAllDigits} from './MoneyRequestUtils';
 // This will be fixed as part of https://github.com/Expensify/App/issues/66397
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
@@ -296,6 +297,15 @@ function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): M
 }
 
 /**
+ * Rounds a distance (already in the target unit) to 2 decimal places,
+ * multiplies by the rate, and rounds to the nearest integer (cents).
+ */
+function roundDistanceAmount(distanceInUnits: number, rate: number): number {
+    const roundedDistance = parseFloat(distanceInUnits.toFixed(2));
+    return Math.round(roundedDistance * rate);
+}
+
+/**
  * Calculates the expense amount based on distance, unit, and rate.
  *
  * @param distance - The distance traveled in meters
@@ -304,9 +314,7 @@ function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): M
  * @returns The computed expense amount (rounded) in "cents".
  */
 function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): number {
-    const convertedDistance = convertDistanceUnit(distance, unit);
-    const roundedDistance = parseFloat(convertedDistance.toFixed(2));
-    return Math.round(roundedDistance * rate);
+    return roundDistanceAmount(convertDistanceUnit(distance, unit), rate);
 }
 
 /**
@@ -458,6 +466,30 @@ function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID
     return getMileageRates(policy, true, customUnitRateID)[customUnitRateID];
 }
 
+/**
+ * Returns whether the calculated distance expense amount (distance * rate) is within the backend's safe limit.
+ * The backend WAF rejects amounts exceeding 12 digits (999,999,999,999 cents).
+ *
+ * @param distance - The distance in the unit specified (km or mi), NOT meters
+ * @param rate - The rate in cents per unit
+ * @returns true if the amount is within limits, false if it would exceed the backend limit
+ */
+function isDistanceAmountWithinLimit(distance: number, rate: number): boolean {
+    return Math.abs(roundDistanceAmount(distance, rate)) <= CONST.IOU.MAX_SAFE_AMOUNT;
+}
+
+/**
+ * Normalize odometer text by standardizing locale digits and stripping all
+ * non-numeric characters except the decimal point. fromLocaleDigit converts
+ * each locale character to its standard equivalent (e.g. German ',' → '.'
+ * for decimal, German '.' → ',' for group separator), then we keep only
+ * digits and the standard decimal point.
+ */
+function normalizeOdometerText(text: string, fromLocaleDigit: (char: string) => string): string {
+    const standardized = replaceAllDigits(text, fromLocaleDigit);
+    return standardized.replaceAll(/[^0-9.]/g, '');
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -477,6 +509,8 @@ export default {
     getDistanceForDisplayLabel,
     convertDistanceUnit,
     getRateForExpenseDisplay,
+    isDistanceAmountWithinLimit,
+    normalizeOdometerText,
 };
 
 export type {MileageRate};

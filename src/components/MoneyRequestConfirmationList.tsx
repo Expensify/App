@@ -1050,6 +1050,11 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
+                if (isDistanceRequest && Math.abs(iouAmount) > CONST.IOU.MAX_SAFE_AMOUNT) {
+                    setFormError('iou.error.distanceAmountTooLarge');
+                    return;
+                }
+
                 if (isTimeRequest && !isValidTimeExpenseAmount(iouAmount, iouCurrencyCode, decimals)) {
                     setFormError('iou.timeTracking.amountTooLargeError');
                     return;
