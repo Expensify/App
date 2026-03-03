@@ -322,7 +322,7 @@ function TransactionPreviewContent({
                                                 ]}
                                             >
                                                 {shouldShowMerchantOrDescription &&
-                                                    ((shouldShowMerchant || !isDescriptionHTML) ? (
+                                                    (shouldShowMerchant || !isDescriptionHTML ? (
                                                         <Text
                                                             fontSize={variables.fontSizeNormal}
                                                             style={[isDeleted && styles.lineThrough, styles.flexShrink1, styles.preWrap]}
@@ -331,10 +331,8 @@ function TransactionPreviewContent({
                                                             {shouldShowMerchant ? requestMerchant : requestDescription}
                                                         </Text>
                                                     ) : (
-                                                        <View
-                                                            style={[isDeleted && styles.lineThrough, styles.flexShrink1, styles.renderHTML]}
-                                                        >
-                                                            <RenderHTML html={description} />
+                                                        <View style={[styles.flexShrink1, styles.renderHTML]}>
+                                                            <RenderHTML html={isDeleted ? `<del>${description}</del>` : description} />
                                                         </View>
                                                     ))}
                                                 {!shouldWrapDisplayAmount && (
