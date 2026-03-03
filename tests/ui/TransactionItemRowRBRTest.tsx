@@ -10,7 +10,7 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {TransactionViolations} from '@src/types/onyx';
+import type {ReportAction, TransactionViolations} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -39,14 +39,14 @@ const defaultProps = {
 };
 
 // Helper function to render TransactionItemRow with providers
-const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearchFields) => {
+const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearchFields, reportActions?: ReportAction[]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <TransactionItemRow
                 transactionItem={transactionItem}
                 violations={transactionItem.violations}
                 report={transactionItem.report}
-                policy={transactionItem.policy}
+                reportActions={reportActions}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
             />
@@ -135,7 +135,7 @@ describe('TransactionItemRowRBR', () => {
                 <TransactionItemRow
                     transactionItem={mockTransaction}
                     violations={undefined}
-                    // eslint-disable-next-line react/jsx-props-no-spreading -- test: avoids repeating many required props
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultProps}
                     columns={[CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]}
                 />
@@ -250,8 +250,8 @@ describe('TransactionItemRowRBR', () => {
             [mockReportActionErrors.reportActionID]: mockReportActionErrors,
         });
 
-        // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        // When rendering the transaction item row (reportActions passed to enable early-return guard to detect thread errors)
+        renderTransactionItemRow(mockTransaction, [mockReportActionIOU, mockReportActionErrors]);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed for report action errors
@@ -276,8 +276,8 @@ describe('TransactionItemRowRBR', () => {
             [mockReportActionErrors.reportActionID]: mockReportActionErrors,
         });
 
-        // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        // When rendering the transaction item row (reportActions passed to enable early-return guard to detect thread errors)
+        renderTransactionItemRow(mockTransaction, [mockReportActionIOU, mockReportActionErrors]);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with both report action errors and violations
@@ -339,8 +339,8 @@ describe('TransactionItemRowRBR', () => {
             [mockReportActionErrors.reportActionID]: mockReportActionErrors,
         });
 
-        // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        // When rendering the transaction item row (reportActions passed to enable early-return guard to detect thread errors)
+        renderTransactionItemRow(mockTransaction, [mockReportActionIOU, mockReportActionErrors]);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with transaction errors, missing merchant error, and violations

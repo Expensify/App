@@ -507,9 +507,32 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Por favor, inicia sesión de nuevo.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Revisar transacción',
+            pleaseReview: 'Por favor revisa esta transacción',
+            requiresYourReview: 'Una transacción con la tarjeta Expensify requiere tu revisión a continuación.',
+            transactionDetails: 'Detalles de la transacción',
+            attemptedTransaction: 'Intento de transacción',
+            deny: 'Rechazar',
+            approve: 'Aprobar',
+            denyTransaction: 'Rechazar transacción',
+            transactionDenied: 'Transacción rechazada',
+            transactionApproved: '¡Transacción aprobada!',
+            areYouSureToDeny: '¿Estás seguro? La transacción será rechazada si cierras esta pantalla.',
+            youCanTryAgainAtMerchantOrReachOut: 'Puedes intentarlo de nuevo en el comercio. Si no realizaste esta transacción, comunícate con Concierge para reportar un posible fraude.',
+            youNeedToTryAgainAtMerchant: 'Esta transacción no fue verificada, por lo que la hemos rechazado. Necesitarás intentarlo de nuevo en el comercio.',
+            goBackToTheMerchant: 'Regresa al sitio del comercio para continuar la transacción.',
+            transactionFailed: 'Transacción fallida',
+            transactionCouldNotBeCompleted: 'Su transacción no pudo ser completada. Por favor, inténtelo de nuevo en el comercio.',
+            transactionCouldNotBeCompletedReachOut:
+                'Su transacción no pudo ser completada. Si usted no intentó esta transacción, <concierge-link>póngase en contacto con el Concierge</concierge-link> para reportar un posible fraude.',
+            reviewFailed: 'Revisión fallida',
+            alreadyReviewedSubtitle:
+                'Ya ha revisado esta transacción. Por favor, revise su <transaction-history-link>historial de transacciones</transaction-history-link> o contacte a <concierge-link>Concierge</concierge-link> para reportar cualquier problema.',
+        },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo no compatible',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> Esta acción no está soportada en tu dispositivo. Por favor descarga la aplicación de Expensify desde la <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> o <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e inténtalo de nuevo.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `Esta acción no está soportada en tu dispositivo. Por favor descarga la aplicación de Expensify desde la <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> o <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e inténtalo de nuevo.`,
         },
         biometricsTest: {
             biometricsTest: 'Prueba de biometría',
@@ -874,6 +897,19 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: 'Las próximas tareas aparecerán aquí.',
             },
         },
+        upcomingTravel: 'Próximos viajes',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Vuelo a ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Tren a ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel en ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Alquiler de coche en ${destination}`,
+            inOneWeek: 'En 1 semana',
+            inDays: () => ({
+                one: 'En 1 día',
+                other: (count: number) => `En ${count} días`,
+            }),
+            today: 'Hoy',
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -1145,6 +1181,11 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: (memo) => `enviado${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
+        failedToAutoSubmitViaDEW: (reason: string) => `no ha podido enviar este informe mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `no ha podido enviar este informe. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) =>
+            `no ha podido aprobar mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `no ha podido aprobar. ${reason}`,
         queuedToApproveViaDEW: 'en cola para aprobar a través del flujo de aprobación personalizado',
         trackedAmount: (formattedAmount, comment) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: (amount) => `dividir ${amount}`,
@@ -1202,6 +1243,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Por favor, ingresa una distancia válida antes de continuar',
             invalidReadings: 'Por favor ingrese ambas lecturas de inicio y fin',
             negativeDistanceNotAllowed: 'La lectura final debe ser mayor que la lectura inicial',
+            distanceAmountTooLarge: 'El importe total es demasiado alto. Reduce la distancia o disminuye la tarifa.',
+            distanceAmountTooLargeReduceDistance: 'El importe total es demasiado alto. Reduce la distancia.',
+            distanceAmountTooLargeReduceRate: 'El importe total es demasiado alto. Disminuye la tarifa.',
+            odometerReadingTooLarge: (formattedMax: string) => `Las lecturas del odómetro no pueden superar ${formattedMax}.`,
             invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar',
             invalidTaxAmount: (amount) => `El importe máximo del impuesto es ${amount}`,
             invalidSplit: 'La suma de las partes debe ser igual al importe total',
@@ -3789,6 +3834,7 @@ ${amount} para ${merchant} - ${date}`,
             clearFilter: 'Borrar filtro',
             workspaceName: 'Nombre del espacio de trabajo',
             workspaceOwner: 'Dueño',
+            keepMeAsAdmin: 'Mantenerme como administrador',
             workspaceType: 'Tipo de espacio de trabajo',
             workspaceAvatar: 'Espacio de trabajo avatar',
             clientID: 'ID del cliente',
@@ -7217,6 +7263,10 @@ ${amount} para ${merchant} - ${date}`,
                 unshare: ({to}) => `miembro eliminado ${to}`,
                 stripePaid: (amount, currency) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Abra la aplicación móvil de Expensify para revisar su transacción de${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
+                },
                 integrationSyncFailed: (label, errorMessage, workspaceAccountingLink) =>
                     `hubo un problema al sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Por favor, soluciona el problema en la <a href="${workspaceAccountingLink}">configuración del espacio de trabajo</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
@@ -8538,6 +8588,7 @@ ${amount} para ${merchant} - ${date}`,
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
         gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',
+        hasFilterNegation: '<tooltip>Busca gastos sin recibos usando <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
@@ -8764,7 +8815,6 @@ ${amount} para ${merchant} - ${date}`,
         },
     },
     gps: {
-        disclaimer: 'Utiliza el GPS para crear un gasto a partir de tu trayecto. Toca Iniciar a continuación para comenzar el seguimiento.',
         error: {
             failedToStart: 'No se pudo iniciar el seguimiento de la ubicación.',
             failedToGetPermissions: 'No se pudieron obtener los permisos de ubicación necesarios.',
