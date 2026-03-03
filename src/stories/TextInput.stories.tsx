@@ -88,7 +88,7 @@ function HintAndErrorInput(props: BaseTextInputProps) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             onChangeText={(value) => {
-                if (value && value.toLowerCase() === 'oops!') {
+                if (value?.toLowerCase() === 'oops!') {
                     setError("Oops! Looks like there's an error");
                     return;
                 }

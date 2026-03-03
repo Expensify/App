@@ -1,13 +1,10 @@
+import {fixupConfigRules, fixupPluginRules} from '@eslint/compat';
 import {FlatCompat} from '@eslint/eslintrc';
 import tsParser from '@typescript-eslint/parser';
 import expensifyConfig from 'eslint-config-expensify';
 import fileProgress from 'eslint-plugin-file-progress';
-import jsdoc from 'eslint-plugin-jsdoc';
 import lodash from 'eslint-plugin-lodash';
-import react from 'eslint-plugin-react';
-import reactNativeA11Y from 'eslint-plugin-react-native-a11y';
 import testingLibrary from 'eslint-plugin-testing-library';
-import youDontNeedLodashUnderscore from 'eslint-plugin-you-dont-need-lodash-underscore';
 import {defineConfig, globalIgnores} from 'eslint/config';
 import globals from 'globals';
 import path from 'node:path';
@@ -164,7 +161,7 @@ const config = defineConfig([
     expensifyConfig,
     typescriptEslint.configs.recommendedTypeChecked,
     typescriptEslint.configs.stylisticTypeChecked,
-    fileProgress.configs['recommended-ci'],
+    ...fixupConfigRules(fileProgress.configs['recommended-ci']),
 
     // Suppress lint rules that are unnecessary for files successfully compiled by React Compiler.
     // The processor runs React Compiler on each file and filters out redundant lint messages.
@@ -173,23 +170,34 @@ const config = defineConfig([
         processor: reactCompilerCompat.processors['react-compiler-compat'],
     },
 
-    {
-        extends: new FlatCompat({baseDirectory: dirname}).extends(
-            'airbnb-typescript',
-            'plugin:storybook/recommended',
-            'plugin:react-native-a11y/basic',
-            'plugin:@dword-design/import-alias/recommended',
-            'plugin:you-dont-need-lodash-underscore/all',
-            'prettier',
-        ),
+    ...fixupConfigRules(new FlatCompat({baseDirectory: dirname}).extends(
+        'airbnb-typescript',
+        'plugin:storybook/recommended',
+        'plugin:react-native-a11y/basic',
+        'plugin:@dword-design/import-alias/recommended',
+        'plugin:you-dont-need-lodash-underscore/all',
+        'prettier',
+    )).map((configItem) => {
+        const result = {...configItem};
+        if (result.plugins) {
+            result.plugins = Object.fromEntries(
+                Object.entries(result.plugins).filter(([key]) => !['@typescript-eslint', 'import', 'react', 'jsx-a11y', 'jsdoc'].includes(key)),
+            );
+        }
+        if (result.rules) {
+            result.rules = Object.fromEntries(
+                Object.entries(result.rules).filter(
+                    ([key]) => !['@typescript-eslint/lines-between-class-members', '@typescript-eslint/no-throw-literal'].includes(key),
+                ),
+            );
+        }
+        return result;
+    }),
 
+    {
         plugins: {
-            jsdoc,
-            'you-dont-need-lodash-underscore': youDontNeedLodashUnderscore,
-            'react-native-a11y': reactNativeA11Y,
-            react,
             'testing-library': testingLibrary,
-            lodash,
+            lodash: fixupPluginRules(lodash),
         },
 
         languageOptions: {
@@ -429,9 +437,8 @@ const config = defineConfig([
     {
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
         rules: {
-            // @typescript-eslint/lines-between-class-members was moved to @stylistic/eslint-plugin, so replaced with lines-between-class-members.
+            // @typescript-eslint/lines-between-class-members was removed; use the base ESLint rule instead.
             'lines-between-class-members': 'error',
-            '@typescript-eslint/lines-between-class-members': 'off',
 
             // Sometimes it's useful to include duplicate types for documentation purposes.
             '@typescript-eslint/no-duplicate-type-constituents': ['error', {ignoreUnions: true}],
@@ -440,7 +447,6 @@ const config = defineConfig([
 
             // @typescript-eslint/no-throw-literal was removed, so replaced with no-throw-literal.
             'no-throw-literal': 'error',
-            '@typescript-eslint/no-throw-literal': 'off',
 
             '@typescript-eslint/no-unused-vars': [
                 'error',
@@ -451,6 +457,7 @@ const config = defineConfig([
                     ignoreRestSiblings: true,
                 },
             ],
+            '@typescript-eslint/prefer-optional-chain': 'off',
             '@typescript-eslint/prefer-find': 'off',
             '@typescript-eslint/prefer-includes': 'off',
             '@typescript-eslint/prefer-nullish-coalescing': [
@@ -469,6 +476,9 @@ const config = defineConfig([
             '@typescript-eslint/prefer-promise-reject-errors': 'off',
 
             '@typescript-eslint/prefer-regexp-exec': 'off',
+            'react-hooks/preserve-manual-memoization': 'off',
+            'react-hooks/refs': 'off',
+            'react-hooks/set-state-in-effect': 'off',
         },
     },
 
@@ -575,6 +585,15 @@ const config = defineConfig([
             'testing-library/prefer-find-by': 'error',
             'testing-library/prefer-presence-queries': 'error',
             'testing-library/prefer-screen-queries': 'error',
+        },
+    },
+
+    {
+        files: ['eslint-plugin-react-compiler-compat/index.mjs'],
+        rules: {
+            '@dword-design/import-alias/prefer-alias': 'off',
+            'import/no-extraneous-dependencies': 'off',
+            'rulesdir/prefer-underscore-method': 'off',
         },
     },
 
