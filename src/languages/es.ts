@@ -8847,10 +8847,6 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Seguimiento GPS en curso',
             body: 'Ve a la app para finalizar',
         },
-        liveActivity: {
-            subtitle: 'Tracking distance',
-            button: 'View progress',
-        },
         continueGpsTripModal: {
             title: '¿Continuar el registro del viaje por GPS?',
             prompt: 'Parece que la app se cerró durante tu último viaje por GPS. ¿Te gustaría continuar grabando ese viaje?',
@@ -8873,6 +8869,10 @@ ${amount} para ${merchant} - ${date}`,
             prompt: 'Por favor, permite el acceso a la ubicación en los ajustes de tu dispositivo para iniciar el seguimiento de distancia por GPS.',
         },
         fabGpsTripExplained: 'Ir a la pantalla de GPS (Acción flotante)',
+        liveActivity: {
+            subtitle: 'Seguimiento de distancia',
+            button: 'Ver progreso',
+        },
     },
 };
 
