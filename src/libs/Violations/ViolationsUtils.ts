@@ -150,7 +150,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags.at(i);
             const tags = policyTagList[policyTagKeys[i]].tags;
-            const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && !!tag.enabled);
+            const isTagInPolicy = !!selectedTag && !!tags[selectedTag]?.enabled;
             if (!isTagInPolicy && selectedTag && hasEnabledTagsInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
@@ -267,7 +267,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             if (!hasEnabledTags) {
                 return true;
             }
-            const hasMatchingTag = Object.values(policyTagLists).some((tagList) => tagList.tags && Object.values(tagList.tags).some((t) => t.name === tag && t.enabled));
+            const hasMatchingTag = Object.values(policyTagLists).some((tagList) => !!tagList.tags?.[tag]?.enabled);
             return hasMatchingTag;
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.TAX_OUT_OF_POLICY}`]: () => {
