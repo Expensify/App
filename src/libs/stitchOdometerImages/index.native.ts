@@ -1,6 +1,7 @@
 import {Skia} from '@shopify/react-native-skia';
 import RNFS from 'react-native-fs';
 import type {FileObject} from '@src/types/utils/Attachment';
+import calculateStitchLayout from './stitchLayout';
 
 async function stitchOdometerImages(image1: FileObject | string | undefined, image2: FileObject | string | undefined): Promise<FileObject | null> {
     const source1 = typeof image1 === 'string' ? image1 : (image1?.uri ?? null);
@@ -19,18 +20,7 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
         return null;
     }
 
-    let width: number;
-    let height: number;
-    let horizontal = true;
-
-    if (skImage1.width() > skImage1.height() || skImage2.width() > skImage2.height()) {
-        width = Math.max(skImage1.width(), skImage2.width());
-        height = skImage1.height() + skImage2.height();
-        horizontal = false;
-    } else {
-        width = skImage1.width() + skImage2.width();
-        height = Math.max(skImage1.height(), skImage2.height());
-    }
+    const {width, height, horizontal} = calculateStitchLayout(skImage1.width(), skImage1.height(), skImage2.width(), skImage2.height());
 
     const surface = Skia.Surface.MakeOffscreen(width, height);
     if (!surface) {

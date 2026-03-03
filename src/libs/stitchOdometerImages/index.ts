@@ -1,4 +1,5 @@
 import type {FileObject} from '@src/types/utils/Attachment';
+import calculateStitchLayout from './stitchLayout';
 
 function stitchOdometerImages(image1: FileObject | string | undefined, image2: FileObject | string | undefined): Promise<FileObject | null> {
     const source1 = typeof image1 === 'string' ? image1 : (image1?.uri ?? null);
@@ -17,18 +18,7 @@ function stitchOdometerImages(image1: FileObject | string | undefined, image2: F
         });
 
     return Promise.all([loadImage(source1), loadImage(source2)]).then(([img1, img2]) => {
-        let width: number;
-        let height: number;
-        let horizontal = true;
-
-        if (img1.width > img1.height || img2.width > img2.height) {
-            width = Math.max(img1.width, img2.width);
-            height = img1.height + img2.height;
-            horizontal = false;
-        } else {
-            width = img1.width + img2.width;
-            height = Math.max(img1.height, img2.height);
-        }
+        const {width, height, horizontal} = calculateStitchLayout(img1.width, img1.height, img2.width, img2.height);
 
         const offscreenCanvas = document.createElement('canvas');
         offscreenCanvas.width = width;
