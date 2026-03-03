@@ -2445,6 +2445,7 @@ function getCardSections(
     cardList?: OnyxTypes.CardList,
 ): [TransactionCardGroupListItemType[], number] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
+    const cardDescriptionByCardID = new Map<number, string>();
 
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -2457,16 +2458,13 @@ function getCardSections(
             }
 
             const card = cardList?.[cardGroup.cardID];
-
-            cardSections[key] = {
-                groupedBy: CONST.SEARCH.GROUP_BY.CARD,
-                transactions: [],
-                transactionsQueryJSON,
-                ...personalDetails,
-                ...cardGroup,
-                formattedCardName:
-                    customCardNames?.[cardGroup.cardID] ??
-                    getCardDescription(
+            let formattedCardName = customCardNames?.[cardGroup.cardID];
+            if (formattedCardName === undefined) {
+                const cached = cardDescriptionByCardID.get(cardGroup.cardID);
+                if (cached !== undefined) {
+                    formattedCardName = cached;
+                } else {
+                    formattedCardName = getCardDescription(
                         {
                             cardID: cardGroup.cardID,
                             bank: cardGroup.bank,
@@ -2475,7 +2473,18 @@ function getCardSections(
                             lastFourPAN: cardGroup.lastFourPAN,
                         } as OnyxTypes.Card,
                         translate,
-                    ),
+                    );
+                    cardDescriptionByCardID.set(cardGroup.cardID, formattedCardName);
+                }
+            }
+
+            cardSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.CARD,
+                transactions: [],
+                transactionsQueryJSON,
+                ...personalDetails,
+                ...cardGroup,
+                formattedCardName,
                 formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds),
             };
         }

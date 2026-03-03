@@ -101,6 +101,11 @@ const feedNamesMapping = {
 } satisfies Partial<Record<CardFeed, BankName | NonConnectableBankName | CardTypeName>>;
 
 const feedNamesMappingKeys = Object.keys(feedNamesMapping) as Array<keyof typeof feedNamesMapping>;
+// Longest prefix first so e.g. AMEX_1205 matches before AMEX
+const feedNamesMappingKeysByLength = [...feedNamesMappingKeys].sort((a, b) => b.length - a.length);
+
+const GET_BANK_NAME_CACHE_MAX_SIZE = 200;
+const getBankNameCache = new Map<string, string>();
 
 /**
  * @returns string with a month in MM format
@@ -584,18 +589,30 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
 }
 
 function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): string {
+    const cacheKey = feedType ?? '';
+    const cached = getBankNameCache.get(cacheKey);
+    if (cached !== undefined) {
+        return cached;
+    }
+
     if (feedType?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
-        return CONST.COMPANY_CARDS.CARD_TYPE.CSV;
+        const result = CONST.COMPANY_CARDS.CARD_TYPE.CSV;
+        if (getBankNameCache.size >= GET_BANK_NAME_CACHE_MAX_SIZE) {
+            getBankNameCache.clear();
+        }
+        getBankNameCache.set(cacheKey, result);
+        return result;
     }
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
-    const feedKey = feedNamesMappingKeys.find((feed) => feedType?.startsWith(feed));
+    const feedKey = feedNamesMappingKeysByLength.find((feed) => feedType?.startsWith(feed));
+    const result = feedKey ? feedNamesMapping[feedKey] : '';
 
-    if (!feedKey) {
-        return '';
+    if (getBankNameCache.size >= GET_BANK_NAME_CACHE_MAX_SIZE) {
+        getBankNameCache.clear();
     }
-
-    return feedNamesMapping[feedKey];
+    getBankNameCache.set(cacheKey, result);
+    return result;
 }
 
 const getBankCardDetailsImage = (bank: BankName, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {

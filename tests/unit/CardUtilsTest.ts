@@ -1566,6 +1566,18 @@ describe('CardUtils', () => {
             const feedName = getBankName(feed as unknown as CompanyCardFeed);
             expect(feedName).toBe('');
         });
+
+        it('Should return the same value for repeated calls with the same feedType (cache)', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            expect(getBankName(feed)).toBe('Chase');
+            expect(getBankName(feed)).toBe('Chase');
+        });
+
+        it('Should match longest prefix first (e.g. AMEX_1205 before AMEX)', () => {
+            const feedWithAmex1205Prefix = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205}something` as CompanyCardFeed;
+            const feedName = getBankName(feedWithAmex1205Prefix);
+            expect(feedName).toBe('American Express');
+        });
     });
 
     describe('getCardFeedIcon', () => {
