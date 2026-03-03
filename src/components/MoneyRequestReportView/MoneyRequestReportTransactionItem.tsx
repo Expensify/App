@@ -17,7 +17,7 @@ import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
@@ -26,6 +26,9 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Report to which the transaction belongs */
     report: Report;
+
+    /** Policy to which the transaction belongs */
+    policy?: Policy;
 
     /** Whether the mobile selection mode is enabled */
     isSelectionModeEnabled: boolean;
@@ -67,6 +70,7 @@ type MoneyRequestReportTransactionItemProps = {
 function MoneyRequestReportTransactionItem({
     transaction,
     report,
+    policy,
     isSelectionModeEnabled,
     toggleTransaction,
     isSelected,
@@ -136,7 +140,7 @@ function MoneyRequestReportTransactionItem({
             >
                 {({hovered}) => (
                     <TransactionItemRow
-                        transactionItem={transaction}
+                        transactionItem={{...transaction, policy}}
                         violations={filteredViolations}
                         report={report}
                         isSelected={isSelected}
