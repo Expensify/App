@@ -1823,28 +1823,6 @@ const CONST = {
             PUSHER_INIT: 'NavigationPusherInit',
             APP_OPEN: 'NavigationAppOpen',
         },
-        // Network span names
-        SPAN_SEQUENTIAL_QUEUE_FLUSH: 'ManualSequentialQueueFlush',
-        SPAN_SEQUENTIAL_QUEUE_PROCESS: 'ManualSequentialQueueProcess',
-        SPAN_PROCESS_WITH_MIDDLEWARE: 'ManualProcessWithMiddleware',
-        SPAN_PROCESS_MIDDLEWARES: 'ManualProcessMiddlewares',
-        SPAN_HTTP_XHR: 'ManualHttpXhr',
-        SPAN_APPLY_ONYX_UPDATES: 'ManualApplyOnyxUpdates',
-        SPAN_FLUSH_ONYX_UPDATES_QUEUE: 'ManualFlushOnyxUpdatesQueue',
-        SPAN_REQUEST_THROTTLE_SLEEP: 'ManualRequestThrottleSleep',
-        SPAN_APPLY_OPTIMISTIC_DATA: 'ManualApplyOptimisticData',
-        SPAN_HANDLE_MISSING_ONYX_UPDATES: 'ManualHandleMissingOnyxUpdates',
-        // Middleware names
-        MIDDLEWARE_LOGGING: 'Logging',
-        MIDDLEWARE_RECHECK_CONNECTION: 'RecheckConnection',
-        MIDDLEWARE_REAUTHENTICATION: 'Reauthentication',
-        MIDDLEWARE_HANDLE_DELETED_ACCOUNT: 'HandleDeletedAccount',
-        MIDDLEWARE_SUPPORTAL_PERMISSION: 'SupportalPermission',
-        MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID: 'HandleUnusedOptimisticID',
-        MIDDLEWARE_PAGINATION: 'Pagination',
-        MIDDLEWARE_SENTRY_SERVER_TIMING: 'SentryServerTiming',
-        MIDDLEWARE_SAVE_RESPONSE_IN_ONYX: 'SaveResponseInOnyx',
-        MIDDLEWARE_FRAUD_MONITORING: 'FraudMonitoring',
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
         ATTRIBUTE_IS_ONE_TRANSACTION_REPORT: 'is_one_transaction_report',
@@ -1865,12 +1843,7 @@ const CONST = {
         ATTRIBUTE_HAS_RECEIPT: 'has_receipt',
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
         ATTRIBUTE_COMMAND: 'command',
-        ATTRIBUTE_QUEUE_LENGTH: 'queue_length',
-        ATTRIBUTE_IS_FROM_SEQUENTIAL_QUEUE: 'is_from_sequential_queue',
-        ATTRIBUTE_RETRY_COUNT: 'retry_count',
-        ATTRIBUTE_THROTTLE_WAIT_MS: 'throttle_wait_ms',
         ATTRIBUTE_JSON_CODE: 'json_code',
-        ATTRIBUTE_ONYX_UPDATES_COUNT: 'onyx_updates_count',
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
         SUBMIT_EXPENSE_SCENARIO: {
@@ -3166,6 +3139,8 @@ const CONST = {
         },
         AMOUNT_MAX_LENGTH: 10,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
+        ODOMETER_MAX_VALUE: 9999999.9,
+        MAX_SAFE_AMOUNT: 999999999999,
         RECEIPT_STATE: {
             SCAN_READY: 'SCANREADY',
             OPEN: 'OPEN',
@@ -7019,6 +6994,8 @@ const CONST = {
         TRAIN: 'train',
     },
 
+    UPCOMING_TRAVEL_WINDOW_DAYS: 7,
+
     RESERVATION_ADDRESS_TEST_ID: 'ReservationAddress',
 
     FLIGHT_SEAT_TEST_ID: 'FlightSeat',
@@ -8008,6 +7985,10 @@ const CONST = {
         ENABLED: 'enabled',
         IGNORE: 'ignore',
         DESTINATION: 'destination',
+        CATEGORY: 'category',
+        DATE: 'date',
+        MERCHANT: 'merchant',
+        TRANSACTION_FIELDS: ['date', 'merchant', 'amount', 'category'] as const,
     },
 
     IMPORT_SPREADSHEET: {
@@ -8165,6 +8146,7 @@ const CONST = {
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
         MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
         GPS_TOOLTIP: 'gpsTooltip',
+        HAS_FILTER_NEGATION: 'hasFilterNegation',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
@@ -8754,8 +8736,6 @@ const CONST = {
                 NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
                 NEW_DOMAIN_BUTTON: 'WorkspaceList-NewDomainButton',
                 THREE_DOT_MENU: 'WorkspaceList-ThreeDotMenu',
-                ROW: 'WorkspaceList-Row',
-                ROW_ARROW: 'WorkspaceList-RowArrow',
             },
             INITIAL: {
                 PROFILE: 'WorkspaceInitial-Profile',
@@ -8908,6 +8888,9 @@ const CONST = {
         INTERACTIVE_STEP_SUB_HEADER: {
             STEP_BUTTON: 'InteractiveStepSubHeader-StepButton',
         },
+        REIMBURSEMENT_ACCOUNT: {
+            YOUR_DATA_IS_SECURE: 'ReimbursementAccount-YourDataIsSecure',
+        },
         SOCIALS: {
             LINK: 'Socials',
         },
@@ -9043,6 +9026,9 @@ const CONST = {
         },
         SETTINGS_EXIT_SURVEY: {
             GO_TO_CLASSIC: 'SettingsExitSurvey-GoToExpensifyClassic',
+        },
+        PROFILE_PAGE: {
+            AVATAR: 'ProfilePage-Avatar',
         },
     },
 
