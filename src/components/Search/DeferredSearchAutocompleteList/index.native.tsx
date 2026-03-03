@@ -1,7 +1,8 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {SearchAutocompleteListProps} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 
 /**
@@ -12,9 +13,16 @@ import CONST from '@src/CONST';
 function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
     const [shouldRender, setShouldRender] = React.useState(false);
     const [, startTransition] = React.useTransition();
+    const hasEndedPageVisibleSpan = useRef(false);
 
-    // Run the transition after the skeleton is mounted
-    const renderComponent = useCallback(() => startTransition(() => setShouldRender(true)), []);
+    // Run the transition after the skeleton is mounted; end the "page visible" span once
+    const renderComponent = useCallback(() => {
+        if (!hasEndedPageVisibleSpan.current) {
+            hasEndedPageVisibleSpan.current = true;
+            endSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE);
+        }
+        startTransition(() => setShouldRender(true));
+    }, []);
 
     if (!shouldRender) {
         return (

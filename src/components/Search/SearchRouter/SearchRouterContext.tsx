@@ -2,7 +2,7 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import {startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -88,6 +88,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     };
 
     const closeSearchRouter = () => {
+        cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE);
         closeSearch(setIsSearchRouterDisplayed);
         searchRouterDisplayedRef.current = false;
         if (isBrowserWithHistory) {
