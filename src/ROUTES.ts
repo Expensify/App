@@ -19,7 +19,7 @@ import StringUtils from './libs/StringUtils';
 import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
-import type {CompanyCardFeedWithDomainID} from './types/onyx';
+import type {CompanyCardFeedWithDomainID, PersonalCardFeedWithDomainID} from './types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 
@@ -457,6 +457,11 @@ const ROUTES = {
     SETTINGS_WALLET_SHARE_BANK_ACCOUNT: {
         route: 'settings/wallet/:bankAccountID/share-bank-account',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account` as const,
+    },
+    SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW: 'settings/wallet/add-personal-card',
+    SETTINGS_WALLET_PERSONAL_CARD_BANK_CONNECTION: {
+        route: 'settings/wallet/add-personal-card/:feed/bank-connection',
+        getRoute: (feed: PersonalCardFeedWithDomainID) => `settings/wallet/add-personal-card/${feed}/bank-connection` as const,
     },
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
         route: 'settings/wallet/card/:domain/digital-details/update-address',

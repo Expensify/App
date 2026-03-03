@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {ImportPlaidAccountsParams, OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
+import type {AddPersonalPlaidCardParams, ImportPlaidAccountsParams, OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
 import type OpenPlaidCompanyCardLoginParams from '@libs/API/parameters/OpenPlaidCompanyCardLoginParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCompanyCardFeed} from '@libs/CardUtils';
@@ -144,4 +144,15 @@ function importPlaidAccounts(
     API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters);
 }
 
-export {openPlaidBankAccountSelector, openPlaidBankLogin, openPlaidCompanyCardLogin, importPlaidAccounts};
+function addPersonalPlaidCard(publicToken: string, feed: string, country: string, plaidAccounts: string) {
+    const parameters: AddPersonalPlaidCardParams = {
+        publicToken,
+        feed,
+        country,
+        plaidAccounts,
+    };
+
+    API.write(WRITE_COMMANDS.ADD_PERSONAL_PLAID_CARD, parameters);
+}
+
+export {openPlaidBankAccountSelector, openPlaidBankLogin, openPlaidCompanyCardLogin, importPlaidAccounts, addPersonalPlaidCard};

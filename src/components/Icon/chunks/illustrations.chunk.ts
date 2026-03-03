@@ -156,6 +156,7 @@ import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__
 import Pillow from '@assets/images/simple-illustrations/simple-illustration__pillow.svg';
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
+import QuestionMark from '@assets/images/simple-illustrations/simple-illustration__question-mark.svg';
 import RealtimeReport from '@assets/images/simple-illustrations/simple-illustration__realtimereports.svg';
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
@@ -263,6 +264,7 @@ const Illustrations = {
     SewerDino,
     SmartScan,
     TeleScope,
+    QuestionMark,
     Telescope: TeleScope, // Alias for consistency
     ThreeLeggedLaptopWoman,
     TiltedCoinExpensify,

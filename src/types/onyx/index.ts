@@ -100,6 +100,7 @@ import type Pages from './Pages';
 import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
+import type {AddNewPersonalCard, PersonalCardDomainSettings, PersonalCardFeed, PersonalCardFeedWithDomainID} from './PersonalCard';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
@@ -188,8 +189,12 @@ export type {
     BankAccount,
     BankAccountList,
     Beta,
+    AddNewPersonalCard,
     BetaConfiguration,
+    PersonalCardFeed,
+    PersonalCardDomainSettings,
     BlockedFromConcierge,
+    PersonalCardFeedWithDomainID,
     Card,
     CardList,
     CardOnWaitlist,

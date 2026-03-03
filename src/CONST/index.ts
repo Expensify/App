@@ -3736,6 +3736,49 @@ const CONST = {
         },
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
     },
+    PERSONAL_CARDS: {
+        FEED_KEY_SEPARATOR: '#',
+        STEP: {
+            SELECT_BANK: 'SelectBank',
+            BANK_CONNECTION: 'BankConnection',
+            SELECT_COUNTRY: 'SelectCountry',
+            PLAID_CONNECTION: 'PlaidConnection',
+            SUCCESS: 'Success',
+        },
+        // Mostly used for get bank details
+        BANKS: {
+            AMEX: 'American Express',
+            BANK_OF_AMERICA: 'Bank of America',
+            CAPITAL_ONE: 'Capital One',
+            CHASE: 'Chase',
+            CITI_BANK: 'Citibank',
+            WELLS_FARGO: 'Wells Fargo',
+            MOCK_BANK: 'Mock Bank',
+            OTHER: 'Other',
+        },
+        // Mostly used for API calls
+        BANK_CONNECTIONS: {
+            WELLS_FARGO: 'wellsfargo',
+            BANK_OF_AMERICA: 'bankofamerica',
+            CHASE: 'chase',
+            CAPITAL_ONE: 'capitalone',
+            CITI_BANK: 'citibank',
+            AMEX: 'americanexpressfdx',
+            MOCK_BANK: 'mockbank',
+        },
+        // Mostly used for feed details
+        BANK_NAME: {
+            CITIBANK: 'oauth.citibank.com',
+            CAPITAL_ONE: 'oauth.capitalone.com',
+            BANK_OF_AMERICA: 'oauth.bankofamerica.com',
+            CHASE: 'oauth.chase.com',
+            PEX: 'admin.pexcard.com',
+            WELLS_FARGO: 'oauth.wellsfargo.com',
+            AMEX_DIRECT: 'oauth.americanexpressfdx.com',
+            AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
+            CSV: 'upload',
+        },
+    },
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
         CONNECTION_ERROR: 'connectionError',

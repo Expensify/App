@@ -205,6 +205,8 @@ const SCREENS = {
             PERSONAL_CARD_DETAILS: 'Settings_Wallet_Personal_Card_Details',
             PERSONAL_CARD_EDIT_NAME: 'Settings_Wallet_Personal_Card_Edit_Name',
             PERSONAL_CARD_EDIT_TRANSACTION_START_DATE: 'Settings_Wallet_Personal_Card_Edit_Transaction_Start_Date',
+            PERSONAL_CARD_BANK_CONNECTION: 'Settings_Wallet_PersonalCard_BankConnection',
+            PERSONAL_CARD_ADD_NEW: 'Settings_Wallet_PersonalCard_New',
         },
 
         EXIT_SURVEY: {

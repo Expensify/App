@@ -1248,6 +1248,20 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
     });
 }
 
+const getPersonalBankCardDetailsImage = (bank: ValueOf<typeof CONST.PERSONAL_CARDS.BANKS>, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
+    const iconMap: Record<ValueOf<typeof CONST.PERSONAL_CARDS.BANKS>, IconAsset> = {
+        [CONST.PERSONAL_CARDS.BANKS.AMEX]: companyCardIllustrations.AmexCardCompanyCardDetail,
+        [CONST.PERSONAL_CARDS.BANKS.BANK_OF_AMERICA]: companyCardIllustrations.BankOfAmericaCompanyCardDetail,
+        [CONST.PERSONAL_CARDS.BANKS.CAPITAL_ONE]: companyCardIllustrations.CapitalOneCompanyCardDetail,
+        [CONST.PERSONAL_CARDS.BANKS.CHASE]: companyCardIllustrations.ChaseCompanyCardDetail,
+        [CONST.PERSONAL_CARDS.BANKS.CITI_BANK]: companyCardIllustrations.CitibankCompanyCardDetail,
+        [CONST.PERSONAL_CARDS.BANKS.WELLS_FARGO]: companyCardIllustrations.WellsFargoCompanyCardDetail,
+        [CONST.PERSONAL_CARDS.BANKS.OTHER]: illustrations.GenericCompanyCard,
+        [CONST.PERSONAL_CARDS.BANKS.MOCK_BANK]: illustrations.GenericCompanyCard,
+    };
+    return iconMap[bank];
+};
+
 /**
  * Generate a random cardID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
  * There were approximately 24,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly 0.25 billionth of the space for these numbers,
@@ -1395,6 +1409,7 @@ export {
     getCardSettings,
     filterAllInactiveCards,
     filterInactiveCards,
+    getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
     hasPendingExpensifyCardAction,
