@@ -563,7 +563,6 @@ const translations = {
         quarter: 'Quarter',
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
-        explain: 'Explain',
     },
     socials: {
         podcast: 'Follow us on Podcast',
@@ -1339,6 +1338,10 @@ const translations = {
         submitted: (memo?: string) => `submitted${memo ? `, saying ${memo}` : ''}`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
         queuedToSubmitViaDEW: 'queued to submit via custom approval workflow',
+        failedToAutoSubmitViaDEW: (reason: string) => `failed to submit the report via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `failed to submit the report. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `failed to approve via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `failed to approve. ${reason}`,
         queuedToApproveViaDEW: 'queued to approve via custom approval workflow',
         trackedAmount: (formattedAmount: string, comment?: string) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: (amount: string) => `split ${amount}`,
@@ -1394,6 +1397,10 @@ const translations = {
             invalidDistance: 'Please enter a valid distance before continuing',
             invalidReadings: 'Please enter both start and end readings',
             negativeDistanceNotAllowed: 'End reading must be greater than start reading',
+            distanceAmountTooLarge: 'The total amount is too large. Reduce the distance or lower the rate.',
+            distanceAmountTooLargeReduceDistance: 'The total amount is too large. Reduce the distance.',
+            distanceAmountTooLargeReduceRate: 'The total amount is too large. Lower the rate.',
+            odometerReadingTooLarge: (formattedMax: string) => `Odometer readings cannot exceed ${formattedMax}.`,
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: (amount: string) => `Maximum tax amount is ${amount}`,
             invalidSplit: 'The sum of splits must equal the total amount',
@@ -1579,6 +1586,7 @@ const translations = {
             amountTooLargeError: 'The total amount is too large. Lower the hours or reduce the rate.',
         },
         correctRateError: 'Fix the rate error and try again.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"'),
             billable: (value: boolean) => (value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"'),
@@ -7606,7 +7614,6 @@ const translations = {
         },
     },
     gps: {
-        disclaimer: 'Use GPS to create an expense from your journey. Tap Start below to begin tracking.',
         error: {
             failedToStart: 'Failed to start location tracking.',
             failedToGetPermissions: 'Failed to get required location permissions.',
