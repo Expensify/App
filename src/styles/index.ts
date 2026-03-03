@@ -4830,11 +4830,6 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        searchFiltersBarCreateButton: {
-            marginLeft: 'auto',
-            alignSelf: 'flex-start',
-        },
-
         walletStaticIllustration: {
             width: 262,
             height: 152,
