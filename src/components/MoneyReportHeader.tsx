@@ -1468,7 +1468,11 @@ function MoneyReportHeader({
 
                 duplicateExpenseTransaction([transaction]);
             },
-            shouldCloseModalOnSelect: isDistanceExpenseUnsupportedForDuplicating || isPerDiemRequestOnNonDefaultWorkspace || hasCustomUnitOutOfPolicyViolation || activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID,
+            shouldCloseModalOnSelect:
+                isDistanceExpenseUnsupportedForDuplicating ||
+                isPerDiemRequestOnNonDefaultWorkspace ||
+                hasCustomUnitOutOfPolicyViolation ||
+                activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT]: {
             text: translate('common.duplicateReport'),
