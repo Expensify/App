@@ -180,6 +180,22 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const hasEndedSubmitToDestinationRef = useRef(false);
 
+    // Reset the layout guard when a new pending destination targets this screen (e.g. user submitted another expense and we are the destination again).
+    useEffect(() => {
+        if (
+            !pendingExpenseCreateDestination ||
+            !reportIDFromRoute ||
+            (pendingExpenseCreateDestination.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.REPORT_CHAT &&
+                pendingExpenseCreateDestination.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.RHP_POP)
+        ) {
+            return;
+        }
+        if (pendingExpenseCreateDestination.reportID && pendingExpenseCreateDestination.reportID !== reportIDFromRoute) {
+            return;
+        }
+        hasEndedSubmitToDestinationRef.current = false;
+    }, [pendingExpenseCreateDestination, reportIDFromRoute]);
+
     const parentReportAction = useParentReportAction(reportOnyx);
 
     const deletedParentAction = isDeletedParentAction(parentReportAction);

@@ -76,6 +76,18 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
     const [pendingExpenseCreateDestination] = useOnyx(ONYXKEYS.NVP_PENDING_EXPENSE_CREATE_DESTINATION);
     const hasEndedSubmitToDestinationRef = useRef(false);
+
+    // Reset the layout guard when a new pending destination targets this page (e.g. user submitted another expense and we are the destination again).
+    useEffect(() => {
+        if (!pendingExpenseCreateDestination || pendingExpenseCreateDestination.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.MONEY_REQUEST_RHP) {
+            return;
+        }
+        if (pendingExpenseCreateDestination.reportID && pendingExpenseCreateDestination.reportID !== reportIDFromRoute) {
+            return;
+        }
+        hasEndedSubmitToDestinationRef.current = false;
+    }, [pendingExpenseCreateDestination, reportIDFromRoute]);
+
     const parentReportAction = useParentReportAction(report);
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`, {allowStaleData: true});
     const prevReport = usePrevious(report);
