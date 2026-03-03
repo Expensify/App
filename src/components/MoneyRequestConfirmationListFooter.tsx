@@ -178,6 +178,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The rate of the transaction */
     rate: number | undefined;
 
+    /** The name of the distance rate */
+    distanceRateName: string | undefined;
+
     /** The filename of the receipt */
     receiptFilename: string;
 
@@ -291,6 +294,7 @@ function MoneyRequestConfirmationListFooter({
     policyTags,
     policyTagLists,
     rate,
+    distanceRateName,
     receiptFilename,
     receiptPath,
     reportActionID,
@@ -589,7 +593,9 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
                     shouldShowRightIcon={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
-                    title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
+                    // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
+                    // confirmation screen where a rate violation is not applicable yet.
+                    title={DistanceRequestUtils.getRateForExpenseDisplay(distanceRateName, false, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}

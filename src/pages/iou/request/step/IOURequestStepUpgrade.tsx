@@ -113,7 +113,12 @@ function IOURequestStepUpgrade({
             }
             case CONST.UPGRADE_PATHS.REPORTS:
                 Navigation.goBack();
-                navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                if (action === CONST.IOU.ACTION.CREATE) {
+                    // Coming from "Create report" button (no workspace) → go to workspace selection which creates the report
+                    navigateWithMicrotask(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                } else {
+                    navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                }
 
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:

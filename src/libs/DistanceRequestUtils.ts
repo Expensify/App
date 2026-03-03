@@ -137,7 +137,7 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
  * @returns A string that displays the rate used for expense calculation
  */
-function getRateForDisplay(
+function getFormattedRateValue(
     unit: Unit | undefined,
     rate: number | undefined,
     currency: string | undefined,
@@ -160,6 +160,33 @@ function getRateForDisplay(
     const currencySymbol = getCurrencySymbol(currency) || `${currency} `;
 
     return `${currencySymbol}${formattedRate} / ${useShortFormUnit ? unit : singularDistanceUnit}`;
+}
+
+/**
+ * Get the rate title to display on the expense page.
+ * If the rate is out of policy, displays "Rate out of policy".
+ * For workspace expenses, shows the rate name (e.g., "Default Rate") so that updating a rate's
+ * value on the workspace does not retroactively change the displayed rate on historical expenses.
+ * For P2P expenses (no rate name), shows the formatted rate value (e.g., "$0.67 / mi").
+ */
+function getRateForExpenseDisplay(
+    rateName: string | undefined,
+    isCustomUnitOutOfPolicy: boolean,
+    unit: Unit | undefined,
+    rate: number | undefined,
+    currency: string | undefined,
+    translate: LocaleContextProps['translate'],
+    toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
+    isOffline?: boolean,
+): string {
+    if (isCustomUnitOutOfPolicy) {
+        return translate('common.rateOutOfPolicy');
+    }
+    if (rateName) {
+        return rateName;
+    }
+    return getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 }
 
 /**
@@ -235,7 +262,7 @@ function getDistanceMerchant(
     }
 
     const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isZeroDistanceAllowed);
-    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
+    const ratePerUnit = getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
 
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
 }
@@ -459,7 +486,7 @@ export default {
     getDefaultMileageRate,
     getDistanceMerchant,
     getDistanceRequestAmount,
-    getRateForDisplay,
+    getFormattedRateValue,
     getMileageRates,
     getDistanceForDisplay,
     getRoundedDistanceInUnits,
@@ -473,6 +500,7 @@ export default {
     getRateByCustomUnitRateID,
     getDistanceForDisplayLabel,
     convertDistanceUnit,
+    getRateForExpenseDisplay,
     isDistanceAmountWithinLimit,
     normalizeOdometerText,
 };

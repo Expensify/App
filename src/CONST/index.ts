@@ -1189,6 +1189,7 @@ const CONST = {
         HAND_ICON_WIDTH: 200,
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
+        FLASH_DELAY_MS: 2000,
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -1747,6 +1748,8 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
+        BREADCRUMB_CATEGORY_MODULE_INIT: 'module.init',
+        BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
         BREADCRUMB_MEMORY_FOREGROUND: 'App foreground - memory check',
         TAG_ACTIVE_POLICY: 'active_policy_id',
@@ -8146,6 +8149,7 @@ const CONST = {
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
         MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
         GPS_TOOLTIP: 'gpsTooltip',
+        HAS_FILTER_NEGATION: 'hasFilterNegation',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
@@ -8706,6 +8710,8 @@ const CONST = {
                 FLASH: 'OdometerImage-Flash',
                 GALLERY: 'OdometerImage-Gallery',
                 SHUTTER: 'OdometerImage-Shutter',
+                CHOOSE_FILE: 'OdometerImage-ChooseFile',
+                CONTINUE_BUTTON: 'OdometerImage-ContinueButton',
             },
         },
         NEW_CHAT: {
@@ -9025,6 +9031,9 @@ const CONST = {
         },
         SETTINGS_EXIT_SURVEY: {
             GO_TO_CLASSIC: 'SettingsExitSurvey-GoToExpensifyClassic',
+        },
+        PROFILE_PAGE: {
+            AVATAR: 'ProfilePage-Avatar',
         },
     },
 
