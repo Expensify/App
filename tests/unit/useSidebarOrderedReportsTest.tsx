@@ -71,7 +71,7 @@ describe('useSidebarOrderedReports', () => {
 
         // Default mock implementations
         mockSidebarUtils.getReportsToDisplayInLHN.mockImplementation(() => ({}));
-        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => ({...displayedReports}));
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => displayedReports);
         mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue([]);
 
         await waitForBatchedUpdatesWithAct();
@@ -121,7 +121,7 @@ describe('useSidebarOrderedReports', () => {
         // When the initial reports are set
         const initialReports = createMockReports(reportsContent);
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(initialReports);
-        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => ({...displayedReports}));
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => displayedReports);
         currentReportIDForTestsValue = '1';
 
         // When the hook is rendered
@@ -202,6 +202,7 @@ describe('useSidebarOrderedReports', () => {
             expect.any(Function), // localeCompare
             expect.any(Object), // reportsDrafts
             expect.any(Object), // reportNameValuePairs
+            undefined, // conciergeReportID - undefined when not set in Onyx
         );
     });
 

@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React from 'react';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
@@ -84,7 +84,7 @@ function AmountForm({
 }: AmountFormProps) {
     const {preferredLocale} = useLocalize();
     const styles = useThemeStyles();
-    const {getCurrencyDecimals} = useCurrencyList();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
 
     return (

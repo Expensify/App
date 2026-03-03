@@ -1,5 +1,6 @@
 import type {SkFont} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
+import type {ChartDataPoint, PieSlice} from './types';
 
 /**
  * Expensify Chart Color Palette.
@@ -96,4 +97,98 @@ function calculateMinDomainPadding(chartWidth: number, pointCount: number, inner
     return Math.ceil(chartWidth * minPaddingRatio);
 }
 
-export {getChartColor, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelCenterCorrection, rotatedLabelYOffset, calculateMinDomainPadding};
+/**
+ * Normalize angle to 0-360 range
+ */
+function normalizeAngle(angle: number): number {
+    'worklet';
+
+    let normalized = angle % 360;
+    if (normalized < 0) {
+        normalized += 360;
+    }
+    return normalized;
+}
+
+/**
+ * Check if an angle is within a slice's range (handles wrap-around)
+ */
+function isAngleInSlice(angle: number, startAngle: number, endAngle: number): boolean {
+    'worklet';
+
+    const normalizedAngle = normalizeAngle(angle);
+    const normalizedStart = normalizeAngle(startAngle);
+    const normalizedEnd = normalizeAngle(endAngle);
+
+    if (normalizedStart === normalizedEnd) {
+        return endAngle - startAngle >= 360;
+    }
+    if (normalizedStart > normalizedEnd) {
+        return normalizedAngle >= normalizedStart || normalizedAngle < normalizedEnd;
+    }
+    return normalizedAngle >= normalizedStart && normalizedAngle < normalizedEnd;
+}
+
+/**
+ * Find which slice index contains the given cursor position
+ */
+function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, centerY: number, radius: number, innerRadius: number, slices: PieSlice[]): number {
+    'worklet';
+
+    const dx = cursorX - centerX;
+    const dy = cursorY - centerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < innerRadius || distance > radius) {
+        return -1;
+    }
+
+    const cursorAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+    return slices.findIndex((slice) => isAngleInSlice(cursorAngle, slice.startAngle, slice.endAngle));
+}
+
+/**
+ * Process raw data into pie chart slices sorted by absolute value descending.
+ */
+function processDataIntoSlices(data: ChartDataPoint[], startAngle: number): PieSlice[] {
+    const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
+    if (total === 0) {
+        return [];
+    }
+
+    return data
+        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index}))
+        .sort((a, b) => b.absTotal - a.absTotal)
+        .reduce<{slices: PieSlice[]; angle: number}>(
+            (acc, slice, index) => {
+                const fraction = slice.absTotal / total;
+                const sweepAngle = fraction * 360;
+                acc.slices.push({
+                    label: slice.label,
+                    value: slice.absTotal,
+                    color: getChartColor(index),
+                    percentage: fraction * 100,
+                    startAngle: acc.angle,
+                    endAngle: acc.angle + sweepAngle,
+                    originalIndex: slice.originalIndex,
+                });
+                acc.angle += sweepAngle;
+                return acc;
+            },
+            {slices: [], angle: startAngle},
+        ).slices;
+}
+
+export {
+    getChartColor,
+    DEFAULT_CHART_COLOR,
+    measureTextWidth,
+    rotatedLabelCenterCorrection,
+    rotatedLabelYOffset,
+    calculateMinDomainPadding,
+    normalizeAngle,
+    isAngleInSlice,
+    findSliceAtPosition,
+    processDataIntoSlices,
+};

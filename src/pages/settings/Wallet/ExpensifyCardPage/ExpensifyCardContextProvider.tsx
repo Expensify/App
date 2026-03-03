@@ -1,8 +1,6 @@
-import {filterOutPersonalCards} from '@selectors/Card';
 import type {PropsWithChildren} from 'react';
 import React, {createContext, useContext, useEffect, useMemo, useState} from 'react';
-import useOnyx from '@hooks/useOnyx';
-import ONYXKEYS from '@src/ONYXKEYS';
+import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import type {CardList, ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -37,10 +35,7 @@ const ExpensifyCardActionsContext = createContext<ExpensifyCardActionsContextTyp
  * Context to display revealed expensify card data and pass it between screens.
  */
 function ExpensifyCardContextProvider({children}: PropsWithChildren) {
-    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {
-        selector: filterOutPersonalCards,
-        canBeMissing: true,
-    });
+    const cardList = useNonPersonalCardList() ?? getEmptyObject<CardList>();
     const [cardsDetails, setCardsDetails] = useState<Record<number, ExpensifyCardDetails | null>>({});
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});

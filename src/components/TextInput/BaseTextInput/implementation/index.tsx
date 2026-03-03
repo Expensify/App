@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -84,11 +84,14 @@ function BaseTextInput({
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
+
+    role,
     ...inputProps
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
+    const helpMessageId = useId();
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -323,7 +326,7 @@ function BaseTextInput({
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
-    const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
+    const accessibilityLabel = [label, hint, errorText ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join(', ');
     return (
         <>
             <View
@@ -335,7 +338,7 @@ function BaseTextInput({
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
-                    accessibilityLabel={accessibilityLabel}
+                    accessible={false}
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
@@ -440,6 +443,9 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
+                                // Filter out role="presentation" so it doesn't strip the native
+                                // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
+                                role={role === CONST.ROLE.PRESENTATION ? undefined : role}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={newPlaceholder}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
@@ -482,7 +488,9 @@ function BaseTextInput({
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
-                                accessibilityLabel={inputProps.accessibilityLabel}
+                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                keyboardType={inputProps.keyboardType}
+                                aria-describedby={inputHelpText ? helpMessageId : undefined}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -555,6 +563,7 @@ function BaseTextInput({
                 </PressableWithoutFeedback>
                 {!!inputHelpText && (
                     <FormHelpMessage
+                        nativeID={helpMessageId}
                         isError={!!errorText}
                         message={inputHelpText}
                     />

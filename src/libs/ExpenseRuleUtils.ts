@@ -4,7 +4,7 @@ import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, TaxRate} from '@src/types/onyx';
 import {getDecodedCategoryName} from './CategoryUtils';
 import Parser from './Parser';
-import {getCleanedTagName} from './PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import StringUtils from './StringUtils';
 
 type ChangeKey = 'billable' | 'category' | 'comment' | 'merchant' | 'reimbursable' | 'tag' | 'tax';
@@ -54,7 +54,7 @@ function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextPro
         addChange('reimbursable', rule.reimbursable === 'true');
     }
     if (rule.tag) {
-        addChange('tag', getCleanedTagName(rule.tag));
+        addChange('tag', getCommaSeparatedTagNameWithSanitizedColons(rule.tag));
     }
     if (rule.tax?.field_id_TAX?.value) {
         addChange('tax', rule.tax.field_id_TAX.value);

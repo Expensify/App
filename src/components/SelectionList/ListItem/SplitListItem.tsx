@@ -43,7 +43,17 @@ function SplitListItem<TItem extends ListItem>({
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
 
-    const onSplitExpenseValueChange = useCallback((value: string) => splitItem.onSplitExpenseValueChange(splitItem.transactionID, Number(value), splitItem.mode), [splitItem]);
+    const onSplitExpenseValueChange = useCallback(
+        (value: string) => {
+            const numericValue = Number(value);
+            // Skip update if value is just "-" or produces NaN (intermediate input state)
+            if (Number.isNaN(numericValue)) {
+                return;
+            }
+            splitItem.onSplitExpenseValueChange(splitItem.transactionID, numericValue, splitItem.mode);
+        },
+        [splitItem],
+    );
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
 
@@ -216,7 +226,7 @@ function SplitListItem<TItem extends ListItem>({
                                 accessibilityLabel={translate('common.edit')}
                                 role="button"
                                 style={styles.pointerEventsAuto}
-                                sentryLabel="SplitListItem-EditButton"
+                                sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.SPLIT_LIST_ITEM_EDIT_BUTTON}
                             >
                                 <Icon
                                     src={icons.ArrowRight}

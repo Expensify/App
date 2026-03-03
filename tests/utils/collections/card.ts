@@ -3,6 +3,7 @@ import {format} from 'date-fns';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
+import type {PossibleFraudData} from '@src/types/onyx/Card';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 export default function createRandomCard(
@@ -14,6 +15,7 @@ export default function createRandomCard(
         fraud?: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
         accountID?: number;
         domainName?: string;
+        possibleFraud?: PossibleFraudData;
     },
 ): Card {
     const cardID = index > 0 ? index : randNumber();
@@ -62,6 +64,7 @@ export default function createRandomCard(
         scrapeMinDate: format(randPastDate(), CONST.DATE.FNS_DB_FORMAT_STRING),
         errors: {},
         errorFields: {},
+        ...(options?.possibleFraud ? {nameValuePairs: {possibleFraud: options.possibleFraud} as Card['nameValuePairs']} : {}),
     };
 }
 
@@ -76,6 +79,7 @@ function createRandomExpensifyCard(
         fraud?: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
         accountID?: number;
         domainName?: string;
+        possibleFraud?: PossibleFraudData;
     },
 ): Card {
     return createRandomCard(index, {

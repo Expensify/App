@@ -1,7 +1,10 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {isAuthenticationError} from '@libs/actions/connections';
 import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {NetSuiteConnectionConfig, NetSuiteSubsidiary} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
 
 function shouldHideReimbursedReportsSection(config?: NetSuiteConnectionConfig) {
     return config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY;
@@ -73,6 +76,11 @@ function getImportCustomFieldsSettings(importField: ValueOf<typeof CONST.NETSUIT
     return data.map((_, index) => `${importField}_${index}`);
 }
 
+function getInitialSubPageForNetsuiteTokenInput(policy: OnyxEntry<Policy>) {
+    const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+    return hasAuthError ? CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.CREDENTIALS : CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL;
+}
+
 export {
     shouldHideReimbursedReportsSection,
     shouldHideReportsExportTo,
@@ -89,4 +97,5 @@ export {
     shouldHideTaxPostingAccountSelect,
     shouldHideExportForeignCurrencyAmount,
     getImportCustomFieldsSettings,
+    getInitialSubPageForNetsuiteTokenInput,
 };
