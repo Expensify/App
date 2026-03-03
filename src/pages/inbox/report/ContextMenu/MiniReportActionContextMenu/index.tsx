@@ -39,7 +39,18 @@ const SLIDE_DURATION = 200;
 const OVERSHOOT_EASING = Easing.bezier(0.34, 1.56, 0.64, 1);
 
 function MiniReportActionContextMenu() {
-    const state = useMiniContextMenuState();
+    const {
+        isVisible = false,
+        rowMeasurements,
+        displayAsGroup = false,
+        reportID,
+        reportActionID,
+        originalReportID,
+        draftMessage = '',
+        anchor,
+        checkIfContextMenuActive,
+        setIsEmojiPickerActive,
+    } = useMiniContextMenuState() ?? {};
     const miniActions = useMiniContextMenuActions();
     const {hideMiniContextMenu, cancelHide} = miniActions;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -48,21 +59,19 @@ function MiniReportActionContextMenu() {
 
     const icons = useMemoizedLazyExpensifyIcons(CONTEXT_MENU_ICON_NAMES);
     const threeDotRef = useRef<View>(null);
-
-    const isVisible = state?.isVisible ?? false;
     const wasVisibleRef = useRef(false);
 
     const baseTop = useSharedValue(0);
     const baseRight = useSharedValue(0);
 
     useEffect(() => {
-        if (!state) {
+        if (!rowMeasurements) {
             return;
         }
 
-        if (state.isVisible) {
-            const targetY = state.rowMeasurements.top + (state.displayAsGroup ? -8 : -4);
-            const targetRight = window.innerWidth - state.rowMeasurements.right + 4;
+        if (isVisible) {
+            const targetY = rowMeasurements.top + (displayAsGroup ? -8 : -4);
+            const targetRight = window.innerWidth - rowMeasurements.right + 4;
 
             if (wasVisibleRef.current) {
                 baseTop.set(withTiming(targetY, {duration: SLIDE_DURATION, easing: OVERSHOOT_EASING}));
@@ -72,8 +81,8 @@ function MiniReportActionContextMenu() {
                 baseRight.set(targetRight);
             }
         }
-        wasVisibleRef.current = state.isVisible;
-    }, [state, baseTop, baseRight]);
+        wasVisibleRef.current = isVisible;
+    }, [isVisible, rowMeasurements, displayAsGroup, baseTop, baseRight]);
 
     useEffect(() => {
         if (!isVisible) {
@@ -94,13 +103,13 @@ function MiniReportActionContextMenu() {
     }));
 
     const data = useReportActionContextMenuData({
-        reportID: state?.reportID,
-        reportActionID: state?.reportActionID,
-        originalReportID: state?.originalReportID,
-        draftMessage: state?.draftMessage ?? '',
+        reportID,
+        reportActionID,
+        originalReportID,
+        draftMessage,
         selection: '',
         type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-        anchor: state?.anchor,
+        anchor,
     });
 
     const hideAndRun = (callback?: () => void) => {
@@ -115,17 +124,17 @@ function MiniReportActionContextMenu() {
             selection: '',
             contextMenuAnchor: anchorRef?.current ?? null,
             report: {
-                reportID: state?.reportID,
-                originalReportID: state?.originalReportID,
+                reportID,
+                originalReportID,
             },
             reportAction: {
                 reportActionID: data.reportAction?.reportActionID,
-                draftMessage: state?.draftMessage,
+                draftMessage,
             },
             callbacks: {
-                onShow: state?.checkIfContextMenuActive,
+                onShow: checkIfContextMenuActive,
                 onHide: () => {
-                    state?.checkIfContextMenuActive?.();
+                    checkIfContextMenuActive?.();
                     miniActions.release();
                 },
             },
@@ -362,14 +371,14 @@ function MiniReportActionContextMenu() {
         reportAction: data.reportAction,
         currentUserAccountID,
         openContextMenu: () => miniActions.keepOpen(),
-        setIsEmojiPickerActive: state?.setIsEmojiPickerActive,
+        setIsEmojiPickerActive,
         hideAndRun,
         interceptAnonymousUser,
     });
 
     const hasEmoji = shouldShowEmojiReaction({reportAction: data.reportAction}) && !!emojiData.reportAction && !!emojiData.reportActionID;
 
-    if (!state) {
+    if (!rowMeasurements) {
         return null;
     }
 
