@@ -475,6 +475,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsPDF: 'PDFとしてダウンロード',
         downloadAsCSV: 'CSVとしてダウンロード',
         help: 'ヘルプ',
+        collapsed: '折りたたみ',
+        expanded: '展開',
         expenseReport: '経費精算書',
         expenseReports: '経費レポート',
         rateOutOfPolicy: 'ポリシー対象外のレート',

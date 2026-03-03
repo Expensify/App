@@ -475,6 +475,8 @@ const translations: TranslationDeepObject<typeof en> = {
         downloadAsPDF: 'Baixar como PDF',
         downloadAsCSV: 'Baixar como CSV',
         help: 'Ajuda',
+        collapsed: 'Recolhido',
+        expanded: 'Expandido',
         expenseReport: 'Relatório de despesas',
         expenseReports: 'Relatórios de despesas',
         rateOutOfPolicy: 'Taxa fora da política',
