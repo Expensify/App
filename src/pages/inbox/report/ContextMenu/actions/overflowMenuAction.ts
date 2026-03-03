@@ -1,20 +1,24 @@
 import type {RefObject} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 import CONST from '@src/CONST';
-import type {ActionDescriptor} from './ActionDescriptor';
-import type {ContextMenuActionParams} from './actionTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
 
-type OverflowMenuDescriptor = ActionDescriptor & {
+type OverflowMenuDescriptor = ContextMenuAction & {
     buttonRef: RefObject<View | null>;
 };
 
-function createOverflowMenuAction(params: ContextMenuActionParams, threeDotRef: RefObject<View | null>): OverflowMenuDescriptor {
-    const {payload, icons} = params;
-    const {openOverflowMenu, openContextMenu, interceptAnonymousUser, translate} = payload;
+type OverflowMenuActionParams = BaseContextMenuActionParams & {
+    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => void;
+    openContextMenu: () => void;
+    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    threeDotsIcon: IconAsset;
+};
 
+function createOverflowMenuAction({openOverflowMenu, openContextMenu, interceptAnonymousUser, translate, threeDotsIcon}: OverflowMenuActionParams, threeDotRef: RefObject<View | null>): OverflowMenuDescriptor {
     return {
         id: 'overflowMenu',
-        icon: icons.ThreeDots,
+        icon: threeDotsIcon,
         text: translate('reportActionContextMenu.menu'),
         isAnonymousAction: true,
         shouldPreventDefaultFocusOnPress: false,
@@ -29,4 +33,4 @@ function createOverflowMenuAction(params: ContextMenuActionParams, threeDotRef: 
 }
 
 export default createOverflowMenuAction;
-export type {OverflowMenuDescriptor};
+export type {OverflowMenuDescriptor, OverflowMenuActionParams};

@@ -9,9 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {ActionID} from './actions/actionConfig';
-import type {ActionDescriptor} from './actions/ActionDescriptor';
+import type {ContextMenuAction} from './actions/actionTypes';
 import {CONTEXT_MENU_ICON_NAMES} from './actions/actionTypes';
-import type {ContextMenuPayload} from './actions/actionTypes';
 import {createCopyOnyxDataAction, createDebugAction, createMarkAsReadAction, createMarkAsUnreadAction, createPinAction, createUnpinAction} from './actions/ContextMenuAction';
 import type {PopoverContentProps} from './PopoverContextMenu';
 import useReportContextMenuData from './useReportContextMenuData';
@@ -36,52 +35,58 @@ function PopoverReportContent({menuState, hideAndRun, setLocalShouldKeepOpen, tr
 
     const visibleActionIDs = useMemo(() => new Set(data.getVisibleActionIDs()), [data]);
 
-    const payload = {
-        ...data,
-        reportAction: data.reportAction as NonNullable<ContextMenuPayload['reportAction']>,
-        currentUserAccountID: 0,
-        currentUserPersonalDetails: undefined as unknown as ContextMenuPayload['currentUserPersonalDetails'],
-        encryptedAuthToken: '',
-        childReport: undefined,
-        childReportActions: undefined,
-        policy: undefined,
-        policyTags: undefined,
-        moneyRequestAction: undefined,
-        moneyRequestReport: undefined,
-        moneyRequestPolicy: undefined,
-        iouTransaction: undefined,
-        transaction: undefined,
-        card: undefined,
-        isThreadReportParentAction: false,
-        isHarvestReport: false,
-        isTryNewDotNVPDismissed: false,
-        isDelegateAccessRestricted: false,
-        areHoldRequirementsMet: false,
-        betas: undefined,
-        transactions: undefined,
-        introSelected: undefined,
-        movedFromReport: undefined,
-        movedToReport: undefined,
-        harvestReport: undefined,
-        download: undefined,
-        close: () => setLocalShouldKeepOpen(false),
-        hideAndRun,
-        transitionActionSheetState,
-        openContextMenu: () => setLocalShouldKeepOpen(true),
-        openOverflowMenu: () => {},
-        setIsEmojiPickerActive: undefined,
-        showDelegateNoAccessModal: undefined,
-    } satisfies ContextMenuPayload;
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    const reportAction = (data.reportAction ?? null) as NonNullable<typeof data.reportAction>;
+    const {interceptAnonymousUser, translate} = data;
 
-    const params = {payload, icons};
-
-    const allActions: ActionDescriptor[] = [
-        createMarkAsReadAction(params),
-        createMarkAsUnreadAction(params),
-        createPinAction(params),
-        createUnpinAction(params),
-        createCopyOnyxDataAction(params),
-        createDebugAction(params),
+    const allActions: ContextMenuAction[] = [
+        createMarkAsReadAction({
+            reportID: data.reportID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            mailIcon: icons.Mail,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createMarkAsUnreadAction({
+            reportID: data.reportID,
+            reportActions: data.reportActions,
+            reportAction,
+            currentUserAccountID: 0,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            chatBubbleUnreadIcon: icons.ChatBubbleUnread,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createPinAction({
+            reportID: data.reportID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            pinIcon: icons.Pin,
+        }),
+        createUnpinAction({
+            reportID: data.reportID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            pinIcon: icons.Pin,
+        }),
+        createCopyOnyxDataAction({
+            report: data.report,
+            interceptAnonymousUser,
+            translate,
+            copyIcon: icons.Copy,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createDebugAction({
+            reportID: data.reportID,
+            reportAction,
+            interceptAnonymousUser,
+            translate,
+            bugIcon: icons.Bug,
+        }),
     ];
 
     const actions = allActions.filter((action) => visibleActionIDs.has(action.id as ActionID));
@@ -100,7 +105,7 @@ function PopoverReportContent({menuState, hideAndRun, setLocalShouldKeepOpen, tr
             ref={contentRef}
             style={wrapperStyle}
         >
-            {actions.map((action: ActionDescriptor, i: number) => (
+            {actions.map((action: ContextMenuAction, i: number) => (
                 <FocusableMenuItem
                     key={action.id}
                     title={action.text}

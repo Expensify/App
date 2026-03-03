@@ -3,19 +3,25 @@ import {getEnvironmentURL} from '@libs/Environment/Environment';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {ActionDescriptor} from './ActionDescriptor';
-import type {ContextMenuActionParams} from './actionTypes';
+import type {ReportAction} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
 
-function createCopyLinkAction(params: ContextMenuActionParams): ActionDescriptor {
-    const {reportAction, originalReportID, interceptAnonymousUser, translate} = params.payload;
-    const {LinkCopy, Checkmark} = params.icons;
+type CopyLinkActionParams = BaseContextMenuActionParams & {
+    reportAction: ReportAction;
+    originalReportID: string | undefined;
+    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    linkCopyIcon: IconAsset;
+    checkmarkIcon: IconAsset;
+};
 
+function createCopyLinkAction({reportAction, originalReportID, interceptAnonymousUser, translate, linkCopyIcon, checkmarkIcon}: CopyLinkActionParams): ContextMenuAction {
     return {
         id: 'copyLink',
-        icon: LinkCopy,
+        icon: linkCopyIcon,
         text: translate('reportActionContextMenu.copyLink'),
         successText: translate('reportActionContextMenu.copied'),
-        successIcon: Checkmark,
+        successIcon: checkmarkIcon,
         isAnonymousAction: true,
         onPress: () =>
             interceptAnonymousUser(() => {
@@ -30,3 +36,4 @@ function createCopyLinkAction(params: ContextMenuActionParams): ActionDescriptor
 }
 
 export default createCopyLinkAction;
+export type {CopyLinkActionParams};

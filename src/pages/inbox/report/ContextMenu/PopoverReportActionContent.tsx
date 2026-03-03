@@ -15,9 +15,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {ActionID} from './actions/actionConfig';
 import {ORDERED_ACTION_SHOULD_SHOW} from './actions/actionConfig';
-import type {ActionDescriptor} from './actions/ActionDescriptor';
+import type {ContextMenuAction} from './actions/actionTypes';
 import {CONTEXT_MENU_ICON_NAMES} from './actions/actionTypes';
-import type {ContextMenuPayload} from './actions/actionTypes';
 import {
     createCopyEmailAction,
     createCopyLinkAction,
@@ -93,51 +92,225 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
         });
     };
 
-    const payload: ContextMenuPayload = {
-        ...data,
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        reportAction: (data.reportAction ?? null) as NonNullable<typeof data.reportAction>,
-        currentUserAccountID: data.currentUserPersonalDetails?.accountID ?? 0,
-        close: () => setLocalShouldKeepOpen(false),
-        hideAndRun,
-        transitionActionSheetState,
-        openContextMenu: () => setLocalShouldKeepOpen(true),
-        openOverflowMenu,
-        setIsEmojiPickerActive: menuState.onEmojiPickerToggle,
-    };
-
-    const params = {payload, icons};
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    const reportAction = (data.reportAction ?? null) as NonNullable<typeof data.reportAction>;
+    const currentUserAccountID = data.currentUserPersonalDetails?.accountID ?? 0;
+    const {interceptAnonymousUser, translate} = data;
 
     /* eslint-disable react-hooks/refs -- factory functions store refs for later use, they don't read .current during render */
-    const allActions: ActionDescriptor[] = [
-        createReplyInThreadAction(params),
-        createMarkAsUnreadAction(params),
-        createExplainAction(params),
-        createMarkAsReadAction(params),
-        createEditAction(params),
-        createUnholdAction(params),
-        createHoldAction(params),
-        createJoinThreadAction(params),
-        createLeaveThreadAction(params),
-        createCopyURLAction(params),
-        createCopyToClipboardAction(params),
-        createCopyEmailAction(params),
-        createCopyMessageAction(params),
-        createCopyLinkAction(params),
-        createPinAction(params),
-        createUnpinAction(params),
-        createFlagAsOffensiveAction(params),
-        createDownloadAction(params),
-        createCopyOnyxDataAction(params),
-        createDebugAction(params),
-        createDeleteAction(params),
+    const allActions: ContextMenuAction[] = [
+        createReplyInThreadAction({
+            childReport: data.childReport,
+            reportAction,
+            originalReport: data.originalReport,
+            currentUserAccountID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            chatBubbleReplyIcon: icons.ChatBubbleReply,
+        }),
+        createMarkAsUnreadAction({
+            reportID: data.reportID,
+            reportActions: data.reportActions,
+            reportAction,
+            currentUserAccountID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            chatBubbleUnreadIcon: icons.ChatBubbleUnread,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createExplainAction({
+            childReport: data.childReport,
+            originalReport: data.originalReport,
+            reportAction,
+            currentUserPersonalDetails: data.currentUserPersonalDetails,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            conciergeIcon: icons.Concierge,
+        }),
+        createMarkAsReadAction({
+            reportID: data.reportID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            mailIcon: icons.Mail,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createEditAction({
+            reportID: data.reportID,
+            reportAction,
+            moneyRequestAction: data.moneyRequestAction,
+            draftMessage: data.draftMessage,
+            introSelected: data.introSelected,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            pencilIcon: icons.Pencil,
+        }),
+        createUnholdAction({
+            moneyRequestAction: data.moneyRequestAction,
+            isDelegateAccessRestricted: data.isDelegateAccessRestricted,
+            showDelegateNoAccessModal: data.showDelegateNoAccessModal,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            stopwatchIcon: icons.Stopwatch,
+        }),
+        createHoldAction({
+            moneyRequestAction: data.moneyRequestAction,
+            isDelegateAccessRestricted: data.isDelegateAccessRestricted,
+            showDelegateNoAccessModal: data.showDelegateNoAccessModal,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            stopwatchIcon: icons.Stopwatch,
+        }),
+        createJoinThreadAction({
+            reportAction,
+            originalReport: data.originalReport,
+            currentUserAccountID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            bellIcon: icons.Bell,
+        }),
+        createLeaveThreadAction({
+            reportAction,
+            originalReport: data.originalReport,
+            currentUserAccountID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            exitIcon: icons.Exit,
+        }),
+        createCopyURLAction({
+            selection: data.selection,
+            interceptAnonymousUser,
+            translate,
+            copyIcon: icons.Copy,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createCopyToClipboardAction({
+            selection: data.selection,
+            interceptAnonymousUser,
+            translate,
+            copyIcon: icons.Copy,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createCopyEmailAction({
+            selection: data.selection,
+            interceptAnonymousUser,
+            translate,
+            copyIcon: icons.Copy,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createCopyMessageAction({
+            reportAction,
+            transaction: data.transaction,
+            selection: data.selection,
+            report: data.report,
+            card: data.card,
+            originalReport: data.originalReport,
+            isHarvestReport: data.isHarvestReport,
+            isTryNewDotNVPDismissed: data.isTryNewDotNVPDismissed,
+            movedFromReport: data.movedFromReport,
+            movedToReport: data.movedToReport,
+            childReport: data.childReport,
+            policy: data.policy,
+            getLocalDateFromDatetime: data.getLocalDateFromDatetime,
+            policyTags: data.policyTags,
+            translate,
+            harvestReport: data.harvestReport,
+            currentUserPersonalDetails: data.currentUserPersonalDetails,
+            interceptAnonymousUser,
+            copyIcon: icons.Copy,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createCopyLinkAction({
+            reportAction,
+            originalReportID: data.originalReportID,
+            interceptAnonymousUser,
+            translate,
+            linkCopyIcon: icons.LinkCopy,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createPinAction({
+            reportID: data.reportID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            pinIcon: icons.Pin,
+        }),
+        createUnpinAction({
+            reportID: data.reportID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            pinIcon: icons.Pin,
+        }),
+        createFlagAsOffensiveAction({
+            reportID: data.reportID,
+            reportAction,
+            hideAndRun,
+            translate,
+            flagIcon: icons.Flag,
+        }),
+        createDownloadAction({
+            reportAction,
+            encryptedAuthToken: data.encryptedAuthToken,
+            interceptAnonymousUser,
+            download: data.download,
+            translate,
+            downloadIcon: icons.Download,
+        }),
+        createCopyOnyxDataAction({
+            report: data.report,
+            interceptAnonymousUser,
+            translate,
+            copyIcon: icons.Copy,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createDebugAction({
+            reportID: data.reportID,
+            reportAction,
+            interceptAnonymousUser,
+            translate,
+            bugIcon: icons.Bug,
+        }),
+        createDeleteAction({
+            reportID: data.reportID,
+            reportAction,
+            moneyRequestAction: data.moneyRequestAction,
+            hideAndRun,
+            translate,
+            trashcanIcon: icons.Trashcan,
+        }),
     ];
 
-    const overflowMenu = createOverflowMenuAction(params, overflowMenuRef);
+    const overflowMenu = createOverflowMenuAction(
+        {
+            openOverflowMenu,
+            openContextMenu: () => setLocalShouldKeepOpen(true),
+            interceptAnonymousUser,
+            translate,
+            threeDotsIcon: icons.ThreeDots,
+        },
+        overflowMenuRef,
+    );
     const actionsWithOverflow = [...allActions, overflowMenu];
     const actions = actionsWithOverflow.filter((action) => visibleActionIDs.has(action.id as ActionID));
 
-    const emojiData = createEmojiReactionData(payload);
+    const emojiData = createEmojiReactionData({
+        reportID: data.reportID,
+        reportAction: data.reportAction,
+        currentUserAccountID,
+        openContextMenu: () => setLocalShouldKeepOpen(true),
+        setIsEmojiPickerActive: menuState.onEmojiPickerToggle,
+        hideAndRun,
+        interceptAnonymousUser,
+    });
     /* eslint-enable react-hooks/refs */
 
     const contentActionIndexes = actions
@@ -164,7 +337,7 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
         >
             <FocusTrapForModal active={!shouldUseNarrowLayout && shouldEnableArrowNavigation}>
                 <View>
-                    {hasEmoji && emojiData.reportActionID != null && (
+                    {hasEmoji && emojiData.reportActionID != null && emojiData.reportAction != null && (
                         <QuickEmojiReactions
                             closeContextMenu={emojiData.closeContextMenu}
                             onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
@@ -180,7 +353,7 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
                             }}
                         />
                     )}
-                    {actions.map((action: ActionDescriptor, i: number) => (
+                    {actions.map((action: ContextMenuAction, i: number) => (
                         <FocusableMenuItem
                             key={action.id}
                             title={action.text}

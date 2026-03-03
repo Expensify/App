@@ -36,7 +36,6 @@ import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ActionID} from './actions/actionConfig';
 import {getVisibleActionIDs as getVisibleActionIDsFromConfig, RESTRICTED_READONLY_ACTION_IDS} from './actions/actionConfig';
-import type {ContextMenuPayload} from './actions/actionTypes';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
 import {hideContextMenu} from './ReportActionContextMenu';
 
@@ -52,15 +51,7 @@ type UseContextMenuDataParams = {
     anchor: RefObject<ContextMenuAnchor> | undefined;
 };
 
-type UseReportActionContextMenuDataReturn = Omit<
-    ContextMenuPayload,
-    'close' | 'hideAndRun' | 'transitionActionSheetState' | 'openContextMenu' | 'openOverflowMenu' | 'setIsEmojiPickerActive' | 'reportAction' | 'currentUserAccountID'
-> & {
-    reportAction: OnyxEntry<ReportAction>;
-    getVisibleActionIDs: () => ActionID[];
-};
-
-function useReportActionContextMenuData({reportID, reportActionID, originalReportID, draftMessage, selection, type, anchor}: UseContextMenuDataParams): UseReportActionContextMenuDataReturn {
+function useReportActionContextMenuData({reportID, reportActionID, originalReportID, draftMessage, selection, type, anchor}: UseContextMenuDataParams) {
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
@@ -246,4 +237,4 @@ function useReportActionContextMenuData({reportID, reportActionID, originalRepor
 }
 
 export default useReportActionContextMenuData;
-export type {UseContextMenuDataParams, UseReportActionContextMenuDataReturn};
+export type {UseContextMenuDataParams};

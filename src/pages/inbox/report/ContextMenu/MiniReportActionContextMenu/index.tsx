@@ -14,9 +14,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import getButtonState from '@libs/getButtonState';
 import type {ActionID} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
-import type {ActionDescriptor} from '@pages/inbox/report/ContextMenu/actions/ActionDescriptor';
+import type {ContextMenuAction} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
 import {CONTEXT_MENU_ICON_NAMES} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
-import type {ContextMenuPayload} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
 import {
     createCopyLinkAction,
     createCopyMessageAction,
@@ -142,42 +141,174 @@ function MiniReportActionContextMenu() {
         });
     };
 
-    const payload: ContextMenuPayload = {
-        ...data,
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        reportAction: (data.reportAction ?? null) as NonNullable<typeof data.reportAction>,
-        currentUserAccountID: data.currentUserPersonalDetails?.accountID,
-        close: () => miniActions.release(),
-        hideAndRun,
-        transitionActionSheetState,
-        openContextMenu: () => miniActions.keepOpen(),
-        openOverflowMenu,
-        setIsEmojiPickerActive: state?.setIsEmojiPickerActive,
-    };
-
-    const params = {payload, icons};
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    const reportAction = (data.reportAction ?? null) as NonNullable<typeof data.reportAction>;
+    const currentUserAccountID = data.currentUserPersonalDetails?.accountID ?? 0;
+    const {interceptAnonymousUser, translate} = data;
 
     /* eslint-disable react-hooks/refs -- factory functions store refs for later use, they don't read .current during render */
-    const allActions: ActionDescriptor[] = [
-        createReplyInThreadAction(params),
-        createMarkAsUnreadAction(params),
-        createExplainAction(params),
-        createMarkAsReadAction(params),
-        createEditAction(params),
-        createUnholdAction(params),
-        createHoldAction(params),
-        createJoinThreadAction(params),
-        createLeaveThreadAction(params),
-        createCopyMessageAction(params),
-        createCopyLinkAction(params),
-        createFlagAsOffensiveAction(params),
-        createDownloadAction(params),
-        createDeleteAction(params),
+    const allActions: ContextMenuAction[] = [
+        createReplyInThreadAction({
+            childReport: data.childReport,
+            reportAction,
+            originalReport: data.originalReport,
+            currentUserAccountID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            chatBubbleReplyIcon: icons.ChatBubbleReply,
+        }),
+        createMarkAsUnreadAction({
+            reportID: data.reportID,
+            reportActions: data.reportActions,
+            reportAction,
+            currentUserAccountID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            chatBubbleUnreadIcon: icons.ChatBubbleUnread,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createExplainAction({
+            childReport: data.childReport,
+            originalReport: data.originalReport,
+            reportAction,
+            currentUserPersonalDetails: data.currentUserPersonalDetails,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            conciergeIcon: icons.Concierge,
+        }),
+        createMarkAsReadAction({
+            reportID: data.reportID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            mailIcon: icons.Mail,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createEditAction({
+            reportID: data.reportID,
+            reportAction,
+            moneyRequestAction: data.moneyRequestAction,
+            draftMessage: data.draftMessage,
+            introSelected: data.introSelected,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            pencilIcon: icons.Pencil,
+        }),
+        createUnholdAction({
+            moneyRequestAction: data.moneyRequestAction,
+            isDelegateAccessRestricted: data.isDelegateAccessRestricted,
+            showDelegateNoAccessModal: data.showDelegateNoAccessModal,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            stopwatchIcon: icons.Stopwatch,
+        }),
+        createHoldAction({
+            moneyRequestAction: data.moneyRequestAction,
+            isDelegateAccessRestricted: data.isDelegateAccessRestricted,
+            showDelegateNoAccessModal: data.showDelegateNoAccessModal,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            stopwatchIcon: icons.Stopwatch,
+        }),
+        createJoinThreadAction({
+            reportAction,
+            originalReport: data.originalReport,
+            currentUserAccountID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            bellIcon: icons.Bell,
+        }),
+        createLeaveThreadAction({
+            reportAction,
+            originalReport: data.originalReport,
+            currentUserAccountID,
+            interceptAnonymousUser,
+            hideAndRun,
+            translate,
+            exitIcon: icons.Exit,
+        }),
+        createCopyMessageAction({
+            reportAction,
+            transaction: data.transaction,
+            selection: data.selection,
+            report: data.report,
+            card: data.card,
+            originalReport: data.originalReport,
+            isHarvestReport: data.isHarvestReport,
+            isTryNewDotNVPDismissed: data.isTryNewDotNVPDismissed,
+            movedFromReport: data.movedFromReport,
+            movedToReport: data.movedToReport,
+            childReport: data.childReport,
+            policy: data.policy,
+            getLocalDateFromDatetime: data.getLocalDateFromDatetime,
+            policyTags: data.policyTags,
+            translate,
+            harvestReport: data.harvestReport,
+            currentUserPersonalDetails: data.currentUserPersonalDetails,
+            interceptAnonymousUser,
+            copyIcon: icons.Copy,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createCopyLinkAction({
+            reportAction,
+            originalReportID: data.originalReportID,
+            interceptAnonymousUser,
+            translate,
+            linkCopyIcon: icons.LinkCopy,
+            checkmarkIcon: icons.Checkmark,
+        }),
+        createFlagAsOffensiveAction({
+            reportID: data.reportID,
+            reportAction,
+            hideAndRun,
+            translate,
+            flagIcon: icons.Flag,
+        }),
+        createDownloadAction({
+            reportAction,
+            encryptedAuthToken: data.encryptedAuthToken,
+            interceptAnonymousUser,
+            download: data.download,
+            translate,
+            downloadIcon: icons.Download,
+        }),
+        createDeleteAction({
+            reportID: data.reportID,
+            reportAction,
+            moneyRequestAction: data.moneyRequestAction,
+            hideAndRun,
+            translate,
+            trashcanIcon: icons.Trashcan,
+        }),
     ];
 
     const actions = allActions.filter((action) => visibleActionIDs.has(action.id as ActionID));
-    const emojiData = createEmojiReactionData(payload);
-    const overflowMenu = createOverflowMenuAction(params, threeDotRef);
+    const emojiData = createEmojiReactionData({
+        reportID: data.reportID,
+        reportAction: data.reportAction,
+        currentUserAccountID,
+        openContextMenu: () => miniActions.keepOpen(),
+        setIsEmojiPickerActive: state?.setIsEmojiPickerActive,
+        hideAndRun,
+        interceptAnonymousUser,
+    });
+    const overflowMenu = createOverflowMenuAction(
+        {
+            openOverflowMenu,
+            openContextMenu: () => miniActions.keepOpen(),
+            interceptAnonymousUser,
+            translate,
+            threeDotsIcon: icons.ThreeDots,
+        },
+        threeDotRef,
+    );
     /* eslint-enable react-hooks/refs */
 
     const hasEmoji = visibleActionIDs.has('emojiReaction') && !!emojiData.reportAction && !!emojiData.reportActionID;
@@ -221,7 +352,7 @@ function MiniReportActionContextMenu() {
                             reportAction={emojiData.reportAction}
                         />
                     )}
-                    {visibleActions.map((action: ActionDescriptor) => (
+                    {visibleActions.map((action: ContextMenuAction) => (
                         <MiniContextMenuItem
                             key={action.id}
                             isDelayButtonStateComplete

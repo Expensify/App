@@ -1,18 +1,23 @@
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {ActionDescriptor} from './ActionDescriptor';
-import type {ContextMenuActionParams} from './actionTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
 
-function createMarkAsReadAction(params: ContextMenuActionParams): ActionDescriptor {
-    const {reportID, interceptAnonymousUser, hideAndRun, translate} = params.payload;
-    const {Mail, Checkmark} = params.icons;
+type MarkAsReadActionParams = BaseContextMenuActionParams & {
+    reportID: string | undefined;
+    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    hideAndRun: (callback?: () => void) => void;
+    mailIcon: IconAsset;
+    checkmarkIcon: IconAsset;
+};
 
+function createMarkAsReadAction({reportID, interceptAnonymousUser, hideAndRun, translate, mailIcon, checkmarkIcon}: MarkAsReadActionParams): ContextMenuAction {
     return {
         id: 'markAsRead',
-        icon: Mail,
+        icon: mailIcon,
         text: translate('reportActionContextMenu.markAsRead'),
-        successIcon: Checkmark,
+        successIcon: checkmarkIcon,
         onPress: () =>
             interceptAnonymousUser(() => {
                 readNewestAction(reportID, true, true);
@@ -23,3 +28,4 @@ function createMarkAsReadAction(params: ContextMenuActionParams): ActionDescript
 }
 
 export default createMarkAsReadAction;
+export type {MarkAsReadActionParams};

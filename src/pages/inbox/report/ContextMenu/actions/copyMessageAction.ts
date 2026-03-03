@@ -1,4 +1,7 @@
 import {Str} from 'expensify-common';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
@@ -62,12 +65,12 @@ import {
     getTagListUpdatedRequiredMessage,
     getTravelUpdateMessage,
     getUpdateACHAccountMessage,
-    getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedBudgetMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedIndividualBudgetNotificationMessage,
+    getUpdatedApprovalRuleMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdatedOwnershipMessage,
     getUpdatedProhibitedExpensesMessage,
@@ -137,10 +140,37 @@ import {
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+import type {Card, Policy, PolicyTagLists, ReportAction, Transaction, Report as ReportType} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {getActionHtml} from './actionConfig';
-import type {ActionDescriptor} from './ActionDescriptor';
-import type {ContextMenuActionParams, ContextMenuPayload} from './actionTypes';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
+
+type CopyMessageClipboardParams = {
+    reportAction: ReportAction;
+    transaction: OnyxEntry<Transaction>;
+    selection: string;
+    report: OnyxEntry<ReportType>;
+    card: Card | undefined;
+    originalReport: OnyxEntry<ReportType>;
+    isHarvestReport: boolean;
+    isTryNewDotNVPDismissed: boolean;
+    movedFromReport: OnyxEntry<ReportType>;
+    movedToReport: OnyxEntry<ReportType>;
+    childReport: OnyxEntry<ReportType>;
+    policy: OnyxEntry<Policy>;
+    getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
+    policyTags: OnyxEntry<PolicyTagLists>;
+    translate: LocalizedTranslate;
+    harvestReport: OnyxEntry<ReportType>;
+    currentUserPersonalDetails: ReturnType<typeof useCurrentUserPersonalDetails>;
+};
+
+type CopyMessageActionParams = BaseContextMenuActionParams &
+    CopyMessageClipboardParams & {
+        interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+        copyIcon: IconAsset;
+        checkmarkIcon: IconAsset;
+    };
 
 function setClipboardMessage(content: string | undefined) {
     if (!content) {
@@ -154,7 +184,7 @@ function setClipboardMessage(content: string | undefined) {
     }
 }
 
-export function copyMessageToClipboard(payload: ContextMenuPayload) {
+export function copyMessageToClipboard(params: CopyMessageClipboardParams) {
     const {
         reportAction,
         transaction,
@@ -173,7 +203,7 @@ export function copyMessageToClipboard(payload: ContextMenuPayload) {
         translate,
         harvestReport,
         currentUserPersonalDetails,
-    } = payload;
+    } = params;
 
     const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
     const messageHtml = getActionHtml(reportAction);
@@ -496,19 +526,17 @@ export function copyMessageToClipboard(payload: ContextMenuPayload) {
     }
 }
 
-function createCopyMessageAction(params: ContextMenuActionParams): ActionDescriptor {
-    const {payload, icons} = params;
-
+function createCopyMessageAction({interceptAnonymousUser, translate, copyIcon, checkmarkIcon, ...clipboardParams}: CopyMessageActionParams): ContextMenuAction {
     return {
         id: 'copyMessage',
-        icon: icons.Copy,
-        text: payload.translate('reportActionContextMenu.copyMessage'),
-        successText: payload.translate('reportActionContextMenu.copied'),
-        successIcon: icons.Checkmark,
+        icon: copyIcon,
+        text: translate('reportActionContextMenu.copyMessage'),
+        successText: translate('reportActionContextMenu.copied'),
+        successIcon: checkmarkIcon,
         isAnonymousAction: true,
         onPress: () =>
-            payload.interceptAnonymousUser(() => {
-                copyMessageToClipboard(payload);
+            interceptAnonymousUser(() => {
+                copyMessageToClipboard({...clipboardParams, translate});
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }, true),
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE,
@@ -516,3 +544,4 @@ function createCopyMessageAction(params: ContextMenuActionParams): ActionDescrip
 }
 
 export default createCopyMessageAction;
+export type {CopyMessageActionParams, CopyMessageClipboardParams};

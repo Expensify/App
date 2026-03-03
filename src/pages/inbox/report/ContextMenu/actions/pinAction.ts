@@ -1,16 +1,20 @@
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {togglePinnedState} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {ActionDescriptor} from './ActionDescriptor';
-import type {ContextMenuActionParams} from './actionTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
 
-function createPinAction(params: ContextMenuActionParams): ActionDescriptor {
-    const {reportID, interceptAnonymousUser, hideAndRun, translate} = params.payload;
-    const {Pin} = params.icons;
+type PinActionParams = BaseContextMenuActionParams & {
+    reportID: string | undefined;
+    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    hideAndRun: (callback?: () => void) => void;
+    pinIcon: IconAsset;
+};
 
+function createPinAction({reportID, interceptAnonymousUser, hideAndRun, translate, pinIcon}: PinActionParams): ContextMenuAction {
     return {
         id: 'pin',
-        icon: Pin,
+        icon: pinIcon,
         text: translate('common.pin'),
         onPress: () =>
             interceptAnonymousUser(() => {
@@ -22,3 +26,4 @@ function createPinAction(params: ContextMenuActionParams): ActionDescriptor {
 }
 
 export default createPinAction;
+export type {PinActionParams};

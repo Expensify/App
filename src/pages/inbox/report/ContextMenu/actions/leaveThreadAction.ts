@@ -1,17 +1,25 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getChildReportNotificationPreference} from '@libs/ReportUtils';
 import {toggleSubscribeToChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {ActionDescriptor} from './ActionDescriptor';
-import type {ContextMenuActionParams} from './actionTypes';
+import type {ReportAction, Report as ReportType} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
 
-function createLeaveThreadAction(params: ContextMenuActionParams): ActionDescriptor {
-    const {payload, icons} = params;
-    const {reportAction, originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate} = payload;
+type LeaveThreadActionParams = BaseContextMenuActionParams & {
+    reportAction: ReportAction;
+    originalReport: OnyxEntry<ReportType>;
+    currentUserAccountID: number;
+    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    hideAndRun: (callback?: () => void) => void;
+    exitIcon: IconAsset;
+};
 
+function createLeaveThreadAction({reportAction, originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, exitIcon}: LeaveThreadActionParams): ContextMenuAction {
     return {
         id: 'leaveThread',
-        icon: icons.Exit,
+        icon: exitIcon,
         text: translate('reportActionContextMenu.leaveThread'),
         onPress: () =>
             interceptAnonymousUser(() => {
@@ -26,3 +34,4 @@ function createLeaveThreadAction(params: ContextMenuActionParams): ActionDescrip
 }
 
 export default createLeaveThreadAction;
+export type {LeaveThreadActionParams};

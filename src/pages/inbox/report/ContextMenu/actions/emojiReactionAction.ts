@@ -1,29 +1,38 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import {toggleEmojiReaction} from '@userActions/Report';
-import type {ReportActionReactions} from '@src/types/onyx';
-import type {ContextMenuPayload} from './actionTypes';
+import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
 type EmojiReactionData = {
     reportID: string | undefined;
-    reportAction: ContextMenuPayload['reportAction'];
+    reportAction: ReportAction | undefined;
     reportActionID: string | undefined;
     toggleEmojiAndCloseMenu: (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>, preferredSkinTone: number) => void;
     closeContextMenu: (onHideCallback?: () => void) => void;
     onPressOpenPicker: () => void;
     onEmojiPickerClosed: () => void;
-    interceptAnonymousUser: ContextMenuPayload['interceptAnonymousUser'];
+    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
 };
 
-function createEmojiReactionData(payload: ContextMenuPayload): EmojiReactionData {
-    const {reportID, reportAction, currentUserAccountID, openContextMenu, setIsEmojiPickerActive, hideAndRun, interceptAnonymousUser} = payload;
+type EmojiReactionParams = {
+    reportID: string | undefined;
+    reportAction: ReportAction | undefined;
+    currentUserAccountID: number;
+    openContextMenu: () => void;
+    setIsEmojiPickerActive: ((state: boolean) => void) | undefined;
+    hideAndRun: (callback?: () => void) => void;
+    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+};
 
+function createEmojiReactionData({reportID, reportAction, currentUserAccountID, openContextMenu, setIsEmojiPickerActive, hideAndRun, interceptAnonymousUser}: EmojiReactionParams): EmojiReactionData {
     const closeContextMenu = (onHideCallback?: () => void) => {
         hideAndRun(onHideCallback);
     };
 
     const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>, preferredSkinTone: number) => {
-        toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, preferredSkinTone, currentUserAccountID);
+        if (reportAction) {
+            toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, preferredSkinTone, currentUserAccountID);
+        }
         closeContextMenu();
         setIsEmojiPickerActive?.(false);
     };
@@ -51,4 +60,4 @@ function createEmojiReactionData(payload: ContextMenuPayload): EmojiReactionData
 }
 
 export default createEmojiReactionData;
-export type {EmojiReactionData};
+export type {EmojiReactionData, EmojiReactionParams};

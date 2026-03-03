@@ -3,16 +3,21 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {ActionDescriptor} from './ActionDescriptor';
-import type {ContextMenuActionParams} from './actionTypes';
+import type {ReportAction} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
 
-function createDebugAction(params: ContextMenuActionParams): ActionDescriptor {
-    const {payload, icons} = params;
-    const {reportID, reportAction, interceptAnonymousUser, translate} = payload;
+type DebugActionParams = BaseContextMenuActionParams & {
+    reportID: string | undefined;
+    reportAction: ReportAction;
+    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    bugIcon: IconAsset;
+};
 
+function createDebugAction({reportID, reportAction, interceptAnonymousUser, translate, bugIcon}: DebugActionParams): ContextMenuAction {
     return {
         id: 'debug',
-        icon: icons.Bug,
+        icon: bugIcon,
         text: translate('debug.debug'),
         isAnonymousAction: true,
         onPress: () =>
@@ -32,3 +37,4 @@ function createDebugAction(params: ContextMenuActionParams): ActionDescriptor {
 }
 
 export default createDebugAction;
+export type {DebugActionParams};

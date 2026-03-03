@@ -1,5 +1,6 @@
 import type {RefObject} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import {
     getOriginalMessage,
     getReportAction,
@@ -55,7 +56,7 @@ const ACTION_IDS = {
     OVERFLOW_MENU: 'overflowMenu',
 } as const;
 
-type ActionID = (typeof ACTION_IDS)[keyof typeof ACTION_IDS];
+type ActionID = ValueOf<typeof ACTION_IDS>;
 
 type ShouldShowArgs = {
     type: string;

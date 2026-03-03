@@ -1,17 +1,25 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getChildReportNotificationPreference} from '@libs/ReportUtils';
 import {toggleSubscribeToChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {ActionDescriptor} from './ActionDescriptor';
-import type {ContextMenuActionParams} from './actionTypes';
+import type {ReportAction, Report as ReportType} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
 
-function createJoinThreadAction(params: ContextMenuActionParams): ActionDescriptor {
-    const {payload, icons} = params;
-    const {reportAction, originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate} = payload;
+type JoinThreadActionParams = BaseContextMenuActionParams & {
+    reportAction: ReportAction;
+    originalReport: OnyxEntry<ReportType>;
+    currentUserAccountID: number;
+    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    hideAndRun: (callback?: () => void) => void;
+    bellIcon: IconAsset;
+};
 
+function createJoinThreadAction({reportAction, originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, bellIcon}: JoinThreadActionParams): ContextMenuAction {
     return {
         id: 'joinThread',
-        icon: icons.Bell,
+        icon: bellIcon,
         text: translate('reportActionContextMenu.joinThread'),
         onPress: () =>
             interceptAnonymousUser(() => {
@@ -26,3 +34,4 @@ function createJoinThreadAction(params: ContextMenuActionParams): ActionDescript
 }
 
 export default createJoinThreadAction;
+export type {JoinThreadActionParams};

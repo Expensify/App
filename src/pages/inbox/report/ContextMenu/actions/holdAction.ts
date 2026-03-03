@@ -1,16 +1,23 @@
 import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {ActionDescriptor} from './ActionDescriptor';
-import type {ContextMenuActionParams} from './actionTypes';
+import type {ReportAction} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
 
-function createHoldAction(params: ContextMenuActionParams): ActionDescriptor {
-    const {payload, icons} = params;
-    const {moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal, interceptAnonymousUser, hideAndRun, translate} = payload;
+type HoldActionParams = BaseContextMenuActionParams & {
+    moneyRequestAction: ReportAction | undefined;
+    isDelegateAccessRestricted: boolean;
+    showDelegateNoAccessModal: (() => void) | undefined;
+    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    hideAndRun: (callback?: () => void) => void;
+    stopwatchIcon: IconAsset;
+};
 
+function createHoldAction({moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal, interceptAnonymousUser, hideAndRun, translate, stopwatchIcon}: HoldActionParams): ContextMenuAction {
     return {
         id: 'hold',
-        icon: icons.Stopwatch,
+        icon: stopwatchIcon,
         text: translate('iou.hold'),
         onPress: () =>
             interceptAnonymousUser(() => {
@@ -25,3 +32,4 @@ function createHoldAction(params: ContextMenuActionParams): ActionDescriptor {
 }
 
 export default createHoldAction;
+export type {HoldActionParams};

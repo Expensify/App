@@ -2,19 +2,23 @@ import Clipboard from '@libs/Clipboard';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {ActionDescriptor} from './ActionDescriptor';
-import type {ContextMenuActionParams} from './actionTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
 
-function createCopyURLAction(params: ContextMenuActionParams): ActionDescriptor {
-    const {selection, interceptAnonymousUser, translate} = params.payload;
-    const {Copy, Checkmark} = params.icons;
+type CopyURLActionParams = BaseContextMenuActionParams & {
+    selection: string;
+    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    copyIcon: IconAsset;
+    checkmarkIcon: IconAsset;
+};
 
+function createCopyURLAction({selection, interceptAnonymousUser, translate, copyIcon, checkmarkIcon}: CopyURLActionParams): ContextMenuAction {
     return {
         id: 'copyUrl',
-        icon: Copy,
+        icon: copyIcon,
         text: translate('reportActionContextMenu.copyURLToClipboard'),
         successText: translate('reportActionContextMenu.copied'),
-        successIcon: Checkmark,
+        successIcon: checkmarkIcon,
         description: selection,
         isAnonymousAction: true,
         onPress: () =>
@@ -27,3 +31,4 @@ function createCopyURLAction(params: ContextMenuActionParams): ActionDescriptor 
 }
 
 export default createCopyURLAction;
+export type {CopyURLActionParams};

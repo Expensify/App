@@ -3,19 +3,23 @@ import EmailUtils from '@libs/EmailUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {ActionDescriptor} from './ActionDescriptor';
-import type {ContextMenuActionParams} from './actionTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
 
-function createCopyEmailAction(params: ContextMenuActionParams): ActionDescriptor {
-    const {selection, interceptAnonymousUser, translate} = params.payload;
-    const {Copy, Checkmark} = params.icons;
+type CopyEmailActionParams = BaseContextMenuActionParams & {
+    selection: string;
+    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    copyIcon: IconAsset;
+    checkmarkIcon: IconAsset;
+};
 
+function createCopyEmailAction({selection, interceptAnonymousUser, translate, copyIcon, checkmarkIcon}: CopyEmailActionParams): ContextMenuAction {
     return {
         id: 'copyEmail',
-        icon: Copy,
+        icon: copyIcon,
         text: translate('reportActionContextMenu.copyEmailToClipboard'),
         successText: translate('reportActionContextMenu.copied'),
-        successIcon: Checkmark,
+        successIcon: checkmarkIcon,
         description: EmailUtils.prefixMailSeparatorsWithBreakOpportunities(EmailUtils.trimMailTo(selection ?? '')),
         isAnonymousAction: true,
         onPress: () =>
@@ -28,3 +32,4 @@ function createCopyEmailAction(params: ContextMenuActionParams): ActionDescripto
 }
 
 export default createCopyEmailAction;
+export type {CopyEmailActionParams};

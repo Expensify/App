@@ -1,20 +1,26 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import Clipboard from '@libs/Clipboard';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {ActionDescriptor} from './ActionDescriptor';
-import type {ContextMenuActionParams} from './actionTypes';
+import type {Report} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
 
-function createCopyOnyxDataAction(params: ContextMenuActionParams): ActionDescriptor {
-    const {report, interceptAnonymousUser, translate} = params.payload;
-    const {Copy, Checkmark} = params.icons;
+type CopyOnyxDataActionParams = BaseContextMenuActionParams & {
+    report: OnyxEntry<Report>;
+    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
+    copyIcon: IconAsset;
+    checkmarkIcon: IconAsset;
+};
 
+function createCopyOnyxDataAction({report, interceptAnonymousUser, translate, copyIcon, checkmarkIcon}: CopyOnyxDataActionParams): ContextMenuAction {
     return {
         id: 'copyOnyxData',
-        icon: Copy,
+        icon: copyIcon,
         text: translate('reportActionContextMenu.copyOnyxData'),
         successText: translate('reportActionContextMenu.copied'),
-        successIcon: Checkmark,
+        successIcon: checkmarkIcon,
         isAnonymousAction: true,
         onPress: () =>
             interceptAnonymousUser(() => {
@@ -26,3 +32,4 @@ function createCopyOnyxDataAction(params: ContextMenuActionParams): ActionDescri
 }
 
 export default createCopyOnyxDataAction;
+export type {CopyOnyxDataActionParams};
