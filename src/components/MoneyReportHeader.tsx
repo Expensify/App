@@ -6,6 +6,7 @@ import {getArchiveReason} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -1901,42 +1902,6 @@ function MoneyReportHeader({
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
-    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
-        // If mobile selection mode is enabled but only one or no transactions remain, turn it off
-        const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
-        if (visibleTransactions.length <= 1) {
-            turnOffMobileSelectionMode();
-        }
-
-        return (
-            <HeaderWithBackButton
-                title={translate('common.selectMultiple')}
-                onBackButtonPress={() => {
-                    clearSelectedTransactions(true);
-                    turnOffMobileSelectionMode();
-                }}
-            />
-        );
-    }
-    const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) =>
-        selectPaymentType({
-            event,
-            iouPaymentType,
-            triggerKYCFlow,
-            policy,
-            onPress: confirmPayment,
-            currentAccountID: accountID,
-            currentEmail: email ?? '',
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            isUserValidated,
-            confirmApproval: () => confirmApproval(),
-            iouReport: moneyRequestReport,
-            iouReportNextStep: nextStep,
-            betas,
-            userBillingGraceEndPeriods,
-        });
-
     const hasPayInSelectionMode = allExpensesSelected && primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY;
 
     const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
@@ -1960,6 +1925,86 @@ function MoneyReportHeader({
         });
     };
 
+    const renderSelectionModeDropdown = (buttonWrapperStyle?: StyleProp<ViewStyle>) =>
+        hasPayInSelectionMode ? (
+            <MoneyReportHeaderKYCDropdown
+                chatReportID={chatReport?.reportID}
+                iouReport={moneyRequestReport}
+                onPaymentSelect={onSelectionModePaymentSelect}
+                onSuccessfulKYC={(type) => {
+                    isSelectionModePaymentRef.current = true;
+                    confirmPayment({paymentType: type});
+                }}
+                primaryAction={primaryAction}
+                applicableSecondaryActions={selectedTransactionsOptions}
+                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                shouldShowSuccessStyle
+                ref={kycWallRef}
+            />
+        ) : (
+            <View>
+                <ButtonWithDropdownMenu
+                    onPress={() => null}
+                    options={selectedTransactionsOptions}
+                    customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                    isSplitButton={false}
+                    shouldAlwaysShowDropdownMenu
+                    wrapperStyle={buttonWrapperStyle}
+                />
+            </View>
+        );
+
+    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
+        // If mobile selection mode is enabled but only one or no transactions remain, turn it off
+        const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+        if (visibleTransactions.length <= 1) {
+            turnOffMobileSelectionMode();
+        }
+
+        return (
+            <HeaderWithBackButton
+                title={translate('common.selectMultiple')}
+                onBackButtonPress={() => {
+                    clearSelectedTransactions(true);
+                    turnOffMobileSelectionMode();
+                }}
+            >
+                {shouldShowSelectedTransactionsButton && renderSelectionModeDropdown()}
+            </HeaderWithBackButton>
+        );
+    }
+
+    const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) =>
+        selectPaymentType({
+            event,
+            iouPaymentType,
+            triggerKYCFlow,
+            policy,
+            onPress: confirmPayment,
+            currentAccountID: accountID,
+            currentEmail: email ?? '',
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            isUserValidated,
+            confirmApproval: () => confirmApproval(),
+            iouReport: moneyRequestReport,
+            iouReportNextStep: nextStep,
+            betas,
+            userBillingGraceEndPeriods,
+        });
+
+    const moreDropdown = (
+        <MoneyReportHeaderKYCDropdown
+            chatReportID={chatReport?.reportID}
+            iouReport={moneyRequestReport}
+            onPaymentSelect={onPaymentSelect}
+            onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+            primaryAction={primaryAction}
+            applicableSecondaryActions={applicableSecondaryActions}
+            ref={kycWallRef}
+        />
+    );
+
     const showNextStepBar = shouldShowNextStep && !!(optimisticNextStep?.message?.length ?? (optimisticNextStep && 'messageKey' in optimisticNextStep));
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
     const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
@@ -1982,90 +2027,18 @@ function MoneyReportHeader({
                 {shouldDisplayNarrowMoreButton && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
-                        {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
-                            <MoneyReportHeaderKYCDropdown
-                                chatReportID={chatReport?.reportID}
-                                iouReport={moneyRequestReport}
-                                onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-                                primaryAction={primaryAction}
-                                applicableSecondaryActions={applicableSecondaryActions}
-                                ref={kycWallRef}
-                            />
-                        )}
-                        {shouldShowSelectedTransactionsButton &&
-                            (hasPayInSelectionMode ? (
-                                <MoneyReportHeaderKYCDropdown
-                                    chatReportID={chatReport?.reportID}
-                                    iouReport={moneyRequestReport}
-                                    onPaymentSelect={onSelectionModePaymentSelect}
-                                    onSuccessfulKYC={(type) => {
-                                        isSelectionModePaymentRef.current = true;
-                                        confirmPayment({paymentType: type});
-                                    }}
-                                    primaryAction={primaryAction}
-                                    applicableSecondaryActions={selectedTransactionsOptions}
-                                    customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                                    shouldShowSuccessStyle
-                                    ref={kycWallRef}
-                                />
-                            ) : (
-                                <View>
-                                    <ButtonWithDropdownMenu
-                                        onPress={() => null}
-                                        options={selectedTransactionsOptions}
-                                        customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                                        isSplitButton={false}
-                                        shouldAlwaysShowDropdownMenu
-                                    />
-                                </View>
-                            ))}
+                        {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && moreDropdown}
+                        {shouldShowSelectedTransactionsButton && renderSelectionModeDropdown()}
                     </View>
                 )}
             </HeaderWithBackButton>
             {!shouldDisplayNarrowMoreButton &&
                 (shouldShowSelectedTransactionsButton ? (
-                    <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>
-                        {hasPayInSelectionMode ? (
-                            <MoneyReportHeaderKYCDropdown
-                                chatReportID={chatReport?.reportID}
-                                iouReport={moneyRequestReport}
-                                onPaymentSelect={onSelectionModePaymentSelect}
-                                onSuccessfulKYC={(type) => {
-                                    isSelectionModePaymentRef.current = true;
-                                    confirmPayment({paymentType: type});
-                                }}
-                                primaryAction={primaryAction}
-                                applicableSecondaryActions={selectedTransactionsOptions}
-                                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                                shouldShowSuccessStyle
-                                ref={kycWallRef}
-                            />
-                        ) : (
-                            <ButtonWithDropdownMenu
-                                onPress={() => null}
-                                options={selectedTransactionsOptions}
-                                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                                isSplitButton={false}
-                                shouldAlwaysShowDropdownMenu
-                                wrapperStyle={styles.w100}
-                            />
-                        )}
-                    </View>
+                    <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>{renderSelectionModeDropdown(styles.w100)}</View>
                 ) : (
                     <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
-                        {!!applicableSecondaryActions.length && (
-                            <MoneyReportHeaderKYCDropdown
-                                chatReportID={chatReport?.reportID}
-                                iouReport={moneyRequestReport}
-                                onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-                                primaryAction={primaryAction}
-                                applicableSecondaryActions={applicableSecondaryActions}
-                                ref={kycWallRef}
-                            />
-                        )}
+                        {!!applicableSecondaryActions.length && moreDropdown}
                     </View>
                 ))}
 
