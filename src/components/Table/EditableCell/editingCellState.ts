@@ -1,20 +1,16 @@
 /**
- * Tracks how many inline editable cells are currently open.
-
+ * Tracks whether an inline editable cell is currently open.
+ *
  * Plain module state rather than React state because this is only read inside event handlers.
  */
-let editingCellCount = 0;
+let isEditingCell = false;
 
-function incrementEditingCellCount() {
-    editingCellCount++;
-}
-
-function decrementEditingCellCount() {
-    editingCellCount--;
+function setIsEditingCell(value: boolean) {
+    isEditingCell = value;
 }
 
 function getIsEditingCell() {
-    return editingCellCount > 0;
+    return isEditingCell;
 }
 
-export {incrementEditingCellCount, decrementEditingCellCount, getIsEditingCell};
+export {setIsEditingCell, getIsEditingCell};

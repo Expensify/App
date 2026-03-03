@@ -5,7 +5,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {decrementEditingCellCount, incrementEditingCellCount} from './editingCellState';
+import {setIsEditingCell} from './editingCellState';
 
 type EditableCellProps = {
     /** Content to display when not editing */
@@ -54,8 +54,8 @@ function EditableCell({children, editContent, popoverContent, isEditing, canEdit
         if (!isEditable || !isEditing) {
             return;
         }
-        incrementEditingCellCount();
-        return () => decrementEditingCellCount();
+        setIsEditingCell(true);
+        return () => setIsEditingCell(false);
     }, [isEditing, isEditable]);
 
     // Architectural exclusion (e.g. narrow layout) — no container, no padding.
