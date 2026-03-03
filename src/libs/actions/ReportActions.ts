@@ -2,6 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getLinkedTransactionID, getReportAction, getReportActionMessage, isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
+import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -48,6 +49,27 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, o
         const taskReportID = getReportActionMessage(reportAction)?.taskReportID;
         if (taskReportID && isCreatedTaskReportAction(reportAction)) {
             deleteReport(taskReportID);
+        }
+
+        // Clear the chat snapshot entry for the failed optimistic action so it disappears from Reports > Chats.
+        const snapshotDataToClear: Record<string, unknown> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`]: {
+                [reportAction.reportActionID]: null,
+            },
+        };
+        if (taskReportID && isCreatedTaskReportAction(reportAction)) {
+            // If this is a failed optimistic task-create action, also remove the task report snapshot data so it disappears from Reports > Task when the user dismiss the error.
+            snapshotDataToClear[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`] = null;
+            snapshotDataToClear[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`] = null;
+        }
+
+        // Apply the same cleanup to snapshot hashes used by Reports > Chats and Reports > Task.
+        for (const type of [CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.DATA_TYPES.TASK]) {
+            const snapshotUpdate = buildOptimisticSnapshotData(type, snapshotDataToClear);
+            if (!snapshotUpdate) {
+                continue;
+            }
+            Onyx.merge(snapshotUpdate.key, snapshotUpdate.value as OnyxTypes.SearchResults);
         }
         return;
     }

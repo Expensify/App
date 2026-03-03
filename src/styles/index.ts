@@ -4875,6 +4875,11 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        searchFiltersBarCreateButton: {
+            marginLeft: 'auto',
+            alignSelf: 'flex-start',
+        },
+
         walletStaticIllustration: {
             width: 262,
             height: 152,
@@ -5686,6 +5691,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        wideRHPDropZoneContainer: {
+            width: animatedReceiptPaneRHPWidth,
+            height: '100%',
+        },
+
         wideRHPMoneyRequestReceiptViewScrollViewContainer: {
             ...spacing.pt3,
             ...spacing.pb2,
@@ -5925,6 +5935,13 @@ const staticStyles = (theme: ThemeColors) =>
         dateIconSize: {
             width: variables.iconSizeExtraLarge,
             height: variables.iconSizeExtraLarge,
+        },
+        homeWidgetIconContainer: {
+            width: variables.iconSizeExtraLarge,
+            height: variables.iconSizeExtraLarge,
+            borderRadius: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
     }) satisfies StaticStyles;
 
@@ -6473,7 +6490,7 @@ const plainStyles = (theme: ThemeColors) =>
         homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
             shouldUseNarrowLayout
                 ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
-                : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, gap: 20} satisfies ViewStyle),
+                : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

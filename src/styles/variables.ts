@@ -229,6 +229,7 @@ export default {
     receiptPlaceholderIconWidth: 80,
     receiptPlaceholderIconHeight: 80,
     reportPreviewMaxWidth: 335,
+    previewEReceiptHeight: 186,
     reportActionImagesSingleImageHeight: 160,
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
@@ -318,6 +319,9 @@ export default {
     expenseReportsTypeTooltipShiftHorizontal: 10,
     inviteMemberListItemTooltipShiftVertical: -8,
     inviteMemberListItemTooltipShiftHorizontal: 4,
+    hasFilterNegationTooltipShiftHorizontal: -16,
+    hasFilterNegationTooltipShiftVertical: 40,
+    hasFilterNegationTooltipMaxWidth: 260,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
@@ -416,6 +420,8 @@ export default {
     // Multifactor Authentication illustrations size
     openPadlockWidth: 140,
     openPadlockHeight: 140,
+    transactionHandWidth: 118,
+    transactionHandHeight: 191,
     runOutOfTimeWidth: 218,
     runOutOfTimeHeight: 200,
     humptyDumptyWidth: 245,
