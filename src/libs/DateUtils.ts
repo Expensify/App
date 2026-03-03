@@ -229,7 +229,11 @@ function datetimeToRelative(locale: Locale | undefined, datetime: string, curren
  * @returns
  */
 function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone): string {
-    return formatInTimeZone(datetime, selectedTimezone, 'zzz');
+    const abbreviation = formatInTimeZone(datetime, selectedTimezone, 'zzz');
+    if (abbreviation === 'GMT') {
+        return formatInTimeZone(datetime, selectedTimezone, 'O');
+    }
+    return abbreviation;
 }
 
 /**
