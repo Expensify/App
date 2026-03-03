@@ -8,7 +8,7 @@ type GeneralDomainMemberPendingAction = {
     /**
      * Base pending actions
      */
-    pendingAction: OnyxCommon.PendingAction;
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 /**
@@ -19,6 +19,9 @@ type DomainMemberPendingActions = GeneralDomainMemberPendingAction & {
      * Pending action related to a specific domain vacation delegate
      */
     vacationDelegate?: OnyxCommon.PendingAction;
+
+    /** Pending action for the list of emails exempt from the 2FA requirement */
+    twoFactorAuthExemptEmails?: OnyxCommon.PendingAction;
 };
 
 /**

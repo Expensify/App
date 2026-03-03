@@ -27,7 +27,8 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SearchBarChart from './SearchBarChart';
 import SearchLineChart from './SearchLineChart';
-import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
+import SearchPieChart from './SearchPieChart';
+import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQueryJSON} from './types';
 
 type ChartGroupByConfig = {
     titleIconName: 'Users' | 'CreditCard' | 'Send' | 'Folder' | 'Basket' | 'Tag' | 'Calendar';
@@ -113,8 +114,8 @@ type SearchChartViewProps = {
     /** The current search query JSON */
     queryJSON: SearchQueryJSON;
 
-    /** The view type (bar, line, etc.) */
-    view: Exclude<ChartView, 'pie'>;
+    /** The view type (bar, etc.) */
+    view: ChartView;
 
     /** The groupBy parameter */
     groupBy: SearchGroupBy;
@@ -128,6 +129,9 @@ type SearchChartViewProps = {
     /** Scroll handler for hiding the top bar on mobile */
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
+    /** Layout handler for the root scroll view */
+    onLayout?: () => void;
+
     /** Title to be displayed on the chart */
     title: string;
 };
@@ -135,16 +139,17 @@ type SearchChartViewProps = {
 /**
  * Map of chart view types to their corresponding chart components.
  */
-const CHART_VIEW_TO_COMPONENT: Record<Exclude<ChartView, 'pie'>, typeof SearchBarChart | typeof SearchLineChart> = {
+const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChartProps>> = {
     [CONST.SEARCH.VIEW.BAR]: SearchBarChart,
     [CONST.SEARCH.VIEW.LINE]: SearchLineChart,
+    [CONST.SEARCH.VIEW.PIE]: SearchPieChart,
 };
 
 /**
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, title}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, onLayout, title}: SearchChartViewProps) {
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -161,7 +166,6 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, t
             Log.alert('[SearchChartView] Failed to build search query JSON from filter query');
             return;
         }
-
         newQueryJSON.groupBy = undefined;
         newQueryJSON.view = CONST.SEARCH.VIEW.TABLE;
 
@@ -175,14 +179,15 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, t
     const currencyPart = parts.find((p) => p.type === 'currency');
     const currencyIndex = parts.findIndex((p) => p.type === 'currency');
     const integerIndex = parts.findIndex((p) => p.type === 'integer');
-    const yAxisUnit = {value: currencyPart?.value ?? currency, fallback: currency};
-    const yAxisUnitPosition = currencyIndex < integerIndex ? 'left' : 'right';
+    const unit = {value: currencyPart?.value ?? currency, fallback: currency};
+    const unitPosition = currencyIndex < integerIndex ? 'left' : 'right';
 
     return (
         <Animated.ScrollView
             style={styles.flex1}
             contentContainerStyle={styles.flexGrow1}
             onScroll={onScroll}
+            onLayout={onLayout}
             scrollEventThrottle={16}
         >
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
@@ -194,8 +199,8 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, t
                     getFilterQuery={getFilterQuery}
                     onItemPress={handleItemPress}
                     isLoading={isLoading}
-                    yAxisUnit={yAxisUnit}
-                    yAxisUnitPosition={yAxisUnitPosition}
+                    unit={unit}
+                    unitPosition={unitPosition}
                 />
             </View>
         </Animated.ScrollView>

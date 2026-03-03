@@ -29,7 +29,7 @@ function DateFilterBase({title, dateKey, back, onSubmit, selectedDateModifier: s
     const {translate} = useLocalize();
 
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
-    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const isSearchAdvancedFiltersFormLoading = isLoadingOnyxValue(searchAdvancedFiltersFormMetadata);
     const [selectedDateModifierState, setSelectedDateModifierState] = useState<SearchDateModifier | null>(null);
     const isDateModifierControlled = selectedDateModifierProp !== undefined;

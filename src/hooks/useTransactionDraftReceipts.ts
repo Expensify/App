@@ -5,7 +5,7 @@ import useOnyx from './useOnyx';
 type ReceiptWithTransactionID = Receipt & {transactionID: string};
 
 function useTransactionDraftReceipts(): ReceiptWithTransactionID[] {
-    const [drafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const [drafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
 
     if (!drafts) {
         return [];

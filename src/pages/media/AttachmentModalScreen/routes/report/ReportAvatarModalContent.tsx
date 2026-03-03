@@ -14,16 +14,16 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
     const {reportID, policyID} = route.params;
 
     const defaultAvatars = useDefaultAvatars();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const attachment: AttachmentModalBaseContentProps = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}) : getDefaultGroupAvatar(report?.reportID),
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                headerTitle: getReportName(report),
+                headerTitle: getReportName({report}),
                 isWorkspaceAvatar: false,
             };
         }
@@ -31,7 +31,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
             return {
                 source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                headerTitle: getReportName(report),
+                headerTitle: getReportName({report}),
                 isWorkspaceAvatar: false,
             };
         }
@@ -39,7 +39,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
             return {
                 source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                headerTitle: getReportName(report),
+                headerTitle: getReportName({report}),
                 isWorkspaceAvatar: false,
             };
         }

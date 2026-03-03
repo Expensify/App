@@ -18,6 +18,11 @@ type DomainMemberErrors = GeneralDomainMemberErrors & {
      * Errors related to a specific domain vacation delegate
      */
     vacationDelegateErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the list of emails exempt from the 2FA requirement
+     */
+    twoFactorAuthExemptEmailsError?: OnyxCommon.Errors;
 };
 
 /**
