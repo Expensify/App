@@ -44,7 +44,7 @@ import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from 
 import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
-import PopoverReportActionContextMenu from './pages/inbox/report/ContextMenu/PopoverReportActionContextMenu';
+import PopoverContextMenu from './pages/inbox/report/ContextMenu/PopoverContextMenu';
 import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import PriorityModeHandler from './PriorityModeHandler';
 import type {Route} from './ROUTES';
@@ -292,7 +292,7 @@ function Expensify() {
                 <>
                     <GrowlNotification ref={growlRef} />
                     <DelegateNoAccessModalProvider>
-                        <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                        <PopoverContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     </DelegateNoAccessModalProvider>
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}

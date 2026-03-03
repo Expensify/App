@@ -1,6 +1,4 @@
 import {Str} from 'expensify-common';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
@@ -137,13 +135,12 @@ import {
     isExpenseReport,
 } from '@libs/ReportUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
-import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
-import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import {getActionHtml} from './actionConfig';
 import type {ActionDescriptor} from './ActionDescriptor';
+import type {ContextMenuActionParams, ContextMenuPayload} from './actionTypes';
 
 function setClipboardMessage(content: string | undefined) {
     if (!content) {
@@ -157,7 +154,7 @@ function setClipboardMessage(content: string | undefined) {
     }
 }
 
-function copyMessageToClipboard(payload: ContextMenuPayloadContextValue) {
+export function copyMessageToClipboard(payload: ContextMenuPayload) {
     const {
         reportAction,
         transaction,
@@ -499,16 +496,14 @@ function copyMessageToClipboard(payload: ContextMenuPayloadContextValue) {
     }
 }
 
-function useCopyMessageAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
-    const payload = useContextMenuPayload(payloadOverride);
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
-    const {translate} = useLocalize();
+function createCopyMessageAction(params: ContextMenuActionParams): ActionDescriptor {
+    const {payload, icons} = params;
 
     return {
         id: 'copyMessage',
         icon: icons.Copy,
-        text: translate('reportActionContextMenu.copyMessage'),
-        successText: translate('reportActionContextMenu.copied'),
+        text: payload.translate('reportActionContextMenu.copyMessage'),
+        successText: payload.translate('reportActionContextMenu.copied'),
         successIcon: icons.Checkmark,
         isAnonymousAction: true,
         onPress: () =>
@@ -520,4 +515,4 @@ function useCopyMessageAction(payloadOverride?: ContextMenuPayloadContextValue):
     };
 }
 
-export default useCopyMessageAction;
+export default createCopyMessageAction;

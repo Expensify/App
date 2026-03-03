@@ -6,21 +6,39 @@ import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
-import MiniContextMenuItem from '@components/MiniContextMenuItem';
 import Icon from '@components/Icon';
+import MiniContextMenuItem from '@components/MiniContextMenuItem';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import getButtonState from '@libs/getButtonState';
+import type {ActionID} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
 import type {ActionDescriptor} from '@pages/inbox/report/ContextMenu/actions/ActionDescriptor';
-import {useEmojiReactionData, useOverflowMenuAction} from '@pages/inbox/report/ContextMenu/actions/ContextMenuAction';
-import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
-import {ContextMenuPayloadContext} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
+import {CONTEXT_MENU_ICON_NAMES} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
+import type {ContextMenuPayload} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
+import {
+    createCopyLinkAction,
+    createCopyMessageAction,
+    createDeleteAction,
+    createDownloadAction,
+    createEditAction,
+    createEmojiReactionData,
+    createExplainAction,
+    createFlagAsOffensiveAction,
+    createHoldAction,
+    createJoinThreadAction,
+    createLeaveThreadAction,
+    createMarkAsReadAction,
+    createMarkAsUnreadAction,
+    createOverflowMenuAction,
+    createReplyInThreadAction,
+    createUnholdAction,
+} from '@pages/inbox/report/ContextMenu/actions/ContextMenuAction';
 import {useMiniContextMenuActions, useMiniContextMenuState} from '@pages/inbox/report/ContextMenu/MiniContextMenuProvider';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import useContextMenuActions from '@pages/inbox/report/ContextMenu/useContextMenuActions';
-import useContextMenuData from '@pages/inbox/report/ContextMenu/useContextMenuData';
+import useReportActionContextMenuData from '@pages/inbox/report/ContextMenu/useReportActionContextMenuData';
 import CONST from '@src/CONST';
 
 const SLIDE_DURATION = 200;
@@ -33,6 +51,9 @@ function MiniReportActionContextMenu() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
+
+    const icons = useMemoizedLazyExpensifyIcons(CONTEXT_MENU_ICON_NAMES);
+    const threeDotRef = useRef<View>(null);
 
     const isVisible = state?.isVisible ?? false;
     const wasVisibleRef = useRef(false);
@@ -78,7 +99,7 @@ function MiniReportActionContextMenu() {
         right: baseRight.get(),
     }));
 
-    const data = useContextMenuData({
+    const data = useReportActionContextMenuData({
         reportID: state?.reportID,
         reportActionID: state?.reportActionID,
         originalReportID: state?.originalReportID,
@@ -121,8 +142,7 @@ function MiniReportActionContextMenu() {
         });
     };
 
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const payloadValue: ContextMenuPayloadContextValue = {
+    const payload: ContextMenuPayload = {
         ...data,
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         reportAction: (data.reportAction ?? null) as NonNullable<typeof data.reportAction>,
@@ -135,9 +155,30 @@ function MiniReportActionContextMenu() {
         setIsEmojiPickerActive: state?.setIsEmojiPickerActive,
     };
 
-    const actions = useContextMenuActions(visibleActionIDs, payloadValue);
-    const emojiData = useEmojiReactionData(payloadValue);
-    const overflowMenu = useOverflowMenuAction(payloadValue);
+    const params = {payload, icons};
+
+    /* eslint-disable react-hooks/refs -- factory functions store refs for later use, they don't read .current during render */
+    const allActions: ActionDescriptor[] = [
+        createReplyInThreadAction(params),
+        createMarkAsUnreadAction(params),
+        createExplainAction(params),
+        createMarkAsReadAction(params),
+        createEditAction(params),
+        createUnholdAction(params),
+        createHoldAction(params),
+        createJoinThreadAction(params),
+        createLeaveThreadAction(params),
+        createCopyMessageAction(params),
+        createCopyLinkAction(params),
+        createFlagAsOffensiveAction(params),
+        createDownloadAction(params),
+        createDeleteAction(params),
+    ];
+
+    const actions = allActions.filter((action) => visibleActionIDs.has(action.id as ActionID));
+    const emojiData = createEmojiReactionData(payload);
+    const overflowMenu = createOverflowMenuAction(params, threeDotRef);
+    /* eslint-enable react-hooks/refs */
 
     const hasEmoji = visibleActionIDs.has('emojiReaction') && !!emojiData.reportAction && !!emojiData.reportActionID;
     const needsOverflow = actions.length > CONST.MINI_CONTEXT_MENU_MAX_ITEMS;
@@ -168,60 +209,58 @@ function MiniReportActionContextMenu() {
             }}
         >
             <Animated.View style={[{position: 'absolute'}, positionStyle]}>
-                <ContextMenuPayloadContext.Provider value={payloadValue}>
-                    <View style={wrapperStyle}>
-                        {hasEmoji && !!emojiData.reportAction && !!emojiData.reportActionID && (
-                            <MiniQuickEmojiReactions
-                                onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
-                                    emojiData.interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
-                                }
-                                onPressOpenPicker={emojiData.onPressOpenPicker}
-                                onEmojiPickerClosed={emojiData.onEmojiPickerClosed}
-                                reportActionID={emojiData.reportActionID}
-                                reportAction={emojiData.reportAction}
-                            />
-                        )}
-                        {visibleActions.map((action: ActionDescriptor) => (
-                            <MiniContextMenuItem
-                                key={action.id}
-                                isDelayButtonStateComplete
-                                tooltipText={action.text}
-                                onPress={action.onPress}
-                                sentryLabel={action.sentryLabel ?? ''}
-                            >
-                                {({hovered, pressed}) => (
-                                    <Icon
-                                        small
-                                        src={action.icon}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                    />
-                                )}
-                            </MiniContextMenuItem>
-                        ))}
-                        {!!(needsOverflow && overflowMenu) &&
-                            (() => {
-                                const {buttonRef, text, onPress, sentryLabel, icon} = overflowMenu;
-                                return (
-                                    <MiniContextMenuItem
-                                        ref={buttonRef}
-                                        isDelayButtonStateComplete
-                                        tooltipText={text}
-                                        onPress={onPress}
-                                        shouldPreventDefaultFocusOnPress={false}
-                                        sentryLabel={sentryLabel ?? ''}
-                                    >
-                                        {({hovered, pressed}) => (
-                                            <Icon
-                                                small
-                                                src={icon}
-                                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                            />
-                                        )}
-                                    </MiniContextMenuItem>
-                                );
-                            })()}
-                    </View>
-                </ContextMenuPayloadContext.Provider>
+                <View style={wrapperStyle}>
+                    {hasEmoji && !!emojiData.reportAction && !!emojiData.reportActionID && (
+                        <MiniQuickEmojiReactions
+                            onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
+                                emojiData.interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
+                            }
+                            onPressOpenPicker={emojiData.onPressOpenPicker}
+                            onEmojiPickerClosed={emojiData.onEmojiPickerClosed}
+                            reportActionID={emojiData.reportActionID}
+                            reportAction={emojiData.reportAction}
+                        />
+                    )}
+                    {visibleActions.map((action: ActionDescriptor) => (
+                        <MiniContextMenuItem
+                            key={action.id}
+                            isDelayButtonStateComplete
+                            tooltipText={action.text}
+                            onPress={action.onPress}
+                            sentryLabel={action.sentryLabel ?? ''}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={action.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    ))}
+                    {!!(needsOverflow && overflowMenu) &&
+                        (() => {
+                            const {buttonRef, text, onPress, sentryLabel, icon} = overflowMenu;
+                            return (
+                                <MiniContextMenuItem
+                                    ref={buttonRef}
+                                    isDelayButtonStateComplete
+                                    tooltipText={text}
+                                    onPress={onPress}
+                                    shouldPreventDefaultFocusOnPress={false}
+                                    sentryLabel={sentryLabel ?? ''}
+                                >
+                                    {({hovered, pressed}) => (
+                                        <Icon
+                                            small
+                                            src={icon}
+                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                        />
+                                    )}
+                                </MiniContextMenuItem>
+                            );
+                        })()}
+                </View>
             </Animated.View>
         </div>,
         document.body,

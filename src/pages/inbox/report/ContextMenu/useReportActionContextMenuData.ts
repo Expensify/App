@@ -34,8 +34,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {ActionId} from './actions/actionConfig';
-import {ORDERED_ACTION_SHOULD_SHOW, RESTRICTED_READONLY_ACTION_IDS} from './actions/actionConfig';
+import type {ActionID} from './actions/actionConfig';
+import {getVisibleActionIDs as getVisibleActionIDsFromConfig, RESTRICTED_READONLY_ACTION_IDS} from './actions/actionConfig';
+import type {ContextMenuPayload} from './actions/actionTypes';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
 import {hideContextMenu} from './ReportActionContextMenu';
 
@@ -51,7 +52,15 @@ type UseContextMenuDataParams = {
     anchor: RefObject<ContextMenuAnchor> | undefined;
 };
 
-function useContextMenuData({reportID, reportActionID, originalReportID, draftMessage, selection, type, anchor}: UseContextMenuDataParams) {
+type UseReportActionContextMenuDataReturn = Omit<
+    ContextMenuPayload,
+    'close' | 'hideAndRun' | 'transitionActionSheetState' | 'openContextMenu' | 'openOverflowMenu' | 'setIsEmojiPickerActive' | 'reportAction' | 'currentUserAccountID'
+> & {
+    reportAction: OnyxEntry<ReportAction>;
+    getVisibleActionIDs: () => ActionID[];
+};
+
+function useReportActionContextMenuData({reportID, reportActionID, originalReportID, draftMessage, selection, type, anchor}: UseContextMenuDataParams): UseReportActionContextMenuDataReturn {
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
@@ -165,7 +174,6 @@ function useContextMenuData({reportID, reportActionID, originalReportID, draftMe
         reportAction,
         childReportActions,
         isArchivedRoom,
-        betas,
         menuTarget: anchor,
         isChronosReport,
         reportID,
@@ -184,8 +192,7 @@ function useContextMenuData({reportID, reportActionID, originalReportID, draftMe
         isHarvestReport,
     };
 
-    const getVisibleActionIDs = (): ActionId[] =>
-        ORDERED_ACTION_SHOULD_SHOW.filter((entry) => entry.id !== 'overflowMenu' && !disabledActionIDs.has(entry.id) && entry.shouldShow(shouldShowArgs)).map((entry) => entry.id);
+    const getVisibleActionIDs = (): ActionID[] => getVisibleActionIDsFromConfig(shouldShowArgs, disabledActionIDs);
 
     return {
         report,
@@ -238,5 +245,5 @@ function useContextMenuData({reportID, reportActionID, originalReportID, draftMe
     };
 }
 
-export default useContextMenuData;
-export type {UseContextMenuDataParams};
+export default useReportActionContextMenuData;
+export type {UseContextMenuDataParams, UseReportActionContextMenuDataReturn};

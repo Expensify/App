@@ -1,18 +1,14 @@
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
-import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ActionDescriptor} from './ActionDescriptor';
+import type {ContextMenuActionParams} from './actionTypes';
 
-function useDebugAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
-    const {reportID, reportAction, interceptAnonymousUser} = useContextMenuPayload(payloadOverride);
-    const icons = useMemoizedLazyExpensifyIcons(['Bug'] as const);
-    const {translate} = useLocalize();
+function createDebugAction(params: ContextMenuActionParams): ActionDescriptor {
+    const {payload, icons} = params;
+    const {reportID, reportAction, interceptAnonymousUser, translate} = payload;
 
     return {
         id: 'debug',
@@ -35,4 +31,4 @@ function useDebugAction(payloadOverride?: ContextMenuPayloadContextValue): Actio
     };
 }
 
-export default useDebugAction;
+export default createDebugAction;

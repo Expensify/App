@@ -1,24 +1,20 @@
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
-import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {ActionDescriptor} from './ActionDescriptor';
+import type {ContextMenuActionParams} from './actionTypes';
 
-function useCopyToClipboardAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
-    const {selection, interceptAnonymousUser} = useContextMenuPayload(payloadOverride);
-    const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
+function createCopyToClipboardAction(params: ContextMenuActionParams): ActionDescriptor {
+    const {selection, interceptAnonymousUser, translate} = params.payload;
+    const {Copy, Checkmark} = params.icons;
 
     return {
         id: 'copyToClipboard',
-        icon: icons.Copy,
+        icon: Copy,
         text: translate('common.copyToClipboard'),
         successText: translate('reportActionContextMenu.copied'),
-        successIcon: icons.Checkmark,
+        successIcon: Checkmark,
         isAnonymousAction: true,
         onPress: () =>
             interceptAnonymousUser(() => {
@@ -29,4 +25,4 @@ function useCopyToClipboardAction(payloadOverride?: ContextMenuPayloadContextVal
     };
 }
 
-export default useCopyToClipboardAction;
+export default createCopyToClipboardAction;

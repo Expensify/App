@@ -1,16 +1,12 @@
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
-import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
-import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {ActionDescriptor} from './ActionDescriptor';
+import type {ContextMenuActionParams} from './actionTypes';
 
-function useHoldAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
-    const {moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal, interceptAnonymousUser, hideAndRun} = useContextMenuPayload(payloadOverride);
-    const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch'] as const);
+function createHoldAction(params: ContextMenuActionParams): ActionDescriptor {
+    const {payload, icons} = params;
+    const {moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal, interceptAnonymousUser, hideAndRun, translate} = payload;
 
     return {
         id: 'hold',
@@ -28,4 +24,4 @@ function useHoldAction(payloadOverride?: ContextMenuPayloadContextValue): Action
     };
 }
 
-export default useHoldAction;
+export default createHoldAction;

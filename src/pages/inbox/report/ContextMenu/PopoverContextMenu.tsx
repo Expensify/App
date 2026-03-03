@@ -1,35 +1,24 @@
-import type {ForwardedRef, RefObject} from 'react';
-import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {RefObject} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 /* eslint-disable no-restricted-imports */
-import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, Text as RNText, View as ViewType} from 'react-native';
-import {Dimensions, View} from 'react-native';
+import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View as ViewType} from 'react-native';
+import {Dimensions} from 'react-native';
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
-import FocusableMenuItem from '@components/FocusableMenuItem';
-import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import {ModalActions, useModal} from '@components/Modal/Global/ModalContext';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
-import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
-import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
-import {ORDERED_ACTION_SHOULD_SHOW} from './actions/actionConfig';
-import type {ActionDescriptor} from './actions/ActionDescriptor';
-import {useEmojiReactionData} from './actions/ContextMenuAction';
 import ConfirmDeleteReportActionModal from './ConfirmDeleteReportActionModal';
-import type {ContextMenuPayloadContextValue} from './ContextMenuPayloadProvider';
-import {ContextMenuPayloadContext} from './ContextMenuPayloadProvider';
+import PopoverEmailContent from './PopoverEmailContent';
+import PopoverLinkContent from './PopoverLinkContent';
+import PopoverReportActionContent from './PopoverReportActionContent';
+import PopoverReportContent from './PopoverReportContent';
+import PopoverTextContent from './PopoverTextContent';
 import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
-import {showContextMenu} from './ReportActionContextMenu';
-import useContextMenuActions from './useContextMenuActions';
-import useContextMenuData from './useContextMenuData';
 
 function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
     if ('nativeEvent' in event) {
@@ -59,18 +48,22 @@ type PopoverContextMenuState = {
     onEmojiPickerToggle: ((state: boolean) => void) | undefined;
 };
 
-type PopoverReportActionContextMenuProps = {
-    ref?: ForwardedRef<ReportActionContextMenu>;
+type PopoverContentProps = {
+    menuState: PopoverContextMenuState;
+    hideAndRun: (callback?: () => void) => void;
+    setLocalShouldKeepOpen: (value: boolean) => void;
+    transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
+    contentRef: RefObject<ViewType | null>;
+    shouldEnableArrowNavigation: boolean;
 };
 
-function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
+type PopoverContextMenuProps = {
+    ref?: React.Ref<ReportActionContextMenu>;
+};
+
+function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
     const modalContext = useModal();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {windowWidth} = useWindowDimensions();
 
     const [menuState, setMenuState] = useState<PopoverContextMenuState | null>(null);
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -326,7 +319,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             });
     };
 
-    useImperativeHandle(ref, () => ({
+    useImperativeHandle(forwardedRef, () => ({
         showContextMenu: showContextMenuHandler,
         hideContextMenu: hideContextMenuHandler,
         showDeleteModal,
@@ -340,85 +333,89 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         composerToRefocusOnCloseEmojiPicker: composerToRefocusOnClose,
     }));
 
-    const data = useContextMenuData({
-        reportID: menuState?.reportID,
-        reportActionID: menuState?.reportActionID,
-        originalReportID: menuState?.originalReportID,
-        draftMessage: menuState?.draftMessage ?? '',
-        selection: menuState?.selection ?? '',
-        type: menuState?.type ?? CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-        anchor: {current: menuState?.contextMenuTargetNode ?? null},
-    });
-
-    const visibleActionIDs = useMemo(() => new Set(data.getVisibleActionIDs()), [data]);
-
     const hideAndRun = (callback?: () => void) => {
         import('@pages/inbox/report/ContextMenu/ReportActionContextMenu').then(({hideContextMenu: hideCtx}) => {
             hideCtx(false, callback);
         });
     };
 
-    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRefParam: RefObject<ViewType | null>) => {
-        showContextMenu({
-            type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-            event,
-            selection: menuState?.selection ?? '',
-            contextMenuAnchor: anchorRefParam?.current as ViewType | RNText | null,
-            report: {
-                reportID: menuState?.reportID,
-                originalReportID: menuState?.originalReportID,
-            },
-            reportAction: {
-                reportActionID: data.reportAction?.reportActionID,
-                draftMessage: menuState?.draftMessage,
-            },
-            callbacks: {
-                onShow: undefined,
-                onHide: () => {
-                    setLocalShouldKeepOpen(false);
-                },
-            },
-            shouldCloseOnTarget: true,
-            isOverflowMenu: true,
-        });
-    };
-
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const payloadValue: ContextMenuPayloadContextValue = {
-        ...data,
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        reportAction: (data.reportAction ?? null) as NonNullable<typeof data.reportAction>,
-        currentUserAccountID: data.currentUserPersonalDetails?.accountID,
-        close: () => setLocalShouldKeepOpen(false),
-        hideAndRun,
-        transitionActionSheetState,
-        openContextMenu: () => setLocalShouldKeepOpen(true),
-        openOverflowMenu,
-        setIsEmojiPickerActive: menuState?.onEmojiPickerToggle,
-    };
-
-    const actions = useContextMenuActions(visibleActionIDs, payloadValue);
-    const emojiData = useEmojiReactionData(payloadValue);
-
     const shouldKeepOpen = localShouldKeepOpen;
     const shouldEnableArrowNavigation = isPopoverVisible || shouldKeepOpen;
 
-    const contentActionIndexes = actions
-        .map((action, index) => {
-            const entry = ORDERED_ACTION_SHOULD_SHOW.find((e) => e.id === action.id);
-            return entry?.isContentAction ? index : undefined;
-        })
-        .filter((index): index is number => index !== undefined);
-
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
-        initialFocusedIndex: -1,
-        disabledIndexes: contentActionIndexes,
-        maxIndex: actions.length - 1,
-        isActive: shouldEnableArrowNavigation,
-    });
-
-    const hasEmoji = visibleActionIDs.has('emojiReaction');
-    const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(false, shouldUseNarrowLayout);
+    const renderContent = () => {
+        if (!menuState) {
+            return null;
+        }
+        const contentProps: PopoverContentProps = {
+            menuState,
+            hideAndRun,
+            setLocalShouldKeepOpen,
+            transitionActionSheetState,
+            contentRef,
+            shouldEnableArrowNavigation,
+        };
+        if (menuState.type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION) {
+            return (
+                <PopoverReportActionContent
+                    menuState={contentProps.menuState}
+                    hideAndRun={contentProps.hideAndRun}
+                    setLocalShouldKeepOpen={contentProps.setLocalShouldKeepOpen}
+                    transitionActionSheetState={contentProps.transitionActionSheetState}
+                    contentRef={contentProps.contentRef}
+                    shouldEnableArrowNavigation={contentProps.shouldEnableArrowNavigation}
+                />
+            );
+        }
+        if (menuState.type === CONST.CONTEXT_MENU_TYPES.REPORT) {
+            return (
+                <PopoverReportContent
+                    menuState={contentProps.menuState}
+                    hideAndRun={contentProps.hideAndRun}
+                    setLocalShouldKeepOpen={contentProps.setLocalShouldKeepOpen}
+                    transitionActionSheetState={contentProps.transitionActionSheetState}
+                    contentRef={contentProps.contentRef}
+                    shouldEnableArrowNavigation={contentProps.shouldEnableArrowNavigation}
+                />
+            );
+        }
+        if (menuState.type === CONST.CONTEXT_MENU_TYPES.LINK) {
+            return (
+                <PopoverLinkContent
+                    menuState={contentProps.menuState}
+                    hideAndRun={contentProps.hideAndRun}
+                    setLocalShouldKeepOpen={contentProps.setLocalShouldKeepOpen}
+                    transitionActionSheetState={contentProps.transitionActionSheetState}
+                    contentRef={contentProps.contentRef}
+                    shouldEnableArrowNavigation={contentProps.shouldEnableArrowNavigation}
+                />
+            );
+        }
+        if (menuState.type === CONST.CONTEXT_MENU_TYPES.EMAIL) {
+            return (
+                <PopoverEmailContent
+                    menuState={contentProps.menuState}
+                    hideAndRun={contentProps.hideAndRun}
+                    setLocalShouldKeepOpen={contentProps.setLocalShouldKeepOpen}
+                    transitionActionSheetState={contentProps.transitionActionSheetState}
+                    contentRef={contentProps.contentRef}
+                    shouldEnableArrowNavigation={contentProps.shouldEnableArrowNavigation}
+                />
+            );
+        }
+        if (menuState.type === CONST.CONTEXT_MENU_TYPES.TEXT) {
+            return (
+                <PopoverTextContent
+                    menuState={contentProps.menuState}
+                    hideAndRun={contentProps.hideAndRun}
+                    setLocalShouldKeepOpen={contentProps.setLocalShouldKeepOpen}
+                    transitionActionSheetState={contentProps.transitionActionSheetState}
+                    contentRef={contentProps.contentRef}
+                    shouldEnableArrowNavigation={contentProps.shouldEnableArrowNavigation}
+                />
+            );
+        }
+        return null;
+    };
 
     return (
         <PopoverWithMeasuredContent
@@ -442,55 +439,12 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             anchorRef={anchorRef}
             shouldSwitchPositionIfOverflow={menuState?.isOverflowMenu ?? false}
         >
-            <ContextMenuPayloadContext.Provider value={payloadValue}>
-                <View
-                    ref={contentRef}
-                    style={wrapperStyle}
-                >
-                    <FocusTrapForModal active={!isSmallScreenWidth && (isPopoverVisible || shouldKeepOpen)}>
-                        <View>
-                            {hasEmoji && emojiData.reportActionID != null && (
-                                <QuickEmojiReactions
-                                    closeContextMenu={emojiData.closeContextMenu}
-                                    onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
-                                        emojiData.interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
-                                    }
-                                    reportActionID={emojiData.reportActionID}
-                                    reportAction={emojiData.reportAction}
-                                    setIsEmojiPickerActive={(active) => {
-                                        if (!active) {
-                                            return;
-                                        }
-                                        setLocalShouldKeepOpen(true);
-                                    }}
-                                />
-                            )}
-                            {actions.map((action: ActionDescriptor, i: number) => (
-                                <FocusableMenuItem
-                                    key={action.id}
-                                    title={action.text}
-                                    icon={action.icon}
-                                    onPress={action.onPress}
-                                    wrapperStyle={[styles.pr8]}
-                                    description={action.description ?? ''}
-                                    descriptionTextStyle={styles.breakWord}
-                                    style={StyleUtils.getContextMenuItemStyles(windowWidth)}
-                                    isAnonymousAction={action.isAnonymousAction}
-                                    focused={focusedIndex === i}
-                                    interactive
-                                    onFocus={() => setFocusedIndex(i)}
-                                    onBlur={() => (i === actions.length - 1 || i === 1) && setFocusedIndex(-1)}
-                                    disabled={action.disabled}
-                                    shouldShowLoadingSpinnerIcon={action.shouldShowLoadingSpinnerIcon}
-                                    sentryLabel={action.sentryLabel}
-                                />
-                            ))}
-                        </View>
-                    </FocusTrapForModal>
-                </View>
-            </ContextMenuPayloadContext.Provider>
+            {renderContent()}
         </PopoverWithMeasuredContent>
     );
 }
 
-export default PopoverReportActionContextMenu;
+PopoverContextMenu.displayName = 'PopoverContextMenu';
+
+export default PopoverContextMenu;
+export type {PopoverPosition, PopoverContextMenuState, PopoverContentProps};

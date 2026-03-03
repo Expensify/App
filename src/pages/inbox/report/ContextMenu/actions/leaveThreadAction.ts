@@ -1,17 +1,13 @@
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getChildReportNotificationPreference} from '@libs/ReportUtils';
-import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
-import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {toggleSubscribeToChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {ActionDescriptor} from './ActionDescriptor';
+import type {ContextMenuActionParams} from './actionTypes';
 
-function useLeaveThreadAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
-    const {reportAction, originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun} = useContextMenuPayload(payloadOverride);
-    const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Exit'] as const);
+function createLeaveThreadAction(params: ContextMenuActionParams): ActionDescriptor {
+    const {payload, icons} = params;
+    const {reportAction, originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate} = payload;
 
     return {
         id: 'leaveThread',
@@ -29,4 +25,4 @@ function useLeaveThreadAction(payloadOverride?: ContextMenuPayloadContextValue):
     };
 }
 
-export default useLeaveThreadAction;
+export default createLeaveThreadAction;

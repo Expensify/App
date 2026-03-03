@@ -27,7 +27,7 @@ import {
 } from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {Beta, Policy, ReportAction, Report as ReportType, Transaction} from '@src/types/onyx';
+import type {Policy, ReportAction, Report as ReportType, Transaction} from '@src/types/onyx';
 
 const ACTION_IDS = {
     EMOJI_REACTION: 'emojiReaction',
@@ -55,14 +55,13 @@ const ACTION_IDS = {
     OVERFLOW_MENU: 'overflowMenu',
 } as const;
 
-type ActionId = (typeof ACTION_IDS)[keyof typeof ACTION_IDS];
+type ActionID = (typeof ACTION_IDS)[keyof typeof ACTION_IDS];
 
 type ShouldShowArgs = {
     type: string;
     reportAction: OnyxEntry<ReportAction>;
     childReportActions: OnyxCollection<ReportAction>;
     isArchivedRoom: boolean;
-    betas: OnyxEntry<Beta[]>;
     menuTarget: RefObject<ContextMenuAnchor> | undefined;
     isChronosReport: boolean;
     reportID?: string;
@@ -86,7 +85,7 @@ function getActionHtml(reportAction: OnyxEntry<ReportAction>): string {
     return message?.html ?? '';
 }
 
-const ORDERED_ACTION_SHOULD_SHOW: Array<{id: ActionId; isContentAction: boolean; shouldShow: (args: ShouldShowArgs) => boolean}> = [
+const ORDERED_ACTION_SHOULD_SHOW: Array<{id: ActionID; isContentAction: boolean; shouldShow: (args: ShouldShowArgs) => boolean}> = [
     {
         id: ACTION_IDS.EMOJI_REACTION,
         isContentAction: true,
@@ -302,7 +301,11 @@ const ORDERED_ACTION_SHOULD_SHOW: Array<{id: ActionId; isContentAction: boolean;
     },
 ];
 
-const RESTRICTED_READONLY_ACTION_IDS = new Set<ActionId>([ACTION_IDS.REPLY_IN_THREAD, ACTION_IDS.EDIT, ACTION_IDS.JOIN_THREAD, ACTION_IDS.DELETE]);
+const RESTRICTED_READONLY_ACTION_IDS = new Set<ActionID>([ACTION_IDS.REPLY_IN_THREAD, ACTION_IDS.EDIT, ACTION_IDS.JOIN_THREAD, ACTION_IDS.DELETE]);
 
-export {ACTION_IDS, ORDERED_ACTION_SHOULD_SHOW, RESTRICTED_READONLY_ACTION_IDS, getActionHtml};
-export type {ActionId, ShouldShowArgs};
+function getVisibleActionIDs(shouldShowArgs: ShouldShowArgs, disabledActionIDs: Set<string>): ActionID[] {
+    return ORDERED_ACTION_SHOULD_SHOW.filter((entry) => entry.id !== 'overflowMenu' && !disabledActionIDs.has(entry.id) && entry.shouldShow(shouldShowArgs)).map((entry) => entry.id);
+}
+
+export {ACTION_IDS, ORDERED_ACTION_SHOULD_SHOW, RESTRICTED_READONLY_ACTION_IDS, getActionHtml, getVisibleActionIDs};
+export type {ActionID, ShouldShowArgs};

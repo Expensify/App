@@ -1,23 +1,22 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
-import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
-import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {toggleEmojiReaction} from '@userActions/Report';
 import type {ReportActionReactions} from '@src/types/onyx';
+import type {ContextMenuPayload} from './actionTypes';
 
 type EmojiReactionData = {
     reportID: string | undefined;
-    reportAction: ReturnType<typeof useContextMenuPayload>['reportAction'];
+    reportAction: ContextMenuPayload['reportAction'];
     reportActionID: string | undefined;
     toggleEmojiAndCloseMenu: (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>, preferredSkinTone: number) => void;
     closeContextMenu: (onHideCallback?: () => void) => void;
     onPressOpenPicker: () => void;
     onEmojiPickerClosed: () => void;
-    interceptAnonymousUser: ReturnType<typeof useContextMenuPayload>['interceptAnonymousUser'];
+    interceptAnonymousUser: ContextMenuPayload['interceptAnonymousUser'];
 };
 
-function useEmojiReactionData(payloadOverride?: ContextMenuPayloadContextValue): EmojiReactionData {
-    const {reportID, reportAction, currentUserAccountID, openContextMenu, setIsEmojiPickerActive, hideAndRun, interceptAnonymousUser} = useContextMenuPayload(payloadOverride);
+function createEmojiReactionData(payload: ContextMenuPayload): EmojiReactionData {
+    const {reportID, reportAction, currentUserAccountID, openContextMenu, setIsEmojiPickerActive, hideAndRun, interceptAnonymousUser} = payload;
 
     const closeContextMenu = (onHideCallback?: () => void) => {
         hideAndRun(onHideCallback);
@@ -51,5 +50,5 @@ function useEmojiReactionData(payloadOverride?: ContextMenuPayloadContextValue):
     };
 }
 
-export default useEmojiReactionData;
+export default createEmojiReactionData;
 export type {EmojiReactionData};

@@ -1,16 +1,12 @@
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
-import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {showDeleteModal} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {ActionDescriptor} from './ActionDescriptor';
+import type {ContextMenuActionParams} from './actionTypes';
 
-function useDeleteAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
-    const {reportID, reportAction, moneyRequestAction, hideAndRun} = useContextMenuPayload(payloadOverride);
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
-    const {translate} = useLocalize();
+function createDeleteAction(params: ContextMenuActionParams): ActionDescriptor {
+    const {payload, icons} = params;
+    const {reportID, reportAction, moneyRequestAction, hideAndRun, translate} = payload;
 
     return {
         id: 'delete',
@@ -26,4 +22,4 @@ function useDeleteAction(payloadOverride?: ContextMenuPayloadContextValue): Acti
     };
 }
 
-export default useDeleteAction;
+export default createDeleteAction;

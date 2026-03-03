@@ -1,17 +1,13 @@
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
-import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ActionDescriptor} from './ActionDescriptor';
+import type {ContextMenuActionParams} from './actionTypes';
 
-function useFlagAsOffensiveAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
-    const {reportID, reportAction, hideAndRun} = useContextMenuPayload(payloadOverride);
-    const icons = useMemoizedLazyExpensifyIcons(['Flag'] as const);
-    const {translate} = useLocalize();
+function createFlagAsOffensiveAction(params: ContextMenuActionParams): ActionDescriptor {
+    const {payload, icons} = params;
+    const {reportID, reportAction, hideAndRun, translate} = payload;
 
     return {
         id: 'flagAsOffensive',
@@ -32,4 +28,4 @@ function useFlagAsOffensiveAction(payloadOverride?: ContextMenuPayloadContextVal
     };
 }
 
-export default useFlagAsOffensiveAction;
+export default createFlagAsOffensiveAction;

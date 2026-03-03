@@ -1,25 +1,21 @@
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import EmailUtils from '@libs/EmailUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
-import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {ActionDescriptor} from './ActionDescriptor';
+import type {ContextMenuActionParams} from './actionTypes';
 
-function useCopyEmailAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
-    const {selection, interceptAnonymousUser} = useContextMenuPayload(payloadOverride);
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
-    const {translate} = useLocalize();
+function createCopyEmailAction(params: ContextMenuActionParams): ActionDescriptor {
+    const {selection, interceptAnonymousUser, translate} = params.payload;
+    const {Copy, Checkmark} = params.icons;
 
     return {
         id: 'copyEmail',
-        icon: icons.Copy,
+        icon: Copy,
         text: translate('reportActionContextMenu.copyEmailToClipboard'),
         successText: translate('reportActionContextMenu.copied'),
-        successIcon: icons.Checkmark,
+        successIcon: Checkmark,
         description: EmailUtils.prefixMailSeparatorsWithBreakOpportunities(EmailUtils.trimMailTo(selection ?? '')),
         isAnonymousAction: true,
         onPress: () =>
@@ -31,4 +27,4 @@ function useCopyEmailAction(payloadOverride?: ContextMenuPayloadContextValue): A
     };
 }
 
-export default useCopyEmailAction;
+export default createCopyEmailAction;

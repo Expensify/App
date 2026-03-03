@@ -1,24 +1,20 @@
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import type {ContextMenuPayloadContextValue} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
-import {useContextMenuPayload} from '@pages/inbox/report/ContextMenu/ContextMenuPayloadProvider';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {ActionDescriptor} from './ActionDescriptor';
+import type {ContextMenuActionParams} from './actionTypes';
 
-function useCopyOnyxDataAction(payloadOverride?: ContextMenuPayloadContextValue): ActionDescriptor | null {
-    const {report, interceptAnonymousUser} = useContextMenuPayload(payloadOverride);
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
-    const {translate} = useLocalize();
+function createCopyOnyxDataAction(params: ContextMenuActionParams): ActionDescriptor {
+    const {report, interceptAnonymousUser, translate} = params.payload;
+    const {Copy, Checkmark} = params.icons;
 
     return {
         id: 'copyOnyxData',
-        icon: icons.Copy,
+        icon: Copy,
         text: translate('reportActionContextMenu.copyOnyxData'),
         successText: translate('reportActionContextMenu.copied'),
-        successIcon: icons.Checkmark,
+        successIcon: Checkmark,
         isAnonymousAction: true,
         onPress: () =>
             interceptAnonymousUser(() => {
@@ -29,4 +25,4 @@ function useCopyOnyxDataAction(payloadOverride?: ContextMenuPayloadContextValue)
     };
 }
 
-export default useCopyOnyxDataAction;
+export default createCopyOnyxDataAction;
