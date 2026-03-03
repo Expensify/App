@@ -982,109 +982,107 @@ describe('SubscriptionUtils', () => {
             // Clear Onyx and set up session for each test
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.SESSION, {email: 'test@example.com', accountID: testUserAccountID});
-            // Ensure allPolicies is initialized as empty or cleared before each test
-            await Onyx.multiSet({
-                [ONYXKEYS.COLLECTION.POLICY]: null,
-            });
             // Reset the mock for getOwnedPaidPolicies before each test
             jest.clearAllMocks();
         });
 
-        it('should return false if canDowngrade is false (default or explicitly passed)', async () => {
+        it('should return false if canDowngrade is false (default or explicitly passed)', () => {
             // Set up a policy that would normally count as owned and paid
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}`]: {
                     ...createRandomPolicy(Number(paidPolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
-            });
+            };
             // Test with canDowngrade as false (explicitly)
-            expect(shouldCalculateBillNewDot(false)).toBeFalsy();
+            expect(shouldCalculateBillNewDot(false, policies)).toBeFalsy();
             // Test with canDowngrade as undefined (defaults to false in the function signature)
-            expect(shouldCalculateBillNewDot(undefined)).toBeFalsy();
-            // Test without passing canDowngrade (defaults to false)
-            expect(shouldCalculateBillNewDot()).toBeFalsy();
+            expect(shouldCalculateBillNewDot(undefined, policies)).toBeFalsy();
         });
 
-        it('should return false if the user owns zero paid policies', async () => {
+        it('should return false if the user owns zero paid policies', () => {
             // Only free policies or no policies at all
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${freePolicyID}` as const]: {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${freePolicyID}`]: {
                     ...createRandomPolicy(Number(freePolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.PERSONAL,
                 },
-            });
-            expect(shouldCalculateBillNewDot(true)).toBeFalsy();
+            };
+            expect(shouldCalculateBillNewDot(true, policies)).toBeFalsy();
         });
 
-        it('should return false if the user owns more than one paid policy', async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+        it('should return false if the user owns more than one paid policy', () => {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}`]: {
                     ...createRandomPolicy(Number(paidPolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
-                [`${ONYXKEYS.COLLECTION.POLICY}${secondPaidPolicyID}` as const]: {
+                [`${ONYXKEYS.COLLECTION.POLICY}${secondPaidPolicyID}`]: {
                     ...createRandomPolicy(Number(secondPaidPolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.TEAM,
                 },
-            });
-            expect(shouldCalculateBillNewDot(true)).toBeFalsy();
+            };
+            expect(shouldCalculateBillNewDot(true, policies)).toBeFalsy();
         });
 
-        it('should return true if canDowngrade is true and the user owns exactly one paid policy', async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+        it('should return true if canDowngrade is true and the user owns exactly one paid policy', () => {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}`]: {
                     ...createRandomPolicy(Number(paidPolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
-                [`${ONYXKEYS.COLLECTION.POLICY}${freePolicyID}` as const]: {
+                [`${ONYXKEYS.COLLECTION.POLICY}${freePolicyID}`]: {
                     // Include a free policy to confirm it's correctly ignored
                     ...createRandomPolicy(Number(freePolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.PERSONAL,
                 },
-            });
-            expect(shouldCalculateBillNewDot(true)).toBeTruthy();
+            };
+            expect(shouldCalculateBillNewDot(true, policies)).toBeTruthy();
         });
 
-        it('should return false if the user owns exactly one paid policy but is not the owner', async () => {
+        it('should return false if the user owns exactly one paid policy but is not the owner', () => {
             // Set up a paid policy owned by another user
             const thirdUserAccountID = 2;
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}`]: {
                     ...createRandomPolicy(Number(paidPolicyID)),
                     ownerAccountID: thirdUserAccountID, // Owned by someone else
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
-            });
-            expect(shouldCalculateBillNewDot(true)).toBeFalsy();
+            };
+            expect(shouldCalculateBillNewDot(true, policies)).toBeFalsy();
         });
 
-        it('should return true if canDowngrade is true and the single paid policy is a team policy', async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+        it('should return true if canDowngrade is true and the single paid policy is a team policy', () => {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}`]: {
                     ...createRandomPolicy(Number(paidPolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.TEAM,
                 },
-            });
-            expect(shouldCalculateBillNewDot(true)).toBeTruthy();
+            };
+            expect(shouldCalculateBillNewDot(true, policies)).toBeTruthy();
         });
 
-        it('should return true if canDowngrade is true and the single paid policy is a corporate policy', async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+        it('should return true if canDowngrade is true and the single paid policy is a corporate policy', () => {
+            const policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}`]: {
                     ...createRandomPolicy(Number(paidPolicyID)),
                     ownerAccountID: testUserAccountID,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
-            });
-            expect(shouldCalculateBillNewDot(true)).toBeTruthy();
+            };
+            expect(shouldCalculateBillNewDot(true, policies)).toBeTruthy();
+        });
+
+        it('should return false when empty policies collection is passed', () => {
+            expect(shouldCalculateBillNewDot(true, {})).toBeFalsy();
         });
     });
 });
