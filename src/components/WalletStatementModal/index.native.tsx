@@ -30,12 +30,12 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
                     return;
                 }
 
-                handleWalletStatementNavigation(conciergeReportID, type, url);
+                handleWalletStatementNavigation(conciergeReportID, session?.accountID, type, url);
             } catch (error) {
                 console.error('Error parsing message from WebView:', error);
             }
         },
-        [conciergeReportID],
+        [conciergeReportID, session?.accountID],
     );
 
     return (
