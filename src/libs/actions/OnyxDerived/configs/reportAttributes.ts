@@ -70,9 +70,13 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.PERSONAL_DETAILS_LIST,
         ONYXKEYS.SESSION,
         ONYXKEYS.COLLECTION.POLICY,
+        ONYXKEYS.COLLECTION.POLICY_TAGS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
-    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies], {currentValue, sourceValues}) => {
+    compute: (
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
+        {currentValue, sourceValues},
+    ) => {
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
@@ -211,7 +215,18 @@ export default createOnyxDerivedValueConfig({
 
             acc[report.reportID] = {
                 reportName: report
-                    ? computeReportName(report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)
+                    ? computeReportName(
+                          report,
+                          reports,
+                          policies,
+                          transactions,
+                          reportNameValuePairs,
+                          personalDetails,
+                          reportActions,
+                          session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                          undefined,
+                          policyTags,
+                      )
                     : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
