@@ -4,7 +4,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue} from 'react-native-reanimated';
-import type {CartesianChartRenderArg, ChartBounds} from 'victory-native';
+import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 import {CartesianChart, Line, Scatter} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
@@ -72,6 +72,16 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     }, []);
 
     const chartBottom = useSharedValue(0);
+
+    /** Pixel-space X position of each tick, filled by onScaleChange and used for label hit-testing */
+    const tickXPositions = useSharedValue<number[]>([]);
+
+    const handleScaleChange = useCallback(
+        (xScale: Scale, _yScale: Scale) => {
+            tickXPositions.set(data.map((_, i) => xScale(i)));
+        },
+        [data, tickXPositions],
+    );
 
     const handleChartBoundsChange = useCallback(
         (bounds: ChartBounds) => {
@@ -230,10 +240,41 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         [angleRad, font, labelWidths],
     );
 
+    /**
+     * Scans every visible label's bounding box using its own tick X as the anchor.
+     * Returns that tick's X position when the cursor is inside, otherwise returns
+     * the raw cursor X unchanged.
+     * Used to correct Victory's nearest-point-by-X algorithm for rotated labels whose
+     * bounding boxes can extend past the midpoint to the adjacent tick.
+     */
+    const findLabelCursorX = useCallback(
+        (cursorX: number, cursorY: number): number => {
+            'worklet';
+
+            const positions = tickXPositions.get();
+            const currentChartBottom = chartBottom.get();
+            for (let i = 0; i < positions.length; i++) {
+                if (i % labelSkipInterval !== 0) {
+                    continue;
+                }
+                const tickX = positions.at(i);
+                if (tickX === undefined) {
+                    continue;
+                }
+                if (checkIsOverLabel({cursorX, cursorY, targetX: tickX, targetY: 0, chartBottom: currentChartBottom}, i)) {
+                    return tickX;
+                }
+            }
+            return cursorX;
+        },
+        [tickXPositions, chartBottom, labelSkipInterval, checkIsOverLabel],
+    );
+
     const {actionsRef, customGestures, hoverGesture, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handlePointPress,
         checkIsOver: checkIsOverDot,
         checkIsOverLabel,
+        resolveLabelTouchX: findLabelCursorX,
         chartBottom,
     });
 
@@ -342,6 +383,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                             actionsRef={actionsRef}
                             customGestures={customGestures}
                             onChartBoundsChange={handleChartBoundsChange}
+                            onScaleChange={handleScaleChange}
                             renderOutside={renderCustomXLabels}
                             xAxis={{
                                 tickCount: data.length,

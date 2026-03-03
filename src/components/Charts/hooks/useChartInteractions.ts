@@ -37,6 +37,13 @@ type UseChartInteractionsProps = {
     checkIsOver: (args: HitTestArgs) => boolean;
     /** Worklet function to determine if the cursor is hovering over the label area */
     checkIsOverLabel?: (args: HitTestArgs, activeIndex: number) => boolean;
+    /**
+     * Optional worklet that, when the cursor is in the label area, scans all label bounding
+     * boxes and returns the tick X of the label the cursor is inside (or the raw cursor X if
+     * no label matches). Used to correct Victory's nearest-point-by-X algorithm for rotated
+     * labels whose bounding boxes extend past the midpoint between adjacent ticks.
+     */
+    resolveLabelTouchX?: (cursorX: number, cursorY: number) => number;
     /** Optional shared value containing bar dimensions used for hit-testing in bar charts */
     chartBottom?: SharedValue<number>;
     yZero?: SharedValue<number>;
@@ -54,7 +61,7 @@ type CartesianActionsHandle = {
  * Manages chart interactions (hover, tap, hit-testing) and animated tooltip positioning.
  * Synchronizes high-frequency UI thread data to React state for tooltip display and navigation.
  */
-function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, chartBottom, yZero}: UseChartInteractionsProps) {
+function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, resolveLabelTouchX, chartBottom, yZero}: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
     const {state: chartInteractionState, isActive: isTooltipActiveState} = useChartInteractionState();
 
@@ -86,7 +93,7 @@ function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, chart
                 targetY,
                 chartBottom: currentChartBottom,
             }) ||
-            (checkIsOverLabel?.({cursorX, cursorY, targetX, targetY, chartBottom: currentChartBottom}, activeDataIndex) ?? false)
+            (checkIsOverLabel?.({cursorX, cursorY, targetX, targetY, chartBottom: currentChartBottom}, chartInteractionState.matchedIndex.get()) ?? false)
         );
     });
 
@@ -124,7 +131,12 @@ function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, chart
                     chartInteractionState.cursor.x.set(e.x);
                     chartInteractionState.cursor.y.set(e.y);
                     const bottom = chartBottom?.get() ?? e.y;
-                    actionsRef.current?.handleTouch(chartInteractionState, e.x, Math.min(e.y, bottom));
+                    // When entering from within the label area, snap to the tick X of the label
+                    // the cursor is visually inside rather than using the raw cursor X.
+                    // This fixes cases where rotated labels extend past the midpoint to the
+                    // previous tick, causing Victory to match the wrong data point.
+                    const touchX = e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
+                    actionsRef.current?.handleTouch(chartInteractionState, touchX, Math.min(e.y, bottom));
                 })
                 .onUpdate((e) => {
                     'worklet';
@@ -136,7 +148,8 @@ function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, chart
                     // preventing it from jumping to a different point during continuous movement.
                     if (!isCursorOverTarget.get()) {
                         const bottom = chartBottom?.get() ?? e.y;
-                        actionsRef.current?.handleTouch(chartInteractionState, e.x, Math.min(e.y, bottom));
+                        const touchX = e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
+                        actionsRef.current?.handleTouch(chartInteractionState, touchX, Math.min(e.y, bottom));
                     }
                 })
                 .onEnd(() => {
@@ -144,7 +157,7 @@ function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, chart
 
                     chartInteractionState.isActive.set(false);
                 }),
-        [chartInteractionState, chartBottom, isCursorOverTarget],
+        [chartInteractionState, chartBottom, isCursorOverTarget, resolveLabelTouchX],
     );
 
     /**
