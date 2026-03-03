@@ -100,9 +100,10 @@ const feedNamesMapping = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: CONST.COMPANY_CARDS.NON_CONNECTABLE_BANKS.PEX,
 } satisfies Partial<Record<CardFeed, BankName | NonConnectableBankName | CardTypeName>>;
 
-const feedNamesMappingKeys = Object.keys(feedNamesMapping) as Array<keyof typeof feedNamesMapping>;
 // Longest prefix first so e.g. AMEX_1205 matches before AMEX
-const feedNamesMappingKeysByLength = [...feedNamesMappingKeys].sort((a, b) => b.length - a.length);
+const feedNamesMappingKeysByLength = (Object.keys(feedNamesMapping) as Array<keyof typeof feedNamesMapping>).sort(
+    (a, b) => b.length - a.length,
+);
 
 const GET_BANK_NAME_CACHE_MAX_SIZE = 200;
 const getBankNameCache = new Map<string, string>();
