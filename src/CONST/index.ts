@@ -8146,6 +8146,7 @@ const CONST = {
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
         MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
         GPS_TOOLTIP: 'gpsTooltip',
+        HAS_FILTER_NEGATION: 'hasFilterNegation',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,

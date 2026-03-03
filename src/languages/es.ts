@@ -8588,6 +8588,7 @@ ${amount} para ${merchant} - ${date}`,
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
         gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',
+        hasFilterNegation: '<tooltip>Busca gastos sin recibos usando <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',

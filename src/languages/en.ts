@@ -8347,6 +8347,7 @@ const translations = {
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
+        hasFilterNegation: '<tooltip>Search for expenses without receipts using <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
