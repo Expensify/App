@@ -24,6 +24,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -41,7 +42,6 @@ import {
     isMerchantMissing,
     isScanning,
     isTimeRequest,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -198,6 +198,7 @@ function TransactionItemRow({
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -206,13 +207,6 @@ function TransactionItemRow({
     const isExportedColumnWide = exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
-
-    const filteredViolations = useMemo(() => {
-        if (!violations) {
-            return undefined;
-        }
-        return violations;
-    }, [violations]);
 
     const bgActiveStyles = useMemo(() => {
         if (!isSelected || !shouldHighlightItemWhenSelected) {
@@ -232,8 +226,7 @@ function TransactionItemRow({
             return '';
         }
 
-        const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report);
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -245,9 +238,8 @@ function TransactionItemRow({
                 error = translate('iou.missingAmount');
             } else if (merchantMissing && !isSettled(report)) {
                 error = translate('iou.missingMerchant');
-            } else if (isCustomUnitOutOfPolicy) {
-                error = translate('violations.customUnitOutOfPolicy');
             }
+
             return error;
         }
     }, [transactionItem, translate, report]);
@@ -743,10 +735,11 @@ function TransactionItemRow({
                             {shouldShowErrors && (
                                 <TransactionItemRowRBR
                                     transaction={transactionItem}
-                                    violations={filteredViolations}
+                                    violations={violations}
                                     report={report}
                                     containerStyles={[styles.mt2, styles.minHeight4]}
                                     missingFieldError={missingFieldError}
+                                    transactionThreadReportID={transactionThreadReportID}
                                 />
                             )}
                         </View>
@@ -820,9 +813,10 @@ function TransactionItemRow({
                 {shouldShowErrors && (
                     <TransactionItemRowRBR
                         transaction={transactionItem}
-                        violations={filteredViolations}
+                        violations={violations}
                         report={report}
                         missingFieldError={missingFieldError}
+                        transactionThreadReportID={transactionThreadReportID}
                     />
                 )}
             </View>
