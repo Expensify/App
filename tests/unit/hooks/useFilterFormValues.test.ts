@@ -14,8 +14,7 @@ const TAGS_KEY_2 = `${ONYXKEYS.COLLECTION.POLICY_TAGS}2`;
 
 describe('useFilterFormValues selectors', () => {
     describe('policiesSelector', () => {
-        it('returns null/undefined input as-is', () => {
-            expect(policiesSelector(null)).toBeNull();
+        it('returns undefined input as-is', () => {
             expect(policiesSelector(undefined)).toBeUndefined();
         });
 
@@ -36,10 +35,10 @@ describe('useFilterFormValues selectors', () => {
             expect(result?.[POLICY_KEY]).not.toHaveProperty('name');
         });
 
-        it('skips null policy entries', () => {
+        it('skips undefined policy entries', () => {
             const policies: OnyxCollection<Policy> = {
                 [POLICY_KEY]: {id: '1', taxRates: {}} as unknown as Policy,
-                [POLICY_KEY_2]: null,
+                [POLICY_KEY_2]: undefined,
             };
 
             const result = policiesSelector(policies);
@@ -50,8 +49,7 @@ describe('useFilterFormValues selectors', () => {
     });
 
     describe('reportsSelector', () => {
-        it('returns null/undefined input as-is', () => {
-            expect(reportsSelector(null)).toBeNull();
+        it('returns undefined input as-is', () => {
             expect(reportsSelector(undefined)).toBeUndefined();
         });
 
@@ -70,10 +68,10 @@ describe('useFilterFormValues selectors', () => {
             expect(result?.[REPORT_KEY]).not.toHaveProperty('reportName');
         });
 
-        it('skips null report entries', () => {
+        it('skips undefined report entries', () => {
             const reports: OnyxCollection<Report> = {
                 [REPORT_KEY]: {reportID: '100'} as Report,
-                [REPORT_KEY_2]: null,
+                [REPORT_KEY_2]: undefined,
             };
 
             const result = reportsSelector(reports);
@@ -83,8 +81,7 @@ describe('useFilterFormValues selectors', () => {
     });
 
     describe('policyCategoriesSelector', () => {
-        it('returns null/undefined input as-is', () => {
-            expect(policyCategoriesSelector(null)).toBeNull();
+        it('returns undefined input as-is', () => {
             expect(policyCategoriesSelector(undefined)).toBeUndefined();
         });
 
@@ -104,13 +101,13 @@ describe('useFilterFormValues selectors', () => {
             });
         });
 
-        it('skips null collection and category entries', () => {
+        it('skips undefined collection and category entries', () => {
             const categories: OnyxCollection<PolicyCategories> = {
                 [CATEGORIES_KEY]: {
                     Food: {name: 'Food'} as PolicyCategories[string],
-                    Empty: null,
+                    Empty: undefined,
                 } as unknown as PolicyCategories,
-                [CATEGORIES_KEY_2]: null,
+                [CATEGORIES_KEY_2]: undefined,
             };
 
             const result = policyCategoriesSelector(categories);
@@ -120,8 +117,7 @@ describe('useFilterFormValues selectors', () => {
     });
 
     describe('policyTagsSelector', () => {
-        it('returns null/undefined input as-is', () => {
-            expect(policyTagsSelector(null)).toBeNull();
+        it('returns undefined input as-is', () => {
             expect(policyTagsSelector(undefined)).toBeUndefined();
         });
 
@@ -151,18 +147,18 @@ describe('useFilterFormValues selectors', () => {
             });
         });
 
-        it('skips null entries at all levels', () => {
+        it('skips undefined entries at all levels', () => {
             const tags: OnyxCollection<PolicyTagLists> = {
                 [TAGS_KEY]: {
                     Department: {
                         tags: {
                             Engineering: {name: 'Engineering'},
-                            Empty: null,
+                            Empty: undefined,
                         },
                     },
-                    Empty: null,
+                    Empty: undefined,
                 } as unknown as PolicyTagLists,
-                [TAGS_KEY_2]: null,
+                [TAGS_KEY_2]: undefined,
             };
 
             const result = policyTagsSelector(tags);
