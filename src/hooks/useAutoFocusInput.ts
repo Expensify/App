@@ -21,7 +21,7 @@ type UseAutoFocusInput = {
 export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
     const isPopoverVisible = modal?.willAlertModalBecomeVisible && modal?.isPopover;
 
     const {splashScreenState} = useSplashScreenState();

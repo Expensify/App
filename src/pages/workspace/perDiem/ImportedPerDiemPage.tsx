@@ -50,7 +50,7 @@ type ImportedPerDiemPageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const {translate} = useLocalize();
     const {currencyList} = useCurrencyListState();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingPerDiemRates, setIsImportingPerDiemRates] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
