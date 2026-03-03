@@ -1189,6 +1189,7 @@ const CONST = {
         HAND_ICON_WIDTH: 200,
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
+        FLASH_DELAY_MS: 2000,
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -8707,6 +8708,8 @@ const CONST = {
                 FLASH: 'OdometerImage-Flash',
                 GALLERY: 'OdometerImage-Gallery',
                 SHUTTER: 'OdometerImage-Shutter',
+                CHOOSE_FILE: 'OdometerImage-ChooseFile',
+                CONTINUE_BUTTON: 'OdometerImage-ContinueButton',
             },
         },
         NEW_CHAT: {
