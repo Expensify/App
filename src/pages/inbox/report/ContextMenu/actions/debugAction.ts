@@ -37,4 +37,3 @@ function createDebugAction({reportID, reportAction, interceptAnonymousUser, tran
 }
 
 export default createDebugAction;
-export type {DebugActionParams};

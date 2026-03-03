@@ -308,5 +308,5 @@ function getVisibleActionIDs(shouldShowArgs: ShouldShowArgs, disabledActionIDs: 
     return ORDERED_ACTION_SHOULD_SHOW.filter((entry) => entry.id !== 'overflowMenu' && !disabledActionIDs.has(entry.id) && entry.shouldShow(shouldShowArgs)).map((entry) => entry.id);
 }
 
-export {ACTION_IDS, ORDERED_ACTION_SHOULD_SHOW, RESTRICTED_READONLY_ACTION_IDS, getActionHtml, getVisibleActionIDs};
+export {ORDERED_ACTION_SHOULD_SHOW, RESTRICTED_READONLY_ACTION_IDS, getActionHtml, getVisibleActionIDs};
 export type {ActionID, ShouldShowArgs};

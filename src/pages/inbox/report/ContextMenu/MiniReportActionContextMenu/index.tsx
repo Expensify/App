@@ -49,7 +49,7 @@ function MiniReportActionContextMenu() {
     const {hideMiniContextMenu, cancelHide} = miniActions;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
-    const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
+    ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
 
     const icons = useMemoizedLazyExpensifyIcons(CONTEXT_MENU_ICON_NAMES);
     const threeDotRef = useRef<View>(null);

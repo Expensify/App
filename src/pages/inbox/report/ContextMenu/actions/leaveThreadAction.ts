@@ -34,4 +34,3 @@ function createLeaveThreadAction({reportAction, originalReport, currentUserAccou
 }
 
 export default createLeaveThreadAction;
-export type {LeaveThreadActionParams};

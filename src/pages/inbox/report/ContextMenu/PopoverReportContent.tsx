@@ -15,7 +15,7 @@ import {createCopyOnyxDataAction, createDebugAction, createMarkAsReadAction, cre
 import type {PopoverContentProps} from './PopoverContextMenu';
 import useReportContextMenuData from './useReportContextMenuData';
 
-function PopoverReportContent({menuState, hideAndRun, setLocalShouldKeepOpen, transitionActionSheetState, contentRef, shouldEnableArrowNavigation}: PopoverContentProps) {
+function PopoverReportContent({menuState, hideAndRun, setLocalShouldKeepOpen, contentRef, shouldEnableArrowNavigation}: PopoverContentProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

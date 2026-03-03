@@ -49,4 +49,3 @@ function createDownloadAction({reportAction, encryptedAuthToken, interceptAnonym
 }
 
 export default createDownloadAction;
-export type {DownloadActionParams};

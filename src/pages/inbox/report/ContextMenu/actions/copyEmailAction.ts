@@ -32,4 +32,3 @@ function createCopyEmailAction({selection, interceptAnonymousUser, translate, co
 }
 
 export default createCopyEmailAction;
-export type {CopyEmailActionParams};

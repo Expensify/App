@@ -33,4 +33,3 @@ function createOverflowMenuAction({openOverflowMenu, openContextMenu, interceptA
 }
 
 export default createOverflowMenuAction;
-export type {OverflowMenuDescriptor, OverflowMenuActionParams};

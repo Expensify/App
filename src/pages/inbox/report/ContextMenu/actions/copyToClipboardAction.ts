@@ -30,4 +30,3 @@ function createCopyToClipboardAction({selection, interceptAnonymousUser, transla
 }
 
 export default createCopyToClipboardAction;
-export type {CopyToClipboardActionParams};

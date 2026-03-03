@@ -49,4 +49,3 @@ function createEditAction({reportID, reportAction, moneyRequestAction, draftMess
 }
 
 export default createEditAction;
-export type {EditActionParams};

@@ -29,4 +29,3 @@ function createDeleteAction({reportID, reportAction, moneyRequestAction, hideAnd
 }
 
 export default createDeleteAction;
-export type {DeleteActionParams};

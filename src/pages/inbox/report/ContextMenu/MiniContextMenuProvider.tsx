@@ -120,5 +120,5 @@ function useMiniContextMenuState(): MiniContextMenuState | null {
     return useContext(MiniContextMenuStateContext);
 }
 
-export {MiniContextMenuProvider, useMiniContextMenuActions, useMiniContextMenuState, MiniContextMenuActionsContext, MiniContextMenuStateContext};
+export {MiniContextMenuProvider, useMiniContextMenuActions, useMiniContextMenuState};
 export type {MiniContextMenuParams, MiniContextMenuState, RowMeasurements, MiniContextMenuActions};

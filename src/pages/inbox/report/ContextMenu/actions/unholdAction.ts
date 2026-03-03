@@ -32,4 +32,3 @@ function createUnholdAction({moneyRequestAction, isDelegateAccessRestricted, sho
 }
 
 export default createUnholdAction;
-export type {UnholdActionParams};

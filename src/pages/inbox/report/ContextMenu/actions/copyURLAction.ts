@@ -31,4 +31,3 @@ function createCopyURLAction({selection, interceptAnonymousUser, translate, copy
 }
 
 export default createCopyURLAction;
-export type {CopyURLActionParams};

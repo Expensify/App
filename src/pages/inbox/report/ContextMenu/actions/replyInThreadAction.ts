@@ -43,4 +43,3 @@ function createReplyInThreadAction({
 }
 
 export default createReplyInThreadAction;
-export type {ReplyInThreadActionParams};

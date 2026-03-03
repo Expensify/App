@@ -34,4 +34,3 @@ function createJoinThreadAction({reportAction, originalReport, currentUserAccoun
 }
 
 export default createJoinThreadAction;
-export type {JoinThreadActionParams};

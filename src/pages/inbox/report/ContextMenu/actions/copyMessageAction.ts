@@ -184,7 +184,7 @@ function setClipboardMessage(content: string | undefined) {
     }
 }
 
-export function copyMessageToClipboard(params: CopyMessageClipboardParams) {
+function copyMessageToClipboard(params: CopyMessageClipboardParams) {
     const {
         reportAction,
         transaction,
@@ -544,4 +544,3 @@ function createCopyMessageAction({interceptAnonymousUser, translate, copyIcon, c
 }
 
 export default createCopyMessageAction;
-export type {CopyMessageActionParams, CopyMessageClipboardParams};

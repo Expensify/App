@@ -26,4 +26,3 @@ function createPinAction({reportID, interceptAnonymousUser, hideAndRun, translat
 }
 
 export default createPinAction;
-export type {PinActionParams};

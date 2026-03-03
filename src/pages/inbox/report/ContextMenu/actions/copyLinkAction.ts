@@ -36,4 +36,3 @@ function createCopyLinkAction({reportAction, originalReportID, interceptAnonymou
 }
 
 export default createCopyLinkAction;
-export type {CopyLinkActionParams};

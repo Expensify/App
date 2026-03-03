@@ -43,4 +43,3 @@ function createMarkAsUnreadAction({
 }
 
 export default createMarkAsUnreadAction;
-export type {MarkAsUnreadActionParams};

@@ -46,7 +46,7 @@ import type {PopoverContentProps} from './PopoverContextMenu';
 import {showContextMenu} from './ReportActionContextMenu';
 import useReportActionContextMenuData from './useReportActionContextMenuData';
 
-function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOpen, transitionActionSheetState, contentRef, shouldEnableArrowNavigation}: PopoverContentProps) {
+function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOpen, contentRef, shouldEnableArrowNavigation}: PopoverContentProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

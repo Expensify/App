@@ -28,4 +28,3 @@ function createMarkAsReadAction({reportID, interceptAnonymousUser, hideAndRun, t
 }
 
 export default createMarkAsReadAction;
-export type {MarkAsReadActionParams};

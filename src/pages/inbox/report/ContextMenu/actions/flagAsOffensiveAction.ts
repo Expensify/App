@@ -34,4 +34,3 @@ function createFlagAsOffensiveAction({reportID, reportAction, hideAndRun, transl
 }
 
 export default createFlagAsOffensiveAction;
-export type {FlagAsOffensiveActionParams};

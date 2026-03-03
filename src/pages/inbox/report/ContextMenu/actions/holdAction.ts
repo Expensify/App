@@ -32,4 +32,3 @@ function createHoldAction({moneyRequestAction, isDelegateAccessRestricted, showD
 }
 
 export default createHoldAction;
-export type {HoldActionParams};

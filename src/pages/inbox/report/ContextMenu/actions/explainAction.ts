@@ -38,4 +38,3 @@ function createExplainAction({childReport, originalReport, reportAction, current
 }
 
 export default createExplainAction;
-export type {ExplainActionParams};

@@ -26,4 +26,3 @@ function createUnpinAction({reportID, interceptAnonymousUser, hideAndRun, transl
 }
 
 export default createUnpinAction;
-export type {UnpinActionParams};

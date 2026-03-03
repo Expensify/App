@@ -60,4 +60,3 @@ function createEmojiReactionData({reportID, reportAction, currentUserAccountID, 
 }
 
 export default createEmojiReactionData;
-export type {EmojiReactionData, EmojiReactionParams};

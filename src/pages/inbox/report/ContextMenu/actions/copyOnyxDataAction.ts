@@ -32,4 +32,3 @@ function createCopyOnyxDataAction({report, interceptAnonymousUser, translate, co
 }
 
 export default createCopyOnyxDataAction;
-export type {CopyOnyxDataActionParams};
