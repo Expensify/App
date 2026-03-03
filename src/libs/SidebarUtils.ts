@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
+import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -282,7 +282,6 @@ function getReportsToDisplayInLHN(
     currentReportId: string | undefined,
     reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PartialPolicyForSidebar>,
     priorityMode: OnyxEntry<PriorityMode>,
     draftComments: OnyxCollection<string>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
@@ -351,11 +350,21 @@ function updateReportsToDisplayInLHN({
     draftComments,
     transactions,
 }: UpdateReportsToDisplayInLHNProps) {
-    const displayedReportsCopy = {...displayedReports};
+    // Use a lazy copy to avoid creating a new object reference when no entries actually change.
+    let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
+    const getMutableCopy = (): ReportsToDisplayInLHN => {
+        if (!displayedReportsCopy) {
+            displayedReportsCopy = {...displayedReports};
+        }
+        return displayedReportsCopy;
+    };
+
     for (const reportID of updatedReportsKeys) {
         const report = reports?.[reportID];
         if (!report) {
-            delete displayedReportsCopy[reportID];
+            if (reportID in displayedReports) {
+                delete getMutableCopy()[reportID];
+            }
             continue;
         }
 
@@ -379,20 +388,32 @@ function updateReportsToDisplayInLHN({
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
             const hasAttentionOrError = requiresAttention || hasErrorsOtherThanFailedReceipt;
-            displayedReportsCopy[reportID] = hasAttentionOrError ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt} : report;
-        } else {
-            delete displayedReportsCopy[reportID];
+            const existingEntry = displayedReports[reportID];
+
+            if (hasAttentionOrError) {
+                if (
+                    existingEntry !== report ||
+                    existingEntry?.requiresAttention !== requiresAttention ||
+                    existingEntry?.hasErrorsOtherThanFailedReceipt !== hasErrorsOtherThanFailedReceipt
+                ) {
+                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt};
+                }
+            } else if (existingEntry !== report) {
+                getMutableCopy()[reportID] = report;
+            }
+        } else if (reportID in displayedReports) {
+            delete getMutableCopy()[reportID];
         }
     }
 
-    return displayedReportsCopy;
+    return displayedReportsCopy ?? displayedReports;
 }
 /**
  * Categorizes reports into their respective LHN groups
  */
 function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
-    reportsDrafts: OnyxCollection<string> | undefined,
+    reportsDrafts: Record<string, boolean> | undefined,
     conciergeReportID: string | undefined,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
 ) {
@@ -430,8 +451,7 @@ function categorizeReportsForLHN(
 
         const isPinned = !!report.isPinned;
         const requiresAttention = !!report?.requiresAttention;
-        const draftComment = reportsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
-        const hasDraft = !!draftComment;
+        const hasDraft = !!reportsDrafts?.[reportID];
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
         const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
         const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
@@ -555,7 +575,7 @@ function sortReportsToDisplayInLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     priorityMode: OnyxEntry<PriorityMode>,
     localeCompare: LocaleContextProps['localeCompare'],
-    reportsDrafts: OnyxCollection<string> | undefined,
+    reportsDrafts: Record<string, boolean> | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
     conciergeReportID: string | undefined,
 ): string[] {
@@ -698,7 +718,7 @@ function getOptionData({
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
-    currentUserLogin?: string;
+    currentUserLogin: string;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
