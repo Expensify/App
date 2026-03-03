@@ -45,6 +45,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const policy = usePolicy(onboardingPolicyID);
     const {onboardingMessages} = useOnboardingMessages();
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
@@ -128,6 +129,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             isInvitedAccountant,
             onboardingPurposeSelected,
             introSelected,
+            betas,
         });
 
         setOnboardingAdminsChatReportID();
