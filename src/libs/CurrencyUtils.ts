@@ -6,6 +6,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList, Locale} from '@src/types/onyx';
 import {format, formatToParts} from './NumberFormatUtils';
 
+const CURRENCY_GROUPING_LOCALE: Record<string, string> = {
+    INR: 'en-IN',
+    BDT: 'en-IN',
+    NPR: 'en-IN',
+    PKR: 'en-IN',
+    LKR: 'en-IN',
+};
+
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
 /* eslint-disable rulesdir/prefer-onyx-connect-in-libs -- may refactor to useOnyx/connectWithoutView later */
@@ -20,6 +28,10 @@ Onyx.connect({
     },
 });
 /* eslint-enable rulesdir/prefer-onyx-connect-in-libs */
+
+function getFormattingLocale(currency: string): Locale {
+    return (CURRENCY_GROUPING_LOCALE[currency] ?? IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT) as Locale;
+}
 
 /**
  * Returns the number of digits after the decimal separator for a specific currency.
@@ -116,7 +128,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
         const currencySymbol = getCurrencySymbol(currencyWithFallback);
 
         if (currencySymbol) {
-            const formattedNumber = format(IntlStore.getCurrentLocale(), convertedAmount, {
+            const formattedNumber = format(getFormattingLocale(currencyWithFallback), convertedAmount, {
                 style: 'decimal',
                 minimumFractionDigits: getCurrencyDecimals(currency),
                 maximumFractionDigits: 2,
@@ -125,7 +137,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
         }
     }
 
-    return format(IntlStore.getCurrentLocale(), convertedAmount, {
+    return format(getFormattingLocale(currencyWithFallback), convertedAmount, {
         style: 'currency',
         currency: currencyWithFallback,
 
