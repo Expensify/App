@@ -6994,6 +6994,8 @@ const CONST = {
         TRAIN: 'train',
     },
 
+    UPCOMING_TRAVEL_WINDOW_DAYS: 7,
+
     RESERVATION_ADDRESS_TEST_ID: 'ReservationAddress',
 
     FLIGHT_SEAT_TEST_ID: 'FlightSeat',
