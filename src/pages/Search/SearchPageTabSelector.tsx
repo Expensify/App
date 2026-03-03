@@ -34,6 +34,7 @@ function SearchPageTabSelector({queryJSON}: SearchPageTabSelectorProps) {
         'Basket',
         'CalendarSolid',
         'Bookmark',
+        'ExpensifyCard',
     ] as const);
 
     const flattenedItems = typeMenuSections.flatMap((section) => section.menuItems);
