@@ -50,7 +50,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
             return Array.from(selectedIds).reduce<Record<string, Transaction>>((acc, id) => {
                 const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
                 if (transaction) {
-                    acc[transaction.transactionID] = transaction;
+                    acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] = transaction;
                 }
                 return acc;
             }, {});
