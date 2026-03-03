@@ -1,45 +1,130 @@
 ---
-title: The title of the post, page, or document
-description: A short description of the page's content. This is used for SEO purposes
+title: Clear task-based title using the feature name
+description: A short description of the page's content. This is used for SEO purposes.
+keywords: [how to primary task, feature name, related task phrases]
+internalScope: Audience is [who this doc is for]. Covers [single clearly defined workflow], does not cover [closely related workflows intentionally excluded]. 
 ---
-<!-- The lines above are required by Jekyll to process the .md file -->
-
-# Overview
 <!--
-This short blurb provides all the context the user might need to know what the feature is and why they'd use it. If there are particular best practices embedded in the design, we'd explain why they're best practices here.
+This template follows the HelpDot governance standards.
+Full guidelines: docs/HELP_AUTHORING_GUIDELINES.md
 
-What advantages does this feature provide in general?
-What is unique about this feature in terms of our specific implementation of it in Expensify?
+CORE AUTHORING RULES
+
+- One primary workflow per article
+- Use only # and ## headings (never ###)
+- Headings must be full, searchable task-based phrases
+- Do not use generic headings (e.g., Overview, Details, Setup, Options, Notes)
+- Include the exact Feature Name in instructional headings
+- Include web and mobile navigation instructions when applicable
+- Use exact UI terminology and correct button casing
+- Do not use Liquid includes or collapsible FAQ sections
+- If multiple distinct workflows are required, split into separate articles
+
+ADDITIONAL HEADING GUIDANCE
+
+Section headings beyond the primary workflow may vary depending on the feature.
+
+Examples of acceptable headings:
+- What the [Exact Feature Name] shows
+- How [Exact Feature Name nuance] works
+- How to manage [specific task] in [Exact Feature Name]
+- How [Exact Feature Name] affects reimbursements
+- How [Exact Feature Name] works with [integration] 
+- How to troubleshoot [Exact Feature Name] errors
+
+All headings must remain specific, searchable, and include the Feature Name when relevant.
 -->
 
-# How-to
-<!--
-This section covers the most essential information a user needs to operate a feature i.e. what to click on. We’ll go over any action the user might take when configuring or using the feature, starting from configuration and moving to usage.
+# [This must match the article title exactly]
 
-What options does a user have when configuring this feature?
-What options does a user have then interacting with this feature?
-What elements of this feature are pay-walled vs. free?
+Briefly explain:
+- What this feature does
+- Why someone would use it
+- The outcome they can expect
+- Any important limitations
+
+Keep this concise and benefit-focused.
+
+---
+
+## Who can use [exact feature name]
+
+Clearly state:
+
+- Required role (Workspace Admin, Member, Domain Admin, etc.)
+- Plan limitations (Free, Collect, Control, Track, Submit, Annual Subscription, pay-per-use)
+- Any permission or Workspace setting prerequisites
+
+If this feature depends on another setting:
+If [the required setting] is not enabled, [learn how to enable <Dependency Feature>](/relative-link).
+
+State explicitly if:
+This feature is not available on mobile.
+
+---
+
+## How to [complete primary task using exact feature name]
+
+<!--
+NAVIGATION STRUCTURE GUIDANCE
+
+If web and mobile navigation differ:
+- Provide separate labeled sections:
+  Web:
+  Mobile:
+- Do not merge instructions into one sentence.
+
+If web and mobile navigation are structurally the same:
+- Use a unified instruction.
+- Example:
+  Click the navigation tabs (on the left on web, on the bottom on mobile).
+- Do not duplicate identical steps unnecessarily.
+
+Follow the Navigation Conventions in docs/HELP_AUTHORING_GUIDELINES.md.
 -->
 
-# Deep Dive
-<!--
-This section will be the final nice-to-know section which covers additional Best Practices that apply to niche use-cases, alternate setup configurations, and in-depth details for parts of a feature that do not apply to all users. These will likely only be required for very complex features with high configurability.
+1. Go to Settings > Workspaces > Workspace Name > [Section Name].
+2. Click **[Exact button name in Sentence case]**.
+3. Configure the required settings.
+4. Click **Save** or final action button (for example, **Submit**, **Confirm**).
 
-- Is the feature multi-layered (contains features within features) and needs further explanation in this section? Example: Managing Domains.
-- Does the feature have several different variables that can cause different outcomes for different customers? Example: Billing.
-- Does the feature have optional enhancements that can be used in different ways depending on the use case? Example: Category-specific rules.
--->
+**ADD A SCREENSHOT HERE.**  
+Suggestion: Show the full page with the relevant section highlighted.
 
+---
 
-{% include faq-begin.md %}
-<!--
-This section covers the useful but not as vital information, it should capture commonly queried elements which do not organically form part of the About or How-to sections.
+## What happens after you [complete primary task using exact feature name]
 
-- What's idiosyncratic or potentially confusing about this feature?
-- Is there anything unique about how this feature relates to billing/activity?
-- If this feature is released, are there any common confusions that can't be solved by improvements to the product itself?
-- Similarly, if this feature hasn't been released, can you predict and preempt any potential confusion?
-- Is there any general troubleshooting for this feature?
- - Note: troubleshooting should generally go in the FAQ, but if there is extensive troubleshooting, such as with integrations, that will be housed in a separate page, stored with and linked from the main page for that feature.
--->
-{% include faq-end.md %}
+Explain:
+- System behavior
+- Notifications triggered
+- Approval or reimbursement impact
+- Sync behavior (if applicable)
+- Billing impact (if applicable)
+
+Be explicit. Avoid vague phrasing.
+
+---
+
+# FAQ
+
+## Can members [Common Task Variation Using Feature Name]?
+
+Clear direct answer.
+
+## Why can’t I see [Feature Name]?
+
+Explain possible causes:
+- You’re not a Workspace Admin or Workspace Owner
+- The feature is not included in your plan
+- The Workspace setting is disabled
+- Domain-level restrictions apply
+
+## Does [Feature Name] work with [Integration or Related Feature]?
+
+Provide a precise compatibility explanation.
+
+## How do I troubleshoot issues with [Feature Name]?
+
+Include only lightweight troubleshooting.
+If complex troubleshooting is required, link to a separate dedicated article.
