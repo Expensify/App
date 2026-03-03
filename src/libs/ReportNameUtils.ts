@@ -86,6 +86,7 @@ import {
     getWorkspaceUpdateFieldMessage,
     isActionableJoinRequest,
     isActionOfType,
+    isRejectedAction,
     isCardIssuedAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
@@ -413,7 +414,7 @@ function computeReportNameBasedOnReportAction(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return translate('iou.unheldExpense');
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED || parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER) {
+    if (isRejectedAction(parentReportAction)) {
         return translate('iou.rejectedThisReport');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
