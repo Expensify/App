@@ -2065,7 +2065,8 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
             return translate('report.actions.type.exportedToCSV');
         case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE: {
             const {result, label} = originalMessage;
-            const errorMessage = result?.messages?.join(', ') ?? '';
+            const uniqueErrorMessages = [...new Set((result?.messages ?? []).filter((message) => !!message))];
+            const errorMessage = uniqueErrorMessages.join(', ');
             const linkText = result?.link?.text ?? '';
             const linkURL = result?.link?.url ?? '';
             if (errorMessage.includes(CONST.ERROR.INTEGRATION_MESSAGE_INVALID_CREDENTIALS)) {

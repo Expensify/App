@@ -1260,6 +1260,27 @@ describe('ReportActionsUtils', () => {
             const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
             expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
         });
+
+        it('should deduplicate repeated integration export error messages', () => {
+            const repeatedError = 'Invalid account mapping';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    label: 'QuickBooks Online',
+                    result: {
+                        messages: [repeatedError, repeatedError, repeatedError],
+                    },
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('report.actions.type.integrationsMessage', repeatedError, 'QuickBooks Online', '', '');
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
     });
 
     describe('getSendMoneyFlowAction', () => {
