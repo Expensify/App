@@ -1042,6 +1042,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: 'Le prossime attività appariranno qui.',
             },
         },
+        upcomingTravel: 'Prossimi viaggi',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Volo per ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Treno per ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel a ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Noleggio auto a ${destination}`,
+            inOneWeek: 'Tra 1 settimana',
+            inDays: () => ({one: 'Tra 1 giorno', other: (count: number) => `Tra ${count} giorni`}),
+            today: 'Oggi',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -8363,6 +8373,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         outstandingFilter: '<tooltip>Filtra per le spese\nche <strong>necessitano di approvazione</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Invia questa ricevuta per\n<strong>completare il test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Tracciamento GPS in corso! Quando hai finito, interrompi il tracciamento qui sotto.</tooltip>',
+        hasFilterNegation: '<tooltip>Cerca le spese senza ricevute usando <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Scartare le modifiche?',

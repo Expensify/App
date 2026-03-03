@@ -1041,6 +1041,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: 'Aankomende taken verschijnen hier.',
             },
         },
+        upcomingTravel: 'Aankomende reizen',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Vlucht naar ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Trein naar ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel in ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Autoverhuur in ${destination}`,
+            inOneWeek: 'Over 1 week',
+            inDays: () => ({one: 'Over 1 dag', other: (count: number) => `Over ${count} dagen`}),
+            today: 'Vandaag',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -8340,6 +8350,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         outstandingFilter: '<tooltip>Filter voor uitgaven\ndie <strong>goedkeuring nodig hebben</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Stuur deze bon om\n<strong>de proefrit te voltooien!</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS-tracking bezig! Als je klaar bent, stop dan hieronder met bijhouden.</tooltip>',
+        hasFilterNegation: '<tooltip>Zoek naar uitgaven zonder bonnen met <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',

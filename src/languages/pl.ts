@@ -1042,6 +1042,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: 'Nadchodzące zadania pojawią się tutaj.',
             },
         },
+        upcomingTravel: 'Nadchodząca podróż',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Lot do ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Pociąg do ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel w ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Wynajem samochodu w ${destination}`,
+            inOneWeek: 'Za 1 tydzień',
+            inDays: () => ({one: 'Za 1 dzień', other: (count: number) => `Za ${count} dni`}),
+            today: 'Dzisiaj',
+        },
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -8326,6 +8336,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         outstandingFilter: '<tooltip>Filtruj wydatki,\nktóre <strong>wymagają zatwierdzenia</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Wyślij ten paragon, aby\n<strong>zakończyć jazdę próbną!</strong></tooltip>',
         gpsTooltip: '<tooltip>Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.</tooltip>',
+        hasFilterNegation: '<tooltip>Wyszukaj wydatki bez paragonów za pomocą <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',

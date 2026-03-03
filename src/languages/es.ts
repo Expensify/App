@@ -897,6 +897,19 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: 'Las próximas tareas aparecerán aquí.',
             },
         },
+        upcomingTravel: 'Próximos viajes',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Vuelo a ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Tren a ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel en ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Alquiler de coche en ${destination}`,
+            inOneWeek: 'En 1 semana',
+            inDays: () => ({
+                one: 'En 1 día',
+                other: (count: number) => `En ${count} días`,
+            }),
+            today: 'Hoy',
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -8575,6 +8588,7 @@ ${amount} para ${merchant} - ${date}`,
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
         gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',
+        hasFilterNegation: '<tooltip>Busca gastos sin recibos usando <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',

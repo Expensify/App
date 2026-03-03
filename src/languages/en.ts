@@ -1067,6 +1067,19 @@ const translations = {
                 fireworksDescription: 'Upcoming to-dos will appear here.',
             },
         },
+        upcomingTravel: 'Upcoming travel',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Flight to ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Train to ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel in ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Car rental in ${destination}`,
+            inOneWeek: 'In 1 week',
+            inDays: () => ({
+                one: 'In 1 day',
+                other: (count: number) => `In ${count} days`,
+            }),
+            today: 'Today',
+        },
     },
     allSettingsScreen: {
         subscription: 'Subscription',
@@ -8334,6 +8347,7 @@ const translations = {
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
+        hasFilterNegation: '<tooltip>Search for expenses without receipts using <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',

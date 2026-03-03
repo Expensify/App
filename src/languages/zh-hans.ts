@@ -1022,6 +1022,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: '即将到来的待办事项将显示在此处。',
             },
         },
+        upcomingTravel: '即将出行',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `飞往 ${destination} 的航班`,
+            trainTo: ({destination}: {destination: string}) => `前往 ${destination} 的火车`,
+            hotelIn: ({destination}: {destination: string}) => `${destination}的酒店`,
+            carRentalIn: ({destination}: {destination: string}) => `在 ${destination} 租车`,
+            inOneWeek: '1 周后',
+            inDays: () => ({one: '1 天后', other: (count: number) => `在 ${count} 天后`}),
+            today: '今天',
+        },
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -8138,6 +8148,7 @@ ${reportName}
         outstandingFilter: '<tooltip>筛选<strong>待审批</strong>的报销</tooltip>',
         scanTestDriveTooltip: '<tooltip>发送此收据以\n<strong>完成试用体验！</strong></tooltip>',
         gpsTooltip: '<tooltip>正在进行 GPS 跟踪！完成后，请在下方停止跟踪。</tooltip>',
+        hasFilterNegation: '<tooltip>使用 <strong>-has:receipt</strong> 搜索没有收据的报销。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',
