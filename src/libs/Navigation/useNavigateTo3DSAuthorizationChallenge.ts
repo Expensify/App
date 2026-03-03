@@ -133,8 +133,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
             }
 
             // Make an API call to double check that the challenge is still eligible for review (i.e. has not been reviewed on another device)
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const challengeStillPendingReview = transactionPending3DSReview?.simulated || (await isTransactionStillPending3DSReview(transactionPending3DSReview.transactionID));
+            const challengeStillPendingReview = await isTransactionStillPending3DSReview(transactionPending3DSReview.transactionID);
 
             // If we know that a challenge is no longer pending review, bail rather than showing the user the "already reviewed" outcome screen
             if (!challengeStillPendingReview) {
@@ -158,7 +157,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
         return () => {
             cancel = true;
         };
-    }, [transactionPending3DSReview?.transactionID, doesDeviceSupportBiometrics, isCurrentlyActingOn3DSChallenge, transactionPending3DSReview?.simulated]);
+    }, [transactionPending3DSReview?.transactionID, doesDeviceSupportBiometrics, isCurrentlyActingOn3DSChallenge]);
 }
 
 export default useNavigateTo3DSAuthorizationChallenge;

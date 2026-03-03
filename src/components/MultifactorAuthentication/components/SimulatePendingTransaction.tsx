@@ -1,47 +1,38 @@
-import {format} from 'date-fns';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import Button from '@components/Button';
-import DatePicker from '@components/DatePicker';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import TimePicker from '@components/TimePicker/TimePicker';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToBackendAmount, convertToDisplayString, generateRandomCurrency} from '@libs/CurrencyUtils';
-import DateUtils from '@libs/DateUtils';
+import {simulateMarqeta3DSChallenge} from '@libs/actions/MultifactorAuthentication';
+import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import {generateRandomInt} from '@libs/NumberUtils';
 import type {CurrentMoney} from '@pages/iou/MoneyRequestAmountForm';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type TransactionPending3DSReview from '@src/types/onyx/TransactionPending3DSReview';
 
 const MERCHANTS = ['Grocery store', 'Restaurant', 'Gas station', 'Online retailer', 'Coffee shop', 'Bookstore', 'Clothing store', 'Pharmacy', 'Electronics store', 'Subscription service'];
-const TRANSACTION_MIN = 100_000_000;
-const TRANSACTION_MAX = 999_999_999;
-const EIGHT_MINUTES = 8 * 60 * 1000;
 
-const formatFNS = (ms: number) => format(new Date(ms), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+const OUTCOME_ITEMS = [
+    {label: 'Approve/Deny (normal)', value: ''},
+    {label: 'Marqeta error on result', value: 'MARQETA_ERROR'},
+];
 
-function generateRandomTransaction(): TransactionPending3DSReview {
-    return {
-        amount: generateRandomInt(500, 100000),
-        currency: generateRandomCurrency(),
-        lastFourPAN: generateRandomInt(1000, 9999),
-        merchant: MERCHANTS[generateRandomInt(0, MERCHANTS.length - 1)],
-        transactionID: `${generateRandomInt(TRANSACTION_MIN, TRANSACTION_MAX)}`.repeat(2),
-        created: formatFNS(new Date().getTime()),
-        expires: formatFNS(new Date().getTime() + EIGHT_MINUTES),
-    };
-}
+type CardListItem = ListItem & {
+    cardID: number;
+};
 
 type AmountPickerProps = {
     amount: number;
@@ -56,9 +47,7 @@ function AmountAndCurrencyPicker({amount, currency, onSubmit}: AmountPickerProps
     const [internalCurrency, setInternalCurrency] = useState(currency);
 
     const hidePickerModal = () => setIsCurrencyPickerVisible(false);
-
     const showPickerModal = () => setIsCurrencyPickerVisible(true);
-
     const submitAmountAndCurrency = (money: CurrentMoney) => onSubmit(convertToBackendAmount(Number.parseFloat(money.amount)), money.currency);
 
     return (
@@ -82,54 +71,6 @@ function AmountAndCurrencyPicker({amount, currency, onSubmit}: AmountPickerProps
     );
 }
 
-type DateAndTimePickerProps = {
-    value: string;
-    onSubmit: (input: string) => void;
-    placeholder: string;
-    inputID: string;
-};
-
-function DateAndTimePicker({value, onSubmit, placeholder, inputID}: DateAndTimePickerProps) {
-    const [date, setDate] = useState<string | undefined>();
-    const styles = useThemeStyles();
-
-    const onTimePicked = (timeString: string) => {
-        const newDate = DateUtils.combineDateAndTime(timeString, date ?? formatFNS(new Date().getTime()));
-        onSubmit(newDate);
-        setDate(undefined);
-    };
-
-    return (
-        <>
-            <DatePicker
-                inputID={inputID}
-                value={value}
-                onInputChange={(input) => setDate(input)}
-                placeholder={placeholder}
-            />
-
-            <Modal
-                isVisible={!!date}
-                shouldEnableNewFocusManagement
-                enableEdgeToEdgeBottomSafeAreaPadding
-                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-            >
-                <View style={[styles.h100]}>
-                    <HeaderWithBackButton
-                        title="Pick time"
-                        shouldShowBackButton
-                        onBackButtonPress={() => setDate(undefined)}
-                    />
-                    <TimePicker
-                        onSubmit={onTimePicked}
-                        shouldValidateFutureTime={false}
-                    />
-                </View>
-            </Modal>
-        </>
-    );
-}
-
 type SimulatePendingTransactionProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
@@ -138,41 +79,131 @@ type SimulatePendingTransactionProps = {
     onClose: () => void;
 };
 
+type CurrentView = 'form' | 'amountPicker' | 'cardPicker';
+
 function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransactionProps) {
     const styles = useThemeStyles();
-    const [showAmountPicker, setShowAmountPicker] = useState(false);
-    const [transaction, setTransaction] = useState(() => generateRandomTransaction());
+    const [currentView, setCurrentView] = useState<CurrentView>('form');
 
-    const displayAmount = convertToDisplayString(transaction.amount, transaction.currency);
+    const [merchant, setMerchant] = useState(() => MERCHANTS[generateRandomInt(0, MERCHANTS.length - 1)]);
+    const [amount, setAmount] = useState(() => generateRandomInt(500, 100000));
+    const [currency, setCurrency] = useState<string>(CONST.CURRENCY.USD);
+    const [delayMinutesText, setDelayMinutesText] = useState('0');
+    const [expiryMinutesText, setExpiryMinutesText] = useState('8');
+    const [simulatedOutcome, setSimulatedOutcome] = useState('');
+    const [selectedCardID, setSelectedCardID] = useState<number | undefined>(undefined);
+
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+
+    const expensifyCards = useMemo(() => {
+        if (!cardList) {
+            return [];
+        }
+        return Object.values(cardList).filter((card) => card.bank === CONST.EXPENSIFY_CARD.BANK && card.state === CONST.EXPENSIFY_CARD.STATE.OPEN);
+    }, [cardList]);
+
+    // Derive effective card ID: user selection takes priority, otherwise default to first card
+    const effectiveCardID = useMemo(() => {
+        if (selectedCardID !== undefined) {
+            return selectedCardID;
+        }
+        return expensifyCards.at(0)?.cardID;
+    }, [selectedCardID, expensifyCards]);
+
+    const cardSelectionItems: CardListItem[] = useMemo(
+        () =>
+            expensifyCards.map((card) => ({
+                text: card.nameValuePairs?.cardTitle ?? `Card ending in ${card.lastFourPAN ?? '????'}`,
+                keyForList: String(card.cardID),
+                isSelected: effectiveCardID === card.cardID,
+                cardID: card.cardID,
+            })),
+        [expensifyCards, effectiveCardID],
+    );
+
+    const selectedCardLabel = useMemo(() => {
+        if (effectiveCardID === undefined) {
+            return 'No active Expensify card';
+        }
+        const card = expensifyCards.find((c) => c.cardID === effectiveCardID);
+        if (!card) {
+            return 'No active Expensify card';
+        }
+        return card.nameValuePairs?.cardTitle ?? `Card ending in ${card.lastFourPAN ?? '????'}`;
+    }, [effectiveCardID, expensifyCards]);
+
+    const displayAmount = convertToDisplayString(amount, currency);
 
     const simulateTransaction = () => {
-        if (!transaction.transactionID) {
-            return;
-        }
-
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.merge(ONYXKEYS.TRANSACTIONS_PENDING_3DS_REVIEW, {
-            [transaction.transactionID]: {
-                ...transaction,
-                simulated: true,
-            },
+        const delaySeconds = Math.max(0, Math.round((parseFloat(delayMinutesText) || 0) * 60));
+        const maxResponseTime = parseInt(expiryMinutesText, 10) || 8;
+        simulateMarqeta3DSChallenge({
+            merchant,
+            amount,
+            currency,
+            deliverAfterSeconds: delaySeconds,
+            simulatedOutcome,
+            maxResponseTime,
+            cardID: effectiveCardID,
         });
         onClose();
     };
 
-    const onAmountSubmit = (amount: number, currency: string) => {
-        setTransaction((prevTransaction) => ({...prevTransaction, amount, currency}));
-        setShowAmountPicker(false);
+    const runAllFlows = () => {
+        simulateMarqeta3DSChallenge({shouldRunAllFlows: true, cardID: effectiveCardID});
+        onClose();
     };
 
-    const SimulateOptions = (
+    const onAmountSubmit = (newAmount: number, newCurrency: string) => {
+        setAmount(newAmount);
+        setCurrency(newCurrency);
+        setCurrentView('form');
+    };
+
+    const onCardSelect = (item: CardListItem) => {
+        setSelectedCardID(item.cardID);
+        setCurrentView('form');
+    };
+
+    const handleBackPress = () => {
+        if (currentView !== 'form') {
+            setCurrentView('form');
+            return;
+        }
+        onClose();
+    };
+
+    const headerTitle = currentView === 'cardPicker' ? 'Select card' : 'Simulate pending 3DS transaction';
+
+    const FormView = (
         <ScrollView style={[styles.flex1, styles.ph5]}>
             <View style={styles.gap4}>
-                <View style={styles.mv2}>
-                    <Button
-                        text="Randomize transaction"
-                        onPress={() => setTransaction(generateRandomTransaction())}
-                    />
+                <View>
+                    <Text>Card</Text>
+                    <View style={styles.mv2}>
+                        <TextInput
+                            accessibilityLabel="Selected card"
+                            value={selectedCardLabel}
+                            editable={false}
+                            onPress={() => setCurrentView('cardPicker')}
+                        />
+                    </View>
+                </View>
+
+                <View>
+                    <Text>Outcome</Text>
+                    <View style={styles.mv2}>
+                        {OUTCOME_ITEMS.map((item) => (
+                            <Button
+                                key={item.value}
+                                small
+                                success={simulatedOutcome === item.value}
+                                text={item.label}
+                                onPress={() => setSimulatedOutcome(item.value)}
+                                style={styles.mb2}
+                            />
+                        ))}
+                    </View>
                 </View>
 
                 <View>
@@ -180,55 +211,9 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                     <View style={styles.mv2}>
                         <TextInput
                             placeholder="Enter merchant name"
-                            value={transaction.merchant}
-                            onChangeText={(merchant) => setTransaction((prevTransaction) => ({...prevTransaction, merchant}))}
+                            value={merchant}
+                            onChangeText={setMerchant}
                             accessibilityLabel="Merchant name"
-                        />
-                    </View>
-                </View>
-
-                <View>
-                    <Text>Created Date</Text>
-                    <DateAndTimePicker
-                        inputID="created"
-                        value={transaction.created}
-                        onSubmit={(input) => setTransaction((prevTransaction) => ({...prevTransaction, created: input}))}
-                        placeholder="Select date and time"
-                    />
-                </View>
-
-                <View>
-                    <Text>Expires Date</Text>
-                    <DateAndTimePicker
-                        inputID="expires"
-                        value={transaction.expires}
-                        onSubmit={(input) => setTransaction((prevTransaction) => ({...prevTransaction, expires: input}))}
-                        placeholder="Select date and time"
-                    />
-                </View>
-
-                <View>
-                    <Text>Last 4 PAN Digits</Text>
-                    <View style={styles.mv2}>
-                        <TextInput
-                            placeholder="0000"
-                            value={String(transaction.lastFourPAN)}
-                            onChangeText={(text) => setTransaction((prevTransaction) => ({...prevTransaction, lastFourPAN: Number(text)}))}
-                            keyboardType="decimal-pad"
-                            maxLength={4}
-                            accessibilityLabel="Last 4 digits of card number"
-                        />
-                    </View>
-                </View>
-
-                <View>
-                    <Text>TransactionID</Text>
-                    <View style={styles.mv2}>
-                        <TextInput
-                            placeholder="Enter transactionID"
-                            value={transaction.transactionID}
-                            onChangeText={(text) => setTransaction((prevTransaction) => ({...prevTransaction, transactionID: text}))}
-                            accessibilityLabel="Transaction ID"
                         />
                     </View>
                 </View>
@@ -240,9 +225,72 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                             accessibilityLabel="Text input field"
                             value={displayAmount}
                             editable={false}
-                            onPress={() => setShowAmountPicker(true)}
+                            onPress={() => setCurrentView('amountPicker')}
                         />
                     </View>
+                </View>
+
+                <View>
+                    <Text>Delay before delivery (min)</Text>
+                    <View style={[styles.flexRow, styles.gap2, styles.mv2]}>
+                        <Button
+                            small
+                            text="Now"
+                            onPress={() => setDelayMinutesText('0')}
+                        />
+                        <Button
+                            small
+                            text="1 min"
+                            onPress={() => setDelayMinutesText('1')}
+                        />
+                        <Button
+                            small
+                            text="5 min"
+                            onPress={() => setDelayMinutesText('5')}
+                        />
+                    </View>
+                    <TextInput
+                        placeholder="0"
+                        value={delayMinutesText}
+                        onChangeText={setDelayMinutesText}
+                        keyboardType="decimal-pad"
+                        accessibilityLabel="Delay in minutes before delivering challenge"
+                    />
+                </View>
+
+                <View>
+                    <Text>Expires after (min)</Text>
+                    <View style={[styles.flexRow, styles.gap2, styles.mv2]}>
+                        <Button
+                            small
+                            text="8 min"
+                            onPress={() => setExpiryMinutesText('8')}
+                        />
+                        <Button
+                            small
+                            text="15 min"
+                            onPress={() => setExpiryMinutesText('15')}
+                        />
+                        <Button
+                            small
+                            text="1 hour"
+                            onPress={() => setExpiryMinutesText('60')}
+                        />
+                    </View>
+                    <TextInput
+                        placeholder="8"
+                        value={expiryMinutesText}
+                        onChangeText={setExpiryMinutesText}
+                        keyboardType="decimal-pad"
+                        accessibilityLabel="Challenge expiry in minutes"
+                    />
+                </View>
+
+                <View style={styles.mv2}>
+                    <Button
+                        text="Run all flows"
+                        onPress={runAllFlows}
+                    />
                 </View>
             </View>
         </ScrollView>
@@ -265,14 +313,6 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
         </FixedFooter>
     );
 
-    const AmountPicker = (
-        <AmountAndCurrencyPicker
-            amount={transaction.amount ?? 0}
-            currency={transaction.currency ?? CONST.CURRENCY.USD}
-            onSubmit={onAmountSubmit}
-        />
-    );
-
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
@@ -287,13 +327,32 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                 includePaddingTop={false}
             >
                 <HeaderWithBackButton
-                    title="Simulate pending 3DS transaction"
+                    title={headerTitle}
                     shouldShowBackButton
-                    onBackButtonPress={showAmountPicker ? () => setShowAmountPicker(false) : onClose}
+                    onBackButtonPress={handleBackPress}
                 />
-                {showAmountPicker ? AmountPicker : SimulateOptions}
 
-                {!showAmountPicker && Footer}
+                {currentView === 'amountPicker' && (
+                    <AmountAndCurrencyPicker
+                        amount={amount}
+                        currency={currency}
+                        onSubmit={onAmountSubmit}
+                    />
+                )}
+
+                {currentView === 'cardPicker' && (
+                    <SelectionList
+                        ListItem={RadioListItem}
+                        data={cardSelectionItems}
+                        onSelectRow={onCardSelect}
+                        shouldHighlightSelectedItem
+                        initiallyFocusedItemKey={effectiveCardID !== undefined ? String(effectiveCardID) : undefined}
+                    />
+                )}
+
+                {currentView === 'form' && FormView}
+
+                {currentView === 'form' && Footer}
             </ScreenWrapper>
         </Modal>
     );
