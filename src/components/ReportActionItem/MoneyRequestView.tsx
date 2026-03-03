@@ -354,6 +354,7 @@ function MoneyRequestView({
         canEditDistanceOrRate;
 
     const canEditDistanceRate =
+        !isOdometerDistanceRequest &&
         isEditable &&
         canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy) &&
         canEditDistanceOrRate;
