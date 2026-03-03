@@ -1,5 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
@@ -8,7 +8,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -42,7 +42,7 @@ import {
     setIsComingFromGlobalReimbursementsFlow,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
-import {filterInactiveCards} from '@libs/CardUtils';
+import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -97,7 +97,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const policyID = policy?.id;
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const isBankAccountVerified = !!cardSettings?.paymentBankAccountID;
+    const settings = getCardSettings(cardSettings);
+    const isBankAccountVerified = !!settings?.paymentBankAccountID;
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
@@ -146,6 +147,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_DESCRIPTION.getRoute(policyID));
     }, [policyID]);
+    const onPressClientID = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CLIENT_ID.getRoute(policyID));
+    }, [policyID]);
     const onPressShare = useCallback(() => {
         if (!policyID) {
             return;
@@ -165,7 +172,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const currencyReadOnly = readOnly || isBankAccountVerified;
     const isOwner = isPolicyOwner(policy, currentUserPersonalDetails.accountID);
     const shouldShowAddress = !readOnly || !!formattedAddress;
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const {isBetaEnabled} = usePermissions();
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
@@ -591,13 +599,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 if (!policyID) {
                                     return;
                                 }
-                                updateWorkspaceAvatar(policyID, file as File);
+                                updateWorkspaceAvatar(policyID, policy.avatarURL, file as File);
                             }}
                             onImageRemoved={() => {
-                                if (!policyID) {
+                                if (!policyID || !policy.avatarURL) {
                                     return;
                                 }
-                                deleteWorkspaceAvatar(policyID);
+                                deleteWorkspaceAvatar(policyID, policy.avatarURL, policy.originalFileName);
                             }}
                             editorMaskImage={expensifyIcons.ImageCropSquareMask}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.AVATAR}
@@ -648,6 +656,27 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressDescription}
                                     shouldRenderAsHTML
+                                />
+                            </OfflineWithFeedback>
+                        )}
+                        {!!account?.isApprovedAccountant && (
+                            <OfflineWithFeedback
+                                pendingAction={policy?.pendingFields?.clientID}
+                                errors={getLatestErrorField(policy ?? {}, 'clientID')}
+                                onClose={() => {
+                                    if (!policy?.id) {
+                                        return;
+                                    }
+                                    clearPolicyErrorField(policy.id, 'clientID');
+                                }}
+                            >
+                                <MenuItemWithTopDescription
+                                    title={policy?.clientID}
+                                    description={translate('workspace.common.clientID')}
+                                    shouldShowRightIcon={!readOnly}
+                                    interactive={!readOnly}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    onPress={onPressClientID}
                                 />
                             </OfflineWithFeedback>
                         )}

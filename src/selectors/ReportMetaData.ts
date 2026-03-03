@@ -3,4 +3,9 @@ import type {ReportMetadata} from '@src/types/onyx';
 
 const isActionLoadingSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.isActionLoading ?? false;
 
-export default isActionLoadingSelector;
+const hasOnceLoadedReportActionsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.hasOnceLoadedReportActions;
+
+const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
+    reportMetadata ? {pendingChatMembers: reportMetadata.pendingChatMembers} : undefined;
+
+export {isActionLoadingSelector, hasOnceLoadedReportActionsSelector, pendingChatMembersSelector};

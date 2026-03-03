@@ -9,6 +9,7 @@ import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollV
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import {useSession} from '@components/OnyxListItemProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -133,22 +134,23 @@ function BaseReportActionContextMenu({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const icons = useMemoizedLazyExpensifyIcons([
-        'Download',
-        'ThreeDots',
+        'Bell',
+        'Bug',
         'ChatBubbleReply',
         'ChatBubbleUnread',
-        'Mail',
-        'Pencil',
-        'Stopwatch',
-        'Bell',
-        'Copy',
-        'LinkCopy',
-        'Pin',
-        'Flag',
-        'Bug',
-        'Trashcan',
         'Checkmark',
         'Concierge',
+        'Copy',
+        'Download',
+        'Exit',
+        'Flag',
+        'LinkCopy',
+        'Mail',
+        'Pencil',
+        'Pin',
+        'Stopwatch',
+        'ThreeDots',
+        'Trashcan',
     ] as const);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
@@ -240,6 +242,8 @@ function BaseReportActionContextMenu({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
     const isMoneyRequest = useMemo(() => ReportUtilsIsMoneyRequest(childReport), [childReport]);
     const isTrackExpenseReport = ReportUtilsIsTrackExpenseReport(childReport);
@@ -401,6 +405,7 @@ function BaseReportActionContextMenu({
                             showDelegateNoAccessModal,
                             currentUserAccountID: currentUserPersonalDetails?.accountID,
                             currentUserPersonalDetails,
+                            encryptedAuthToken,
                         };
 
                         if ('renderContent' in contextAction) {
