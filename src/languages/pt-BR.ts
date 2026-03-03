@@ -49,8 +49,8 @@ import type {
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
     ReportArchiveReasonsClosedParams,
-    ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
+    ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ResolutionConstraintsParams,
     ShareParams,
@@ -1305,8 +1305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         dismissReceiptError: 'Dispensar erro',
         dismissReceiptErrorConfirmation: 'Atenção! Ignorar este erro removerá completamente o comprovante que você enviou. Tem certeza?',
-        waitingOnEnabledWallet: (submitterDisplayName: string) =>
-            `começou a acertar as contas. O pagamento está em espera até ${submitterDisplayName} ativar a carteira.`,
+        waitingOnEnabledWallet: (submitterDisplayName: string) => `começou a acertar as contas. O pagamento está em espera até ${submitterDisplayName} ativar a carteira.`,
         enableWallet: 'Ativar carteira',
         hold: 'Reter',
         unhold: 'Remover bloqueio',
@@ -2115,8 +2114,7 @@ const translations: TranslationDeepObject<typeof en> = {
         availableSpend: 'Limite restante',
         smartLimit: {
             name: 'Limite inteligente',
-            title: (formattedLimit) =>
-                `Você pode gastar até ${formattedLimit} neste cartão, e o limite será redefinido conforme suas despesas enviadas forem aprovadas.`,
+            title: (formattedLimit) => `Você pode gastar até ${formattedLimit} neste cartão, e o limite será redefinido conforme suas despesas enviadas forem aprovadas.`,
         },
         fixedLimit: {
             name: 'Limite fixo',
@@ -2124,8 +2122,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         monthlyLimit: {
             name: 'Limite mensal',
-            title: (formattedLimit) =>
-                `Você pode gastar até ${formattedLimit} neste cartão por mês. O limite será reiniciado no 1º dia de cada mês do calendário.`,
+            title: (formattedLimit) => `Você pode gastar até ${formattedLimit} neste cartão por mês. O limite será reiniciado no 1º dia de cada mês do calendário.`,
         },
         virtualCardNumber: 'Número do cartão virtual',
         travelCardCvv: 'CVV do cartão de viagem',
@@ -2589,8 +2586,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         mergeBlockScreen: {
             title: 'Não foi possível adicionar o e-mail de trabalho',
-            subtitle: (workEmail) =>
-                `Não foi possível adicionar ${workEmail}. Tente novamente mais tarde em Configurações ou converse com o Concierge para obter orientação.`,
+            subtitle: (workEmail) => `Não foi possível adicionar ${workEmail}. Tente novamente mais tarde em Configurações ou converse com o Concierge para obter orientação.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -6159,8 +6155,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 perActiveMember: 'por membro ativo por mês.',
                 perMember: 'por membro por mês.',
             },
-            note: (subscriptionLink) =>
-                `<muted-text>Faça upgrade para acessar este recurso ou <a href="${subscriptionLink}">saiba mais</a> sobre nossos planos e preços.</muted-text>`,
+            note: (subscriptionLink) => `<muted-text>Faça upgrade para acessar este recurso ou <a href="${subscriptionLink}">saiba mais</a> sobre nossos planos e preços.</muted-text>`,
             upgradeToUnlock: 'Desbloquear este recurso',
             completed: {
                 headline: `Você atualizou seu workspace!`,
