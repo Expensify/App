@@ -36,6 +36,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
+import markSubmitToDestinationVisibleEnd from '@libs/telemetry/markSubmitToDestinationVisibleEnd';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
@@ -73,6 +74,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+    const [pendingExpenseCreateDestination] = useOnyx(ONYXKEYS.NVP_PENDING_EXPENSE_CREATE_DESTINATION);
+    const hasEndedSubmitToDestinationRef = useRef(false);
     const parentReportAction = useParentReportAction(report);
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`, {allowStaleData: true});
     const prevReport = usePrevious(report);
@@ -389,6 +392,21 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         shouldShowAccessErrorPage,
     ]);
 
+    const handleMoneyRequestReportLayout = useCallback(() => {
+        if (
+            hasEndedSubmitToDestinationRef.current ||
+            !pendingExpenseCreateDestination ||
+            pendingExpenseCreateDestination.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.MONEY_REQUEST_RHP
+        ) {
+            return;
+        }
+        if (pendingExpenseCreateDestination.reportID && pendingExpenseCreateDestination.reportID !== reportIDFromRoute) {
+            return;
+        }
+        hasEndedSubmitToDestinationRef.current = true;
+        markSubmitToDestinationVisibleEnd(CONST.TELEMETRY.DESTINATION_TYPE.MONEY_REQUEST_RHP, reportIDFromRoute);
+    }, [pendingExpenseCreateDestination, reportIDFromRoute]);
+
     return (
         <WideRHPOverlayWrapper>
             <ActionListContext.Provider value={actionListValue}>
@@ -413,6 +431,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                     key={report?.reportID}
+                                    onLayout={handleMoneyRequestReportLayout}
                                     backToRoute={route.params.backTo}
                                 />
                                 <PortalHost name="suggestions" />

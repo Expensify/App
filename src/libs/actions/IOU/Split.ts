@@ -41,6 +41,7 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {setPendingExpenseCreateDestination} from '@libs/telemetry/markSubmitToDestinationVisibleEnd';
 import {
     buildOptimisticTransaction,
     getAmount,
@@ -1717,6 +1718,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
         return;
     }
+    setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.REPORT_CHAT, expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
     Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
 
     // After the modal is dismissed, remove the transaction thread report screen

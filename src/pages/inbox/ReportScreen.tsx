@@ -81,6 +81,7 @@ import {
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
+import markSubmitToDestinationVisibleEnd from '@libs/telemetry/markSubmitToDestinationVisibleEnd';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -174,8 +175,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [pendingExpenseCreateDestination] = useOnyx(ONYXKEYS.NVP_PENDING_EXPENSE_CREATE_DESTINATION);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const hasEndedSubmitToDestinationRef = useRef(false);
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -960,6 +963,23 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     useShowWideRHPVersion(shouldShowWideRHP);
 
+    const handleReportContentLayout = useCallback(() => {
+        if (
+            hasEndedSubmitToDestinationRef.current ||
+            !pendingExpenseCreateDestination ||
+            !reportIDFromRoute ||
+            (pendingExpenseCreateDestination.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.REPORT_CHAT &&
+                pendingExpenseCreateDestination.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.RHP_POP)
+        ) {
+            return;
+        }
+        if (pendingExpenseCreateDestination.reportID && pendingExpenseCreateDestination.reportID !== reportIDFromRoute) {
+            return;
+        }
+        hasEndedSubmitToDestinationRef.current = true;
+        markSubmitToDestinationVisibleEnd(pendingExpenseCreateDestination.destinationType, reportIDFromRoute);
+    }, [pendingExpenseCreateDestination, reportIDFromRoute]);
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
@@ -1017,6 +1037,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                     <View
                                         style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                         testID="report-actions-view-wrapper"
+                                        onLayout={handleReportContentLayout}
                                     >
                                         {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
                                         {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (

@@ -197,6 +197,7 @@ import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import markSubmitToDestinationVisibleEnd, {setPendingExpenseCreateDestination} from '@libs/telemetry/markSubmitToDestinationVisibleEnd';
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,
@@ -1075,11 +1076,13 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
             const hasMultipleTransactions = Object.values(allTransactions).filter((transaction) => transaction?.reportID === reportID).length > 0;
             // When a report is opened in the super wide RHP, we need to dismiss to the first RHP to show the same report with new expense.
             if (isReportOpenInSuperWideRHP(rootState)) {
+                setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.RHP_POP, reportID);
                 Navigation.dismissToPreviousRHP();
                 return;
             }
             // When a report with one expense is opened in the wide RHP and the user adds another expense, RHP should be dismissed and ROUTES.SEARCH_MONEY_REQUEST_REPORT should be displayed.
             if (hasMultipleTransactions && reportID) {
+                setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.MONEY_REQUEST_RHP, reportID);
                 // On small screens, dismiss all modals and then navigate to the right report.
                 // On large screens, dismiss to the previous RHP first, then replace the current route with the new report.
                 const isNarrowLayout = getIsNarrowLayout();
@@ -1094,14 +1097,21 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
                 });
                 return;
             }
+            setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.RHP_POP, reportID);
             Navigation.pop(rhpKey);
             return;
         }
     }
     if (isSearchTopmostFullScreenRoute() || !reportID) {
+        setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.MODAL_DISMISS);
         Navigation.dismissModal();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- we need to wait for the modal to be dismissed before marking the span
+        InteractionManager.runAfterInteractions(() => {
+            markSubmitToDestinationVisibleEnd(CONST.TELEMETRY.DESTINATION_TYPE.MODAL_DISMISS);
+        });
         return;
     }
+    setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.REPORT_CHAT, reportID);
     Navigation.dismissModalWithReport({reportID});
 }
 
@@ -1146,6 +1156,7 @@ function handleNavigateAfterExpenseCreate({
         return;
     }
 
+    setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.SEARCH);
     startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE, {
         name: 'navigate-after-expense-create',
         op: CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE,

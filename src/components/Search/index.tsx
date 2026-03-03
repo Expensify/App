@@ -66,6 +66,7 @@ import {
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markNavigateAfterExpenseCreateEnd from '@libs/telemetry/markNavigateAfterExpenseCreateEnd';
+import markSubmitToDestinationVisibleEnd, {cancelSubmitToDestinationVisibleSpan} from '@libs/telemetry/markSubmitToDestinationVisibleEnd';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -1162,6 +1163,7 @@ function Search({
         hasHadFirstLayout.current = true;
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
         markNavigateAfterExpenseCreateEnd();
+        markSubmitToDestinationVisibleEnd(CONST.TELEMETRY.DESTINATION_TYPE.SEARCH);
         // Reset the ref after the span is ended so future render-time cancelSpan calls are no longer guarded.
         spanExistedOnMount.current = false;
         handleSelectionListScroll(sortedData, searchListRef.current);
@@ -1181,6 +1183,7 @@ function Search({
     const cancelNavigationSpans = useCallback(() => {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        cancelSubmitToDestinationVisibleSpan();
         spanExistedOnMount.current = false;
     }, []);
 
@@ -1203,6 +1206,7 @@ function Search({
             }
             endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState});
             markNavigateAfterExpenseCreateEnd();
+            markSubmitToDestinationVisibleEnd(CONST.TELEMETRY.DESTINATION_TYPE.SEARCH);
             spanExistedOnMount.current = false;
         }, [shouldShowLoadingState]),
     );
@@ -1280,6 +1284,7 @@ function Search({
 
     if (shouldShowChartView && isGroupedItemArray(sortedData)) {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        cancelSubmitToDestinationVisibleSpan();
         let chartTitle = translate(`search.chartTitles.${validGroupBy}`);
         if (savedSearch) {
             if (savedSearch.name !== savedSearch.query) {

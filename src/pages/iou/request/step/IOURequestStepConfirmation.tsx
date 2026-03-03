@@ -1049,16 +1049,24 @@ function IOURequestStepConfirmation({
                 hasReceiptFiles,
             });
 
+            const submitSpanAttributes = {
+                [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
+                [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: hasReceiptFiles,
+                [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreate,
+                [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
+                [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
+            };
+
             startSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE, {
                 name: 'submit-expense',
                 op: CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE,
-                attributes: {
-                    [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
-                    [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: hasReceiptFiles,
-                    [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreate,
-                    [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
-                    [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
-                },
+                attributes: submitSpanAttributes,
+            });
+
+            startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
+                name: 'submit-to-destination-visible',
+                op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
+                attributes: submitSpanAttributes,
             });
 
             // IMPORTANT: Every branch below must call markSubmitExpenseEnd() after dispatching the expense action.
