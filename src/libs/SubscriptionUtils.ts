@@ -199,8 +199,9 @@ function shouldShowDiscountBanner(
     firstDayFreeTrial: string | undefined,
     lastDayFreeTrial: string | undefined,
     userBillingFundID: number | undefined,
+    policies: OnyxCollection<Policy>,
 ): boolean {
-    if (!getOwnedPaidPolicies(allPolicies, currentUserAccountID)?.length) {
+    if (!getOwnedPaidPolicies(policies, currentUserAccountID)?.length) {
         return false;
     }
 
