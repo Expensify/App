@@ -787,7 +787,17 @@ function ReportActionsList({
         );
     }, [canShowHeader, retryLoadNewerChatsError]);
 
-    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const isWaitingForInitialLoad = !isOffline && !reportMetadata?.hasOnceLoadedReportActions;
+    const isOfflineWithIncompleteData = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const shouldShowSkeleton = isWaitingForInitialLoad || isOfflineWithIncompleteData;
+
+    // While report actions are loading online, show only the last action as a fallback
+    // since it's available before the rest finish loading. This avoids the empty space issue
+    // and prevents the UI jump where old messages get inserted between preloaded ones.
+    const reportActionsToRender = useMemo(
+        () => (isWaitingForInitialLoad && lastAction ? [lastAction] : sortedVisibleReportActions),
+        [isWaitingForInitialLoad, lastAction, sortedVisibleReportActions],
+    );
 
     const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {
@@ -842,7 +852,7 @@ function ReportActionsList({
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={sortedVisibleReportActions}
+                    data={reportActionsToRender}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
