@@ -125,13 +125,7 @@ function MoneyRequestReportPreview({
     const isFocused = useIsFocused();
     // We only want to highlight the new expenses if the screen is focused.
     const newTransactionIDs = isFocused ? new Set(newTransactions.map((transaction) => transaction.transactionID)) : undefined;
-    const transactionActionsByID = useMemo(() => {
-        const actionsByID = new Map<string, ReturnType<typeof getIOUActionForReportID>>();
-        transactions.forEach((transaction) => {
-            actionsByID.set(transaction.transactionID, getIOUActionForReportID(transaction.reportID, transaction.transactionID));
-        });
-        return actionsByID;
-    }, [transactions, hasOnceLoadedReportActions]);
+
     const transactionPreviewContainerStyles = useMemo(
         () => [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle],
         [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle],
@@ -140,7 +134,7 @@ function MoneyRequestReportPreview({
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
             chatReportID={chatReportID}
-            action={transactionActionsByID.get(item.transactionID)}
+            action={getIOUActionForReportID(item.reportID, item.transactionID)}
             contextAction={action}
             reportID={item.reportID}
             isBillSplit={isSplitBillAction}
