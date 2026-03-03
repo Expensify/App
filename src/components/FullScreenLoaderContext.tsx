@@ -1,5 +1,6 @@
 import React, {createContext, useContext, useState} from 'react';
 import type {ReactNode} from 'react';
+import {StyleSheet, View} from 'react-native';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 
 type FullScreenLoaderStateContextType = {
@@ -50,7 +51,14 @@ function FullScreenLoaderContextProvider({children}: FullScreenLoaderContextProv
         <FullScreenLoaderActionsContext.Provider value={actionsContextValue}>
             <FullScreenLoaderStateContext.Provider value={stateContextValue}>
                 {children}
-                {isLoaderVisible && <FullScreenLoadingIndicator />}
+                {isLoaderVisible && (
+                    <View
+                        pointerEvents="none"
+                        style={StyleSheet.absoluteFillObject}
+                    >
+                        <FullScreenLoadingIndicator />
+                    </View>
+                )}
             </FullScreenLoaderStateContext.Provider>
         </FullScreenLoaderActionsContext.Provider>
     );
