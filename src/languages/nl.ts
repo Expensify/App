@@ -34,7 +34,6 @@ import type {
     EditActionParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
-    ImportPolicyCustomUnitRatesParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
     InvalidValueParams,
@@ -49,20 +48,18 @@ import type {
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
-    ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
+    ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
+    ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ResolutionConstraintsParams,
     ShareParams,
-    SizeExceededParams,
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyAutoHarvestingParams,
     UpdatedPolicyBudgetNotificationParams,
-    UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCustomTaxNameParams,
@@ -73,58 +70,33 @@ import type {
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementChoiceParams,
-    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
-    UpdatedPolicyTagListParams,
     UpdatedPolicyTagListRequiredParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
     UpdatedPolicyTaxParams,
-    UpdatedPolicyTimeEnabledParams,
     UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
-    UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
-    VacationDelegateParams,
-    ViolationsCashExpenseWithNoReceiptParams,
-    ViolationsConversionSurchargeParams,
-    ViolationsCustomRulesParams,
-    ViolationsInvoiceMarkupParams,
-    ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
-    ViolationsOverCategoryLimitParams,
-    ViolationsOverLimitParams,
-    ViolationsPerDayLimitParams,
     ViolationsProhibitedExpenseParams,
     ViolationsReceiptRequiredParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
-    WalletAgreementParams,
-    WalletProgramParams,
     WeSentYouMagicSignInLinkParams,
-    WorkEmailMergingBlockedParams,
-    WorkEmailResendCodeParams,
-    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
-    WorkspaceMembersCountParams,
-    WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
-    WorkspaceRouteParams,
-    WorkspaceShareNoteParams,
-    WorkspacesListRouteParams,
-    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
-    YourPlanPriceValueParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -581,7 +553,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseDocument: 'Bestand kiezen',
         attachmentTooLarge: 'Bijlage is te groot',
         sizeExceeded: 'Bijlage is groter dan de limiet van 24 MB',
-        sizeExceededWithLimit: ({maxUploadSizeInMB}: SizeExceededParams) => `De bijlage is groter dan de limiet van ${maxUploadSizeInMB} MB`,
+        sizeExceededWithLimit: (maxUploadSizeInMB) => `De bijlage is groter dan de limiet van ${maxUploadSizeInMB} MB`,
         attachmentTooSmall: 'Bijlage is te klein',
         sizeNotMet: 'Bijlagegrootte moet groter zijn dan 240 bytes',
         wrongFileType: 'Ongeldig bestandstype',
@@ -592,9 +564,9 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentImageTooLarge: 'Deze afbeelding is te groot om een voorbeeld te tonen vóór het uploaden.',
         imageDimensionsTooLarge: 'De afmetingen van de afbeelding zijn te groot om te verwerken. Gebruik een kleinere afbeelding.',
         tooManyFiles: (fileLimit: number) => `Je kunt maximaal ${fileLimit} bestanden tegelijk uploaden.`,
-        sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Bestanden zijn groter dan ${maxUploadSizeInMB} MB. Probeer het opnieuw.`,
+        sizeExceededWithValue: (maxUploadSizeInMB) => `Bestanden zijn groter dan ${maxUploadSizeInMB} MB. Probeer het opnieuw.`,
         someFilesCantBeUploaded: 'Sommige bestanden kunnen niet worden geüpload',
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Bestanden moeten kleiner zijn dan ${maxUploadSizeInMB} MB. Grotere bestanden worden niet geüpload.`,
+        sizeLimitExceeded: (maxUploadSizeInMB) => `Bestanden moeten kleiner zijn dan ${maxUploadSizeInMB} MB. Grotere bestanden worden niet geüpload.`,
         maxFileLimitExceeded: 'Je kunt tot 30 bonnetjes tegelijk uploaden. Extra bonnetjes worden niet geüpload.',
         unsupportedFileType: (fileType: string) => `${fileType}-bestanden worden niet ondersteund. Alleen ondersteunde bestandstypen worden geüpload.`,
         learnMoreAboutSupportedFiles: 'Meer informatie over ondersteunde indelingen.',
@@ -879,7 +851,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'Deze chatruimte is gearchiveerd.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `Deze chat is niet meer actief omdat ${displayName} de account heeft gesloten.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) => `Deze chat is niet meer actief omdat ${displayName} de account heeft gesloten.`,
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: ReportArchiveReasonsMergedParams) =>
             `Deze chat is niet langer actief omdat ${oldDisplayName} zijn of haar account heeft samengevoegd met ${displayName}.`,
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: ReportArchiveReasonsRemovedFromPolicyParams) =>
@@ -1464,7 +1436,7 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: 'Je kunt dagvergoedingdeclaraties niet naar rapporten in andere werkruimten verplaatsen, omdat de dagvergoedingsbedragen per werkruimte kunnen verschillen.',
         changeApprover: {
             title: 'Goedkeurder wijzigen',
-            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+            header: (workflowSettingLink) =>
                 `Kies een optie om de fiatteur voor dit rapport te wijzigen. (Werk je <a href="${workflowSettingLink}">werkruimteninstellingen</a> bij om dit permanent voor alle rapporten te wijzigen.)`,
             changedApproverMessage: (managerID: number) => `heeft de goedkeurder gewijzigd naar <mention-user accountID="${managerID}"/>`,
             actions: {
@@ -1554,10 +1526,10 @@ const translations: TranslationDeepObject<typeof en> = {
         viewPhoto: 'Foto bekijken',
         imageUploadFailed: 'Uploaden van afbeelding is mislukt',
         deleteWorkspaceError: 'Sorry, er is een onverwacht probleem opgetreden bij het verwijderen van je workspace-avatar',
-        sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `De geselecteerde afbeelding overschrijdt de maximale uploadgrootte van ${maxUploadSizeInMB} MB.`,
+        sizeExceeded: (maxUploadSizeInMB) => `De geselecteerde afbeelding overschrijdt de maximale uploadgrootte van ${maxUploadSizeInMB} MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `Upload een afbeelding die groter is dan ${minHeightInPx}x${minWidthInPx} pixels en kleiner dan ${maxHeightInPx}x${maxWidthInPx} pixels.`,
-        notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `Profielfoto moet een van de volgende typen zijn: ${allowedExtensions.join(', ')}.`,
+        notAllowedExtension: (allowedExtensions) => `Profielfoto moet een van de volgende typen zijn: ${allowedExtensions.join(', ')}.`,
     },
     avatarPage: {
         title: 'Profielfoto bewerken',
@@ -2148,16 +2120,16 @@ const translations: TranslationDeepObject<typeof en> = {
         availableSpend: 'Resterende limiet',
         smartLimit: {
             name: 'Slimme limiet',
-            title: ({formattedLimit}: ViolationsOverLimitParams) =>
+            title: (formattedLimit) =>
                 `Je kunt tot ${formattedLimit} uitgeven met deze kaart, en de limiet wordt opnieuw ingesteld zodra je ingediende uitgaven zijn goedgekeurd.`,
         },
         fixedLimit: {
             name: 'Vast limiet',
-            title: ({formattedLimit}: ViolationsOverLimitParams) => `Je kunt tot ${formattedLimit} uitgeven met deze kaart, daarna wordt hij gedeactiveerd.`,
+            title: (formattedLimit) => `Je kunt tot ${formattedLimit} uitgeven met deze kaart, daarna wordt hij gedeactiveerd.`,
         },
         monthlyLimit: {
             name: 'Maandlimiet',
-            title: ({formattedLimit}: ViolationsOverLimitParams) =>
+            title: (formattedLimit) =>
                 `Je kunt met deze kaart tot ${formattedLimit} per maand uitgeven. De limiet wordt op de 1e dag van elke kalendermaand opnieuw ingesteld.`,
         },
         virtualCardNumber: 'Nummer van virtuele kaart',
@@ -2617,7 +2589,7 @@ ${amount} voor ${merchant} - ${date}`,
         },
         workEmailValidation: {
             title: 'Verifieer je werk-e-mailadres',
-            magicCodeSent: ({workEmail}: WorkEmailResendCodeParams) => `Voer de magische code in die is verzonden naar ${workEmail}. Deze zou binnen een of twee minuten moeten aankomen.`,
+            magicCodeSent: (workEmail) => `Voer de magische code in die is verzonden naar ${workEmail}. Deze zou binnen een of twee minuten moeten aankomen.`,
         },
         workEmailValidationError: {
             publicEmail: 'Voer een geldig zakelijk e-mailadres in van een privédomein, bijv. mitch@company.com',
@@ -2625,7 +2597,7 @@ ${amount} voor ${merchant} - ${date}`,
         },
         mergeBlockScreen: {
             title: 'Werkmail kon niet worden toegevoegd',
-            subtitle: ({workEmail}: WorkEmailMergingBlockedParams) => `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor hulp.`,
+            subtitle: (workEmail) => `We konden ${workEmail} niet toevoegen. Probeer het later opnieuw in Instellingen of chat met Concierge voor hulp.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -3062,9 +3034,9 @@ ${
         setVacationDelegate: `Stel een vervangende fiatteur in om rapporten namens jou goed te keuren terwijl je afwezig bent.`,
         cannotSetVacationDelegate: `Je kunt geen vakantiedelegaat instellen omdat je momenteel de delegaat bent voor de volgende leden:`,
         vacationDelegateError: 'Er is een fout opgetreden bij het bijwerken van je vervanger tijdens vakantie.',
-        asVacationDelegate: ({nameOrEmail}: VacationDelegateParams) => `als vakantiewaarnemer van ${nameOrEmail}`,
+        asVacationDelegate: (nameOrEmail) => `als vakantiewaarnemer van ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `aan ${submittedToName} als vakantieplaatsvervanger voor ${vacationDelegateName}`,
-        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+        vacationDelegateWarning: (nameOrEmail) =>
             `Je wijst ${nameOrEmail} aan als jouw vervang(st)er tijdens afwezigheid. Diegene zit nog niet in al je werkruimtes. Als je doorgaat, wordt er een e-mail naar alle beheerders van je werkruimtes gestuurd om diegene toe te voegen.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
@@ -3104,7 +3076,7 @@ ${
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `Om een bankrekening te koppelen, <a href="${contactMethodRoute}">voeg eerst een e-mailadres toe als je primaire login</a> en probeer het daarna opnieuw. Je kunt je telefoonnummer toevoegen als secundaire login.`,
         hasBeenThrottledError: 'Er is een fout opgetreden bij het toevoegen van je bankrekening. Wacht een paar minuten en probeer het opnieuw.',
-        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+        hasCurrencyError: (workspaceRoute) =>
             `Oeps! Het lijkt erop dat de valuta van je workspace is ingesteld op een andere valuta dan USD. Ga naar <a href="${workspaceRoute}">de instellingen van je workspace</a>, stel deze in op USD en probeer het opnieuw.`,
         bbaAdded: 'Zakelijke bankrekening toegevoegd!',
         bbaAddedDescription: 'Het is klaar om voor betalingen te worden gebruikt.',
@@ -3230,7 +3202,7 @@ ${
         haveReadAndAgreePlain: 'Ik heb gelezen en ga ermee akkoord elektronische bekendmakingen te ontvangen.',
         haveReadAndAgree: `Ik heb gelezen en ga ermee akkoord om <a href="${CONST.ELECTRONIC_DISCLOSURES_URL}">elektronische openbaarmakingen</a> te ontvangen.`,
         agreeToThePlain: 'Ik ga akkoord met het privacy- en walletcontract.',
-        agreeToThe: ({walletAgreementUrl}: WalletAgreementParams) =>
+        agreeToThe: (walletAgreementUrl) =>
             `Ik ga akkoord met het <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">privacybeleid</a> en de <a href="${walletAgreementUrl}">walletovereenkomst</a>.`,
         enablePayments: 'Betalingen inschakelen',
         monthlyFee: 'Maandelijkse vergoeding',
@@ -3242,7 +3214,7 @@ ${
         checkTheBoxes: 'Vink de onderstaande vakjes aan.',
         agreeToTerms: 'Ga akkoord met de voorwaarden en je bent klaar om te beginnen!',
         shortTermsForm: {
-            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `De Expensify Wallet wordt uitgegeven door ${walletProgram}.`,
+            expensifyPaymentsAccount: (walletProgram) => `De Expensify Wallet wordt uitgegeven door ${walletProgram}.`,
             perPurchase: 'Per aankoop',
             atmWithdrawal: 'Geldopname bij geldautomaat',
             cashReload: 'Cash-opwaardering',
@@ -3891,7 +3863,7 @@ ${
             appliedOnExport: 'Niet geïmporteerd in Expensify, toegepast bij export',
             shareNote: {
                 header: 'Deel je werkruimte met andere leden',
-                content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
+                content: (adminsRoomLink) =>
                     `Deel deze QR-code of kopieer de link hieronder om het leden makkelijk te maken toegang tot je werkruimte aan te vragen. Alle verzoeken om lid te worden van de werkruimte verschijnen in de <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a>-ruimte ter beoordeling.`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `Verbind met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -5559,7 +5531,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             addedWithPrimary: 'Sommige leden zijn toegevoegd met hun primaire login.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Toegevoegd door secundair login ${secondaryLogin}.`,
-            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Totaal aantal werkruimteleden: ${count}`,
+            workspaceMembersCount: (count) => `Totaal aantal werkruimteleden: ${count}`,
             importMembers: 'Leden importeren',
             removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `Als je ${approver} uit deze workspace verwijdert, vervangen we diegene in de goedkeuringsworkflow door ${workspaceOwner}, de eigenaar van de workspace.`,
@@ -6188,7 +6160,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 perActiveMember: 'per actieve deelnemer per maand.',
                 perMember: 'per lid per maand.',
             },
-            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            note: (subscriptionLink) =>
                 `<muted-text>Upgrade om toegang te krijgen tot deze functie, of <a href="${subscriptionLink}">lees meer</a> over onze abonnementen en prijzen.</muted-text>`,
             upgradeToUnlock: 'Deze functie ontgrendelen',
             completed: {
@@ -6254,7 +6226,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         restrictedAction: {
             restricted: 'Beperkt',
             actionsAreCurrentlyRestricted: (workspaceName: string) => `Acties in de ${workspaceName}-werkruimte zijn momenteel beperkt`,
-            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}: WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams) =>
+            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: (workspaceOwnerName) =>
                 `De eigenaar van de workspace, ${workspaceOwnerName}, moet de betaalkaart in het dossier toevoegen of bijwerken om nieuwe workspace-activiteit te ontgrendelen.`,
             youWillNeedToAddOrUpdatePaymentCard: 'Je moet de opgeslagen betaalkaart toevoegen of bijwerken om nieuwe werkruimte-activiteiten te ontgrendelen.',
             addPaymentCardToUnlock: 'Voeg een betaalkaart toe om te ontgrendelen!',
@@ -6604,7 +6576,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         },
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
             `heeft de ${customUnitName} ${updatedField} gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
-        updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'ingeschakeld' : 'uitgeschakeld'} belastingregistratie op afstandstarieven`,
+        updateCustomUnitTaxEnabled: (newValue) => `${newValue ? 'ingeschakeld' : 'uitgeschakeld'} belastingregistratie op afstandstarieven`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `heeft een nieuw ${customUnitName}-tarief "${rateName}" toegevoegd`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `heeft het tarief van de ${customUnitName} ${updatedField} "${customUnitRateName}" gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
@@ -6780,7 +6752,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             previousReimburser
                 ? `heeft de gemachtigde betaler gewijzigd in „${newReimburser}” (voorheen „${previousReimburser}”)`
                 : `heeft de gemachtigde betaler gewijzigd naar ‘${newReimburser}’`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} terugbetalingen`,
+        updateReimbursementEnabled: (enabled) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} terugbetalingen`,
         updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `de aangepaste belastingnaam gewijzigd in "${newName}" (voorheen "${oldName}")`,
         updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
             `heeft het standaardbelastingtarief van de werkruimtevaluta gewijzigd in "${newName}" (voorheen "${oldName}")`,
@@ -6819,15 +6791,15 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         setMaxExpenseAge: (newValue: string) => `stel maximale leeftijd uitgave in op "${newValue}" dagen`,
         changedMaxExpenseAge: (oldValue: string, newValue: string) => `maximale uitgaafleeftijd gewijzigd naar "${newValue}" dagen (voorheen "${oldValue}")`,
         removedMaxExpenseAge: (oldValue: string) => `maximale onkostendatum verwijderd (voorheen "${oldValue}" dagen)`,
-        updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `${count} categorieën bijgewerkt`,
-        updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `tags op de lijst "${tagListName}" bijgewerkt`,
+        updateCategories: (count) => `${count} categorieën bijgewerkt`,
+        updateTagList: (tagListName) => `tags op de lijst "${tagListName}" bijgewerkt`,
         updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
             `heeft taglijst "${tagListsName}" gewijzigd naar ${isRequired ? 'vereist' : 'niet vereist'}`,
         importTags: 'geïmporteerde labels uit een spreadsheet',
         deletedAllTags: 'alle tags verwijderd',
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
             `heeft de standaardcategorie voor ${customUnitName} gewijzigd in „${newValue}” ${oldValue ? `(eerder "${oldValue}")` : ''}`,
-        importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `geïmporteerde tarieven voor aangepaste eenheid "${customUnitName}"`,
+        importCustomUnitRates: (customUnitName) => `geïmporteerde tarieven voor aangepaste eenheid "${customUnitName}"`,
         updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
             `heeft "${customUnitName}" tarief "${customUnitRateName}" subtarief "${customUnitSubRateName}" ${updatedField} gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
@@ -6901,7 +6873,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             }
             return `heeft budget verwijderd uit de ${entityType} "${entityName}"`;
         },
-        updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
+        updatedTimeEnabled: (enabled) => {
             return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} tijdregistratie`;
         },
         updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
@@ -6916,7 +6888,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             `heeft aangepaste rapportnaamformule gewijzigd in "${newDefaultTitle}" (voorheen "${oldDefaultTitle}")`,
         updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) =>
             `heeft het eigendom van ${policyName} overgenomen van ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} gepland indienen`,
+        updatedAutoHarvesting: (enabled) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} gepland indienen`,
         updatedIndividualBudgetNotification: ({
             budgetAmount,
             budgetFrequency,
@@ -7652,15 +7624,15 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         allTagLevelsRequired: 'Alle tags verplicht',
         autoReportedRejectedExpense: 'Deze uitgave is afgewezen.',
         billableExpense: 'Factureerbaar niet langer geldig',
-        cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Bon vereist${formattedLimit ? `boven ${formattedLimit}` : ''}`,
+        cashExpenseWithNoReceipt: (formattedLimit?: string) => `Bon vereist${formattedLimit ? `boven ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Categorie niet meer geldig',
-        conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `${surcharge}% omrekeningsopslag toegepast`,
+        conversionSurcharge: (surcharge) => `${surcharge}% omrekeningsopslag toegepast`,
         customUnitOutOfPolicy: 'Tarief niet geldig voor deze werkruimte',
         duplicatedTransaction: 'Mogelijke duplicaat',
         fieldRequired: 'Rapportvelden zijn verplicht',
         futureDate: 'Toekomstige datum niet toegestaan',
-        invoiceMarkup: ({invoiceMarkup}: ViolationsInvoiceMarkupParams) => `Met ${invoiceMarkup}% verhoogd`,
-        maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Datum ouder dan ${maxAge} dagen`,
+        invoiceMarkup: (invoiceMarkup) => `Met ${invoiceMarkup}% verhoogd`,
+        maxAge: (maxAge) => `Datum ouder dan ${maxAge} dagen`,
         missingCategory: 'Ontbrekende categorie',
         missingComment: 'Beschrijving vereist voor geselecteerde categorie',
         missingAttendees: 'Meerdere deelnemers vereist voor deze categorie',
@@ -7680,12 +7652,12 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         },
         modifiedDate: 'Datum wijkt af van gescande bon',
         nonExpensiworksExpense: 'Niet-Expensiworks-uitgave',
-        overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Kosten overschrijden de automatische goedkeuringslimiet van ${formattedLimit}`,
-        overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Bedrag boven de categorielimiet van ${formattedLimit} per persoon`,
-        overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven de limiet van ${formattedLimit} per persoon`,
-        overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven limiet van ${formattedLimit} per reis`,
-        overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven de limiet van ${formattedLimit} per persoon`,
-        perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Bedrag boven de dagelijkse ${formattedLimit}/persoon-categorielimiet`,
+        overAutoApprovalLimit: (formattedLimit) => `Kosten overschrijden de automatische goedkeuringslimiet van ${formattedLimit}`,
+        overCategoryLimit: (formattedLimit) => `Bedrag boven de categorielimiet van ${formattedLimit} per persoon`,
+        overLimit: (formattedLimit) => `Bedrag boven de limiet van ${formattedLimit} per persoon`,
+        overTripLimit: (formattedLimit) => `Bedrag boven limiet van ${formattedLimit} per reis`,
+        overLimitAttendee: (formattedLimit) => `Bedrag boven de limiet van ${formattedLimit} per persoon`,
+        perDayLimit: (formattedLimit) => `Bedrag boven de dagelijkse ${formattedLimit}/persoon-categorielimiet`,
         receiptNotSmartScanned: 'Ontvangst- en onkostendetails handmatig toegevoegd.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             if (formattedLimit && category) {
@@ -7699,7 +7671,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             }
             return 'Bon vereist';
         },
-        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Gespecificeerde bon vereist${formattedLimit ? `boven ${formattedLimit}` : ''}`,
+        itemizedReceiptRequired: (formattedLimit?: string) => `Gespecificeerde bon vereist${formattedLimit ? `boven ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = 'Verboden uitgave:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7729,7 +7701,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             }
             return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
-        customRules: ({message}: ViolationsCustomRulesParams) => message,
+        customRules: (message) => message,
         reviewRequired: 'Beoordeling vereist',
         rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
@@ -7950,9 +7922,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             title: 'Uw abonnement',
             exploreAllPlans: 'Bekijk alle abonnementen',
             customPricing: 'Aangepaste prijsstelling',
-            asLowAs: ({price}: YourPlanPriceValueParams) => `al vanaf ${price} per actieve deelnemer/maand`,
-            pricePerMemberMonth: ({price}: YourPlanPriceValueParams) => `${price} per lid/maand`,
-            pricePerMemberPerMonth: ({price}: YourPlanPriceValueParams) => `${price} per lid per maand`,
+            asLowAs: (price) => `al vanaf ${price} per actieve deelnemer/maand`,
+            pricePerMemberMonth: (price) => `${price} per lid/maand`,
+            pricePerMemberPerMonth: (price) => `${price} per lid per maand`,
             perMemberMonth: 'per lid/maand',
             collect: {
                 title: 'Incasseren',
@@ -8069,7 +8041,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 title: 'Abonnement geannuleerd',
                 subtitle: 'Je jaarlijkse abonnement is opgezegd.',
                 info: 'Als je je werkruimte(s) op basis van betalen-per-gebruik wilt blijven gebruiken, ben je helemaal klaar.',
-                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                preventFutureActivity: (workspacesListRoute) =>
                     `Als je toekomstige activiteit en kosten wilt voorkomen, moet je je <a href="${workspacesListRoute}">werkruimte(s) verwijderen</a>. Let op: wanneer je je werkruimte(s) verwijdert, worden eventuele openstaande activiteiten die in de huidige kalendermaand hebben plaatsgevonden alsnog in rekening gebracht.`,
             },
             requestSubmitted: {

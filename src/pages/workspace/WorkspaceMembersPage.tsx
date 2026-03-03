@@ -539,7 +539,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const getHeaderContent = () => (
         <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
             <Text style={[styles.pl5, styles.mb5, styles.mt3, styles.textSupporting, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
-                {translate('workspace.people.workspaceMembersCount', {count: memberCount})}
+                {translate('workspace.people.workspaceMembersCount', memberCount)}
             </Text>
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow

@@ -77,7 +77,7 @@ function UploadFile({
 
         if (totalFilesSizeLimit) {
             if (totalSize > totalFilesSizeLimit) {
-                setError(translate('attachmentPicker.sizeExceededWithValue', {maxUploadSizeInMB: totalFilesSizeLimit / (1024 * 1024)}));
+                setError(translate('attachmentPicker.sizeExceededWithValue', totalFilesSizeLimit / (1024 * 1024)));
                 return;
             }
         }

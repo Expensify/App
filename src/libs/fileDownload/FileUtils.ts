@@ -718,17 +718,13 @@ const getFileValidationErrorText = (
             return {
                 title: translate('attachmentPicker.attachmentTooLarge'),
                 reason: isValidatingReceipt
-                    ? translate('attachmentPicker.sizeExceededWithLimit', {
-                          maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / 1024 / 1024,
-                      })
+                    ? translate('attachmentPicker.sizeExceededWithLimit', additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / 1024 / 1024)
                     : translate('attachmentPicker.sizeExceeded'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE:
             return {
                 title: translate('attachmentPicker.someFilesCantBeUploaded'),
-                reason: translate('attachmentPicker.sizeLimitExceeded', {
-                    maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? maxSize / 1024 / 1024,
-                }),
+                reason: translate('attachmentPicker.sizeLimitExceeded', additionalData.maxUploadSizeInMB ?? maxSize / 1024 / 1024),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
             return {
@@ -773,7 +769,7 @@ const getConfirmModalPrompt = (translate: LocalizedTranslate, attachmentInvalidR
         return '';
     }
     if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
-        return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+        return translate(attachmentInvalidReason, CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024));
     }
     return translate(attachmentInvalidReason);
 };

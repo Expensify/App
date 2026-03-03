@@ -518,7 +518,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     } else if (throttledDate) {
         errorText = <Text>{translate('bankAccount.hasBeenThrottledError')}</Text>;
     } else if (hasUnsupportedCurrency) {
-        errorText = <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceRoute})} />;
+        errorText = <RenderHTML html={translate('bankAccount.hasCurrencyError', workspaceRoute)} />;
     }
 
     if (errorText) {

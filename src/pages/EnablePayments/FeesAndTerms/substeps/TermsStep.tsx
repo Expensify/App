@@ -26,7 +26,7 @@ function AgreeToTheLabel() {
             ? CONST.OLD_DOT_PUBLIC_URLS.BANCORP_WALLET_AGREEMENT_URL
             : CONST.OLD_DOT_PUBLIC_URLS.WALLET_AGREEMENT_URL;
 
-    return <RenderHTML html={`${translate('termsStep.agreeToThe', {walletAgreementUrl})}`} />;
+    return <RenderHTML html={`${translate('termsStep.agreeToThe', walletAgreementUrl)}`} />;
 }
 
 function TermsStep({onNext}: SubStepProps) {

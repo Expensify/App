@@ -34,7 +34,6 @@ import type {
     EditActionParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
-    ImportPolicyCustomUnitRatesParams,
     IntacctMappingTitleParams,
     InvalidPropertyParams,
     InvalidValueParams,
@@ -49,20 +48,18 @@ import type {
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
-    ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
+    ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
+    ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ResolutionConstraintsParams,
     ShareParams,
-    SizeExceededParams,
     StepCounterParams,
     SyncStageNameConnectionsParams,
     UnshareParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyAutoHarvestingParams,
     UpdatedPolicyBudgetNotificationParams,
-    UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCustomTaxNameParams,
@@ -73,58 +70,33 @@ import type {
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementChoiceParams,
-    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
-    UpdatedPolicyTagListParams,
     UpdatedPolicyTagListRequiredParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
     UpdatedPolicyTaxParams,
-    UpdatedPolicyTimeEnabledParams,
     UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
-    UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
     UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
-    VacationDelegateParams,
-    ViolationsCashExpenseWithNoReceiptParams,
-    ViolationsConversionSurchargeParams,
-    ViolationsCustomRulesParams,
-    ViolationsInvoiceMarkupParams,
-    ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
-    ViolationsOverCategoryLimitParams,
-    ViolationsOverLimitParams,
-    ViolationsPerDayLimitParams,
     ViolationsProhibitedExpenseParams,
     ViolationsReceiptRequiredParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
-    WalletAgreementParams,
-    WalletProgramParams,
     WeSentYouMagicSignInLinkParams,
-    WorkEmailMergingBlockedParams,
-    WorkEmailResendCodeParams,
-    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
-    WorkspaceMembersCountParams,
-    WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
-    WorkspaceRouteParams,
-    WorkspaceShareNoteParams,
-    WorkspacesListRouteParams,
-    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
-    YourPlanPriceValueParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -581,7 +553,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseDocument: 'ファイルを選択',
         attachmentTooLarge: '添付ファイルが大きすぎます',
         sizeExceeded: '添付ファイルのサイズが24MBの上限を超えています',
-        sizeExceededWithLimit: ({maxUploadSizeInMB}: SizeExceededParams) => `添付ファイルのサイズが上限の ${maxUploadSizeInMB} MB を超えています`,
+        sizeExceededWithLimit: (maxUploadSizeInMB) => `添付ファイルのサイズが上限の ${maxUploadSizeInMB} MB を超えています`,
         attachmentTooSmall: '添付ファイルが小さすぎます',
         sizeNotMet: '添付ファイルのサイズは240バイトより大きくする必要があります',
         wrongFileType: '無効なファイル形式',
@@ -592,9 +564,9 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentImageTooLarge: 'この画像は大きすぎるため、アップロード前にプレビューできません。',
         imageDimensionsTooLarge: '画像のサイズが大きすぎて処理できません。小さい画像を使用してください。',
         tooManyFiles: (fileLimit: number) => `一度にアップロードできるファイルは最大${fileLimit}件までです。`,
-        sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルが ${maxUploadSizeInMB} MB を超えています。もう一度お試しください。`,
+        sizeExceededWithValue: (maxUploadSizeInMB) => `ファイルが ${maxUploadSizeInMB} MB を超えています。もう一度お試しください。`,
         someFilesCantBeUploaded: '一部のファイルをアップロードできません',
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルサイズは${maxUploadSizeInMB}MB以下である必要があります。これより大きいファイルはアップロードされません。`,
+        sizeLimitExceeded: (maxUploadSizeInMB) => `ファイルサイズは${maxUploadSizeInMB}MB以下である必要があります。これより大きいファイルはアップロードされません。`,
         maxFileLimitExceeded: '一度にアップロードできるレシートは最大30枚です。超過分はアップロードされません。',
         unsupportedFileType: (fileType: string) => `${fileType} ファイルはサポートされていません。サポートされているファイルタイプのみアップロードされます。`,
         learnMoreAboutSupportedFiles: '対応している形式の詳細を確認する',
@@ -876,7 +848,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'このチャットルームはアーカイブされました。',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: (displayName: string) => `${displayName} がアカウントを閉鎖したため、このチャットは現在利用できません。`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}: ReportArchiveReasonsClosedParams) => `${displayName} がアカウントを閉鎖したため、このチャットは現在利用できません。`,
         [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}: ReportArchiveReasonsMergedParams) =>
             `このチャットは、${oldDisplayName} が自分のアカウントを ${displayName} と統合したため、現在はアクティブではありません。`,
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName, shouldUseYou = false}: ReportArchiveReasonsRemovedFromPolicyParams) =>
@@ -1459,7 +1431,7 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
         changeApprover: {
             title: '承認者を変更',
-            header: ({workflowSettingLink}: WorkflowSettingsParam) =>
+            header: (workflowSettingLink) =>
                 `このレポートの承認者を変更する方法を選択してください。（すべてのレポートで恒久的に変更するには、<a href="${workflowSettingLink}">ワークスペース設定</a>を更新してください。）`,
             changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
             actions: {
@@ -1549,10 +1521,10 @@ const translations: TranslationDeepObject<typeof en> = {
         viewPhoto: '写真を見る',
         imageUploadFailed: '画像のアップロードに失敗しました',
         deleteWorkspaceError: '申し訳ありません、ワークスペースのアバターを削除する際に予期せぬ問題が発生しました',
-        sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `選択された画像は、アップロード可能な最大サイズ ${maxUploadSizeInMB} MB を超えています。`,
+        sizeExceeded: (maxUploadSizeInMB) => `選択された画像は、アップロード可能な最大サイズ ${maxUploadSizeInMB} MB を超えています。`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `${minHeightInPx}x${minWidthInPx}ピクセルより大きく、${maxHeightInPx}x${maxWidthInPx}ピクセルより小さい画像をアップロードしてください。`,
-        notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `プロフィール写真は次のいずれかのタイプである必要があります：${allowedExtensions.join(', ')}。`,
+        notAllowedExtension: (allowedExtensions) => `プロフィール写真は次のいずれかのタイプである必要があります：${allowedExtensions.join(', ')}。`,
     },
     avatarPage: {
         title: 'プロフィール写真を編集',
@@ -2138,15 +2110,15 @@ const translations: TranslationDeepObject<typeof en> = {
         availableSpend: '残りの上限',
         smartLimit: {
             name: 'スマート上限',
-            title: ({formattedLimit}: ViolationsOverLimitParams) => `このカードでは最大で${formattedLimit}まで使用でき、提出した経費が承認されると、その限度額はリセットされます。`,
+            title: (formattedLimit) => `このカードでは最大で${formattedLimit}まで使用でき、提出した経費が承認されると、その限度額はリセットされます。`,
         },
         fixedLimit: {
             name: '固定上限',
-            title: ({formattedLimit}: ViolationsOverLimitParams) => `このカードでは最大で${formattedLimit}まで利用できます。その後、自動的に無効になります。`,
+            title: (formattedLimit) => `このカードでは最大で${formattedLimit}まで利用できます。その後、自動的に無効になります。`,
         },
         monthlyLimit: {
             name: '月ごとの上限',
-            title: ({formattedLimit}: ViolationsOverLimitParams) => `このカードでは月あたり最大 ${formattedLimit} まで利用できます。利用限度額は毎月、暦月の1日目にリセットされます。`,
+            title: (formattedLimit) => `このカードでは月あたり最大 ${formattedLimit} まで利用できます。利用限度額は毎月、暦月の1日目にリセットされます。`,
         },
         virtualCardNumber: 'バーチャルカード番号',
         travelCardCvv: 'トラベルカードのCVV',
@@ -2601,7 +2573,7 @@ ${date} の ${merchant} への ${amount}`,
         },
         workEmailValidation: {
             title: '勤務先メールを確認してください',
-            magicCodeSent: ({workEmail}: WorkEmailResendCodeParams) => `${workEmail} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
+            magicCodeSent: (workEmail) => `${workEmail} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
         },
         workEmailValidationError: {
             publicEmail: 'プライベートドメインの有効な勤務先メールアドレスを入力してください（例：mitch@company.com）',
@@ -2609,7 +2581,7 @@ ${date} の ${merchant} への ${amount}`,
         },
         mergeBlockScreen: {
             title: '勤務用メールアドレスを追加できませんでした',
-            subtitle: ({workEmail}: WorkEmailMergingBlockedParams) =>
+            subtitle: (workEmail) =>
                 `${workEmail} を追加できませんでした。後で「設定」からもう一度お試しいただくか、ガイダンスについて Concierge にチャットでお問い合わせください。`,
         },
         tasks: {
@@ -3047,9 +3019,9 @@ ${
         setVacationDelegate: `休暇中に不在の間、あなたに代わってレポートを承認する代理人を設定しましょう。`,
         cannotSetVacationDelegate: `現在、次のメンバーの代理人になっているため、休暇代理人を設定できません：`,
         vacationDelegateError: '休暇の代理人を更新中にエラーが発生しました。',
-        asVacationDelegate: ({nameOrEmail}: VacationDelegateParams) => `${nameOrEmail} さんの休暇代理として`,
+        asVacationDelegate: (nameOrEmail) => `${nameOrEmail} さんの休暇代理として`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `${vacationDelegateName} の休暇代理人として ${submittedToName} に`,
-        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+        vacationDelegateWarning: (nameOrEmail) =>
             `${nameOrEmail} さんをあなたの休暇代理人に指定しようとしています。この人は、まだすべてのワークスペースに参加していません。続行すると、すべてのワークスペース管理者に、この人を追加するようメールが送信されます。`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
@@ -3089,7 +3061,7 @@ ${
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `銀行口座を連携するには、まず<a href="${contactMethodRoute}">メールアドレスをプライマリログインとして追加</a>してから、もう一度お試しください。電話番号はセカンダリログインとして追加できます。`,
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから、もう一度お試しください。',
-        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+        hasCurrencyError: (workspaceRoute) =>
             `おっと！ワークスペースの通貨がUSD以外に設定されているようです。続行するには、<a href="${workspaceRoute}">ワークスペース設定</a>で通貨をUSDに変更してから、もう一度お試しください。`,
         bbaAdded: 'ビジネス用銀行口座を追加しました！',
         bbaAddedDescription: '支払いに利用できる状態です。',
@@ -3214,7 +3186,7 @@ ${
         haveReadAndAgreePlain: '電子開示を受け取ることを読み理解し、同意します。',
         haveReadAndAgree: `<a href="${CONST.ELECTRONIC_DISCLOSURES_URL}">電子開示書面</a>を受け取ることを確認し、同意します。`,
         agreeToThePlain: 'プライバシーおよびウォレット規約に同意します。',
-        agreeToThe: ({walletAgreementUrl}: WalletAgreementParams) =>
+        agreeToThe: (walletAgreementUrl) =>
             `<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシーポリシー</a>および<a href="${walletAgreementUrl}">ウォレット利用規約</a>に同意します。`,
         enablePayments: '支払いを有効にする',
         monthlyFee: '月額料金',
@@ -3226,7 +3198,7 @@ ${
         checkTheBoxes: '以下のチェックボックスを選択してください。',
         agreeToTerms: '利用規約に同意すれば、すぐに始められます！',
         shortTermsForm: {
-            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `Expensifyウォレットは${walletProgram}によって発行されています。`,
+            expensifyPaymentsAccount: (walletProgram) => `Expensifyウォレットは${walletProgram}によって発行されています。`,
             perPurchase: '購入ごと',
             atmWithdrawal: 'ATM引き出し',
             cashReload: '現金リロード',
@@ -3874,7 +3846,7 @@ ${
             appliedOnExport: 'Expensify にはインポートされず、エクスポート時に適用されます',
             shareNote: {
                 header: 'ワークスペースを他のメンバーと共有する',
-                content: ({adminsRoomLink}: WorkspaceShareNoteParams) =>
+                content: (adminsRoomLink) =>
                     `このQRコードを共有するか、以下のリンクをコピーしてメンバーがあなたのワークスペースへのアクセスを簡単にリクエストできるようにしましょう。ワークスペースへの参加リクエストはすべて、あなたが確認できるように<a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a>ルームに表示されます。`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} に接続`,
@@ -5524,7 +5496,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             addedWithPrimary: '一部のメンバーは、プライマリーログインで追加されました。',
             invitedBySecondaryLogin: (secondaryLogin: string) => `セカンダリログイン${secondaryLogin}によって追加されました。`,
-            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `ワークスペースメンバー合計：${count}`,
+            workspaceMembersCount: (count) => `ワークスペースメンバー合計：${count}`,
             importMembers: 'メンバーをインポート',
             removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `このワークスペースから${approver}を削除すると、承認ワークフロー内ではワークスペースのオーナーである${workspaceOwner}に置き換えられます。`,
@@ -6148,7 +6120,7 @@ ${reportName}
                 perActiveMember: 'アクティブメンバー1人あたり月額',
                 perMember: 'メンバー1人あたり月額',
             },
-            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            note: (subscriptionLink) =>
                 `<muted-text>この機能を利用するにはアップグレードするか、プランと料金の詳細は<a href="${subscriptionLink}">こちら</a>をご覧ください。</muted-text>`,
             upgradeToUnlock: 'この機能を有効にする',
             completed: {
@@ -6214,7 +6186,7 @@ ${reportName}
         restrictedAction: {
             restricted: '制限あり',
             actionsAreCurrentlyRestricted: (workspaceName: string) => `${workspaceName} ワークスペースでの操作は現在制限されています`,
-            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}: WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams) =>
+            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: (workspaceOwnerName) =>
                 `ワークスペースオーナーである${workspaceOwnerName}が、ワークスペースの新しいアクティビティを有効にするために、登録済みの支払いカードを追加または更新する必要があります。`,
             youWillNeedToAddOrUpdatePaymentCard: '新しいワークスペースのアクティビティを有効にするには、登録済みの支払いカードを追加または更新する必要があります。',
             addPaymentCardToUnlock: 'ロック解除のために支払いカードを追加してください！',
@@ -6559,7 +6531,7 @@ ${reportName}
         },
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
             `${customUnitName} の${updatedField}を「${newValue}」（以前は「${oldValue}」）に変更しました`,
-        updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? '有効' : '無効'} 距離レートでの税金追跡`,
+        updateCustomUnitTaxEnabled: (newValue) => `${newValue ? '有効' : '無効'} 距離レートでの税金追跡`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `新しい${customUnitName}レート「${rateName}」を追加しました`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `${customUnitName} の ${updatedField}「${customUnitRateName}」のレートを「${newValue}」（以前は「${oldValue}」）に変更しました`,
@@ -6729,7 +6701,7 @@ ${reportName}
             oldValue ? `請求書の会社ウェブサイトを「${newValue}」（以前は「${oldValue}」）に変更しました` : `請求書の会社ウェブサイトを「${newValue}」に設定しました`,
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `認可された支払者を「${newReimburser}」（以前は「${previousReimburser}」）に変更しました` : `承認済み支払担当者を「${newReimburser}」に変更しました`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? '有効' : '無効'}件の精算`,
+        updateReimbursementEnabled: (enabled) => `${enabled ? '有効' : '無効'}件の精算`,
         updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `カスタム税区分名を「${newName}」（以前は「${oldName}」）に変更しました`,
         updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `ワークスペースの通貨デフォルト税率を「${newName}」（以前は「${oldName}」）に変更しました`,
         updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) => `外貨のデフォルト税率を「${newName}」に変更しました（以前は「${oldName}」）。`,
@@ -6766,15 +6738,15 @@ ${reportName}
         setMaxExpenseAge: (newValue: string) => `最大経費日数を「${newValue}」日に設定`,
         changedMaxExpenseAge: (oldValue: string, newValue: string) => `最大経費期限を「${newValue}」日に変更しました（以前は「${oldValue}」日）`,
         removedMaxExpenseAge: (oldValue: string) => `最大経費日数を削除（以前は「${oldValue}」日）`,
-        updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `${count} 個のカテゴリーを更新しました`,
-        updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `リスト「${tagListName}」のタグを更新しました`,
+        updateCategories: (count) => `${count} 個のカテゴリーを更新しました`,
+        updateTagList: (tagListName) => `リスト「${tagListName}」のタグを更新しました`,
         updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
             `タグリスト「${tagListsName}」を${isRequired ? '必須' : '必須ではありません'}に変更しました`,
         importTags: 'スプレッドシートからタグをインポートしました',
         deletedAllTags: 'すべてのタグを削除しました',
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
             `${customUnitName}のデフォルトカテゴリを「${newValue}」に変更しました ${oldValue ? `（以前の値 "${oldValue}"）` : ''}`,
-        importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `カスタム単位「${customUnitName}」のレートをインポートしました`,
+        importCustomUnitRates: (customUnitName) => `カスタム単位「${customUnitName}」のレートをインポートしました`,
         updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
             `「${customUnitName}」のレート「${customUnitRateName}」、サブレート「${customUnitSubRateName}」の${updatedField}を「${newValue}」（以前は「${oldValue}」）に変更しました`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
@@ -6848,7 +6820,7 @@ ${reportName}
             }
             return `${entityType}「${entityName}」から予算を削除しました`;
         },
-        updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
+        updatedTimeEnabled: (enabled) => {
             return `${enabled ? '有効' : '無効'} 時間追跡`;
         },
         updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
@@ -6862,7 +6834,7 @@ ${reportName}
         updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: UpdatedPolicyDefaultTitleParams) =>
             `カスタムレポート名の数式を「${newDefaultTitle}」に変更しました（以前は「${oldDefaultTitle}」）`,
         updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) => `${oldOwnerName}（${oldOwnerEmail}）から${policyName}の所有権を引き継ぎました`,
-        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `${enabled ? '有効' : '無効'} の送信を予約しました`,
+        updatedAutoHarvesting: (enabled) => `${enabled ? '有効' : '無効'} の送信を予約しました`,
         updatedIndividualBudgetNotification: ({
             budgetAmount,
             budgetFrequency,
@@ -7590,15 +7562,15 @@ ${reportName}
         allTagLevelsRequired: 'すべてのタグが必須です',
         autoReportedRejectedExpense: 'この経費精算は却下されました。',
         billableExpense: '請求可能区分は無効になりました',
-        cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `領収書が必要です${formattedLimit ? `${formattedLimit} を超過` : ''}`,
+        cashExpenseWithNoReceipt: (formattedLimit?: string) => `領収書が必要です${formattedLimit ? `${formattedLimit} を超過` : ''}`,
         categoryOutOfPolicy: 'カテゴリは無効です',
-        conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `${surcharge}% の換算手数料を適用しました`,
+        conversionSurcharge: (surcharge) => `${surcharge}% の換算手数料を適用しました`,
         customUnitOutOfPolicy: 'このワークスペースでは有効なレートではありません',
         duplicatedTransaction: '重複の可能性',
         fieldRequired: 'レポートの項目は必須です',
         futureDate: '将来の日付は使用できません',
-        invoiceMarkup: ({invoiceMarkup}: ViolationsInvoiceMarkupParams) => `${invoiceMarkup}%値上げ済み`,
-        maxAge: ({maxAge}: ViolationsMaxAgeParams) => `日付が${maxAge}日より前です`,
+        invoiceMarkup: (invoiceMarkup) => `${invoiceMarkup}%値上げ済み`,
+        maxAge: (maxAge) => `日付が${maxAge}日より前です`,
         missingCategory: 'カテゴリが未選択です',
         missingComment: '選択したカテゴリには説明が必要です',
         missingAttendees: 'このカテゴリには複数の参加者が必要です',
@@ -7618,12 +7590,12 @@ ${reportName}
         },
         modifiedDate: '日付がスキャンしたレシートと異なります',
         nonExpensiworksExpense: 'Expensiworks 以外の経費',
-        overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `経費が自動承認限度額 ${formattedLimit} を超えています`,
-        overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `1人あたりのカテゴリ上限 ${formattedLimit} を超えた金額`,
-        overLimit: ({formattedLimit}: ViolationsOverLimitParams) => `1人あたりの上限額 ${formattedLimit} を超過した金額`,
-        overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `1回の出張あたりの上限${formattedLimit}超過額`,
-        overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `1人あたりの上限額 ${formattedLimit} を超過した金額`,
-        perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `1人あたりの1日上限額 ${formattedLimit} を超えたカテゴリ金額`,
+        overAutoApprovalLimit: (formattedLimit) => `経費が自動承認限度額 ${formattedLimit} を超えています`,
+        overCategoryLimit: (formattedLimit) => `1人あたりのカテゴリ上限 ${formattedLimit} を超えた金額`,
+        overLimit: (formattedLimit) => `1人あたりの上限額 ${formattedLimit} を超過した金額`,
+        overTripLimit: (formattedLimit) => `1回の出張あたりの上限${formattedLimit}超過額`,
+        overLimitAttendee: (formattedLimit) => `1人あたりの上限額 ${formattedLimit} を超過した金額`,
+        perDayLimit: (formattedLimit) => `1人あたりの1日上限額 ${formattedLimit} を超えたカテゴリ金額`,
         receiptNotSmartScanned: 'レシートと経費の詳細が手動で追加されました。',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             if (formattedLimit && category) {
@@ -7637,7 +7609,7 @@ ${reportName}
             }
             return '領収書が必要です';
         },
-        itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `項目別の領収書が必要です${formattedLimit ? `${formattedLimit} を超過` : ''}`,
+        itemizedReceiptRequired: (formattedLimit?: string) => `項目別の領収書が必要です${formattedLimit ? `${formattedLimit} を超過` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
             const preMessage = '禁止経費：';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7667,7 +7639,7 @@ ${reportName}
             }
             return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
-        customRules: ({message}: ViolationsCustomRulesParams) => message,
+        customRules: (message) => message,
         reviewRequired: '要レビュー',
         rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
@@ -7885,9 +7857,9 @@ ${reportName}
             title: 'あなたのプラン',
             exploreAllPlans: 'すべてのプランを表示',
             customPricing: 'カスタム料金',
-            asLowAs: ({price}: YourPlanPriceValueParams) => `アクティブメンバー1人あたり月額${price}〜`,
-            pricePerMemberMonth: ({price}: YourPlanPriceValueParams) => `メンバー1人あたり/月 ${price}`,
-            pricePerMemberPerMonth: ({price}: YourPlanPriceValueParams) => `${price}（メンバー1人あたり／月）`,
+            asLowAs: (price) => `アクティブメンバー1人あたり月額${price}〜`,
+            pricePerMemberMonth: (price) => `メンバー1人あたり/月 ${price}`,
+            pricePerMemberPerMonth: (price) => `${price}（メンバー1人あたり／月）`,
             perMemberMonth: 'メンバー1人あたり／月',
             collect: {
                 title: '回収',
@@ -8003,7 +7975,7 @@ ${reportName}
                 title: 'サブスクリプションを解約しました',
                 subtitle: '年間サブスクリプションは解約されました。',
                 info: 'ワークスペースを従量課金制で使い続けたい場合は、これで準備完了です。',
-                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                preventFutureActivity: (workspacesListRoute) =>
                     `今後のアクティビティや請求を防ぎたい場合は、<a href="${workspacesListRoute}">ワークスペースを削除</a>する必要があります。ワークスペースを削除すると、当月中に発生した未精算のアクティビティについて請求が行われることにご注意ください。`,
             },
             requestSubmitted: {

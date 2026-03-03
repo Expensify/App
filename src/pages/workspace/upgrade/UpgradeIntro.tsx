@@ -154,7 +154,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 />
             </View>
             <View style={[styles.mt6, styles.renderHTML]}>
-                <RenderHTML html={translate('workspace.upgrade.note', {subscriptionLink})} />
+                <RenderHTML html={translate('workspace.upgrade.note', subscriptionLink)} />
             </View>
         </View>
     );
