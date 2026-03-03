@@ -851,6 +851,7 @@ function computeReportName(
         formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList, currentUserAccountID});
     }
 
+
     if (isSelfDM(report)) {
         formattedName = getDisplayNameForParticipant({
             accountID: report?.ownerAccountID,
@@ -883,34 +884,15 @@ function computeReportName(
  *
  * @param report
  * @param reportAttributesDerivedValue
- * @param reports
- * @param parentReportActionParam
  */
 function getReportName(
     report?: Report,
     reportAttributesDerivedValue?: ReportAttributesDerivedValue['reports'],
-    reports?: OnyxCollection<Report>,
-    parentReportActionParam?: OnyxEntry<ReportAction> | null,
 ): string {
     if (!report || !report.reportID) {
         return '';
     }
-
-    const parentReportAction = parentReportActionParam;
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
-        const {originalID} = getOriginalMessage(parentReportAction) ?? {};
-        const originalReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
-        const originalReportName = originalReport ? getReportName(originalReport, reportAttributesDerivedValue) : '';
-        const currentLocale = IntlStore.getCurrentLocale();
-        const translateInCurrentLocale: LocalizedTranslate = (path, ...parameters) => translateWithLocale(currentLocale, path, ...parameters);
-        return getCreatedReportForUnapprovedTransactionsMessage(originalID, originalReportName, translateInCurrentLocale);
-    }
-
-    if (isInvoiceRoom(report)) {
-        return getInvoicesChatName({report, receiverPolicy: undefined, personalDetails: allPersonalDetails});
-    }
-
-    return reportAttributesDerivedValue?.[report.reportID]?.reportName ?? report.reportName ?? '';
+    return reportAttributesDerivedValue?.[report.reportID]?.reportName ?? report.reportName ?? ''
 }
 
 export {
